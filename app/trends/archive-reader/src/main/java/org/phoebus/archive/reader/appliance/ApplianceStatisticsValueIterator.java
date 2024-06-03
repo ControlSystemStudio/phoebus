@@ -12,10 +12,10 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
-import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.pv.TimeHelper;
 
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadType;
+import org.phoebus.util.time.TimestampHelper;
 
 /**
  *

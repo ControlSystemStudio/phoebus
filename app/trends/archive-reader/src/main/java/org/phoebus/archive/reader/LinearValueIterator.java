@@ -18,10 +18,10 @@ import org.epics.vtype.VNumber;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.StatisticsAccumulator;
-import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.pv.TimeHelper;
 import org.phoebus.util.time.TimeDuration;
+import org.phoebus.util.time.TimestampHelper;
 
 /** {@link ValueIterator} that performs linear interpolation
  *

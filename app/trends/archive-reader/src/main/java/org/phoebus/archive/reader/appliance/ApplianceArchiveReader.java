@@ -21,8 +21,8 @@ import org.epics.archiverappliance.retrieval.client.RawDataRetrieval;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.ui.text.RegExHelper;
+import org.phoebus.util.time.TimestampHelper;
 
 /**
  * Appliance archive reader which reads data from EPICS archiver appliance.
