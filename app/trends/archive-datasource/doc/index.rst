@@ -1,5 +1,5 @@
-Alarm Datasource
-================
+Archive Datasource
+==================
 
 Overview
 --------
