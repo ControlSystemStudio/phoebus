@@ -87,8 +87,9 @@ public class Preferences
     @Preference public static boolean use_default_archives;
     /** Setting */
     @Preference public static boolean drop_failed_archives;
-//    /** Setting */
-//    @Preference public static String[]  equivalent_pv_prefixes;
+    /** Setting */
+    @Deprecated
+    @Preference public static String[]  equivalent_pv_prefixes;
     /** Setting */
     @Preference public static boolean use_trace_names;
     /** Setting */
