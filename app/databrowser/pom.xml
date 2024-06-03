@@ -56,23 +56,18 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-rtplot</artifactId>
+      <artifactId>app-trends-archive-reader</artifactId>
       <version>4.7.4-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-      <version>3.21.9</version>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-rtplot</artifactId>
+      <version>4.7.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>epics-util</artifactId>
       <version>${epics.util.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.epics</groupId>
-      <artifactId>pbrawclient</artifactId>
-      <version>0.0.10</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
     <dependency>
