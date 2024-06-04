@@ -1,6 +1,5 @@
 package org.phoebus.pv.archive;
 
-import org.csstudio.trends.databrowser3.Activator;
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -18,7 +17,7 @@ public class Preferences
 
     static
     {
-        final PreferencesReader prefs = AnnotatedPreferences.initialize(Activator.class, Preferences.class, "/appliance_datasource_preferences.properties");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(Preferences.class, "/appliance_datasource_preferences.properties");
     }
 
 }
