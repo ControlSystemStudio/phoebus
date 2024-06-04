@@ -22,7 +22,7 @@ public class Locations
     /** system property for phoebus logged user */
     public static final String PHOEBUS_USER = "phoebus.user";
     /** system property for the name of the folder containing preferences and the memento file */
-    public static final String NAME_FOLDER_PREFERENCE = "phoebus.name.folder.preference";
+    public static final String FOLDER_NAME_PREFERENCE = "phoebus.folder.name.preference";
 
     /** Initialize locations */
     public static void initialize()
@@ -68,14 +68,14 @@ public class Locations
     private static void initUser()
     {
         String phoebus_user = System.getProperty(PHOEBUS_USER);
-        String name_folder_preference = System.getProperty(NAME_FOLDER_PREFERENCE);
+        String folder_name_preference = System.getProperty(FOLDER_NAME_PREFERENCE);
         if (phoebus_user == null)
         {
-            if (name_folder_preference == null) 
+            if (folder_name_preference == null) 
             {
             name_folder_preference = ".phoebus";
             }
-            phoebus_user = new File(System.getProperty("user.home"), name_folder_preference).getAbsolutePath();
+            phoebus_user = new File(System.getProperty("user.home"), folder_name_preference).getAbsolutePath();
             System.setProperty(PHOEBUS_USER, phoebus_user);
         }
     }
