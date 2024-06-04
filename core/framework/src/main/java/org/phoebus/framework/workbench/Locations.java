@@ -73,7 +73,7 @@ public class Locations
         {
             if (folder_name_preference == null) 
             {
-            name_folder_preference = ".phoebus";
+            folder_name_preference = ".phoebus";
             }
             phoebus_user = new File(System.getProperty("user.home"), folder_name_preference).getAbsolutePath();
             System.setProperty(PHOEBUS_USER, phoebus_user);
