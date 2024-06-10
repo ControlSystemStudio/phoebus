@@ -46,6 +46,7 @@ public class ActiveWindowsService {
                                 new Thread(() -> {
                                     try {
                                         DisplayRuntimeInstance instance = ((DisplayRuntimeInstance) tab.getProperties().get("application"));
+                                        //block until the model is ready
                                         instance.getRepresentation_init().get();
                                         lock.lock();
                                         String windowID = (String) window.getProperties().get(DockStage.KEY_ID);

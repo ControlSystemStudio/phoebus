@@ -107,7 +107,7 @@ public class ActiveWidgetsService {
         return parentTab;
     }
 
-    public String getHashFilename() {
+    public String getHashFileName() {
         return hashFilename;
     }
 }

@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.phoebus</groupId>
         <artifactId>app-ux-analytics</artifactId>
-        <version>4.7.2-SNAPSHOT</version>
+        <version>4.7.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>app-analytics-monitor</artifactId>
@@ -32,7 +32,7 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-framework</artifactId>
-            <version>4.7.2-SNAPSHOT</version>
+            <version>4.7.4-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -54,19 +54,19 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-ui</artifactId>
-            <version>4.7.2-SNAPSHOT</version>
+            <version>4.7.4-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-display-model</artifactId>
-            <version>4.7.2-SNAPSHOT</version>
+            <version>4.7.4-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-display-runtime</artifactId>
-            <version>4.7.2-SNAPSHOT</version>
+            <version>4.7.4-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-logbook-elog</artifactId>
-            <version>4.7.2-SNAPSHOT</version>
+            <version>4.7.4-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

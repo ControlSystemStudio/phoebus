@@ -15,7 +15,6 @@ import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.util.NamedDaemonPool;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
-import org.csstudio.display.builder.runtime.app.DoubleEventExample;
 import org.csstudio.display.builder.runtime.script.internal.ScriptSupport;
 
 import java.util.List;
