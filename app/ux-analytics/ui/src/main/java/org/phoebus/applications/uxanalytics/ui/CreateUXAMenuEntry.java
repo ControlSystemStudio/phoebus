@@ -7,11 +7,11 @@ import org.phoebus.ui.spi.MenuEntry;
 public class CreateUXAMenuEntry implements MenuEntry {
 
     @Override
-    public String getName() { return UXAnalyticsUI.DISPLAY_NAME;}
+    public String getName() { return UXAnalyticsMain.DISPLAY_NAME;}
 
     @Override
     public Void call() throws Exception {
-        ApplicationService.createInstance(UXAnalyticsUI.NAME);
+        ApplicationService.createInstance(UXAnalyticsMain.NAME);
         return null;
     }
 

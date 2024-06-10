@@ -9,7 +9,7 @@
         <version>4.7.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>app-analytics-ui</artifactId>
+    <artifactId>app-analytics-monitor</artifactId>
 
     <properties>
         <maven.compiler.source>22</maven.compiler.source>
@@ -51,14 +51,6 @@
             <artifactId>mongodb-driver-sync</artifactId>
             <version>5.1.0</version>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.14</version>
-        </dependency>
-
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-ui</artifactId>
@@ -67,14 +59,40 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
-            <artifactId>app-analytics-monitor</artifactId>
+            <artifactId>app-display-model</artifactId>
             <version>4.7.2-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
-            <artifactId>core-logbook</artifactId>
+            <artifactId>app-display-runtime</artifactId>
             <version>4.7.2-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.14</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bom</artifactId>
+            <version>2.25.66</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.25.66</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>app-logbook-elog</artifactId>
+            <version>4.7.2-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

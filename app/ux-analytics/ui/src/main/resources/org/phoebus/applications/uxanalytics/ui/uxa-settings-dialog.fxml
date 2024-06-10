@@ -1,14 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.Pane?>
-<?import javafx.scene.shape.Circle?>
-<?import javafx.scene.shape.QuadCurve?>
 
-
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="202.0" prefWidth="265.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <QuadCurve controlX="-2.0" controlY="98.0" endX="50.0" fill="DODGERBLUE" layoutX="294.0" layoutY="216.0" startX="-50.0" stroke="BLACK" strokeType="INSIDE" />
-      <Circle fill="DODGERBLUE" layoutX="203.0" layoutY="108.0" radius="29.0" stroke="BLACK" strokeType="INSIDE" />
-      <Circle fill="DODGERBLUE" layoutX="373.0" layoutY="108.0" radius="29.0" stroke="BLACK" strokeType="INSIDE" />
+      <Pane layoutX="14.0" layoutY="14.0" prefHeight="175.0" prefWidth="232.0">
+         <children>
+            <TextField id="txtHost" fx:id="txtHost" layoutX="70.0" layoutY="27.0" prefHeight="25.0" prefWidth="98.0" promptText="Host" text="localhost" />
+            <TextField id="txtPort" fx:id="txtPort" layoutX="170.0" layoutY="27.0" prefHeight="25.0" prefWidth="47.0" promptText="Port" text="7687" />
+            <TextField id="txtUsername" fx:id="txtUser" layoutX="69.0" layoutY="62.0" promptText="Username" />
+            <PasswordField id="passPassword" fx:id="passPassword" layoutX="69.0" layoutY="87.0" promptText="Password" />
+            <Button id="btnConnect" fx:id="btnConnect" layoutX="69.0" layoutY="123.0" mnemonicParsing="false" onMouseClicked="#tryConnect" prefHeight="25.0" prefWidth="149.0" text="Connect" />
+            <Label id="lblSuccessFailure" fx:id="lblSuccessFailure" layoutX="50.0" layoutY="159.0" prefHeight="17.0" prefWidth="149.0" visible="false" />
+            <Label id="lblProtocol" fx:id="lblProtocol" alignment="CENTER" layoutY="30.0" prefHeight="17.0" prefWidth="70.0" />
+         </children>
+      </Pane>
    </children>
 </Pane>

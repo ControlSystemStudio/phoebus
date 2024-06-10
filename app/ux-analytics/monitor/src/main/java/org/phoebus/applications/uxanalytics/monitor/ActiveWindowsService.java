@@ -13,6 +13,7 @@ import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 
 import javax.sound.midi.SysexMessage;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
@@ -25,8 +26,7 @@ public class ActiveWindowsService {
     private final ReentrantLock lock = new ReentrantLock();
 
 
-    //don't want anyone faffing about with the map, but they should be able to see it
-    public ConcurrentHashMap<String, ActiveTabsService> getActiveWindowsAndTabs() {
+    ConcurrentHashMap<String, ActiveTabsService> getActiveWindowsAndTabs() {
         return activeWindowsAndTabs;
     }
 
@@ -78,10 +78,8 @@ public class ActiveWindowsService {
                             String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
                             activeWindowsAndTabs.putIfAbsent(windowID, new ActiveTabsService(window));
                             for(DockPane item: DockStage.getDockPanes((Stage)window)){
-                                //initialize
                                 for (Tab tab: item.getTabs()){
                                     if(tab instanceof DockItemWithInput){
-
                                         try {
                                             activeWindowsAndTabs.get(windowID).add((DockItemWithInput)tab);
                                         } catch (Exception e) {
@@ -89,7 +87,6 @@ public class ActiveWindowsService {
                                         }
                                     }
                                 }
-                                //tack on a listener for changes
                                 item.getTabs().addListener(UXATabChangeListener);
                             }
                         }
@@ -130,7 +127,16 @@ public class ActiveWindowsService {
     }
 
     public ActiveTabsService getTabsForWindow(Window window){
-        return activeWindowsAndTabs.get(window);
+        return activeWindowsAndTabs.get((String) window.getProperties().get(DockStage.KEY_ID));
+    }
+
+    public ActiveTabsService getTabsForWindow(String windowID){
+        return activeWindowsAndTabs.get(windowID);
+    }
+
+    public static ActiveWidgetsService getUXAWrapperFor(DockItemWithInput tab){
+        Window window =  tab.getTabPane().getScene().getWindow();
+        return ActiveWindowsService.getInstance().getTabsForWindow(window).getActiveTabs().get(tab.toString());
     }
 
 }

@@ -1,10 +1,18 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
+import javafx.scene.control.Tab;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Future;
@@ -14,7 +22,10 @@ public class ActiveWidgetsService {
 
     private final ConcurrentLinkedDeque<Widget> widgets;
     private final DockItemWithInput parentTab;
-    private final ToolkitListener listener;
+    private final File fileObject;
+    private final String SHA256;
+    private final String hashFilename;
+    private final ToolkitListener toolkitListener;
     private final Supplier<Future<Boolean>> ok_to_close = () -> {
         this.close();
         return CompletableFuture.completedFuture(true);
@@ -23,13 +34,58 @@ public class ActiveWidgetsService {
     public ActiveWidgetsService(DockItemWithInput tab){
         widgets = new ConcurrentLinkedDeque<>();
         parentTab = tab;
-        listener = new UXAToolkitListener();
-        ((DisplayRuntimeInstance)tab.getProperties().get("application")).addListener(listener);
+        fileObject = ResourceParser.getFile(parentTab.getInput());
+        SHA256 = getFileSHA256(fileObject);
+        hashFilename = getFileName()+getFirst8CharsSHA256();
+        toolkitListener = new UXAToolkitListener();
+        ((DisplayRuntimeInstance)tab.getProperties().get("application")).addListener(toolkitListener);
         parentTab.addCloseCheck(ok_to_close);
     }
 
-    public ToolkitListener getListener(){
-        return listener;
+    public File getFileObject(){
+        return fileObject;
+    }
+
+    public String getFileName(){
+        return fileObject.getName();
+    }
+
+    //re-implement here with Java MessageDigest, so we don't need to depend on elog
+    private static String getFileSHA256(File fileObject){
+        try(InputStream fis = new FileInputStream(fileObject)){
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+            byte[] byteBuffer = new byte[1024];
+            int bytesCount = 0;
+
+            while((bytesCount = fis.read(byteBuffer)) != -1){
+                digest.update(byteBuffer, 0, bytesCount);
+            }
+
+            byte[] bytes = digest.digest();
+
+            StringBuilder sb = new StringBuilder();
+            for(int i=0; i< bytes.length ;i++){
+                sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+            }
+
+            return sb.toString();
+
+        } catch(IOException | NoSuchAlgorithmException e){;
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String getSHA256(){
+        return SHA256;
+    }
+
+    public String getFirst8CharsSHA256(){
+        return SHA256.substring(0, 8);
+    }
+
+    public ToolkitListener getToolkitListener(){
+        return toolkitListener;
     }
 
     public synchronized void add(Widget widget){
@@ -44,6 +100,14 @@ public class ActiveWidgetsService {
 
         DisplayRuntimeInstance instance = (DisplayRuntimeInstance) parentTab.getApplication();
         if(instance != null)
-            instance.removeListener(listener);
+            instance.removeListener(toolkitListener);
+    }
+
+    public Tab getParentTab() {
+        return parentTab;
+    }
+
+    public String getHashFilename() {
+        return hashFilename;
     }
 }
