@@ -1,1 +1,2 @@
 org.csstudio.display.builder.runtime.actionhandlers.OpenDisplayActionHandler
+org.csstudio.display.builder.runtime.actionhandlers.WritePVActionHandler

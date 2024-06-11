@@ -186,7 +186,7 @@ public class OpenDisplayAction extends PluggableActionBase {
                 }
             } else {
                 Optional<String> mode = XMLUtil.getChildString(actionXml, "mode");
-                mode.ifPresent(s -> target = modeToTargetConvert(Integer.valueOf(s)));
+                mode.ifPresent(s -> target = modeToTargetConvert(Integer.parseInt(s)));
             }
         }
 
@@ -215,7 +215,7 @@ public class OpenDisplayAction extends PluggableActionBase {
         writer.writeStartElement(XMLTags.FILE);
         writer.writeCharacters(file);
         writer.writeEndElement();
-        if (!macros.getNames().isEmpty()) {
+        if (macros != null && !macros.getNames().isEmpty()) {
             writer.writeStartElement(XMLTags.MACROS);
             MacroXMLUtil.writeMacros(writer, macros);
             writer.writeEndElement();
@@ -275,24 +275,20 @@ public class OpenDisplayAction extends PluggableActionBase {
     }
 
     private OpenDisplayAction.Target modeToTargetConvert(int mode) {
-        switch (mode) {
+        return switch (mode) {
             // 0 - REPLACE
-            case 0:
-                return OpenDisplayAction.Target.REPLACE;
+            case 0 -> Target.REPLACE;
             // 7 - NEW_WINDOW
             // 8 - NEW_SHELL
-            case 7:
-            case 8:
-                return OpenDisplayAction.Target.WINDOW;
+            case 7, 8 -> Target.WINDOW;
             // 1 - NEW_TAB
             // 2 - NEW_TAB_LEFT
             // 3 - NEW_TAB_RIGHT
             // 4 - NEW_TAB_TOP
             // 5 - NEW_TAB_BOTTOM
             // 6 - NEW_TAB_DETACHED
-            default:
-                return OpenDisplayAction.Target.TAB;
-        }
+            default -> Target.TAB;
+        };
     }
 
     @Override
@@ -300,7 +296,7 @@ public class OpenDisplayAction extends PluggableActionBase {
         if (getDescription().isEmpty())
             return "Open " + file;
         else
-            return getDescription();
+            return description;
     }
 
     @Override

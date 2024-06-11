@@ -1,1 +1,2 @@
 org.csstudio.display.builder.representation.javafx.actions.OpenDisplayAction
+org.csstudio.display.builder.representation.javafx.actions.WritePVAction

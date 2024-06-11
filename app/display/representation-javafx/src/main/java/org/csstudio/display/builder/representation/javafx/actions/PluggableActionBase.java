@@ -19,19 +19,15 @@
 
 package org.csstudio.display.builder.representation.javafx.actions;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.macros.MacroHandler;
-import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.spi.PluggableActionInfo;
-import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
-import org.csstudio.display.builder.representation.javafx.widgets.ActionButtonRepresentation;
 
 import javax.xml.stream.XMLStreamWriter;
 import java.util.Optional;
@@ -47,27 +43,28 @@ public abstract class PluggableActionBase implements PluggableActionInfo {
     private static final Logger logger = Logger.getLogger(PluggableActionBase.class.getName());
 
     @Override
-    public void setDescription(String description){
+    public void setDescription(String description) {
         this.description = description;
     }
 
     @Override
-    public String getDescription(){
+    public String getDescription() {
         return description;
     }
 
     @Override
-    public Image getImage(){
+    public Image getImage() {
         return image;
     }
 
     @Override
-    public String getType(){
+    public String getType() {
         return type;
     }
 
     /**
      * Writes the description tag if non-empty, as it is common for all {@link PluggableActionInfo}s.
+     *
      * @param writer A {@link XMLStreamWriter}
      * @throws Exception upon failure...
      */
@@ -82,12 +79,9 @@ public abstract class PluggableActionBase implements PluggableActionInfo {
     protected MenuItem createMenuItem(final Widget widget, final String description) {
         // Expand macros in action description
         String desc;
-        try
-        {
+        try {
             desc = MacroHandler.replace(widget.getEffectiveMacros(), description);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.log(Level.WARNING, "Cannot expand macros in action description '" + description + "'", ex);
             desc = description;
         }
@@ -96,23 +90,11 @@ public abstract class PluggableActionBase implements PluggableActionInfo {
         final MenuItem item = new MenuItem(desc, icon);
 
         final Optional<WidgetProperty<Boolean>> enabled_prop = widget.checkProperty(CommonWidgetProperties.propEnabled);
-        if (enabled_prop.isPresent() && !enabled_prop.get().getValue())
-        {
+        if (enabled_prop.isPresent() && !enabled_prop.get().getValue()) {
             item.setDisable(true);
             return item;
         }
 
-        /*
-        if (widget instanceof ActionButtonWidget)
-        {
-            ActionButtonRepresentation button = (ActionButtonRepresentation) widget.getUserData(Widget.USER_DATA_REPRESENTATION);
-            if (button != null) {
-                item.setOnAction(event -> button.handleContextMenuAction(info));
-                return item;
-            }
-        }
-
-         */
         return item;
     }
 }
