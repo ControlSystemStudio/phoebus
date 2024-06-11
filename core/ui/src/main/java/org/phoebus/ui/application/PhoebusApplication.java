@@ -935,27 +935,31 @@ public class PhoebusApplication extends Application {
         homeIcon.setFitHeight(16.0);
         homeIcon.setFitWidth(16.0);
         home_display_button = new Button(null, homeIcon);
-        home_display_button.setTooltip(new Tooltip(Messages.HomeTT));
-        toolBar.getItems().add(home_display_button);
+        if (! Preferences.toolbar_entries.contains("!Home"))
+        {
+            home_display_button.setTooltip(new Tooltip(Messages.HomeTT));
+            toolBar.getItems().add(home_display_button);
 
-
-        if (!Preferences.home_display.isEmpty()) {
-            final TopResources homeResource = TopResources.parse(Preferences.home_display);
-            home_display_button.setOnAction(event -> openResource(homeResource.getResource(0), false));
-        }
-        else {
-            Welcome welcome = new Welcome();
-            home_display_button.setOnAction(event -> welcome.create());
+            if (!Preferences.home_display.isEmpty()) {
+                final TopResources homeResource = TopResources.parse(Preferences.home_display);
+                home_display_button.setOnAction(event -> openResource(homeResource.getResource(0), false));
+            }
+            else {
+                Welcome welcome = new Welcome();
+                home_display_button.setOnAction(event -> welcome.create());
+            }
         }
 
         top_resources_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         top_resources_button.setTooltip(new Tooltip(Messages.TopResources));
         top_resources_button.setDisable(true);
-        toolBar.getItems().add(top_resources_button);
+        if (! Preferences.toolbar_entries.contains("!Top Resources"))
+            toolBar.getItems().add(top_resources_button);
 
         layout_menu_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/layouts.png"));
         layout_menu_button.setTooltip(new Tooltip(Messages.LayoutTT));
-        toolBar.getItems().add(layout_menu_button);
+        if (! Preferences.toolbar_entries.contains("!Layouts"))
+            toolBar.getItems().add(layout_menu_button);
 
         // Contributed Entries
         ToolbarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {

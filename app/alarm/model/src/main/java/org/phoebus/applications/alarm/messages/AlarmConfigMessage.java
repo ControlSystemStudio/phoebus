@@ -239,7 +239,7 @@ public class AlarmConfigMessage {
         map.put("config", getConfig());
         map.put("user", getUser());
         map.put("host", getHost());
-        map.put("enabled", enabled.toString());
+        map.put("enabled", String.valueOf(enabled.enabled));
         map.put("latching", Boolean.toString(isLatching()));
         map.put("config_msg", toString());
         map.put("message_time", formatter.withZone(ZoneId.of("UTC")).format(getMessage_time()));

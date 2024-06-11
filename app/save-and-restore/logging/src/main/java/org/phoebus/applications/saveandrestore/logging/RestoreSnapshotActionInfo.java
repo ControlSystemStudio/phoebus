@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Object wrapping information about a restore action.
  */
-public class RestoreSnapshotActionInfo extends SaveSnapshotActionInfo{
+public class RestoreSnapshotActionInfo extends SaveSnapshotActionInfo {
 
     private boolean isGolden;
     private List<String> failedPVs;

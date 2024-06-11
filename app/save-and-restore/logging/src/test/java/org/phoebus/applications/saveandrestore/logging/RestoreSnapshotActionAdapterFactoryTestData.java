@@ -32,18 +32,18 @@ public class RestoreSnapshotActionAdapterFactoryTestData {
     private RestoreSnapshotActionAdapterFactory restoreSnapshotActionAdapterFactory = new RestoreSnapshotActionAdapterFactory();
 
     @Test
-    public void testGetAdaptableObject(){
+    public void testGetAdaptableObject() {
         assertTrue(restoreSnapshotActionAdapterFactory.getAdaptableObject().isAssignableFrom(RestoreSnapshotActionInfo.class));
     }
 
     @Test
-    public void testGetAdapterList(){
+    public void testGetAdapterList() {
         List<? extends Class> list = restoreSnapshotActionAdapterFactory.getAdapterList();
         assertTrue(list.get(0).isAssignableFrom(LogEntry.class));
     }
 
     @Test
-    public void testAdaptRestoreAction(){
+    public void testAdaptRestoreAction() {
         RestoreSnapshotActionInfo restoreSnapshotActionInfo = new RestoreSnapshotActionInfo();
         restoreSnapshotActionInfo.setSnapshotName("snapshot name");
         restoreSnapshotActionInfo.setFailedPVs(List.of("pv name"));

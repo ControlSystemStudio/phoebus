@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import javafx.css.PseudoClass;
@@ -20,6 +21,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
@@ -423,7 +425,25 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         if (! active)
         {
             if (dirty_content.checkAndClear())
+            {
+                // For middle-aligned multi-line text, keep the scroll position
+                final TextArea area = jfx_node instanceof TextArea ? (TextArea) jfx_node : null;
+                final VerticalAlignment align = model_widget.propVerticalAlignment().getValue();
+                double pos = 0;
+                if (area != null  &&  align == VerticalAlignment.MIDDLE)
+                    pos = area.getScrollTop();
+
                 jfx_node.setText(value_text);
+
+                if (area != null  &&  pos != 0)
+                    area.setScrollTop(pos);
+                // For bottom scroll detail, see comments in TextUpdateRepresentation
+                if (area != null && align == VerticalAlignment.BOTTOM)
+                {
+                    area.selectRange(0, 1);
+                    toolkit.schedule(() -> area.selectRange(value_text.length(), value_text.length()), 500, TimeUnit.MILLISECONDS);
+                }
+            }
         }
         // When not managed, trigger layout
         if (!jfx_node.isManaged())
