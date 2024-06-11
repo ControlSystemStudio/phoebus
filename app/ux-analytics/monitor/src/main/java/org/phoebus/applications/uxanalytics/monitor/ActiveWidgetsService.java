@@ -1,5 +1,6 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
+import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.ToolkitListener;
@@ -7,6 +8,7 @@ import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
 
+import javafx.scene.input.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,6 +32,8 @@ public class ActiveWidgetsService {
         this.close();
         return CompletableFuture.completedFuture(true);
     };
+    private Node jfxNode;
+    private UXAMouseMonitor mouseMonitor;
 
     public ActiveWidgetsService(DockItemWithInput tab){
         widgets = new ConcurrentLinkedDeque<>();
@@ -39,6 +43,9 @@ public class ActiveWidgetsService {
         hashFilename = getFileName()+getFirst8CharsSHA256();
         toolkitListener = new UXAToolkitListener();
         ((DisplayRuntimeInstance)tab.getProperties().get("application")).addListener(toolkitListener);
+        jfxNode = tab.getContent();
+        mouseMonitor = new UXAMouseMonitor(tab);
+        jfxNode.addEventFilter(MouseEvent.MOUSE_CLICKED, mouseMonitor);
         parentTab.addCloseCheck(ok_to_close);
     }
 
@@ -101,6 +108,9 @@ public class ActiveWidgetsService {
         DisplayRuntimeInstance instance = (DisplayRuntimeInstance) parentTab.getApplication();
         if(instance != null)
             instance.removeListener(toolkitListener);
+        if(jfxNode != null) {
+            jfxNode.removeEventFilter(MouseEvent.MOUSE_CLICKED, mouseMonitor);
+        }
     }
 
     public Tab getParentTab() {

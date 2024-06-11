@@ -49,6 +49,7 @@ public class ActiveTabsService {
         activeTabs.get(tab.toString()).add(widget);
     }
 
+    //maybe we don't need this?
     public synchronized void addAllWidgetsIn(DockItemWithInput tab) throws Exception {
         DisplayRuntimeInstance instance = (DisplayRuntimeInstance) tab.getProperties().get("application");
         for(Widget widget: instance.getActiveModel().getChildren()){

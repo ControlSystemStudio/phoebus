@@ -19,7 +19,8 @@ public class UXAMouseMonitor implements EventHandler<MouseEvent>{
     @Override
     public void handle(MouseEvent event) {
         if(event.getEventType().equals(MouseEvent.MOUSE_CLICKED)){
-            backendConnection.handleClick(tab, (int)event.getSceneX(), (int)event.getSceneY());
+            //backendConnection.handleClick(tab, (int)event.getSceneX(), (int)event.getSceneY());
+            System.out.println("Click at " + event.getSceneX()+","+event.getSceneY());
             event.consume();
         }
     }

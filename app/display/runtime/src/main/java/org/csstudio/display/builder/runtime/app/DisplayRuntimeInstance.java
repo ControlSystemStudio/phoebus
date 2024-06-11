@@ -174,6 +174,7 @@ public class DisplayRuntimeInstance implements AppInstance
         layout.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeys);
 
         dock_item.addClosedNotification(this::onClosed);
+        representation_init.run();
     }
 
     @Override
