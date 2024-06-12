@@ -16,6 +16,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.epics.pva.data.PVABool;
+import org.epics.pva.data.PVAData;
+import org.epics.pva.data.PVANumber;
+import org.epics.pva.data.PVAStructure;
 import org.epics.util.array.ArrayDouble;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
@@ -339,6 +343,25 @@ public class ValueHelper
         // Is data already a VType (allowing a different one)?
         if (new_value instanceof VType)
             return (VType) new_value;
+
+        // PVA Structure with value?
+        if (new_value instanceof PVAStructure) {
+            PVAStructure struct = (PVAStructure) new_value;
+            PVAData value = struct.get("value");
+            return adapt(value, type, old_value, change_from_double);
+        }
+
+        if (new_value instanceof PVABool) {
+            PVABool value = (PVABool) new_value;
+
+            return adapt(value.get(), type, old_value, change_from_double);
+        }
+
+        if (new_value instanceof PVANumber) {
+            PVANumber value = (PVANumber) new_value;
+
+            return adapt(value.getNumber(), type, old_value, change_from_double);
+        }
 
         if (type == VDouble.class)
         {
