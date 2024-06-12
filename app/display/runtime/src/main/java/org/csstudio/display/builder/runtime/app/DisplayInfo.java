@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.util.ResourceParser;
 
@@ -242,14 +243,25 @@ public class DisplayInfo
             }
             else
                 buf.append('&');
+
+            String macroValue = macros.getValue(name);
+            // macro can be defined after component creation
+            // replace again macros by the correct value
+            try {
+                macroValue = MacroHandler.replace(macros, macroValue);
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, "Internal error in MacroHandler.replace '" + macroValue + "'", ex);
+            }
+            
             buf.append(name)
                .append('=')
-               .append(encode(macros.getValue(name)));
+               .append(encode(macroValue));
         }
+        String strBuffer = buf.toString();
 
         try
         {
-            return new URI(buf.toString());
+            return new URI(strBuffer);
         }
         catch (URISyntaxException ex)
         {
