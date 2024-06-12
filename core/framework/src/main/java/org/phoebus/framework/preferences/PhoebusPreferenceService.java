@@ -22,13 +22,13 @@ public class PhoebusPreferenceService implements PreferencesFactory {
     @Override
     public Preferences userRoot()
     {
-        return FileSystemPreferences.getUserRoot();
+        return InMemoryPreferences.getUserRoot();
     }
 
     @Override
     public Preferences systemRoot()
     {
-        return FileSystemPreferences.getSystemRoot();
+        return InMemoryPreferences.getSystemRoot();
     }
 
 }
