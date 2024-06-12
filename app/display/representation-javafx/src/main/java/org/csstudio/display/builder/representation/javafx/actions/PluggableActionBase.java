@@ -97,4 +97,9 @@ public abstract class PluggableActionBase implements PluggableActionInfo {
 
         return item;
     }
+
+    @Override
+    public String toString(){
+        return description;
+    }
 }

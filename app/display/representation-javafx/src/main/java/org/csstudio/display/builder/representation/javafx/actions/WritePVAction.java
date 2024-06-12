@@ -14,7 +14,6 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.spi.PluggableActionInfo;
-import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialogActionItem;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.javafx.ImageCache;
@@ -52,7 +51,7 @@ public class WritePVAction extends PluggableActionBase {
             try {
                 return clazz.getConstructor(PluggableActionInfo.class).newInstance(WritePVAction.this);
             } catch (Exception e) {
-                Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct WritePVDetailsController", e);
+                Logger.getLogger(WritePVActionDetailsController.class.getName()).log(Level.SEVERE, "Failed to construct WritePVDetailsController", e);
             }
             return null;
         });
@@ -111,11 +110,6 @@ public class WritePVAction extends PluggableActionBase {
             this.image = ImageCache.getImage(OpenDisplayAction.class, "/icons/write_pv.png");
         }
         return this.image;
-    }
-
-    @Override
-    public String toString() {
-        return description;
     }
 
     @Override

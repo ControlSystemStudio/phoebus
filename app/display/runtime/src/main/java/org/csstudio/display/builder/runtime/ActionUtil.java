@@ -28,6 +28,7 @@ import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
+import org.csstudio.display.builder.representation.javafx.actions.ExecuteScriptAction;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
 import org.csstudio.display.builder.runtime.spi.ActionHandler;
 import org.phoebus.framework.jobs.CommandExecutor;
@@ -54,7 +55,7 @@ public class ActionUtil
         else if (action instanceof WritePVActionInfo)
             RuntimeUtil.getExecutor().execute(() -> writePV(source_widget, (WritePVActionInfo) action));
         else if (action instanceof ExecuteScriptActionInfo)
-            RuntimeUtil.getExecutor().execute(() -> executeScript(source_widget, (ExecuteScriptActionInfo) action));
+            RuntimeUtil.getExecutor().execute(() -> executeScript(source_widget, null));
         else if (action instanceof ExecuteCommandActionInfo)
             RuntimeUtil.getExecutor().execute(() -> executeCommand(source_widget, (ExecuteCommandActionInfo) action));
         else if (action instanceof OpenFileActionInfo)
@@ -285,7 +286,7 @@ public class ActionUtil
      *  @param source_widget Widget from which the action is invoked
      *  @param action        Script action to execute
      */
-    private static void executeScript(final Widget source_widget, final ExecuteScriptActionInfo action)
+    private static void executeScript(final Widget source_widget, final ExecuteScriptAction action)
     {
         final WidgetRuntime<Widget> runtime = RuntimeUtil.getRuntime(source_widget);
         try
@@ -295,7 +296,7 @@ public class ActionUtil
         catch (final Throwable ex)
         {
             logger.log(Level.WARNING, action + " failed", ex);
-            ScriptUtil.showErrorDialog(source_widget, "Cannot execute " + action.getInfo().getPath() + ".\n\nSee log for details.");
+            ScriptUtil.showErrorDialog(source_widget, "Cannot execute " + action.getScriptInfo().getPath() + ".\n\nSee log for details.");
         }
     }
 

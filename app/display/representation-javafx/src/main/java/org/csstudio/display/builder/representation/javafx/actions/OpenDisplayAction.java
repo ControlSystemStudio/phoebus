@@ -153,7 +153,7 @@ public class OpenDisplayAction extends PluggableActionBase {
             try {
                 return clazz.getConstructor(Widget.class, PluggableActionInfo.class).newInstance(widget, OpenDisplayAction.this);
             } catch (Exception e) {
-                Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct OpenDisplayActionDetailsController", e);
+                Logger.getLogger(OpenDisplayActionDetailsController.class.getName()).log(Level.SEVERE, "Failed to construct ExecuteScriptActionDetailsController", e);
             }
             return null;
         });
@@ -163,7 +163,6 @@ public class OpenDisplayAction extends PluggableActionBase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override

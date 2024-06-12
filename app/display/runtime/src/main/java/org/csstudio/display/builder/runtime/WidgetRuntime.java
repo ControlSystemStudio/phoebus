@@ -12,10 +12,10 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
-import org.csstudio.display.builder.model.properties.ExecuteScriptActionInfo;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.spi.PluggableActionInfo;
+import org.csstudio.display.builder.representation.javafx.actions.ExecuteScriptAction;
 import org.csstudio.display.builder.representation.javafx.actions.WritePVAction;
 import org.csstudio.display.builder.runtime.internal.RuntimePVs;
 import org.csstudio.display.builder.runtime.pv.PVFactory;
@@ -121,7 +121,7 @@ public class WidgetRuntime<MW extends Widget> {
      *
      * <p>Lazily created if there are scripts.
      */
-    private volatile Map<ExecuteScriptActionInfo, Script> action_scripts = null;
+    private volatile Map<ExecuteScriptAction, Script> action_scripts = null;
 
     /**
      * When widget class changes, re-apply class to widget
@@ -267,7 +267,7 @@ public class WidgetRuntime<MW extends Widget> {
         final List<PluggableActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0) {
             for (PluggableActionInfo action_info : actions) {
-                if (action_info instanceof ExecuteScriptActionInfo)
+                if (action_info instanceof ExecuteScriptAction)
                     return true;
             }
         }
@@ -325,13 +325,13 @@ public class WidgetRuntime<MW extends Widget> {
         // Compile scripts invoked by actions
         final List<PluggableActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0) {
-            final Map<ExecuteScriptActionInfo, Script> scripts = new HashMap<>();
+            final Map<ExecuteScriptAction, Script> scripts = new HashMap<>();
             for (PluggableActionInfo action_info : actions) {
-                if (!(action_info instanceof ExecuteScriptActionInfo script_action))
+                if (!(action_info instanceof ExecuteScriptAction script_action))
                     continue;
                 try {
                     final MacroValueProvider macros = widget.getMacrosOrProperties();
-                    final Script script = RuntimeScriptHandler.compileScript(widget, macros, script_action.getInfo());
+                    final Script script = RuntimeScriptHandler.compileScript(widget, macros, script_action.getScriptInfo());
                     scripts.put(script_action, script);
                 } catch (final Exception ex) {
                     final StringBuilder buf = new StringBuilder();
@@ -426,9 +426,9 @@ public class WidgetRuntime<MW extends Widget> {
      * @param action_info Which script-based action to execute
      * @throws NullPointerException if action_info is not valid, runtime not initialized
      */
-    public void executeScriptAction(final ExecuteScriptActionInfo action_info) throws NullPointerException {
+    public void executeScriptAction(final ExecuteScriptAction action_info) throws NullPointerException {
         awaitStartup();
-        final Map<ExecuteScriptActionInfo, Script> actions = Objects.requireNonNull(action_scripts);
+        final Map<ExecuteScriptAction, Script> actions = Objects.requireNonNull(action_scripts);
         final Script script = Objects.requireNonNull(actions.get(action_info));
         script.submit(widget);
     }
@@ -453,7 +453,7 @@ public class WidgetRuntime<MW extends Widget> {
         if (binding != null)
             binding.dispose();
 
-        final Map<ExecuteScriptActionInfo, Script> actions = action_scripts;
+        final Map<ExecuteScriptAction, Script> actions = action_scripts;
         if (actions != null) {
             actions.clear();
             action_scripts = null;

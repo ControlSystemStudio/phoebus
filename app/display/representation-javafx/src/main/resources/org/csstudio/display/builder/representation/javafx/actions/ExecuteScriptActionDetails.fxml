@@ -22,7 +22,7 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.actionsdialog.ExecuteScriptDetailsController">
+<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.actions.ExecuteScriptDetailsController">
    <children>
       <Label text="%ActionsDialog_Description" />
       <TextField fx:id="description" text="Execute Script" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" />

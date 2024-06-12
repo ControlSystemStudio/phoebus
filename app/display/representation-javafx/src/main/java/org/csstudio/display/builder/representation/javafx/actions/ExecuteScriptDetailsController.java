@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2023 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -14,9 +14,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
-package org.csstudio.display.builder.representation.javafx.actionsdialog;
+package org.csstudio.display.builder.representation.javafx.actions;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
@@ -28,9 +29,11 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ExecuteScriptActionInfo;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionDetailsController;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.application.ApplicationLauncherService;
@@ -43,9 +46,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 /** FXML Controller */
-public class ExecuteScriptDetailsController implements ActionDetailsController{
+public class ExecuteScriptDetailsController {
 
-    private ExecuteScriptActionInfo executeScriptActionInfo;
+    private ExecuteScriptAction executeScriptActionInfo;
 
     private Widget widget;
 
@@ -69,17 +72,17 @@ public class ExecuteScriptDetailsController implements ActionDetailsController{
     /** @param widget Widget
      *  @param actionInfo Action info
      */
-    public ExecuteScriptDetailsController(Widget widget, ActionInfo actionInfo){
+    public ExecuteScriptDetailsController(Widget widget, PluggableActionInfo actionInfo){
         this.widget = widget;
-        this.executeScriptActionInfo = (ExecuteScriptActionInfo)actionInfo;
+        this.executeScriptActionInfo = (ExecuteScriptAction)actionInfo;
     }
 
     /** Init */
     @FXML
     public void initialize(){
         descriptionProperty.setValue(executeScriptActionInfo.getDescription());
-        scriptPathProperty.setValue(executeScriptActionInfo.getInfo().getPath());
-        scriptBodyPorperty.setValue(executeScriptActionInfo.getInfo().getText());
+        scriptPathProperty.setValue(executeScriptActionInfo.getScriptInfo().getPath());
+        scriptBodyPorperty.setValue(executeScriptActionInfo.getScriptInfo().getText());
         embedPyButton.setGraphic(JFXUtil.getIcon("embedded_script.png"));
         embedJsButton.setGraphic(JFXUtil.getIcon("embedded_script.png"));
         openExternalEditorButton.setGraphic(JFXUtil.getIcon("embedded_script.png"));
@@ -88,10 +91,10 @@ public class ExecuteScriptDetailsController implements ActionDetailsController{
         description.textProperty().bindBidirectional(descriptionProperty);
         scriptPath.textProperty().bindBidirectional(scriptPathProperty);
         scriptBody.textProperty().bindBidirectional(scriptBodyPorperty);
-        scriptBody.setDisable(executeScriptActionInfo.getInfo().getPath() != null &&
-                !executeScriptActionInfo.getInfo().getPath().isEmpty() &&
-                !executeScriptActionInfo.getInfo().getPath().equals(ScriptInfo.EMBEDDED_PYTHON) &&
-                !executeScriptActionInfo.getInfo().getPath().equals(ScriptInfo.EMBEDDED_JAVASCRIPT));
+        scriptBody.setDisable(executeScriptActionInfo.getScriptInfo().getPath() != null &&
+                !executeScriptActionInfo.getScriptInfo().getPath().isEmpty() &&
+                !executeScriptActionInfo.getScriptInfo().getPath().equals(ScriptInfo.EMBEDDED_PYTHON) &&
+                !executeScriptActionInfo.getScriptInfo().getPath().equals(ScriptInfo.EMBEDDED_JAVASCRIPT));
     }
 
     /** Select embedded Py */
@@ -163,19 +166,5 @@ public class ExecuteScriptDetailsController implements ActionDetailsController{
     {
         return null !=
                 ApplicationLauncherService.findApplication(ResourceParser.getURI(new File(scriptPathProperty.get())), false, null);
-    }
-
-    /** @return ActionInfo */
-    @Override
-    public ActionInfo getActionInfo(){
-        final String text = (scriptPathProperty.get().equals(ScriptInfo.EMBEDDED_PYTHON) ||
-                scriptPathProperty.get().equals(ScriptInfo.EMBEDDED_JAVASCRIPT))
-                ? scriptBodyPorperty.get()
-                : null;
-        ScriptInfo scriptInfo = new ScriptInfo(scriptPathProperty.get(),
-                text,
-                false,
-                Collections.emptyList());
-        return new ExecuteScriptActionInfo(descriptionProperty.get(), scriptInfo);
     }
 }
