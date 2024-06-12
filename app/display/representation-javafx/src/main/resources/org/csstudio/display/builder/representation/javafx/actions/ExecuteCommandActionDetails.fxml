@@ -23,7 +23,7 @@
 
 <GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1"
           xmlns:fx="http://javafx.com/fxml/1"
-          fx:controller="org.csstudio.display.builder.representation.javafx.actionsdialog.ExecuteCommandDetailsController">
+          fx:controller="org.csstudio.display.builder.representation.javafx.actions.ExecuteCommandDetailsController">
    <children>
       <Label text="%ActionsDialog_Description" />
       <TextField fx:id="description" text="Execute Command" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" />
