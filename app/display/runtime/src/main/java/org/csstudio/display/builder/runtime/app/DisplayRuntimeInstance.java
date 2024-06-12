@@ -544,7 +544,7 @@ public class DisplayRuntimeInstance implements AppInstance
         navigation.dispose();
     }
 
-    public DisplayModel getActiveModel()
+    DisplayModel getActiveModel()
     {
         return active_model;
     }

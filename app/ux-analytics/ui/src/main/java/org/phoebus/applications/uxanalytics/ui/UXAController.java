@@ -62,14 +62,12 @@ public class UXAController {
                 lblSuccessFailure.setVisible(true);
                 return 1;
             }
-            host = protocol + host;
             String port = txtPort.getText();
             if (port.isEmpty() || !port.matches("\\d+")) {
                 lblSuccessFailure.setText("Set a valid port number.");
                 lblSuccessFailure.setVisible(true);
                 return 1;
             }
-            host = host + ":" + port;
 
             String user = txtUser.getText();
             if (user.isEmpty()) {
@@ -80,7 +78,7 @@ public class UXAController {
             String pass = passPassword.getText();
             try {
                 if (!connectionLogic.connect(host, Integer.parseInt(port), user, pass)) {
-                    lblSuccessFailure.setText("Failed to connect to server.");
+                    lblSuccessFailure.setText("Failed to connect to host " + host + " as " + user + ".");
                     lblSuccessFailure.setVisible(true);
                     return 1;
                 } else {

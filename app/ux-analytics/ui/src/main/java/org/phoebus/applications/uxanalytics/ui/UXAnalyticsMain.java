@@ -48,7 +48,9 @@ public class UXAnalyticsMain implements AppResourceDescriptor {
 
     @Override
     public void start(){
-       logger.log(Level.INFO, "Load UX Analytics AppResource");
+        monitor.setPhoebusConnection(phoebusConnection);
+        monitor.setJfxConnection(jfxConnection);
+        logger.log(Level.INFO, "Load UX Analytics AppResource");
     }
 
     @Override

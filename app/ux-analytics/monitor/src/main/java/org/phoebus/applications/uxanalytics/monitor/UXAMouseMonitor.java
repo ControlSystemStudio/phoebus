@@ -9,19 +9,18 @@ import org.phoebus.ui.docking.DockPane;
 
 public class UXAMouseMonitor implements EventHandler<MouseEvent>{
 
-    private DockItemWithInput tab;
-    private BackendConnection backendConnection;
+    private ActiveTab tab;
+    private final UXAMonitor monitor = UXAMonitor.getInstance();
 
-    public UXAMouseMonitor(DockItemWithInput tab){
-        tab.getContent().addEventFilter(MouseEvent.MOUSE_CLICKED, this);
+    public UXAMouseMonitor(ActiveTab tab){
+        tab.getParentTab().getContent().addEventFilter(MouseEvent.MOUSE_CLICKED, this);
+        this.tab = tab;
     }
 
     @Override
     public void handle(MouseEvent event) {
         if(event.getEventType().equals(MouseEvent.MOUSE_CLICKED)){
-            //backendConnection.handleClick(tab, (int)event.getSceneX(), (int)event.getSceneY());
-            System.out.println("Click at " + event.getSceneX()+","+event.getSceneY());
-            event.consume();
+            monitor.getJfxConnection().handleClick(tab, (int) event.getSceneX(), (int) event.getSceneY());
         }
     }
 }

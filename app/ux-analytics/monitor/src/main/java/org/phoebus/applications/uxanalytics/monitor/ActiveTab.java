@@ -5,7 +5,6 @@ import javafx.scene.control.Tab;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
-import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.docking.DockItemWithInput;
 
 import javafx.scene.input.MouseEvent;
@@ -20,13 +19,13 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
-public class ActiveWidgetsService {
+public class ActiveTab {
 
     private final ConcurrentLinkedDeque<Widget> widgets;
     private final DockItemWithInput parentTab;
-    private final File fileObject;
-    private final String SHA256;
-    private final String hashFilename;
+    //private final File fileObject;
+    //private final String SHA256;
+    //private final String hashFilename;
     private final ToolkitListener toolkitListener;
     private final Supplier<Future<Boolean>> ok_to_close = () -> {
         this.close();
@@ -35,27 +34,28 @@ public class ActiveWidgetsService {
     private Node jfxNode;
     private UXAMouseMonitor mouseMonitor;
 
-    public ActiveWidgetsService(DockItemWithInput tab){
+    public ActiveTab(DockItemWithInput tab){
         widgets = new ConcurrentLinkedDeque<>();
         parentTab = tab;
-        fileObject = ResourceParser.getFile(parentTab.getInput());
-        SHA256 = getFileSHA256(fileObject);
-        hashFilename = getFileName()+getFirst8CharsSHA256();
+        //fileObject = ResourceParser.getFile(parentTab.getInput());
+        //SHA256 = getFileSHA256(fileObject);
+        //hashFilename = getFileName()+getFirst8CharsSHA256();
         toolkitListener = new UXAToolkitListener();
+        ((UXAToolkitListener)toolkitListener).setTabWrapper(this);
         ((DisplayRuntimeInstance)tab.getProperties().get("application")).addListener(toolkitListener);
         jfxNode = tab.getContent();
-        mouseMonitor = new UXAMouseMonitor(tab);
+        mouseMonitor = new UXAMouseMonitor(this);
         jfxNode.addEventFilter(MouseEvent.MOUSE_CLICKED, mouseMonitor);
         parentTab.addCloseCheck(ok_to_close);
     }
 
-    public File getFileObject(){
-        return fileObject;
-    }
+    //public File getFileObject(){
+    //    return fileObject;
+    //}
 
-    public String getFileName(){
-        return fileObject.getName();
-    }
+    //public String getFileName(){
+    //    return fileObject.getName();
+    //}
 
     //re-implement here with Java MessageDigest, so we don't need to depend on elog
     private static String getFileSHA256(File fileObject){
@@ -83,13 +83,13 @@ public class ActiveWidgetsService {
         }
     }
 
-    public String getSHA256(){
-        return SHA256;
-    }
+    //public String getSHA256(){
+    //    return SHA256;
+    //}
 
-    public String getFirst8CharsSHA256(){
-        return SHA256.substring(0, 8);
-    }
+    //public String getFirst8CharsSHA256(){
+    //    return SHA256.substring(0, 8);
+    //}
 
     public ToolkitListener getToolkitListener(){
         return toolkitListener;
@@ -117,7 +117,7 @@ public class ActiveWidgetsService {
         return parentTab;
     }
 
-    public String getHashFileName() {
-        return hashFilename;
-    }
+    //public String getHashFileName() {
+    //    return hashFilename;
+    //}
 }

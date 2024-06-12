@@ -1,9 +1,7 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.phoebus.ui.docking.DockItemWithInput;
-
-import java.io.IOException;
 
 @FunctionalInterface
 public interface BackendConnection {
@@ -13,7 +11,8 @@ public interface BackendConnection {
     public default String getDefaultPort(){return "";}
     public default String getDefaultUsername(){return "";}
     public default Integer tearDown(){return -1;}
-    public default void handleClick(DockItemWithInput who, Integer x, Integer y){}
-    public default void handleWrite(DockItemWithInput who, ActionInfo info){}
-    public default void handleOpenDisplay(DockItemWithInput who, ActionInfo info){}
+    public default void handleClick(ActiveTab who, Widget widget, Integer x, Integer y){}
+    public default void handleClick(ActiveTab who, Integer x, Integer y){this.handleClick(who, null, x, y);}
+    public default void handleAction(ActiveTab who, Widget widget, ActionInfo info){}
+    public default void handlePVWrite(ActiveTab who, Widget widget, String PVName, Object value){}
 }

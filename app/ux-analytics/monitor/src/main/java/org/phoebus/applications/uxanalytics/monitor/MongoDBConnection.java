@@ -2,9 +2,6 @@ package org.phoebus.applications.uxanalytics.monitor;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import javafx.stage.Window;
-import org.phoebus.framework.util.ResourceParser;
-import org.phoebus.ui.docking.DockItemWithInput;
 
 import java.net.URI;
 import java.util.logging.Level;
@@ -64,17 +61,9 @@ public class MongoDBConnection implements BackendConnection{
     }
 
     @Override
-    public void handleClick(DockItemWithInput who, Integer x, Integer y) {
-        ActiveWidgetsService tabWrapper = ActiveWindowsService.getUXAWrapperFor(who);
-
-        //check if screenshot exists
-        URI uri = who.getInput();
-        String filename = tabWrapper.getHashFileName();
-        boolean screenshotExists = imageClient.imageExists(who.getInput());
-        //if it doesn't, create it, add document to main table with link to the screenshot as value for 'screenshotURI',
-        //create a new table with URI as name, and log the click action there
-
-        //otherwise, just log the click action x, y and timestamp
+    public void handleClick(ActiveTab who, Integer x, Integer y) {
+        logger.log(Level.INFO, "MongoDB Connection would've handled click at " + x + ", " + y + " from " + who);
 
     }
+
 }

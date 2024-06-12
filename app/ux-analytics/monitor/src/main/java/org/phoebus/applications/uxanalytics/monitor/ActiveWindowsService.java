@@ -1,7 +1,5 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
-import com.sun.javafx.collections.UnmodifiableObservableMap;
-
 import javafx.collections.*;
 import javafx.scene.control.Tab;
 import javafx.stage.Stage;
@@ -12,21 +10,18 @@ import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
 
-import javax.sound.midi.SysexMessage;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ActiveWindowsService {
 
     private boolean started = false;
     private static ActiveWindowsService instance = null;
-    private final ConcurrentHashMap<String, ActiveTabsService> activeWindowsAndTabs = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ActiveTabsOfWindow> activeWindowsAndTabs = new ConcurrentHashMap<>();
     private final ReentrantLock lock = new ReentrantLock();
 
 
-    ConcurrentHashMap<String, ActiveTabsService> getActiveWindowsAndTabs() {
+    ConcurrentHashMap<String, ActiveTabsOfWindow> getActiveWindowsAndTabs() {
         return activeWindowsAndTabs;
     }
 
@@ -77,7 +72,7 @@ public class ActiveWindowsService {
                     for (javafx.stage.Window window : change.getAddedSubList()) {
                         if(window.getProperties().containsKey(DockStage.KEY_ID)){
                             String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
-                            activeWindowsAndTabs.putIfAbsent(windowID, new ActiveTabsService(window));
+                            activeWindowsAndTabs.putIfAbsent(windowID, new ActiveTabsOfWindow(window));
                             for(DockPane item: DockStage.getDockPanes((Stage)window)){
                                 for (Tab tab: item.getTabs()){
                                     if(tab instanceof DockItemWithInput){
@@ -127,15 +122,15 @@ public class ActiveWindowsService {
         javafx.stage.Window.getWindows().addListener(UXAWindowChangeListener);
     }
 
-    public ActiveTabsService getTabsForWindow(Window window){
+    public ActiveTabsOfWindow getTabsForWindow(Window window){
         return activeWindowsAndTabs.get((String) window.getProperties().get(DockStage.KEY_ID));
     }
 
-    public ActiveTabsService getTabsForWindow(String windowID){
+    public ActiveTabsOfWindow getTabsForWindow(String windowID){
         return activeWindowsAndTabs.get(windowID);
     }
 
-    public static ActiveWidgetsService getUXAWrapperFor(DockItemWithInput tab){
+    public static ActiveTab getUXAWrapperFor(DockItemWithInput tab){
         Window window =  tab.getTabPane().getScene().getWindow();
         return ActiveWindowsService.getInstance().getTabsForWindow(window).getActiveTabs().get(tab.toString());
     }
