@@ -34,10 +34,10 @@ import java.util.List;
 public interface PluggableActionInfo {
 
     /**
-     * @param actionId Legacy action id, e.g. open_display
+     * @param actionId Action id, e.g. open_display
      * @return <code>true</code> if the input string is implemented by the {@link PluggableActionInfo}.
      */
-    default boolean matchesLegacyAction(String actionId) {
+    default boolean matchesAction(String actionId) {
         return false;
     }
 
@@ -82,7 +82,7 @@ public interface PluggableActionInfo {
 
 
     /**
-     * Writes implementation specific XML starting from the &lt;action&gt; node.
+     * Writes the body of the action tag, but not the action start/end tag.
      *
      * @param modelWriter A {@link ModelWriter}
      * @param writer A {@link XMLStreamWriter}
@@ -97,8 +97,6 @@ public interface PluggableActionInfo {
      */
     default void setModifiers(MouseEvent event) {
     }
-
-    void execute(Widget sourceWidget, Object... arguments);
 
     /**
      * @return A {@link List} of {@link MenuItem}s for the widget's context menu.

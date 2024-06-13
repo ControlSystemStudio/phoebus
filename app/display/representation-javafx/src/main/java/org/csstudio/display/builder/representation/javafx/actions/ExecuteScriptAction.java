@@ -47,7 +47,7 @@ public class ExecuteScriptAction extends PluggableActionBase {
 
     private ScriptInfo scriptInfo;
 
-    public ExecuteScriptAction(){
+    public ExecuteScriptAction() {
         this.description = Messages.ActionExecuteScript;
         this.scriptInfo = new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON,
                 ScriptInfo.EXAMPLE_PYTHON,
@@ -57,10 +57,7 @@ public class ExecuteScriptAction extends PluggableActionBase {
 
     @Override
     public Image getImage() {
-        if (this.image == null) {
-            this.image = ImageCache.getImage(ExecuteScriptAction.class, "/icons/execute_script.png");
-        }
-        return this.image;
+        return ImageCache.getImage(ExecuteScriptAction.class, "/icons/execute_script.png");
     }
 
     @Override
@@ -105,8 +102,9 @@ public class ExecuteScriptAction extends PluggableActionBase {
 
     @Override
     public void writeToXML(ModelWriter modelWriter, XMLStreamWriter writer) throws Exception {
-        writer.writeStartElement(XMLTags.ACTION);
+
         writer.writeAttribute(XMLTags.TYPE, EXECUTE_SCRIPT);
+        writeDescriptionToXML(writer, description);
         writer.writeStartElement(XMLTags.SCRIPT);
         writer.writeAttribute(XMLTags.FILE, scriptInfo.getPath());
         final String text = scriptInfo.getText();
@@ -116,17 +114,10 @@ public class ExecuteScriptAction extends PluggableActionBase {
             writer.writeEndElement();
         }
         writer.writeEndElement();
-
-        writer.writeEndElement();
     }
 
     @Override
-    public void execute(Widget sourceWidget, Object... arguments) {
-
-    }
-
-    @Override
-    public boolean matchesLegacyAction(String actionId) {
+    public boolean matchesAction(String actionId) {
         return actionId.equalsIgnoreCase(EXECUTE_SCRIPT);
     }
 

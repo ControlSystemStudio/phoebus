@@ -12,7 +12,6 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
-import org.csstudio.display.builder.model.properties.OpenWebpageActionInfo;
 import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -62,39 +61,29 @@ public class OpenWebPageAction extends PluggableActionBase {
         url = XMLUtil.getChildString(actionXml, XMLTags.URL)
                 .orElse(XMLUtil.getChildString(actionXml, "hyperlink")
                         .orElse(""));
-        if (description.isEmpty()){
+        if (description.isEmpty()) {
             description = Messages.ActionOpenWebPage;
         }
     }
 
     @Override
     public void writeToXML(ModelWriter modelWriter, XMLStreamWriter writer) throws Exception {
-        writer.writeStartElement(XMLTags.ACTION);
 
         writer.writeAttribute(XMLTags.TYPE, OPEN_WEBPAGE);
+        writeDescriptionToXML(writer, description);
         writer.writeStartElement(XMLTags.URL);
         writer.writeCharacters(url);
         writer.writeEndElement();
-
-        writer.writeEndElement();
     }
 
     @Override
-    public void execute(Widget sourceWidget, Object... arguments) {
-
-    }
-
-    @Override
-    public boolean matchesLegacyAction(String actionId) {
+    public boolean matchesAction(String actionId) {
         return actionId.equalsIgnoreCase(OPEN_WEBPAGE);
     }
 
     @Override
     public Image getImage() {
-        if (this.image == null) {
-            this.image = ImageCache.getImage(OpenDisplayAction.class, "/icons/web_browser.png");
-        }
-        return this.image;
+        return ImageCache.getImage(OpenDisplayAction.class, "/icons/web_browser.png");
     }
 
     public String getURL() {

@@ -66,7 +66,9 @@ public class PluggableActionsWidgetProperty extends WidgetProperty<PluggableActi
         if (value.isExecutedAsOne())
             writer.writeAttribute(XMLTags.EXECUTE_AS_ONE, Boolean.TRUE.toString());
         for (final PluggableActionInfo info : value.getActions()) {
+            writer.writeStartElement(XMLTags.ACTION);
             info.writeToXML(modelWriter, writer);
+            writer.writeEndElement();
         }
     }
 
@@ -89,6 +91,11 @@ public class PluggableActionsWidgetProperty extends WidgetProperty<PluggableActi
                 pluggableActionInfo = optionalPluggableActionInfo.get().get();
             } else {
                 throw new RuntimeException("No action implementation matching type '" + type + "' found.");
+            }
+
+            String description = XMLUtil.getChildString(actionXml, XMLTags.DESCRIPTION).orElse("");
+            if (!description.isEmpty()) {
+                pluggableActionInfo.setDescription(description);
             }
 
             pluggableActionInfo.readFromXML(modelReader, actionXml);

@@ -69,32 +69,21 @@ public class OpenFileAction extends PluggableActionBase {
     @Override
     public void writeToXML(ModelWriter modelWriter, XMLStreamWriter writer) throws Exception {
 
-        writer.writeStartElement(XMLTags.ACTION);
-
         writer.writeAttribute(XMLTags.TYPE, OPEN_FILE);
+        writeDescriptionToXML(writer, description);
         writer.writeStartElement(XMLTags.FILE);
         writer.writeCharacters(file);
         writer.writeEndElement();
-
-        writer.writeEndElement();
     }
 
     @Override
-    public void execute(Widget sourceWidget, Object... arguments) {
-
-    }
-
-    @Override
-    public boolean matchesLegacyAction(String actionId) {
+    public boolean matchesAction(String actionId) {
         return actionId.equalsIgnoreCase(OPEN_FILE);
     }
 
     @Override
     public Image getImage() {
-        if (this.image == null) {
-            this.image = ImageCache.getImage(OpenDisplayAction.class, "/icons/open_file.png");
-        }
-        return this.image;
+        return ImageCache.getImage(OpenDisplayAction.class, "/icons/open_file.png");
     }
 
     public String getFile() {

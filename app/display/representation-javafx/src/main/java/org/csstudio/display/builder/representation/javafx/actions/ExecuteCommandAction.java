@@ -30,16 +30,13 @@ public class ExecuteCommandAction extends PluggableActionBase {
 
     private String command;
 
-    public ExecuteCommandAction(){
+    public ExecuteCommandAction() {
         this.description = Messages.ActionExecuteCommand;
     }
 
     @Override
     public Image getImage() {
-        if (this.image == null) {
-            this.image = ImageCache.getImage(ExecuteScriptAction.class, "/icons/execute_script.png");
-        }
-        return this.image;
+        return ImageCache.getImage(ExecuteScriptAction.class, "/icons/execute_script.png");
     }
 
     @Override
@@ -100,37 +97,29 @@ public class ExecuteCommandAction extends PluggableActionBase {
 
     @Override
     public void writeToXML(ModelWriter modelWriter, XMLStreamWriter writer) throws Exception {
-        writer.writeStartElement(XMLTags.ACTION);
 
         writer.writeAttribute(XMLTags.TYPE, EXECUTE_COMMAND);
+        writeDescriptionToXML(writer, description);
         writer.writeStartElement(XMLTags.COMMAND);
         writer.writeCharacters(command);
         writer.writeEndElement();
-
-        writer.writeEndElement();
-
     }
 
     @Override
-    public void execute(Widget sourceWidget, Object... arguments) {
-
-    }
-
-    @Override
-    public boolean matchesLegacyAction(String actionId) {
+    public boolean matchesAction(String actionId) {
         return actionId.equalsIgnoreCase(EXECUTE_COMMAND) ||
                 "EXECUTE_CMD".equalsIgnoreCase(type);
     }
 
-    public String getCommand(){
+    public String getCommand() {
         return command;
     }
 
-    public void setCommand(String command){
+    public void setCommand(String command) {
         this.command = command;
     }
 
-    public void setDescription(String description){
+    public void setDescription(String description) {
         this.description = description;
     }
 }

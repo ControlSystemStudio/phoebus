@@ -28,6 +28,7 @@ import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.spi.PluggableActionInfo;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javax.xml.stream.XMLStreamWriter;
 import java.util.Optional;
@@ -37,7 +38,6 @@ import java.util.logging.Logger;
 public abstract class PluggableActionBase implements PluggableActionInfo {
 
     protected String description;
-    protected Image image;
     protected String type;
 
     private static final Logger logger = Logger.getLogger(PluggableActionBase.class.getName());
@@ -53,28 +53,11 @@ public abstract class PluggableActionBase implements PluggableActionInfo {
     }
 
     @Override
-    public Image getImage() {
-        return image;
-    }
-
-    @Override
     public String getType() {
         return type;
     }
 
-    /**
-     * Writes the description tag if non-empty, as it is common for all {@link PluggableActionInfo}s.
-     *
-     * @param writer A {@link XMLStreamWriter}
-     * @throws Exception upon failure...
-     */
-    protected void writeDescriptionToXML(final XMLStreamWriter writer) throws Exception {
-        if (!description.isEmpty()) {
-            writer.writeStartElement(XMLTags.DESCRIPTION);
-            writer.writeCharacters(description);
-            writer.writeEndElement();
-        }
-    }
+
 
     protected MenuItem createMenuItem(final Widget widget, final String description) {
         // Expand macros in action description
@@ -101,5 +84,19 @@ public abstract class PluggableActionBase implements PluggableActionInfo {
     @Override
     public String toString(){
         return description;
+    }
+
+    /**
+     * Writes the description tag if non-empty, as it is common for all {@link PluggableActionInfo}s.
+     *
+     * @param writer A {@link XMLStreamWriter}
+     * @throws Exception upon failure...
+     */
+    protected void writeDescriptionToXML(final XMLStreamWriter writer, String description) throws Exception {
+        if (!description.isEmpty()) {
+            writer.writeStartElement(XMLTags.DESCRIPTION);
+            writer.writeCharacters(description);
+            writer.writeEndElement();
+        }
     }
 }

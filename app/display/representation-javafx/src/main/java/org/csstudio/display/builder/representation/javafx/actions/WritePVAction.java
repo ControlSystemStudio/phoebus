@@ -51,7 +51,7 @@ public class WritePVAction extends PluggableActionBase {
             try {
                 return clazz.getConstructor(PluggableActionInfo.class).newInstance(WritePVAction.this);
             } catch (Exception e) {
-                Logger.getLogger(WritePVActionDetailsController.class.getName()).log(Level.SEVERE, "Failed to construct WritePVDetailsController", e);
+                Logger.getLogger(WritePVAction.class.getName()).log(Level.SEVERE, "Failed to construct WritePVDetailsController", e);
             }
             return null;
         });
@@ -83,37 +83,23 @@ public class WritePVAction extends PluggableActionBase {
     @Override
     public void writeToXML(ModelWriter modelWriter, XMLStreamWriter writer) throws Exception {
 
-        writer.writeStartElement(XMLTags.ACTION);
         writer.writeAttribute(XMLTags.TYPE, WRITE_PV);
-
-        writeDescriptionToXML(writer);
-
+        writeDescriptionToXML(writer, description);
         writer.writeStartElement(XMLTags.PV_NAME);
         writer.writeCharacters(pv);
         writer.writeEndElement();
         writer.writeStartElement(XMLTags.VALUE);
         writer.writeCharacters(value);
         writer.writeEndElement();
-
-        writer.writeEndElement();
-
-    }
-
-    @Override
-    public void execute(Widget sourceWidget, Object... arguments) {
-
     }
 
     @Override
     public Image getImage() {
-        if (this.image == null) {
-            this.image = ImageCache.getImage(OpenDisplayAction.class, "/icons/write_pv.png");
-        }
-        return this.image;
+        return ImageCache.getImage(OpenDisplayAction.class, "/icons/write_pv.png");
     }
 
     @Override
-    public boolean matchesLegacyAction(String actionId) {
+    public boolean matchesAction(String actionId) {
         return actionId.equalsIgnoreCase(WRITE_PV);
     }
 

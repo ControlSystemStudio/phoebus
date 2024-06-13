@@ -32,7 +32,6 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.spi.PluggableActionInfo;
-import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialogActionItem;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -139,7 +138,7 @@ public class OpenDisplayAction extends PluggableActionBase {
     }
 
     @Override
-    public boolean matchesLegacyAction(String actionId) {
+    public boolean matchesAction(String actionId) {
         return actionId.equalsIgnoreCase(OPEN_DISPLAY) || actionId.equalsIgnoreCase("OPEN_OPI_IN_VIEW");
     }
 
@@ -167,11 +166,6 @@ public class OpenDisplayAction extends PluggableActionBase {
 
     @Override
     public void readFromXML(ModelReader modelReader, Element actionXml) throws Exception {
-        String description = XMLUtil.getChildString(actionXml, XMLTags.DESCRIPTION).orElse("");
-        if (!description.isEmpty()) {
-            this.description = description;
-        }
-
         Optional<String> targetOptional = XMLUtil.getChildString(actionXml, XMLTags.TARGET);
         if (targetOptional.isPresent()) {
             target = OpenDisplayAction.Target.valueOf(targetOptional.get().toUpperCase());
@@ -206,11 +200,9 @@ public class OpenDisplayAction extends PluggableActionBase {
 
     @Override
     public void writeToXML(ModelWriter modelWriter, XMLStreamWriter writer) throws Exception {
-        writer.writeStartElement(XMLTags.ACTION);
+
         writer.writeAttribute(XMLTags.TYPE, OPEN_DISPLAY);
-
-        writeDescriptionToXML(writer);
-
+        writeDescriptionToXML(writer, description);
         writer.writeStartElement(XMLTags.FILE);
         writer.writeCharacters(file);
         writer.writeEndElement();
@@ -227,7 +219,6 @@ public class OpenDisplayAction extends PluggableActionBase {
             writer.writeCharacters(pane);
             writer.writeEndElement();
         }
-        writer.writeEndElement();
     }
 
     @Override
@@ -241,33 +232,23 @@ public class OpenDisplayAction extends PluggableActionBase {
     }
 
     @Override
-    public void execute(Widget sourceWidget, Object... arguments) {
-
-
-    }
-
-    @Override
-    public List<MenuItem> getContextMenuItems(Widget widget){
+    public List<MenuItem> getContextMenuItems(Widget widget) {
         List<MenuItem> items = new ArrayList<>();
         String desc;
-        try
-        {
+        try {
             desc = MacroHandler.replace(widget.getEffectiveMacros(), description);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.log(Level.WARNING, "Cannot expand macros in action description '" + description + "'", ex);
             desc = description;
         }
         items.add(createMenuItem(widget, desc));
 
         // Add variant for all the available Target types: Replace, new Tab, ...
-        for (OpenDisplayAction.Target target : OpenDisplayAction.Target.values())
-        {
+        for (OpenDisplayAction.Target target : OpenDisplayAction.Target.values()) {
             if (target == OpenDisplayAction.Target.STANDALONE || target == this.target)
                 continue;
             // Mention non-default targets in the description
-            items.add(createMenuItem(widget,desc + " (" + target + ")"));
+            items.add(createMenuItem(widget, desc + " (" + target + ")"));
         }
 
         return items;
@@ -299,10 +280,7 @@ public class OpenDisplayAction extends PluggableActionBase {
     }
 
     @Override
-    public Image getImage(){
-        if(this.image == null){
-            this.image = ImageCache.getImage(OpenDisplayAction.class, "/icons/open_display.png");
-        }
-        return this.image;
+    public Image getImage() {
+        return ImageCache.getImage(OpenDisplayAction.class, "/icons/open_display.png");
     }
 }
