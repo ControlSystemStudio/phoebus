@@ -4,7 +4,7 @@ import java.util.prefs.Preferences;
 import java.util.prefs.PreferencesFactory;
 
 /**
- * A service which enabled the use of the file backed implementation of java {@link Preferences}. 
+ * A service which enabled the use of the in-memory implementation of java {@link Preferences}. 
  * @author Kunal Shroff
  *
  */
