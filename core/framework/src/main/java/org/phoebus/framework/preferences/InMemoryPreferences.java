@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.phoebus.framework.preferences;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.prefs.AbstractPreferences;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -21,8 +22,12 @@ class InMemoryPreferences extends AbstractPreferences
     private static final InMemoryPreferences prefs = new InMemoryPreferences(null, "");
     
     /** Settings for this node in the preferences hierarchy */
-    private ConcurrentHashMap<String, String> cache = new ConcurrentHashMap<>();
+    private Map<String, String> cache = new HashMap<>();
 
+    // Javadoc for all ..Spi calls includes
+    // "This method is invoked with the lock on this node held."
+    // so no need for ConcurrentHashMap or our own locking
+    
     /** @return User preferences */
     public static Preferences getUserRoot()
     {
