@@ -2,3 +2,4 @@ org.csstudio.display.builder.runtime.actionhandlers.OpenDisplayActionHandler
 org.csstudio.display.builder.runtime.actionhandlers.WritePVActionHandler
 org.csstudio.display.builder.runtime.actionhandlers.ExecuteScriptActionHandler
 org.csstudio.display.builder.runtime.actionhandlers.ExecuteCommandActionHandler
+org.csstudio.display.builder.runtime.actionhandlers.OpenFileActionHandler

@@ -412,7 +412,7 @@ public class ActionUtil
         }
     }
 
-    private static String resolve(final Widget source_widget, final String path) throws Exception
+    public static String resolve(final Widget source_widget, final String path) throws Exception
     {
         // Path to resolve, after expanding macros
         final MacroValueProvider macros = source_widget.getMacrosOrProperties();
