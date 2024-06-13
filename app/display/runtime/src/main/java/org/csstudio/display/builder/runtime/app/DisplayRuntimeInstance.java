@@ -17,6 +17,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -24,6 +25,7 @@ import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
+import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
@@ -75,6 +77,7 @@ public class DisplayRuntimeInstance implements AppInstance
     private final BorderPane layout = new BorderPane();
     private final DockItemWithInput dock_item;
     private final DockItemRepresentation representation;
+    private FutureTask<Void> representation_init = new FutureTask<>(() -> {return null;});
     private Node toolbar;
 
     /** Property on the 'model_parent' of the JFX scene that holds this DisplayRuntimeInstance */
@@ -184,6 +187,13 @@ public class DisplayRuntimeInstance implements AppInstance
     DisplayNavigation getNavigation()
     {
         return navigation;
+    }
+
+    /* Clients waiting for the representation to be initialized can get() this,
+     * which will block until the representation is initialized.
+     */
+    public FutureTask<Void> getRepresentation_init() {
+        return representation_init;
     }
 
     private Node createToolbar()
@@ -311,6 +321,7 @@ public class DisplayRuntimeInstance implements AppInstance
                 try
                 {
                     representation.awaitRepresentation(30, TimeUnit.SECONDS);
+                    representation_init.run();
                     logger.log(Level.FINE, "Done with representing model of " + info.getPath());
                 }
                 catch (TimeoutException | InterruptedException ex)
@@ -497,6 +508,15 @@ public class DisplayRuntimeInstance implements AppInstance
         representation.shutdown();
 
         navigation.dispose();
+    }
+
+    public void addListener(ToolkitListener listener){
+        this.getRepresentation().removeListener(listener);
+        this.getRepresentation().addListener(listener);
+    }
+
+    public void removeListener(ToolkitListener listener){
+        this.getRepresentation().removeListener(listener);
     }
 
     @Override
