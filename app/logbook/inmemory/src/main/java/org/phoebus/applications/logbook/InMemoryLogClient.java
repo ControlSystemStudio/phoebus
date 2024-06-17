@@ -1,24 +1,47 @@
 package org.phoebus.applications.logbook;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLConnection;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.phoebus.logbook.*;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.AttachmentImpl;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryImpl;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
-
-import com.google.common.io.Files;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.PropertyImpl;
+import org.phoebus.logbook.SearchResult;
+import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.TagImpl;
 
 /**
  * A logbook which maintains logentries in memory. It is mainly for testing and debugging purpose.
  */
-public class InMemoryLogClient implements LogClient{
+public class InMemoryLogClient implements LogClient {
     private static Logger logger = Logger.getLogger(InMemoryLogClient.class.getName());
     private final AtomicInteger logIdCounter;
     private final Map<Long, LogEntry> logEntries;
@@ -105,7 +128,7 @@ public class InMemoryLogClient implements LogClient{
                     ext = file.getName().substring(i);
                 }
                 File tempFile = File.createTempFile(prefix, ext);
-                Files.copy(file, tempFile);
+                Files.copy(file.toPath(), tempFile.toPath());
                 tempFile.deleteOnExit();
                 String mimeType = URLConnection.guessContentTypeFromName(tempFile.getName());
                 return AttachmentImpl.of(tempFile, mimeType != null ? mimeType : ext, false);

@@ -12,10 +12,5 @@
       <artifactId>core-logbook</artifactId>
       <version>4.7.4-SNAPSHOT</version>
     </dependency>
-    <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>${guava.version}</version>
-    </dependency>
   </dependencies>
 </project>
