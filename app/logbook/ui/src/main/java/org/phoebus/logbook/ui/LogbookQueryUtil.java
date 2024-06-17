@@ -11,8 +11,6 @@ import java.util.stream.Collectors;
 
 import org.phoebus.util.time.TimeParser;
 
-import com.google.common.base.Strings;
-
 public class LogbookQueryUtil {
 
     // Ordered search keys
