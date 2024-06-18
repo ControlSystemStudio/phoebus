@@ -36,6 +36,7 @@ import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.application.ResourceOpenedNotifierService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -68,6 +69,7 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Memento tags */
     private static final String TAG_ZOOM = "ZOOM";
     private static final String TAG_TOOLBAR = "toolbar";
+    private static final String RESTORED = "restored";
 
     /** Global tracker of last user's decision to show toolbar.
      *  Used when opening new display
@@ -263,6 +265,7 @@ public class DisplayRuntimeInstance implements AppInstance
             });
         });
         memento.getBoolean(TAG_TOOLBAR).ifPresent(this::showToolbar);
+        ResourceOpenedNotifierService.notifyListeners(dock_item.getInput().toString(), RESTORED);
     }
 
     @Override

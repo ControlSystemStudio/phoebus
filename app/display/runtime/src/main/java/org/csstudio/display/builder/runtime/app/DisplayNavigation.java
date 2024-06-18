@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+import org.phoebus.ui.application.ResourceOpenedNotifierService;
 import org.phoebus.ui.undo.SizeLimitedStack;
 
 /** Navigate backward/forward between displays
@@ -99,6 +100,7 @@ public class DisplayNavigation
             if (current != null)
                 forwardStack.push(current);
             current = backwardStack.pop();
+            ResourceOpenedNotifierService.notifyListeners(current.getPath(), "BackButton");
         }
         notifyListeners();
         return current;
@@ -115,6 +117,7 @@ public class DisplayNavigation
             if (current != null)
                 backwardStack.push(current);
             current = forwardStack.pop();
+            ResourceOpenedNotifierService.notifyListeners(current.getPath(), "ForwardButton");
         }
         notifyListeners();
         return current;

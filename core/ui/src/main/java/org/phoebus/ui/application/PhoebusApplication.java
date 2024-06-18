@@ -904,7 +904,10 @@ public class PhoebusApplication extends Application {
                 final URI resource = tops.getResource(i);
 
                 menu_items[i] = new MenuItem(description);
-                menu_items[i].setOnAction(event -> openResource(resource, false));
+                menu_items[i].setOnAction(event -> {
+                    openResource(resource, false);
+                    ResourceOpenedNotifierService.notifyListeners(resource.getPath(),"TopResources");
+                });
 
                 toolbar_items[i] = new MenuItem(description);
                 toolbar_items[i].setOnAction(event -> openResource(resource, false));
