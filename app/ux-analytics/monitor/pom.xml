@@ -70,12 +70,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.phoebus</groupId>
-            <artifactId>app-filebrowser</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.14</version>

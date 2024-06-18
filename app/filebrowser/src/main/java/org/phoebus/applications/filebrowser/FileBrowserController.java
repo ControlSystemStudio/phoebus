@@ -34,7 +34,6 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.PhoebusApplication;
-import org.phoebus.ui.application.ResourceOpenedNotifierService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
@@ -180,17 +179,14 @@ public class FileBrowserController {
     }
 
     /**
-     * Try to open resource, tell listeners on success, show error dialog on failure
+     * Try to open resource, show error dialog on failure
      *
      * @param file  Resource to open
      * @param stage Stage to use to prompt for specific app.
      *              Otherwise <code>null</code> to use default app.
      */
     private void openResource(final File file, final Stage stage) {
-        if (ApplicationLauncherService.openFile(file, stage != null, stage)) {
-            Platform.runLater(() -> ResourceOpenedNotifierService.notifyListeners(file.getAbsolutePath(), FileBrowserApp.Name));
-        }
-        else{
+        if (!ApplicationLauncherService.openFile(file, stage != null, stage)) {
             final Alert alert = new Alert(AlertType.ERROR);
             alert.setHeaderText(Messages.OpenAlert1 + file + Messages.OpenAlert2);
             DialogHelper.positionDialog(alert, treeView, -300, -200);
