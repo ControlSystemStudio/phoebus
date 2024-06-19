@@ -44,4 +44,7 @@ public interface ToolkitListener
      *  @param value The value
      */
     default public void handleWrite(Widget widget, Object value) {};
+
+    default public void handleMethodCalled(Object... user_args) {};
+
 }

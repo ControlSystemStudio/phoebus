@@ -294,6 +294,8 @@ public class DisplayRuntimeInstance implements AppInstance
         // another instance
         dock_item.setInput(info.toURI());
 
+        representation.fireMethodCall((Object)display_info);
+
         // Now that old model is no longer represented,
         // show info.
         // Showing this info before disposeModel()
