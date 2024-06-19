@@ -17,12 +17,24 @@ public class ActiveTabsOfWindow {
         activeWindowsService = ActiveWindowsService.getInstance();
     }
 
+    public void add(ActiveTab tab) throws Exception {
+        this.remove(tab);
+        activeTabs.putIfAbsent(tab.toString(), tab);
+    }
+
     public void add(DockItemWithInput tab) throws Exception {
         this.remove(tab);
         activeTabs.putIfAbsent(tab.toString(), new ActiveTab(tab));
     }
 
     public void remove(DockItemWithInput tab){
+        if(activeTabs.containsKey(tab.toString())){
+            activeTabs.get(tab.toString()).close();
+            activeTabs.remove(tab.toString());
+        }
+    }
+
+    public void remove(ActiveTab tab){
         if(activeTabs.containsKey(tab.toString())){
             activeTabs.get(tab.toString()).close();
             activeTabs.remove(tab.toString());
@@ -36,8 +48,6 @@ public class ActiveTabsOfWindow {
     public synchronized void addWidget(DockItemWithInput tab, Widget widget){
         activeTabs.get(tab.toString()).add(widget);
     }
-
-
 
     public ConcurrentHashMap<String, ActiveTab> getActiveTabs() {
         return activeTabs;

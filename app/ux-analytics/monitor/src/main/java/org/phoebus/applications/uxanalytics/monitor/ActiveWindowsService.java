@@ -34,20 +34,21 @@ public class ActiveWindowsService {
                         Window window = change.getList().get(0).getTabPane().getScene().getWindow();
                         if(tab.getProperties().get("application") instanceof DisplayRuntimeInstance && tab instanceof DockItemWithInput){
 
-                            //When @DockItem s are initialized, their models aren't ready yet.
-                            //On startup, the DockItemWithInput will show up but its DisplayModel will be null.
-                            //block until the model is ready, in an individual background thread.
                             try {
+                                //Creating the wrapper object first (in the application thread) attaches a listener ASAP
+                                //we want to catch what caused the display to open
+                                ActiveTab tabWrapper = new ActiveTab((DockItemWithInput) tab);
+                                DisplayRuntimeInstance instance = (DisplayRuntimeInstance) tabWrapper.getParentTab().getProperties().get("application");
+                                //When @DockItem s are initialized, their models aren't ready yet.
+                                //On startup, the DockItemWithInput will show up but its DisplayModel will be null.
+                                //block until the model is ready, in an individual background thread.
                                 new Thread(() -> {
                                     try {
-                                        DisplayRuntimeInstance instance = ((DisplayRuntimeInstance) tab.getProperties().get("application"));
                                         //block until the model is ready
                                         instance.getRepresentation_init().get();
                                         lock.lock();
                                         String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
-
-                                        DockItemWithInput diwi = (DockItemWithInput)tab;
-                                        activeWindowsAndTabs.get(windowID).add(diwi);
+                                        activeWindowsAndTabs.get(windowID).add(tabWrapper);
                                         lock.unlock();
                                     } catch (Exception e) {
                                         e.printStackTrace();
@@ -56,6 +57,16 @@ public class ActiveWindowsService {
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
+                        }
+                    }
+                }
+                else if(change.wasRemoved()){
+                    for(Tab tab: change.getRemoved()){
+                        if(tab.getProperties().get("application") instanceof DisplayRuntimeInstance && tab instanceof DockItemWithInput){
+                            lock.lock();
+                            String windowID = (String) tab.getTabPane().getScene().getWindow().getProperties().get(DockStage.KEY_ID);
+                            activeWindowsAndTabs.get(windowID).remove((DockItemWithInput) tab);
+                            lock.unlock();
                         }
                     }
                 }
@@ -72,19 +83,13 @@ public class ActiveWindowsService {
                     for (javafx.stage.Window window : change.getAddedSubList()) {
                         if(window.getProperties().containsKey(DockStage.KEY_ID)){
                             String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
+                            lock.lock();
                             activeWindowsAndTabs.putIfAbsent(windowID, new ActiveTabsOfWindow(window));
                             for(DockPane item: DockStage.getDockPanes((Stage)window)){
-                                for (Tab tab: item.getTabs()){
-                                    if(tab instanceof DockItemWithInput){
-                                        try {
-                                            activeWindowsAndTabs.get(windowID).add((DockItemWithInput)tab);
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    }
-                                }
+                                item.getTabs().removeListener(UXATabChangeListener);
                                 item.getTabs().addListener(UXATabChangeListener);
                             }
+                            lock.unlock();
                         }
                     }
                 }
@@ -92,7 +97,9 @@ public class ActiveWindowsService {
                     for(Window window: change.getRemoved()){
                         if(window.getProperties().containsKey(DockStage.KEY_ID)){
                             String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
+                            lock.lock();
                             activeWindowsAndTabs.remove(windowID);
+                            lock.unlock();
                         }
                     }
                 }
