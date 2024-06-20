@@ -4,6 +4,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.OpenFileActionInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
+import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.neo4j.driver.*;
 import org.phoebus.ui.docking.DockItemWithInput;
 
@@ -57,8 +58,9 @@ public class Neo4JConnection implements BackendConnection{
         return;
     }
 
-    public void handleFileOpen(ActiveTab who, Widget widget, String destinationFileName) {
-        logger.log(Level.INFO, "Neo4J Connection would've handled File Open" + destinationFileName + "from" + who + "on" + widget);
+
+    public void handleDisplayOpen(ActiveTab who, Widget widget, DisplayInfo targetDisplayInfo) {
+        logger.log(Level.INFO, "Neo4J Connection would've handled File Open" + targetDisplayInfo.getPath() + " from " + who + ", widget" + widget);
     }
 
     @Override
@@ -68,8 +70,7 @@ public class Neo4JConnection implements BackendConnection{
             case WRITE_PV:
                 handlePVWrite(who, widget, ((WritePVActionInfo) info).getPV(), ((WritePVActionInfo) info).getValue());
                 break;
-            case OPEN_FILE:
-                handleFileOpen(who, widget, ((OpenFileActionInfo) info).getFile());
+            case OPEN_DISPLAY:
                 break;
             default:
                 //keep it simple for now, just PVs and file opens

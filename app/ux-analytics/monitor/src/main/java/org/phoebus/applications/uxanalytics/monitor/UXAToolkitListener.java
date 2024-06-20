@@ -1,14 +1,22 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
+import javafx.application.Platform;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.representation.ToolkitListener;
+import org.csstudio.display.builder.runtime.app.DisplayInfo;
+import org.phoebus.ui.docking.DockItemWithInput;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 
 public class UXAToolkitListener implements ToolkitListener {
+
+    Logger logger = Logger.getLogger(UXAToolkitListener.class.getName());
 
     public static final HashMap<String, ResourceOpenSources> openSources = new HashMap<>(
             Map.of(
@@ -16,7 +24,8 @@ public class UXAToolkitListener implements ToolkitListener {
                     "org.phoebus.ui.application.PhoebusApplication.fileOpen", ResourceOpenSources.FILE_BROWSER,
                     "org.csstudio.display.builder.runtime.app.NavigationAction.navigate", ResourceOpenSources.NAVIGATION_BUTTON,
                     "org.phoebus.ui.internal.MementoHelper.restoreDockItem", ResourceOpenSources.RESTORED,
-                    "TOP_RESOURCES", ResourceOpenSources.TOP_RESOURCES
+                    "org.phoebus.ui.application.PhoebusApplication.createTopResourcesMenu", ResourceOpenSources.TOP_RESOURCES,
+                    "org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance.reload", ResourceOpenSources.RELOAD
             )
     );
 
@@ -47,26 +56,29 @@ public class UXAToolkitListener implements ToolkitListener {
     }
 
     //Traverse down the call stack to find out what caused the display to open
-    public static ResourceOpenSources getSourceOfOpen(StackTraceElement[] stackTrace){
+    private static ResourceOpenSources getSourceOfOpen(StackTraceElement[] stackTrace){
         for(StackTraceElement e: stackTrace){
-            String methodName =  e.getMethodName();
-            if( methodName.contains("lambda$")){
-                methodName = unmangleLambda(methodName);
-            }
+            String methodName =  unmangleLambda(e.getMethodName());
             String fullName = e.getClassName()+"."+methodName;
             if(openSources.containsKey(fullName)){
                 return openSources.get(fullName);
             }
         }
+        /*for(StackTraceElement e: stackTrace){
+            String methodName =  unmangleLambda(e.getMethodName());
+            System.out.println(e.getClassName()+"."+methodName);
+        }*/
         return ResourceOpenSources.UNKNOWN;
     }
 
     private static String unmangleLambda(String expression){
         //find index of first '$' after 'lambda$'
-        int start = expression.indexOf("lambda$") + 7;
-        int end = expression.indexOf("$", start);
-        String unmangled = expression.substring(start,end);
-        return unmangled;
+        if(expression.contains("lambda$")) {
+            int start = expression.indexOf("lambda$") + 7;
+            int end = expression.indexOf("$", start);
+            return expression.substring(start, end);
+        }
+        return expression;
     }
 
     @Override
@@ -78,8 +90,7 @@ public class UXAToolkitListener implements ToolkitListener {
         if(methodName.equals("loadDisplayFile")){
             ResourceOpenSources source = getSourceOfOpen(stackTrace);
             System.out.println("Method call: "+methodName);
-            System.out.println("Source: "+getSourceOfOpen(stackTrace));
+            System.out.println("Source: "+source);
         }
     }
-
 }

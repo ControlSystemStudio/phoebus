@@ -5,6 +5,7 @@ public enum ResourceOpenSources {
     ACTION_BUTTON,
     FILE_BROWSER,
     NAVIGATION_BUTTON,
+    RESTORED,
     TOP_RESOURCES,
-    RESTORED
+    RELOAD
 }

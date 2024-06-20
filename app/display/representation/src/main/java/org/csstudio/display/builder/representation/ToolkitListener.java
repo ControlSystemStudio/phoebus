@@ -13,6 +13,9 @@ import org.csstudio.display.builder.model.spi.ActionInfo;
 import java.util.Optional;
 import java.util.concurrent.FutureTask;
 
+import java.util.Optional;
+import java.util.concurrent.FutureTask;
+
 /** Listener to a widget representation
  *
  *  <p>Provides notification of events (action invoked, ..)
