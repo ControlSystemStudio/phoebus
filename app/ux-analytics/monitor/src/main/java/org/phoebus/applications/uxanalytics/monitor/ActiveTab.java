@@ -4,6 +4,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.ToolkitListener;
+import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
 
@@ -95,6 +96,11 @@ public class ActiveTab {
         return toolkitListener;
     }
 
+    public DisplayInfo getDisplayInfo(){
+        DisplayRuntimeInstance instance = parentTab.getApplication();
+        return instance.getDisplayInfo();
+    }
+
     public synchronized void add(Widget widget){
         widgets.add(widget);
     }
@@ -113,7 +119,7 @@ public class ActiveTab {
         }
     }
 
-    public Tab getParentTab() {
+    public DockItemWithInput getParentTab() {
         return parentTab;
     }
 
