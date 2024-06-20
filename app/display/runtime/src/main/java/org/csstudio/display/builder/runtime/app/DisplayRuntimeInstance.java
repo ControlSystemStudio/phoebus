@@ -276,7 +276,7 @@ public class DisplayRuntimeInstance implements AppInstance
     }
 
     /** @return Current display info or <code>null</code> */
-    DisplayInfo getDisplayInfo()
+    public DisplayInfo getDisplayInfo()
     {
         return display_info.orElse(null);
     }
@@ -294,7 +294,7 @@ public class DisplayRuntimeInstance implements AppInstance
         // another instance
         dock_item.setInput(info.toURI());
 
-        representation.fireMethodCall((Object)display_info);
+        StackTraceElement[] applicationThreadStackTrace = Thread.currentThread().getStackTrace();
 
         // Now that old model is no longer represented,
         // show info.
@@ -324,6 +324,7 @@ public class DisplayRuntimeInstance implements AppInstance
                 {
                     representation.awaitRepresentation(30, TimeUnit.SECONDS);
                     representation_init.run();
+                    representation.fireMethodCall(info, applicationThreadStackTrace);
                     logger.log(Level.FINE, "Done with representing model of " + info.getPath());
                 }
                 catch (TimeoutException | InterruptedException ex)
