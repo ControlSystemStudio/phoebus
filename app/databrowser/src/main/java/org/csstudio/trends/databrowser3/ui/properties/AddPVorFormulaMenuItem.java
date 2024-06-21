@@ -44,7 +44,7 @@ public class AddPVorFormulaMenuItem extends MenuItem
             if (! dlg.showAndWait().orElse(false))
                 return;
 
-            final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(0));
+            final AxisConfig axis = dlg.getOrCreateAxis(model, undo, dlg.getAxisIndex(0));
 
             if (formula)
             {
@@ -54,7 +54,7 @@ public class AddPVorFormulaMenuItem extends MenuItem
                 FormulaItemEditor.run(node, item, undo);
             }
             else
-                AddModelItemCommand.forPV(undo, model, dlg.getName(0), dlg.getScanPeriod(0), axis, null);
+                AddModelItemCommand.forPV(undo, model, dlg.getName(0), dlg.getDisplayName(0), dlg.getScanPeriod(0), axis, null);
         });
     }
 }

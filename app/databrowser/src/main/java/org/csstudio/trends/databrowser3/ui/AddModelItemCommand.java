@@ -43,6 +43,7 @@ public class AddModelItemCommand extends UndoableAction
             final UndoableActionManager operations_manager,
             final Model model,
             final String pv_name,
+            final String display_name,
             final double period,
             final AxisConfig axis,
             final ArchiveDataSource archive)
@@ -52,6 +53,7 @@ public class AddModelItemCommand extends UndoableAction
         try
         {
             item = new PVItem(pv_name, period);
+            item.setDisplayName(display_name);
             if (archive != null)
                 item.addArchiveDataSource(archive);
             else
