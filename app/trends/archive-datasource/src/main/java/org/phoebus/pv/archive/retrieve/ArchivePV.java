@@ -17,16 +17,6 @@ public class ArchivePV extends PV {
 
     ArchiveReaderService service = ArchiveReaderService.getService();
 
-    /**
-     * Timer for archive updates
-     */
-    private final static ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, target ->
-    {
-        final Thread thread = new Thread(target, "ArchivePV");
-        thread.setDaemon(true);
-        return thread;
-    });
-
     public ArchivePV(String name) {
         this(name, Instant.now());
     }
