@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static org.phoebus.pv.archive.ArchiveReaderUtil.parseSupportedTimeFormat;
+
 /**
  * A datasource for the replaying archived PV's
  * @author Kunal Shroff
@@ -45,20 +47,28 @@ public class ReplayPVFactory implements PVFactory
                     .stream(base_name.substring(sep+1, end).split(","))
                     .map(String::strip)
                     .collect(Collectors.toList());
+
+            Instant startTime;
+            Instant endTime;
             if (parameters.size() == 2) {
                 // start and end
-
+                startTime = parseSupportedTimeFormat(parameters.get(0));
+                endTime = parseSupportedTimeFormat(parameters.get(1));
+                return new ReplayPV(name, pvName, startTime, endTime);
 
             } else if (parameters.size() == 3 ) {
                 // start, end, and rate
+                startTime = parseSupportedTimeFormat(parameters.get(0));
+                endTime = parseSupportedTimeFormat(parameters.get(1));
+                double rate = Double.parseDouble(parameters.get(2));
+
+                return new ReplayPV(name, pvName, startTime, endTime, rate);
 
             } else {
                 throw new Exception("Incorrect number of parameters defined," + "'" + name + "'" +
                         " the replay datasource supports start, end, and optionally a rate parameter.");
-
             }
-        }
 
-        return new ReplayPV(name, pvName, Instant.now(), Instant.now().minusSeconds(300));
+        }
     }
 }

@@ -34,13 +34,26 @@ public class ReplayPV extends PV
     private ValueIterator i;
 
     /**
-     * 
+     *
      * @param completeName
      * @param name
      * @param start
      * @param end
      */
     public ReplayPV(String completeName, final String name, Instant start, Instant end)
+    {
+        this(completeName, name, start, end, .1);
+    }
+
+    /**
+     *
+     * @param completeName
+     * @param name
+     * @param start
+     * @param end
+     * @param update
+     */
+    public ReplayPV(String completeName, final String name, Instant start, Instant end, double update)
     {
         super(completeName);
 
@@ -56,7 +69,7 @@ public class ReplayPV extends PV
         } catch (Exception e) {
             e.printStackTrace();
         }
-        start(.01);
+        start(update);
     }
 
     /** Start periodic updates
@@ -70,7 +83,8 @@ public class ReplayPV extends PV
     }
 
     /** Called by periodic timer */
-    protected void update() {
+    protected void update()
+    {
         try {
             if (i.hasNext()) {
                 notifyListenersOfValue(i.next());
@@ -86,7 +100,7 @@ public class ReplayPV extends PV
     @Override
     protected void close()
     {
-        if (! task.cancel(false))
+        if (!task.isDone() && !task.cancel(false))
             logger.log(Level.WARNING, "Cannot cancel updates for " + getName());
         super.close();
     }
