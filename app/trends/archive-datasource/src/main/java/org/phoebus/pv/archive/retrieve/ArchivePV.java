@@ -17,12 +17,23 @@ public class ArchivePV extends PV {
 
     ArchiveReaderService service = ArchiveReaderService.getService();
 
-    public ArchivePV(String name) {
-        this(name, Instant.now());
+    /**
+     *
+     * @param completeName
+     * @param name
+     */
+    public ArchivePV(String completeName, String name) {
+        this(completeName, name, Instant.now());
     }
 
-    public ArchivePV(String name, Instant instant) {
-        super(name);
+    /**
+     *
+     * @param completeName
+     * @param name
+     * @param instant
+     */
+    public ArchivePV(String completeName, String name, Instant instant) {
+        super(completeName);
         try {
             ValueIterator i = service.getReader().getRawValues(name, instant, instant);
 

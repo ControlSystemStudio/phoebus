@@ -3,8 +3,12 @@ package org.phoebus.pv.archive.retrieve;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVFactory;
 
+import java.time.DateTimeException;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.phoebus.util.time.TimestampFormats.DATETIME_FORMAT;
 import static org.phoebus.util.time.TimestampFormats.SECONDS_FORMAT;
@@ -46,17 +50,29 @@ public class ArchivePVFactory implements PVFactory
         }
 
         if(parameters.isEmpty()) {
-            return new ArchivePV(pvName);
+            return new ArchivePV(name, pvName);
         } else {
             Instant time;
-            switch (parameters.length()) {
-                case 16 -> time = Instant.from(DATETIME_FORMAT.parse(parameters));
-                case 19 -> time = Instant.from(SECONDS_FORMAT.parse(parameters));
-                case 23 -> time = Instant.from(MILLI_FORMAT.parse(parameters));
-                case 29 -> time = Instant.from(FULL_FORMAT.parse(parameters));
-                default -> throw new Exception("Time value defined in a unknown formatt, '" + parameters + "'");
+            List<String> parameterList = Arrays.stream(parameters.split(","))
+                                                .map(String::strip)
+                                                .collect(Collectors.toList());
+            if(parameterList.size() == 1) {
+                String timeParameter = parameterList.get(0);
+                try {
+                    switch (parameterList.get(0).length()) {
+                        case 16 -> time = Instant.from(DATETIME_FORMAT.parse(timeParameter));
+                        case 19 -> time = Instant.from(SECONDS_FORMAT.parse(timeParameter));
+                        case 23 -> time = Instant.from(MILLI_FORMAT.parse(timeParameter));
+                        case 29 -> time = Instant.from(FULL_FORMAT.parse(timeParameter));
+                        default -> throw new Exception("Time value defined in a unknown format, '" + timeParameter + "'");
+                    }
+                    return new ArchivePV(name, pvName, time);
+                } catch (DateTimeException e) {
+                    throw new Exception("Time value defined in a unknown format, '" + timeParameter + "'");
+                }
+            } else {
+                throw new Exception("Incorrect number of parameters defined '" + name + "'");
             }
-            return new ArchivePV(pvName, time);
         }
     }
 }
