@@ -26,7 +26,8 @@ public class ArchivePVFactory implements PVFactory
     final public static String TYPE = "archive";
 
     @Override
-    public String getType() {
+    public String getType()
+    {
         return TYPE;
     }
 
@@ -49,14 +50,18 @@ public class ArchivePVFactory implements PVFactory
             parameters = base_name.substring(sep+1, end);
         }
 
-        if(parameters.isEmpty()) {
+        if(parameters.isEmpty())
+        {
             return new ArchivePV(name, pvName);
-        } else {
+        }
+        else
+        {
             Instant time;
             List<String> parameterList = Arrays.stream(parameters.split(","))
                                                 .map(String::strip)
                                                 .collect(Collectors.toList());
-            if(parameterList.size() == 1) {
+            if(parameterList.size() == 1)
+            {
                 String timeParameter = parameterList.get(0);
                 try {
                     switch (parameterList.get(0).length()) {
@@ -70,7 +75,9 @@ public class ArchivePVFactory implements PVFactory
                 } catch (DateTimeException e) {
                     throw new Exception("Time value defined in a unknown format, '" + timeParameter + "'");
                 }
-            } else {
+            }
+            else
+            {
                 throw new Exception("Incorrect number of parameters defined '" + name + "'");
             }
         }

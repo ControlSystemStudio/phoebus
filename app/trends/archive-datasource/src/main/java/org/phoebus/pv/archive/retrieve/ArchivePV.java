@@ -7,6 +7,7 @@ import org.phoebus.pv.archive.ArchiveReaderService;
 import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.logging.Level;
 
 /**
  * A Connection to a PV in the archiver
@@ -22,7 +23,8 @@ public class ArchivePV extends PV {
      * @param completeName
      * @param name
      */
-    public ArchivePV(String completeName, String name) {
+    public ArchivePV(String completeName, String name)
+    {
         this(completeName, name, Instant.now());
     }
 
@@ -32,7 +34,8 @@ public class ArchivePV extends PV {
      * @param name
      * @param instant
      */
-    public ArchivePV(String completeName, String name, Instant instant) {
+    public ArchivePV(String completeName, String name, Instant instant)
+    {
         super(completeName);
         try {
             ValueIterator i = service.getReader().getRawValues(name, instant, instant);
@@ -41,21 +44,24 @@ public class ArchivePV extends PV {
                 notifyListenersOfValue(i.next());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to create pv: " + getName() , e);
         }
     }
 
-    public void disconnected() {
+    public void disconnected()
+    {
         notifyListenersOfDisconnect();
     }
 
     @Override
-    protected void close() {
+    protected void close()
+    {
         super.close();
     }
 
     @Override
-    public boolean isReadonly() {
+    public boolean isReadonly()
+    {
         return true;
     }
 

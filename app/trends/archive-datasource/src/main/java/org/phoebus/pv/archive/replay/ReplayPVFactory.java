@@ -23,12 +23,14 @@ public class ReplayPVFactory implements PVFactory
     final public static String TYPE = "replay";
 
     @Override
-    public String getType() {
+    public String getType()
+    {
         return TYPE;
     }
 
     @Override
-    public PV createPV(String name, String base_name) throws Exception {
+    public PV createPV(String name, String base_name) throws Exception
+    {
         // Determine simulation function name and (optional) parameters
         final String pvName;
         int sep = base_name.indexOf('(');

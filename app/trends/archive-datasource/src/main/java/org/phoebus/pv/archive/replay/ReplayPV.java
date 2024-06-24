@@ -92,7 +92,7 @@ public class ReplayPV extends PV
                 close();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "failed to update pv: " + getName() , e);
             close();
         }
     }
