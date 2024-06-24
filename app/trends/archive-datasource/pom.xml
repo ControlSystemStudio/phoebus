@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>org.phoebus</groupId>
-            <artifactId>app-databrowser</artifactId>
+            <artifactId>app-trends-archive-reader</artifactId>
             <version>4.7.4-SNAPSHOT</version>
         </dependency>
     </dependencies>
