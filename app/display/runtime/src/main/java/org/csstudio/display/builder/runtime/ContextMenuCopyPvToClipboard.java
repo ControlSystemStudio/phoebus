@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.probe;
+package org.csstudio.display.builder.runtime;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,7 +27,7 @@ import javafx.scene.input.ClipboardContent;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ContextMenuPvToClipboard implements ContextMenuEntry
+public class ContextMenuCopyPvToClipboard implements ContextMenuEntry
 {
     private static final Class<?> supportedTypes = ProcessVariable.class;
 

@@ -1,10 +1,12 @@
 package org.phoebus.ui.spi;
 
+import javafx.scene.Node;
+import javafx.scene.image.Image;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.ui.application.ContextMenuHelper;
 
-import javafx.scene.Node;
-import javafx.scene.image.Image;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Context menu entry service interface
@@ -100,5 +102,11 @@ public interface ContextMenuEntry {
         throw new UnsupportedOperationException(getName() + ".call(node, selection) Is not implemented.");
     };
 
+    /**
+     * @return Sub-menu items
+     */
+    public default List<ContextMenuEntry> getChildren() {
+        return Collections.emptyList();
+    }
 
 }
