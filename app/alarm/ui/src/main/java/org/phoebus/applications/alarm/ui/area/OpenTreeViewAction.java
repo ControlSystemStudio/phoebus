@@ -26,11 +26,12 @@ public class OpenTreeViewAction extends MenuItem
     /**
      * Constructor
      * @param alarmConfigName The alarm configuration name
+     * @param alarmRawQuery raw query for alarm (null if no such information is available)
      */
-    public OpenTreeViewAction(String alarmConfigName)
+    public OpenTreeViewAction(String alarmConfigName, String alarmRawQuery)
     {
         final AlarmTreeMenuEntry entry = new AlarmTreeMenuEntry();
-        entry.setResource(AlarmURI.createURI(AlarmSystem.server, alarmConfigName));
+        entry.setResource(AlarmURI.createURI(AlarmSystem.server, alarmConfigName, alarmRawQuery));
         setText(entry.getName());
         setGraphic(new ImageView(entry.getIcon()));
         setOnAction(event ->
@@ -45,4 +46,5 @@ public class OpenTreeViewAction extends MenuItem
             }
         });
     }
+
 }
