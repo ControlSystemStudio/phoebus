@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.probe;
+package org.csstudio.display.builder.runtime;
 
 import java.util.List;
 import java.util.stream.Collectors;

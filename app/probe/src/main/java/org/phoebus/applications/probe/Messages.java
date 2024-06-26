@@ -20,13 +20,7 @@ public class Messages
     // ---
     public static String Alarm;
     public static String Alarms;
-    public static String AppendPVNameToClipboard;
-    public static String AppendPVNameToClipboardWithDescription;
     public static String ControlRange;
-    public static String Copy;
-    public static String CopyPVNameToClipboardWithDescription;
-    public static String CopySubMenu;
-    public static String CopyWithValue;
     public static String DisplayRange;
     public static String EnumLbls;
     public static String Format;

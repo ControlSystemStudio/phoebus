@@ -5,12 +5,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.applications.probe;
-
-import static org.phoebus.applications.probe.Probe.logger;
+package org.csstudio.display.builder.runtime;
 
 import java.util.List;
 import java.util.logging.Level;
+
+import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;

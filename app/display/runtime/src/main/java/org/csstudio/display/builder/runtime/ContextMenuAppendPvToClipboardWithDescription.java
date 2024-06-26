@@ -1,4 +1,4 @@
-package org.phoebus.applications.probe;
+package org.csstudio.display.builder.runtime;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;

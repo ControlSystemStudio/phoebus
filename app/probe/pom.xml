@@ -22,11 +22,5 @@
       <artifactId>core-types</artifactId>
       <version>4.7.4-SNAPSHOT</version>
     </dependency>
-      <dependency>
-          <groupId>org.phoebus</groupId>
-          <artifactId>app-display-runtime</artifactId>
-          <version>4.7.4-SNAPSHOT</version>
-          <scope>compile</scope>
-      </dependency>
   </dependencies>
 </project>

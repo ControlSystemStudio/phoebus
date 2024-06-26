@@ -1,4 +1,4 @@
-package org.phoebus.applications.probe;
+package org.csstudio.display.builder.runtime;
 
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
