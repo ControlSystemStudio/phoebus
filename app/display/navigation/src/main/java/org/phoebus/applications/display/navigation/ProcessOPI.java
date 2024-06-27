@@ -4,10 +4,10 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelReader;
-import org.csstudio.display.builder.model.properties.PluggableActionInfos;
-import org.csstudio.display.builder.model.spi.PluggableActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
-import org.csstudio.display.builder.representation.javafx.actions.OpenDisplayAction;
+import org.csstudio.display.actions.OpenDisplayAction;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroOrSystemProvider;
 import org.phoebus.framework.macros.Macros;
@@ -33,7 +33,7 @@ public class ProcessOPI {
     private final Set<File> allLinkedFiles;
 
     /**
-     * @param rootFile
+     * @param rootFile Start of the navigation tree
      */
     public ProcessOPI(File rootFile) {
         this.rootFile = rootFile;
@@ -60,7 +60,7 @@ public class ProcessOPI {
     private synchronized void getAllLinkedFiles(File file) {
         System.out.println("Calculating linked files for " + file.getName());
         Set<File> linkedFiles = getLinkedFiles(file);
-        linkedFiles.stream().forEach(f -> {
+        linkedFiles.forEach(f -> {
             if (allLinkedFiles.contains(f) || f.equals(rootFile)) {
                 // Already handled skip it
             } else {
@@ -77,16 +77,14 @@ public class ProcessOPI {
             ModelReader reader = new ModelReader(new FileInputStream(file));
             DisplayModel model = reader.readModel();
             List<Widget> children = model.getChildren();
-            List<PluggableActionInfo> actionsInfos = new ArrayList<>();
-            children.stream().forEach(widget -> {
+            List<ActionInfo> actionsInfos = new ArrayList<>();
+            children.forEach(widget -> {
                 // Find all the action properties
-                WidgetProperty<PluggableActionInfos> actions = widget.propActions();
-                Set<PluggableActionInfo> openActions = actions.getValue().getActions().stream().filter(actionInfo -> {
-                    return actionInfo.getType().equalsIgnoreCase("open_display");
-                }).collect(Collectors.toSet());
+                WidgetProperty<ActionInfos> actions = widget.propActions();
+                Set<ActionInfo> openActions = actions.getValue().getActions().stream().filter(actionInfo -> actionInfo.getType().equalsIgnoreCase("open_display")).collect(Collectors.toSet());
 
                 // Resolve the complete valid path for each of the open display actions
-                openActions.stream().forEach(openAction -> {
+                openActions.forEach(openAction -> {
                     // Path to resolve, after expanding macros of source widget and action
                     OpenDisplayAction action = (OpenDisplayAction) openAction;
                     try {

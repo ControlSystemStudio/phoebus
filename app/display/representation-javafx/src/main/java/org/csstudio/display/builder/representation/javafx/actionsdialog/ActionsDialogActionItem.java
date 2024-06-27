@@ -18,19 +18,8 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
-import org.csstudio.display.builder.model.spi.PluggableActionInfo;
-import org.csstudio.display.builder.representation.javafx.Messages;
-import org.phoebus.framework.nls.NLS;
-
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 
 /**
  * Wrapper class for the {@link ActionsDialog} action list view items. It contains
@@ -38,132 +27,33 @@ import javafx.scene.Node;
  */
 public class ActionsDialogActionItem {
 
-    private Node actionInfoEditor;
-    //private ActionDetailsController controller;
-    private String description;
-    //private ActionType actionType;
-    private PluggableActionInfo pluggableActionInfo;
-    private Widget widget;
+    private final String description;
+    private final ActionInfo actionInfo;
+    private final Widget widget;
+
     /**
      * Constructor.
-     *
+     * <p>
      * Note that the {@link ActionInfo} object is not maintained as a field in the class as its fields are
      * read-only.
-     * @param widget Widget
-     * @param actionInfo ActionInfo
+     *
+     * @param widget     Widget
+     * @param actionInfo {@link ActionInfo}
      */
-    public ActionsDialogActionItem(Widget widget, PluggableActionInfo actionInfo){
+    public ActionsDialogActionItem(Widget widget, ActionInfo actionInfo) {
         this.description = actionInfo.getDescription();
-        this.pluggableActionInfo = actionInfo;
+        this.actionInfo = actionInfo;
         this.widget = widget;
-        //this.actionType = actionInfo.getType();
-        /*
-        ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
-        FXMLLoader fxmlLoader = new FXMLLoader();
-        fxmlLoader.setResources(resourceBundle);
-        try {
-            switch(actionInfo.getType()){
-
-                case WRITE_PV:
-                    fxmlLoader.setLocation(this.getClass().getResource("WritePVActionDetails.fxml"));
-                    fxmlLoader.setControllerFactory(clazz -> {
-                        try {
-                           return clazz.getConstructor(ActionInfo.class).newInstance(actionInfo);
-                        } catch (Exception e) {
-                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct WritePVActionDetailsController", e);
-                        }
-                        return null;
-                    });
-                    break;
-                case EXECUTE_SCRIPT:
-                    fxmlLoader.setLocation(this.getClass().getResource("ExecuteScriptActionDetails.fxml"));
-                    fxmlLoader.setControllerFactory(clazz -> {
-                        try {
-                            return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, actionInfo);
-                        } catch (Exception e) {
-                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct ExecuteScriptDetailsController", e);
-                        }
-                        return null;
-                    });
-                    break;
-                case EXECUTE_COMMAND:
-                    fxmlLoader.setLocation(this.getClass().getResource("ExecuteCommandActionDetails.fxml"));
-                    fxmlLoader.setControllerFactory(clazz -> {
-                        try {
-                            return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, actionInfo);
-                        } catch (Exception e) {
-                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct ExecuteCommandDetailsController", e);
-                        }
-                        return null;
-                    });
-                    break;
-                case OPEN_FILE:
-                    fxmlLoader.setLocation(this.getClass().getResource("OpenFileActionDetails.fxml"));
-                    fxmlLoader.setControllerFactory(clazz -> {
-                        try {
-                           return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, actionInfo);
-                        } catch (Exception e) {
-                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct OpenFileDetailsController", e);
-                        }
-                        return null;
-                    });
-                    break;
-                case OPEN_WEBPAGE:
-                    fxmlLoader.setLocation(this.getClass().getResource("OpenWebPageActionDetails.fxml"));
-                    fxmlLoader.setControllerFactory(clazz -> {
-                        try {
-                           return clazz.getConstructor(ActionInfo.class).newInstance(actionInfo);
-                        } catch (Exception e) {
-                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct OpenWebPageDetailsController", e);
-                        }
-                        return null;
-                    });
-                    break;
-            }
-
-            this.actionInfoEditor = fxmlLoader.load();
-            this.controller = fxmlLoader.getController();
-            this.actionInfoEditor.setVisible(false);
-        } catch (Exception e) {
-            Logger.getLogger(ActionsDialogActionItem.class.getName())
-                    .log(Level.WARNING, String.format("Unable to create editor for action type \"%s\"", actionInfo.getType()), e);
-        }
-
-         */
     }
 
-    /** @return Node for action info */
-    public Node getActionInfoEditor(){
-        if(actionInfoEditor == null){
-            actionInfoEditor = pluggableActionInfo.getEditor(widget);
-        }
-        return actionInfoEditor;
-    }
-
-    /** @return Description */
-    public String getDescription(){
+    /**
+     * @return Description
+     */
+    public String getDescription() {
         return description;
     }
 
-    public PluggableActionInfo getPluggableActionInfo(){
-        return pluggableActionInfo;
+    public ActionInfo getActionInfo() {
+        return actionInfo;
     }
-
-    /** @return ActionType */
-    /*
-    public ActionType getActionType(){
-        return actionType;
-    }
-
-     */
-
-    /**
-     * @return The {@link ActionInfo} object maintained by the controller for the editor component.
-     */
-    /*
-    public ActionInfo getActionInfo(){
-        return controller.getActionInfo();
-    }
-
-     */
 }

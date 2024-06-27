@@ -43,7 +43,7 @@ public class MacrosWidgetProperty extends WidgetProperty<Macros>
         value = new Macros(default_value);
     }
 
-    /** @param value Must be ActionInfo array(!), not List */
+    /** @param value Must be {@link org.csstudio.display.builder.model.spi.ActionInfo} array(!), not List */
     @Override
     public void setValueFromObject(final Object value) throws Exception
     {

@@ -22,10 +22,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfos;
-import org.csstudio.display.builder.model.properties.PluggableActionInfos;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.Messages;
 import org.phoebus.framework.nls.NLS;
@@ -38,11 +39,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Dialog for editing {@link org.csstudio.display.builder.model.properties.PluggableActionInfos} list
+ * Dialog for editing {@link ActionInfos} list
  */
-public class ActionsDialog extends Dialog<PluggableActionInfos> {
-
-    private final Widget widget;
+public class ActionsDialog extends Dialog<ActionInfos> {
 
     private ActionsDialogController controller;
 
@@ -53,8 +52,7 @@ public class ActionsDialog extends Dialog<PluggableActionInfos> {
      * @param initialActions Initial list of actions
      * @param owner          Node that started this dialog
      */
-    public ActionsDialog(final Widget widget, final PluggableActionInfos initialActions, final Node owner) {
-        this.widget = widget;
+    public ActionsDialog(final Widget widget, final ActionInfos initialActions, final Node owner) {
 
         setTitle(Messages.ActionsDialog_Title);
         setHeaderText(Messages.ActionsDialog_Info);
@@ -90,8 +88,12 @@ public class ActionsDialog extends Dialog<PluggableActionInfos> {
 
         setResultConverter(button ->
         {
-            if (button == ButtonType.OK)
+            if (button == ButtonType.OK){
                 return controller.getActionInfos();
+            }
+            else if(button == ButtonType.CANCEL){
+                controller.revertEdits();
+            }
             return null;
         });
 

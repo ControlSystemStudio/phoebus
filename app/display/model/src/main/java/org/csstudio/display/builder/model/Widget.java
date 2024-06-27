@@ -8,7 +8,7 @@
 package org.csstudio.display.builder.model;
 
 import org.csstudio.display.builder.model.macros.MacroOrPropertyProvider;
-import org.csstudio.display.builder.model.properties.PluggableActionInfos;
+import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
@@ -174,8 +174,7 @@ public class Widget {
     private final WidgetProperty<Integer> y;
     private final WidgetProperty<Integer> width;
     private final WidgetProperty<Integer> height;
-    //private WidgetProperty<ActionInfos> actions;
-    private final WidgetProperty<PluggableActionInfos> actions;
+    private final WidgetProperty<ActionInfos> actions;
     private final WidgetProperty<List<RuleInfo>> rules;
     private final WidgetProperty<List<ScriptInfo>> scripts;
 
@@ -217,7 +216,7 @@ public class Widget {
         prelim_properties.add(y = propY.createProperty(this, 0));
         prelim_properties.add(width = propWidth.createProperty(this, default_width));
         prelim_properties.add(height = propHeight.createProperty(this, default_height));
-        prelim_properties.add(actions = propActions.createProperty(this, PluggableActionInfos.EMPTY));
+        prelim_properties.add(actions = propActions.createProperty(this, ActionInfos.EMPTY));
         prelim_properties.add(rules = propRules.createProperty(this, Collections.emptyList()));
         prelim_properties.add(scripts = propScripts.createProperty(this, Collections.emptyList()));
 
@@ -462,17 +461,7 @@ public class Widget {
         return height;
     }
 
-    /**
-     * @return 'actions' property
-     */
-    /*
-    public final WidgetProperty<ActionInfos> propActions()
-    {
-        return actions;
-    }
-
-     */
-    public final WidgetProperty<PluggableActionInfos> propActions() {
+    public final WidgetProperty<ActionInfos> propActions() {
         return actions;
     }
 

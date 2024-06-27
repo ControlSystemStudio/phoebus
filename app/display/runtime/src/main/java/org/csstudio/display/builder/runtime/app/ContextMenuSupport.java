@@ -18,7 +18,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.csstudio.display.builder.model.spi.PluggableActionInfo;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
@@ -128,52 +128,13 @@ class ContextMenuSupport {
         }
 
         // Widget actions
-        for (PluggableActionInfo info : widget.propActions().getValue().getActions()) {
+        for (ActionInfo info : widget.propActions().getValue().getActions()) {
             List<MenuItem> actionMenuItems = info.getContextMenuItems(widget);
             if (actionMenuItems != null) {
                 actionMenuItems.forEach(i -> i.setOnAction(e -> ActionUtil.handleAction(widget, info)));
                 items.addAll(actionMenuItems);
             }
-
-            /*
-            if (info.getType() == ActionType.OPEN_DISPLAY)
-            {
-                final OpenDisplayActionInfo open_info = (OpenDisplayActionInfo) info;
-                // Expand macros in action description
-                String desc;
-                try
-                {
-                    desc = MacroHandler.replace(widget.getEffectiveMacros(), open_info.getDescription());
-                }
-                catch (Exception ex)
-                {
-                    logger.log(Level.WARNING, "Cannot expand macros in action description '" + open_info.getDescription() + "'", ex);
-                    desc = open_info.getDescription();
-                }
-
-                // Add the requested target as default
-                final Target requestedTarget = open_info.getTarget();
-                items.add(createMenuItem(widget,
-                        new OpenDisplayActionInfo(desc, open_info.getFile(),
-                                open_info.getMacros(), requestedTarget)));
-
-                // Add variant for all the available Target types: Replace, new Tab, ...
-                for (Target target : Target.values())
-                {
-                    if (target == Target.STANDALONE || target == requestedTarget)
-                        continue;
-                    // Mention non-default targets in the description
-                    items.add(createMenuItem(widget,
-                            new OpenDisplayActionInfo(desc + " (" + target + ")", open_info.getFile(),
-                                    open_info.getMacros(), target)));
-                }
-            }
-            else
-                items.add(createMenuItem(widget, info));
-
-             */
         }
-
 
         // Actions of the widget runtime
         final WidgetRuntime<Widget> runtime = RuntimeUtil.getRuntime(widget);
@@ -271,38 +232,4 @@ class ContextMenuSupport {
 
         items.add(new ReloadDisplayAction(instance));
     }
-
-    /*
-    private static MenuItem createMenuItem(final Widget widget, final PluggableActionInfo info) {
-        // Expand macros in action description
-        String desc;
-        try {
-            desc = MacroHandler.replace(widget.getEffectiveMacros(), info.getDescription());
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Cannot expand macros in action description '" + info.getDescription() + "'", ex);
-            desc = info.getDescription();
-        }
-
-        final ImageView icon = new ImageView(info.getImage());
-        final MenuItem item = new MenuItem(desc, icon);
-
-        final Optional<WidgetProperty<Boolean>> enabled_prop = widget.checkProperty(CommonWidgetProperties.propEnabled);
-        if (enabled_prop.isPresent() && !enabled_prop.get().getValue()) {
-            item.setDisable(true);
-            return item;
-        }
-
-        if (widget instanceof ActionButtonWidget) {
-            ActionButtonRepresentation button = (ActionButtonRepresentation) widget.getUserData(Widget.USER_DATA_REPRESENTATION);
-            if (button != null) {
-                item.setOnAction(event -> button.handleContextMenuAction(info));
-                return item;
-            }
-        }
-
-        item.setOnAction(event -> ActionUtil.handleAction(widget, info));
-        return item;
-    }
-
-     */
 }

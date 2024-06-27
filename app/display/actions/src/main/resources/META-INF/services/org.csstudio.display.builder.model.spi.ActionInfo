@@ -1,0 +1,6 @@
+org.csstudio.display.actions.OpenDisplayAction
+org.csstudio.display.actions.WritePVAction
+org.csstudio.display.actions.ExecuteScriptAction
+org.csstudio.display.actions.ExecuteCommandAction
+org.csstudio.display.actions.OpenFileAction
+org.csstudio.display.actions.OpenWebPageAction

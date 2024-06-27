@@ -7,15 +7,16 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.properties;
 
+import org.csstudio.display.builder.model.Messages;
+import org.csstudio.display.builder.model.spi.ActionInfo;
+
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 
-import org.csstudio.display.builder.model.Messages;
-
-/** Information about actions
+/**
+ * Information about {@link ActionInfo}s
  *
- *  @author Kay Kasemir
  */
 public class ActionInfos
 {
@@ -23,7 +24,7 @@ public class ActionInfos
     public static final ActionInfos EMPTY = new ActionInfos(Collections.emptyList());
 
     final private List<ActionInfo> actions;
-    final private boolean execute_as_one;
+    final private boolean executeAsOne;
 
     /** @param actions List of action infos */
     public ActionInfos(final List<ActionInfo> actions)
@@ -32,12 +33,12 @@ public class ActionInfos
     }
 
     /** @param actions List of action infos
-     *  @param execute_as_one Execute all in order?
+     *  @param executeAsOne Execute all in order?
      */
-    public ActionInfos(final List<ActionInfo> actions, final boolean execute_as_one)
+    public ActionInfos(final List<ActionInfo> actions, final boolean executeAsOne)
     {
         this.actions = Collections.unmodifiableList(actions);
-        this.execute_as_one = execute_as_one;
+        this.executeAsOne = executeAsOne;
     }
 
     /** @return List of actions */
@@ -49,7 +50,7 @@ public class ActionInfos
     /** @return Should all actions on list be executed as one, or are they separate actions? */
     public boolean isExecutedAsOne()
     {
-        return execute_as_one;
+        return executeAsOne;
     }
 
     /** @param actions Actions to represent

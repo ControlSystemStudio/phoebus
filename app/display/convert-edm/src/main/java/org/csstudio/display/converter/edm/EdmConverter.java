@@ -15,8 +15,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.csstudio.display.builder.model.properties.PluggableActionInfos;
-import org.csstudio.display.builder.model.spi.PluggableActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.converter.edm.widgets.ConverterBase;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
@@ -273,9 +273,9 @@ public class EdmConverter {
                 logger.log(Level.INFO, "Merging actions from overlapping " + widget + " and " + other + " into one:");
                 logger.log(Level.INFO, "1) " + widget.propActions().getValue());
                 logger.log(Level.INFO, "2) " + other.propActions().getValue());
-                final List<PluggableActionInfo> actions = new ArrayList<>(widget.propActions().getValue().getActions());
+                final List<ActionInfo> actions = new ArrayList<>(widget.propActions().getValue().getActions());
                 actions.addAll(other.propActions().getValue().getActions());
-                widget.propActions().setValue(new PluggableActionInfos(actions));
+                widget.propActions().setValue(new ActionInfos(actions));
 
                 // When merging buttons, as soon as one button is visible.
                 // the remaining (merged) button must be visible

@@ -29,5 +29,10 @@
       <artifactId>app-display-model</artifactId>
       <version>4.7.4-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-display-actions</artifactId>
+      <version>4.7.4-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>

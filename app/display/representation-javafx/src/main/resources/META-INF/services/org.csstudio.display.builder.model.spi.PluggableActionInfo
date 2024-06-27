@@ -1,6 +1,0 @@
-org.csstudio.display.builder.representation.javafx.actions.OpenDisplayAction
-org.csstudio.display.builder.representation.javafx.actions.WritePVAction
-org.csstudio.display.builder.representation.javafx.actions.ExecuteScriptAction
-org.csstudio.display.builder.representation.javafx.actions.ExecuteCommandAction
-org.csstudio.display.builder.representation.javafx.actions.OpenFileAction
-org.csstudio.display.builder.representation.javafx.actions.OpenWebPageAction

@@ -29,12 +29,10 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.PluggableActionInfos;
+import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
-import org.csstudio.display.builder.model.properties.WritePVActionInfo;
-import org.csstudio.display.builder.model.spi.PluggableActionInfo;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -132,7 +130,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             return;
         }
 
-        for (final PluggableActionInfo action : model_widget.propActions().getValue().getActions()) {
+        for (final ActionInfo action : model_widget.propActions().getValue().getActions()) {
             action.setModifiers(event);
         }
 
@@ -160,34 +158,21 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
      * or menu for selecting one out of N actions
      */
     private ButtonBase makeBaseButton() {
-        final PluggableActionInfos actions = model_widget.propActions().getValue();
+        final ActionInfos actions = model_widget.propActions().getValue();
         final ButtonBase result;
         boolean has_non_writePVAction = false;
-
-        /*
-        for (final ActionInfo action: actions.getActions())
-        {
-            if (action instanceof WritePVActionInfo)
-                is_writePV = true;
-            else
-                has_non_writePVAction = true;
-            if (action instanceof OpenDisplayActionInfo)
-                is_openDisplay = true;
-        }
-
-         */
 
         if (actions.isExecutedAsOne() || actions.getActions().size() < 2) {
             final Button button = new Button();
             button.setOnAction(event -> confirm(() -> handleActions(actions.getActions())));
             result = button;
         } else {
-            // If there is at least one non-WritePVActionInfo then is_writePV should be false
+            // If there is at least one non-WritePVAction then is_writePV should be false
             is_writePV = !has_non_writePVAction;
 
             final MenuButton button = new MenuButton();
 
-            for (final PluggableActionInfo action : actions.getActions()) {
+            for (final ActionInfo action : actions.getActions()) {
                 final MenuItem item = new MenuItem(makeActionText(action),
                         new ImageView(action.getImage())
                 );
@@ -222,20 +207,6 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         Styles.update(result, Styles.NOT_ENABLED, !enabled);
 
         return result;
-    }
-
-    /**
-     * Called by ContextMenuSupport when an action menu is selected
-     *
-     * @param action Action to perform
-     */
-    public void handleContextMenuAction(PluggableActionInfo action) {
-        if (action instanceof WritePVActionInfo && !writable) {
-            logger.log(Level.FINE, "{0} ignoring WritePVActionInfo because of readonly PV", model_widget);
-            return;
-        }
-
-        confirm(() -> toolkit.fireAction(model_widget, action));
     }
 
     private void confirm(final Runnable action) {
@@ -274,7 +245,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         if (isLabelValue())
             return FormatOptionHandler.format(model_widget.runtimePropValue().getValue(), FormatOption.DEFAULT, -1, true);
         else if ("$(actions)".equals(text_prop.getSpecification())) {
-            final List<PluggableActionInfo> actions = model_widget.propActions().getValue().getActions();
+            final List<ActionInfo> actions = model_widget.propActions().getValue().getActions();
             if (actions.size() < 1)
                 return Messages.ActionButton_NoActions;
             if (actions.size() > 1) {
@@ -303,53 +274,23 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         return expanded;
     }
 
-    private String makeActionText(final PluggableActionInfo action) {
-        String action_str = action.getDescription();
-        if (action_str.isEmpty())
-            action_str = action.toString();
-        String expanded;
-        try {
-            final MacroValueProvider macros = model_widget.getMacrosOrProperties();
-            expanded = MacroHandler.replace(macros, action_str);
-        } catch (final Exception ex) {
-            logger.log(Level.WARNING, model_widget + " action " + action + " cannot expand macros for " + action_str, ex);
-            expanded = action_str;
-        }
-        return expanded;
-    }
-
     /**
      * @param actions Actions that the user invoked
      */
-    private void handleActions(final List<PluggableActionInfo> actions) {
-        for (PluggableActionInfo action : actions)
+    private void handleActions(final List<ActionInfo> actions) {
+        for (ActionInfo action : actions)
             handleAction(action);
     }
 
     /**
      * @param action Action that the user invoked
      */
-    private void handleAction(PluggableActionInfo action) {
+    private void handleAction(ActionInfo action) {
         // Keyboard presses are not suppressed so check if the widget is enabled
         if (!enabled)
             return;
 
         logger.log(Level.FINE, "{0} pressed", model_widget);
-
-        /*
-        if (action instanceof WritePVActionInfo && ! writable)
-        {
-            logger.log(Level.FINE, "{0} ignoring WritePVActionInfo because of readonly PV", model_widget);
-            return;
-        }
-
-        if (action instanceof OpenDisplayActionInfo  &&  target_modifier.isPresent())
-        {
-            final OpenDisplayActionInfo orig = (OpenDisplayActionInfo) action;
-            action = new OpenDisplayActionInfo(orig.getDescription(), orig.getFile(), orig.getMacros(), target_modifier.get(), orig.getPane());
-        }
-
-         */
         toolkit.fireAction(model_widget, action);
     }
 

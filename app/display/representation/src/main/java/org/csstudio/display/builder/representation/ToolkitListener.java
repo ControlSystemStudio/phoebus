@@ -8,8 +8,7 @@
 package org.csstudio.display.builder.representation;
 
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.spi.PluggableActionInfo;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 
 /** Listener to a widget representation
  *
@@ -20,14 +19,7 @@ import org.csstudio.display.builder.model.spi.PluggableActionInfo;
  */
 public interface ToolkitListener
 {
-    /** User invoked an action
-     *
-     *  @param widget {@link Widget} on which user invoked the action
-     *  @param action Information about the action that user wants to be executed
-     */
     default public void handleAction(Widget widget, ActionInfo action) {};
-
-    default public void handleAction(Widget widget, PluggableActionInfo action) {};
 
     /** User clicked (selected) a widget
      *  @param widget Widget that was clicked

@@ -9,15 +9,15 @@ package org.csstudio.display.converter.edm.widgets;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
-import org.csstudio.display.builder.model.properties.PluggableActionInfos;
-import org.csstudio.display.builder.model.spi.PluggableActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
-import org.csstudio.display.builder.representation.javafx.actions.OpenDisplayAction;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmBoolean;
 import org.csstudio.opibuilder.converter.model.EdmString;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_relatedDisplayClass;
+import org.csstudio.display.actions.OpenDisplayAction;
 import org.phoebus.framework.macros.Macros;
 
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ public class Convert_relatedDisplayClass extends ConverterBase<ActionButtonWidge
         convertColor(t.getFgColor(), widget.propForegroundColor());
         convertFont(t.getFont(), widget.propFont());
 
-        List<PluggableActionInfo> actions = new ArrayList<>();
+        List<ActionInfo> actions = new ArrayList<>();
         for (int i = 0; i < t.getNumDsps(); ++i) {
             final String is = Integer.toString(i);
             final EdmString menuLabel = t.getMenuLabel().getEdmAttributesMap().get(is);
@@ -66,14 +66,14 @@ public class Convert_relatedDisplayClass extends ConverterBase<ActionButtonWidge
 
             final EdmBoolean closeDisplay = t.getCloseDisplay().getEdmAttributesMap().get(is);
             final OpenDisplayAction.Target target = closeDisplay != null && closeDisplay.is() ? OpenDisplayAction.Target.REPLACE : OpenDisplayAction.Target.TAB.TAB;
-            OpenDisplayAction openDisplayAction = new OpenDisplayAction();
-            openDisplayAction.setFile(path);
-            openDisplayAction.setTarget(target);
-            openDisplayAction.setMacros(macros);
-            openDisplayAction.setDescription(description);
+            OpenDisplayAction openDisplayAction =
+                    new OpenDisplayAction(description,
+                            path,
+                            macros,
+                            target);
             actions.add(openDisplayAction);
         }
-        widget.propActions().setValue(new PluggableActionInfos(actions));
+        widget.propActions().setValue(new ActionInfos(actions));
 
         if (t.getButtonLabel() != null && !t.isInvisible())
             widget.propText().setValue(t.getButtonLabel());

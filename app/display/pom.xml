@@ -20,5 +20,6 @@
     <module>adapters</module>
     <module>thumbwheel</module>
     <module>linearmeter</module>
+    <module>actions</module>
   </modules>
 </project>

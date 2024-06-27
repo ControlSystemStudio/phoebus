@@ -14,15 +14,15 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.model.spi.PluggableActionInfo;
-import org.csstudio.display.builder.representation.javafx.actions.ExecuteScriptAction;
-import org.csstudio.display.builder.representation.javafx.actions.WritePVAction;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.runtime.internal.RuntimePVs;
 import org.csstudio.display.builder.runtime.pv.PVFactory;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.display.builder.runtime.script.internal.RuntimeScriptHandler;
 import org.csstudio.display.builder.runtime.script.internal.Script;
 import org.csstudio.display.builder.runtime.script.internal.ScriptSupport;
+import org.csstudio.display.actions.ExecuteScriptAction;
+import org.csstudio.display.actions.WritePVAction;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
@@ -227,10 +227,10 @@ public class WidgetRuntime<MW extends Widget> {
             pv_name_binding.set(new PVNameToValueBinding(this, name.get(), value.get(), true));
 
         // Prepare action-related PVs
-        final List<PluggableActionInfo> actions = widget.propActions().getValue().getActions();
+        final List<ActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0) {
             final List<RuntimePV> action_pvs = new ArrayList<>();
-            for (final PluggableActionInfo action : actions) {
+            for (final ActionInfo action : actions) {
                 if (action instanceof WritePVAction) {
                     final String pv_name = ((WritePVAction) action).getPV();
                     try {
@@ -243,8 +243,9 @@ public class WidgetRuntime<MW extends Widget> {
                     }
                 }
             }
-            if (action_pvs.size() > 0)
+            if (action_pvs.size() > 0){
                 this.writable_pvs = action_pvs;
+            }
         }
 
         widget.propClass().addPropertyListener(update_widget_class);
@@ -264,9 +265,9 @@ public class WidgetRuntime<MW extends Widget> {
             return true;
         if (widget.propRules().getValue().size() > 0)
             return true;
-        final List<PluggableActionInfo> actions = widget.propActions().getValue().getActions();
+        final List<ActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0) {
-            for (PluggableActionInfo action_info : actions) {
+            for (ActionInfo action_info : actions) {
                 if (action_info instanceof ExecuteScriptAction)
                     return true;
             }
@@ -323,10 +324,10 @@ public class WidgetRuntime<MW extends Widget> {
 
 
         // Compile scripts invoked by actions
-        final List<PluggableActionInfo> actions = widget.propActions().getValue().getActions();
+        final List<ActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0) {
             final Map<ExecuteScriptAction, Script> scripts = new HashMap<>();
-            for (PluggableActionInfo action_info : actions) {
+            for (ActionInfo action_info : actions) {
                 if (!(action_info instanceof ExecuteScriptAction script_action))
                     continue;
                 try {

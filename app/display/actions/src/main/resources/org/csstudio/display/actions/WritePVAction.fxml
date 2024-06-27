@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  ~ Copyright (C) 2024 European Spallation Source ERIC.
+  -->
+
+<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.actions.WritePVActionController">
+   <children>
+      <Label text="%ActionsDialog_Description" />
+      <TextField fx:id="description" text="Write PV" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+      <Label text="%ActionsDialog_PVName" GridPane.rowIndex="1" />
+      <TextField fx:id="pvName" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+      <Label text="%ActionsDialog_Value" GridPane.rowIndex="2" />
+      <TextField fx:id="pvValue" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+   </children>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+</GridPane>
