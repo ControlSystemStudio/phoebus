@@ -1,19 +1,19 @@
-<project default="app-display-convert-medm">
+<project default="app-display-actions">
   <import file="../../../dependencies/ant_settings.xml"/>
 
-  <target name="app-display-convert-medm">
+  <target name="app-display-actions">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}" debug="${debug}">
       <src path="${src}"/>
-      <src path="${test}"/>
       <classpath>
         <path refid="app-classpath"/>
+        <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
         <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
-        <pathelement path="../actions/${build}/app-display-actions-${version}.jar"/>
+        <pathelement path="../../core/framework/${build}/core-framework-${version}.jar"/>
       </classpath>
     </javac>
-  	
-    <jar destfile="${build}/app-display-convert-medm-${version}.jar">
+
+    <jar destfile="${build}/app-display-actions-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
