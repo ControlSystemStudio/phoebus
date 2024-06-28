@@ -8,6 +8,7 @@
       <src path="${test}"/>
       <classpath>
         <path refid="app-classpath"/>
+        <pathelement path="../trends/archive-reader/${build}/app-trends-archive-reader-${version}.jar"/>
         <pathelement path="../rtplot/${build}/app-rtplot-${version}.jar"/>
       </classpath>
     </javac>

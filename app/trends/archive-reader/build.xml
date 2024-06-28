@@ -1,4 +1,4 @@
-<project default="app-trends-rich-adapters">
+<project default="app-trends-archive-reader">
   <import file="../../../dependencies/ant_settings.xml"/>
 
   <target name="app-trends-archive-reader">
