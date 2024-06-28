@@ -8,6 +8,7 @@
       <classpath>
         <path refid="app-classpath"/>
         <pathelement path="../databrowser/${build}/app-databrowser-${version}.jar"/>
+        <pathelement path="../trends/archive-reader/${build}/app-trends-archive-reader-${version}.jar"/>
       </classpath>
     </javac>
   	
