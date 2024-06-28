@@ -198,10 +198,10 @@ public class RDBArchiveWriter implements ArchiveWriter
      */
     private void writeMetaData(final RDBWriteChannel channel, final VType sample) throws Exception
     {
-        // Three cases: Enum, numeric, string.
+        // Three cases: String, enum, numeric.
         //
         // Note that Strings have no meta data. But we don't know at this point
-        // if it's really a string channel, or of this is just a special
+        // if it's really a string channel, or if this is just a special
         // string value like "disconnected".
         // In order to not delete any existing meta data,
         // we just do nothing for strings.
