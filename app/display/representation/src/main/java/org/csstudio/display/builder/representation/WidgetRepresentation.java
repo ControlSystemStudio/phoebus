@@ -86,9 +86,5 @@ abstract public class WidgetRepresentation<TWP, TW, MW extends Widget>
     void destroy()
     {
         dispose();
-
-        // Speedup GC
-        model_widget = null;
-        toolkit = null;
     }
 }

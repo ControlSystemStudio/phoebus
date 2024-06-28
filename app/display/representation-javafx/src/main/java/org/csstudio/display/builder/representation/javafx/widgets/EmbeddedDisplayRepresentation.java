@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import javafx.application.Platform;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -256,7 +257,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
 
     /** Update to the next pending display
      *
-     *  <p>Synchronized to serialize the background threads.
+     *  <p>Executed on the JavaFX Application Thread to serialize the background threads.
      *
      *  <p>Example: Displays A, B, C are requested in quick succession.
      *
@@ -270,65 +271,56 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
      *  As thread C finally continues, it finds pending_display_and_group empty.
      *  --> Showing A, then C, skipping B.
      */
-    private synchronized void updatePendingDisplay(final JobMonitor monitor)
-    {
-        try
-        {
-            final DisplayAndGroup handle = pending_display_and_group.getAndSet(null);
-            if (handle == null)
-            {
-                // System.out.println("Nothing to handle");
-                return;
-            }
-            if (inner == null)
-            {
-                // System.out.println("Aborted: " + handle);
-                return;
-            }
+    private void updatePendingDisplay(final JobMonitor monitor) {
+        Platform.runLater(() -> {
+            try {
+                final DisplayAndGroup handle = pending_display_and_group.getAndSet(null);
+                if (handle == null) {
+                    // System.out.println("Nothing to handle");
+                    return;
+                }
+                if (inner == null) {
+                    // System.out.println("Aborted: " + handle);
+                    return;
+                }
 
-            monitor.beginTask("Load " + handle);
-            try
-            {   // Load new model (potentially slow)
-                final DisplayModel new_model = loadDisplayModel(model_widget, handle);
+                monitor.beginTask("Load " + handle);
+                try {   // Load new model (potentially slow)
+                    final DisplayModel new_model = loadDisplayModel(model_widget, handle);
 
-                // Stop (old) runtime
-                // EmbeddedWidgetRuntime tracks this property to start/stop the embedded model's runtime
-                model_widget.runtimePropEmbeddedModel().setValue(null);
+                    // Stop (old) runtime
+                    // EmbeddedWidgetRuntime tracks this property to start/stop the embedded model's runtime
+                    model_widget.runtimePropEmbeddedModel().setValue(null);
 
-                // Atomically update the 'active' model
-                final DisplayModel old_model = active_content_model.getAndSet(new_model);
-                new_model.propBackgroundColor().addUntypedPropertyListener(backgroundChangedListener);
+                    // Atomically update the 'active' model
+                    final DisplayModel old_model = active_content_model.getAndSet(new_model);
+                    new_model.propBackgroundColor().addUntypedPropertyListener(backgroundChangedListener);
 
-                if (old_model != null)
-                {   // Dispose old model
+                    if (old_model != null) {   // Dispose old model
+                        final Future<Object> completion = toolkit.submit(() ->
+                        {
+                            toolkit.disposeRepresentation(old_model);
+                            return null;
+                        });
+                        checkCompletion(model_widget, completion, "timeout disposing old representation");
+                    }
+                    // Represent new model on UI thread
+                    toolkit.onRepresentationStarted();
                     final Future<Object> completion = toolkit.submit(() ->
                     {
-                        toolkit.disposeRepresentation(old_model);
+                        representContent(new_model);
                         return null;
                     });
-                    checkCompletion(model_widget, completion, "timeout disposing old representation");
+                    checkCompletion(model_widget, completion, "timeout representing new content");
+                    // Allow EmbeddedWidgetRuntime to start the new runtime
+                    model_widget.runtimePropEmbeddedModel().setValue(new_model);
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Failed to handle embedded display " + handle, ex);
                 }
-                // Represent new model on UI thread
-                toolkit.onRepresentationStarted();
-                final Future<Object> completion = toolkit.submit(() ->
-                {
-                    representContent(new_model);
-                    return null;
-                });
-                checkCompletion(model_widget, completion, "timeout representing new content");
-
-                // Allow EmbeddedWidgetRuntime to start the new runtime
-                model_widget.runtimePropEmbeddedModel().setValue(new_model);
+            } finally {
+                toolkit.onRepresentationFinished();
             }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Failed to handle embedded display " + handle, ex);
-            }
-        }
-        finally
-        {
-            toolkit.onRepresentationFinished();
-        }
+        });
     }
 
     /** @param content_model Model to represent */
@@ -471,26 +463,28 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
     }
 
     @Override
-    public void dispose()
-    {
-        // When the file name is changed, updatePendingDisplay()
-        // will atomically update the active_content_model,
-        // represent the new model, and then set runtimePropEmbeddedModel.
-        //
-        // Fetching the embedded model from active_content_model
-        // could dispose a representation that hasn't been represented, yet.
-        // Fetching the embedded model from runtimePropEmbeddedModel
-        // could fail to dispose what's just now being represented.
-        //
-        // --> Very unlikely to happen because runtime has been stopped,
-        //     so nothing is changing the file name right now.
-        final DisplayModel em = active_content_model.getAndSet(null);
-        model_widget.runtimePropEmbeddedModel().setValue(null);
+    public void dispose() {
+        Platform.runLater(() -> {
+            // When the file name is changed, updatePendingDisplay()
+            // will atomically update the active_content_model,
+            // represent the new model, and then set runtimePropEmbeddedModel.
+            //
+            // Fetching the embedded model from active_content_model
+            // could dispose a representation that hasn't been represented, yet.
+            // Fetching the embedded model from runtimePropEmbeddedModel
+            // could fail to dispose what's just now being represented.
+            //
+            // --> Very unlikely to happen because runtime has been stopped,
+            //     so nothing is changing the file name right now.
 
-        if (inner != null  &&  em != null)
-            toolkit.disposeRepresentation(em);
-        inner = null;
+            final DisplayModel em = active_content_model.getAndSet(null);
+            model_widget.runtimePropEmbeddedModel().setValue(null);
 
-        super.dispose();
+            if (inner != null && em != null)
+                toolkit.disposeRepresentation(em);
+            inner = null;
+
+            super.dispose();
+        });
     }
 }
