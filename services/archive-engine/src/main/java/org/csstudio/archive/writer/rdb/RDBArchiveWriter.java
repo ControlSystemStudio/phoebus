@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -178,11 +178,18 @@ public class RDBArchiveWriter implements ArchiveWriter
     @Override
     public void addSample(final WriteChannel channel, final VType sample) throws Exception
     {
-        final RDBWriteChannel rdb_channel = (RDBWriteChannel) channel;
-        writeMetaData(rdb_channel, sample);
-        batchSample(rdb_channel, sample);
-        batched_channel.add(rdb_channel);
-        batched_samples.add(sample);
+        try
+        {
+            final RDBWriteChannel rdb_channel = (RDBWriteChannel) channel;
+            writeMetaData(rdb_channel, sample);
+            batchSample(rdb_channel, sample);
+            batched_channel.add(rdb_channel);
+            batched_samples.add(sample);
+        }
+        catch (Exception ex)
+        {   // Wrap with channel info
+            throw new Exception("Cannot add sample for " + channel, ex);
+        }
     }
 
     /** Write meta data if it was never written or has changed
@@ -191,12 +198,33 @@ public class RDBArchiveWriter implements ArchiveWriter
      */
     private void writeMetaData(final RDBWriteChannel channel, final VType sample) throws Exception
     {
+        // Three cases: String, enum, numeric.
+        //
         // Note that Strings have no meta data. But we don't know at this point
-        // if it's really a string channel, or of this is just a special
+        // if it's really a string channel, or if this is just a special
         // string value like "disconnected".
         // In order to not delete any existing meta data,
-        // we just do nothing for strings
+        // we just do nothing for strings.
+        if (sample instanceof VString)
+            return;
 
+        if (sample instanceof VEnum)
+        {
+            final List<String> labels = ((VEnum)sample).getDisplay().getChoices();
+            if (MetaDataHelper.equals(labels, channel.getMetadata()))
+                return;
+
+            // Clear numeric meta data, set enumerated in RDB
+            NumericMetaDataHelper.delete(connection, sql, channel);
+            EnumMetaDataHelper.delete(connection, sql, channel);
+            EnumMetaDataHelper.insert(connection, sql, channel, labels);
+            channel.setMetaData(labels);
+
+            return;
+        }
+
+        // Note that Display.displayOf(VEnum) or ..(VString) will return a non-null display,
+        // but we already handled those cases
         final Display display = Display.displayOf(sample);
         if (display != null)
         {
@@ -208,18 +236,6 @@ public class RDBArchiveWriter implements ArchiveWriter
             NumericMetaDataHelper.delete(connection, sql, channel);
             NumericMetaDataHelper.insert(connection, sql, channel, display);
             channel.setMetaData(display);
-        }
-        else if (sample instanceof VEnum)
-        {
-            final List<String> labels = ((VEnum)sample).getDisplay().getChoices();
-            if (MetaDataHelper.equals(labels, channel.getMetadata()))
-                return;
-
-            // Clear numeric meta data, set enumerated in RDB
-            NumericMetaDataHelper.delete(connection, sql, channel);
-            EnumMetaDataHelper.delete(connection, sql, channel);
-            EnumMetaDataHelper.insert(connection, sql, channel, labels);
-            channel.setMetaData(labels);
         }
     }
 
