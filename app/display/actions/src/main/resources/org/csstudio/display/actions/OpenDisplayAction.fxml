@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  ~ Copyright (C) 2024 European Spallation Source ERIC.
+  -->
+
+<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1"
+          xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="org.csstudio.display.actions.OpenDisplayActionController">
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+   <Label text="%ActionsDialog_Description" />
+   <TextField fx:id="description" text="Open Display" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" />
+   <Label text="%ActionsDialog_DisplayPath" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+   <TextField fx:id="displayPath" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+   <Button text="..." GridPane.columnIndex="2" GridPane.rowIndex="1" onAction="#selectDisplayPath"/>
+
+   <HBox GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2">
+      <RadioButton fx:id="replaceRadioButton" selected="true" text="Replace">
+         <HBox.margin>
+            <Insets right="10.0" />
+         </HBox.margin></RadioButton>
+      <RadioButton fx:id="newTabRadioButton" text="New Tab">
+         <HBox.margin>
+            <Insets right="10.0" />
+         </HBox.margin></RadioButton>
+      <RadioButton fx:id="newWindowRadioButton" text="New Window" />
+      <GridPane.margin>
+         <Insets bottom="5.0" top="5.0" />
+      </GridPane.margin>
+   </HBox>
+   <Label text="Pane:" GridPane.rowIndex="3" />
+   <TextField fx:id="pane" disable="true" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
+   <VBox fx:id="macrosTablePlaceholder" maxHeight="1.7976931348623157E308" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
+</GridPane>

@@ -7,17 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
-import static org.csstudio.display.builder.model.ModelPlugin.logger;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propActions;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHeight;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propRules;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propScripts;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propType;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propWidgetClass;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propWidth;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propX;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propY;
+import org.csstudio.display.builder.model.macros.MacroOrPropertyProvider;
+import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.properties.ScriptInfo;
+import org.csstudio.display.builder.model.rules.RuleInfo;
+import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
+import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.framework.macros.Macros;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,56 +27,63 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.csstudio.display.builder.model.macros.MacroOrPropertyProvider;
-import org.csstudio.display.builder.model.properties.ActionInfos;
-import org.csstudio.display.builder.model.properties.ScriptInfo;
-import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
-import org.phoebus.framework.macros.MacroValueProvider;
-import org.phoebus.framework.macros.Macros;
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propActions;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHeight;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propRules;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propScripts;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propType;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propWidgetClass;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propWidth;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propX;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propY;
 
-/** Base class for all widgets.
+/**
+ * Base class for all widgets.
  *
- *  <p>A Widget has properties, supporting read access, subscription
- *  and for most properties also write access.
+ * <p>A Widget has properties, supporting read access, subscription
+ * and for most properties also write access.
  *
- *  <p>Properties can be accessed in a most generic way based on the
- *  property name:
- *  <pre>
+ * <p>Properties can be accessed in a most generic way based on the
+ * property name:
+ * <pre>
  *  getPropertyValue("text")
  *  setPropertyValue("text", "Hello")
  *  getPropertyValue("x")
  *  setPropertyValue("x", 60)
  *  </pre>
  *
- *  <p>While this is ideal for access from scripts,
- *  Java code that deals with a specific widget can access
- *  properties in the type-safe way:
- *  <pre>
+ * <p>While this is ideal for access from scripts,
+ * Java code that deals with a specific widget can access
+ * properties in the type-safe way:
+ * <pre>
  *  LabelWidget label;
  *  label.positionX().getValue();
  *  label.positionX().setValue(60);
  *  </pre>
  *
- *  <p>Widgets are part of a hierarchy.
- *  Their parent is either the {@link DisplayModel} or another
- *  widget with a {@link ChildrenProperty}
+ * <p>Widgets are part of a hierarchy.
+ * Their parent is either the {@link DisplayModel} or another
+ * widget with a {@link ChildrenProperty}
  *
- *  @author Kay Kasemir
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Widget
-{
-    /** Initial version for all Display Builder widgets.
+public class Widget {
+    /**
+     * Initial version for all Display Builder widgets.
      *
-     *  <p>Legacy used 1.0.0 for most widgets,
-     *  so 2.0.0 indicates an update.
-     *  Selected legacy widgets had incremented to a higher version,
-     *  which needs to be handled for each such widget.
+     * <p>Legacy used 1.0.0 for most widgets,
+     * so 2.0.0 indicates an update.
+     * Selected legacy widgets had incremented to a higher version,
+     * which needs to be handled for each such widget.
      */
     public static final Version BASE_WIDGET_VERSION = new Version(2, 0, 0);
 
-    /** Typical version of legacy BOY display widgets */
+    /**
+     * Typical version of legacy BOY display widgets
+     */
     public static final Version TYPICAL_LEGACY_WIDGET_VERSION = new Version(1, 0, 0);
 
     // These user data keys are reserved for internal use
@@ -97,38 +100,46 @@ public class Widget
     // They all start with an underscore to indicate that they
     // are meant to be private, not to be used as API.
 
-    /** Reserved widget user data key for storing the representation.
+    /**
+     * Reserved widget user data key for storing the representation.
      *
-     *  <p>The WidgetRepresentation for each {@link Widget}
-     *  is stored under this key.
+     * <p>The WidgetRepresentation for each {@link Widget}
+     * is stored under this key.
      */
     public static final String USER_DATA_REPRESENTATION = "_representation";
 
-    /** Reserved user data key for Widget that has 'children', i.e. is a parent,
-     *  to store the toolkit parent item
+    /**
+     * Reserved user data key for Widget that has 'children', i.e. is a parent,
+     * to store the toolkit parent item
      */
     public static final String USER_DATA_TOOLKIT_PARENT = "_toolkit_parent";
 
-    /** Reserved widget user data key for storing the runtime.
+    /**
+     * Reserved widget user data key for storing the runtime.
      *
-     *  <p>The WidgetRuntime for each {@link Widget}
-     *  is stored under this key.
+     * <p>The WidgetRuntime for each {@link Widget}
+     * is stored under this key.
      */
     public static final String USER_DATA_RUNTIME = "_runtime";
 
-    /** Reserved widget user data key for storing script support.
+    /**
+     * Reserved widget user data key for storing script support.
      *
-     *  <p>ScriptSupport is attached to the top-level root
-     *  of the widget tree, i.e. the {@link DisplayModel}
-     *  that is obtained by traversing up via {@link EmbeddedDisplayWidget}s
-     *  to the top-level model.
+     * <p>ScriptSupport is attached to the top-level root
+     * of the widget tree, i.e. the {@link DisplayModel}
+     * that is obtained by traversing up via {@link EmbeddedDisplayWidget}s
+     * to the top-level model.
      */
     public static final String USER_DATA_SCRIPT_SUPPORT = "_script_support";
 
-    /** Parent widget */
+    /**
+     * Parent widget
+     */
     private volatile Widget parent = null;
 
-    /** All properties, ordered by category, then sequence of definition */
+    /**
+     * All properties, ordered by category, then sequence of definition
+     */
     protected final Set<WidgetProperty<?>> properties;
 
     // Design decision:
@@ -147,45 +158,53 @@ public class Widget
     // The API for widget users would remain the same:
     // getProperties(), getProperty(), getPropertyValue(), setPropertyValue()
 
-    /** Map of property names to properties */
+    /**
+     * Map of property names to properties
+     */
     // Map is final, all properties are collected in widget constructor.
     // Values of properties can change, but the list of properties itself
     // is thread safe
     protected final Map<String, WidgetProperty<?>> property_map;
 
     // Actual properties
-    private WidgetProperty<String> type;
-    private WidgetProperty<String> name;
-    private WidgetProperty<String> widget_class;
-    private WidgetProperty<Integer> x;
-    private WidgetProperty<Integer> y;
-    private WidgetProperty<Integer> width;
-    private WidgetProperty<Integer> height;
-    private WidgetProperty<ActionInfos> actions;
-    private WidgetProperty<List<RuleInfo>> rules;
-    private WidgetProperty<List<ScriptInfo>> scripts;
+    private final WidgetProperty<String> type;
+    private final WidgetProperty<String> name;
+    private final WidgetProperty<String> widget_class;
+    private final WidgetProperty<Integer> x;
+    private final WidgetProperty<Integer> y;
+    private final WidgetProperty<Integer> width;
+    private final WidgetProperty<Integer> height;
+    private final WidgetProperty<ActionInfos> actions;
+    private final WidgetProperty<List<RuleInfo>> rules;
+    private final WidgetProperty<List<ScriptInfo>> scripts;
 
-    /** Map of user data */
+    /**
+     * Map of user data
+     */
     protected final Map<String, Object> user_data = new ConcurrentHashMap<>(4); // Reserve room for "representation", "runtime"
 
-    /** Loaded without errors? */
+    /**
+     * Loaded without errors?
+     */
     protected volatile Boolean clean;
 
-    /** Widget constructor.
-     *  @param type Widget type
+    /**
+     * Widget constructor.
+     *
+     * @param type Widget type
      */
-    public Widget(final String type)
-    {
+    public Widget(final String type) {
         this(type, 100, 20);
     }
 
-    /** Widget constructor.
-     *  @param type Widget type
-     *  @param default_width Default width
-     *  @param default_height .. and height
+    /**
+     * Widget constructor.
+     *
+     * @param type           Widget type
+     * @param default_width  Default width
+     * @param default_height .. and height
      */
-    public Widget(final String type, final int default_width, final int default_height)
-    {
+    public Widget(final String type, final int default_width, final int default_height) {
         // Collect properties
         final List<WidgetProperty<?>> prelim_properties = new ArrayList<>();
 
@@ -226,90 +245,96 @@ public class Widget
                 Collectors.toMap(WidgetProperty::getName, Function.identity()));
     }
 
-    /** Unique runtime identifier of a widget
+    /**
+     * Unique runtime identifier of a widget
      *
-     *  <p>At runtime, this ID can be used to construct
-     *  PVs that are unique and specific to this instance
-     *  of a widget.
-     *  Even if the same display is opened multiple times
-     *  within the same JVM, the widget is very likely
-     *  to receive a new, unique identifier.
+     * <p>At runtime, this ID can be used to construct
+     * PVs that are unique and specific to this instance
+     * of a widget.
+     * Even if the same display is opened multiple times
+     * within the same JVM, the widget is very likely
+     * to receive a new, unique identifier.
      *
-     *  @return Unique Runtime Identifier for widget
+     * @return Unique Runtime Identifier for widget
      */
-    public final String getID()
-    {   // Base on ID hash code
+    public final String getID() {   // Base on ID hash code
         final int id = System.identityHashCode(this);
         return "WD" + Integer.toHexString(id);
     }
 
-    /** Get widget version
-     *  @return Widget version number
+    /**
+     * Get widget version
+     *
+     * @return Widget version number
      */
-    public Version getVersion()
-    {
+    public Version getVersion() {
         return BASE_WIDGET_VERSION;
     }
 
-    /** @return Widget Type */
-    public final String getType()
-    {
+    /**
+     * @return Widget Type
+     */
+    public final String getType() {
         return type.getValue();
     }
 
-    /** @return Widget Name */
-    public final String getName()
-    {
+    /**
+     * @return Widget Name
+     */
+    public final String getName() {
         return name.getValue();
     }
 
-    /** @return Widget class to use for updating properties that use the class */
-    public final String getWidgetClass()
-    {
+    /**
+     * @return Widget class to use for updating properties that use the class
+     */
+    public final String getWidgetClass() {
         return widget_class.getValue();
     }
 
-    /** @return Parent widget in Widget tree */
-    public final Optional<Widget> getParent()
-    {
+    /**
+     * @return Parent widget in Widget tree
+     */
+    public final Optional<Widget> getParent() {
         return Optional.ofNullable(parent);
     }
 
-    /** Invoked by the parent widget
-     *  @param parent Parent widget
+    /**
+     * Invoked by the parent widget
+     *
+     * @param parent Parent widget
      */
-    protected void setParent(final Widget parent)
-    {
+    protected void setParent(final Widget parent) {
         if (parent == this)
             throw new IllegalArgumentException();
         this.parent = parent;
     }
 
-    /** Locate display model, i.e. root of widget tree
+    /**
+     * Locate display model, i.e. root of widget tree
      *
-     *  <p>Note that for embedded displays, this would
-     *  return the embedded model, not the top-level
-     *  model of the window.
-     *  Compare <code>getTopDisplayModel()</code>
+     * <p>Note that for embedded displays, this would
+     * return the embedded model, not the top-level
+     * model of the window.
+     * Compare <code>getTopDisplayModel()</code>
      *
-     *  @return {@link DisplayModel} for widget
-     *  @throws Exception if widget is not part of a model
+     * @return {@link DisplayModel} for widget
+     * @throws Exception if widget is not part of a model
      */
-    public final DisplayModel getDisplayModel() throws Exception
-    {
+    public final DisplayModel getDisplayModel() throws Exception {
         final DisplayModel model = checkDisplayModel();
         if (model == null)
             throw new Exception("Missing DisplayModel for " + this);
         return model;
     }
 
-    /** Locate display model, i.e. root of widget tree
+    /**
+     * Locate display model, i.e. root of widget tree
      *
-     *  @return {@link DisplayModel} for widget or <code>null</code>
-     *  @see #getDisplayModel() version that throws exception
+     * @return {@link DisplayModel} for widget or <code>null</code>
+     * @see #getDisplayModel() version that throws exception
      */
-    public final DisplayModel checkDisplayModel()
-    {
+    public final DisplayModel checkDisplayModel() {
         Widget candidate = this;
         while (candidate.getParent().isPresent())
             candidate = candidate.getParent().get();
@@ -318,57 +343,55 @@ public class Widget
         return null;
     }
 
-    /** Locate top display model.
+    /**
+     * Locate top display model.
      *
-     *  <p>For embedded displays, <code>getDisplayModel</code>
-     *  only provides the embedded model.
-     *  This method traverses up via the {@link EmbeddedDisplayWidget}
-     *  to the top-level display model.
+     * <p>For embedded displays, <code>getDisplayModel</code>
+     * only provides the embedded model.
+     * This method traverses up via the {@link EmbeddedDisplayWidget}
+     * to the top-level display model.
      *
-     *  @return Top-level {@link DisplayModel} for widget
-     *  @throws Exception if widget is not part of a model
+     * @return Top-level {@link DisplayModel} for widget
+     * @throws Exception if widget is not part of a model
      */
-    public final DisplayModel getTopDisplayModel() throws Exception
-    {
+    public final DisplayModel getTopDisplayModel() throws Exception {
         DisplayModel model = getDisplayModel();
-        while (true)
-        {
-           final Widget embedder = model.getUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET);
-           if (embedder == null)
-               return model;
-           model = embedder.getTopDisplayModel();
-       }
+        while (true) {
+            final Widget embedder = model.getUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET);
+            if (embedder == null)
+                return model;
+            model = embedder.getTopDisplayModel();
+        }
     }
 
-    /** Set result of widget configurator
-     *  @param configurator WidgetConfigurator
+    /**
+     * Set result of widget configurator
+     *
+     * @param configurator WidgetConfigurator
      */
-    public final void setConfiguratorResult(final WidgetConfigurator configurator)
-    {
+    public final void setConfiguratorResult(final WidgetConfigurator configurator) {
         if (this.clean != null)
             throw new RuntimeException("Cannot change cleanliness of Widget");
 
         // Only set it if not clean; DisplayModel needs to update it when all the children are loaded
-        if (configurator.isClean() == false)
+        if (!configurator.isClean())
             this.clean = Boolean.valueOf(configurator.isClean());
     }
 
-    /** @return <code>true</code> if this widget was loaded without errors,
-     *          <code>false</code> if there were errors
+    /**
+     * @return <code>true</code> if this widget was loaded without errors,
+     * <code>false</code> if there were errors
      */
-    public boolean isClean()
-    {
+    public boolean isClean() {
         Boolean safe = clean;
 
-        if (safe != null && ! safe.booleanValue())
+        if (safe != null && !safe.booleanValue())
             return false;
 
         java.util.Optional<WidgetProperty<DisplayModel>> child_dm_prop = checkProperty(EmbeddedDisplayWidget.runtimeModel.getName());
-        if (child_dm_prop.isPresent())
-        {
+        if (child_dm_prop.isPresent()) {
             final DisplayModel child_dm = child_dm_prop.get().getValue();
-            if (child_dm != null && child_dm.isClean() == false)
-            {
+            if (child_dm != null && !child_dm.isClean()) {
                 clean = Boolean.valueOf(false);
                 return false;
             }
@@ -377,15 +400,15 @@ public class Widget
         return true;
     }
 
-    /** Called on construction to define widget's properties.
+    /**
+     * Called on construction to define widget's properties.
      *
-     *  <p>Mandatory properties have already been defined.
-     *  Derived class overrides to add its own properties.
+     * <p>Mandatory properties have already been defined.
+     * Derived class overrides to add its own properties.
      *
-     *  @param properties List to which properties must be added
+     * @param properties List to which properties must be added
      */
-    protected void defineProperties(final List<WidgetProperty<?>> properties)
-    {
+    protected void defineProperties(final List<WidgetProperty<?>> properties) {
         // Derived class should invoke
         //    super.defineProperties(properties)
         // and may then add its own properties.
@@ -396,424 +419,413 @@ public class Widget
     // but are useful in IDE when dealing with
     // known widget type
 
-    /** @return 'name' property */
-    public final WidgetProperty<String> propName()
-    {
+    /**
+     * @return 'name' property
+     */
+    public final WidgetProperty<String> propName() {
         return name;
     }
 
-    /** @return 'class' property */
-    public final WidgetProperty<String> propClass()
-    {
+    /**
+     * @return 'class' property
+     */
+    public final WidgetProperty<String> propClass() {
         return widget_class;
     }
 
-    /** @return 'x' property */
-    public final WidgetProperty<Integer> propX()
-    {
+    /**
+     * @return 'x' property
+     */
+    public final WidgetProperty<Integer> propX() {
         return x;
     }
 
-    /** @return 'y' property */
-    public final WidgetProperty<Integer> propY()
-    {
+    /**
+     * @return 'y' property
+     */
+    public final WidgetProperty<Integer> propY() {
         return y;
     }
 
-    /** @return 'width' property */
-    public final WidgetProperty<Integer> propWidth()
-    {
+    /**
+     * @return 'width' property
+     */
+    public final WidgetProperty<Integer> propWidth() {
         return width;
     }
 
-    /** @return 'height' property */
-    public final WidgetProperty<Integer> propHeight()
-    {
+    /**
+     * @return 'height' property
+     */
+    public final WidgetProperty<Integer> propHeight() {
         return height;
     }
 
-    /** @return 'actions' property */
-    public final WidgetProperty<ActionInfos> propActions()
-    {
+    public final WidgetProperty<ActionInfos> propActions() {
         return actions;
     }
 
-    /** @return 'rules' property */
-    public final WidgetProperty<List<RuleInfo>> propRules()
-    {
+    /**
+     * @return 'rules' property
+     */
+    public final WidgetProperty<List<RuleInfo>> propRules() {
         return rules;
     }
 
-    /** @return 'scripts' property */
-    public final WidgetProperty<List<ScriptInfo>> propScripts()
-    {
+    /**
+     * @return 'scripts' property
+     */
+    public final WidgetProperty<List<ScriptInfo>> propScripts() {
         return scripts;
     }
 
-    /** Obtain configurator.
+    /**
+     * Obtain configurator.
      *
-     *  <p>While typically using the default {@link WidgetConfigurator},
-     *  widget may provide a different configurator for reading older
-     *  persisted date.
-     *  @param persisted_version Version of the persisted data.
-     *  @return Widget configurator for that version
-     *  @throws Exception if persisted version cannot be handled
+     * <p>While typically using the default {@link WidgetConfigurator},
+     * widget may provide a different configurator for reading older
+     * persisted date.
+     *
+     * @param persisted_version Version of the persisted data.
+     * @return Widget configurator for that version
+     * @throws Exception if persisted version cannot be handled
      */
     public WidgetConfigurator getConfigurator(final Version persisted_version)
-            throws Exception
-    {
+            throws Exception {
         // if (persisted_version.getMajor() < 1)
         //    throw new Exception("Can only handle version 1.0.0 and higher");
         return new WidgetConfigurator(persisted_version);
     }
 
-    /** Get all properties of the widget.
+    /**
+     * Get all properties of the widget.
      *
-     *  <p>Properties are ordered by category and sequence of definition.
-     *  @return Unmodifiable set
+     * <p>Properties are ordered by category and sequence of definition.
+     *
+     * @return Unmodifiable set
      */
-    public final Set<WidgetProperty<?>> getProperties()
-    {
+    public final Set<WidgetProperty<?>> getProperties() {
         return properties;
     }
 
-    /** Helper for obtaining the complete property name 'paths'
+    /**
+     * Helper for obtaining the complete property name 'paths'
      *
-     *  <p>For a scalar property, this method simply returns that property name.
+     * <p>For a scalar property, this method simply returns that property name.
      *
-     *  <p>For arrays or structures, it returns names for each array resp. structure element.
+     * <p>For arrays or structures, it returns names for each array resp. structure element.
      *
-     *  @param property The widget property.
-     *  @return List of property names
+     * @param property The widget property.
+     * @return List of property names
      */
-    public static final List<String> expandPropertyNames(final WidgetProperty<?> property)
-    {
+    public static final List<String> expandPropertyNames(final WidgetProperty<?> property) {
         final List<String> names = new ArrayList<>();
         doAddPropertyNames(names, property.getName(), property);
         return names;
     }
 
-    private static final void doAddPropertyNames(final List<String> names, String path, final WidgetProperty<?> property)
-    {
-        if (property instanceof ArrayWidgetProperty)
-        {
-            final ArrayWidgetProperty<?> array = (ArrayWidgetProperty<?>) property;
-            for (int i=0; i<array.size(); ++i)
+    private static final void doAddPropertyNames(final List<String> names, String path, final WidgetProperty<?> property) {
+        if (property instanceof ArrayWidgetProperty<?> array) {
+            for (int i = 0; i < array.size(); ++i)
                 doAddPropertyNames(names, path + "[" + i + "]", array.getElement(i));
-        }
-        else if (property instanceof StructuredWidgetProperty)
-        {
-            final StructuredWidgetProperty struct = (StructuredWidgetProperty) property;
-            for (int i=0; i<struct.size(); ++i)
-            {
+        } else if (property instanceof StructuredWidgetProperty struct) {
+            for (int i = 0; i < struct.size(); ++i) {
                 final WidgetProperty<?> item = struct.getElement(i);
                 doAddPropertyNames(names, path + "." + item.getName(), item);
             }
-        }
-        else
+        } else
             names.add(path);
     }
 
-    /** Check if widget has a given property.
+    /**
+     * Check if widget has a given property.
      *
-     *  <p>This is called by code that needs to
-     *  test if a widget has a certain property.
+     * <p>This is called by code that needs to
+     * test if a widget has a certain property.
      *
-     *  <p>Only checks for direct properties of
-     *  the widget, neither mapping legacy property names
-     *  nor allowing for complex property paths.
+     * <p>Only checks for direct properties of
+     * the widget, neither mapping legacy property names
+     * nor allowing for complex property paths.
      *
-     *  @param name Property name
-     *  @param <PT> Type of the property's value.
-     *  @return Optional {@link WidgetProperty}
-     *  @see #getProperty(String)
+     * @param name Property name
+     * @param <PT> Type of the property's value.
+     * @return Optional {@link WidgetProperty}
+     * @see #getProperty(String)
      */
-    public final <PT> Optional<WidgetProperty<PT>> checkProperty(final String name)
-    {
-        @SuppressWarnings("unchecked")
-        final WidgetProperty<PT> property = (WidgetProperty<PT>) property_map.get(name);
+    public final <PT> Optional<WidgetProperty<PT>> checkProperty(final String name) {
+        @SuppressWarnings("unchecked") final WidgetProperty<PT> property = (WidgetProperty<PT>) property_map.get(name);
         return Optional.ofNullable(property);
     }
 
-    /** Check if widget has a given property.
-     *  @param property_description Property descriptor
-     *  @param <PT> Type of the property's value.
-     *  @return Optional {@link WidgetProperty}
-     *  @see #checkProperty(WidgetPropertyDescriptor)
+    /**
+     * Check if widget has a given property.
+     *
+     * @param property_description Property descriptor
+     * @param <PT>                 Type of the property's value.
+     * @return Optional {@link WidgetProperty}
+     * @see #checkProperty(WidgetPropertyDescriptor)
      */
-    public final <PT> Optional<WidgetProperty<PT>> checkProperty(final WidgetPropertyDescriptor<PT> property_description)
-    {
+    public final <PT> Optional<WidgetProperty<PT>> checkProperty(final WidgetPropertyDescriptor<PT> property_description) {
         return checkProperty(property_description.getName());
     }
 
-    /** Get widget property.
+    /**
+     * Get widget property.
      *
-     *  <p>Property access based on property description allows
-     *  type-safe access.
+     * <p>Property access based on property description allows
+     * type-safe access.
      *
-     *  @param property_description Property description
-     *  @param <PT> Type of the property's value.
-     *  @return {@link WidgetProperty}
-     *  @throws IllegalArgumentException if property is unknown
-     *  @see #checkProperty(WidgetPropertyDescriptor)
+     * @param property_description Property description
+     * @param <PT>                 Type of the property's value.
+     * @return {@link WidgetProperty}
+     * @throws IllegalArgumentException if property is unknown
+     * @see #checkProperty(WidgetPropertyDescriptor)
      */
     @SuppressWarnings("unchecked")
-    public final <PT> WidgetProperty<PT> getProperty(final WidgetPropertyDescriptor<PT> property_description)
-    {
+    public final <PT> WidgetProperty<PT> getProperty(final WidgetPropertyDescriptor<PT> property_description) {
         final WidgetProperty<?> property = getProperty(property_description.getName());
-        return (WidgetProperty<PT>)property;
+        return (WidgetProperty<PT>) property;
     }
 
-    /** Get widget property.
+    /**
+     * Get widget property.
      *
-     *  <p>Meant for rules, scripts and similar code
-     *  which does not know the exact widget type
-     *  and thus fetches properties by name.
+     * <p>Meant for rules, scripts and similar code
+     * which does not know the exact widget type
+     * and thus fetches properties by name.
      *
-     *  <p>Supports access to complex properties by path name,
-     *  for example "y_axes[1].minimum" to get the minimum
-     *  property of the second Y axis of a plot.
+     * <p>Supports access to complex properties by path name,
+     * for example "y_axes[1].minimum" to get the minimum
+     * property of the second Y axis of a plot.
      *
-     *  <p>To allow use of legacy scripts and rules,
-     *  the widget implementation may override to
-     *  handle deprecated property names.
+     * <p>To allow use of legacy scripts and rules,
+     * the widget implementation may override to
+     * handle deprecated property names.
      *
-     *  <p>Caller presumes that the widget actually
-     *  has the requested property, otherwise throwing Exception.
+     * <p>Caller presumes that the widget actually
+     * has the requested property, otherwise throwing Exception.
      *
-     *  @param name Property name
-     *  @return {@link WidgetProperty}
-     *  @throws IllegalArgumentException if property is unknown
-     *  @see #checkProperty(String)
-     *  @throws IllegalArgumentException if path includes invalid elements,
-     *          IndexOutOfBoundsException for access to array beyond size
+     * @param name Property name
+     * @return {@link WidgetProperty}
+     * @throws IllegalArgumentException if property is unknown
+     * @throws IllegalArgumentException if path includes invalid elements,
+     *                                  IndexOutOfBoundsException for access to array beyond size
+     * @see #checkProperty(String)
      */
-    public WidgetProperty<?> getProperty(final String name) throws IllegalArgumentException, IndexOutOfBoundsException
-    {   // Is name a path "struct_prop.array_prop[2].element" ?
-        if (name.indexOf('.') >=0  ||  name.indexOf('[') >= 0)
+    public WidgetProperty<?> getProperty(final String name) throws IllegalArgumentException, IndexOutOfBoundsException {   // Is name a path "struct_prop.array_prop[2].element" ?
+        if (name.indexOf('.') >= 0 || name.indexOf('[') >= 0)
             return getPropertyByPath(name, false);
         // Plain property name
         final WidgetProperty<?> property = property_map.get(name);
         if (property == null)
-            throw new IllegalArgumentException(toString() + " has no '" + name + "' property");
+            throw new IllegalArgumentException(this + " has no '" + name + "' property");
         return property;
     }
 
-    /** Get property via path
-     *  @param path_name "struct_prop.array_prop[2].element"
-     *  @param create_elements Create missing array elements?
-     *  @return Property for "element"
-     *  @throws IllegalArgumentException if path includes invalid elements,
-     *          IndexOutOfBoundsException for access to array beyond size
+    /**
+     * Get property via path
+     *
+     * @param path_name       "struct_prop.array_prop[2].element"
+     * @param create_elements Create missing array elements?
+     * @return Property for "element"
+     * @throws IllegalArgumentException if path includes invalid elements,
+     *                                  IndexOutOfBoundsException for access to array beyond size
      */
     @SuppressWarnings("rawtypes")
-    public WidgetProperty<?> getPropertyByPath(final String path_name, final boolean create_elements) throws IllegalArgumentException, IndexOutOfBoundsException
-    {
+    public WidgetProperty<?> getPropertyByPath(final String path_name, final boolean create_elements) throws IllegalArgumentException, IndexOutOfBoundsException {
         final String[] path = path_name.split("\\.");
         WidgetProperty<?> property = null;
-        for (String item : path)
-        {   // Does item refer to array element?
+        for (String item : path) {   // Does item refer to array element?
             final String name;
             final int index;
             final int braces = item.indexOf('[');
-            if (braces >= 0)
-            {
-                if (! item.endsWith("]"))
+            if (braces >= 0) {
+                if (!item.endsWith("]"))
                     throw new IllegalArgumentException("Missing ']' for end of array element");
                 name = item.substring(0, braces);
-                index = Integer.parseInt(item.substring(braces+1, item.length() - 1));
-            }
-            else
-            {
+                index = Integer.parseInt(item.substring(braces + 1, item.length() - 1));
+            } else {
                 name = item;
                 index = -1;
             }
             // Get property for the 'name'.
             // For first item, from widget. Later descent into structure.
-            if (property == null)
-            {
+            if (property == null) {
                 property = property_map.get(name);
                 if (property == null)
                     throw new IllegalArgumentException("Cannot locate '" + name + "' for '" + path_name + "'");
-            }
-            else if (property instanceof StructuredWidgetProperty)
-                property = ((StructuredWidgetProperty)property).getElement(name);
+            } else if (property instanceof StructuredWidgetProperty)
+                property = ((StructuredWidgetProperty) property).getElement(name);
             else
                 throw new IllegalArgumentException("Cannot locate '" + name + "' for '" + path_name + "'");
             // Fetch individual array element?
             if (index >= 0)
-                if (property instanceof ArrayWidgetProperty)
-                {
-                    final ArrayWidgetProperty array = (ArrayWidgetProperty)property;
+                if (property instanceof ArrayWidgetProperty array) {
                     // Add array elements?
-                    if (create_elements)
-                    {
+                    if (create_elements) {
                         while (array.size() <= index)
                             array.addElement();
-                    }
-                    else
-                        if (array.size() < index)
-                            throw new IndexOutOfBoundsException("'" + name + "' of '" + path_name +
-                                                                "' has only " + array.size() + " elements");
+                    } else if (array.size() < index)
+                        throw new IndexOutOfBoundsException("'" + name + "' of '" + path_name +
+                                "' has only " + array.size() + " elements");
                     property = array.getElement(index);
-                }
-                else
+                } else
                     throw new IllegalArgumentException("'" + name + "' of '" + path_name + "' it not an array");
         }
         return property;
     }
 
-    /** Get widget property value.
+    /**
+     * Get widget property value.
      *
-     *  <p>Property access based on property description allows
-     *  type-safe access.
+     * <p>Property access based on property description allows
+     * type-safe access.
      *
-     *  @param property_description Property description
-     *  @param <PT> Type of the property's value.
-     *  @return Value of the property
-     *  @throws IllegalArgumentException if property is unknown
+     * @param property_description Property description
+     * @param <PT>                 Type of the property's value.
+     * @return Value of the property
+     * @throws IllegalArgumentException if property is unknown
      */
-    public final <PT> PT getPropertyValue(final WidgetPropertyDescriptor<PT> property_description)
-    {
+    public final <PT> PT getPropertyValue(final WidgetPropertyDescriptor<PT> property_description) {
         return getProperty(property_description).getValue();
     }
 
-    /** Get widget property value.
+    /**
+     * Get widget property value.
      *
-     *  <p>Property access based on property name returns generic
-     *  WidgetProperty without known type.
-     *  Data is cast to the receiver type, but that cast may fail
-     *  if actual data type differs.
+     * <p>Property access based on property name returns generic
+     * WidgetProperty without known type.
+     * Data is cast to the receiver type, but that cast may fail
+     * if actual data type differs.
      *
-     *  @param name Property name, may also be path like "struct_prop.array_prop[2].element"
-     *  @param <TYPE> Data is cast to the receiver's type
-     *  @return Value of the property
-     *  @throws IllegalArgumentException if property is unknown
-     *  @throws IndexOutOfBoundsException for array access beyond last element
-     *
+     * @param name   Property name, may also be path like "struct_prop.array_prop[2].element"
+     * @param <TYPE> Data is cast to the receiver's type
+     * @return Value of the property
+     * @throws IllegalArgumentException  if property is unknown
+     * @throws IndexOutOfBoundsException for array access beyond last element
      */
     @SuppressWarnings("unchecked")
-    public final <TYPE> TYPE getPropertyValue(final String name)
-    {
+    public final <TYPE> TYPE getPropertyValue(final String name) {
         return (TYPE) getProperty(name).getValue();
     }
 
-    /** Set widget property value.
+    /**
+     * Set widget property value.
      *
-     *  <p>Property access based on property description allows
-     *  type-safe access.
+     * <p>Property access based on property description allows
+     * type-safe access.
      *
-     *  @param property_description Property description
-     *  @param <PT> Type of the property's value.
-     *  @param value New value of the property
-     *  @throws IllegalArgumentException if property is unknown
+     * @param property_description Property description
+     * @param <PT>                 Type of the property's value.
+     * @param value                New value of the property
+     * @throws IllegalArgumentException if property is unknown
      */
     public final <PT> void setPropertyValue(final WidgetPropertyDescriptor<PT> property_description,
-            final PT value)
-    {
+                                            final PT value) {
         getProperty(property_description).setValue(value);
     }
 
-    /** Set widget property value.
+    /**
+     * Set widget property value.
      *
-     *  <p>Property access based on property name returns generic
-     *  WidgetProperty without known type.
+     * <p>Property access based on property name returns generic
+     * WidgetProperty without known type.
      *
-     *  @param name Property name
-     *  @param value New value of the property
-     *  @throws IllegalArgumentException if property is unknown
-     *  @throws Exception if value is unsuitable for this property
+     * @param name  Property name
+     * @param value New value of the property
+     * @throws IllegalArgumentException if property is unknown
+     * @throws Exception                if value is unsuitable for this property
      */
     public final void setPropertyValue(final String name,
-            final Object value) throws Exception
-    {
+                                       final Object value) throws Exception {
         getProperty(name).setValueFromObject(value);
     }
 
-    /** Expand macros for this widget and potential child widgets
-     *  @param input Input that should be used to expand macros
+    /**
+     * Expand macros for this widget and potential child widgets
+     *
+     * @param input Input that should be used to expand macros
      */
-    public void expandMacros(final Macros input)
-    {
+    public void expandMacros(final Macros input) {
         // Plain widget has no macros to expand
     }
 
-    /** Determine effective macros.
+    /**
+     * Determine effective macros.
      *
-     *  <p>Default implementation requests macros
-     *  from parent.
+     * <p>Default implementation requests macros
+     * from parent.
      *
-     *  <p>Macros will be <code>null</code> while
-     *  the widget is loaded until it is included in a model.
+     * <p>Macros will be <code>null</code> while
+     * the widget is loaded until it is included in a model.
      *
-     *  @return {@link Macros}
+     * @return {@link Macros}
      */
-    public Macros getEffectiveMacros()
-    {
+    public Macros getEffectiveMacros() {
         final Optional<Widget> the_parent = getParent();
-        if (! the_parent.isPresent())
+        if (!the_parent.isPresent())
             return null;
         return the_parent.get().getEffectiveMacros();
     }
 
-    /** @return Macro provider for effective macros, falling back to properties */
-    public MacroValueProvider getMacrosOrProperties()
-    {
+    /**
+     * @return Macro provider for effective macros, falling back to properties
+     */
+    public MacroValueProvider getMacrosOrProperties() {
         return new MacroOrPropertyProvider(this);
     }
 
-    /** Set user data
+    /**
+     * Set user data
      *
-     *  <p>User code can attach arbitrary data to a widget.
-     *  This data is _not_ persisted with the model,
-     *  and there is no change notification.
+     * <p>User code can attach arbitrary data to a widget.
+     * This data is _not_ persisted with the model,
+     * and there is no change notification.
      *
-     *  <p>User code should avoid using reserved keys
-     *  which start with an underscore "_...".
+     * <p>User code should avoid using reserved keys
+     * which start with an underscore "_...".
      *
-     *  @param key Key
-     *  @param data Data
+     * @param key  Key
+     * @param data Data
      */
-    public final void setUserData(final String key, final Object data)
-    {
+    public final void setUserData(final String key, final Object data) {
         user_data.put(key, data);
     }
 
-    /** @param key Key
-     *  @param <TYPE> Data is cast to the receiver's type
-     *  @return User data associated with key, or <code>null</code>
-     *  @see #setUserData(String, Object)
+    /**
+     * @param key    Key
+     * @param <TYPE> Data is cast to the receiver's type
+     * @return User data associated with key, or <code>null</code>
+     * @see #setUserData(String, Object)
      */
     @SuppressWarnings("unchecked")
-    public final <TYPE> TYPE getUserData(final String key)
-    {
-        if (key == null)
-        {   // Debug gimmick:
+    public final <TYPE> TYPE getUserData(final String key) {
+        if (key == null) {   // Debug gimmick:
             // null is not supported as valid key,
             // but triggers dump of all user properties
             logger.info(this + " user data: " + user_data.entrySet());
             return null;
         }
         final Object data = user_data.get(key);
-        return (TYPE)data;
+        return (TYPE) data;
     }
 
-    /** Remove a user data entry
-     *  @param key Key for which to remove user data
-     *  @param <TYPE> User data is cast to the receiver's type
-     *  @return User data associated with key that has been removed, or <code>null</code>
+    /**
+     * Remove a user data entry
+     *
+     * @param key    Key for which to remove user data
+     * @param <TYPE> User data is cast to the receiver's type
+     * @return User data associated with key that has been removed, or <code>null</code>
      */
     @SuppressWarnings("unchecked")
-    public final <TYPE> TYPE clearUserData(final String key)
-    {
-        return (TYPE)user_data.remove(key);
+    public final <TYPE> TYPE clearUserData(final String key) {
+        return (TYPE) user_data.remove(key);
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         // Show name's specification, not value, because otherwise
         // a plain debug printout can trigger macro resolution for the name
-        return "Widget '" + ((MacroizedWidgetProperty<?>)name).getSpecification() + "' (" + getType() + ")";
+        return "Widget '" + ((MacroizedWidgetProperty<?>) name).getSpecification() + "' (" + getType() + ")";
     }
 }

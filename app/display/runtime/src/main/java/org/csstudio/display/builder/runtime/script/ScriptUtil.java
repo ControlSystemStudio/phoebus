@@ -28,12 +28,12 @@ import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
+import org.csstudio.display.actions.OpenDisplayAction;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.util.ResourceParser;
@@ -122,14 +122,14 @@ public class ScriptUtil
     */
     public static void openDisplay(final Widget widget, final String file, final String target, final Map<String, String> macros, final String pane)
     {
-        OpenDisplayActionInfo.Target the_target;
+        OpenDisplayAction.Target the_target;
         try
         {
-            the_target = OpenDisplayActionInfo.Target.valueOf(target);
+            the_target = OpenDisplayAction.Target.valueOf(target);
         }
         catch (Throwable ex)
         {
-            the_target = OpenDisplayActionInfo.Target.TAB;
+            the_target = OpenDisplayAction.Target.TAB;
         }
 
         final Macros the_macros = new Macros();
@@ -137,8 +137,12 @@ public class ScriptUtil
             for (String name : macros.keySet())
                 the_macros.add(name, macros.get(name));
 
-        final OpenDisplayActionInfo open = new OpenDisplayActionInfo("Open from script", file, the_macros, the_target, pane);
-        ActionUtil.handleAction(widget, open);
+        OpenDisplayAction openDisplayAction =
+                new OpenDisplayAction("Open from script",
+                        file,
+                        the_macros,
+                        the_target);
+        ActionUtil.handleAction(widget, openDisplayAction);
     }
 
     /** Close a display
