@@ -47,9 +47,7 @@ public class UXAToolkitListener implements ToolkitListener {
 
     @Override
     public void handleWrite(Widget widget, Object value) {
-        System.out.println("wrote from "+ widget+" from thread "+Thread.currentThread().getName());
-        System.out.println("Telling backend that this PV was written from " + tabWrapper.getParentTab());
-        monitor.getPhoebusConnection().handlePVWrite(tabWrapper, widget, widget.getPropertyValue("pv_name"), value);
+        monitor.getPhoebusConnection().handlePVWrite(tabWrapper, widget, widget.getPropertyValue("pv_name"), value.toString());
     }
 
     @Override

@@ -26,7 +26,7 @@ public class NoopBackendConnection implements BackendConnection{
     }
 
     @Override
-    public void handlePVWrite(ActiveTab who, Widget widget, String PVName, Object value) {
+    public void handlePVWrite(ActiveTab who, Widget widget, String PVName, String value) {
         logger.log(Level.INFO, "Backend Connection would've handled PV Write" + value + "from" + who + "on" + widget);
     }
 }

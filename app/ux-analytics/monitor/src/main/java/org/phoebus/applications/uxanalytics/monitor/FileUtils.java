@@ -15,12 +15,12 @@ public class FileUtils {
     public static final String GIT_METADATA_DIR = ".git";
     public static final String SVN_METADATA_DIR = ".svn";
     public static final String HG_METADATA_DIR = ".hg";
-    public static final String WEB_CONTENT_ROOT_SETTING_NAME = "PHOEBUS_WEB_CONTENT_ROOT";
-
+    public static final String WEB_CONTENT_ROOT_ENV_VAR = "PHOEBUS_WEB_CONTENT_ROOT";
+    public static final String WEB_CONTENT_ROOT_SETTING_NAME = "web_content_root";
     public static String getWebContentRoot(){
         //check if PHOEBUS_WEB_CONTENT_ROOT is set
         String webContentRoot;
-        webContentRoot = System.getenv(WEB_CONTENT_ROOT_SETTING_NAME);
+        webContentRoot = System.getenv(WEB_CONTENT_ROOT_ENV_VAR);
         if(webContentRoot != null){
             return webContentRoot;
         }
@@ -138,17 +138,18 @@ public class FileUtils {
         }
     }
 
-
     public static String getAnalyticsPathFor(String path){
-        String pathWithoutRoot = getPathWithoutSourceRoot(path);
-        if(pathWithoutRoot == null){
-            return null;
-        }
+        String pathWithoutRoot = ModelResourceUtil.normalize(getPathWithoutSourceRoot(path));
         String first8OfSHA256 = getSHA256Suffix(path);
         if(first8OfSHA256 == null){
             return null;
         }
         return pathWithoutRoot + "_" + first8OfSHA256;
+    }
+
+    public static String analyticsPathForTab(ActiveTab tab){
+        String path = tab.getDisplayInfo().getPath();
+        return getAnalyticsPathFor(path);
     }
 
 }

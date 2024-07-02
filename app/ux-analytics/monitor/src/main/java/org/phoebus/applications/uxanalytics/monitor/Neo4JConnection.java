@@ -7,6 +7,7 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
+import org.epics.vtype.VType;
 import org.neo4j.driver.*;
 
 import java.time.Instant;
@@ -32,6 +33,7 @@ public class Neo4JConnection implements BackendConnection{
     //names for action types (Opened a display, wrote to a PV)
     public static final String ACTION_WROTE = "wrote_to";
     public static final String ACTION_OPENED = "opened";
+    public static final String ACTION_NAVIGATED = "navigation_button";
 
     public static final String PROTOCOL = "neo4j://";
 
@@ -45,7 +47,7 @@ public class Neo4JConnection implements BackendConnection{
             logger.log(Level.INFO, "Connected to " + host + " on port " + port + " as " + username);
             session = driver.session(
                     SessionConfig.builder()
-                            .withDatabase("phoebus-analytics")
+                            .withDatabase("neo4j")
                             .build());
             return true;
         } catch (Exception ex) {
@@ -81,17 +83,74 @@ public class Neo4JConnection implements BackendConnection{
         return;
     }
 
+    @Override
+    public void handlePVWrite(ActiveTab who, Widget widget, String PVName, String value) {
+        String display = FileUtils.analyticsPathForTab(who);
+        String widgetID = widget.getName();
+        if(session!=null && session.isOpen()){
+            Platform.runLater(()->{
+                String query = String.format("MERGE(src:%s {name:$srcName}) " +
+                                "MERGE(dst:%s {name:$dstName}) " +
+                                "MERGE(src)-[connection:%s]->(dst) " +
+                                "ON CREATE SET connection.timestamps = [$timestamp]," +
+                                "connection.via = [$widgetId]"+
+                                "ON MATCH SET connection.timestamps=connection.timestamps+$timestamp,"+
+                                "connection.via = connection.via+[$widgetId]",
+                        TYPE_DISPLAY,TYPE_PV,ACTION_WROTE);
+                session.executeWriteWithoutResult(tx->tx.run(query, Map.of("srcName",display,"dstName",PVName,
+                        "widgetId", widgetID, "timestamp", Instant.now().getEpochSecond())));
+            });
+        }
+    }
+
+    @Override
+    public void handleDisplayOpen(DisplayInfo target, DisplayInfo src, ResourceOpenSources how) {
+        String sourcePath="UNKNOWN";
+        String targetPath = FileUtils.getAnalyticsPathFor(target.getPath());
+        String sourceType = null;
+        String action = ACTION_OPENED;
+        switch(how) {
+            case RELOAD:
+            case NAVIGATION_BUTTON:
+                if(src!=null) {
+                    sourcePath = FileUtils.getAnalyticsPathFor(src.getPath());
+                    sourceType = TYPE_DISPLAY;
+                    action = ACTION_NAVIGATED;
+                }
+                break;
+            case FILE_BROWSER:
+                sourcePath=SRC_FILE_BROWSER;
+                sourceType=TYPE_ORIGIN;
+                break;
+            case TOP_RESOURCES:
+                sourcePath=SRC_TOP_RESOURCES;
+                sourceType=TYPE_ORIGIN;
+                break;
+            case RESTORED:
+                sourcePath=SRC_RESTORATION;
+                sourceType=TYPE_ORIGIN;
+                break;
+            default:
+                sourcePath=SRC_UNKNOWN;
+                sourceType=TYPE_ORIGIN;
+        }
+        fileOpenConnection(targetPath,sourcePath,sourceType, action);
+    }
+
     //this operation involves calculating a hash and posting an update to the Neo4J database
     //so it should not be done on the JavaFX thread
+    //This is separate from the rest because it requires additional validation to ensure the target is real.
     public void handleDisplayOpenViaActionButton(ActiveTab who, Widget widget, ActionInfo actionInfo) {
         Platform.runLater(() -> {
             DisplayInfo currentDisplayInfo = who.getDisplayInfo();
-            String sourcePath = ModelResourceUtil.normalize(currentDisplayInfo.getPath());
-            String targetPath = ModelResourceUtil.normalize(
-                    ModelResourceUtil.resolveResource(sourcePath,
-                            ((OpenDisplayActionInfo) actionInfo).getFile()));
+            String sourcePath = FileUtils.getAnalyticsPathFor(currentDisplayInfo.getPath());
+            String targetPath = FileUtils.getAnalyticsPathFor(
+                    ModelResourceUtil.resolveResource(
+                            currentDisplayInfo.getPath(),
+                            ((OpenDisplayActionInfo)actionInfo).getFile())
+            );
             try {
-                logger.info("Neo4J would have handled file open action: " + FileUtils.getAnalyticsPathFor(sourcePath) + "->" + FileUtils.getAnalyticsPathFor(targetPath));
+                fileOpenConnection(targetPath,sourcePath,TYPE_DISPLAY,ACTION_OPENED);
             }
             catch(Exception e){
                 logger.warning("Problem opening " + targetPath + " from " + sourcePath + ", not logging in analytics.");
@@ -115,46 +174,22 @@ public class Neo4JConnection implements BackendConnection{
         }
     }
 
-    @Override
-    public void handlePVWrite(ActiveTab who, Widget widget, String PVName, Object value) {
-        logger.log(Level.INFO, "Neo4J Connection would have handled PV Write of " + value + " to " + PVName+  " from " + who + "on" + widget);
-    }
-
-    private void createNodeIfNotExists(String name, String type){
-        Platform.runLater(()->session.executeWriteWithoutResult(tx->tx.run("MERGE ($name:$type {name: $name})", Map.of("name",name,"type",type))));
-    }
-
-    private void fileOpenConnection(String srcName, String srcType, String dstName){
+    private void fileOpenConnection( String dstName, String srcName, String srcType, String action){
         Platform.runLater(()->{
-            session.executeWriteWithoutResult(tx -> tx.run(
-                        "MERGE(src:$srcType {name:'$srcName'}"+
-                                "MERGE(dst:$dstType {name:'$dstName'}"+
-                                "MERGE(src)-[connection:$connectionType]->(dst)"+
-                                "ON CREATE SET connection.timestamps = [$timestamp]"+
-                                "ON MATCH SET connection.timestamps=connection.timestamps+$timestamp",
-                                Map.of("srcName","srcType",
-                                        "dstName",TYPE_DISPLAY,
-                                        "connectionType",ACTION_OPENED,
-                                        "timestamp", Instant.now().getEpochSecond())
-                        ));
+            String query = String.format("MERGE(src:%s {name:$srcName}) " +
+                            "MERGE(dst:%s {name:$dstName}) " +
+                            "MERGE(src)-[connection:%s]->(dst) " +
+                            "ON CREATE SET connection.timestamps = [$timestamp]" +
+                            "ON MATCH SET connection.timestamps=connection.timestamps+$timestamp",
+                    srcType, TYPE_DISPLAY, action);
+            if(dstName != null && srcName != null && srcType != null && session!=null && session.isOpen()) {
+                session.executeWriteWithoutResult(tx -> tx.run(query,
+                        Map.of("srcName", srcName,
+                                "dstName", dstName,
+                                "timestamp", Instant.now().getEpochSecond())
+                ));
+            }
         });
     }
 
-    @Override
-    public void handleDisplayOpen(DisplayInfo target, DisplayInfo src, ResourceOpenSources how) {
-
-        switch(how) {
-            case RELOAD:
-            case NAVIGATION_BUTTON:
-                //create a connection with source and destination
-            case FILE_BROWSER:
-                //create a connection from SRC_FILE_BROWSER to destination
-            case TOP_RESOURCES:
-                //create a connection from SRC_TOP_RESOURCES to destination
-            case RESTORED:
-                //create a connection from SRC_RESTORATION to destination
-            case UNKNOWN:
-                //create a connection from SRC_UNKNOWN to destination
-        }
-    }
 }
