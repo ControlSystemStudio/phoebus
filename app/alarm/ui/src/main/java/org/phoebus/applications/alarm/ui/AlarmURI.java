@@ -7,8 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;

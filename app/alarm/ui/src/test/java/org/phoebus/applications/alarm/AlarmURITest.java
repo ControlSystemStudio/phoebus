@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.ui.AlarmURI;
 
