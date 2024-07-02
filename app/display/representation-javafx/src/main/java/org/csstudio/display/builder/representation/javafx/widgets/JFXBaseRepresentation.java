@@ -251,7 +251,6 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
             logger.log(Level.WARNING, "Missing JFX parent for " + model_widget);
         else
             JFXRepresentation.getChildren(parent).remove(jfx_node);
-        jfx_node = null;
     }
 
     /** Get parent that would be used for child-widgets.

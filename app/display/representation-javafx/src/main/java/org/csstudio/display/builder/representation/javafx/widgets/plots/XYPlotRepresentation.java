@@ -736,6 +736,5 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     {
         super.dispose();
         plot.dispose();
-        plot = null;
     }
 }
