@@ -17,4 +17,5 @@ public interface BackendConnection {
     public default void handleAction(ActiveTab who, Widget widget, ActionInfo info){}
     public default void handlePVWrite(ActiveTab who, Widget widget, String PVName, Object value){}
     public default void handleDisplayOpen(ActiveTab who, Widget widget, DisplayInfo targetDisplayInfo){};
+    public default void handleDisplayOpen(DisplayInfo target, DisplayInfo src, ResourceOpenSources how){};
 }
