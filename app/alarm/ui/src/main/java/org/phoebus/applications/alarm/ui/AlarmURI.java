@@ -7,7 +7,11 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 /** Alarm URI helpers
  *
@@ -23,25 +27,27 @@ public class AlarmURI
     /** URI schema used to refer to an alarm config */
     public static final String SCHEMA = "alarm";
 
-    public static final String DELIMITER_QUERY_PARAMETERS = "&";
-    public static final String DELIMITER_QUERY_PARAMETER_VALUE = "=";
+    /** Nme to use for item as query parameter */
+    public static final String QUERY_PARAMETER_ITEM_NAME = "itemName";
 
     /** @param server Kafka server host:port
      *  @param config_name Alarm configuration root
      *  @return URI used to access that alarm configuration, "alarm://host:port/config_name"
      */
-    public static URI createURI(final String server, final String config_name)
-    {
-        return URI.create(SCHEMA + "://" + server + "/" + config_name);
+    public static URI createURI(final String server, final String config_name) {
+        return createURI(server, config_name, null);
     }
 
     /** @param server Kafka server host:port
      *  @param config_name Alarm configuration root
      *  @param rawQuery raw query for URI
-     *  @return URI used to access that alarm configuration, "alarm://host:port/config_name"
+     *  @return URI used to access that alarm configuration, "alarm://host:port/config_name?rawQuery"
      */
     public static URI createURI(final String server, final String config_name, String rawQuery) {
-        return URI.create(SCHEMA + "://" + server + "/" + config_name + "?" + rawQuery);
+        if (rawQuery != null  && rawQuery.length() > 0)
+            return URI.create(SCHEMA + "://" + server + "/" + config_name + "?" + rawQuery);
+        else
+            return URI.create(SCHEMA + "://" + server + "/" + config_name);
     }
 
     /** Parse alarm configuration parameters from URI
@@ -76,22 +82,26 @@ public class AlarmURI
     }
 
     /**
-     * Extract raw query parameter value for given parameter.
+     * Return a map with parameter names and values as key-value pairs for raw query of given resource.
      * @param resource "alarm://localhost:9092/Accelerator" or "alarm://localhost:9092/Accelerator?param=value"
-     * @param queryParameter name of query parameter for which to extract value
-     * @return parameter value, null or "value" for examples above
+     * @return map with parameter names as keys and parameter values as values for raw query
      */
-    public static String getRawQueryParameterValue(URI resource, String queryParameter) {
-        String[] queryParametersValues = resource.getRawQuery() != null ? resource.getRawQuery().split(AlarmURI.DELIMITER_QUERY_PARAMETERS) : null;
+    public static Map<String, String> getRawQueryParametersValues(URI resource) {
+        Map<String, String> map = new HashMap<>();
+        String[] queryParametersValues = resource.getRawQuery() != null ? resource.getRawQuery().split("&") : null;
         if (queryParametersValues != null) {
             for (String queryParameterValue : queryParametersValues) {
-                if (queryParameterValue.startsWith(queryParameter)) {
-                    String[] parameterValue = queryParameterValue.split(AlarmURI.DELIMITER_QUERY_PARAMETER_VALUE);
-                    return parameterValue != null && parameterValue.length == 2 ? parameterValue[1] : null;
+                String[] parameterValue = queryParameterValue.split("=");
+                if (parameterValue != null) {
+                    if (parameterValue.length == 2) {
+                        map.put(parameterValue[0], parameterValue[1]);
+                    } else if (parameterValue.length == 1) {
+                        map.put(parameterValue[0], null);
+                    }
                 }
             }
         }
-        return null;
+        return map;
     }
 
 }

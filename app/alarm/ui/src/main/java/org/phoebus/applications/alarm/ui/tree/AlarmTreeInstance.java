@@ -34,8 +34,6 @@ import javafx.scene.control.Label;
 @SuppressWarnings("nls")
 class AlarmTreeInstance implements AppInstance
 {
-    public static final String ITEM_NAME = "itemName";
-
     private final AlarmTreeApplication app;
 
     private String server = null, config_name = null;
@@ -52,7 +50,7 @@ class AlarmTreeInstance implements AppInstance
 
         // split input with/without (raw) query
         final URI resource = new URI(input.getScheme(), input.getUserInfo(), input.getHost(), input.getPort(), input.getPath(), null, null);
-        String itemName = AlarmURI.getRawQueryParameterValue(input, ITEM_NAME);
+        String itemName = AlarmURI.getRawQueryParametersValues(input).get(AlarmURI.QUERY_PARAMETER_ITEM_NAME);
         itemName = itemName != null ? URLDecoder.decode(itemName, StandardCharsets.UTF_8) : null;
 
         tab = new DockItemWithInput(this, create(resource, itemName), resource, null, null);

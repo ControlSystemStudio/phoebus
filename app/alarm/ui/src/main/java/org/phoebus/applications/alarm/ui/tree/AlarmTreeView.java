@@ -154,6 +154,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     public AlarmTreeView(final AlarmClient model) {
         this(model, null);
     }
+
+    /**
+     * @param model Model to represent. Must <u>not</u> be running, yet
+     * @param itemName item name that may be expanded or given focus
+     */
     public AlarmTreeView(final AlarmClient model, String itemName)
     {
         if (model.isRunning())
@@ -211,7 +216,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             // expand tree item if is matches item name
             if (tree_view.getRoot() != null && itemName != null) {
                 for (TreeItem treeItem : tree_view.getRoot().getChildren()) {
-                    if (String.valueOf(treeItem.getValue()).startsWith(itemName)) {
+                    if (((AlarmTreeItem) treeItem.getValue()).getName().equals(itemName)) {
                         expandAlarms(treeItem);
                         break;
                     }

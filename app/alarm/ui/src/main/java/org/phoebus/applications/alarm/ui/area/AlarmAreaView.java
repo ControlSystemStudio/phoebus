@@ -33,6 +33,7 @@ import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
@@ -215,7 +216,7 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
                     }
                 }
 
-                OpenTreeViewAction otva = new OpenTreeViewAction(alarmConfigName, "itemName=" + URLEncoder.encode(item_name, StandardCharsets.UTF_8));
+                OpenTreeViewAction otva = new OpenTreeViewAction(alarmConfigName, AlarmURI.QUERY_PARAMETER_ITEM_NAME + "=" + URLEncoder.encode(item_name, StandardCharsets.UTF_8));
                 menu.getItems().add(otva);
                 menu.show(this.getScene().getWindow(), event.getScreenX(), event.getScreenY());
             });
