@@ -88,6 +88,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     /** Model with current alarm tree, sends updates */
     private final AlarmClient model;
+    private final String itemName;
 
     /** Latch for initially pausing model listeners
      *
@@ -150,7 +151,15 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     //     constant performance?
 
     /** @param model Model to represent. Must <u>not</u> be running, yet */
-    public AlarmTreeView(final AlarmClient model)
+    public AlarmTreeView(final AlarmClient model) {
+        this(model, null);
+    }
+
+    /**
+     * @param model Model to represent. Must <u>not</u> be running, yet
+     * @param itemName item name that may be expanded or given focus
+     */
+    public AlarmTreeView(final AlarmClient model, String itemName)
     {
         if (model.isRunning())
             throw new IllegalStateException();
@@ -159,6 +168,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         changing.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
 
         this.model = model;
+        this.itemName = itemName;
 
         tree_view.setShowRoot(false);
         tree_view.setCellFactory(view -> new AlarmTreeViewCell());
@@ -202,6 +212,16 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
             // Represent model that should by now be fairly complete
             tree_view.setRoot(createViewItem(model.getRoot()));
+
+            // expand tree item if is matches item name
+            if (tree_view.getRoot() != null && itemName != null) {
+                for (TreeItem treeItem : tree_view.getRoot().getChildren()) {
+                    if (((AlarmTreeItem) treeItem.getValue()).getName().equals(itemName)) {
+                        expandAlarms(treeItem);
+                        break;
+                    }
+                }
+            }
 
             // Set change indicator so that it clears when there are no more changes
             indicateChange();

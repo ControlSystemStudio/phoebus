@@ -9,6 +9,8 @@ package org.phoebus.applications.alarm.ui.area;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,16 +33,15 @@ import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -104,8 +105,6 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
 
         areaFilter = new AreaFilter(AlarmSystem.alarm_area_level);
         model.addListener(this);
-
-        createContextMenu();
     }
 
     // AlarmClientModelListener
@@ -205,6 +204,23 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
         for (String item_name : items)
         {
             final Label view_item = newAreaLabel(item_name);
+
+            // context menu content for alarm model item instead of alarm area
+            // link to item in tree view
+            view_item.setOnContextMenuRequested(event -> {
+                // need to clear and repopulate context menu since alarm area is recreated multiple times
+                // (but number of times unknown)
+                for (int i=menu.getItems().size()-1; i>0; i--) {
+                    if (menu.getItems().get(i).getClass().equals(OpenTreeViewAction.class)) {
+                        menu.getItems().remove(i);
+                    }
+                }
+
+                OpenTreeViewAction otva = new OpenTreeViewAction(alarmConfigName, AlarmURI.QUERY_PARAMETER_ITEM_NAME + "=" + URLEncoder.encode(item_name, StandardCharsets.UTF_8));
+                menu.getItems().add(otva);
+                menu.show(this.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+            });
+
             itemViewMap.put(item_name, view_item);
             updateItem(item_name);
             final int column = index % AlarmSystem.alarm_area_column_count;
@@ -241,19 +257,10 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
         view_item.setStyle("-fx-alignment: center; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 10; -fx-background-insets: 1; -fx-background-radius: 10; -fx-text-fill: " + JFXUtil.webRGB(AlarmUI.getAlarmAreaPanelColor(severityLevel)) + ";  -fx-background-color: " + JFXUtil.webRGB(AlarmUI.getAlarmAreaPanelBackgroundColor(severityLevel)));
     }
 
-    private void createContextMenu()
-    {
-        final ObservableList<MenuItem> menu_items = menu.getItems();
-
-        menu_items.add(new OpenTreeViewAction(alarmConfigName));
-        this.setOnContextMenuRequested(event ->
-            menu.show(this.getScene().getWindow(), event.getScreenX(), event.getScreenY())
-        );
-    }
-
     /** @return Context menu */
     public ContextMenu getMenu()
     {
         return menu;
     }
+
 }
