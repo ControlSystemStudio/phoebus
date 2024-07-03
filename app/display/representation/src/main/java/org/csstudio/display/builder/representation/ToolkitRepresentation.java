@@ -689,6 +689,20 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
         }
     }
 
+    public void fireMethodCall(Object... user_args) {
+        for (final ToolkitListener listener : listeners)
+        {
+            try
+            {
+                listener.handleMethodCalled(user_args);
+            }
+            catch (final Throwable ex)
+            {
+                logger.log(Level.WARNING, "Failure when firing method-call event for " + Thread.currentThread().getStackTrace()[1].getMethodName(), ex);
+            }
+        }
+    };
+
     /** Close the toolkit's "window" that displays a model
      *  @param model Model that has been represented in this toolkit
      *  @throws Exception on error
