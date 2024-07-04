@@ -664,7 +664,6 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         });
     }
 
-
     public List<RestoreResult> restore(String snapshotNodeId){
         WebResource webResource =
                 getClient()
@@ -679,6 +678,31 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         }
         if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = "Restore failed";
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Unable to parse response", e);
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(new GenericType<>() {
+        });
+    }
+
+    @Override
+    public List<SnapshotItem> takeSnapshot(String configNodeId){
+        WebResource webResource =
+                getClient()
+                        .resource(Preferences.jmasarServiceUrl + "/take-snapshot/" + configNodeId);
+        ClientResponse response;
+        try {
+            response = webResource.accept(CONTENT_TYPE_JSON)
+                    .get(ClientResponse.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+            String message = "Take snapshot failed";
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {

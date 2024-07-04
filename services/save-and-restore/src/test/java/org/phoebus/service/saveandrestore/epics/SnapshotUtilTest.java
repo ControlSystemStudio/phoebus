@@ -19,32 +19,34 @@
 
 package org.phoebus.service.saveandrestore.epics;
 
-import org.junit.jupiter.api.Assertions;
-
-import java.util.Arrays;
-
-import org.epics.vtype.Time;
-import org.epics.vtype.VFloat;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VFloat;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.List;
+
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = SnapshotRestorerTestConfig.class)
-public class SnapshotRestorerTest {
+@ContextConfiguration(classes = SnapshotUtilTestConfig.class)
+public class SnapshotUtilTest {
 
     @Autowired
-    private SnapshotRestorer snapshotRestorer;
+    private SnapshotUtil snapshotUtil;
 
     @Test
     public void testRestorePVValues() throws Exception {
@@ -55,22 +57,40 @@ public class SnapshotRestorerTest {
         var testSnapshotItem = new SnapshotItem();
         testSnapshotItem.setConfigPv(configPv);
         testSnapshotItem.setValue(VFloat.of(1.0, Alarm.noValue(), Time.now(), Display.none()));
-        snapshotRestorer.restorePVValues(
-                Arrays.asList(testSnapshotItem));
+        snapshotUtil.restore(List.of(testSnapshotItem));
         var pvValue = pv.asyncRead().get();
         Assertions.assertEquals(VTypeHelper.toObject(pvValue), 1.0);
     }
 
     @Test
-    public void testCannotConnectPV() throws Exception {
+    public void testCannotConnectPV() {
         var configPv = new ConfigPv();
         configPv.setPvName("pva://x");
 
         var testSnapshotItem = new SnapshotItem();
         testSnapshotItem.setConfigPv(configPv);
         testSnapshotItem.setValue(VFloat.of(1.0, Alarm.noValue(), Time.now(), Display.none()));
-        var result = snapshotRestorer.restorePVValues(
-                Arrays.asList(testSnapshotItem));
+        var result = snapshotUtil.restore(
+                List.of(testSnapshotItem));
         Assertions.assertNotNull(result.get(0).getErrorMsg());
+    }
+
+    @Test
+    public void testTakeSnapshot(){
+         ConfigurationData configurationData = new ConfigurationData();
+        ConfigPv configPv = new ConfigPv();
+        configPv.setPvName("loc://x(42.0)");
+        configPv.setReadbackPvName("loc://y(777.0)");
+        ConfigPv configPv2 = new ConfigPv();
+        configPv2.setPvName("loc://xx(44.0)");
+        configurationData.setPvList(List.of(configPv, configPv2));
+
+        List<SnapshotItem> snapshotItems = snapshotUtil.takeSnapshot(configurationData);
+        Assertions.assertEquals(42.0, VTypeHelper.toDouble(snapshotItems.get(0).getValue()));
+        Assertions.assertEquals(777.0, VTypeHelper.toDouble(snapshotItems.get(0).getReadbackValue()));
+        Assertions.assertEquals(44.0, VTypeHelper.toDouble(snapshotItems.get(1).getValue()));
+        Assertions.assertNull(snapshotItems.get(1).getReadbackValue());
+
+
     }
 }

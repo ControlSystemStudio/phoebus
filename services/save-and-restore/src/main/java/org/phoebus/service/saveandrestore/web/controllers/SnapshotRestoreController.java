@@ -19,7 +19,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.service.saveandrestore.epics.SnapshotRestorer;
+import org.phoebus.service.saveandrestore.epics.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,19 +40,19 @@ public class SnapshotRestoreController extends BaseController {
     private NodeDAO nodeDAO;
 
     @Autowired
-    private SnapshotRestorer snapshotRestorer;
+    private SnapshotUtil snapshotUtil;
 
     @PostMapping(value = "/restore/items", produces = JSON)
     public List<RestoreResult> restoreFromSnapshotItems(
             @RequestBody List<SnapshotItem> snapshotItems) {
-        return snapshotRestorer.restorePVValues(snapshotItems);
+        return snapshotUtil.restore(snapshotItems);
     }
 
     @PostMapping(value = "/restore/node", produces = JSON)
     public List<RestoreResult> restoreFromSnapshotNode(
             @RequestParam(value = "nodeId") String nodeId){
         var snapshot = nodeDAO.getSnapshotData(nodeId);
-        return snapshotRestorer.restorePVValues(snapshot.getSnapshotItems());
+        return snapshotUtil.restore(snapshot.getSnapshotItems());
     }
 
 }

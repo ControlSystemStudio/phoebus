@@ -140,7 +140,9 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         snapshotTab.setText(Messages.unnamedSnapshot);
         snapshotTableViewController.takeSnapshot(snapshot -> {
             disabledUi.set(false);
-            snapshotProperty.set(snapshot);
+            if(snapshot != null){
+                snapshotProperty.set(snapshot);
+            }
         });
     }
 

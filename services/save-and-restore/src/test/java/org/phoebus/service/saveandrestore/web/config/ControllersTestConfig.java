@@ -20,7 +20,7 @@ package org.phoebus.service.saveandrestore.web.config;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.mockito.Mockito;
-import org.phoebus.service.saveandrestore.epics.SnapshotRestorer;
+import org.phoebus.service.saveandrestore.epics.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchTreeRepository;
@@ -124,12 +124,17 @@ public class ControllersTestConfig {
     @SuppressWarnings("unused")
     @Bean
     @Scope("singleton")
-    public SnapshotRestorer snapshotRestorer(){
-        return new SnapshotRestorer();
+    public SnapshotUtil snapshotRestorer(){
+        return new SnapshotUtil();
     }
 
     @Bean
     public ExecutorService executorService(){
         return Executors.newCachedThreadPool();
+    }
+
+    @Bean
+    public SnapshotUtil snapshotUtil(){
+        return Mockito.mock(SnapshotUtil.class);
     }
 }
