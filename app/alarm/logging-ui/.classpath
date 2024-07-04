@@ -13,5 +13,6 @@
   <classpathentry combineaccessrules="false" kind="src" path="/core-types"/>
   <classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
   <classpathentry combineaccessrules="false" kind="src" path="/app-alarm-model"/>
+  <classpathentry combineaccessrules="false" kind="src" path="/app-alarm-ui"/>
   <classpathentry kind="output" path="target/classes" />
 </classpath>

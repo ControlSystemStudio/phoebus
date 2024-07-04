@@ -15,10 +15,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 17
-      uses: actions/setup-java@v1
+    - name: Setup Maven and Java Action
+      uses: s4u/setup-maven-action@v1.13.0
       with:
         java-version: '17'
+        maven-version: '3.9.6'
     - name: Build
       run: mvn --batch-mode install -DskipTests
 

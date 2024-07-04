@@ -188,6 +188,12 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
+            <artifactId>app-alarm-freetts-annunciator</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
             <artifactId>app-alarm-logging-ui</artifactId>
             <version>4.7.4-SNAPSHOT</version>
         </dependency>

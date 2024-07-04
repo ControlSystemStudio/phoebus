@@ -25,6 +25,8 @@ public class Preferences
     @Preference public static String home_display;
     /** top_resources */
     @Preference public static String top_resources;
+    /** toolbar_entries */
+    @Preference public static String toolbar_entries;
     /** splash */
     @Preference public static boolean splash;
     /** welcome */

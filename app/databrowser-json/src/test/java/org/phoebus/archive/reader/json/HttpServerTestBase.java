@@ -8,8 +8,6 @@
 
 package org.phoebus.archive.reader.json;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Maps;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -23,10 +21,12 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Base class for tests that need an HTTP server.
@@ -62,12 +62,18 @@ public class HttpServerTestBase {
      */
     public static Map<String, String> parseQueryString(
             final String query_string) {
-        return Maps.transformValues(
-                Splitter
-                        .on('&')
-                        .withKeyValueSeparator('=')
-                        .split(query_string),
-                (value) -> URLDecoder.decode(value, StandardCharsets.UTF_8));
+
+        return Arrays.stream(query_string.split("&"))
+                .collect(Collectors.toMap(
+                        k -> k.split("=")[0],
+                        k -> URLDecoder.decode(k.split("=")[1], StandardCharsets.UTF_8)));
+//
+//        return Maps.transformValues(
+//                Splitter
+//                        .on('&')
+//                        .withKeyValueSeparator('=')
+//                        .split(query_string),
+//                (value) -> URLDecoder.decode(value, StandardCharsets.UTF_8));
     }
 
     /**
