@@ -7,7 +7,7 @@ package org.csstudio.display.builder.model.spi;
 import org.csstudio.display.builder.model.Widget;
 
 /**
- * Interface to define a pluggable action runtime behavior.
+ * Interface to define action runtime behavior.
  */
 public interface ActionHandler {
 

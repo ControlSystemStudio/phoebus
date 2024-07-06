@@ -34,7 +34,7 @@ import java.util.List;
 public interface ActionInfo {
 
     /**
-     * @param actionId Action id, e.g. open_display
+     * @param actionId Action id, e.g. open_display.
      * @return <code>true</code> if the input string is implemented by the {@link ActionInfo}.
      */
     default boolean matchesAction(String actionId) {
@@ -42,8 +42,8 @@ public interface ActionInfo {
     }
 
     /**
-     * The type of action, which is either a fully qualified class name, or a legacy identifier
-     * string like 'open_display'.
+     * The id/type of action, which is either a fully qualified class name, or a legacy identifier
+     * string like 'open_display'. Must be unique between all implementations.
      *
      * @return The action 'type'.
      */
@@ -52,17 +52,17 @@ public interface ActionInfo {
     /**
      * Image shown in drop-down in editor and runtime.
      *
-     * @return An {@link Image} representing the action.
+     * @return An {@link Image} representing the action in (for instance) editor and context menu.
      */
     Image getImage();
 
     /**
-     * @return Default or user-defined description string.
+     * @return Default or user-defined description string. Implementations should define a non-empty string.
      */
     String getDescription();
 
     /**
-     * @param description User-defined string, potentially overriding default.
+     * @param description User-defined string, overriding the default.
      */
     void setDescription(String description);
 
@@ -93,7 +93,7 @@ public interface ActionInfo {
     }
 
     /**
-     * @return A {@link List} of {@link MenuItem}s for the widget's context menu.
+     * @return A {@link List} of {@link MenuItem}s for the action in a widget's context menu.
      * Defaults to <code>null</code>.
      */
     default List<MenuItem> getContextMenuItems(Widget widget) {
@@ -107,13 +107,12 @@ public interface ActionInfo {
     Node getEditor(Widget widget);
 
     /**
-     * Reverts edits made by user in the action editor UI, e.g. when user clicks CANCEL button in action editor dialog
+     * Reverts edits made by user in the action editor UI when CANCEL is clicked.
      */
     void revert();
 
     /**
-     * This must be called to commit edits, i.e. when user clicks OK button in action editor dialog.
-     * Commits edits in the action editor UI to the {@link ActionInfo} object
+     * Commits edits in the action editor UI to the {@link ActionInfo} object.
      *
      * @return The {@link ActionInfo} object with committed values.
      */
