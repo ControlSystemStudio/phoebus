@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 import javafx.scene.layout.VBox;
 import org.phoebus.applications.uxanalytics.monitor.*;
-import org.phoebus.applications.uxanalytics.monitor.backend.BackendConnection;
+import org.phoebus.applications.uxanalytics.monitor.backend.database.BackendConnection;
 import org.phoebus.applications.uxanalytics.monitor.backend.database.MongoDBConnection;
 import org.phoebus.applications.uxanalytics.monitor.backend.database.Neo4JConnection;
 import org.phoebus.framework.spi.AppInstance;
@@ -26,10 +26,8 @@ public class UXAnalyticsMain implements AppResourceDescriptor {
     public static final Logger logger = Logger.getLogger(UXAnalyticsMain.class.getPackageName());
     public static final String NAME = "uxanalyticsconfig";
     public static final String DISPLAY_NAME = "UX Analytics Config";
-    private BackendConnection phoebusConnection = new Neo4JConnection();
-    private BackendConnection jfxConnection = new MongoDBConnection();
-    private final UXAController neo4jController = new UXAController(phoebusConnection);
-    private final UXAController mongoController = new UXAController(jfxConnection);
+    private BackendConnection phoebusConnection = Neo4JConnection.getInstance();
+    private BackendConnection jfxConnection = MongoDBConnection.getInstance();
     private final UXAMonitor monitor = UXAMonitor.getInstance();
     @Override
     public AppInstance create(URI resource) {
@@ -55,32 +53,6 @@ public class UXAnalyticsMain implements AppResourceDescriptor {
 
     @Override
     public AppInstance create() {
-        try{
-            final FXMLLoader log4JLoader = new FXMLLoader();
-            log4JLoader.setLocation(UXAnalyticsMain.class.getResource("uxa-settings-dialog.fxml"));
-            log4JLoader.setController(neo4jController);
-            Parent log4JRoot = log4JLoader.load();
-            neo4jController.setObserver(monitor);
-
-
-            final FXMLLoader mongoLoader = new FXMLLoader();
-            mongoLoader.setLocation(UXAnalyticsMain.class.getResource("uxa-settings-dialog.fxml"));
-            mongoLoader.setController(mongoController);
-            Parent mongoRoot = mongoLoader.load();
-            mongoController.setObserver(monitor);
-
-            VBox root = new VBox(log4JRoot, mongoRoot);
-            Scene scene = new Scene(root);
-            Stage stage = new Stage();
-            stage.setTitle("UX Analytics Configuration");
-            stage.setScene(scene);
-            neo4jController.initialize();
-            mongoController.initialize();
-            stage.show();
-        }
-        catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to create UX Analytics dialog", e);
-        }
         return null;
     }
 }

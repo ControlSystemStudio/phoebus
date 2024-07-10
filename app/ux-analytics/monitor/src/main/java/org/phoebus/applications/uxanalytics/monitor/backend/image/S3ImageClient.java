@@ -4,6 +4,8 @@ package org.phoebus.applications.uxanalytics.monitor.backend.image;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.logging.Level;
+
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -18,32 +20,39 @@ import java.util.logging.Logger;
 public class S3ImageClient implements ImageClient{
 
     S3Client s3;
-    static final String BUCKET_NAME = "phoebus-screenshots";
+    static String bucketName = PhoebusPreferenceService.userNodeForClass(S3ImageClient.class).get("bucket", "phoebus-screenshots");
     static S3ImageClient instance;
+    public static S3ImageClient getInstance(){
+        if(instance == null){
+            instance = new S3ImageClient();
+        }
+        return instance;
+    }
     Logger logger = Logger.getLogger(S3ImageClient.class.getName());
 
     private S3ImageClient(){
-        String accessKey = System.getenv("AWS_ACCESS_KEY_ID");
-        String secretKey = System.getenv("AWS_SECRET_ACCESS_KEY");
+    }
+
+    public void connect(String accessKey, String secretKey) {
         s3 = S3Client.builder()
-                .region(Region.US_EAST_2)
+                .region(Region.of(PhoebusPreferenceService.userNodeForClass(this.getClass()).get("region", "us-east-2")))
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(accessKey, secretKey)))
                 .build();
         boolean bucketFound = false;
         for (var bucket : s3.listBuckets().buckets()) {
-            if (bucket.name().equals(BUCKET_NAME)) {
+            if (bucket.name().equals(bucketName)) {
                 bucketFound = true;
                 break;
             }
         }
         if (!bucketFound) {
-            logger.log(Level.WARNING, "Bucket " + BUCKET_NAME + " not found, creating it");
-            s3.createBucket(builder -> builder.bucket(BUCKET_NAME).build());
+            logger.log(Level.WARNING, "Bucket " + bucketName + " not found, creating it");
+            s3.createBucket(builder -> builder.bucket(bucketName).build());
             return;
         }
         else{
-            logger.log(Level.INFO, "Bucket " + BUCKET_NAME + " found");
+            logger.log(Level.INFO, "Bucket " + bucketName + " found");
         }
     }
 
@@ -51,7 +60,7 @@ public class S3ImageClient implements ImageClient{
     public boolean imageExists(URI key) {
         try {
             HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
-                    .bucket(BUCKET_NAME)
+                    .bucket(bucketName)
                     .key(key.toString())
                     .build();
             s3.headObject(headObjectRequest);
@@ -70,7 +79,7 @@ public class S3ImageClient implements ImageClient{
             ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer);
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(BUCKET_NAME)
+                    .bucket(bucketName)
                     .key(imagePath.toString())
                     .contentType("image/png")
                     .build();
@@ -85,10 +94,7 @@ public class S3ImageClient implements ImageClient{
 
     }
 
-    public static ImageClient getInstance(){
-        if(instance == null){
-            instance = new S3ImageClient();
-        }
-        return instance;
+    public void disconnect() {
+        s3.close();
     }
 }

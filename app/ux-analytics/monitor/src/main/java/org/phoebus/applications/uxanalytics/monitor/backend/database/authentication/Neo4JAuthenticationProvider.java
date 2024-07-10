@@ -1,9 +1,11 @@
-package org.phoebus.applications.uxanalytics.monitor.backend.authentication;
+package org.phoebus.applications.uxanalytics.monitor.backend.database.authentication;
 
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
 
-public class S3AuthenticationProvider implements ServiceAuthenticationProvider {
+public class Neo4JAuthenticationProvider implements ServiceAuthenticationProvider {
+
+
     @Override
     public void authenticate(String username, String password) {
 
@@ -16,6 +18,6 @@ public class S3AuthenticationProvider implements ServiceAuthenticationProvider {
 
     @Override
     public AuthenticationScope getAuthenticationScope() {
-        return null;
+        return AuthenticationScope.NEO4J;
     }
 }
