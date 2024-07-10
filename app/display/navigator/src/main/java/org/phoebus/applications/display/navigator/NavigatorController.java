@@ -1636,7 +1636,11 @@ public class NavigatorController implements Initializable {
         promptLabel.setStyle("-fx-font-weight: bold; ");
         Button yesButton = new Button("✓");
         yesButton.setStyle("-fx-alignment: center; ");
+        yesButton.setMinWidth(Region.USE_PREF_SIZE);
+        yesButton.setMinHeight(Region.USE_PREF_SIZE);
         Button noButton = new Button("\uD83D\uDDD9");
+        noButton.setMinWidth(Region.USE_PREF_SIZE);
+        noButton.setMinWidth(Region.USE_PREF_SIZE);
 
         Runnable closeConfirmDialog = () -> {
             yesButton.setDisable(true);
@@ -1682,6 +1686,8 @@ public class NavigatorController implements Initializable {
         Label promptLabel = new Label(prompt);
         promptLabel.setStyle("-fx-font-weight: bold; ");
         Button okButton = new Button("✓");
+        okButton.setMinWidth(Region.USE_PREF_SIZE);
+        okButton.setMinHeight(Region.USE_PREF_SIZE);
 
         Runnable closeConfirmDialog = () -> {
             okButton.setDisable(true);
