@@ -1,5 +1,6 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URI;
 
@@ -9,13 +10,23 @@ public class FilesystemImageClient implements ImageClient{
     private String imageLocation;
 
     @Override
-    public Integer uploadImage(URI image, File file) {
-        return 0;
+    public Integer uploadImage(URI image, BufferedImage screenshot) {
+        try {
+            File outputfile = new File(imageLocation +"/"+ image.getPath()+".png");
+            //make directories if they don't exist
+            outputfile.getParentFile().mkdirs();
+            System.out.println("Saving image to: " + outputfile.getAbsolutePath());
+            javax.imageio.ImageIO.write(screenshot, "png", outputfile);
+            return 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
     }
 
     @Override
     public boolean imageExists(URI image) {
-        return false;
+        return new File(imageLocation +"/"+ image.getPath()+".png").exists();
     }
 
     public boolean setImageLocation(String location) {

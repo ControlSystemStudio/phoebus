@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import net.dongliu.commons.Sys;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 
@@ -140,6 +141,7 @@ public class FileUtils {
 
     public static String getAnalyticsPathFor(String path){
         String pathWithoutRoot = ModelResourceUtil.normalize(getPathWithoutSourceRoot(path));
+        pathWithoutRoot = pathWithoutRoot.substring(0, pathWithoutRoot.lastIndexOf("."));
         String first8OfSHA256 = getSHA256Suffix(path);
         if(first8OfSHA256 == null){
             return null;

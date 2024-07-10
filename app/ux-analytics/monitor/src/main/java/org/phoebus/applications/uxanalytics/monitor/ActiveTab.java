@@ -4,6 +4,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.ToolkitListener;
+import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -121,6 +122,20 @@ public class ActiveTab {
 
     public DockItemWithInput getParentTab() {
         return parentTab;
+    }
+
+    public JFXRepresentation getJFXRepresentation() {return ((DisplayRuntimeInstance)parentTab.getApplication()).getRepresentation();}
+
+    public double getZoom(){
+        return getJFXRepresentation().getZoom();
+    }
+
+    public double getHeight(){
+        return getJFXRepresentation().getModelRoot().getHeight();
+    }
+
+    public double getWidth(){
+        return getJFXRepresentation().getModelRoot().getWidth();
     }
 
     //public String getHashFileName() {
