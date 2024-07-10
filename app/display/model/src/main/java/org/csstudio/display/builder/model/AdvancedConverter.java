@@ -10,10 +10,12 @@ package org.csstudio.display.builder.model;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
+
 
 /**
  * Extension of Converter class to manage opi folder and several features
@@ -23,133 +25,6 @@ import org.apache.commons.io.FileUtils;
  */
 
 public class AdvancedConverter extends Converter {
-	public static final String OUTPUT_ARG = "-output";
-	public static final String OPI_EXTENSION = ".opi";
-	public static final String BOB_EXTENSION = ".bob";
-	public static final String PYTHON_EXTENSION = ".python";
-	public static final String PY_EXTENSION = ".py";
-	public static final String JAVASCRIPT_EXTENSION = ".javascript";
-	public static final String JS_EXTENSION = ".js";
-	public static final String IMPORT_CSS = "org.csstudio.opibuilder";
-	public static final String IMPORT_PHOEBUS = "org.csstudio.display.builder.runtime.script";
-	public static final String PHOEBUS = "phoebus_";
-
-	/**
-	 * 
-	 * @return all opi files contained in a given folder
-	 */
-	public static List<String> listOpiFiles(String folder) {
-		List<String> extensionsList = new ArrayList<String>();
-		extensionsList.add(OPI_EXTENSION);
-		return listFiles(folder, extensionsList);
-	}
-
-	/**
-	 * 
-	 * @return all bob files contained in a given folder
-	 */
-	public static List<String> listBobFiles(String folder) {
-		List<String> extensionsList = new ArrayList<String>();
-		extensionsList.add(BOB_EXTENSION);
-		return listFiles(folder, extensionsList);
-	}
-
-	/**
-	 * 
-	 * @return all script files contained in a given folder
-	 */
-	public static List<String> listScriptFiles(String folder) {
-		List<String> extensionsList = new ArrayList<String>();
-		extensionsList.add(PYTHON_EXTENSION);
-		extensionsList.add(PY_EXTENSION);
-		extensionsList.add(JAVASCRIPT_EXTENSION);
-		extensionsList.add(JS_EXTENSION);
-		return listFiles(folder, extensionsList);
-	}
-
-	/**
-	 * Return true if it is a script
-	 * 
-	 * @param fileName
-	 * @return true if the file is a script file
-	 */
-	public static boolean isScriptFile(String fileName) {
-		List<String> extensionsList = new ArrayList<String>();
-		extensionsList.add(PYTHON_EXTENSION);
-		extensionsList.add(PY_EXTENSION);
-		extensionsList.add(JAVASCRIPT_EXTENSION);
-		extensionsList.add(JS_EXTENSION);
-		return matchExtensions(fileName, extensionsList);
-	}
-
-	/**
-	 * Return true if it is a opi file
-	 * 
-	 * @param fileName
-	 * @return true if the file is a opi file
-	 */
-	public static boolean isOpiFile(String fileName) {
-		List<String> extensionsList = new ArrayList<String>();
-		extensionsList.add(OPI_EXTENSION);
-		return matchExtensions(fileName, extensionsList);
-	}
-	
-	/**
-	 * Return true if it is a bob file
-	 * 
-	 * @param fileName
-	 * @return true if the file is a bob file
-	 */
-	public static boolean isBobFile(String fileName) {
-		List<String> extensionsList = new ArrayList<String>();
-		extensionsList.add(BOB_EXTENSION);
-		return matchExtensions(fileName, extensionsList);
-	}
-
-	/**
-	 * 
-	 * @param fileName
-	 * @param extensionsList
-	 * @return true if the file is matched with the given extensions
-	 */
-	public static boolean matchExtensions(String fileName, List<String> extensionsList) {
-		boolean match = false;
-		if (fileName != null && extensionsList != null && !extensionsList.isEmpty()) {
-			for (String ext : extensionsList) {
-				if (fileName.toLowerCase().endsWith(ext)) {
-					match = true;
-					break;
-				}
-			}
-		}
-		return match;
-	}
-
-	/**
-	 * 
-	 * @return all files contained in a given folder and match with given extension
-	 */
-	public static List<String> listFiles(String folder, List<String> searchExtension) {
-		List<String> searchFiles = new ArrayList<String>();
-		File folderFile = new File(folder);
-		if (folderFile.exists() && folderFile.isDirectory()) {
-			File[] listFiles = folderFile.listFiles();
-			String filePath = null;
-			for (File file : listFiles) {
-				filePath = file.getAbsolutePath();
-				if (file.isDirectory()) {
-					List<String> tmpFiles = listFiles(filePath, searchExtension);
-					if (tmpFiles != null && !tmpFiles.isEmpty()) {
-						searchFiles.addAll(tmpFiles);
-					}
-				} else if (matchExtensions(filePath, searchExtension)) {
-					searchFiles.add(filePath);
-				}
-			}
-		}
-		return searchFiles;
-	}
-
 	/**
 	 * Generate argument for the original Converter
 	 * 
@@ -226,23 +101,36 @@ public class AdvancedConverter extends Converter {
 						// Copy all other file in the output folder if not exist
 						String fileName = tmpFile.getName();
 						File destFile = new File(outputFolder, fileName);
-						if (isScriptFile(fileName)||(!destFile.exists() && !isOpiFile(fileName) && !isBobFile(fileName)) ) {
+						Path tmpPath = tmpFile.toPath();
+						File copyFile;
+						if (isScriptFile(fileName)
+								|| (!destFile.exists() && !isOpiFile(fileName) && !isBobFile(fileName))) {
 							if (isScriptFile(tmpFile.getName())) {
 								// Rename script file into phoebus because of changing import
 								String copyFileName = PHOEBUS + fileName;
-								File copyFile = new File(outputFolder, copyFileName);
-								FileUtils.copyFile(tmpFile, copyFile);
+								copyFile = new File(outputFolder, copyFileName);
+
 							} else {
-								FileUtils.copyFileToDirectory(tmpFile, outputFolder, true);
+								copyFile = new File(outputFolder, fileName);
+
 							}
+							Path copyPath = copyFile.toPath();
+							Files.copy(tmpPath, copyPath);
+
+							
+							
 						} else if (!rootOutputFolder.getAbsolutePath().equals(outputFolder.getAbsolutePath())) {
 							// Move the corresponding generated bob file in the sub folder
 							// Find the corresponding bob file
 							List<String> listBobFiles = listBobFiles(rootOutputFolder.getAbsolutePath());
 							for (String bobFile : listBobFiles) {
+								File bob = new File(bobFile);
+								File tempoFile = new File(outputFolder, bob.getName());
+								Path bobPath = bob.toPath();
+								Path tempoPath = tempoFile.toPath();
 								String simpleFileName = fileName.toLowerCase().replace(OPI_EXTENSION, "");
 								if (bobFile.toLowerCase().contains(simpleFileName)) {
-									FileUtils.moveToDirectory(new File(bobFile), outputFolder, true);
+									Files.move(bobPath, tempoPath);
 									break;
 								}
 							}
@@ -269,12 +157,15 @@ public class AdvancedConverter extends Converter {
 		List<String> bobList = listBobFiles(outputFolderFile.getAbsolutePath());
 		scriptList.addAll(bobList);
 		File tmpFile = null;
+		Path tmpPath;
 		for (String file : scriptList) {
 			try {
 				if (!isScriptFile(file) || file.contains(PHOEBUS))
 					tmpFile = new File(file);
+					tmpPath = tmpFile.toPath();
+				
 				// Change import css to phoebus in embedded script
-				String contains = FileUtils.readFileToString(tmpFile, Charset.defaultCharset());
+				String contains = Files.readString(tmpPath, Charset.defaultCharset());
 				String newContains = contains.replaceAll(IMPORT_CSS, IMPORT_PHOEBUS);
 
 				// Replace embedded opi by bob
@@ -290,7 +181,7 @@ public class AdvancedConverter extends Converter {
 					}
 				}
 				// Write new contains
-				FileUtils.writeStringToFile(tmpFile, newContains, Charset.defaultCharset());
+				Files.writeString(tmpPath, newContains, Charset.defaultCharset());
 			} catch (Exception e) {
 				String errMessage = "Error update " + file;
 				errMessage = errMessage + " " + e.getMessage();

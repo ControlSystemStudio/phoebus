@@ -29,11 +29,5 @@
       <artifactId>core-ui</artifactId>
       <version>4.7.4-SNAPSHOT</version>
     </dependency>
-    <!-- Transitive dependency used for FileUtils copy paste ...-->
-     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.11.0</version>
-    </dependency>
   </dependencies>
 </project>
