@@ -2,6 +2,7 @@ package org.phoebus.applications.uxanalytics.monitor.backend.database;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
@@ -22,12 +23,14 @@ import java.util.logging.Logger;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
-import org.phoebus.applications.uxanalytics.monitor.backend.BackendConnection;
+import org.phoebus.applications.uxanalytics.monitor.backend.image.FilesystemImageClient;
+import org.phoebus.applications.uxanalytics.monitor.backend.image.S3ImageClient;
 import org.phoebus.applications.uxanalytics.monitor.util.FileUtils;
 import org.phoebus.applications.uxanalytics.monitor.backend.image.ImageClient;
 import org.phoebus.applications.uxanalytics.monitor.backend.image.MongoDBImageClient;
 import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
 import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 
 public class MongoDBConnection implements BackendConnection {
 
@@ -38,6 +41,24 @@ public class MongoDBConnection implements BackendConnection {
     private MongoClient mongoClient = null;
     private MongoDatabase database = null;
     private ImageClient imageClient = null;
+
+    static final String COLLECTION = PhoebusPreferenceService
+            .userNodeForClass(MongoDBConnection.class)
+            .get("click-collection","clicks");
+
+    static final String DATABASE = PhoebusPreferenceService
+            .userNodeForClass(MongoDBConnection.class)
+            .get("database","phoebus-analytics");
+
+    public static MongoDBConnection instance;
+    public static MongoDBConnection getInstance(){
+        if(instance == null){
+            instance = new MongoDBConnection();
+        }
+        return instance;
+    }
+
+    private MongoDBConnection(){}
 
     @Override
     public Boolean connect(String hostname, Integer port, String username, String password) {
@@ -52,8 +73,21 @@ public class MongoDBConnection implements BackendConnection {
                     .uuidRepresentation(UuidRepresentation.STANDARD)
                     .build();
             mongoClient = MongoClients.create(settings);
-            database = mongoClient.getDatabase("phoebus-analytics");
-            database.createCollection("clicks");
+            database = mongoClient.getDatabase(DATABASE);
+            database.createCollection(COLLECTION);
+            switch(PhoebusPreferenceService.userNodeForClass(MongoDBConnection.class).get("image-provider","mongodb"))
+            {
+                case "filesystem":
+                    this.setImageClient(FilesystemImageClient.getInstance());
+                    break;
+                case "s3":
+                    this.setImageClient(S3ImageClient.getInstance());
+                    break;
+                case "mongodb":
+                default:
+                    this.setImageClient(MongoDBImageClient.getInstance());
+
+            }
             UXAMonitor.getInstance().notifyConnectionChange(this);
             return true;
         } catch (Exception ex) {
@@ -68,8 +102,13 @@ public class MongoDBConnection implements BackendConnection {
     }
 
     @Override
-    public String getDefaultPort() {
-        return "27017";
+    public String getHost(){
+        return PhoebusPreferenceService.userNodeForClass(this.getClass()).get("host", "localhost");
+    }
+
+    @Override
+    public String getPort() {
+        return PhoebusPreferenceService.userNodeForClass(this.getClass()).get("port", "27017");
     }
 
     public Integer connect(String host, String port, String user, String password, ImageClient imageClient) {
@@ -103,6 +142,7 @@ public class MongoDBConnection implements BackendConnection {
 
     @Override
     public void handleClick(ActiveTab who, Integer x, Integer y) {
+        //if another image client hasn't been set up yet, default to a collection in the MongoDB database
         if(database != null && imageClient == null){
             imageClient = MongoDBImageClient.getInstance();
             ((MongoDBImageClient) imageClient).connect(mongoClient);
@@ -132,7 +172,7 @@ public class MongoDBConnection implements BackendConnection {
                     .append("path", path)
                     .append("time", Instant.now().getEpochSecond());
             try {
-                database.getCollection("clicks").insertOne(clickEvent);
+                database.getCollection(COLLECTION).insertOne(clickEvent);
             } catch (Exception ex) {
                 logger.log(Level.WARNING, "Failed to write click event to MongoDB", ex);
             }

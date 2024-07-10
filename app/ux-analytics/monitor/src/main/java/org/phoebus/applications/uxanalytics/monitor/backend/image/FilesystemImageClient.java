@@ -9,6 +9,16 @@ public class FilesystemImageClient implements ImageClient {
     //Filesystem location to store images
     private String imageLocation;
 
+    public static FilesystemImageClient instance;
+    public static FilesystemImageClient getInstance(){
+        if(instance == null){
+            instance = new FilesystemImageClient();
+        }
+        return instance;
+    }
+
+    private FilesystemImageClient(){}
+
     @Override
     public Integer uploadImage(URI image, BufferedImage screenshot) {
         try {

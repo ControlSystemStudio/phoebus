@@ -28,7 +28,7 @@ public class UXAToolkitListener implements ToolkitListener {
 
     private ActiveTab tabWrapper;
     private final UXAMonitor monitor = UXAMonitor.getInstance();
-    void setTabWrapper(ActiveTab tabWrapper){
+    public void setTabWrapper(ActiveTab tabWrapper){
         this.tabWrapper = tabWrapper;
     }
 

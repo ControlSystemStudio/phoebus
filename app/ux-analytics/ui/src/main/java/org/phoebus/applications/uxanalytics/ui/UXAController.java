@@ -4,7 +4,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-import org.phoebus.applications.uxanalytics.monitor.backend.BackendConnection;
+import org.phoebus.applications.uxanalytics.monitor.backend.database.BackendConnection;
 import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
 
 import java.util.logging.Level;
@@ -48,8 +48,8 @@ public class UXAController {
     @FXML
     public void initialize() {
         lblProtocol.setText(protocol);
-        txtHost.setText(connectionLogic.getDefaultHost());
-        txtPort.setText(connectionLogic.getDefaultPort());
+        txtHost.setText(connectionLogic.getHost());
+        txtPort.setText(connectionLogic.getPort());
     }
 
     @FXML

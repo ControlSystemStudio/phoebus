@@ -8,10 +8,10 @@ import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.neo4j.driver.*;
-import org.phoebus.applications.uxanalytics.monitor.backend.BackendConnection;
 import org.phoebus.applications.uxanalytics.monitor.util.FileUtils;
 import org.phoebus.applications.uxanalytics.monitor.util.ResourceOpenSources;
 import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 
 import java.time.Instant;
 import java.util.Map;
@@ -40,7 +40,17 @@ public class Neo4JConnection implements BackendConnection {
 
     public static final String PROTOCOL = "neo4j://";
 
+    public static Neo4JConnection instance;
+    public static Neo4JConnection getInstance(){
+        if(instance == null){
+            instance = new Neo4JConnection();
+        }
+        return instance;
+    }
+
     private Session session;
+
+    private Neo4JConnection(){}
 
     @Override
     public Boolean connect(String host, Integer port, String username, String password) {
@@ -50,7 +60,9 @@ public class Neo4JConnection implements BackendConnection {
             logger.log(Level.INFO, "Connected to " + host + " on port " + port + " as " + username);
             session = driver.session(
                     SessionConfig.builder()
-                            .withDatabase("neo4j")
+                            .withDatabase(
+                                    PhoebusPreferenceService.userNodeForClass(FileUtils.class)
+                                            .get("database", "neo4j"))
                             .build());
             return true;
         } catch (Exception ex) {
@@ -65,8 +77,13 @@ public class Neo4JConnection implements BackendConnection {
     }
 
     @Override
-    public String getDefaultPort() {
-        return "7687";
+    public String getHost(){
+        return PhoebusPreferenceService.userNodeForClass(this.getClass()).get("host", "localhost");
+    }
+
+    @Override
+    public String getPort() {
+        return PhoebusPreferenceService.userNodeForClass(this.getClass()).get("port", "7687");
     }
 
     @Override
