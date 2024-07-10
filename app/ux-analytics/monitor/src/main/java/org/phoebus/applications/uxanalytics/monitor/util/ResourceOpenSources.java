@@ -1,4 +1,4 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.util;
 
 public enum ResourceOpenSources {
     UNKNOWN,

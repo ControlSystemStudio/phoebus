@@ -1,11 +1,8 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
-import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockItemWithInput;
-import org.phoebus.ui.docking.DockPane;
+import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
 
 public class UXAMouseMonitor implements EventHandler<MouseEvent>{
 

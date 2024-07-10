@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 
 import javafx.stage.Stage;
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
+import org.phoebus.applications.uxanalytics.monitor.backend.BackendConnection;
+import org.phoebus.applications.uxanalytics.monitor.backend.database.MongoDBConnection;
+import org.phoebus.applications.uxanalytics.monitor.backend.database.Neo4JConnection;
+import org.phoebus.applications.uxanalytics.monitor.representation.ActiveWindowsService;
 
 /**
  * Singleton Class to capture UI events (clicks, PV Writes, Display open/close)

@@ -1,4 +1,4 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.representation;
 
 import javafx.stage.Window;
 import org.csstudio.display.builder.model.Widget;

@@ -1,8 +1,7 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.backend.database;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
@@ -14,7 +13,6 @@ import javafx.scene.image.WritableImage;
 
 import java.awt.image.BufferedImage;
 import java.net.URI;
-import java.nio.Buffer;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -24,8 +22,14 @@ import java.util.logging.Logger;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
+import org.phoebus.applications.uxanalytics.monitor.backend.BackendConnection;
+import org.phoebus.applications.uxanalytics.monitor.util.FileUtils;
+import org.phoebus.applications.uxanalytics.monitor.backend.image.ImageClient;
+import org.phoebus.applications.uxanalytics.monitor.backend.image.MongoDBImageClient;
+import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
+import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
 
-public class MongoDBConnection implements BackendConnection{
+public class MongoDBConnection implements BackendConnection {
 
     Logger logger = Logger.getLogger(MongoDBConnection.class.getName());
 

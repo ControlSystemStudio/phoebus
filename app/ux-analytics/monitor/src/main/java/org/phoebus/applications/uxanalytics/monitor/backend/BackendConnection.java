@@ -1,9 +1,11 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.backend;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
-import org.epics.vtype.VType;
+import org.phoebus.applications.uxanalytics.monitor.backend.image.ImageClient;
+import org.phoebus.applications.uxanalytics.monitor.util.ResourceOpenSources;
+import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
 
 @FunctionalInterface
 public interface BackendConnection {

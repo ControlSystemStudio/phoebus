@@ -1,12 +1,13 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.representation;
 
 import javafx.scene.Node;
-import javafx.scene.control.Tab;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
+import org.phoebus.applications.uxanalytics.monitor.UXAMouseMonitor;
+import org.phoebus.applications.uxanalytics.monitor.UXAToolkitListener;
 import org.phoebus.ui.docking.DockItemWithInput;
 
 import javafx.scene.input.MouseEvent;

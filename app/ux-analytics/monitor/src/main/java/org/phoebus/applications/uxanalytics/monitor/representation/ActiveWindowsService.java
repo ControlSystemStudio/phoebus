@@ -1,4 +1,4 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.representation;
 
 import javafx.collections.*;
 import javafx.scene.control.Tab;

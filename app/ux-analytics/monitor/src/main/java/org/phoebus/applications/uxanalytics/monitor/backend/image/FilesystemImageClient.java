@@ -1,10 +1,10 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.backend.image;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URI;
 
-public class FilesystemImageClient implements ImageClient{
+public class FilesystemImageClient implements ImageClient {
 
     //Filesystem location to store images
     private String imageLocation;

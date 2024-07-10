@@ -1,21 +1,13 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
-import javafx.application.Platform;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
-import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
-import org.epics.vtype.Display;
-import org.phoebus.ui.docking.DockItemWithInput;
+import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
+import org.phoebus.applications.uxanalytics.monitor.util.ResourceOpenSources;
 
-import javax.lang.model.type.ArrayType;
-import java.io.File;
-import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 

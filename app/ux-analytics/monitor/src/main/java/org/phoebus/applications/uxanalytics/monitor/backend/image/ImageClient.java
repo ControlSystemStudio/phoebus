@@ -1,7 +1,6 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.backend.image;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.net.URI;
 
 public interface ImageClient {
