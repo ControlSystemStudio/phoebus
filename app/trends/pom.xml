@@ -10,5 +10,7 @@
   <modules>
     <module>rich-adapters</module>
     <module>simple-adapters</module>
+    <module>archive-datasource</module>
+    <module>archive-reader</module>
   </modules>
 </project>

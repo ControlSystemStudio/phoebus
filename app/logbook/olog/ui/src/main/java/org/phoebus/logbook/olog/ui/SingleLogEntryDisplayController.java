@@ -188,7 +188,14 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
             Collection<Attachment> attachments = logEntry.getAttachments().stream()
                     .filter((attachment) -> attachment.getName() != null && !attachment.getName().isEmpty())
                     .map((attachment) -> {
-                        OlogAttachment fileAttachment = new OlogAttachment();
+                        OlogAttachment fileAttachment = new OlogAttachment() {
+                            @Override
+                            protected void finalize() {
+                                if (getFile() != null && getFile().exists()) {
+                                    getFile().delete();
+                                }
+                            }
+                        };
                         fileAttachment.setContentType(attachment.getContentType());
                         fileAttachment.setThumbnail(false);
                         fileAttachment.setFileName(attachment.getName());
