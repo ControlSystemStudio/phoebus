@@ -1,4 +1,4 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.backend.database;
 
 import javafx.application.Platform;
 import org.csstudio.display.builder.model.Widget;
@@ -7,15 +7,18 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
-import org.epics.vtype.VType;
 import org.neo4j.driver.*;
+import org.phoebus.applications.uxanalytics.monitor.backend.BackendConnection;
+import org.phoebus.applications.uxanalytics.monitor.util.FileUtils;
+import org.phoebus.applications.uxanalytics.monitor.util.ResourceOpenSources;
+import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
 
 import java.time.Instant;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Neo4JConnection implements BackendConnection{
+public class Neo4JConnection implements BackendConnection {
 
     Logger logger = Logger.getLogger(Neo4JConnection.class.getName());
     Driver driver;

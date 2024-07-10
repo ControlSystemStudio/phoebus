@@ -1,4 +1,4 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.backend.image;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;

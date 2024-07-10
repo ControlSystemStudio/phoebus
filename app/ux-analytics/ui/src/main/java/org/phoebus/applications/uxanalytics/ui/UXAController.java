@@ -4,7 +4,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-import org.phoebus.applications.uxanalytics.monitor.BackendConnection;
+import org.phoebus.applications.uxanalytics.monitor.backend.BackendConnection;
 import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
 
 import java.util.logging.Level;

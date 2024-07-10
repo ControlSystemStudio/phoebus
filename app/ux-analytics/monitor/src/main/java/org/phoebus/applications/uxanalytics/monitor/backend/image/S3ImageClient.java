@@ -1,4 +1,4 @@
-package org.phoebus.applications.uxanalytics.monitor;
+package org.phoebus.applications.uxanalytics.monitor.backend.image;
 
 
 import java.awt.image.BufferedImage;
@@ -6,7 +6,6 @@ import java.io.*;
 import java.util.logging.Level;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
