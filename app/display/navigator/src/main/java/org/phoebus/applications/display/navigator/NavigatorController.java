@@ -1634,9 +1634,9 @@ public class NavigatorController implements Initializable {
         userInputVBox.setStyle("-fx-background-color: palegreen");
         Label promptLabel = new Label(prompt);
         promptLabel.setStyle("-fx-font-weight: bold; ");
-        Button yesButton = new Button("Yes");
+        Button yesButton = new Button("✓");
         yesButton.setStyle("-fx-alignment: center; ");
-        Button noButton = new Button("No");
+        Button noButton = new Button("\uD83D\uDDD9");
 
         Runnable closeConfirmDialog = () -> {
             yesButton.setDisable(true);
@@ -1681,7 +1681,7 @@ public class NavigatorController implements Initializable {
         userInputVBox.setStyle("-fx-background-color: red");
         Label promptLabel = new Label(prompt);
         promptLabel.setStyle("-fx-font-weight: bold; ");
-        Button okButton = new Button("OK");
+        Button okButton = new Button("✓");
 
         Runnable closeConfirmDialog = () -> {
             okButton.setDisable(true);
