@@ -9,9 +9,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.phoebus.util.text.Strings;
 import org.phoebus.util.time.TimeParser;
-
-import com.google.common.base.Strings;
 
 public class LogbookQueryUtil {
 
