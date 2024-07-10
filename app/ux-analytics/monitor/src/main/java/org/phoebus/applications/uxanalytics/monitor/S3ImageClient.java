@@ -1,15 +1,18 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
 
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.logging.Level;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import javax.imageio.ImageIO;
 import java.net.URI;
 import java.util.logging.Logger;
 
@@ -60,17 +63,27 @@ public class S3ImageClient implements ImageClient{
     }
 
     @Override
-    public Integer uploadImage(URI imagePath, File file) {
-        if(!imageExists(imagePath)) {
-            PutObjectResponse response = s3.putObject(builder -> builder.bucket(BUCKET_NAME)
-                            .key(imagePath.toString())
-                            .build(),
-                    file.toPath());
-            return response.sdkHttpResponse().statusCode();
+    public Integer uploadImage(URI imagePath, BufferedImage screenshot) {
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            ImageIO.write(screenshot, "png", os);
+            byte[] buffer = os.toByteArray();
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer);
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .key(imagePath.toString())
+                    .contentType("image/png")
+                    .build();
+            PutObjectResponse resp = s3.putObject(putObjectRequest, RequestBody.fromInputStream(inputStream, buffer.length));
+            logger.log(Level.INFO, "Uploaded image to S3: " + imagePath.toString());
+            return resp.sdkHttpResponse().statusCode();
         }
-        else{
-            return 409;
+        catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to upload image to S3", e);
+            return 500;
         }
+
     }
 
     public static ImageClient getInstance(){

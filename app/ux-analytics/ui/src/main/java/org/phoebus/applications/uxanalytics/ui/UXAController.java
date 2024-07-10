@@ -70,11 +70,6 @@ public class UXAController {
             }
 
             String user = txtUser.getText();
-            if (user.isEmpty()) {
-                lblSuccessFailure.setText("Set a user name.");
-                lblSuccessFailure.setVisible(true);
-                return 1;
-            }
             String pass = passPassword.getText();
             try {
                 if (!connectionLogic.connect(host, Integer.parseInt(port), user, pass)) {

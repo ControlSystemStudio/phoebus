@@ -6,10 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.scene.layout.VBox;
-import org.phoebus.applications.uxanalytics.monitor.BackendConnection;
-import org.phoebus.applications.uxanalytics.monitor.MongoDBConnection;
-import org.phoebus.applications.uxanalytics.monitor.Neo4JConnection;
-import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
+import org.phoebus.applications.uxanalytics.monitor.*;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 
