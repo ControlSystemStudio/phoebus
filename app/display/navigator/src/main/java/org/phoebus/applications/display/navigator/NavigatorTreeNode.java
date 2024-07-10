@@ -202,23 +202,21 @@ class NavigatorTreeNode {
                 if (target == Target.CurrentTab && activeDockItem instanceof DockItemWithInput) {
                     DockItemWithInput activeDockItemWithInput = (DockItemWithInput) activeDockItem;
                     shouldProceed = activeDockItemWithInput.okToClose().get();
-                }
-                else {
+                } else {
                     shouldProceed = true;
                 }
 
                 if (shouldProceed) {
-                    Platform.runLater(() -> {
-                        boolean preparedToClose;
-                        try  {
-                            preparedToClose = activeDockItem.prepareToClose();
-                        }
-                        catch (Exception exception) {
-                            preparedToClose = false;
-                            LOGGER.log(Level.WARNING, "An error occurred when preparing to close " + activeDockItem.getApplication().getAppDescriptor().getDisplayName() + " '" + activeDockItem.getLabel() + "'.");
-                        }
+                    boolean preparedToClose;
+                    try {
+                        preparedToClose = activeDockItem.prepareToClose();
+                    } catch (Exception exception) {
+                        preparedToClose = false;
+                        LOGGER.log(Level.WARNING, "An error occurred when preparing to close " + activeDockItem.getApplication().getAppDescriptor().getDisplayName() + " '" + activeDockItem.getLabel() + "'.");
+                    }
 
-                        if (preparedToClose) {
+                    if (preparedToClose) {
+                        Platform.runLater(() -> {
                             activeDockPane.setStyle("-fx-open-tab-animation: NONE; -fx-close-tab-animation: NONE;");
 
                             DockItem dockItemOfCreatedApplication = createAppInstance.get(); // The new application instance may not have been created in activeDockPane if the navigator is located in a different window from activeDockPane.
@@ -228,8 +226,7 @@ class NavigatorTreeNode {
 
                             if (target == Target.CurrentTab || target == Target.NewTab) {
                                 activeDockPane.getSelectionModel().select(indexOfActiveDockItem + 1);
-                            }
-                            else if (target == Target.NewTab_InBackground) {
+                            } else if (target == Target.NewTab_InBackground) {
                                 activeDockPane.getSelectionModel().select(indexOfActiveDockItem);
                             }
 
@@ -239,15 +236,16 @@ class NavigatorTreeNode {
 
                             activeDockPane.setStyle("-fx-open-tab-animation: GROW; -fx-close-tab-animation: GROW;");
                             navigatorController.enableNavigator();
-                        }
-                        else {
+                        });
+                    } else {
+                        Platform.runLater(() -> {
                             navigatorController.enableNavigator();
                             navigatorController.displayWarning("Unable to close " + activeDockItem.getApplication().getAppDescriptor().getDisplayName() + " '" + activeDockItem.getLabel() + "'.",
-                                                               () -> {});
-                        }
-                    });
-                }
-                else {
+                                    () -> {
+                                    });
+                        });
+                    }
+                } else {
                     navigatorController.enableNavigator();
                 }
             });
