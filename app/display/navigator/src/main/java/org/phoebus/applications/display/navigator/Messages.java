@@ -7,6 +7,7 @@ public class Messages {
     public static String NavigatorTooltip;
     public static String ExpandAll;
     public static String CollapseAll;
+    public static String CopyAbsolutePath;
     public static String NavigatorMenu;
     public static String NewNavigatorNamePrompt;
     public static String RenameNavigator;

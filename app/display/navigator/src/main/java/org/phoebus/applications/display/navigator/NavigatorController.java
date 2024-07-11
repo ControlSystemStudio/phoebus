@@ -23,6 +23,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
@@ -1034,6 +1035,20 @@ public class NavigatorController implements Initializable {
                     getTreeItem().getValue().getAction().accept(NavigatorTreeNode.Target.NewTab_InBackground);
                 });
                 contextMenu.getItems().add(menuItem_openInBackgroundTab);
+
+                if (   getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.DisplayRuntime
+                    || getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.DataBrowser)
+                contextMenu.getItems().add(new SeparatorMenuItem());
+
+                MenuItem menuItem_copyPathToResourceToClipboard = new MenuItem(Messages.CopyAbsolutePath);
+                menuItem_copyPathToResourceToClipboard.setOnAction(actionEvent -> {
+                    String absolutePath = OPI_ROOT + getTreeItem().getValue().getRelativePath();
+                    ClipboardContent content = new ClipboardContent();
+                    content.putString(absolutePath);
+                    Clipboard.getSystemClipboard().setContent(content);
+
+                });
+                contextMenu.getItems().add(menuItem_copyPathToResourceToClipboard);
             }
 
             if (getTreeItem() != null && getTreeItem().getValue() != null && newValue) {
