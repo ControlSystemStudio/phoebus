@@ -557,23 +557,7 @@ public class NavigatorController implements Initializable {
             renameNavigatorAction(actionEvent);
         });
 
-        MenuItem menuItem_createNewFolder = new MenuItem(Messages.CreateNewFolder);
-        menuItem_createNewFolder.setOnAction(actionEvent -> {
-            Consumer<String> createNewFolder = newFolderName -> {
-                setUnsavedChanges(true);
-                TreeItem<NavigatorTreeNode> newFolder = createFolderTreeItem(NavigatorTreeNode.createVirtualFolderNode(newFolderName));
-                newFolder.setExpanded(true);
-
-                treeView.getRoot().getChildren().add(0, newFolder);
-                treeView.refresh();
-            };
-
-            promptForTextInput(Messages.NewFolderNamePrompt, "New Folder", createNewFolder);
-            treeView.refresh();
-        });
-
-        ContextMenu topBar_contextMenu = new ContextMenu(menuItem_renameNavigator,
-                                                         menuItem_createNewFolder);
+        ContextMenu topBar_contextMenu = new ContextMenu(menuItem_renameNavigator);
 
         topBar.setOnContextMenuRequested(eventHandler -> {
             topBar_contextMenu.show(topBar.getScene().getWindow(), eventHandler.getScreenX(), eventHandler.getScreenY());
