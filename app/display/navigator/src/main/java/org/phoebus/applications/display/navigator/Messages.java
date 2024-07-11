@@ -3,6 +3,7 @@ package org.phoebus.applications.display.navigator;
 import org.phoebus.framework.nls.NLS;
 
 public class Messages {
+    public static String AddFile;
     public static String LocateCurrentFile;
     public static String NavigatorTooltip;
     public static String ExpandAll;

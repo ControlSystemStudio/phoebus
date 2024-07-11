@@ -41,6 +41,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -1074,32 +1075,71 @@ public class NavigatorController implements Initializable {
             }
 
             if (newValue) {
-                MenuItem menuItem_createNewFolder = new MenuItem(Messages.CreateNewFolder);
 
-                menuItem_createNewFolder.setOnAction(actionEvent -> {
+                {
+                    MenuItem menuItem_addResource = new MenuItem(Messages.AddFile);
 
-                    var treeItem = getTreeItem();
-
-                    Consumer<String> createNewFolder = newFolderName -> {
-                        setUnsavedChanges(true);
-                        TreeItem<NavigatorTreeNode> newFolder = createFolderTreeItem(NavigatorTreeNode.createVirtualFolderNode(newFolderName));
-                        if (treeItem == null || treeItem.getValue() == null) {
-                            treeView.getRoot().getChildren().add(newFolder);
+                    menuItem_addResource.setOnAction(actionEvent -> {
+                        FileChooser fileChooser = new FileChooser();
+                        fileChooser.setTitle(Messages.AddFile);
+                        fileChooser.setInitialDirectory(new File(OPI_ROOT));
+                        fileChooser.getExtensionFilters().clear();
+                        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("OPI, Data Browser", "*.bob", "*.plt"));
+                        Stage activeStage = (Stage) DockPane.getActiveDockPane().getScene().getWindow();
+                        File file = fileChooser.showOpenDialog(activeStage);
+                        String absolutePath = file.getAbsolutePath();
+                        Optional<NavigatorTreeNode> maybeResourceNavigatorTreeNode;
+                        try {
+                            maybeResourceNavigatorTreeNode = createResourceNavigatorTreeNode(absolutePath);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
                         }
-                        else {
-                            var siblings = treeItem.getParent().getChildren();
-                            int indexOfTreeItem = siblings.indexOf(treeItem);
-                            siblings.add(indexOfTreeItem + 1, newFolder);
+                        if (maybeResourceNavigatorTreeNode.isPresent()) {
+                            TreeItem<NavigatorTreeNode> newTreeItem = new TreeItem(maybeResourceNavigatorTreeNode.get());
+
+                            setUnsavedChanges(true);
+                            if (getTreeItem() == null || getTreeItem().getValue() == null) {
+                                treeView.getRoot().getChildren().add(newTreeItem);
+                            }
+                            else {
+                                var siblings = getTreeItem().getParent().getChildren();
+                                int indexOfTreeItem = siblings.indexOf(getTreeItem());
+                                siblings.add(indexOfTreeItem + 1, newTreeItem);
+                            }
+                            moveTreeItem(getTreeItem(), newTreeItem);
                         }
-                        newFolder.setExpanded(true);
-                        setUnsavedChanges(true);
+                    });
+                    contextMenu.getItems().add(menuItem_addResource);
+                }
+
+                {
+                    MenuItem menuItem_createNewFolder = new MenuItem(Messages.CreateNewFolder);
+
+                    menuItem_createNewFolder.setOnAction(actionEvent -> {
+
+                        var treeItem = getTreeItem();
+
+                        Consumer<String> createNewFolder = newFolderName -> {
+                            setUnsavedChanges(true);
+                            TreeItem<NavigatorTreeNode> newFolder = createFolderTreeItem(NavigatorTreeNode.createVirtualFolderNode(newFolderName));
+                            if (treeItem == null || treeItem.getValue() == null) {
+                                treeView.getRoot().getChildren().add(newFolder);
+                            }
+                            else {
+                                var siblings = treeItem.getParent().getChildren();
+                                int indexOfTreeItem = siblings.indexOf(treeItem);
+                                siblings.add(indexOfTreeItem + 1, newFolder);
+                            }
+                            newFolder.setExpanded(true);
+                            setUnsavedChanges(true);
+                            treeView.refresh();
+                        };
+
+                        promptForTextInput(Messages.NewFolderNamePrompt, "New Folder", createNewFolder);
                         treeView.refresh();
-                    };
-
-                    promptForTextInput(Messages.NewFolderNamePrompt, "New Folder", createNewFolder);
-                    treeView.refresh();
-                });
-                contextMenu.getItems().add(menuItem_createNewFolder);
+                    });
+                    contextMenu.getItems().add(menuItem_createNewFolder);
+                }
             }
 
 
