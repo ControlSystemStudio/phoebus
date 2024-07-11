@@ -567,7 +567,6 @@ public class NavigatorController implements Initializable {
             };
 
             promptForTextInput(Messages.NewFolderNamePrompt, "New Folder", createNewFolder);
-            setUnsavedChanges(true);
             treeView.refresh();
         });
 
@@ -732,24 +731,59 @@ public class NavigatorController implements Initializable {
         promptLabel.setStyle("-fx-font-weight: bold; ");
         TextField inputField = new TextField(defaultInput);
 
+        Button yesButton = new Button("✓");
+        yesButton.setStyle("-fx-alignment: center; ");
+        yesButton.setMinWidth(Region.USE_PREF_SIZE);
+        yesButton.setMinHeight(Region.USE_PREF_SIZE);
+        Button noButton = new Button("\uD83D\uDDD9");
+        noButton.setMinWidth(Region.USE_PREF_SIZE);
+        noButton.setMinWidth(Region.USE_PREF_SIZE);
+
+        Runnable closePromptDialog = () -> {
+            yesButton.setDisable(true);
+            noButton.setDisable(true);
+            inputField.setDisable(true);
+            userInputVBox.getChildren().clear();
+            enableEverythingExceptUserInput();
+        };
+
         inputField.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
-                userInputVBox.getChildren().clear();
-                inputField.setDisable(true);
-                enableEverythingExceptUserInput();
+                closePromptDialog.run();
                 treeView.requestFocus();
                 continuation.accept(inputField.getText());
             }
             else if (keyEvent.getCode() == KeyCode.ESCAPE) {
-                inputField.setDisable(true);
-                userInputVBox.getChildren().clear();
+                closePromptDialog.run();
                 treeView.requestFocus();
-                enableEverythingExceptUserInput();
             }
         });
 
+
+        yesButton.setOnAction(actionEvent -> {
+            closePromptDialog.run();
+            treeView.requestFocus();
+            continuation.accept(inputField.getText());
+        });
+
+        noButton.setOnAction(actionEvent -> {
+            closePromptDialog.run();
+            treeView.requestFocus();
+        });
+
+        HBox hBox = new HBox(inputField,
+                             yesButton,
+                             noButton);
+        hBox.setStyle("-fx-alignment: center; ");
+        hBox.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ESCAPE) {
+                closePromptDialog.run();
+            }
+        });
+        HBox.setHgrow(inputField, Priority.ALWAYS);
+
         userInputVBox.getChildren().clear();
-        userInputVBox.getChildren().addAll(promptLabel, inputField);
+        userInputVBox.getChildren().addAll(promptLabel, hBox);
         inputField.selectAll();
         inputField.requestFocus();
     }
@@ -1043,11 +1077,11 @@ public class NavigatorController implements Initializable {
                             siblings.add(indexOfTreeItem + 1, newFolder);
                         }
                         newFolder.setExpanded(true);
+                        setUnsavedChanges(true);
                         treeView.refresh();
                     };
 
                     promptForTextInput(Messages.NewFolderNamePrompt, "New Folder", createNewFolder);
-                    setUnsavedChanges(true);
                     treeView.refresh();
                 });
                 contextMenu.getItems().add(menuItem_createNewFolder);
