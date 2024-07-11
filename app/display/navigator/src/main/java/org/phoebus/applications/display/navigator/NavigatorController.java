@@ -557,20 +557,16 @@ public class NavigatorController implements Initializable {
 
         MenuItem menuItem_createNewFolder = new MenuItem(Messages.CreateNewFolder);
         menuItem_createNewFolder.setOnAction(actionEvent -> {
-            TreeItem<NavigatorTreeNode> newFolder = createFolderTreeItem(NavigatorTreeNode.createVirtualFolderNode("New Folder"));
-            newFolder.setExpanded(true);
+            Consumer<String> createNewFolder = newFolderName -> {
+                setUnsavedChanges(true);
+                TreeItem<NavigatorTreeNode> newFolder = createFolderTreeItem(NavigatorTreeNode.createVirtualFolderNode(newFolderName));
+                newFolder.setExpanded(true);
 
-            treeView.getRoot().getChildren().add(0, newFolder);
-
-            Consumer<String> setNewFolderName = newFolderName -> {
-                if (!newFolder.getValue().getLabel().equals(newFolderName)) {
-                    setUnsavedChanges(true);
-                    newFolder.getValue().setLabel(newFolderName);
-                    treeView.refresh();
-                }
+                treeView.getRoot().getChildren().add(0, newFolder);
+                treeView.refresh();
             };
 
-            promptForTextInput(Messages.NewFolderNamePrompt, newFolder.getValue().getLabel(), setNewFolderName);
+            promptForTextInput(Messages.NewFolderNamePrompt, "New Folder", createNewFolder);
             setUnsavedChanges(true);
             treeView.refresh();
         });
@@ -1030,28 +1026,27 @@ public class NavigatorController implements Initializable {
 
             if (newValue) {
                 MenuItem menuItem_createNewFolder = new MenuItem(Messages.CreateNewFolder);
+
                 menuItem_createNewFolder.setOnAction(actionEvent -> {
-                    TreeItem<NavigatorTreeNode> newFolder = createFolderTreeItem(NavigatorTreeNode.createVirtualFolderNode("New Folder"));
-                    newFolder.setExpanded(true);
 
-                    if (getTreeItem() == null || getTreeItem().getValue() == null) {
-                        treeView.getRoot().getChildren().add(newFolder);
-                    }
-                    else {
-                        var siblings = getTreeItem().getParent().getChildren();
-                        int indexOfTreeItem = siblings.indexOf(getTreeItem());
-                        siblings.add(indexOfTreeItem + 1, newFolder);
-                    }
+                    var treeItem = getTreeItem();
 
-                    Consumer<String> setNewFolderName = newFolderName -> {
-                        if (!newFolder.getValue().getLabel().equals(newFolderName)) {
-                            setUnsavedChanges(true);
-                            newFolder.getValue().setLabel(newFolderName);
-                            treeView.refresh();
+                    Consumer<String> createNewFolder = newFolderName -> {
+                        setUnsavedChanges(true);
+                        TreeItem<NavigatorTreeNode> newFolder = createFolderTreeItem(NavigatorTreeNode.createVirtualFolderNode(newFolderName));
+                        if (treeItem == null || treeItem.getValue() == null) {
+                            treeView.getRoot().getChildren().add(newFolder);
                         }
+                        else {
+                            var siblings = treeItem.getParent().getChildren();
+                            int indexOfTreeItem = siblings.indexOf(treeItem);
+                            siblings.add(indexOfTreeItem + 1, newFolder);
+                        }
+                        newFolder.setExpanded(true);
+                        treeView.refresh();
                     };
 
-                    promptForTextInput(Messages.NewFolderNamePrompt, newFolder.getValue().getLabel(), setNewFolderName);
+                    promptForTextInput(Messages.NewFolderNamePrompt, "New Folder", createNewFolder);
                     setUnsavedChanges(true);
                     treeView.refresh();
                 });
