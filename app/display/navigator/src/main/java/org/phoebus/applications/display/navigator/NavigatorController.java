@@ -1124,28 +1124,27 @@ public class NavigatorController implements Initializable {
                     });
                     contextMenu.getItems().add(menuItem_createNewFolder);
                 }
-            }
 
+                {
+                    if (getTreeItem() != null && getTreeItem().getValue() != null && getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder) {
+                        Runnable renameFolder = () -> promptForTextInput(Messages.RenameFolderPrompt,
+                                getTreeItem().getValue().getLabel(),
+                                newName -> {
+                                    if (!getTreeItem().getValue().getLabel().equals(newName)) {
+                                        setUnsavedChanges(true);
+                                        getTreeItem().getValue().setLabel(newName);
+                                        treeView.refresh();
+                                    }
+                                });
 
-            {
-                if (getTreeItem() != null && getTreeItem().getValue() != null && getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder) {
-                    Runnable renameFolder = () -> promptForTextInput(Messages.RenameFolderPrompt,
-                            getTreeItem().getValue().getLabel(),
-                            newName -> {
-                                if (!getTreeItem().getValue().getLabel().equals(newName)) {
-                                    setUnsavedChanges(true);
-                                    getTreeItem().getValue().setLabel(newName);
-                                    treeView.refresh();
-                                }
-                            });
+                        MenuItem menuItem_renameFolder = new MenuItem(Messages.RenameFolder);
 
-                    MenuItem menuItem_renameFolder = new MenuItem(Messages.RenameFolder);
+                        menuItem_renameFolder.setOnAction(actionEvent -> {
+                            renameFolder.run();
+                        });
 
-                    menuItem_renameFolder.setOnAction(actionEvent -> {
-                        renameFolder.run();
-                    });
-
-                    contextMenu.getItems().add(menuItem_renameFolder);
+                        contextMenu.getItems().add(menuItem_renameFolder);
+                    }
                 }
             }
         };
