@@ -156,6 +156,17 @@ public class NavigatorController implements Initializable {
                             keyEvent.consume();
                         }
                     }
+                    else if (keyCode == KeyCode.DELETE) {
+                        if (editModeEnabledProperty.get()) {
+                            disableNavigator();
+                            setUnsavedChanges(true);
+                            treeItem.getParent().getChildren().remove(treeItem);
+                            treeView.refresh();
+                            enableNavigator();
+                            
+                            keyEvent.consume();
+                        }
+                    }
                 }
             }
         });
