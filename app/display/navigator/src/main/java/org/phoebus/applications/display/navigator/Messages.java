@@ -24,7 +24,6 @@ public class Messages {
     public static String OpenInNewTab;
     public static String OpenInBackgroundTab;
     public static String DeleteItem;
-    public static String DeletePrompt;
     public static String RenameFolderPrompt;
     public static String RenameFolder;
     public static String UnknownNodeTypeWarning;

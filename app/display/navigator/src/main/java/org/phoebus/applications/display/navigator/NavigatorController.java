@@ -1065,8 +1065,7 @@ public class NavigatorController implements Initializable {
                         treeView.refresh();
                         enableNavigator();
                     };
-                    var treeItemName = treeItem.getValue().getLabel();
-                    promptForYesNo(Messages.DeletePrompt + " '" + treeItemName + "'?", deleteAction);
+                    deleteAction.run();
                 });
 
                 if (contextMenu.getItems().size() > 0) {
