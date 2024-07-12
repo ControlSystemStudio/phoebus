@@ -1783,7 +1783,7 @@ public class NavigatorController implements Initializable {
 
         userInputVBox.setStyle("-fx-background-color: red");
         Label promptLabel = new Label(prompt);
-        promptLabel.setStyle("-fx-font-weight: bold; ");
+        promptLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white; ");
         Button okButton = new Button("✓");
         okButton.setMinWidth(Region.USE_PREF_SIZE);
         okButton.setMinHeight(Region.USE_PREF_SIZE);
