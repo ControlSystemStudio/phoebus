@@ -45,7 +45,7 @@
             </items>
         </MenuButton>
     </HBox>
-    <TreeView fx:id="treeView" />
     <VBox fx:id="userInputVBox" />
+    <TreeView fx:id="treeView" />
     <HBox fx:id="navigatorSelector" />
 </VBox>
