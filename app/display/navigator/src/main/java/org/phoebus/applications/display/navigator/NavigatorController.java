@@ -1487,6 +1487,19 @@ public class NavigatorController implements Initializable {
         menuButton.getItems().addAll(navigationMenu.getItems());
 
         menuButton.setStyle("-fx-background-color: transparent; -fx-background-radius: 3; -fx-padding: 0 4 0 4; -fx-border-width: 1; -fx-border-style: solid;  -fx-border-radius: 3; -fx-border-color: transparent; " + buttonStyle);
+
+        ContextMenu contextMenu = new ContextMenu();
+        {
+            MenuItem copyPathToNavigatorDirectory_menuItem = new MenuItem("Copy Path to Navigator Directory");
+            copyPathToNavigatorDirectory_menuItem.setOnAction(actionEvent -> {
+                String absolutePath = NAVIGATOR_ROOT;
+                ClipboardContent content = new ClipboardContent();
+                content.putString(absolutePath);
+                Clipboard.getSystemClipboard().setContent(content);
+            });
+            contextMenu.getItems().add(copyPathToNavigatorDirectory_menuItem);
+        }
+        menuButton.setContextMenu(contextMenu);
         return menuButton;
     }
 
