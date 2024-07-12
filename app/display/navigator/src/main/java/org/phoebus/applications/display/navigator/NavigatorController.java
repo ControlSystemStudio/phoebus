@@ -30,6 +30,8 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
@@ -46,6 +48,9 @@ import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
 import org.csstudio.trends.databrowser3.DataBrowserInstance;
@@ -94,6 +99,7 @@ public class NavigatorController implements Initializable {
     private static final String NAVIGATOR_SELECTOR_MENU_ITEMS_CSS = "-fx-font-weight: normal; -fx-font-size: 13; ";
     private static String NAVIGATOR_ROOT;
     protected static String OPI_ROOT;
+    static private Color TREE_WIDGET_BACKGROUND_COLOR;
     static private DataFormat navigationTreeDataFormat = new DataFormat("application/navigation-tree-data-format");
     @FXML
     public MenuItem enterEditModeMenuItem;
@@ -112,6 +118,18 @@ public class NavigatorController implements Initializable {
         HBox.setHgrow(topBarSpring, Priority.ALWAYS);
 
         VBox.setVgrow(treeView, Priority.ALWAYS);
+
+        {
+            Optional<NamedWidgetColor> maybeNamedWidgetColor = WidgetColorService.getColors().getColor(NamedWidgetColors.BACKGROUND);
+            Color backgroundColor;
+            if (maybeNamedWidgetColor.isPresent()) {
+                NamedWidgetColor namedWidgetColor = maybeNamedWidgetColor.get();
+                TREE_WIDGET_BACKGROUND_COLOR = new Color(namedWidgetColor.getRed()/255.0, namedWidgetColor.getGreen()/255.0, namedWidgetColor.getBlue()/255.0, namedWidgetColor.getAlpha()/255.0);
+            }
+            else {
+                TREE_WIDGET_BACKGROUND_COLOR = Color.WHITE;
+            }
+        }
         treeView.setCellFactory(tree_view -> new NavigatorController.NavigationTree_TreeCellClass());
         treeView.showRootProperty().set(false);
         treeView.setOnKeyPressed(keyEvent -> {
@@ -1152,6 +1170,8 @@ public class NavigatorController implements Initializable {
         public NavigationTree_TreeCellClass() {
             setContextMenu(contextMenu);
 
+
+            backgroundProperty().set(new Background(new BackgroundFill(TREE_WIDGET_BACKGROUND_COLOR, null, null)));
             editModeEnabledProperty.addListener(editModeEnabledChangeListener);
         }
 
