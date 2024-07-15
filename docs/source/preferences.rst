@@ -64,22 +64,15 @@ that lists all preference settings in the same format that is used by the
 ``settings.ini`` file. You can copy settings that you need to change
 from the display into your settings file.
 
-The same details pane that lists current preference settings also
-offers an ``Import Preferences`` button for loading a ``settings.ini``
-file. You may use that as an alternative to the command line ``-settings ..`` option,
-but note that settings loaded via this button only become effective
-after a restart.
-
-Settings loaded via either the ``-settings ..`` command line option
-or the ``Import Preferences`` button are stored in the user location (see :ref:`locations`).
-They remain effective until different settings are loaded or the user location is deleted.
-It is therefore not necessary to always run the application with the same
-``-settings ..`` command line option. Just invoking with the command line option
-once or using the ``Import Preferences`` button once suffices to load settings.
-In practice, however, it is advisable to include the ``-settings ..`` command line option
-in a site-specific application start script.
-This way, new users do not need to remember to once start with the option,
-and existing users will benefit from changes to the settings file.
+Settings loaded via the ``-settings ..`` command line option
+only remain effective while the application is running.
+It is therefore necessary to always run the application with the same
+``-settings ..`` command line option to get the same results.
+In practice, it is advisable to include the ``-settings ..`` command line option
+in a site-specific application start script or add them to a site-specific
+product as detailed below.
+This way, new users do not need to remember any command line settings
+because they are applied in the launcher script or bundled into the product.
 
 Conceptually, preference settings are meant to hold critical configuration
 parameters like the control system network configuration.
@@ -94,7 +87,7 @@ like context menus or configuration dialogs.
 When you package phoebus for distribution at your site, you can also place
 a file ``settings.ini`` in the installation location (see :ref:`locations`).
 At startup, Phoebus will automatically load the file ``settings.ini``
-from the installation location, eliminating the need for your users
+from the installation location, eliminating the need for your users or a launcher script
 to add the ``-settings ..`` command line option.
 
 
@@ -145,7 +138,7 @@ In your application code, you can most conveniently access them like this::
 
 
 The ``AnnotatedPreferences`` helper will read your ``*preferences.properties``,
-apply updates from ``java.util.prefs.Preferences``, and then set the values
+apply updates from ``java.util.prefs.Preferences`` that have been added via ``-settings ..``, and then set the values
 of all static fields annotated with ``@Preference``.
 It handles basic types like ``int``, ``long``, ``double``, ``boolean``, ``String``,
 ``File``. It can also parse comma-separated items into ``int[]`` or ``String[]``.
@@ -169,10 +162,6 @@ returns a ``PreferencesReader``, or you could directly use that lower level API 
     // and parse as desired.
 
 The ``PreferencesReader`` loads defaults from the property file,
-then allows overrides via the ``java.util.prefs.Preferences`` API.
-By default, the user settings are stored in a ``.phoebus`` folder
-in the home directory.
-This location can be changed by setting the Java property ``phoebus.user``.
-
-In the future, a preference UI might be added, but as mentioned
-the preference settings are not meant to be adjusted by end users.
+then allows overrides via the ``java.util.prefs.Preferences`` API
+that is used when loading a ``settings.ini`` in the installation location 
+and by the ``-settings ..`` provided on the command line.

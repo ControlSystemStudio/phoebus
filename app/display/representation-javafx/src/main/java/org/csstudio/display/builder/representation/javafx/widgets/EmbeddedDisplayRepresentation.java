@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import javafx.application.Platform;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -473,24 +474,26 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
     @Override
     public void dispose()
     {
-        // When the file name is changed, updatePendingDisplay()
-        // will atomically update the active_content_model,
-        // represent the new model, and then set runtimePropEmbeddedModel.
-        //
-        // Fetching the embedded model from active_content_model
-        // could dispose a representation that hasn't been represented, yet.
-        // Fetching the embedded model from runtimePropEmbeddedModel
-        // could fail to dispose what's just now being represented.
-        //
-        // --> Very unlikely to happen because runtime has been stopped,
-        //     so nothing is changing the file name right now.
-        final DisplayModel em = active_content_model.getAndSet(null);
-        model_widget.runtimePropEmbeddedModel().setValue(null);
+        Platform.runLater(() -> {
+            // When the file name is changed, updatePendingDisplay()
+            // will atomically update the active_content_model,
+            // represent the new model, and then set runtimePropEmbeddedModel.
+            //
+            // Fetching the embedded model from active_content_model
+            // could dispose a representation that hasn't been represented, yet.
+            // Fetching the embedded model from runtimePropEmbeddedModel
+            // could fail to dispose what's just now being represented.
+            //
+            // --> Very unlikely to happen because runtime has been stopped,
+            //     so nothing is changing the file name right now.
+            final DisplayModel em = active_content_model.getAndSet(null);
+            model_widget.runtimePropEmbeddedModel().setValue(null);
 
-        if (inner != null  &&  em != null)
-            toolkit.disposeRepresentation(em);
-        inner = null;
+            if (inner != null  &&  em != null)
+                toolkit.disposeRepresentation(em);
+            inner = null;
 
-        super.dispose();
+            super.dispose();
+        });
     }
 }

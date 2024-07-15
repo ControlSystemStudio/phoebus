@@ -1,0 +1,19 @@
+<project default="app-trends-archive-reader">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-trends-archive-reader">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+      </classpath>
+    </javac>
+
+    <jar destfile="${build}/app-trends-archive-reader-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+
+</project>

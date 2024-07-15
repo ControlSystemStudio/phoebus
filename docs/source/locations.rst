@@ -19,7 +19,7 @@ set when starting the product.
 
 ``phoebus.user``:
    Location where phoebus keeps the memento
-   and preferences.
+   and saved layouts.
    Defaults to ``.phoebus`` in the user's home directory.
 
 Site-Specific Branding and Settings

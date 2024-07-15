@@ -39,10 +39,5 @@
         <artifactId>jersey-client</artifactId>
         <version>1.19</version>
     </dependency>
-    <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>${guava.version}</version>
-    </dependency>
   </dependencies>
 </project>

@@ -18,13 +18,13 @@
 
 package org.phoebus.logbook.olog.ui;
 
-import com.google.common.base.Strings;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
+import org.phoebus.util.text.Strings;
 
 import java.util.ArrayList;
 import java.util.HashMap;

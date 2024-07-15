@@ -2,6 +2,9 @@ package org.phoebus.core.types;
 
 import java.time.Instant;
 
+/**
+ * A PV with a Timestamp
+ */
 @SuppressWarnings("nls")
 public class TimeStampedProcessVariable extends ProcessVariable {
 

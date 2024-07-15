@@ -11,10 +11,6 @@ package org.phoebus.archive.reader.json.internal;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.google.common.primitives.ImmutableDoubleArray;
-import com.google.common.primitives.ImmutableIntArray;
-import com.google.common.primitives.ImmutableLongArray;
-import org.epics.util.array.CollectionNumbers;
 import org.epics.util.array.ListDouble;
 import org.epics.util.array.ListInteger;
 import org.epics.util.array.ListLong;
@@ -43,6 +39,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.text.NumberFormat;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -103,12 +101,12 @@ public final class JsonVTypeReader {
                     parser.getTokenLocation());
         }
         Display display = null;
-        ImmutableDoubleArray double_value = null;
+        List<Double> double_value = null;
         EnumDisplay enum_display = null;
-        ImmutableIntArray enum_value = null;
+        List<Integer> enum_value = null;
         String field_name = null;
         boolean found_value = false;
-        ImmutableLongArray long_value = null;
+        List<Long> long_value = null;
         Double maximum = null;
         Double minimum = null;
         String quality = null;
@@ -280,13 +278,12 @@ public final class JsonVTypeReader {
                 if (display == null) {
                     display = Display.none();
                 }
-                if (double_value.length() == 1) {
+                if (double_value.size() == 1) {
                     return VDouble.of(
                             double_value.get(0), alarm, time, display);
                 } else {
                     return VDoubleArray.of(
-                            CollectionNumbers.toListDouble(
-                                    double_value.toArray()),
+                            toListDouble(double_value),
                             alarm,
                             time,
                             display);
@@ -296,7 +293,7 @@ public final class JsonVTypeReader {
                 // Ensure that we have labels for all indices.
                 int min_value = Integer.MAX_VALUE;
                 int max_value = Integer.MIN_VALUE;
-                for (var i = 0; i < enum_value.length(); ++i) {
+                for (var i = 0; i < enum_value.size(); ++i) {
                     final var value = enum_value.get(i);
                     min_value = Math.min(min_value, value);
                     max_value = Math.max(max_value, value);
@@ -321,7 +318,7 @@ public final class JsonVTypeReader {
                             Range.undefined(),
                             "",
                             NumberFormats.precisionFormat(0));
-                    if (enum_value.length() == 1) {
+                    if (enum_value.size() == 1) {
                         return VInt.of(
                                 enum_value.get(0),
                                 alarm,
@@ -335,7 +332,7 @@ public final class JsonVTypeReader {
                                 display);
                     }
                 }
-                if (enum_value.length() == 1) {
+                if (enum_value.size() == 1) {
                     return VEnum.of(
                             enum_value.get(0), enum_display, alarm, time);
                 } else {
@@ -366,7 +363,7 @@ public final class JsonVTypeReader {
                             NumberFormats.precisionFormat(0),
                             display.getDescription());
                 }
-                if (long_value.length() == 1) {
+                if (long_value.size() == 1) {
                     return VLong.of(long_value.get(0), alarm, time, display);
                 } else {
                     return VLongArray.of(
@@ -386,7 +383,7 @@ public final class JsonVTypeReader {
                             "Mandatory field is missing in object.",
                             parser.getTokenLocation());
                 }
-                if (double_value.length() == 1) {
+                if (double_value.size() == 1) {
                     return VStatistics.of(
                             double_value.get(0),
                             Double.NaN,
@@ -459,9 +456,10 @@ public final class JsonVTypeReader {
         return parser.getBooleanValue();
     }
 
-    private static ImmutableDoubleArray readDoubleArray(
+    private static List<Double> readDoubleArray(
             final JsonParser parser) throws IOException {
-        final var array_builder = ImmutableDoubleArray.builder(1);
+
+        final List<Double> values = new ArrayList<>();
         var token = parser.getCurrentToken();
         if (token != JsonToken.START_ARRAY) {
             throw new JsonParseException(
@@ -477,9 +475,9 @@ public final class JsonVTypeReader {
             if (token == JsonToken.END_ARRAY) {
                 break;
             }
-            array_builder.add(readDoubleValue(parser));
+            values.add(readDoubleValue(parser));
         }
-        return array_builder.build();
+        return Collections.unmodifiableList(values);
     }
 
     private static double readDoubleValue(final JsonParser parser)
@@ -515,9 +513,9 @@ public final class JsonVTypeReader {
         return bigIntegerToTimestamp(parser.getBigIntegerValue());
     }
 
-    private static ImmutableIntArray readIntArray(final JsonParser parser)
+    private static List<Integer> readIntArray(final JsonParser parser)
             throws IOException {
-        final var array_builder = ImmutableIntArray.builder(1);
+        final List<Integer> values = new ArrayList<>();
         var token = parser.getCurrentToken();
         if (token != JsonToken.START_ARRAY) {
             throw new JsonParseException(
@@ -533,9 +531,9 @@ public final class JsonVTypeReader {
             if (token == JsonToken.END_ARRAY) {
                 break;
             }
-            array_builder.add(readIntValue(parser));
+            values.add(readIntValue(parser));
         }
-        return array_builder.build();
+        return Collections.unmodifiableList(values);
     }
 
     private static int readIntValue(final JsonParser parser)
@@ -551,9 +549,9 @@ public final class JsonVTypeReader {
         return parser.getIntValue();
     }
 
-    private static ImmutableLongArray readLongArray(final JsonParser parser)
+    private static List<Long> readLongArray(final JsonParser parser)
             throws IOException {
-        final var array_builder = ImmutableLongArray.builder(1);
+        final List<Long> values = new ArrayList<>();
         var token = parser.getCurrentToken();
         if (token != JsonToken.START_ARRAY) {
             throw new JsonParseException(
@@ -569,9 +567,9 @@ public final class JsonVTypeReader {
             if (token == JsonToken.END_ARRAY) {
                 break;
             }
-            array_builder.add(readLongValue(parser));
+            values.add(readLongValue(parser));
         }
-        return array_builder.build();
+        return Collections.unmodifiableList(values);
     }
 
     private static long readLongValue(final JsonParser parser)
@@ -888,7 +886,7 @@ public final class JsonVTypeReader {
         };
     }
 
-    private static ListDouble toListDouble(final ImmutableDoubleArray array) {
+    private static ListDouble toListDouble(final List<Double> array) {
         return new ListDouble() {
             @Override
             public double getDouble(int index) {
@@ -897,12 +895,12 @@ public final class JsonVTypeReader {
 
             @Override
             public int size() {
-                return array.length();
+                return array.size();
             }
         };
     }
 
-    private static ListInteger toListInteger(final ImmutableIntArray array) {
+    private static ListInteger toListInteger(final List<Integer> array) {
         return new ListInteger() {
             @Override
             public int getInt(int index) {
@@ -911,12 +909,12 @@ public final class JsonVTypeReader {
 
             @Override
             public int size() {
-                return array.length();
+                return array.size();
             }
         };
     }
 
-    private static ListLong toListLong(final ImmutableLongArray array) {
+    private static ListLong toListLong(final List<Long> array) {
         return new ListLong() {
             @Override
             public long getLong(int index) {
@@ -925,7 +923,7 @@ public final class JsonVTypeReader {
 
             @Override
             public int size() {
-                return array.length();
+                return array.size();
             }
         };
     }

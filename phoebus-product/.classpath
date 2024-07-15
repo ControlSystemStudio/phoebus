@@ -43,6 +43,7 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-display-adapters"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-databrowser"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-trends-rich-adapters"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-trends-archive-reader"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-rtplot"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-pvtable"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-email-ui"/>

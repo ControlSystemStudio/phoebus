@@ -7,12 +7,12 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.imports;
 
-import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
+
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 
 /** Factory for {@link ArchiveReader} that imports data from file
  *  @author Kay Kasemir

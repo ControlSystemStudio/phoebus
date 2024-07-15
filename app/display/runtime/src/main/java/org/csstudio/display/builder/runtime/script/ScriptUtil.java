@@ -141,6 +141,24 @@ public class ScriptUtil
         ActionUtil.handleAction(widget, open);
     }
 
+    /** Close a display
+     *
+     *  @param widget Widget within the display to close
+     */
+    public static void closeDisplay(final Widget widget)
+    {
+        try
+        {
+            final DisplayModel model = widget.getTopDisplayModel();
+            final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(model);
+            toolkit.closeWindow(model);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot close display", ex);
+        }
+    }
+
     // ====================
     // public alert dialog utils
 

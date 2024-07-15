@@ -5,7 +5,7 @@ The save-and-restore service implements service as a collection
 of REST endpoints. These can be used by clients to manage configurations (aka save sets) and
 snapshots, to compare snapshots and to restore PV values from snapshots.
 
-The service is packaged as a self-contained Spring Boot jar file. External dependencies are limited to a JVM (Java 11+)
+The service is packaged as a self-contained Spring Boot jar file. External dependencies are limited to a JVM (Java 17+)
 and a running instance of Elasticsearch (8.x).
 
 Running the service
@@ -13,6 +13,18 @@ Running the service
 
 The file ``application.properties`` lists a few settings that can be customized to each site's need, e.g.
 connection parameters for Elasticsearch.
+
+Server-side IOC communication
+-----------------------------
+
+The service exposes endpoints for reading and writing PVs, i.e. to create or restore snapshots. Depending on the
+setup this server-side IOC communication may need some configuration:
+
+For ca (channel access) the service must be started with the ``-Dca.use_env=true`` Java option, and the list of
+gateways - if any - must be set as a system environment named ``EPICS_CA_ADDR_LIST``.
+
+For pva (pv access) the service must be started with the ``-DdefaultProtocol=pva`` Java option, and the list of
+gateways - if any - must be set as a system environment named ``EPICS_PVA_ADDR_LIST``.
 
 Elasticsearch setup
 -------------------

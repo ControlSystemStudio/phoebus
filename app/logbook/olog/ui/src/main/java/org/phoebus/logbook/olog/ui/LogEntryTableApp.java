@@ -1,11 +1,11 @@
 package org.phoebus.logbook.olog.ui;
 
-import com.google.common.base.Strings;
 import javafx.scene.image.Image;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.logbook.*;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.util.text.Strings;
 
 import java.net.URI;
 import java.util.logging.Logger;

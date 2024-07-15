@@ -10,6 +10,8 @@ package org.phoebus.applications.alarm.ui.tree;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -46,7 +48,14 @@ class AlarmTreeInstance implements AppInstance
     {
         this.app = app;
 
-        tab = new DockItemWithInput(this, create(input), input, null, null);
+        // split input with/without (raw) query
+        // When the URI specifies multiple host / port pairs getHost() will not
+        // work, so we use getAuthority() instead.
+        final URI resource = new URI(input.getScheme(), input.getAuthority(), input.getPath(), null, null);
+        String itemName = AlarmURI.getRawQueryParametersValues(input).get(AlarmURI.QUERY_PARAMETER_ITEM_NAME);
+        itemName = itemName != null ? URLDecoder.decode(itemName, StandardCharsets.UTF_8) : null;
+
+        tab = new DockItemWithInput(this, create(resource, itemName), resource, null, null);
         Platform.runLater(() -> tab.setLabel(config_name + " " + app.getDisplayName()));
         tab.addCloseCheck(() ->
         {
@@ -65,10 +74,11 @@ class AlarmTreeInstance implements AppInstance
     /** Create UI for input, starts alarm client
      *
      *  @param input Alarm URI, will be parsed into `server` and `config_name`
+     *  @param itemName item name that may be expanded or given focus
      *  @return Alarm UI
      *  @throws Exception
      */
-    private Node create(final URI input) throws Exception
+    private Node create(final URI input, String itemName) throws Exception
     {
         final String[] parsed = AlarmURI.parseAlarmURI(input);
         server = parsed[0];
@@ -77,7 +87,7 @@ class AlarmTreeInstance implements AppInstance
         try
         {
             client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
-            final AlarmTreeView tree_view = new AlarmTreeView(client);
+            final AlarmTreeView tree_view = new AlarmTreeView(client, itemName);
             client.start();
 
             if (AlarmSystem.config_names.length > 0)
@@ -104,7 +114,8 @@ class AlarmTreeInstance implements AppInstance
         {
             // Use same server name, but new config_name
             final URI new_input = AlarmURI.createURI(server, new_config_name);
-            tab.setContent(create(new_input));
+            // no need for initial item name
+            tab.setContent(create(new_input, null));
             tab.setInput(new_input);
             Platform.runLater(() -> tab.setLabel(config_name + " " + app.getDisplayName()));
         }

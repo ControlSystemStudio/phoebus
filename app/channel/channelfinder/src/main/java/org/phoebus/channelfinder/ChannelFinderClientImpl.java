@@ -11,7 +11,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Joiner;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
@@ -1002,7 +1001,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     public Collection<Channel> findByProperty(String property, String... pattern) throws ChannelFinderException {
         Map<String, String> propertyPatterns = new HashMap<String, String>();
         if (pattern.length > 0) {
-            propertyPatterns.put(property, Joiner.on(",").join(pattern)); //$NON-NLS-1$
+            propertyPatterns.put(property, Arrays.stream(pattern).collect(Collectors.joining(","))); //$NON-NLS-1$
         } else {
             propertyPatterns.put(property, "*"); //$NON-NLS-1$
         }
