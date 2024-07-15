@@ -125,6 +125,7 @@
     <classpathentry exported="true" kind="lib" path="target/lib/mx4j-3.0.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/mx4j-impl-2.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/mx4j-jmx-2.1.1.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/mariadb-java-client-3.4.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/mysql-connector-java-8.0.30.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/nanocontainer-remoting-1.0-RC-1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/objenesis-2.6.jar"/>

@@ -1,3 +1,4 @@
 org.phoebus.applications.uxanalytics.monitor.backend.image.authentication.S3AuthenticationProvider
 org.phoebus.applications.uxanalytics.monitor.backend.database.authentication.MongoDBAuthenticationProvider
 org.phoebus.applications.uxanalytics.monitor.backend.database.authentication.Neo4JAuthenticationProvider
+org.phoebus.applications.uxanalytics.monitor.backend.database.authentication.MariaDBAuthenticationProvider

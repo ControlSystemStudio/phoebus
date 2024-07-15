@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.logging.Level;
 
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.security.tokens.AuthenticationScope;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
