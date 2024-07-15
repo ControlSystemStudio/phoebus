@@ -121,7 +121,6 @@ public class NavigatorController implements Initializable {
 
         {
             Optional<NamedWidgetColor> maybeNamedWidgetColor = WidgetColorService.getColors().getColor(NamedWidgetColors.BACKGROUND);
-            Color backgroundColor;
             if (maybeNamedWidgetColor.isPresent()) {
                 NamedWidgetColor namedWidgetColor = maybeNamedWidgetColor.get();
                 TREE_WIDGET_BACKGROUND_COLOR = new Color(namedWidgetColor.getRed()/255.0, namedWidgetColor.getGreen()/255.0, namedWidgetColor.getBlue()/255.0, namedWidgetColor.getAlpha()/255.0);
