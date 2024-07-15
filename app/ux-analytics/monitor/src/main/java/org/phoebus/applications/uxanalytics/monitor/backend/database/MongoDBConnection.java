@@ -2,15 +2,10 @@ package org.phoebus.applications.uxanalytics.monitor.backend.database;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import javafx.application.Platform;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.Node;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.image.WritableImage;
 
 import java.awt.image.BufferedImage;
 import java.net.URI;
@@ -31,6 +26,9 @@ import org.phoebus.applications.uxanalytics.monitor.backend.image.MongoDBImageCl
 import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
 import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 public class MongoDBConnection implements BackendConnection {
 
@@ -58,7 +56,9 @@ public class MongoDBConnection implements BackendConnection {
         return instance;
     }
 
-    private MongoDBConnection(){}
+    private MongoDBConnection(){        //try to auto-connect with saved credentials
+        tryAutoConnect(AuthenticationScope.MONGODB);
+    }
 
     @Override
     public Boolean connect(String hostname, Integer port, String username, String password) {
@@ -133,13 +133,6 @@ public class MongoDBConnection implements BackendConnection {
         return 0;
     }
 
-    static BufferedImage getSnapshot(ActiveTab who) {
-        Node jfxNode = who.getParentTab().getContent();
-        SnapshotParameters params = new SnapshotParameters();
-        WritableImage snapshot = jfxNode.snapshot(params, null);
-        return SwingFXUtils.fromFXImage(snapshot, null);
-    }
-
     @Override
     public void handleClick(ActiveTab who, Integer x, Integer y) {
         //if another image client hasn't been set up yet, default to a collection in the MongoDB database
@@ -157,7 +150,7 @@ public class MongoDBConnection implements BackendConnection {
                 logger.log(Level.INFO, "Uploading image for " + who + " to " + path);
                 try {
                     ((DisplayRuntimeInstance) who.getParentTab().getApplication()).getRepresentation_init().get(1, TimeUnit.SECONDS);
-                    BufferedImage snapshot = getSnapshot(who);
+                    BufferedImage snapshot = FileUtils.getSnapshot(who);
                     imageClient.uploadImage(URI.create(path), snapshot);
                 }
                 catch (Exception ex) {

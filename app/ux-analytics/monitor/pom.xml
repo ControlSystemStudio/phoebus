@@ -89,6 +89,12 @@
             <version>2.25.66</version>
         </dependency>
         <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.4.0</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-logbook-elog</artifactId>
             <version>4.7.4-SNAPSHOT</version>

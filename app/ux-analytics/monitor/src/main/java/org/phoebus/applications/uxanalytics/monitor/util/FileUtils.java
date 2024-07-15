@@ -1,10 +1,15 @@
 package org.phoebus.applications.uxanalytics.monitor.util;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.image.WritableImage;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
@@ -152,4 +157,10 @@ public class FileUtils {
         return getAnalyticsPathFor(path);
     }
 
+    public static BufferedImage getSnapshot(ActiveTab who) {
+        Node jfxNode = who.getParentTab().getContent();
+        SnapshotParameters params = new SnapshotParameters();
+        WritableImage snapshot = jfxNode.snapshot(params, null);
+        return SwingFXUtils.fromFXImage(snapshot, null);
+    }
 }

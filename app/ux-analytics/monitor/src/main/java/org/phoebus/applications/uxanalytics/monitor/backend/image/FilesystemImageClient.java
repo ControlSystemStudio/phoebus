@@ -1,13 +1,18 @@
 package org.phoebus.applications.uxanalytics.monitor.backend.image;
 
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URI;
+import java.util.logging.Logger;
 
 public class FilesystemImageClient implements ImageClient {
 
+    static final Logger logger = Logger.getLogger(FilesystemImageClient.class.getName());
+
     //Filesystem location to store images
-    private String imageLocation;
+    private String imageLocation = "./images";
 
     public static FilesystemImageClient instance;
     public static FilesystemImageClient getInstance(){
@@ -17,7 +22,9 @@ public class FilesystemImageClient implements ImageClient {
         return instance;
     }
 
-    private FilesystemImageClient(){}
+    private FilesystemImageClient(){
+        imageLocation = PhoebusPreferenceService.userNodeForClass(FilesystemImageClient.class).get("directory", "./images");
+    }
 
     @Override
     public Integer uploadImage(URI image, BufferedImage screenshot) {
@@ -25,7 +32,7 @@ public class FilesystemImageClient implements ImageClient {
             File outputfile = new File(imageLocation +"/"+ image.getPath()+".png");
             //make directories if they don't exist
             outputfile.getParentFile().mkdirs();
-            System.out.println("Saving image to: " + outputfile.getAbsolutePath());
+            logger.info("Saving image to: " + outputfile.getAbsolutePath());
             javax.imageio.ImageIO.write(screenshot, "png", outputfile);
             return 0;
         } catch (Exception e) {

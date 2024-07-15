@@ -12,6 +12,7 @@ import org.phoebus.applications.uxanalytics.monitor.util.FileUtils;
 import org.phoebus.applications.uxanalytics.monitor.util.ResourceOpenSources;
 import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.security.tokens.AuthenticationScope;
 
 import java.time.Instant;
 import java.util.Map;
@@ -50,11 +51,17 @@ public class Neo4JConnection implements BackendConnection {
 
     private Session session;
 
-    private Neo4JConnection(){}
+    private Neo4JConnection(){
+        tryAutoConnect(AuthenticationScope.NEO4J);
+    }
 
     @Override
     public Boolean connect(String host, Integer port, String username, String password) {
         try {
+            if(host == null)
+                host = getHost();
+            if(port == null)
+                port = Integer.parseInt(getPort());
             driver = GraphDatabase.driver(PROTOCOL + host + ":" + port.toString(), AuthTokens.basic(username, password));
             driver.verifyConnectivity();
             logger.log(Level.INFO, "Connected to " + host + " on port " + port + " as " + username);
