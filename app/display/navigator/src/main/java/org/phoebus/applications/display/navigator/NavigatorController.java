@@ -1180,7 +1180,7 @@ public class NavigatorController implements Initializable {
         public NavigationTree_TreeCellClass() {
             setContextMenu(contextMenu);
 
-
+            setTextFill(Color.BLACK);
             backgroundProperty().set(new Background(new BackgroundFill(TREE_WIDGET_BACKGROUND_COLOR, null, null)));
             editModeEnabledProperty.addListener(editModeEnabledChangeListener);
         }
@@ -1190,6 +1190,15 @@ public class NavigatorController implements Initializable {
 
             super.updateItem(newSelectionTreeNode, empty);
             setBorder(emptyBorder);
+
+            if (!isSelected()) {
+                setTextFill(Color.BLACK);
+                backgroundProperty().set(new Background(new BackgroundFill(TREE_WIDGET_BACKGROUND_COLOR, null, null)));
+            }
+            else {
+                setTextFill(Color.BLACK);
+                backgroundProperty().set(new Background(new BackgroundFill(new Color(0xB4/255.0, 0xB4/255.0, 0xFF/255.0, 1.0), null, null)));
+            }
 
             if (!empty && newSelectionTreeNode != null && newSelectionTreeNode.getAction() != null) {
                 Consumer action = newSelectionTreeNode.getAction();
