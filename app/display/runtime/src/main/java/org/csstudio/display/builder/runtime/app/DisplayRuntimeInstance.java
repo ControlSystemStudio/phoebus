@@ -11,6 +11,7 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -172,8 +173,10 @@ public class DisplayRuntimeInstance implements AppInstance
         return app;
     }
 
-    /** @return {@link JFXRepresentation} */
-    JFXRepresentation getRepresentation()
+    /** @return {@link JFXRepresentation}
+     * This method has public scope, but it should only be used carefully in
+     * a 'read-only' context (e.g. capturing zoom, dimensions, etc.)*/
+    public JFXRepresentation getRepresentation()
     {
         return representation;
     }
@@ -276,7 +279,7 @@ public class DisplayRuntimeInstance implements AppInstance
     }
 
     /** @return Current display info or <code>null</code> */
-    DisplayInfo getDisplayInfo()
+    public DisplayInfo getDisplayInfo()
     {
         return display_info.orElse(null);
     }
@@ -286,13 +289,18 @@ public class DisplayRuntimeInstance implements AppInstance
      */
     public void loadDisplayFile(final DisplayInfo info)
     {
+        DisplayInfo old_info = display_info.orElse(null);
         // If already executing another display, shut it down
         disposeModel();
+
+        ArrayList<DisplayInfo> dst_src = new ArrayList<>();
 
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
         // another instance
         dock_item.setInput(info.toURI());
+
+        StackTraceElement[] applicationThreadStackTrace = Thread.currentThread().getStackTrace();
 
         // Now that old model is no longer represented,
         // show info.
@@ -322,6 +330,9 @@ public class DisplayRuntimeInstance implements AppInstance
                 {
                     representation.awaitRepresentation(30, TimeUnit.SECONDS);
                     representation_init.run();
+                    dst_src.add(info);
+                    dst_src.add(old_info);
+                    representation.fireMethodCall(dst_src, applicationThreadStackTrace);
                     logger.log(Level.FINE, "Done with representing model of " + info.getPath());
                 }
                 catch (TimeoutException | InterruptedException ex)
