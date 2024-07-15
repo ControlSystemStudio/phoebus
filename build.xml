@@ -33,6 +33,7 @@
     <ant target="clean" dir="app/pvtree"/>
     <ant target="clean" dir="app/pvtable"/>
     <ant target="clean" dir="app/rtplot"/>
+    <ant target="clean" dir="app/trends/archive-reader"/>
     <ant target="clean" dir="app/databrowser"/>
     <ant target="clean" dir="app/databrowser-timescale"/>
     <ant target="clean" dir="app/trends/rich-adapters"/>
@@ -117,6 +118,7 @@
     <ant dir="app/pvtree"/>
     <ant dir="app/pvtable"/>
     <ant dir="app/rtplot"/>
+    <ant dir="app/trends/archive-reader"/>
     <ant dir="app/databrowser"/>
     <ant dir="app/databrowser-timescale"/>
     <ant dir="app/trends/rich-adapters"/>

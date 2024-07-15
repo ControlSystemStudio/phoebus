@@ -18,7 +18,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
+import javafx.event.EventHandler;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.ContextMenuEvent;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
@@ -31,8 +38,12 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
+import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
@@ -61,6 +72,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 /** Dialog for displaying widget information
  *  @author Kay Kasemir
@@ -75,16 +87,14 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     private DisplayWidgetStats stats;
 
     /** PV info */
-    public static class NameStateValue
+    public static class NameStateValue extends ProcessVariable
     {
-        /** PV Name */
-        public final String name;
         /** State, incl. read-only or writable? */
-        public final String state;
+        private final String state;
         /** Last known value */
-        public final VType value;
+        private final VType value;
         /** Path to Widget within display that uses the PV */
-        public final String path;
+        private final String path;
 
         /** @param name PV Name
          *  @param state State, incl. read-only or writable?
@@ -93,10 +103,22 @@ public class WidgetInfoDialog extends Dialog<Boolean>
          */
         public NameStateValue(final String name, final String state, final VType value, final String path)
         {
-            this.name = name;
+            super(name);
             this.state = state;
             this.value = value;
             this.path = path;
+        }
+
+        public String getState() {
+            return state;
+        }
+
+        public VType getValue() {
+            return value;
+        }
+
+        public String getPath() {
+            return path;
         }
     }
 
@@ -209,8 +231,8 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
         buffer.append("PVS (name, state, value, widget path)").append(System.lineSeparator())
                 .append(horizontalRuler).append(System.lineSeparator());
-        pvs.stream().sorted(Comparator.comparing(pv -> pv.name)).forEach(pv -> {
-            buffer.append(pv.name).append(itemSeparator)
+        pvs.stream().sorted(Comparator.comparing(pv -> pv.getName())).forEach(pv -> {
+            buffer.append(pv.getName()).append(itemSeparator)
                     .append(pv.state)
                     .append(itemSeparator)
                     .append(getPVValue(pv.value))
@@ -292,16 +314,13 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     {
         // Use text field to allow users to copy the name, value to clipboard
         final TableColumn<NameStateValue, String> name = new TableColumn<>(Messages.WidgetInfoDialog_Name);
-        name.setCellFactory(col -> new ReadOnlyTextCell<>());
-        name.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().name));
+        name.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("name"));
 
         final TableColumn<NameStateValue, String> state = new TableColumn<>(Messages.WidgetInfoDialog_State);
-        state.setCellFactory(col -> new ReadOnlyTextCell<>());
-        state.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().state));
+        state.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("state"));
 
         final TableColumn<NameStateValue, String> path = new TableColumn<>(Messages.WidgetInfoDialog_Path);
-        path.setCellFactory(col -> new ReadOnlyTextCell<>());
-        path.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().path));
+        path.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("path"));
 
         final TableColumn<NameStateValue, String> value = new TableColumn<>(Messages.WidgetInfoDialog_Value);
         value.setCellFactory(col -> new AlarmColoredCell());
@@ -312,13 +331,50 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         });
 
         final ObservableList<NameStateValue> pv_data = FXCollections.observableArrayList(pvs);
-        pv_data.sort(Comparator.comparing(a -> a.name));
+        pv_data.sort(Comparator.comparing(a -> a.getName()));
         final TableView<NameStateValue> table = new TableView<>(pv_data);
         table.getColumns().add(name);
         table.getColumns().add(state);
         table.getColumns().add(value);
         table.getColumns().add(path);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                SelectionService.getInstance().setSelection(table, table.getSelectionModel().getSelectedItems());
+            }
+        });
+
+        table.setOnContextMenuRequested(event -> {
+
+            final ContextMenu contextMenu = new ContextMenu();
+
+            List<ContextMenuEntry> contextEntries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+
+            contextEntries.forEach(entry -> {
+                MenuItem item = new MenuItem(entry.getName(), new ImageView(entry.getIcon()));
+                item.setOnAction(e -> {
+                    try {
+                        ObservableList<NameStateValue> old = table.getSelectionModel().getSelectedItems();
+
+                        List<Object> selectedPVs = SelectionService.getInstance().getSelection().getSelections().stream().map(s -> {
+                            return AdapterService.adapt(s, entry.getSupportedType()).get();
+                        }).collect(Collectors.toList());
+                        // set the selection
+                        SelectionService.getInstance().setSelection(table, selectedPVs);
+                        entry.call(SelectionService.getInstance().getSelection());
+                        // reset the selection
+                        SelectionService.getInstance().setSelection(table, old);
+                    } catch (Exception ex) {
+                        //logger.log(Level.WARNING, "Failed to execute action " + entry.getName(), ex);
+                    }
+                });
+                contextMenu.getItems().add(item);
+            });
+
+            table.setContextMenu(contextMenu);
+        });
 
         return new Tab(Messages.WidgetInfoDialog_TabPVs, table);
     }
