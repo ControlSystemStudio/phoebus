@@ -99,6 +99,8 @@ public class NavigatorController implements Initializable {
     private static final String NAVIGATOR_SELECTOR_MENU_ITEMS_CSS = "-fx-font-weight: normal; -fx-font-size: 13; ";
     private static String NAVIGATOR_ROOT;
     protected static String OPI_ROOT;
+    static private String TOP_BAR_CSS_STYLE;
+    static private String NAVIGATOR_LABEL_CSS_STYLE;
     static private Color TREE_WIDGET_BACKGROUND_COLOR;
     static private DataFormat navigationTreeDataFormat = new DataFormat("application/navigation-tree-data-format");
     @FXML
@@ -118,6 +120,36 @@ public class NavigatorController implements Initializable {
         HBox.setHgrow(topBarSpring, Priority.ALWAYS);
 
         VBox.setVgrow(treeView, Priority.ALWAYS);
+
+        {
+            Optional<NamedWidgetColor> maybeBackgroundColor = WidgetColorService.getColors().getColor("PRIMARY-HEADER-BACKGROUND");
+            Optional<NamedWidgetColor> maybeForegroundColor = WidgetColorService.getColors().getColor("HEADER-TEXT");
+            if (maybeBackgroundColor.isPresent() && maybeForegroundColor.isPresent()) {
+                String backgroundColor_string;
+                String foregroundColor_string;
+
+                {
+                    NamedWidgetColor namedBackgroundColor = maybeBackgroundColor.get();
+                    Color backgroundColor = new Color(namedBackgroundColor.getRed()/255.0, namedBackgroundColor.getGreen()/255.0, namedBackgroundColor.getBlue()/255.0, namedBackgroundColor.getAlpha()/255.0);
+                    backgroundColor_string = "#" + backgroundColor.toString().substring(2, 8);
+                }
+
+                {
+                    NamedWidgetColor namedForegroundColor = maybeForegroundColor.get();
+                    Color foregroundColor = new Color(namedForegroundColor.getRed()/255.0, namedForegroundColor.getGreen()/255.0, namedForegroundColor.getBlue()/255.0, namedForegroundColor.getAlpha()/255.0);
+                    foregroundColor_string = "#" + foregroundColor.toString().substring(2, 8);
+                }
+                TOP_BAR_CSS_STYLE = "-fx-alignment: center; -fx-background-color: " + backgroundColor_string + ";";
+                NAVIGATOR_LABEL_CSS_STYLE = "-fx-font-weight: bold; -fx-text-fill: " + foregroundColor_string + ";";
+            }
+            else {
+                TOP_BAR_CSS_STYLE = "-fx-alignment: center; -fx-background-color: #483d8b;";
+                NAVIGATOR_LABEL_CSS_STYLE = "-fx-font-weight: bold; -fx-text-fill: white;";
+            }
+
+            topBar.setStyle(TOP_BAR_CSS_STYLE);
+            navigatorLabel.setStyle(NAVIGATOR_LABEL_CSS_STYLE);
+        }
 
         {
             Optional<NamedWidgetColor> maybeNamedWidgetColor = WidgetColorService.getColors().getColor(NamedWidgetColors.BACKGROUND);
@@ -260,6 +292,7 @@ public class NavigatorController implements Initializable {
     void enterEditModeAction(ActionEvent actionEvent) {
         editModeEnabledProperty.set(true);
         topBar.setStyle("-fx-alignment: center; -fx-background-color: fuchsia; ");
+        navigatorLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white; ");
         enableDragNDropToTopBar();
         leaveEditModeMenuItem.setDisable(true);
         saveChangesMenuItem.setDisable(true);
@@ -292,7 +325,9 @@ public class NavigatorController implements Initializable {
     @FXML
     void leaveEditModeAction(ActionEvent actionEvent) {
         editModeEnabledProperty.set(false);
-        topBar.setStyle("-fx-alignment: center; -fx-background-color: #483d8b; ");
+
+        topBar.setStyle(TOP_BAR_CSS_STYLE);
+        navigatorLabel.setStyle(NAVIGATOR_LABEL_CSS_STYLE);
         disableDragNDropToTopBar();
         leaveEditModeMenuItem.setDisable(false);
         saveChangesMenuItem.setDisable(true);
