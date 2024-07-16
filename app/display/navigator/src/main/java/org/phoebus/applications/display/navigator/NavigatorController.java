@@ -163,6 +163,7 @@ public class NavigatorController implements Initializable {
         }
         treeView.setCellFactory(tree_view -> new NavigatorController.NavigationTree_TreeCellClass());
         treeView.showRootProperty().set(false);
+        treeView.setStyle("");
         treeView.setOnKeyPressed(keyEvent -> {
             TreeItem<NavigatorTreeNode> treeItem = treeView.getSelectionModel().getSelectedItem();
             if (treeItem != null) {
@@ -1231,7 +1232,7 @@ public class NavigatorController implements Initializable {
             }
             else {
                 setTextFill(Color.BLACK);
-                backgroundProperty().set(new Background(new BackgroundFill(new Color(0xB4/255.0, 0xB4/255.0, 0xFF/255.0, 1.0), null, null)));
+                backgroundProperty().set(new Background(new BackgroundFill(new Color(0x00/255.0, 0x96/255.0, 0xC9/255.0, 1.0), null, null)));
             }
 
             if (!empty && newSelectionTreeNode != null && newSelectionTreeNode.getAction() != null) {
