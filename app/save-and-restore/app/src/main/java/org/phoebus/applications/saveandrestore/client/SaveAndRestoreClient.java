@@ -245,4 +245,11 @@ public interface SaveAndRestoreClient {
      * @return A @{@link List} of {@link RestoreResult}s with information on potentially failed {@link SnapshotItem}s.
      */
     List<RestoreResult> restore(String snapshotNodeId);
+
+    /**
+     * Requests service to take a snapshot.
+     * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
+     * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
+     */
+    List<SnapshotItem> takeSnapshot(String configurationNodeId);
 }

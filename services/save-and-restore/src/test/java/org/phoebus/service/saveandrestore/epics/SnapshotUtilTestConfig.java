@@ -18,24 +18,10 @@
 
 package org.phoebus.service.saveandrestore.epics;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import org.mockito.Mockito;
-import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
-import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchTreeRepository;
-import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.FilterRepository;
-import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.SnapshotDataRepository;
-import org.phoebus.service.saveandrestore.search.SearchUtil;
-import org.phoebus.service.saveandrestore.web.config.AcceptHeaderResolver;
-import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
-import org.springframework.util.Base64Utils;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,11 +30,11 @@ import java.util.concurrent.Executors;
 @ComponentScan(basePackages = "org.phoebus.service.saveandrestore.epics")
 @SuppressWarnings("unused")
 @Profile("!IT")
-public class SnapshotRestorerTestConfig {
+public class SnapshotUtilTestConfig {
 
     @Bean
-    public SnapshotRestorer snapshotRestorer(){
-        return new SnapshotRestorer();
+    public SnapshotUtil snapshotRestorer(){
+        return new SnapshotUtil();
     }
 
     @Bean

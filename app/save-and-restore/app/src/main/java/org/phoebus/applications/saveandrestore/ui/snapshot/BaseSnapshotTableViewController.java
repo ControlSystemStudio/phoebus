@@ -283,6 +283,7 @@ public abstract class BaseSnapshotTableViewController {
         });
 
         connectPVs();
+
         updateTable(null);
     }
 
@@ -294,21 +295,21 @@ public abstract class BaseSnapshotTableViewController {
     public void updateTable(List<TableEntry> entries) {
         final ObservableList<TableEntry> items = snapshotTableView.getItems();
         final boolean notHide = !snapshotController.isHideEqualItems();
-        snapshotTableView.getItems().clear();
-        tableEntryItems.entrySet().forEach(e -> {
+        items.clear();
+        tableEntryItems.forEach((key, value) -> {
             // there is no harm if this is executed more than once, because only one line is allowed for these
             // two properties (see SingleListenerBooleanProperty for more details)
-            e.getValue().liveStoredEqualProperty().addListener((a, o, n) -> {
+            value.liveStoredEqualProperty().addListener((a, o, n) -> {
                 if (snapshotController.isHideEqualItems()) {
                     if (n) {
-                        snapshotTableView.getItems().remove(e.getValue());
+                        snapshotTableView.getItems().remove(value);
                     } else {
-                        snapshotTableView.getItems().add(e.getValue());
+                        snapshotTableView.getItems().add(value);
                     }
                 }
             });
-            if (notHide || !e.getValue().liveStoredEqualProperty().get()) {
-                items.add(e.getValue());
+            if (notHide || !value.liveStoredEqualProperty().get()) {
+                items.add(value);
             }
         });
     }
