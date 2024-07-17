@@ -17,6 +17,7 @@
  */
 package org.phoebus.service.saveandrestore.application;
 
+import org.phoebus.pv.PVPool;
 import org.phoebus.service.saveandrestore.migration.MigrateRdbToElastic;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 import org.springframework.boot.SpringApplication;
@@ -55,6 +56,13 @@ public class Application {
      */
     public static void main(String[] args) {
 
+        // Hack: PVPool reads properties from dependency jar. Override of default
+        // protocol done here by direct access to PVPool.default_type.
+        String defaultProtocol = System.getProperty("defaultProtocol");
+        if(defaultProtocol != null && !defaultProtocol.isEmpty()){
+            PVPool.default_type = defaultProtocol;
+        }
+        System.out.println("Using default EPICS protocol: " + PVPool.default_type);
         // load the default properties
         final Properties properties = PropertiesHelper.getProperties();
 
