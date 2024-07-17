@@ -1338,7 +1338,7 @@ public class NavigatorController implements Initializable {
 
             setContentDisplay(ContentDisplay.LEFT);
 
-            if (newSelectionTreeNode != null) {
+            if (!empty && newSelectionTreeNode != null) {
                 super.setText(newSelectionTreeNode.getLabel());
                 if (newSelectionTreeNode.getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder) {
                     if (getTreeItem().expandedProperty().get()) {
