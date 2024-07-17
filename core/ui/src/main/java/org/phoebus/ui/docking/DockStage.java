@@ -342,16 +342,21 @@ public class DockStage
     public static Node getPaneOrSplit(final Stage stage)
     {
         Node container = getLayout(stage).getCenter();
-        if (container instanceof SplitPane) {
+        if (container instanceof DockPane || container instanceof SplitDock) {
+            // Note: the check for "instanceof SplitDock" must occur
+            //       before "instanceof SplitPane" (the next clause),
+            //       since the class SplitDock extends the class
+            //       SplitPane. (Otherwise, the wrong code is run
+            //       for instances of SplitDock.)
+            return container;
+        }
+        else if (container instanceof SplitPane) {
             SplitPane splitPane = (SplitPane) container;
             var maybeDockPaneOrSplitDock = splitPane.getItems().stream().filter(item -> item instanceof DockPane || item instanceof SplitDock).findFirst();
             if (maybeDockPaneOrSplitDock.isPresent()) {
                 return maybeDockPaneOrSplitDock.get();
             }
         }
-        if (container instanceof DockPane  ||
-            container instanceof SplitDock)
-            return container;
         throw new IllegalStateException("Expect DockPane or SplitDock, got " + container);
     }
 
