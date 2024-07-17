@@ -99,11 +99,11 @@ public class AlarmStateInitializer
                 logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
                 continue;
             }
-            final String type = record.key().substring(0, 2);
+            final String type = record.key().substring(0, 6);
             // Only handle state updates
             if (type.equals(AlarmSystem.STATE_PREFIX))
             {
-                final String path = record.key().substring(3);
+                final String path = record.key().substring(6);
                 final String node_config = record.value();
                 try
                 {
