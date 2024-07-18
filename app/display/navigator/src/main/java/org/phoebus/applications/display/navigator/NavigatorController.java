@@ -1192,13 +1192,14 @@ public class NavigatorController implements Initializable {
                 }
 
                 {
-                    if (getTreeItem() != null && getTreeItem().getValue() != null && getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder) {
+                    var treeItem = getTreeItem();
+                    if (treeItem != null && treeItem.getValue() != null && treeItem.getValue().getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder) {
                         Runnable renameFolder = () -> promptForTextInput(Messages.RenameFolderPrompt,
-                                getTreeItem().getValue().getLabel(),
+                                treeItem.getValue().getLabel(),
                                 newName -> {
-                                    if (!getTreeItem().getValue().getLabel().equals(newName)) {
+                                    if (!treeItem.getValue().getLabel().equals(newName)) {
                                         setUnsavedChanges(true);
-                                        getTreeItem().getValue().setLabel(newName);
+                                        treeItem.getValue().setLabel(newName);
                                         treeView.refresh();
                                     }
                                 });
