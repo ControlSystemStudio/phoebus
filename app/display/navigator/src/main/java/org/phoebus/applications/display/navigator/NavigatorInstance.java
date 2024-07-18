@@ -87,6 +87,9 @@ public class NavigatorInstance implements AppInstance {
 
             Node oldCenterPane = borderPane.getCenter();
             splitPane.getItems().add(oldCenterPane);
+            if (oldCenterPane instanceof SplitDock oldCenterPane_splitDock) {
+                oldCenterPane_splitDock.setDockParent(splitPane);
+            }
             borderPane.setCenter(splitPane);
             if (oldCenterPane instanceof DockPane dockPane) {
                 dockPane.setDockParent(splitPane);
