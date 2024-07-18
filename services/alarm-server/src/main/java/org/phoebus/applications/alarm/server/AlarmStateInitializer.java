@@ -94,7 +94,7 @@ public class AlarmStateInitializer
         final ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
         for (final ConsumerRecord<String, String> record : records)
         {
-            if (record.key().length() < 2)
+            if (record.key().length() < 6)
             {
                 logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
                 continue;
