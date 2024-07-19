@@ -240,7 +240,9 @@ class NavigatorTreeNode {
                     } else {
                         Platform.runLater(() -> {
                             navigatorController.enableNavigator();
-                            navigatorController.displayWarning("Unable to close " + activeDockItem.getApplication().getAppDescriptor().getDisplayName() + " '" + activeDockItem.getLabel() + "'.", () -> { });
+                            navigatorController.displayWarning("Unable to close " + activeDockItem.getApplication().getAppDescriptor().getDisplayName() + " '" + activeDockItem.getLabel() + "'.",
+                                    () -> {
+                                    });
                         });
                     }
                 } else {
