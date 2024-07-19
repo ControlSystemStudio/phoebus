@@ -534,7 +534,7 @@ public class NavigatorController implements Initializable {
     HBox navigatorSelector;
     private File currentlySelectedNavigator;
     Supplier<Boolean> renameNavigator_thunk = null;
-    private BooleanProperty editModeEnabledProperty = new SimpleBooleanProperty(false);
+    protected BooleanProperty editModeEnabledProperty = new SimpleBooleanProperty(false);
 
     private String navigatorName_displayed;
     protected String navigatorName_original;
