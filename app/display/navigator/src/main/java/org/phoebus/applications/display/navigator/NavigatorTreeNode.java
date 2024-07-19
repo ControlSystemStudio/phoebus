@@ -193,7 +193,7 @@ class NavigatorTreeNode {
         DockPane activeDockPane = DockPane.getActiveDockPane();
         DockItem activeDockItem = (DockItem) activeDockPane.getSelectionModel().getSelectedItem();
 
-        {
+        if (activeDockItem != null ){
             ObservableList<Tab> activeDockItems = activeDockPane.getTabs();
             int indexOfActiveDockItem = activeDockItems.indexOf(activeDockItem);
 
@@ -240,15 +240,17 @@ class NavigatorTreeNode {
                     } else {
                         Platform.runLater(() -> {
                             navigatorController.enableNavigator();
-                            navigatorController.displayWarning("Unable to close " + activeDockItem.getApplication().getAppDescriptor().getDisplayName() + " '" + activeDockItem.getLabel() + "'.",
-                                    () -> {
-                                    });
+                            navigatorController.displayWarning("Unable to close " + activeDockItem.getApplication().getAppDescriptor().getDisplayName() + " '" + activeDockItem.getLabel() + "'.", () -> { });
                         });
                     }
                 } else {
                     navigatorController.enableNavigator();
                 }
             });
+        }
+        else {
+            DockItem dockItemOfCreatedApplication = createAppInstance.get();
+            navigatorController.enableNavigator();
         }
     }
 
