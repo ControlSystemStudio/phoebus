@@ -170,7 +170,6 @@ class NavigatorTreeNode {
                 DisplayInfo newDisplayInfo = new DisplayInfo(absolutePath, "Name", new Macros(), false);
                 displayRuntimeInstance.loadDisplayFile(newDisplayInfo);
                 navigatorController.enableNavigator();
-                navigatorController.treeView.refresh(); // Ensure that the background color of each cell is set correctly.
             }
             else {
                 Supplier<DockItem> createDisplayRuntimeInstance = () -> {
@@ -237,13 +236,13 @@ class NavigatorTreeNode {
 
                             activeDockPane.setStyle("-fx-open-tab-animation: GROW; -fx-close-tab-animation: GROW;");
                             navigatorController.enableNavigator();
-                            navigatorController.treeView.refresh(); // Ensure that the background color of each cell is set correctly.
                         });
                     } else {
                         Platform.runLater(() -> {
                             navigatorController.enableNavigator();
-                            navigatorController.displayWarning("Unable to close " + activeDockItem.getApplication().getAppDescriptor().getDisplayName() + " '" + activeDockItem.getLabel() + "'.", () -> { });
-                            navigatorController.treeView.refresh(); // Ensure that the background color of each cell is set correctly.
+                            navigatorController.displayWarning("Unable to close " + activeDockItem.getApplication().getAppDescriptor().getDisplayName() + " '" + activeDockItem.getLabel() + "'.",
+                                    () -> {
+                                    });
                         });
                     }
                 } else {
