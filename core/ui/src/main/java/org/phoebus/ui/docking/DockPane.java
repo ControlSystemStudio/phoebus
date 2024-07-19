@@ -298,10 +298,11 @@ public class DockPane extends TabPane
     {
         if (dock_parent == null ||
             dock_parent instanceof BorderPane  ||
-            dock_parent instanceof SplitPane)
+            dock_parent instanceof SplitDock   ||
+            dock_parent instanceof SplitPane) // "dock_parent instanceof SplitPane" is for the case of the Navigator application running
             this.dock_parent = dock_parent;
         else
-            throw new IllegalArgumentException("Expect BorderPane or SplitDock, got " + dock_parent);
+            throw new IllegalArgumentException("Expected BorderPane or SplitDock or SplitPane, got " + dock_parent);
     }
 
     /** @param name Name, may not be <code>null</code> */
