@@ -50,7 +50,9 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
+import org.csstudio.display.builder.model.properties.NamedWidgetFont;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
 import org.csstudio.trends.databrowser3.DataBrowserInstance;
@@ -95,7 +97,8 @@ import static org.phoebus.applications.display.navigator.NavigatorInstance.LOGGE
 
 public class NavigatorController implements Initializable {
     private final int NAVIGATOR_WIDTH_AT_STARTUP = 300;
-    private static final String NAVIGATOR_SELECTOR_BUTTONS_CSS = "-fx-font-family: 'Source Sans Pro Semibold'; -fx-background-radius: 3; -fx-padding: 0 2 0 2; -fx-alignment: center; -fx-font-size: 15; -fx-font-weight: normal; ";
+    private static String NAVIGATOR_FONT_CSS;
+    private static String NAVIGATOR_SELECTOR_BUTTONS_CSS;
     private static final String NAVIGATOR_SELECTOR_MENU_ITEMS_CSS = "-fx-font-weight: normal; -fx-font-size: 13; ";
     private static String NAVIGATOR_ROOT;
     protected static String OPI_ROOT;
@@ -120,6 +123,19 @@ public class NavigatorController implements Initializable {
         HBox.setHgrow(topBarSpring, Priority.ALWAYS);
 
         VBox.setVgrow(treeView, Priority.ALWAYS);
+
+        {
+            Optional<NamedWidgetFont> maybeFont = WidgetFontService.getFonts().getFont("Default");
+            if (maybeFont.isPresent()) {
+                NamedWidgetFont font = maybeFont.get();
+                String fontFamily = font.getFamily();
+                NAVIGATOR_FONT_CSS = "-fx-font-family: '" + fontFamily + "'";
+            }
+            else {
+                NAVIGATOR_FONT_CSS = "";
+            }
+        }
+        NAVIGATOR_SELECTOR_BUTTONS_CSS = NAVIGATOR_FONT_CSS + "-fx-background-radius: 3; -fx-padding: 0 2 0 2; -fx-alignment: center; -fx-font-size: 15; -fx-font-weight: normal; ";
 
         {
             Optional<NamedWidgetColor> maybeBackgroundColor = WidgetColorService.getColors().getColor("PRIMARY-HEADER-BACKGROUND");
@@ -161,7 +177,7 @@ public class NavigatorController implements Initializable {
                 TREE_WIDGET_BACKGROUND_COLOR = Color.WHITE;
             }
         }
-        treeView.setCellFactory(tree_view -> new NavigatorController.NavigationTree_TreeCellClass());
+        treeView.setCellFactory(tree_view -> new NavigationTree_TreeCellClass());
         treeView.showRootProperty().set(false);
         treeView.setStyle("");
         treeView.focusedProperty().addListener((property, oldValue, newValue) -> {
@@ -1222,6 +1238,8 @@ public class NavigatorController implements Initializable {
             setTextFill(Color.BLACK);
             backgroundProperty().set(new Background(new BackgroundFill(TREE_WIDGET_BACKGROUND_COLOR, null, null)));
             editModeEnabledProperty.addListener(editModeEnabledChangeListener);
+
+            setStyle("-fx-background-color: ; ");
         }
 
         @Override
