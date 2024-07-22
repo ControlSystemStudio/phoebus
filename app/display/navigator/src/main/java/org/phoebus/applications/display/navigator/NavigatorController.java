@@ -101,7 +101,7 @@ public class NavigatorController implements Initializable {
     private static String NAVIGATOR_FONT_CSS;
     private static String NAVIGATOR_FONT_BOLD_CSS;
     private static String NAVIGATOR_SELECTOR_BUTTONS_CSS;
-    private static final String NAVIGATOR_SELECTOR_MENU_ITEMS_CSS = "-fx-font-weight: normal; -fx-font-size: 13; ";
+    private static String NAVIGATOR_SELECTOR_MENU_ITEMS_CSS;
     private static String NAVIGATOR_ROOT;
     protected static String OPI_ROOT;
     static private String TOP_BAR_CSS_STYLE;
@@ -151,6 +151,7 @@ public class NavigatorController implements Initializable {
         }
 
         NAVIGATOR_SELECTOR_BUTTONS_CSS = NAVIGATOR_FONT_CSS + "-fx-background-radius: 3; -fx-padding: 0 2 0 2; -fx-alignment: center; -fx-font-size: 15; -fx-font-weight: normal; ";
+        NAVIGATOR_SELECTOR_MENU_ITEMS_CSS = NAVIGATOR_FONT_CSS + "-fx-font-weight: normal; -fx-font-size: 13; ";
 
         {
             Optional<NamedWidgetColor> maybeBackgroundColor = WidgetColorService.getColors().getColor("PRIMARY-HEADER-BACKGROUND");
@@ -170,12 +171,12 @@ public class NavigatorController implements Initializable {
                     Color foregroundColor = new Color(namedForegroundColor.getRed()/255.0, namedForegroundColor.getGreen()/255.0, namedForegroundColor.getBlue()/255.0, namedForegroundColor.getAlpha()/255.0);
                     foregroundColor_string = "#" + foregroundColor.toString().substring(2, 8);
                 }
-                TOP_BAR_CSS_STYLE = "-fx-alignment: center; -fx-background-color: " + backgroundColor_string + ";";
-                NAVIGATOR_LABEL_CSS_STYLE = "-fx-font-weight: bold; -fx-text-fill: " + foregroundColor_string + ";";
+                TOP_BAR_CSS_STYLE = NAVIGATOR_FONT_CSS + "-fx-alignment: center; -fx-background-color: " + backgroundColor_string + ";";
+                NAVIGATOR_LABEL_CSS_STYLE = NAVIGATOR_FONT_BOLD_CSS + " -fx-text-fill: " + foregroundColor_string + ";";
             }
             else {
-                TOP_BAR_CSS_STYLE = "-fx-alignment: center; -fx-background-color: #483d8b;";
-                NAVIGATOR_LABEL_CSS_STYLE = "-fx-font-weight: bold; -fx-text-fill: white;";
+                TOP_BAR_CSS_STYLE = NAVIGATOR_FONT_CSS + " -fx-alignment: center; -fx-background-color: #483d8b;";
+                NAVIGATOR_LABEL_CSS_STYLE = NAVIGATOR_FONT_BOLD_CSS + " -fx-text-fill: white;";
             }
 
             topBar.setStyle(TOP_BAR_CSS_STYLE);
@@ -194,7 +195,7 @@ public class NavigatorController implements Initializable {
         }
         treeView.setCellFactory(tree_view -> new NavigationTree_TreeCellClass());
         treeView.showRootProperty().set(false);
-        treeView.setStyle("");
+        treeView.setStyle(NAVIGATOR_FONT_CSS);
         treeView.focusedProperty().addListener((property, oldValue, newValue) -> {
             treeView.refresh(); // Ensure that the background color of each cell is set correctly.
         });
@@ -326,8 +327,8 @@ public class NavigatorController implements Initializable {
     @FXML
     void enterEditModeAction(ActionEvent actionEvent) {
         editModeEnabledProperty.set(true);
-        topBar.setStyle("-fx-alignment: center; -fx-background-color: fuchsia; ");
-        navigatorLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: white; ");
+        topBar.setStyle(NAVIGATOR_FONT_CSS + "-fx-alignment: center; -fx-background-color: fuchsia; ");
+        navigatorLabel.setStyle(NAVIGATOR_FONT_BOLD_CSS + "-fx-text-fill: white; ");
         enableDragNDropToTopBar();
         leaveEditModeMenuItem.setDisable(true);
         saveChangesMenuItem.setDisable(true);
@@ -810,13 +811,13 @@ public class NavigatorController implements Initializable {
                                     Consumer<String> continuation) {
         disableEverythingExceptUserInput();
 
-        userInputVBox.setStyle("-fx-background-color: palegreen; ");
+        userInputVBox.setStyle(NAVIGATOR_FONT_CSS + "-fx-background-color: palegreen; ");
         Label promptLabel = new Label(prompt);
-        promptLabel.setStyle("-fx-font-weight: bold; ");
+        promptLabel.setStyle(NAVIGATOR_FONT_CSS + "-fx-font-weight: bold; ");
         TextField inputField = new TextField(defaultInput);
 
         Button yesButton = new Button("✓");
-        yesButton.setStyle("-fx-alignment: center; ");
+        yesButton.setStyle(NAVIGATOR_FONT_CSS + "-fx-alignment: center; ");
         yesButton.setMinWidth(Region.USE_PREF_SIZE);
         yesButton.setMinHeight(Region.USE_PREF_SIZE);
         Button noButton = new Button("\uD83D\uDDD9");
@@ -858,7 +859,7 @@ public class NavigatorController implements Initializable {
         HBox hBox = new HBox(inputField,
                              yesButton,
                              noButton);
-        hBox.setStyle("-fx-alignment: center; ");
+        hBox.setStyle(NAVIGATOR_FONT_CSS + "-fx-alignment: center; ");
         hBox.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ESCAPE) {
                 closePromptDialog.run();
@@ -1254,7 +1255,7 @@ public class NavigatorController implements Initializable {
             backgroundProperty().set(new Background(new BackgroundFill(TREE_WIDGET_BACKGROUND_COLOR, null, null)));
             editModeEnabledProperty.addListener(editModeEnabledChangeListener);
 
-            setStyle("-fx-background-color: ; ");
+            setStyle(NAVIGATOR_FONT_CSS + "-fx-background-color: ; ");
         }
 
         @Override
@@ -1583,7 +1584,7 @@ public class NavigatorController implements Initializable {
 
     private Label createMenuSeparator(String buttonStyle) {
         Label label = new Label("⮞");
-        label.setStyle("-fx-padding: 0 0 0 0; -fx-alignment: center; -fx-font-size: 20; -fx-opacity: 0.5; ");
+        label.setStyle(NAVIGATOR_FONT_CSS + "-fx-padding: 0 0 0 0; -fx-alignment: center; -fx-font-size: 20; -fx-opacity: 0.5; ");
         return label;
     }
 
@@ -1601,7 +1602,7 @@ public class NavigatorController implements Initializable {
         Menu navigationMenu = (Menu) navigationMenuItem;
         menuButton.getItems().addAll(navigationMenu.getItems());
 
-        menuButton.setStyle("-fx-background-color: transparent; -fx-background-radius: 3; -fx-padding: 0 4 0 4; -fx-border-width: 1; -fx-border-style: solid;  -fx-border-radius: 3; -fx-border-color: transparent; " + buttonStyle);
+        menuButton.setStyle(NAVIGATOR_FONT_CSS + "-fx-background-color: transparent; -fx-background-radius: 3; -fx-padding: 0 4 0 4; -fx-border-width: 1; -fx-border-style: solid;  -fx-border-radius: 3; -fx-border-color: transparent; " + buttonStyle);
 
         ContextMenu contextMenu = new ContextMenu();
         {
