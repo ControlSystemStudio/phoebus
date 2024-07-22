@@ -130,7 +130,7 @@ public class NavigatorController implements Initializable {
             if (maybeFont.isPresent()) {
                 NamedWidgetFont font = maybeFont.get();
                 String fontFamily = font.getFamily();
-                NAVIGATOR_FONT_CSS = "-fx-font-family: '" + fontFamily + "'";
+                NAVIGATOR_FONT_CSS = "-fx-font-family: '" + fontFamily + "'; ";
             }
             else {
                 NAVIGATOR_FONT_CSS = "";
