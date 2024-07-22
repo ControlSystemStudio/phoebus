@@ -49,6 +49,7 @@ import javafx.util.Pair;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
@@ -125,7 +126,7 @@ public class NavigatorController implements Initializable {
         VBox.setVgrow(treeView, Priority.ALWAYS);
 
         {
-            Optional<NamedWidgetFont> maybeFont = WidgetFontService.getFonts().getFont("Default");
+            Optional<NamedWidgetFont> maybeFont = WidgetFontService.getFonts().getFont(NamedWidgetFonts.DEFAULT);
             if (maybeFont.isPresent()) {
                 NamedWidgetFont font = maybeFont.get();
                 String fontFamily = font.getFamily();
