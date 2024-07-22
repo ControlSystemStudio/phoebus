@@ -99,6 +99,7 @@ import static org.phoebus.applications.display.navigator.NavigatorInstance.LOGGE
 public class NavigatorController implements Initializable {
     private final int NAVIGATOR_WIDTH_AT_STARTUP = 300;
     private static String NAVIGATOR_FONT_CSS;
+    private static String NAVIGATOR_FONT_BOLD_CSS;
     private static String NAVIGATOR_SELECTOR_BUTTONS_CSS;
     private static final String NAVIGATOR_SELECTOR_MENU_ITEMS_CSS = "-fx-font-weight: normal; -fx-font-size: 13; ";
     private static String NAVIGATOR_ROOT;
@@ -136,6 +137,19 @@ public class NavigatorController implements Initializable {
                 NAVIGATOR_FONT_CSS = "";
             }
         }
+
+        {
+            Optional<NamedWidgetFont> maybeFont = WidgetFontService.getFonts().getFont(NamedWidgetFonts.DEFAULT_BOLD);
+            if (maybeFont.isPresent()) {
+                NamedWidgetFont font = maybeFont.get();
+                String fontFamily = font.getFamily();
+                NAVIGATOR_FONT_BOLD_CSS = "-fx-font-family: '" + fontFamily + "'; -fx-font-weight: bold; ";
+            }
+            else {
+                NAVIGATOR_FONT_BOLD_CSS = NAVIGATOR_FONT_CSS = "";
+            }
+        }
+
         NAVIGATOR_SELECTOR_BUTTONS_CSS = NAVIGATOR_FONT_CSS + "-fx-background-radius: 3; -fx-padding: 0 2 0 2; -fx-alignment: center; -fx-font-size: 15; -fx-font-weight: normal; ";
 
         {
