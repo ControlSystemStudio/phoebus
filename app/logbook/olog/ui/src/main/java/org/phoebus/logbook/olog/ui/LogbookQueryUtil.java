@@ -1,7 +1,6 @@
 package org.phoebus.logbook.olog.ui;
 
-import com.google.common.base.Strings;
-import org.checkerframework.checker.units.qual.K;
+import org.phoebus.util.text.Strings;
 import org.phoebus.util.time.TimeParser;
 
 import java.net.URI;

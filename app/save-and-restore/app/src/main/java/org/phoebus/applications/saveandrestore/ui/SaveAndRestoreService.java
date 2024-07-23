@@ -416,4 +416,15 @@ public class SaveAndRestoreService {
                 executor.submit(() -> saveAndRestoreClient.restore(snapshotNodeId));
         return future.get();
     }
+
+    /**
+     * Requests service to take a snapshot, i.e. to read PVs as defined in a {@link Configuration}.
+     * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
+     * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
+     */
+    public List<SnapshotItem> takeSnapshot(String configurationNodeId) throws Exception{
+        Future<List<SnapshotItem>> future =
+                executor.submit(() -> saveAndRestoreClient.takeSnapshot(configurationNodeId));
+        return future.get();
+    }
 }

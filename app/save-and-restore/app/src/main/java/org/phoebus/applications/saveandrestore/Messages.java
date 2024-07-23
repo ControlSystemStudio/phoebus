@@ -144,6 +144,7 @@ public class Messages {
     public static String tagCommentLabel;
     public static String tagRemoveConfirmationTitle;
     public static String tagRemoveConfirmationContent;
+    public static String takeSnapshotFailed;
     public static String timestamp;
 
     public static String toolTipTableColumnPVName;

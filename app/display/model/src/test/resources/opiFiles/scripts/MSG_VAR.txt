@@ -1,0 +1,744 @@
+************ Debut fichier **********
+0;Variateur OK
+1000;Erreur logicielle interne
+1002;Erreur logicielle interne
+1003;Retard d'acquittement pendant l'accès mémoire
+1004;Erreur logicielle interne
+1005;Echec download du firmware sur composant DRIVE-CLiQ
+1006;Mise à jour du firmware sur composant DRIVE-CLiQ requise
+1007;POWER ON du composant DRIVE-CLiQ requis
+1009;CU: Module de régulation Surchauffe
+1010;Type entraînement inconnu
+1011;Download annulé
+1012;Projet Erreur de conversion
+1015;Erreur logicielle interne
+1016;Firmware modifié
+1017;Listes de composants modifiée
+1018;Démarrage annulé plusieurs fois
+1019;Echec de l'écriture sur média amovible
+1020;Echec de l'écriture sur disque RAM
+1023;Timeout logiciel interne
+1030;Perte de signe de vie en maîtrise de commande
+1031;Défaillance du signe de vie pour ARRET à DISTANCE
+1033;Commutation des unités: valeur de paramètre de référence non valide
+1034;Commutation des unités: calcul des valeurs de paramètres a échoué après modif. val. de réf.
+1035;ACX: Démarrage sur la base des fichiers de sauvegarde de paramètres
+1036;ACX: Fichier de sauvegarde de paramètres manquant
+1037;ACX: Le fichier de sauvegarde de paramètres n'a pas pu être renommé
+1038;ACX: Echec du chargement du fichier de sauvegarde de paramètres
+1041;Sauvegarde des paramètres nécessaire
+1042;Erreur de paramètre lors du download du projet
+1043;Erreur grave lors du download du projet
+1044;CU: Données de description incorrectes
+1045;CU: Données de configuration non valides
+1049;CU: Ecriture dans le fichier impossible
+1050;Carte mémoire et appareil incompatibles
+1054;CU: Dépassement de la limite système
+1064;CU: Erreur interne (CRC)
+1068;CU: Débordement mémoire de données
+1069;Sauvegarde des paramètres et appareil incompatibles
+1099;Dépassement de la fenêtre de tolérance de la synchronisation de l'heure
+1105;CU: Mémoire insuffisante
+1107;CU: Echec d'enregistrement dans la mémoire non volatile
+1112;CU: Partie puissance non autorisée
+1120;Echec Initialisation Bornes
+1122;Fréquence sur entrée détecteur trop élevée
+1150;CU: Nombre d'instances dépassé pour un type d'objet entraînement
+1200;CU: Gestion des tranches de temps Erreur logicielle interne
+1205;CU: Dépas. tranche tps
+1224;CU: Fréquence de découpage incohérente
+1250;CU: EEPROM CU Erreur de lecture des données en lecture seule
+1251;CU: EEPROM CU Erreur de lecture de données en lecture/écriture
+1303;Le composant DRIVE-CLiQ ne prend pas en charge la fonction demandée
+1304;Version du firmware du composant DRIVE-CLiQ non à jour
+1305;Topologie: Numéro de composant absent
+1306;Mise à jour du firmware sur composant DRIVE-CLiQ en cours
+1314;Topologie: Le composant ne doit pas exister
+1315;Objet entraînement inapte au fonctionnement
+1316;Objet entraînement inactif et à nouveau apte au fonctionnement
+1317;Composant désactivé existe de nouveau
+1318;FCOM: Présence de connexions déconnectées
+1319;Composant connecté non initialisé
+1320;Absence du numéro d'objet entraînement dans la configuration
+1321;Numéro d'objet entraînement inexistant dans la configuration
+1322;Numéro d'objet entraînement en double dans la configuration
+1323;Plus de deux listes partielles créées
+1324;Erreur lors de la création du numéro d'objet entraînement factice
+1325;Le numéro de composant ne figure pas dans la topologie prescrite
+1330;Mise en service rapide impossible
+1331;Topologie: au moins un composant attribué à aucun objet entraînement
+1354;Topologie: la topologie réelle contient des composants non autorisés
+1355;Topologie: Topologie réelle modifiée
+1356;Composants défectueux dans topologie réelle
+1360;Topologie réelle illicite
+1361;La topologie réelle contient des composants SINUMERIK et SIMOTION
+1380;Topologie réelle EEPROM défectueuse
+1416;Comparaison Composant supplémentaire dans topologie réelle
+1420;Comparaison Un composant différent
+1425;Comparaison Numéro de série d'un composant différent
+1451;Topologie prescrite non valide
+1475;Topologie prescrite Double connexion entre deux composants
+1481;Comparaison Partie puissance inexistante dans topologie réelle
+1482;Comparaison Sensor Module inexistant dans topologie réelle
+1483;Comparaison Terminal Module inexistant dans topologie réelle
+1484;Comparaison DRIVE-CLiQ Hub Module inexistant dans topologie réelle
+1486;Comparaison Composant DRIVE-CLiQ inexistant dans topologie réelle
+1487;Comparaison Composant de slot pour option inexistant dans topologie réelle
+1488;Comparaison Codeur EnDat inexistant dans topologie réelle
+1489;Comparaison Moteur avec DRIVE-CLiQ inexistant dans topologie réelle
+1505;FCOM: Interconnexion impossible à établir
+1507;FCOM: Connexions présentes vers des objets inactifs
+1508;FCOM: Trop de connexions vers des objets inactifs
+1510;FCOM: Source de signal pas de type Float
+1511;FCOM: Connexion avec normalisations différentes
+1512;FCOM: Aucune normalisation disponible
+1513;FCOM: Connexion inter-DO avec normalisations différentes
+1514;FCOM: Erreur d'écriture pendant la reconnexion
+1515;FCOM: Ecriture de paramètre interdite car maîtrise de commande active
+1590;Entraînement: Intervalle de maintenance moteur écoulé
+1600;SI CU: STOP A déclenché
+1611;SI CU: Défaut dans un canal de surveillance
+1612;SI CU : Entrées STO différentes sur parties puissance couplées en parallèle
+1620;SI CU: Suppression sûre du couple activée
+1621;SI CU: Safe Stop 1actif
+1625;SI CU: Signe de vie dans données Safety Integrated incorrect
+1630;SI CU: Commande de frein défectueuse
+1649;SI CU: Erreur logicielle interne
+1650;SI CU: Test de réception obligatoire
+1651;SI CU: Echec synchronisation tranches de temps Safety Integrated
+1652;SI CU: Temps de cycle de surveillance illicite
+1653;SI CU: Configuration PROFIBUS incorrecte
+1655;SI CU: Synchronisation des fonctions de surveillance
+1656;SI CU: Paramètres Motor Module incorrect
+1659;SI CU: Requête d'écriture de paramètres rejetée
+1660;SI CU: Fonctions de sécurité non prises en charge
+1662;Erreur de communication interne
+1663;SI CU: Copie des paramètres SI refusée
+1664;SI CU: Aucune mise à jour automatique du firmware
+1665;SI CU: Le système est défectueux
+1666;SI Motion CU: Signal à 1statique sur F-DI pour l'acquittement sûr
+1669;SI Motion: Combinaison de moteur et de partie puissance défavorable
+1670;SI Motion: Paramétrage Sensor Module non valide
+1671;SI Motion: Paramétrage capteur incorrect
+1672;SI CU: Logiciel/matériel de Motor Module incompatible
+1673;SI Motion: Logiciel/matériel de Sensor Module incompatible
+1680;SI Motion CU: Erreur de total de contrôle des surveillances sûres
+1681;SI Motion CU: Valeur de paramètre incorrecte
+1682;SI Motion CU: Fonction de surveillance non prise en charge
+1683;SI Motion CU: Déblocage SOS/SLS manquant
+1684;SI Motion: Position limitée sûre Valeurs limites interverties
+1685;SI Motion CU: Valeur limite trop élevée pour vitesse limitée sûre
+1686;SI Motion: Paramétrage position de came illicite
+1687;SI Motion: Paramétrage de la valeur modulo SCA (CS) non autorisé
+1688;SI Motion CU: Synchronisation de la mesure non autorisée
+1689;SI Motion: Axe reconfiguré
+1690;SI Motion: Problème de sauvegarde des données avec NVRAM
+1691;SI Motion: Ti et To inappropriés pour le cycle DP
+1692;SI Motion CU: Valeur de paramètre illicite sans capteur
+1693;SI CU: Paramétrage Safety Integrated modifié Démarrage à chaud/POWER ON requis
+1695;SI Motion: Le Sensor Module a été remplacé
+1696;SI Motion : Sélection de test des surveillances de mouvement au démarrage
+1697;SI Motion: Test des surveillances de mouvement requis
+1698;SI CU: Mode de mise en service actif
+1699;SI CU: Test des circuits de coupure obligatoire
+1700;SI Motion CU: STOP A déclenché
+1701;SI Motion CU: STOP B déclenché
+1706;SI Motion CU: SAM/SBR Limite dépassée
+1707;SI Motion CU: Tolérance pour arrêt de fonctionnement sûr dépassée
+1708;SI Motion CU: STOP C déclenché
+1709;SI Motion CU: STOP D déclenché
+1710;SI Motion CU: STOP E déclenché
+1711;SI Motion CU: Défaut dans un canal de surveillance
+1712;SI Motion CU: Défaut lors du traitement E/S de sécurité (F-IO)
+1714;SI Motion CU: Vitesse limitée sûre dépassée
+1716;SI Motion CU: Tolérance pour sens de déplacement sûr dépassée
+1745;SI Motion CU: Vérifier le couple de freinage pendant l'essai de freinage
+1750;SI Motion CU: défaut matériel capteur sûr
+1751;SI Motion CU: Erreur lors des tests d'efficacité dans capteur sûr
+1770;SI Motion CU: Erreur de cohérence des entrées ou sorties de sécurité
+1772;SI Motion CU: Stop pour test des entrées/sorties de sécurité actif
+1773;SI Motion CU: Stop pour test incorrect
+1774;SI Motion CU: Stop pour test requis
+1796;SI Motion CU: attente communication
+1798;SI Motion CU: Stop pour test en cours
+1799;SI Motion CU: Mode test de réception actif
+1800;DRIVE-CLiQ: Configuration/matériel défectueux
+1840;SMI: un composant sans paramètres moteur a été trouvé
+1900;PB/PN: Télégramme de configuration incorrect
+1902;IF1: PB/PN Fonctionnement isochrone Paramétrage illicite
+1910;Bus de terrain: Consigne Timeout
+1911;PB/PN Mode isochrone Défaillance cycle
+1912;PB/PN Mode isochrone Défaillance du signe de vie
+1915;PB/PN Mode isochrone Défaillance de signe de vie Objet entraînement 1
+1920;PROFIBUS: Interruption Communication cyclique
+1921;PROFIBUS: Réception des consignes après objet technologique
+1930;PB/PN Temps de cycle du régulateur de courant isochrone différent
+1932;PB/PN Isochronisme manque pour DSC
+1940;PB/PN Isochronisme non atteint
+1941;PB/PN Absence de signal de cycle lors de la configuration du bus
+1943;PB/PN Défaut du signal de cycle lors de la configuration du bus
+1944;PB/PN Synchronisme du signe de vie non atteint
+1945;PROFIBUS: liaison au Publisher perturbée
+1946;PROFIBUS: liaison au Publisher interrompue
+1950;PB/PN Mode isochrone Synchronisation échouée
+1990;USS: Configuration PZD incorrecte
+2000;Générateur de fonction: Démarrage impossible
+2005;Générateur de fonction: L'entraînement n'existe pas
+2006;Générateur de fonction: Aucun entraînement spécifié pour application du signal
+2007;Générateur de fonction: Entraînement non SERVO/VECTOR/DC_CTRL
+2008;Générateur de fonction: Entraînement indiqué plusieurs fois
+2009;Générateur de fonction: Mode de fonctionnement non autorisé
+2010;Générateur de fonction: Consigne de vitesse de l'entraînement différente de 0
+2011;Générateur de fonction: Mesure de vitesse de l'entraînement différente de 0
+2015;Générateur de fonction: Absence de déblocages entraînement
+2016;Générateur de fonction: Magnétisation en cours
+2020;Générateur de fonction: Paramètre non modifiable
+2025;Générateur de fonction: Durée de période trop courte
+2030;Générateur de fonction: Adresse physique égale à 0
+2040;Générateur de fonction: Valeur d'offset illicite
+2041;Générateur de fonction: Valeur de largeur de bande illicite
+2047;Générateur de fonction: Période de tranche de temps non valide
+2050;Trace: Démarrage impossible
+2055;Trace: Durée d'enregistrement trop courte
+2056;Trace: Temps de cycle d'enregistrement trop court
+2057;Trace: Période de tranche de temps non valide
+2058;Trace: Période de tranche de temps non valide pour trace illimitée
+2059;Trace: période de tranche de temps non valide pour 2x 8 canaux d'enregistr.
+2060;Trace: Absence de signal à enregistrer
+2062;Trace: Signal déclencheur non valide
+2063;Trace: Type don non val
+2070;Trace: Paramètre non modifiable
+2075;Trace: Temps de déclenchement anticipé trop grand
+2080;Trace: Paramétrage supprimé suite à d'une commutation d'unité
+2099;Trace: L'espace mémoire de la Control Unit est insuffisant
+2100;Entraînement: Temps mort de calcul du régulateur de courant trop court
+2150;OA: L'application n'a pas pu être chargée
+2151;OA: Erreur logicielle interne
+2152;OA: Mémoire insuffisante
+3510;CU: Données d'étalonnage non plausibles
+5000;Partie puissance: Surchauffe radiateur Onduleur
+5001;Partie puissance: Surchauffe Jonction du semiconducteur
+5002;Partie puissance: Surchauffe air d'arrivée
+5003;Partie puissance: Surchauffe compartiment intérieur
+5004;Partie puissance: Surchauffe redresseur
+5006;Partie puissance: Surchauffe Modèle thermique
+5007;Partie puissance: Surchauffe Modèle thermique (PP châssis)
+7011;Entraînement: Surchauffe moteur
+7012;Entraînement: Modèle moteur I2t Surchauffe
+7015;Entraînement: Sonde thermométrique moteur Alarme
+7016;Entraînement: Sonde thermométrique moteur Défaut
+7080;Entraînement: Paramètres de régulation incorrects
+7082;Macro: Exécution impossible
+7083;Macro: Ficher ACX non trouvé
+7084;Condition pour WaitUntil non remplie
+7085;Entraînement: Paramètres de commande/régulation modifiés
+7086;Commutation d'unité: Dépassement de limite de paramètre dû à la modif. de valeur de référence
+7087;Entraînement: Fonctionnement sans capteur impossible avec fréquence de découpage
+7088;Commutation d'unité: Dépassement de limite de paramètre dû à la commutation
+7089;Commutation d'unité: Activation d'un module de fonction bloqué car unités commutées
+7090;Entraînement: Limite de couple haute inférieure à limite basse
+7200;Entraînement: Maîtrise de commande Ordre de MARCHE présent
+7220;Entraînement: Pilotage par API absent
+7300;Entraînement: Contacteur réseau Absence de signalisation en retour
+7320;Entraînement: Redémarrage automatique annulé
+7321;Entraînement: Redémarrage automatique actif
+7350;Entraînement: Détecteur paramétré sur la sortie TOR
+7400;Entraînement: Régulateur de tension maximale de circuit intermédiaire actif
+7402;Entraînement: Régulateur de tension minimale de circuit intermédiaire activé
+7403;Entraînement: Seuil inférieur de tension de circuit intermédiaire atteint
+7404;Entraînement: Seuil supérieur de tension de circuit intermédiaire atteint
+7410;Entraînement: Sortie du régulateur de courant limitée
+7411;Entraînement: Sortie du régulateur de flux limitée
+7412;Entraînement: Angle de commutation incorrect (modèle de moteur)
+7413;Entraînement: Angle de commutation incorrect (identification de position de pôles)
+7414;Entraînement: Numéro de série de capteur modifié
+7415;Entraînement: Transmission de l'offset de l'angle de commutation en cours
+7420;Entraînement: Filtre de consigne de courant Fréquence propre > fréquence de Shannon
+7421;Entraînement: Filtre de vitesse Fréquence propre > fréquence de Shannon
+7422;Entraînement: Modèle de référence Fréquence propre > fréquence de Shannon
+7426;Régulateur technologique Mesure limitée
+7429;Entraînement: DSC sans capteur impossible
+7430;Entraînement: Commutation Mode commande de couple impossible
+7432;Entraînement: Moteur sans protection contre les surtensions
+7433;Entraînement: Régulation avec capteur impossible car le capteur n'est pas sorti du
+7434;Entraînement: Changement du sens de rotation sous déblocage des impulsions
+7439;Entraînement: Dynamique plus élevée du régulateur de courant impossible
+7440;PoS: Limitation de la durée d'à-coup
+7441;RPos: Sauvegarder le décalage de position du référencement du codeur absolu
+7442;RPos: Multitour non adapté à la plage modulo
+7443;Rpos: les coordonnées du point de référence ne sont pas dans la plage admissible
+7446;Réducteur force: suivi de position impossible à réinitialiser
+7447;Réducteur force: Suivi de position Mesure maximale dépassée
+7448;Réducteur force: Suivi de position - axe linéaire a dépassé la plage maximale
+7449;Réducteur force: Suivi de position - position actuelle hors de la fenêtre de tolérance
+7450;RPos: La surveillance à l'arrêt est entrée en action
+7451;RPos: Le positionnement est entré en action
+7452;RPos: Ecart de traînage trop grand
+7453;RPos: Erreur de traitement de la mesure de position
+7454;RPos: Le traitement de la mesure de position n'a pas de capteur valide
+7455;PoS: Vitesse maximale limitée
+7456;PoS: Vitesse de consigne limitée
+7457;PoS: Combinaison de signaux d'entrée illicite
+7458;PoS: Came de référence non trouvée
+7459;PoS: Aucun top zéro disponible
+7460;PoS: Extrémité de came de référence non trouvée
+7461;PoS: Point de référence non défini
+7462;PoS: Le numéro de bloc de déplacement sélectionné n'existe pas
+7463;PoS: Changement de bloc externe non demandé dans le bloc de déplacement
+7464;PoS: Le bloc de déplacement est incohérent
+7465;PoS: Le bloc de déplacement n'a pas de bloc suivant
+7466;PoS: Le numéro de bloc de déplacement est attribué plusieurs fois
+7467;PoS: Le bloc de déplacement contient des paramètres de commande non valides
+7468;PoS: La destination du saut du bloc de déplacement n'existe pas
+7469;PoS: Bloc de déplacement Position destination < Fin de course logiciel moins
+7470;PoS: Bloc de déplacement Position destination > Fin de course logiciel plus
+7471;PoS: Bloc de déplacement Position destination en dehors de la plage modulo
+7472;PoS: Bloc de déplacement ABS_POS/ABS_NEG impossible
+7473;PoS: Début de plage de déplacement atteint
+7474;PoS: Fin de plage de déplacement atteinte
+7475;PoS: Position destination < début plage de déplacement
+7476;PoS: Position destination > fin plage de déplacement
+7477;PoS: Position de destination < Fin de course logiciel moins
+7478;PoS: Position de destination > Fin de course logiciel plus
+7479;PoS: Fin de course logiciel moins atteint
+7480;PoS: Fin de course logiciel plus atteint
+7481;PoS: Position de l'axe < Fin de course logiciel moins
+7482; Position de l'axe > Fin de course logiciel plus
+7483;PoS: Accostage de butée Couple de blocage non atteint
+7484;PoS: Butée en dehors de la fenêtre de surveillance
+7485;PoS: Butée non atteinte
+7486;PoS: Absence d'arrêt intermédiaire
+7487;PoS: Refuser bloc de déplacement manque
+7488;PoS: Positionnement relatif impossible
+7489;PoS: Correction du point de référence en dehors de la fenêtre
+7490;PoS: Déblocage désactivé pendant le déplacement
+7491;PoS: Came d'arrêt sens moins atteinte
+7492;PoS: Came d'arrêt sens plus atteinte
+7493;RPos: Mesure de position hors tolérances
+7494;RPos: Commutation du jeu de paramètres d'entraînement en cours de service
+7495;RPos: Fonction de référence interrompue
+7496;PoS: Déblocage impossible
+7497;RPos: Valeur de forçage de position activée
+7498;LR: Traitement du détecteur impossible
+7499;EPOS: Came d'inversion accostée dans le mauvais sens
+7500;Entraînement: Jeu de paramètres PDS de la partie puissance non configuré
+7501;Entraînement: Jeu de paramètres moteur MDS non configuré
+7502;Entraînement: Jeu de paramètres codeur EDS non configuré
+7503;PoS: Came ARRET accostée dans le mauvais sens
+7504;Entraînement: Jeu de paramètres moteur affecté à aucun jeu de paramètres d'entraînement
+7505;PoS: Accostage de butée en mode de commande U/f impossible
+7509;Entraînement: Numéro de composant manquant
+7511;Entraînement: Affectation multiple du capteur
+7514;Entraînement: La structure de données ne correspond pas à Interface Mode
+7515;Entraînement: Erreur dans la liaison entre partie puissance et moteur
+7516;Entraînement: Remise en service du jeu de paramètres
+7518;Entraînement: Erreur de paramétrage de la commutation du jeu de paramètres moteur
+7519;Entraînement: Erreur de paramétrage de la commutation de moteur
+7520;Entraînement: Impossible d’exécuter la commutation de moteur
+7530;Entraînement: Jeu de paramètres d'entraînement DDS non disponible
+7531;Entraînement: Jeu de paramètres de commande CDS non disponible
+7541;Entraînement: Commutation de jeu de paramètres impossible
+7545;Entraînement: Erreur de paramétrage de l'interface de codeur incrémental
+7550;Entraînement: Réinitialisation des paramètres du capteur impossible
+7551;Entraînement Capteur: Aucune information sur l'angle de commutation
+7552;Entraînement Capteur: Configuration de capteur non prise en charge
+7553;Entraînement capteur: Configuration du Sensor Module non prise en charge
+7555;Entraînement Capteur: Configuration Suivi de position
+7557;Capteur 1: les coordonnées du point de référence ne sont pas dans la plage admissible
+7558;Capteur 2: les coordonnées du point de référence ne sont pas dans la plage admissible
+7560;Entraînement capteur: Le nombre de traits n'est pas une puissance de 2
+7561;Entraînement capteur: Le nombre de traits multitour n'est pas une puissance de 2
+7562;Entraînement capteur: Suivi de position codeur incrémental impossible
+7565;Entraînement: Défaut de capteur Interface de capteur PROFIdrive 1
+7566;Entraînement: Défaut de capteur Interface de capteur PROFIdrive 2
+7569;Impossible d'identifier le capteur
+7575;Entraînement: Capteur moteur non prêt
+7576;Entraînement: Fonctionnement sans capteur actif à cause d'un défaut
+7577;Capteur 1: Traitement du détecteur impossible
+7578;Capteur 2: Traitement du détecteur impossible
+7580;Entraînement: Aucun Sensor Module avec un numéro de composant approprié
+7581;Capteur 1: Traitement incorrect de la mesure de position
+7582;Capteur 2: Traitement incorrect de la mesure de position
+7584;Capteur 1: Valeur de forçage de position activée
+7585;Capteur 2: Valeur de forçage de position activée
+7587;Capteur 1: Le traitement de la mesure de position n'a pas de capteur valide
+7588;Capteur 2: Le traitement de la mesure de position n'a pas de capteur valide
+7591;Capteur 2: Commutation du jeu de paramètres d'entraînement en cours de fonctionnement
+7593;Capteur 1: Dépassement de la plage de tolérance pour la mesure de position
+7594;Capteur 2: Dépassement de la plage de tolérance pour la mesure de position
+7596;Capteur 1: Fonction de référence interrompue
+7597;Capteur 2: Fonction de référence interrompue
+7599;Capteur 1: Référencement impossible
+7600;Capteur 2: Référencement impossible
+7800;Entraînement: Aucune partie puissance existante
+7801;Entraînement: Surintensité moteur
+7802;Entraînement: Alimentation ou partie puissance non prête
+7805;Entraînement: Partie puissance Surcharge I2t
+7810;Entraînement: EEPROM de partie puissance sans données nominales
+7815;Entraînement: La partie puissance a été modifiée
+7820;Entraînement: Sonde thermométrique non connectée
+7850;Alarme externe 1
+7851;Alarme externe 2
+7852;Alarme externe 3
+7860;Défaut externe 1
+7862;Défaut externe 3
+7890;Protection interne contre les surtensions / Court-circuit d'induit interne lorsque STOP actif
+7900;Entraînement: Moteur bloqué / régulateur de vitesse sur butée
+7901;Entraînement: Survitesse moteur
+7902;Entraînement: Moteur décroché
+7904;"Court-circuit d'induit externe: Absence de signalisation en retour de contacteur ""Fermé"""
+7905;"Court-circuit d'induit externe: Absence de signalisation en retour de contacteur ""Ouvert"""
+7906;Court-circuit d'induit / Protection interne contre les surtensions : Paramétrage incorrect
+7907;Court-circuit d'induit interne: Bornes moteur avec potentiel après suppr. des impulsions
+7908;Court-circuit d'induit interne actif
+7909;Protection interne contre les surtensions: Désactivation active après POWER ON seulement
+7910;Entraînement: Surchauffe moteur
+7913;Courant d'excitation hors tolérance
+7914;Flux hors tolérance
+7920;Entraînement: Couple/vitesse trop bas
+7921;Entraînement: Couple/vitesse trop élevé
+7922;Entraînement: Couple/vitesse hors tolérance
+7923;Entraînement: Couple/vitesse trop bas
+7924;Entraînement: Couple/vitesse trop élevé
+7925;Entraînement: Couple/vitesse hors tolérance
+7926;Entraînement: Enveloppe Paramètre non valide
+7927;Freinage par injection de CC actif
+7928;Protection interne contre les surtensions déclenchée
+7930;Entraînement: Commande de frein défectueuse
+7931;Frein ne desserre pas
+7932;Frein ne serre pas
+7934;Entraînement: S120 Combi Frein de maintien du moteur Configuration
+7935;Entraînement: Frein de maintien moteur reconnu
+7950;Entraînement: Paramètres moteur incorrects
+7955;Entraînement: Le moteur a été modifié
+7956;Entraînement: Code moteur incompatible avec le moteur listé
+7965;Entraînement: Enregistrement nécessaire
+7966;Entraînement: Vérifier l'angle de commutation
+7971;Entraînement: Détermination de l'offset de l'angle de commutation activée
+7980;Entraînement: Mesure en rotation activée
+7990;Entraînement: Identification des paramètres moteur incorrecte
+7991;Entraînement: Identification des paramètres moteur activée
+7993;Entraînement: Sens de champ tournant ou inversion de mesure de capteur incorrect(
+7995;Entraînement: Echec de l'identification de la position des pôles
+7996;Entraînement: Identification de position de pôles non effectuée
+7999;Entraînement: impossible d'activer l'identification des paramètres moteur
+8501;CARTE COMM: Données de configuration d'émission non valides
+8510;CARTE COMM: Données de configuration d'émission non valides
+8526;PROFINET: Pas de communication cyclique
+8565;CBE20: Erreur de cohérence dans les paramètres de réglage
+8700;CAN: Communication incorrecte
+8701;CAN: Changt d'état NMT
+8702;CAN: Timeout RPDO
+8751;CAN: Perte télégr.
+8752;CAN: Dépassement du compteur d'erreurs pour Error Passive
+8753;CAN: Débordement tampon de messages
+8754;CAN: Mode de communication incorrect
+8755;CAN: Objet non mappable
+8756;CAN: Nombre d'octets mappés dépassé
+8757;CAN: Invalider l'ID_COB
+8759;CAN: L'ID_COB PDO existe déjà
+1039;ACX: Echec de l'écriture du fichier de sauvegarde de paramètres
+1040;Sauvegarde des paramètres et POWER ON obligatoires
+13000;Niveau licence insuffisant
+13001;Niveau licence Total de contrôle incorrect
+13010;Niveau licence Module de fonction sans licence
+30001;Partie puissance: Surintensité
+30002;Partie puissance: Tension du circuit intermédiaire Surtension
+30003;Partie puissance: Tension du circuit intermédiaire Sous-tension
+30004;Partie puissance: Surchauffe radiateur Onduleur
+30005;Partie puissance: Surcharge I2t
+30011;Partie puissance: Coupure de phase réseau dans le circuit principal
+30012;Partie puissance: Sonde thermométrique radiateur Rupture de fil
+30013;Partie puissance: Sonde thermométrique radiateur Court-circuit
+30015;Partie puissance: Coupure de phase Câble d'alimentation du moteur
+30016;Partie puissance: Alimentation de charge coupée
+30017;Partie puissance: Limitation matérielle du courant entrée trop souvent en action
+30020;Partie puissance: Configuration non prise en charge
+30021;Partie puissance: Défaut à la terre
+30022;Partie puissance: Surveillance U_ce
+30024;Partie puissance: Surchauffe Modèle thermique
+30025;Partie puissance: Surchauffe semiconducteur
+30027;Partie puissance: Précharge circuit intermédiaire Surveillance temps
+30031;Partie puissance: Limitation matérielle du courant de la phase U
+30032;Partie puissance: Limitation matérielle du courant de la phase V
+30033;Partie puissance: Limitation matérielle du courant de la phase W
+30034;Partie puissance: Surchauffe compartiment intérieur
+30035;Partie puissance: Surchauffe air d'arrivée
+30036;Partie puissance: Surchauffe compartiment intérieur
+30037;Partie puissance: Surchauffe redresseur
+30040;Partie puissance: Sous-tension 24 V
+30041;Partie puissance: Alarme Sous-tension 24 V
+30042;Partie puissance: Durée de fonctionnement du ventilateur atteinte ou dépassée
+30043;Partie puissance: Surtension 24 V
+30044;Partie puissance: Alarme Surtension 24 V
+30045;Partie puissance: Sous-tension alimentation
+30046;Partie puissance: Alarme Sous-tension
+30048;Partie puissance: Ventilateur externe défectueux
+30049;Partie puissance: Ventilateur intérieur défectueux
+30050;Partie puissance: Surtension Alimentation 24 V
+30052;Données EEPROM incorrectes
+30054;Partie puissance: Sous-tension lors du desserrage du frein
+30055;Partie puissance: Hacheur de freinage Surintensité
+30060;Contacteur de précharge Surveillance d'état
+30061;Contacteur de shuntage Surveillance d'état
+30070;Cycle demandé non pris en charge par le module de puissance
+30071;Aucune nouvelle mesure reçue du module de puissance
+30072;Plus aucune valeur de consigne transmissible au module de puissance.
+30073;Perte de synchronisation du traitement des mesures/consignes
+30074;Erreur de communication entre Control Unit et Power Module
+30080;Partie puissance: Montée de courant trop rapide
+30081;Partie puissance: Opérations de commutation trop fréquentes
+30105;PP: Défaut d'acquisition de la mesure
+30314;Partie puissance: Alimentation 24 V par PM surchargée
+30315;Partie puissance: Alimentation 24 V par PM surchargée
+30502;Partie puissance: Surtension dans circuit intermédiaire
+30600;SI MM: STOP A déclenché
+30611;SI MM: Défaut dans un canal de surveillance
+30620;SI MM: Suppression sûre du couple activée
+30621;SI MM: Stop sûr 1 actif
+30625;SI MM: Signe de vie dans données Safety Integrated incorrect
+30630;SI MM: Commande de frein défectueuse
+30640;SI MM: Erreur dans le circuit de coupure du second canal
+30649;SI MM: Erreur logicielle interne
+30650;SI MM: Test de réception obligatoire
+30651;SI MM: La synchronisation avec la CU a échoué
+30652;SI MM: Temps de cycle de surveillance illicite
+30655;SI MM: Synchronisation des fonctions de surveillance
+30656;SI MM: Paramètre Motor Module incorrect
+30659;SI MM: Requête d'écriture de paramètres rejetée
+30662;Erreur de communication interne
+30664;Défaut dans la phase de démarrage
+30665;SI MM: Le système est défectueux
+30666;SI Motion MM: Signal à 1 statique sur F-DI pour l'acquittement sûr
+30672;SI CU: Logiciel de Control Unit incompatible
+30680;SI Motion MM: Erreur de total de contrôle des surveillances sûres
+30681;SI Motion MM: Valeur de paramètre incorrecte
+30682;SI Motion MM: Fonction de surveillance non prise en charge
+30683;SI Motion MM: Déblocage SOS/SLS manquant
+30685;SI Motion MM: Vitesse limitée sûre Valeur limite trop élevée
+30688;SI Motion MM: Synchronisation de la mesure non autorisée
+30692;SI Motion MM: Valeur de paramètre incorrecte sans capteur
+30693;SI MM: Paramétrage Safety Integrated modifié Démarrage à chaud/POWER ON requis
+30700;SI Motion MM: STOP A déclenché
+30701;SI Motion MM: STOP B déclenché
+30706;SI Motion MM: SAM/SBR Limite dépassée
+30707;SI Motion MM: Tolérance pour arrêt de fonctionnement sûr dépassée
+30708;SI Motion MM: STOP C déclenché
+30709;SI Motion MM: STOP D déclenché
+30710;SI Motion MM: STOP E généré
+30711;SI Motion MM: Défaut dans un canal de surveillance
+30712;SI Motion MM: Défaut lors du traitement E/S de sécurité (F-IO)
+30714;SI Motion MM: Vitesse limitée sûre dépassée
+30716;SI Motion MM: Tolérance pour sens de déplacement sûr dépassée
+30770;SI Motion MM: Erreur de cohérence des entrées/sorties de sécurité
+30772;SI Motion MM: Stop pour test des entrées/sorties de sécurité actif
+30773;SI Motion MM: Stop pour test incorrect Motor Module
+30798;SI Motion MM: Stop pour test en cours
+30799;SI Motion MM: Mode test de réception actif
+30800;Partie puissance: Signalisation groupée
+30801;Partie puissance DRIVE-CLiQ: Signe de vie absent
+30802;Partie puissance: Dépassement de la tranche de temps
+30804;Partie puissance: CRC
+30805;Partie puissance: Total de contrôle EPROM incorrect
+30809;Partie puissance: Information de commutation non valide
+30810;Partie puissance: Temporisateur Watchdog
+30850;Partie puissance: Erreur logicielle interne
+30899;Partie puissance: Défaut inconnu
+30903;Partie puissance: Une erreur bus I2C s'est produite
+30907;Partie puissance: Echec de la configuration de FPGA
+30920;Partie puissance: Défaut sonde thermométrique
+30999;Partie puissance: Alarme inconnue
+31100;Capteur 1: Erreur d'intervalle entre tops zéro
+31101;Capteur 1: Défaillance top zéro
+31103;Capteur 1: Erreur d'amplitude Voie R
+31110;Capteur 1: Communication série perturbée
+31111;Capteur 1: Codeur absolu EnDat Erreur interne
+31112;Capteur 1: Bit d'erreur à 1 dans le protocole série
+31115;Capteur 1: Erreur d'amplitude Voie A ou B (A^2 + B^2)
+31116;Capteur 1: Erreur d'amplitude Surveillance Voie A + B
+31117;Capteur 1: Inversion des signaux A/B/R incorrecte
+31118;Capteur 1: Différence de vitesse hors tolérance
+31120;Capteur 1: Tension d'alimentation incorrecte
+31121;Capteur 1: Position approchée incorrecte
+31122;Capteur 1: Tension d'alimentation interne incorrecte
+31123;Capteur 1: Niveau de signal A/B unipolaire hors tolérance
+31125;Capteur 1: Erreur d'amplitude Voie A ou B surmodulée
+31126;Capteur 1: Amplitude AB trop élevée
+31129;Capteur 1: Différence de position entre sonde à effet Hall / voie C/D et voie A/B trop
+31130;Capteur 1: Top zéro et position de synchronisation approchée incorrects
+31131;Capteur 1: Ecart position absolue / incrémentale trop élevé
+31135;Capteur 1: Erreur lors de la détermination de la position
+31136;Capteur 1: Erreur lors de la détermination de l'information multitour
+31137;Capteur 1: Erreur interne lors de la détermination de la position
+31138;Capteur 1: Erreur interne lors de la détermination de l'information multitour
+31150;Capteur 1: Erreur d'initialisation
+31151;Capteur 1: Vitesse du capteur trop élevée pour l'initialisation
+31160;Capteur 1: Capteur analogique Défaillance du canal A
+31161;Capteur 1: Capteur analogique Défaillance du canal B
+31163;Capteur 1: Capteur analogique Valeur de position dépasse valeur limite
+31400;Capteur 1: Seuil d'alarme Intervalle entre tops zéro incorrect
+31401;Capteur 1: Seuil d'alarme Défaillance top zéro
+31405;Capteur 1: Température non autorisée dans l'évaluation du capteur
+31407;Capteur 1: Limite fonctionnelle atteinte
+31410;Capteur 1: Communication série
+31411;Capteur 1: Le codeur EnDat signale des alarmes
+31412;Capteur 1: Bit d'erreur à 1 dans le protocole série
+31414;Capteur 1: Erreur d'amplitude Voie C ou D (C^2 + D^2)
+31415;Capteur 1: Alarme d'amplitude Voie A ou B (A^2 + B^2)
+31418;Capteur 1: Différence de vitesse par cycle d'échantillonnage dépassée
+31419;Capteur 1: Voie A ou B hors tolérance
+31421;Capteur 1: Position approchée incorrecte
+31422;Capteur 1: Nombre de traits Capteur à signaux rectangulaires en dehors de la bande
+31429;Capteur 1: Différence de position entre sonde à effet Hall / voie C/D et voie A/B trop
+31431;Capteur 1: Ecart position absolue / incrémentale trop élevé
+31432;Capteur 1: Adaptation de la position de rotor Ecart
+31442;Capteur 1: Tension de la batterie Préalarme
+31443;Capteur 1: Niveau de signal C/D unipolaire hors spécification
+31460;Capteur 1: Capteur analogique Défaillance du canal A
+31461;Capteur 1: Capteur analogique Défaillance du canal B
+31462;Capteur 1: Capteur analogique Aucun canal actif
+31463;Capteur 1: Capteur analogique Valeur de position dépasse valeur limite
+31470;Capteur 1: Encrassement détecté
+31500;Capteur 1: Suivi de position Plage de déplacement dépassée
+31501;Capteur 1: Suivi de position Position du capteur hors fenêtre de tolérance
+31700;Capteur 1: Test d'efficacité ne fournit pas la valeur attendue
+31800;Capteur 1: Signalisation groupée
+31801;Capteur 1 DRIVE-CLiQ: Signe de vie absent
+31802;Capteur 1: Dépassement de tranche de temps
+31804;Capteur 1: Total de contrôle incorrect
+31805;Capteur 1: Total de contrôle EPROM incorrect
+31806;Capteur 1: Echec de l'initialisation
+31811;Capteur 1: Numéro de série de capteur modifié
+31812;Capteur 1: Cycle demandé ou le timing RX / TX n'est pas pris en charge
+31813;Capteur 1: Matériel Défaillance de l'unité logique
+31820;Capteur 1 DRIVE-CLiQ: Télégramme incorrect
+31835;Capteur 1 DRIVE-CLiQ: Transmission cyclique de données perturbée
+31836;Capteur 1 DRIVE-CLiQ: Erreur lors de l'émission des données DRIVE-CLiQ
+31837;Capteur 1 DRIVE-CLiQ: Composant défectueux
+31845;Capteur 1 DRIVE-CLiQ: Transmission cyclique de données perturbée
+31850;Capteur 1: Evaluation du capteur Erreur logicielle interne
+31851;Capteur 1 DRIVE-CLiQ (CU): Signe de vie absent
+31860;Capteur 1 DRIVE-CLiQ (CU): Erreur télégramme
+31885;Capteur 1 DRIVE-CLiQ (CU): Transmission cyclique de données perturbée
+31886;Capteur 1 DRIVE-CLiQ (CU): Erreur lors de l'émission des données DRIVE-CLiQ
+31887;Capteur 1 DRIVE-CLiQ (CU): Composant défectueux
+31895;Capteur 1 DRIVE-CLiQ (CU): Transmission de données cyclique en alternance perturbée
+31896;Capteur 1 DRIVE-CLiQ (CU): Propriétés de composant incohérentes
+31899;Capteur 1: Défaut inconnu
+31902;Capteur 1: Une erreur bus SPI s'est produite
+31903;Capteur 1: Une erreur bus I2C s'est produite
+31905;Capteur 1: Paramétrage incorrect
+31915;Capteur 1: Erreur de configuration
+31916;Capteur 1: Erreur de paramétrage
+31920;Capteur 1: Défaut sonde thermométrique
+31940;Capteur 1: Broche Etat de serrage incorrect
+31999;Capteur 1: Alarme inconnue
+32100;Capteur 2: Erreur d'intervalle entre tops zéro
+32101;Capteur 2: Défaillance top zéro
+32103;Capteur 2: Erreur d'amplitude Voie R
+32110;Capteur 2: Communication série perturbée
+32111;Capteur 2: Codeur absolu EnDat Erreur interne
+32112;Capteur 2: Bit d'erreur à 1 dans le protocole série
+32115;Capteur 2: Erreur d'amplitude Voie A ou B (A^2 + B^2)
+32116;Capteur 2: Erreur d'amplitude Surveillance Voie A + B
+32117;Capteur 2: Inversion des signaux A/B/R incorrecte
+32118;Capteur 2: Différence de vitesse hors tolérance
+32120;Capteur 2: Tension d'alimentation incorrecte
+32121;Capteur 2: Position approchée incorrecte
+32122;Capteur 2: Tension d'alimentation interne incorrecte
+32123;Capteur 2: Niveau de signal A/B unipolaire hors tolérance
+32125;Capteur 2: Erreur d'amplitude Voie A ou B surmodulée
+32126;Capteur 2: Amplitude AB trop élevée
+32129;Capteur 2: Différence de position entre sonde à effet Hall / voie C/D et voie A/B trop
+32130;Capteur 2: Top zéro et position de synchronisation approchée incorrects
+32131;Capteur 2: Ecart position absolue / incrémentale trop élevé
+32135;Capteur 2: Erreur lors de la détermination de la position
+32136;Capteur 2: Erreur lors de la détermination de l'information multitour
+32137;Capteur 2: Erreur interne lors de la détermination de la position
+32138;Capteur 2: Erreur interne lors de la détermination de l'information multitour
+32150;Capteur 2: Erreur d'initialisation
+32151;Capteur 2: Vitesse du capteur trop élevée pour l'initialisation
+32160;Capteur 2: Capteur analogique Défaillance du canal A
+32161;Capteur 2: Capteur analogique Défaillance du canal B
+32163;Capteur 2: Capteur analogique Valeur de position dépasse valeur limite
+32400;Capteur 2: Seuil d'alarme Intervalle entre tops zéro incorrect
+32401;Capteur 2: Seuil d'alarme Défaillance top zéro
+32405;Capteur 2: Température non autorisée dans l'évaluation du capteur
+32407;Capteur 2: Limite fonctionnelle atteinte
+32410;Capteur 2: Communication série
+32411;Capteur 2: Le codeur EnDat signale des alarmes
+32412;Capteur 2: Bit d'erreur à 1 dans le protocole série
+32414;Capteur 2: Erreur d'amplitude Voie C ou D (C^2 + D^2)
+32415;Capteur 2: Alarme d'amplitude Voie A ou B (A^2 + B^2)
+32418;Capteur 2: Différence de vitesse par cycle d'échantillonnage dépassée
+32419;Capteur 2: Voie A ou B hors tolérance
+32421;Capteur 2: Position approchée incorrecte
+32422;Capteur 2: Nombre de traits Capteur à signaux rectangulaires en dehors de la bande
+32429;Capteur 2: Différence de position entre sonde à effet Hall / voie C/D et voie A/B trop
+32431;Capteur 2: Ecart position absolue / incrémentale trop élevé
+32432;Capteur 2: Adaptation de la position de rotor Ecart
+32442;Capteur 2: Tension de la batterie Préalarme
+32443;Capteur 2: Niveau de signal C/D unipolaire hors spécification
+32460;Capteur 2: Capteur analogique Défaillance du canal A
+32461;Capteur 2: Capteur analogique Défaillance du canal B
+32462;Capteur 2: Capteur analogique Aucun canal actif
+32463;Capteur 2: Capteur analogique Valeur de position dépasse valeur limite
+32470;Capteur 2: Encrassement détecté
+32500;Capteur 2: Suivi de position Plage de déplacement dépassée
+32501;Capteur 2: Suivi de position Position du capteur hors fenêtre de tolérance
+32700;Capteur 2: Test d'efficacité ne fournit pas la valeur attendue
+32800;Capteur 2: Signalisation groupée
+32801;Capteur 2 DRIVE-CLiQ: Signe de vie absent
+32802;Capteur 2: Dépassement de tranche de temps
+32804;Capteur 2: Total de contrôle incorrect
+32805;Capteur 2: Total de contrôle EPROM incorrect
+32806;Capteur 2: Echec de l'initialisation
+32811;Capteur 2: Numéro de série de capteur modifié
+32812;Capteur 2: Cycle demandé ou le timing RX / TX n'est pas pris en charge
+32813;Capteur 2: Matériel Défaillance de l'unité logique
+32820;Capteur 2 DRIVE-CLiQ: Télégramme incorrect
+32835;Capteur 2 DRIVE-CLiQ: Transmission cyclique de données perturbée
+32836;Capteur 2 DRIVE-CLiQ: Erreur lors de l'émission des données DRIVE-CLiQ
+32837;Capteur 2 DRIVE-CLiQ: Composant défectueux
+32845;Capteur 2 DRIVE-CLiQ: Transmission cyclique de données perturbée
+32850;Capteur 2: Evaluation du capteur Erreur logicielle interne
+32851;Capteur 2 DRIVE-CLiQ (CU): Signe de vie absent
+32860;Capteur 2 DRIVE-CLiQ (CU): Erreur télégramme
+32885;Capteur 2 DRIVE-CLiQ (CU): Transmission cyclique de données perturbée
+32886;Capteur 2 DRIVE-CLiQ (CU): Erreur lors de l'émission des données DRIVE-CLiQ
+32887;Capteur 2 DRIVE-CLiQ (CU): Composant défectueux
+32895;Capteur 2 DRIVE-CLiQ (CU): Transmission de données cyclique en alternance perturbée
+32896;Capteur 2 DRIVE-CLiQ (CU): Propriétés de composant incohérentes
+32899;Capteur 2: Défaut inconnu
+32902;Capteur 2: Une erreur bus SPI s'est produite
+32903;Capteur 2: Une erreur bus I2C s'est produite
+32905;Capteur 2: Paramétrage incorrect
+32915;Capteur 2: Erreur de configuration
+32916;Capteur 2: Erreur de paramétrage
+32920;Capteur 2: Défaut sonde thermométrique
+32940;Capteur 2: Broche Etat de serrage incorrect
+32999;Capteur 2: Alarme inconnue
+50001;PROFINET Erreur de configuration
+50020;PROFINET: Absence du deuxième contrôleur
+50510;FBLOCKS : Enregistrement du groupe d'exécution refusé
+50511;FBLOCKS : Plus de mémoire disponible pour Blocs fonctionnels libres
+50513;FBLOCKS : Valeur d'ordre d'exécution déjà affectée
+50514;FBLOCKS : Ecart de la période d'échantillonnage du groupe d'exécution fixe
+50517;FBLOCKS : Mesure interne activée
+50518;FBLOCKS : Ecart de la période d'échantillonnage téléchargée du groupe d'exécution
+60000; Statut ok
+60001; Statut: Consigne > Limite positive mvt impossible
+60002; Statut: Consigne > Limite négative mvt impossible
+60003; Statut: Consigne vitesse trop importante
+60004; Statut: Limite négative incorrect
+60005; Statut: Limite positive incorrect
+60006; Statut: Limites incorrects
+60007; Statut: Mouvement en cours
+60008; Statut: Référencement en cours
+60009; Statut: Position atteinte
+600010; Statut: Demande de mouvement absolu....
+60011; Statut: Demande de mouvement relative.... 
+60012; Statut: Arrêt du variateur 
+60013; Statut: Positionnement automatique activé 
+
+******** Fin fichier ************

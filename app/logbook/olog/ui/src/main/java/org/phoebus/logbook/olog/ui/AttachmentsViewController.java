@@ -60,6 +60,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -306,7 +307,7 @@ public class AttachmentsViewController {
             if (targetFile.exists()) {
                 throw new Exception("Target file " + targetFile.getAbsolutePath() + " exists");
             }
-            Files.copy(attachment.getFile().toPath(), targetFile.toPath());
+            Files.copy(attachment.getFile().toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(splitPane.getParent(), Messages.FileSave, Messages.FileSaveFailed, e);
         }
