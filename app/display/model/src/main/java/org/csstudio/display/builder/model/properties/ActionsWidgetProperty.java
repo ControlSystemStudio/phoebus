@@ -9,12 +9,7 @@ package org.csstudio.display.builder.model.properties;
 
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 
 import javax.xml.stream.XMLStreamWriter;
@@ -46,6 +41,7 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
     private static final String EXECUTE_COMMAND = "command";
     private static final String OPEN_FILE = "open_file";
     private static final String OPEN_WEBPAGE = "open_webpage";
+    private static final String CALL_PV = "call_pv";
 
     /** Constructor
      *  @param descriptor Property descriptor
@@ -140,6 +136,28 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 writer.writeStartElement(XMLTags.VALUE);
                 writer.writeCharacters(action.getValue());
                 writer.writeEndElement();
+            }
+            else if (info instanceof CallPVActionInfo)
+            {
+                final CallPVActionInfo action = (CallPVActionInfo) info;
+                writer.writeAttribute(XMLTags.TYPE, CALL_PV);
+                writer.writeStartElement(XMLTags.PV_NAME);
+                writer.writeCharacters(action.getPV());
+                writer.writeEndElement();
+                writer.writeStartElement(XMLTags.RETURN_PV);
+                writer.writeCharacters(action.getReturnPV());
+                writer.writeEndElement();
+                for (Map.Entry<String, String> parameter: action.getArgs().entrySet()) {
+                    writer.writeStartElement("argument");
+                    writer.writeStartElement("name");
+                    writer.writeCharacters(parameter.getKey());
+                    writer.writeEndElement();
+
+                    writer.writeStartElement("value");
+                    writer.writeCharacters(parameter.getValue());
+                    writer.writeEndElement();
+                    writer.writeEndElement();
+                }
             }
             else if (info instanceof ExecuteScriptActionInfo)
             {
@@ -279,6 +297,29 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 if (description.isEmpty())
                     description = Messages.ActionWritePV;
                 actions.add(new WritePVActionInfo(description, pv_name, value));
+            }
+            else if (CALL_PV.equals(type)) {
+                final String pv_name = XMLUtil.getChildString(action_xml, XMLTags.PV_NAME).orElse("");
+                if (pv_name.isEmpty())
+                    logger.log(Level.WARNING, "Ignoring <action type='" + CALL_PV + "'> with empty <pv_name> on " + getWidget());
+
+                final String return_pv = XMLUtil.getChildString(action_xml, XMLTags.RETURN_PV).orElse("loc://return_pv");
+                final HashMap<String, String> args = new HashMap<>();
+
+                for (Element argument: XMLUtil.getChildElements(action_xml, "argument")) {
+                    String name = XMLUtil.getChildString(argument, "name").orElse("");
+                    String value = XMLUtil.getChildString(argument, "value").orElse("");
+
+                    if (name.isEmpty() || value.isEmpty()) {
+                        logger.log(Level.WARNING, "Ignoring <argument> with empty <name> or <value> on " + getWidget());
+                        continue;
+                    }
+
+                    args.put(name, value);
+                }
+
+                actions.add(new CallPVActionInfo(description, pv_name, args, return_pv));
+
             }
             else if (EXECUTE_SCRIPT.equals(type))
             {
