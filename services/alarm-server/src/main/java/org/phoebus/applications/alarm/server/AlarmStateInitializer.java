@@ -94,16 +94,10 @@ public class AlarmStateInitializer
         final ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
         for (final ConsumerRecord<String, String> record : records)
         {
-            if (record.key().length() < 2)
-            {
-                logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
-                continue;
-            }
-            final String type = record.key().substring(0, 2);
             // Only handle state updates
-            if (type.equals(AlarmSystem.STATE_PREFIX))
+            if (record.key().startsWith(AlarmSystem.STATE_PREFIX))
             {
-                final String path = record.key().substring(3);
+                final String path = record.key().substring(AlarmSystem.STATE_PREFIX.length());
                 final String node_config = record.value();
                 try
                 {
