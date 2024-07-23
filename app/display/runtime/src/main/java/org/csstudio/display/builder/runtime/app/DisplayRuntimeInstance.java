@@ -174,7 +174,7 @@ public class DisplayRuntimeInstance implements AppInstance
     }
 
     /** @return {@link JFXRepresentation} */
-    JFXRepresentation getRepresentation()
+    public JFXRepresentation getRepresentation()
     {
         return representation;
     }
