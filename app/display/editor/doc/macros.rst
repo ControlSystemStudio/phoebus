@@ -49,7 +49,7 @@ A good example of Widget Property Value Macro is the tooltip: A tooltip of "$(pv
 System Macros
 =============
 
-The following macros are predefined, and can be overridden by Symbol Macros:
+The following macros are predefined, and cannot be overridden by Symbol Macros:
 
 * $(DID): The unique ID for each display. Even if there are multiple displays refering to the same physical OPI file, each display still has an unique ID. This macro is useful for avoiding name conflict. For example, if we add a prefix of $(DID)_ to a local PV name, we can easily guarantee the PV name is unique to this display.
 * $(DNAME): The name of the display.
