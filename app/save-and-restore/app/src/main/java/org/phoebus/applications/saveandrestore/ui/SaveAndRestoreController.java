@@ -470,16 +470,28 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         tabPane.getSelectionModel().select(tab);
     }
 
-    public void openSearchWindow() {
+    public SearchAndFilterTab openSearchWindow() {
         Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId() != null &&
                 t.getId().equals(SearchAndFilterTab.SEARCH_AND_FILTER_TAB_ID)).findFirst();
         if (searchTabOptional.isPresent()) {
             tabPane.getSelectionModel().select(searchTabOptional.get());
+            return (SearchAndFilterTab) searchTabOptional.get();
         } else {
             SearchAndFilterTab searchAndFilterTab = new SearchAndFilterTab(this);
             tabPane.getTabs().add(0, searchAndFilterTab);
             tabPane.getSelectionModel().select(searchAndFilterTab);
+            return searchAndFilterTab;
         }
+    }
+
+    /**
+     * Requests {@link SearchAndFilterTab} to open/select search and filter view to show the specified filter.
+     * @param filterId Unique, case-sensitive id of a save filter.
+     *
+     */
+    private void openSearchWindowForFilter(String filterId){
+        SearchAndFilterTab searchAndFilterTab = openSearchWindow();
+        searchAndFilterTab.showFilter(filterId);
     }
 
     /**

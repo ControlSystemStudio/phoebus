@@ -38,7 +38,7 @@ public class Messages {
     public static String contextMenuCompareSnapshots;
     public static String contextMenuDelete;
     public static String copy;
-    public static String Edit;
+
     public static String contextMenuAddToCompositeSnapshot;
     public static String contextMenuNewFolder;
     public static String contextMenuNewCompositeSnapshot;
@@ -69,6 +69,7 @@ public class Messages {
     public static String duplicatePVNamesAdditionalItems;
     public static String duplicatePVNamesCheckFailed;
     public static String duplicatePVNamesFoundInSelection;
+    public static String Edit;
     public static String editFilter;
     public static String errorActionFailed;
     public static String errorAddTagFailed;
@@ -84,6 +85,7 @@ public class Messages {
     public static String faildDeleteFilter;
     public static String failedSaveFilter;
     public static String failedToPasteObjects;
+    public static String filterNotFound;
     public static String findSnapshotReferences;
     public static String importConfigurationLabel;
     public static String importSnapshotLabel;

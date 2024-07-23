@@ -472,9 +472,10 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         saveAndRestoreService.addFilterChangeListener(this);
     }
 
-    private void setFilter(Filter filter) {
+    public void setFilter(Filter filter) {
         query.set(filter.getQueryString());
         filterNameProperty.set(filter.getName());
+        filterTableView.getSelectionModel().select(filter);
         updatedQueryEditor();
     }
 
@@ -534,7 +535,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         updatedQueryEditor();
     }
 
-    public void search() {
+    @FXML
+    private void search() {
 
         if (searchDisabled) {
             return;
