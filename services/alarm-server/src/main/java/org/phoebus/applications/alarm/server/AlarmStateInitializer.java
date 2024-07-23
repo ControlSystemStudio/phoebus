@@ -97,7 +97,7 @@ public class AlarmStateInitializer
             // Only handle state updates
             if (record.key().startsWith(AlarmSystem.STATE_PREFIX))
             {
-                final String path = record.key().substring(6);
+                final String path = record.key().substring(AlarmSystem.STATE_PREFIX.length());
                 final String node_config = record.value();
                 try
                 {
