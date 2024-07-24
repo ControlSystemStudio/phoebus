@@ -97,7 +97,6 @@ import java.util.stream.Collectors;
 import static org.phoebus.applications.display.navigator.NavigatorInstance.LOGGER;
 
 public class NavigatorController implements Initializable {
-    private final int NAVIGATOR_WIDTH_AT_STARTUP = 300;
     private static String NAVIGATOR_FONT_CSS;
     private static String NAVIGATOR_TITLE_FONT_CSS;
     private static String NAVIGATOR_SELECTOR_BUTTONS_CSS;
@@ -119,7 +118,6 @@ public class NavigatorController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         NAVIGATOR_ROOT = Preferences.navigator_root;
         OPI_ROOT = Preferences.opi_root;
-        navigator.setPrefWidth(NAVIGATOR_WIDTH_AT_STARTUP);
 
         topBar.setBorder(emptyBorder);
         HBox.setHgrow(topBarSpring, Priority.ALWAYS);
