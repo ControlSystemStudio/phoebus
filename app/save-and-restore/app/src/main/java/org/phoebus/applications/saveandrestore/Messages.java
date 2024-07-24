@@ -120,6 +120,7 @@ public class Messages {
     public static String nodeSelectionForConfiguration;
     public static String noValueAvailable;
     public static String readbackPVName;
+    public static String restore;
     public static String restoreFailed;
     public static String restoreFailedPVs;
     public static String saveFilter;

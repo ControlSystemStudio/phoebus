@@ -76,6 +76,7 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
 
         try {
             Node node = loader.load();
+            controller = loader.getController();
             setContent(node);
             searchAndFilterViewController = loader.getController();
             setOnCloseRequest(event -> searchAndFilterViewController.handleSaveAndFilterTabClosed());
@@ -119,6 +120,5 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
                 Platform.runLater(() -> searchAndFilterViewController.setFilter(filter));
             }
         });
-
     }
 }

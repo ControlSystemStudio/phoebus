@@ -152,8 +152,8 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public Node getParentNode(String unqiueNodeId) {
-        return getCall("/node/" + unqiueNodeId + "/parent", Node.class);
+    public Node getParentNode(String uniqueNodeId) {
+        return getCall("/node/" + uniqueNodeId + "/parent", Node.class);
     }
 
     @Override
@@ -668,7 +668,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         WebResource webResource =
                 getClient()
                         .resource(Preferences.jmasarServiceUrl + "/restore/node")
-                        .queryParam("codeId", snapshotNodeId);
+                        .queryParam("nodeId", snapshotNodeId);
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
