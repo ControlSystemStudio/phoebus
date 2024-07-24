@@ -62,7 +62,7 @@ public class NavigatorInstance implements AppInstance {
         ToggleButton navigatorButton = new ToggleButton(null, homeIcon);
         navigatorButton.setTooltip(new Tooltip(Messages.NavigatorTooltip));
 
-        double[] previousDividerPosition = {0.12};
+        double[] previousDividerPosition = {0.18}; // Initial width of the navigator
         controller.navigator.setVisible(false);
         navigatorButton.setOnAction(actionEvent -> {
                 if (navigatorButton.isSelected()) {
