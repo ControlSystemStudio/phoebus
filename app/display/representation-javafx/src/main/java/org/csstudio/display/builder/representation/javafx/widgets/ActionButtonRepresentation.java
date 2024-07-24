@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -78,8 +78,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     private final DirtyFlag dirty_actionls = new DirtyFlag();
 
     private volatile ButtonBase base;
-    private volatile String background;
-    private volatile Color foreground;
+    private volatile String style;
     private volatile String button_text;
     private volatile boolean enabled = true;
     private volatile boolean writable = true;
@@ -196,14 +195,11 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
                 final MenuItem item = new MenuItem(makeActionText(action),
                                                    new ImageView(new Image(action.getType().getIconURL().toExternalForm()))
                                                   );
-                item.getStyleClass().add("action_button_item");
                 item.setOnAction(event -> confirm(() ->  handleAction(action)));
                 button.getItems().add(item);
             }
             result = button;
         }
-
-        result.setStyle(background);
 
         // In edit mode, show dashed border for transparent/invisible widget
         if (toolkit.isEditMode()  &&  model_widget.propTransparent().getValue())
@@ -411,8 +407,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     /** Complete button needs to be updated */
     private void buttonChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
-    	pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
-                model_widget.propVerticalAlignment().getValue());
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                                 model_widget.propVerticalAlignment().getValue());
         dirty_actionls.mark();
         representationChanged(property, old_value, new_value);
     }
@@ -440,12 +436,17 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
 
     private void updateColors()
     {
-        foreground = JFXUtil.convert(model_widget.propForegroundColor().getValue());
         if (model_widget.propTransparent().getValue())
             // Set most colors to transparent, including the 'arrow' used by MenuButton
-            background = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1); -fx-mark-color: transparent; -fx-background-color: transparent;";
+            style = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1); -fx-mark-color: transparent; -fx-background-color: transparent;";
         else
-            background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
+            style = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
+        
+        final String fg_css = JFXUtil.webHex(model_widget.propForegroundColor().getValue());
+        // Most labels use -fx-text-fill
+        style += " -fx-text-fill: " + fg_css + ";";
+        // Modena sets .menu-button .label to -fx-text-fill: -fx-text-base-color, so patch -fx-text-base-color as well
+        style += " -fx-text-base-color: " + fg_css + ";";        
     }
 
     @Override
@@ -461,17 +462,22 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         {
             button_text = makeButtonText();
             base.setText(button_text);
-            base.setTextFill(foreground);
+            base.setStyle(style);
             base.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
-            // If widget is not wide enough to show the label, hide menu button 'arrow'.
             if (base instanceof MenuButton)
             {
+                // If widget is not wide enough to show the label, hide menu button 'arrow'.
                 // Assume that desired gap and arrow occupy similar space as "__VV_".
                 // Check if the text exceeds the width.
                 final Dimension2D size = TextUtils.computeTextSize(base.getFont(), button_text + "__VV_");
                 final boolean hide = size.getWidth() >= model_widget.propWidth().getValue();
                 Styles.update(base, "hide_arrow", hide);
+
+                // Duplicate button style on each menu item
+                final MenuButton mb = (MenuButton) base;
+                for (MenuItem item : mb.getItems())
+                    item.setStyle(style);
             }
 
             final RotationStep rotation = model_widget.propRotationStep().getValue();
