@@ -408,6 +408,7 @@ public class Tracker extends Group
     public final void setPosition(final Rectangle2D position)
     {
         setPosition(position.getMinX(), position.getMinY(), position.getWidth(), position.getHeight());
+        orig = position;
     }
 
     /** Update location and size of tracker
