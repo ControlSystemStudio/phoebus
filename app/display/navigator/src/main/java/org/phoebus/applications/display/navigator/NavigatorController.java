@@ -99,7 +99,7 @@ import static org.phoebus.applications.display.navigator.NavigatorInstance.LOGGE
 public class NavigatorController implements Initializable {
     private final int NAVIGATOR_WIDTH_AT_STARTUP = 300;
     private static String NAVIGATOR_FONT_CSS;
-    private static String NAVIGATOR_FONT_BOLD_CSS;
+    private static String NAVIGATOR_TITLE_FONT_CSS;
     private static String NAVIGATOR_SELECTOR_BUTTONS_CSS;
     private static String NAVIGATOR_SELECTOR_MENU_ITEMS_CSS;
     private static String NAVIGATOR_ROOT;
@@ -131,7 +131,7 @@ public class NavigatorController implements Initializable {
             if (maybeFont.isPresent()) {
                 NamedWidgetFont font = maybeFont.get();
                 String fontFamily = font.getFamily();
-                NAVIGATOR_FONT_CSS = "-fx-font-family: '" + fontFamily + "'; ";
+                NAVIGATOR_FONT_CSS = "-fx-font-family: '" + fontFamily + "'; -fx-font-size: 18; ";
             }
             else {
                 NAVIGATOR_FONT_CSS = "";
@@ -143,10 +143,10 @@ public class NavigatorController implements Initializable {
             if (maybeFont.isPresent()) {
                 NamedWidgetFont font = maybeFont.get();
                 String fontFamily = font.getFamily();
-                NAVIGATOR_FONT_BOLD_CSS = "-fx-font-family: '" + fontFamily + "'; -fx-font-weight: bold; ";
+                NAVIGATOR_TITLE_FONT_CSS = "-fx-font-family: '" + fontFamily + "'; -fx-font-weight: bold; -fx-font-size: 21; ";
             }
             else {
-                NAVIGATOR_FONT_BOLD_CSS = NAVIGATOR_FONT_CSS = "";
+                NAVIGATOR_TITLE_FONT_CSS = NAVIGATOR_FONT_CSS = "";
             }
         }
 
@@ -172,11 +172,11 @@ public class NavigatorController implements Initializable {
                     foregroundColor_string = "#" + foregroundColor.toString().substring(2, 8);
                 }
                 TOP_BAR_CSS_STYLE = NAVIGATOR_FONT_CSS + "-fx-alignment: center; -fx-background-color: " + backgroundColor_string + ";";
-                NAVIGATOR_LABEL_CSS_STYLE = NAVIGATOR_FONT_BOLD_CSS + " -fx-text-fill: " + foregroundColor_string + ";";
+                NAVIGATOR_LABEL_CSS_STYLE = NAVIGATOR_TITLE_FONT_CSS + " -fx-text-fill: " + foregroundColor_string + ";";
             }
             else {
                 TOP_BAR_CSS_STYLE = NAVIGATOR_FONT_CSS + " -fx-alignment: center; -fx-background-color: #483d8b;";
-                NAVIGATOR_LABEL_CSS_STYLE = NAVIGATOR_FONT_BOLD_CSS + " -fx-text-fill: white;";
+                NAVIGATOR_LABEL_CSS_STYLE = NAVIGATOR_TITLE_FONT_CSS + " -fx-text-fill: white;";
             }
 
             topBar.setStyle(TOP_BAR_CSS_STYLE);
@@ -328,7 +328,7 @@ public class NavigatorController implements Initializable {
     void enterEditModeAction(ActionEvent actionEvent) {
         editModeEnabledProperty.set(true);
         topBar.setStyle(NAVIGATOR_FONT_CSS + "-fx-alignment: center; -fx-background-color: fuchsia; ");
-        navigatorLabel.setStyle(NAVIGATOR_FONT_BOLD_CSS + "-fx-text-fill: white; ");
+        navigatorLabel.setStyle(NAVIGATOR_TITLE_FONT_CSS + "-fx-text-fill: white; ");
         enableDragNDropToTopBar();
         leaveEditModeMenuItem.setDisable(true);
         saveChangesMenuItem.setDisable(true);
@@ -1255,7 +1255,7 @@ public class NavigatorController implements Initializable {
             backgroundProperty().set(new Background(new BackgroundFill(TREE_WIDGET_BACKGROUND_COLOR, null, null)));
             editModeEnabledProperty.addListener(editModeEnabledChangeListener);
 
-            setStyle(NAVIGATOR_FONT_CSS + "-fx-background-color: ; ");
+            setStyle(NAVIGATOR_FONT_CSS);
         }
 
         @Override
