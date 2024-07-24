@@ -45,7 +45,6 @@ public class MenuButtonDemo extends ApplicationWrapper
         button1.getStyleClass().add("action_button");
 
         final MenuItem item = new MenuItem("Action Button Item");
-        item.getStyleClass().add("action_button_item");
         final MenuButton button2 = new MenuButton("Dark Button", null, item, new MenuItem("Plain Item"));
 
         button2.setStyle(JFXUtil.shadedStyle(new WidgetColor(100, 0, 0)));
