@@ -173,8 +173,10 @@ public class DisplayRuntimeInstance implements AppInstance
         return app;
     }
 
-    /** @return {@link JFXRepresentation} */
-    JFXRepresentation getRepresentation()
+    /** @return {@link JFXRepresentation}
+     * This method has public scope, but it should only be used carefully in
+     * a 'read-only' context (e.g. capturing zoom, dimensions, etc.)*/
+    public JFXRepresentation getRepresentation()
     {
         return representation;
     }
