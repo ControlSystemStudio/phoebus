@@ -90,7 +90,7 @@ public class LinearTicks extends Ticks<Double>
         double newHigh = adjustedRange.getValue();
 
         if (newLow != low || newHigh != high) {
-            logger.log(Level.WARNING, "     for a linear scale {0,number,#.###############E0} ... {1,number,#.###############E0}. Adjusting the range to {2,number,#.###############E0} ... {3,number,#.###############E0}.",
+            logger.log(Level.WARNING, "Invalid value range for a linear scale {0,number,#.###############E0} ... {1,number,#.###############E0}. Adjusting the range to {2,number,#.###############E0} ... {3,number,#.###############E0}.",
                     new Object[] {low, high, newLow, newHigh });
             high = newHigh;
             low = newLow;
