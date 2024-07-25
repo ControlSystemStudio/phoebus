@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -163,35 +163,45 @@ public class LinearTicks extends Ticks<Double>
         {
             double start = Math.ceil(low / distance) * distance;
 
-        	// Set prev to one before the start
-        	// and loop until high + distance
-        	// to get minor marks before and after the major tick mark range
-        	double prev = start - distance;
-        	for (double value = start; value < high + distance; value += distance)
-        	{
-        	    // Compute major tick marks
-        	    if (value >= low  &&  value <= high)
-        	        major_ticks.add(new MajorTick<>(value, format(value)));
+            // Set prev to one before the start
+            // and loop until high + distance
+            // to get minor marks before and after the major tick mark range
+            double prev = start - distance;
+            for (double value = start; value < high + distance; value += distance)
+            {
+                if (prev == value)
+                {
+                    logger.log(Level.WARNING, "Major ticks for axis " + start + " ... " + high + " do not advance from " + value);
+                    break;
+                }
+                // Compute major tick marks
+                if (value >= low  &&  value <= high)
+                    major_ticks.add(new MajorTick<>(value, format(value)));
 
-        	    // Fill major tick marks with minor ticks
-        	    for (int i=1; i<minor; ++i)
-        	    {
-        	        final double min_val = prev + ((value - prev)*i)/minor;
-        	        if (min_val <= low || min_val >= high)
-        	            continue;
-        	        minor_ticks.add(new MinorTick<>(min_val));
-        	    }
-        	    prev = value;
-        	}
+                // Fill major tick marks with minor ticks
+                for (int i=1; i<minor; ++i)
+                {
+                    final double min_val = prev + ((value - prev)*i)/minor;
+                    if (min_val <= low || min_val >= high)
+                        continue;
+                    minor_ticks.add(new MinorTick<>(min_val));
+                }
+                prev = value;
+            }
         }
         else
         {
-        	distance = -distance;
-        	double start = Math.floor(low / distance) * distance;
+            distance = -distance;
+            double start = Math.floor(low / distance) * distance;
 
             double prev = start - distance;
             for (double value = start; value > high + distance; value += distance)
             {
+                if (prev == value)
+                {
+                    logger.log(Level.WARNING, "Major ticks for axis " + start + " ... " + high + " do not advance from " + value);
+                    break;
+                }
                 // Compute major tick marks
                 if (value <= low  &&  value >= high)
                     major_ticks.add(new MajorTick<>(value, format(value)));
