@@ -10,6 +10,9 @@ package org.csstudio.display.builder.representation;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 
+import java.util.Optional;
+import java.util.concurrent.FutureTask;
+
 /** Listener to a widget representation
  *
  *  <p>Provides notification of events (action invoked, ..)
