@@ -22,6 +22,7 @@ import org.phoebus.framework.nls.NLS;
 @SuppressWarnings("unused")
 public class Messages {
 
+    public static String actionOpenFilterDescription;
     public static String alertContinue;
     public static String alertAddingPVsToConfiguration;
     public static String authenticationFailed;

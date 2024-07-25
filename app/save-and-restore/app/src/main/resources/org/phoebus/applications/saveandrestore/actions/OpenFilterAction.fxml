@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  ~ Copyright (C) 2024 European Spallation Source ERIC.
+  -->
+
+<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="org.phoebus.applications.saveandrestore.actions.OpenFilterActionController">
+   <children>
+      <Label text="%actionDescription" />
+      <TextField fx:id="description" text="%actionOpenFilterDescription" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+      <Label text="%actionOpenFilterId" GridPane.rowIndex="1" />
+      <ComboBox fx:id="filterId" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" prefHeight="26" GridPane.rowIndex="1" />
+   </children>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+</GridPane>

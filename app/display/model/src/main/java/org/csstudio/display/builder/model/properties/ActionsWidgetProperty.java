@@ -87,7 +87,7 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos> {
             // the action type id.
             ServiceLoader<ActionInfo> loader = ServiceLoader.load(ActionInfo.class);
             Optional<ServiceLoader.Provider<ActionInfo>> optionalActionInfo =
-                    loader.stream().filter(p -> p.get().matchesAction(type)).findFirst();
+                    loader.stream().filter(p -> p.get().getType().equalsIgnoreCase(type) || p.get().matchesAction(type)).findFirst();
             if (optionalActionInfo.isPresent()) {
                 actionInfo = optionalActionInfo.get().get();
             } else {
