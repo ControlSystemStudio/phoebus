@@ -21,12 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -89,8 +86,7 @@ public class SnapshotUtil {
             LOG.log(Level.WARNING, "Got exception waiting for all tasks to finish", e);
             // Return empty list here?
             return Collections.emptyList();
-        }
-        finally {
+        } finally {
             callables.forEach(RestoreCallable::release);
         }
 
@@ -208,25 +204,24 @@ public class SnapshotUtil {
      * Wraps PV functionality such that client code may release PV back to the pool once
      * write/restore operation has succeeded (or failed).
      */
-    private class RestoreCallable implements Callable<Void>{
+    private class RestoreCallable implements Callable<Void> {
 
-        private List<RestoreResult> restoreResultList;
+        private final List<RestoreResult> restoreResultList;
         private PV pv;
-        private SnapshotItem snapshotItem;
+        private final SnapshotItem snapshotItem;
 
-        public RestoreCallable(SnapshotItem snapshotItem, List<RestoreResult> restoreResultList){
+        public RestoreCallable(SnapshotItem snapshotItem, List<RestoreResult> restoreResultList) {
             this.snapshotItem = snapshotItem;
             this.restoreResultList = restoreResultList;
         }
 
         @Override
-        public Void call(){
+        public Void call() {
             CountDownLatch countDownLatch = new CountDownLatch(1);
             try {
                 pv = PVPool.getPV(snapshotItem.getConfigPv().getPvName());
                 pv.onValueEvent().subscribe(value -> {
-                    if (countDownLatch.getCount() == 1 && !PV.isDisconnected(value)) {
-                        pv.asyncWrite(VTypeHelper.toObject(snapshotItem.getValue()));
+                    if (!PV.isDisconnected(value)) {
                         countDownLatch.countDown();
                     }
                 });
@@ -235,6 +230,8 @@ public class SnapshotUtil {
                     restoreResult.setSnapshotItem(snapshotItem);
                     restoreResult.setErrorMsg("No monitor event from PV " + snapshotItem.getConfigPv().getPvName());
                     restoreResultList.add(restoreResult);
+                } else {
+                    pv.write(VTypeHelper.toObject(snapshotItem.getValue()));
                 }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to write to PV " + snapshotItem.getConfigPv().getPvName(), e);
@@ -247,8 +244,8 @@ public class SnapshotUtil {
             return null;
         }
 
-        public void release(){
-            if(pv != null){
+        public void release() {
+            if (pv != null) {
                 PVPool.releasePV(pv);
             }
         }
