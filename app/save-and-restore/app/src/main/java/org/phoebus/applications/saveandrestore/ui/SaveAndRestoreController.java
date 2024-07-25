@@ -73,6 +73,7 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -1128,13 +1129,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      */
     public void openResource(URI uri) {
 
-        try {
-            treeInitializationCountDownLatch.await();
-        } catch (InterruptedException e) {
-            logger.log(Level.WARNING, "Failed to await tree view to load", e);
-            return;
-        }
-
         if (uri == null) {
             return;
         }
@@ -1444,6 +1438,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     private void openNode(String nodeId){
+        try {
+            // Wait at most 30 seconds for tree data to become available.
+            treeInitializationCountDownLatch.await(30000, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.log(Level.WARNING, "Failed to await tree view to load", e);
+            return;
+        }
         Node node = saveAndRestoreService.getNode(nodeId);
         if (node == null) {
             // Show error dialog.
