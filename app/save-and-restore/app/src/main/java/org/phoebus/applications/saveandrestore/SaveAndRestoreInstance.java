@@ -39,7 +39,7 @@ public class SaveAndRestoreInstance implements AppInstance {
     private final AppDescriptor appDescriptor;
     private final SaveAndRestoreController saveAndRestoreController;
 
-    public SaveAndRestoreInstance(AppDescriptor appDescriptor, URI uri) {
+    public SaveAndRestoreInstance(AppDescriptor appDescriptor) {
         this.appDescriptor = appDescriptor;
 
         DockItem tab = null;
@@ -49,16 +49,6 @@ public class SaveAndRestoreInstance implements AppInstance {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             loader.setResources(resourceBundle);
             loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUI.fxml"));
-            loader.setControllerFactory(clazz -> {
-                try {
-                    if (clazz.isAssignableFrom(SaveAndRestoreController.class)) {
-                        return clazz.getConstructor(URI.class).newInstance(uri);
-                    }
-                } catch (Exception e) {
-                    Logger.getLogger(SaveAndRestoreInstance.class.getName()).log(Level.WARNING, "Failed to load Save & Restore UI", e);
-                }
-                return null;
-            });
             tab = new DockItem(this, loader.load());
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);

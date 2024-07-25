@@ -64,24 +64,13 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
     @Override
     public AppInstance create(URI uri) {
 
-		// Check if save & restore app is already running
-		for (Stage stage : DockStage.getDockStages()) {
-			for (DockPane pane : DockStage.getDockPanes(stage)) {
-				for (DockItem tab : pane.getDockItems()) {
-					if (tab.getApplication().getAppDescriptor().getName().equals(NAME)) {
-                        tab.select();
-                        if(uri != null){
-                            ((SaveAndRestoreInstance)tab.getApplication()).openResource(uri);
-                        }
-                        instance = tab.getApplication();
-                        return instance;
-					}
-				}
-			}
-		}
-
-        instance = new SaveAndRestoreInstance(this, uri);
-		return instance;
+        if(instance == null) {
+            instance = new SaveAndRestoreInstance(this);
+        }
+        if(uri != null){
+            ((SaveAndRestoreInstance)instance).openResource(uri);
+        }
+        return instance;
     }
 
     public AppInstance getInstance(){

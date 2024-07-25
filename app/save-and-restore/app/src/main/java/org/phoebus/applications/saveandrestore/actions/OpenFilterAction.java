@@ -30,7 +30,7 @@ public class OpenFilterAction extends ActionInfoBase {
 
     private String filterId;
 
-    private static final String OPEN_SAR_FILTER = "open_sar_filter";
+    public static final String OPEN_SAR_FILTER = "open_sar_filter";
     private static final String FILTER_ID_TAG = "filter_id";
 
     private OpenFilterActionController openFilterActionController;

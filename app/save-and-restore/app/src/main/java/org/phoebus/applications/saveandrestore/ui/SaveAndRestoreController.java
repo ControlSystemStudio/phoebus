@@ -38,6 +38,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -70,6 +72,7 @@ import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -80,7 +83,7 @@ import java.util.stream.Collectors;
 public class SaveAndRestoreController extends SaveAndRestoreBaseController
         implements Initializable, NodeChangedListener, NodeAddedListener, FilterChangeListener {
 
-    @FXML
+     @FXML
     protected TreeView<Node> treeView;
 
     @FXML
@@ -119,7 +122,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private final SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
 
-    private final URI uri;
+    private static final Logger logger = Logger.getLogger(SaveAndRestoreController.class.getName());
 
     @FXML
     private Tooltip filterToolTip;
@@ -132,18 +135,16 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
 
-    /**
-     * @param uri If non-null, this is used to load a configuration or snapshot into the view.
-     */
-    public SaveAndRestoreController(URI uri) {
-        this.uri = uri;
-    }
+    private final CountDownLatch treeInitializationCountDownLatch = new CountDownLatch(1);
 
+    public SaveAndRestoreController(){
+        System.out.println();
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        // Tree items are first compared on type, then on name (case insensitive).
+        // Tree items are first compared on type, then on name (case-insensitive).
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
@@ -248,9 +249,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      */
     public void loadTreeData() {
 
-        Task<TreeItem<Node>> loadRootNode = new Task<>() {
-            @Override
-            protected TreeItem<Node> call() {
+        JobManager.schedule("Load save-and-restore tree data", monitor -> {
+            try{
                 Node rootNode = saveAndRestoreService.getRootNode();
                 TreeItem<Node> rootItem = createTreeItem(rootNode);
                 List<String> savedTreeViewStructure = getSavedTreeStructure();
@@ -273,20 +273,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     rootItem.getChildren().addAll(childItems);
                 }
 
-                return rootItem;
-            }
-
-            /**
-             * Performs additional configuration/initialization when data has been loaded from
-             * the service.
-             */
-            @Override
-            public void succeeded() {
-                TreeItem<Node> rootItem = getValue();
                 treeView.setRoot(rootItem);
                 expandNodes(treeView.getRoot());
-                // Open a resource (e.g. a snapshot node) if one is specified.
-                openResource(uri);
                 // Event handler for expanding nodes
                 treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
                 // Load all filters from service
@@ -298,14 +286,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
                 }
             }
-
-            @Override
-            public void failed() {
-                errorPane.visibleProperty().set(true);
+            finally {
+                treeInitializationCountDownLatch.countDown();
             }
-        };
-
-        new Thread(loadRootNode).start();
+        });
     }
 
     private List<String> getSavedTreeStructure() {
@@ -1132,31 +1116,55 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Launches the save and restore app and highlights/loads the "resource" (configuration or snapshot) identified
-     * by the {@link URI}. If the configuration/snapshot in question cannot be found, an error dialog is shown.
+     * Parses the {@link URI} to determine what to do. Supported actions/behavior:
+     * <ul>
+     *     <li>Open a {@link Node}, which must not be of {@link NodeType#FOLDER}.</li>
+     *     <li>Launch the search/filter view to show a filter search result.</li>
+     * </ul>
      *
-     * @param uri An {@link URI} on the form file:/unique-id?app=saveandrestore, where unique-id is the
-     *            unique id of a configuration or snapshot.
+     * @param uri An {@link URI} on the form file:/unique-id?action=[open-node|open-filter]&app=saveandrestore, where unique-id is the
+     *            unique id of a {@link Node} or the unique id (name) of a {@link Filter}. If action is not sepcified,
+     *            it defaults to open-node.
      */
     public void openResource(URI uri) {
+
+        try {
+            treeInitializationCountDownLatch.await();
+        } catch (InterruptedException e) {
+            logger.log(Level.WARNING, "Failed to await tree view to load", e);
+            return;
+        }
+
         if (uri == null) {
             return;
         }
-        String nodeId = uri.getPath().substring(1);
-        Node node = saveAndRestoreService.getNode(nodeId);
-        if (node == null) {
-            // Show error dialog.
-            Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle(Messages.openResourceFailedTitle);
-            alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, nodeId));
-            DialogHelper.positionDialog(alert, treeView, -200, -200);
-            alert.show();
+        String query = uri.getQuery();
+        if(query == null || query.isEmpty()){
+            logger.log(Level.WARNING, "Called with empty URI");
             return;
         }
-        Stack<Node> copiedStack = new Stack<>();
-        DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
-        locateNode(copiedStack);
-        nodeDoubleClicked(node);
+        String[] queries = query.split("&");
+        String action = "open-node";
+        Optional<String> actionQuery = Arrays.stream(queries).filter(q -> q.startsWith("action=")).findFirst();
+        if(!actionQuery.isPresent()){
+            logger.log(Level.WARNING, "Open resource does not specify action, defaulting to 'open node'");
+        }
+        if(action.isEmpty()){
+            logger.log(Level.WARNING, "Open resource specifies empty action, defaulting to 'open node'");;
+        }
+
+        switch(action){
+            case "open-node":
+                openNode(uri.getPath().substring(1));
+                break;
+            case "open-filter":
+                openFilter(uri.getPath().substring(1));
+                break;
+            default:
+                logger.log(Level.WARNING, "Action '" + action + "' not supported");
+        }
+
+
     }
 
     public void findSnapshotReferences() {
@@ -1433,5 +1441,30 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         tabPane.getTabs().forEach(t -> {
             ((SaveAndRestoreTab) t).secureStoreChanged(validTokens);
         });
+    }
+
+    private void openNode(String nodeId){
+        Node node = saveAndRestoreService.getNode(nodeId);
+        if (node == null) {
+            // Show error dialog.
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle(Messages.openResourceFailedTitle);
+            alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, nodeId));
+            DialogHelper.positionDialog(alert, treeView, -200, -200);
+            alert.show();
+            return;
+        }
+        if(node.getNodeType().equals(NodeType.FOLDER)){
+            logger.log(Level.WARNING, "Requested to open node, but node must not be folder node");
+            return;
+        }
+        Stack<Node> copiedStack = new Stack<>();
+        DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
+        locateNode(copiedStack);
+        nodeDoubleClicked(node);
+    }
+
+    private void openFilter(String filterId){
+
     }
 }
