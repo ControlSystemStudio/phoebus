@@ -8,21 +8,7 @@
 package org.csstudio.apputil.formula.areadetector;
 
 import org.csstudio.apputil.formula.spi.FormulaFunction;
-import org.epics.pva.data.PVAByteArray;
-import org.epics.pva.data.PVADoubleArray;
-import org.epics.pva.data.PVAFloatArray;
-import org.epics.pva.data.PVAIntArray;
-import org.epics.pva.data.PVALongArray;
-import org.epics.pva.data.PVAShortArray;
-import org.epics.util.array.ArrayByte;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ArrayFloat;
-import org.epics.util.array.ArrayInteger;
-import org.epics.util.array.ArrayLong;
-import org.epics.util.array.ArrayShort;
-import org.epics.util.array.ListNumber;
 import org.epics.vtype.Alarm;
-import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VImage;
 import org.epics.vtype.VImageDataType;
@@ -31,9 +17,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 /** A formula function for creating an VImage
  *  @author Kunal Shroff
