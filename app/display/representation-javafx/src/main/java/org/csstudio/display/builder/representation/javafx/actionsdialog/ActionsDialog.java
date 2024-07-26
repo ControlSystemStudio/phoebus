@@ -22,6 +22,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfos;
@@ -37,11 +39,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Dialog for editing {@link org.csstudio.display.builder.model.properties.ActionInfo} list
+ * Dialog for editing {@link ActionInfos} list
  */
 public class ActionsDialog extends Dialog<ActionInfos> {
-
-    private final Widget widget;
 
     private ActionsDialogController controller;
 
@@ -53,7 +53,6 @@ public class ActionsDialog extends Dialog<ActionInfos> {
      * @param owner          Node that started this dialog
      */
     public ActionsDialog(final Widget widget, final ActionInfos initialActions, final Node owner) {
-        this.widget = widget;
 
         setTitle(Messages.ActionsDialog_Title);
         setHeaderText(Messages.ActionsDialog_Info);
@@ -89,8 +88,12 @@ public class ActionsDialog extends Dialog<ActionInfos> {
 
         setResultConverter(button ->
         {
-            if (button == ButtonType.OK)
+            if (button == ButtonType.OK){
                 return controller.getActionInfos();
+            }
+            else if(button == ButtonType.CANCEL){
+                controller.revertEdits();
+            }
             return null;
         });
 

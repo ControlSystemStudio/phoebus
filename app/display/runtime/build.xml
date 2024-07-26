@@ -11,6 +11,7 @@
         <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
         <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
         <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
+        <pathelement path="../actions/${build}/app-display-actions-${version}.jar"/>
       </classpath>
     </javac>
   	
@@ -27,6 +28,7 @@
         <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
         <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
         <pathelement path="${build}/app-display-runtime-${version}.jar"/>
+        <pathelement path="../actions/${build}/app-display-actions-${version}.jar"/>
       </classpath>
       <batchtest>
         <zipfileset src="${build}/app-display-runtime-${version}.jar" includes="**/*Test.class"/>
@@ -43,6 +45,7 @@
         <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
         <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
         <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
+        <pathelement path="../actions/${build}/app-display-actions-${version}.jar"/>
         <pathelement path="${build}/app-display-runtime-${version}.jar"/>
       </classpath>
     </java>
