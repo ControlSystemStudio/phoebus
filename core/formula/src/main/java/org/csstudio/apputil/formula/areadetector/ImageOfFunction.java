@@ -91,8 +91,12 @@ public class ImageOfFunction implements FormulaFunction
             throw new Exception("Failed to parse the image type from  " + args[4]);
         }
         final VNumberArray data;
+        final Alarm alarm;
+        final Time time;
         if (VTypeHelper.isNumericArray(value)) {
             data = (VNumberArray) value;
+            alarm = data.getAlarm();
+            time = data.getTime();
         } else {
             throw new Exception("Failed to parse the image data array.");
         }
@@ -103,9 +107,6 @@ public class ImageOfFunction implements FormulaFunction
         boolean xreversed = Boolean.parseBoolean(VTypeHelper.toString(args[7]));
         boolean yreversed = Boolean.parseBoolean(VTypeHelper.toString(args[8]));
 
-
-        Alarm alarm = Alarm.none();
-        Time time = Time.now();
         return VImage.of(height, width, xoffset, yoffset, xreversed, yreversed, data.getData(), imageDataType, vImageType, alarm, time);
     }
 
