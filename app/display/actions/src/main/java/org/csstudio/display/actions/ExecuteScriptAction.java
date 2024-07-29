@@ -117,17 +117,15 @@ public class ExecuteScriptAction extends ActionInfoBase {
         writeDescriptionToXML(writer, description);
         writer.writeStartElement(XMLTags.SCRIPT);
         writer.writeAttribute(XMLTags.FILE, path);
-        if(scriptInfo.getPath().equals(ScriptInfo.EMBEDDED_PYTHON) ||
-            scriptInfo.getPath().equals(ScriptInfo.EMBEDDED_JAVASCRIPT)){
-            final String text = scriptInfo.getText();
+        // The controller updates the text and path not the scriptInfo
+        if( this.path.equals(ScriptInfo.EMBEDDED_PYTHON) ||
+            this.path.equals(ScriptInfo.EMBEDDED_JAVASCRIPT)){
+            final String text = this.text;
             if (text != null) {
                 writer.writeStartElement(XMLTags.TEXT);
                 writer.writeCData(text);
                 writer.writeEndElement();
             }
-        }
-        else{
-            writer.writeAttribute(XMLTags.FILE, path);
         }
         writer.writeEndElement();
     }
@@ -174,12 +172,14 @@ public class ExecuteScriptAction extends ActionInfoBase {
     public void revert(){
         executeScriptController.setScriptPath(path);
         executeScriptController.setScriptBody(text);
+        executeScriptController.setDescription(description);
     }
 
     @Override
     public ActionInfo commit(){
         path = executeScriptController.getScriptPath();
         text = executeScriptController.getScriptBody();
+        description = executeScriptController.getDescription();
         return this;
     }
 }
