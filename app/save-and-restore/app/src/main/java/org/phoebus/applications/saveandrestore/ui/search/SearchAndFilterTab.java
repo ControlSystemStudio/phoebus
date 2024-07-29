@@ -35,6 +35,7 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.nls.NLS;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
@@ -107,7 +108,15 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
      */
     public void showFilter(String filterId){
         JobManager.schedule("Show Filter", monitor -> {
-            List<Filter> allFilters = saveAndRestoreService.getAllFilters();
+            List<Filter> allFilters = null;
+            try {
+                allFilters = saveAndRestoreService.getAllFilters();
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    ExceptionDetailsErrorDialog.openError(Messages.failedGetFilters, e);
+                });
+                return;
+            }
             Optional<Filter> filterOptional = allFilters.stream().filter(f -> f.getName().equalsIgnoreCase(filterId)).findFirst();
             if (!filterOptional.isPresent()) {
                 Platform.runLater(() -> {
@@ -117,7 +126,9 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
                 });
             } else {
                 Filter filter = filterOptional.get();
-                Platform.runLater(() -> searchAndFilterViewController.setFilter(filter));
+                Platform.runLater(() -> {
+                    searchAndFilterViewController.setFilter(filter);
+                });
             }
         });
     }

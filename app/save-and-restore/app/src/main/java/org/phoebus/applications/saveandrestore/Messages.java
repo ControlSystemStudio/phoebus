@@ -83,7 +83,8 @@ public class Messages {
     public static String exportConfigurationLabel;
     public static String exportSnapshotLabel;
     public static String exportSnapshotFailed;
-    public static String faildDeleteFilter;
+    public static String failedDeleteFilter;
+    public static String failedGetFilters;
     public static String failedSaveFilter;
     public static String failedToPasteObjects;
     public static String filterNotFound;

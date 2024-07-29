@@ -38,11 +38,12 @@ public class SaveAndRestoreInstance implements AppInstance {
 
     private final AppDescriptor appDescriptor;
     private final SaveAndRestoreController saveAndRestoreController;
+    private DockItem tab;
 
     public SaveAndRestoreInstance(AppDescriptor appDescriptor) {
         this.appDescriptor = appDescriptor;
 
-        DockItem tab = null;
+        tab = null;
 
         FXMLLoader loader = new FXMLLoader();
         try {
@@ -55,10 +56,7 @@ public class SaveAndRestoreInstance implements AppInstance {
         }
 
         saveAndRestoreController = loader.getController();
-
         tab.setOnCloseRequest(event -> saveAndRestoreController.handleTabClosed());
-
-        DockPane.getActiveDockPane().addTab(tab);
     }
 
     @Override
@@ -77,5 +75,10 @@ public class SaveAndRestoreInstance implements AppInstance {
 
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
         saveAndRestoreController.secureStoreChanged(validTokens);
+    }
+
+    public void raise(){
+        DockPane.getActiveDockPane().addTab(tab);
+        tab.select();
     }
 }

@@ -763,7 +763,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                         clearFilter(filter);
                     } catch (Exception e) {
                         LOGGER.log(Level.SEVERE, "Failed to delete filter", e);
-                        ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.faildDeleteFilter, e);
+                        ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.failedDeleteFilter, e);
                     }
                 });
                 button.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
