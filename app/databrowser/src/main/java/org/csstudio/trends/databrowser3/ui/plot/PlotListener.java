@@ -46,7 +46,7 @@ public interface PlotListener
     /** Received names, presumably for PVs, via drag and drop
      *  @param name PV(?) names
      */
-    public void droppedNames(List<Pair<String, String>> name);
+    public void droppedNames(List<String> name);
 
     /** Received PV names and/or archive data sources via drag and drop
      *

@@ -351,7 +351,7 @@ public class Perspective extends SplitPane
                 final String dropped = db.getString();
                 try
                 {
-                    final List<Pair<String, String>> pvs = DroppedPVNameParser.parseDroppedPVs(dropped);
+                    final List<String> pvs = DroppedPVNameParser.parseDroppedPVs(dropped);
                     if (pvs.size() > 0)
                         Platform.runLater(() -> lst.droppedNames(pvs));
                 }

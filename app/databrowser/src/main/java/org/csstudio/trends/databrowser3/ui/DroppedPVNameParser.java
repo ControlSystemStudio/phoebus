@@ -7,8 +7,6 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
-import javafx.util.Pair;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,14 +29,14 @@ public class DroppedPVNameParser
      *  @return List of PV names
      *  @throws Exception on error
      */
-    public static List<Pair<String, String>> parseDroppedPVs(String text) throws Exception
+    public static List<String> parseDroppedPVs(String text) throws Exception
     {
         text = text.trim();
         // Remove optional 'array' wrapper
         if (text.startsWith("[")  &&  text.endsWith("]"))
             text = text.substring(1, text.length()-2);
 
-        final List<Pair<String, String>> names = new ArrayList<>();
+        final List<String> names = new ArrayList<>();
 
         // Need to look for a separator, but skipping them inside quoted text and brackets
         final int len = text.length();
@@ -51,25 +49,11 @@ public class DroppedPVNameParser
                 pos = locateClosingQuote(text, pos+1);
             else if (c == '(')
                 pos = locateClosingBrace(text, pos+1);
-            else if (c == ',') {
-                // Case: PV Name with a specified display name
-                String pvName = text.substring(start, pos).trim();
-                if (!pvName.isEmpty()) {
-                    // Parse display name until end-of-line:
-                    String displayName = "";
-                    for (pos++; pos < len && "\r\n".indexOf(text.charAt(pos)) == -1; pos++) {
-                        displayName = displayName + text.charAt(pos);
-                    }
-                    displayName = displayName.trim();
-                    names.add(new Pair<>(pvName, displayName));
-                }
-                start = ++pos;
-            }
-            else if ("\r\n".indexOf(c) >= 0)
+            else if ("\r\n\t,; ".indexOf(c) >= 0)
             {   // Found one of the separators
                 final String name = text.substring(start, pos).trim();
                 if (! name.isEmpty())
-                    names.add(new Pair(name, name));
+                    names.add(name);
                 start = ++pos;
             }
             else
@@ -80,7 +64,7 @@ public class DroppedPVNameParser
         {
             final String name = text.substring(start, pos).trim();
             if (! name.isEmpty())
-                names.add(new Pair(name, name));
+                names.add(name);
         }
         return names;
     }
