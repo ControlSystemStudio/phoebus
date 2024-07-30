@@ -51,12 +51,16 @@ public class ExecuteScriptAction extends ActionInfoBase {
                 ScriptInfo.EXAMPLE_PYTHON,
                 false,
                 Collections.emptyList());
+//        this.text = scriptInfo.getText();
+//        this.path = scriptInfo.getPath();
     }
 
     public ExecuteScriptAction(String description, ScriptInfo scriptInfo) {
         this.description = description;
         this.type = EXECUTE_SCRIPT;
         this.scriptInfo = scriptInfo;
+        this.text = scriptInfo.getText();
+        this.path = scriptInfo.getPath();
     }
 
     @Override
