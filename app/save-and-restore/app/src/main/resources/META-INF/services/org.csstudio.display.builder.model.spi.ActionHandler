@@ -1,1 +1,2 @@
 org.phoebus.applications.saveandrestore.actions.OpenFilterActionHandler
+org.phoebus.applications.saveandrestore.actions.OpenNodeActionHandler

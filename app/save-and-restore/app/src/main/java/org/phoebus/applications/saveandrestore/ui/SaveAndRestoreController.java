@@ -63,6 +63,8 @@ import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.applications.saveandrestore.actions.OpenFilterAction;
+import org.phoebus.applications.saveandrestore.actions.OpenNodeAction;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -168,10 +170,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
 
     private final CountDownLatch treeInitializationCountDownLatch = new CountDownLatch(1);
-
-    public SaveAndRestoreController() {
-        System.out.println();
-    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -283,6 +281,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         JobManager.schedule("Load save-and-restore tree data", monitor -> {
             Node rootNode = saveAndRestoreService.getRootNode();
+            if(rootNode == null){ // Service off-line or not reachable
+                treeInitializationCountDownLatch.countDown();
+                errorPane.visibleProperty().set(true);
+                return;
+            }
             TreeItem<Node> rootItem = createTreeItem(rootNode);
             List<String> savedTreeViewStructure = getSavedTreeStructure();
             // Check if there is a save tree structure. Also check that the first node id (=tree root)
@@ -1174,10 +1177,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
 
         switch (action) {
-            case "open-node":
+            case OpenNodeAction.OPEN_SAR_NODE:
                 openNode(uri.getPath().substring(1));
                 break;
-            case "open-filter":
+            case OpenFilterAction.OPEN_SAR_FILTER:
                 openSearchWindowForFilter(URLDecoder.decode(uri.getPath().substring(1), StandardCharsets.UTF_8));
                 break;
             default:
@@ -1474,11 +1477,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             }
             Node node = saveAndRestoreService.getNode(nodeId);
             if (node == null) {
-                // Show error dialog.
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle(Messages.openResourceFailedTitle);
-                alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, nodeId));
                 Platform.runLater(() -> {
+                    // Show error dialog.
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setTitle(Messages.openResourceFailedTitle);
+                    alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, nodeId));
                     DialogHelper.positionDialog(alert, treeView, -200, -200);
                     alert.show();
                 });

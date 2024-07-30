@@ -60,7 +60,6 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
         return create(null);
     }
 
-
     @Override
     public AppInstance create(URI uri) {
         instance = null;
@@ -88,10 +87,5 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
 
     public AppInstance getInstance(){
         return instance;
-    }
-
-    @Override
-    public void stop(){
-        instance = null;
     }
 }

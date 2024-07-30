@@ -16,19 +16,19 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * {@link ActionHandler} implementation for opening a save-and-restore {@link org.phoebus.applications.saveandrestore.model.search.Filter}
+ * {@link ActionHandler} implementation for opening a save-and-restore {@link org.phoebus.applications.saveandrestore.model.Node}
  * in the save-and-restore app.
  */
-public class OpenFilterActionHandler implements ActionHandler {
+public class OpenNodeActionHandler implements ActionHandler {
 
     @Override
     public void handleAction(Widget sourceWidget, ActionInfo actionInfo) {
-        OpenFilterAction openFilterAction = (OpenFilterAction) actionInfo;
+        OpenNodeAction openNodeActionInfo = (OpenNodeAction) actionInfo;
 
         Platform.runLater(() -> {
             try {
                 ApplicationService.createInstance(SaveAndRestoreApplication.NAME, URI.create("file:/" +
-                        URLEncoder.encode(openFilterAction.getFilterId(), StandardCharsets.UTF_8) + "?app=saveandrestore&action=" + OpenFilterAction.OPEN_SAR_FILTER));
+                        URLEncoder.encode(openNodeActionInfo.getNodeId(), StandardCharsets.UTF_8) + "?app=saveandrestore&action=" + OpenNodeAction.OPEN_SAR_NODE));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -37,6 +37,6 @@ public class OpenFilterActionHandler implements ActionHandler {
 
     @Override
     public boolean matches(ActionInfo actionInfo) {
-        return actionInfo.getType().equals(OpenFilterAction.OPEN_SAR_FILTER);
+        return actionInfo.getType().equals(OpenNodeAction.OPEN_SAR_NODE);
     }
 }

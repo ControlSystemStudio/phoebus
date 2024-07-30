@@ -23,6 +23,7 @@ import org.phoebus.framework.nls.NLS;
 public class Messages {
 
     public static String actionOpenFilterDescription;
+    public static String actionOpenNodeDescription;
     public static String alertContinue;
     public static String alertAddingPVsToConfiguration;
     public static String authenticationFailed;

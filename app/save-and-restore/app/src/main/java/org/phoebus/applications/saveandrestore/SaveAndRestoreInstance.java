@@ -78,7 +78,10 @@ public class SaveAndRestoreInstance implements AppInstance {
     }
 
     public void raise(){
-        DockPane.getActiveDockPane().addTab(tab);
+        if(!DockPane.getActiveDockPane().getDockItems().contains(tab)){
+            DockPane.getActiveDockPane().addTab(tab);
+        }
+
         tab.select();
     }
 }

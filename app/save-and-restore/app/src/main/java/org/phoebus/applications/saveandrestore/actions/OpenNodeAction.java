@@ -14,7 +14,6 @@ import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.ActionInfoBase;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.javafx.ImageCache;
@@ -28,38 +27,38 @@ import java.util.logging.Logger;
 
 /**
  * {@link ActionInfo} implementation for launching/highlighting the save-and-restore app
- * and bring up a named filter in the search and filter view.
+ * and bring a node, e.g. show a specific snapshot.
  */
-public class OpenFilterAction extends ActionInfoBase {
+public class OpenNodeAction extends ActionInfoBase {
 
-    private String filterId;
+    private String nodeId;
 
-    public static final String OPEN_SAR_FILTER = "open_sar_filter";
-    private static final String FILTER_ID_TAG = "filter_id";
+    public static final String OPEN_SAR_NODE = "open_sar_node";
+    private static final String NODE_ID_TAG = "node_id";
 
-    private OpenFilterActionController openFilterActionController;
+    private OpenNodeActionController openNodeActionController;
 
-    public OpenFilterAction(){
-        this.description = Messages.actionOpenFilterDescription;
-        this.type = OPEN_SAR_FILTER;
+    public OpenNodeAction() {
+        this.description = Messages.actionOpenNodeDescription;
+        this.type = OPEN_SAR_NODE;
     }
 
     @Override
     public Image getImage() {
-        return ImageCache.getImage(OpenFilterAction.class, "/icons/bookcase.png");
+        return ImageCache.getImage(OpenNodeAction.class, "/icons/bookcase.png");
     }
 
     @Override
-    public void readFromXML(ModelReader modelReader, Element actionXml) throws Exception {
-        filterId = XMLUtil.getChildString(actionXml, FILTER_ID_TAG).orElse("");
+    public void readFromXML(ModelReader modelReader, Element actionXml) {
+        nodeId = XMLUtil.getChildString(actionXml, NODE_ID_TAG).orElse("");
     }
 
     @Override
     public void writeToXML(ModelWriter modelWriter, XMLStreamWriter writer) throws Exception {
-        writer.writeAttribute(XMLTags.TYPE, OPEN_SAR_FILTER);
+        writer.writeAttribute(XMLTags.TYPE, OPEN_SAR_NODE);
         writeDescriptionToXML(writer, description);
-        writer.writeStartElement(FILTER_ID_TAG);
-        writer.writeCharacters(filterId);
+        writer.writeStartElement(NODE_ID_TAG);
+        writer.writeCharacters(nodeId);
         writer.writeEndElement();
 
     }
@@ -72,19 +71,19 @@ public class OpenFilterAction extends ActionInfoBase {
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setResources(resourceBundle);
-        fxmlLoader.setLocation(this.getClass().getResource("OpenFilterAction.fxml"));
+        fxmlLoader.setLocation(this.getClass().getResource("OpenNodeAction.fxml"));
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 return clazz.getConstructor(ActionInfo.class).newInstance(this);
             } catch (Exception e) {
-                Logger.getLogger(OpenFilterAction.class.getName()).log(Level.SEVERE, "Failed to construct OpenFilterActionController", e);
+                Logger.getLogger(OpenNodeAction.class.getName()).log(Level.SEVERE, "Failed to construct OpenNodeActionController", e);
             }
             return null;
         });
 
         try {
             editorUi = fxmlLoader.load();
-            openFilterActionController = fxmlLoader.getController();
+            openNodeActionController = fxmlLoader.getController();
             return editorUi;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -93,21 +92,18 @@ public class OpenFilterAction extends ActionInfoBase {
 
     @Override
     public void revert() {
-        openFilterActionController.setFilter(filterId);
-        openFilterActionController.setDescription(description);
+        openNodeActionController.setInitialNodeId(nodeId);
+        openNodeActionController.setDescription(description);
     }
 
     @Override
     public ActionInfo commit() {
-        Filter filter = openFilterActionController.getSelectedFilter();
-        if(filter != null){
-            filterId = filter.getName();
-        }
-        description = openFilterActionController.getDescription();
-        return this ;
+        nodeId = openNodeActionController.getNodeId();
+        description = openNodeActionController.getDescription();
+        return this;
     }
 
-    public String getFilterId() {
-        return filterId;
+    public String getNodeId() {
+        return nodeId;
     }
 }
