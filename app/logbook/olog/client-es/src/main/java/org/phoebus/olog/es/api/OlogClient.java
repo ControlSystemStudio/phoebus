@@ -2,8 +2,12 @@ package org.phoebus.olog.es.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sun.jersey.api.client.*;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
@@ -12,7 +16,16 @@ import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
-import org.phoebus.logbook.*;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryChangeHandler;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Messages;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.SearchResult;
+import org.phoebus.logbook.Tag;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
@@ -20,6 +33,8 @@ import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -27,12 +42,19 @@ import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A client to the Olog-es webservice
+ * A client to the Phoebus-Olog webservice
  *
  * @author Kunal Shroff
  */
@@ -47,7 +69,7 @@ public class OlogClient implements LogClient {
     private List<LogEntryChangeHandler> changeHandlers = new ArrayList<>();
 
     /**
-     * Builder Class to help create a olog client.
+     * Builder Class to help create an Olog client.
      *
      * @author shroffk
      */
@@ -65,6 +87,7 @@ public class OlogClient implements LogClient {
         private String username = null;
         private String password = null;
         private String connectTimeoutAsString = null;
+        private Boolean permissiveHostnameVerifier;
 
         private final OlogProperties properties = new OlogProperties();
 
@@ -151,6 +174,13 @@ public class OlogClient implements LogClient {
                         .warning("connectTimeout preference not set or invalid, using 0 (=infinite)");
             }
             this.clientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);
+
+            this.permissiveHostnameVerifier = Boolean.parseBoolean(this.properties.getPreferenceValue("permissive_hostname_verifier"));
+            if (this.permissiveHostnameVerifier) {
+                HostnameVerifier allHostsValid = (hostname, session) -> true;
+                HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+            }
+
             return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username, this.password);
         }
 
@@ -175,6 +205,7 @@ public class OlogClient implements LogClient {
 
     private OlogClient(URI ologURI, ClientConfig config, boolean withHTTPBasicAuthFilter, String username, String password) {
         config.getClasses().add(MultiPartWriter.class);
+
         Client client = Client.create(config);
         if (withHTTPBasicAuthFilter) {
             client.addFilter(new HTTPBasicAuthFilter(username, password));

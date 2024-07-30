@@ -29,6 +29,137 @@ public class Converter
      *  @param outfile Output file (*.bob to write)
      *  @throws Exception on error
      */
+	/**
+	 * 
+	 * @return all opi files contained in a given folder
+	 */
+	
+	
+	public static final String OUTPUT_ARG = "-output";
+	public static final String OPI_EXTENSION = ".opi";
+	public static final String BOB_EXTENSION = ".bob";
+	public static final String PYTHON_EXTENSION = ".python";
+	public static final String PY_EXTENSION = ".py";
+	public static final String JAVASCRIPT_EXTENSION = ".javascript";
+	public static final String JS_EXTENSION = ".js";
+	public static final String IMPORT_CSS = "org.csstudio.opibuilder";
+	public static final String IMPORT_PHOEBUS = "org.csstudio.display.builder.runtime.script";
+	public static final String PHOEBUS = "phoebus_";
+	
+	public static List<String> listOpiFiles(String folder) {
+		List<String> extensionsList = new ArrayList<String>();
+		extensionsList.add(OPI_EXTENSION);
+		return listFiles(folder, extensionsList);
+	}
+
+	/**
+	 * 
+	 * @return all bob files contained in a given folder
+	 */
+	public static List<String> listBobFiles(String folder) {
+		List<String> extensionsList = new ArrayList<String>();
+		extensionsList.add(BOB_EXTENSION);
+		return listFiles(folder, extensionsList);
+	}
+
+	/**
+	 * 
+	 * @return all script files contained in a given folder
+	 */
+	public static List<String> listScriptFiles(String folder) {
+		List<String> extensionsList = new ArrayList<String>();
+		extensionsList.add(PYTHON_EXTENSION);
+		extensionsList.add(PY_EXTENSION);
+		extensionsList.add(JAVASCRIPT_EXTENSION);
+		extensionsList.add(JS_EXTENSION);
+		return listFiles(folder, extensionsList);
+	}
+
+	/**
+	 * Return true if it is a script
+	 * 
+	 * @param fileName
+	 * @return true if the file is a script file
+	 */
+	public static boolean isScriptFile(String fileName) {
+		List<String> extensionsList = new ArrayList<String>();
+		extensionsList.add(PYTHON_EXTENSION);
+		extensionsList.add(PY_EXTENSION);
+		extensionsList.add(JAVASCRIPT_EXTENSION);
+		extensionsList.add(JS_EXTENSION);
+		return matchExtensions(fileName, extensionsList);
+	}
+
+	/**
+	 * Return true if it is a opi file
+	 * 
+	 * @param fileName
+	 * @return true if the file is a opi file
+	 */
+	public static boolean isOpiFile(String fileName) {
+		List<String> extensionsList = new ArrayList<String>();
+		extensionsList.add(OPI_EXTENSION);
+		return matchExtensions(fileName, extensionsList);
+	}
+
+	/**
+	 * Return true if it is a bob file
+	 * 
+	 * @param fileName
+	 * @return true if the file is a bob file
+	 */
+	public static boolean isBobFile(String fileName) {
+		List<String> extensionsList = new ArrayList<String>();
+		extensionsList.add(BOB_EXTENSION);
+		return matchExtensions(fileName, extensionsList);
+	}
+
+	/**
+	 * 
+	 * @param fileName
+	 * @param extensionsList
+	 * @return true if the file is matched with the given extensions
+	 */
+	public static boolean matchExtensions(String fileName, List<String> extensionsList) {
+		boolean match = false;
+		if (fileName != null && extensionsList != null && !extensionsList.isEmpty()) {
+			for (String ext : extensionsList) {
+				if (fileName.toLowerCase().endsWith(ext)) {
+					match = true;
+					break;
+				}
+			}
+		}
+		return match;
+	}
+
+	/**
+	 * 
+	 * @return all files contained in a given folder and match with given extension
+	 */
+	public static List<String> listFiles(String folder, List<String> searchExtension) {
+		List<String> searchFiles = new ArrayList<String>();
+		File folderFile = new File(folder);
+		if (folderFile.exists() && folderFile.isDirectory()) {
+			File[] listFiles = folderFile.listFiles();
+			String filePath = null;
+			for (File file : listFiles) {
+				filePath = file.getAbsolutePath();
+				if (file.isDirectory()) {
+					List<String> tmpFiles = listFiles(filePath, searchExtension);
+					if (tmpFiles != null && !tmpFiles.isEmpty()) {
+						searchFiles.addAll(tmpFiles);
+					}
+				} else if (matchExtensions(filePath, searchExtension)) {
+					searchFiles.add(filePath);
+				}
+			}
+		}
+		return searchFiles;
+	}
+
+	
+	
     private static void convert(final File infile, final File outfile) throws Exception
     {
         System.out.println("Converting: " + infile + " => " + outfile);
@@ -50,7 +181,8 @@ public class Converter
         if (! infile.canRead())
             throw new Exception("Cannot read " + infile);
         File outfile;
-        if (input.endsWith(".opi"))
+
+        if (isOpiFile(input))
             outfile = new File(input.substring(0, input.length()-4) + ".bob");
         else
             outfile = new File(input);

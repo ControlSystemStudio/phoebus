@@ -440,6 +440,7 @@ public class Controller
             public void changedItemVisibility(final ModelItem item)
             {
                 plot.updateTrace(item);
+                changedAnnotations();
             }
 
             @Override
@@ -473,7 +474,13 @@ public class Controller
                 if (changing_annotations)
                     return;
                 changing_annotations = true;
-                plot.setAnnotations(model.getAnnotations());
+                List<AnnotationInfo> annotations = new ArrayList<>();
+                for (AnnotationInfo ai : model.getAnnotations()) {
+                    if (model.getItems().get(ai.getItemIndex()).isVisible()) {
+                        annotations.add(ai);
+                    }
+                }
+                plot.setAnnotations(annotations);
                 changing_annotations = false;
             }
         };

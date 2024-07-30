@@ -2,7 +2,6 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
@@ -10,12 +9,9 @@ import org.epics.vtype.VFloat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.service.saveandrestore.epics.RestoreResult;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ControllersTestConfig.class)
 @TestPropertySource(locations = "classpath:test_application_permit_all.properties")
-@WebMvcTest(NodeController.class)
+@WebMvcTest(SnapshotRestoreController.class)
 public class SnapshotRestorerControllerTest {
 
     @Autowired
@@ -53,14 +49,10 @@ public class SnapshotRestorerControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private String demoUser;
 
     @Test
     public void testRestoreFromSnapshotNode() throws Exception {
 
-        Node node = Node.builder().uniqueId("uniqueId").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
-        Snapshot snapshot = new Snapshot();
         SnapshotData snapshotData = new SnapshotData();
         SnapshotItem item = new SnapshotItem();
         ConfigPv configPv = new ConfigPv();
@@ -68,12 +60,10 @@ public class SnapshotRestorerControllerTest {
         item.setValue(VFloat.of(1.0, Alarm.none(), Time.now(), Display.none()));
         item.setConfigPv(configPv);
         snapshotData.setSnapshotItems(List.of(item));
-        snapshot.setSnapshotData(snapshotData);
-        snapshot.setSnapshotNode(node);
 
         when(nodeDAO.getSnapshotData("uniqueId")).thenReturn(snapshotData);
 
-        MockHttpServletRequestBuilder request = post("/restore/node?parentNodeId=uniqueId")
+        MockHttpServletRequestBuilder request = post("/restore/node?nodeId=uniqueId")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization);
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))

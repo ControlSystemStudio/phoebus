@@ -33,6 +33,7 @@
     <ant target="clean" dir="app/pvtree"/>
     <ant target="clean" dir="app/pvtable"/>
     <ant target="clean" dir="app/rtplot"/>
+    <ant target="clean" dir="app/trends/archive-reader"/>
     <ant target="clean" dir="app/databrowser"/>
     <ant target="clean" dir="app/databrowser-timescale"/>
     <ant target="clean" dir="app/trends/rich-adapters"/>
@@ -55,6 +56,7 @@
     <ant target="clean" dir="app/scan/ui"/>
     <ant target="clean" dir="app/alarm/model"/>
     <ant target="clean" dir="app/alarm/ui"/>
+    <ant target="clean" dir="app/alarm/freetts-annunciator"/>
     <ant target="clean" dir="app/alarm/logging-ui"/>
     <ant target="clean" dir="app/alarm/datasource"/>
     <ant target="clean" dir="app/update"/>
@@ -116,6 +118,7 @@
     <ant dir="app/pvtree"/>
     <ant dir="app/pvtable"/>
     <ant dir="app/rtplot"/>
+    <ant dir="app/trends/archive-reader"/>
     <ant dir="app/databrowser"/>
     <ant dir="app/databrowser-timescale"/>
     <ant dir="app/trends/rich-adapters"/>
@@ -138,6 +141,7 @@
     <ant dir="app/scan/ui"/>
     <ant dir="app/alarm/model"/>
     <ant dir="app/alarm/ui"/>
+    <ant dir="app/alarm/freetts-annunciator"/>
     <ant dir="app/alarm/logging-ui"/>
     <ant dir="app/alarm/datasource"/>
     <ant dir="app/update"/>

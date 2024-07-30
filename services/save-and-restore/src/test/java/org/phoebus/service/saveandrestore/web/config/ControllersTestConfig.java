@@ -20,6 +20,7 @@ package org.phoebus.service.saveandrestore.web.config;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.mockito.Mockito;
+import org.phoebus.service.saveandrestore.epics.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchTreeRepository;
@@ -32,7 +33,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Scope;
 import org.springframework.util.Base64Utils;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @SpringBootConfiguration
 @ComponentScan(basePackages = "org.phoebus.service.saveandrestore.web.controllers")
@@ -114,5 +119,22 @@ public class ControllersTestConfig {
     @Bean("readOnlyAuthorization")
     public String readOnlyAuthorization() {
         return "Basic " + Base64Utils.encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
+    }
+
+    @SuppressWarnings("unused")
+    @Bean
+    @Scope("singleton")
+    public SnapshotUtil snapshotRestorer(){
+        return new SnapshotUtil();
+    }
+
+    @Bean
+    public ExecutorService executorService(){
+        return Executors.newCachedThreadPool();
+    }
+
+    @Bean
+    public SnapshotUtil snapshotUtil(){
+        return Mockito.mock(SnapshotUtil.class);
     }
 }

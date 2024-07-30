@@ -15,7 +15,12 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.sniff.Sniffer;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
@@ -36,6 +41,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
@@ -53,7 +59,7 @@ public class ElasticClientHelper {
     private static ElasticsearchTransport transport;
 
     private static ElasticsearchClient client;
-    private static ElasticClientHelper instance;
+    private static AtomicReference<ElasticClientHelper> instance = new AtomicReference<>();
     private static Sniffer sniffer;
 
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
@@ -85,8 +91,37 @@ public class ElasticClientHelper {
             }));
 
             // Create the low-level client
-            restClient = RestClient.builder(
-                    new HttpHost(props.getProperty("es_host"), Integer.parseInt(props.getProperty("es_port")))).build();
+            final var esHost = props.getProperty("es_host", "");
+            final var esPort = props.getProperty("es_port", "");
+            final var esUrls = props.getProperty("es_urls", "");
+            HttpHost[] esHttpHosts;
+            if (esUrls.isEmpty()) {
+                final var http_host = new HttpHost(
+                        esHost.isEmpty() ? "localhost" : esHost,
+                        esPort.isEmpty() ? 9200 : Integer.parseInt(esPort));
+                esHttpHosts = new HttpHost[] {http_host};
+            } else {
+                if (!esHost.isEmpty() || !esPort.isEmpty()) {
+                    logger.warning("Only one of es_urls or es_host and es_port can be specified, ignoring es_host and es_port.");
+                }
+                esHttpHosts = Arrays.stream(esUrls.split(",")).map(HttpHost::create).toArray(HttpHost[]::new);
+            }
+            final var esAuthHeader = props.getProperty("es_auth_header", "");
+            final var esAuthUsername = props.getProperty("es_auth_username", "");
+            final var esAuthPassword = props.getProperty("es_auth_password", "");
+            final var restClientBuilder = RestClient.builder(esHttpHosts);
+            if (!esAuthHeader.isEmpty()) {
+                if (!esAuthUsername.isEmpty() || !esAuthPassword.isEmpty()) {
+                    logger.warning("Only one of es_auth_header or es_auth_username and es_auth_password can be specified. Ignoring es_auth_username and es_auth_password.");
+                }
+                restClientBuilder.setDefaultHeaders(
+                        new Header[] {new BasicHeader("Authorization", esAuthHeader)});
+            } else if (!esAuthUsername.isEmpty() || !esAuthPassword.isEmpty()) {
+                final var credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(esAuthUsername, esAuthPassword));
+                restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            }
+            restClient = restClientBuilder.build();
 
             mapper.registerModule(new JavaTimeModule());
             transport = new RestClientTransport(
@@ -118,10 +153,26 @@ public class ElasticClientHelper {
     }
 
     public static ElasticClientHelper getInstance() {
-        if (instance == null) {
-            instance = new ElasticClientHelper();
+        var helper = instance.get();
+        if (helper == null) {
+            // The helper instance is associated with static resources, so we
+            // want to be certain that it is never created twice. In order to
+            // ensure this, we have to create it inside a synchronized block,
+            // but we only do this if we expect that there is no instance yet.
+            // This looks like the double-checked-locking anti-pattern, but it
+            // is not an anti-pattern here, because instance is an atomic
+            // reference, so getting the value establishes a happens-before
+            // relationship, and we can be sure that we won’t retrieve an
+            // uninitialized object.
+            synchronized (instance) {
+                helper = instance.get();
+                if (helper == null) {
+                    helper = new ElasticClientHelper();
+                    instance.set(helper);
+                }
+            }
         }
-        return instance;
+        return helper;
     }
 
     public ElasticsearchClient getClient() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -19,10 +19,10 @@
 package org.phoebus.applications.saveandrestore.model.event;
 
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Implementations registered over Java SPI will be called when:
@@ -36,16 +36,18 @@ public interface SaveAndRestoreEventReceiver {
     /**
      * Called when a new snapshot {@link Node} has been successfully created and saved by the remote
      * save-and-restore service.
-     * @param node The {@link Node} representing the snapshot.
+     *
+     * @param node         The {@link Node} representing the snapshot.
      * @param errorHandler An error handler callback.
      */
     void snapshotSaved(Node node, Consumer<String> errorHandler);
 
     /**
      * Called when a new snapshot {@link Node} has been restored.
-     * @param node The {@link Node} representing the snapshot.
-     * @param failedPVs List of PVs that for any reason could not be restored.
+     *
+     * @param node         The {@link Node} representing the snapshot.
+     * @param failedPVs    List of PVs that for any reason could not be restored.
      * @param errorHandler An error handler callback.
      */
-    void snapshotRestored(Node node, List<String> failedPVs, Consumer<String> errorHandler);
+    void snapshotRestored(Node node, List<RestoreResult> failedPVs, Consumer<String> errorHandler);
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,6 +42,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * This controller is for the use case of loading a configuration {@link Node} to take a new snapshot.
@@ -139,7 +140,9 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         snapshotTab.setText(Messages.unnamedSnapshot);
         snapshotTableViewController.takeSnapshot(snapshot -> {
             disabledUi.set(false);
-            snapshotProperty.set(snapshot);
+            if(snapshot != null){
+                snapshotProperty.set(snapshot);
+            }
         });
     }
 
@@ -350,12 +353,28 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     }
 
     public void restore(ActionEvent actionEvent) {
-        snapshotTableViewController.restore(snapshotProperty.get(), restoreFailedPVNames -> {
+        snapshotTableViewController.restore(snapshotProperty.get(), restoreResultList -> {
             javafx.scene.Node jfxNode = (javafx.scene.Node) actionEvent.getSource();
             String userData = (String) jfxNode.getUserData();
             if (userData.equalsIgnoreCase("true")) {
-                eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreFailedPVNames, this::showLoggingError));
+                eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreResultList, this::showLoggingError));
             }
+            if(restoreResultList != null && !restoreResultList.isEmpty()){
+                showFailedRestoreResult(restoreResultList);
+            }
+        });
+    }
+
+    private void showFailedRestoreResult(List<RestoreResult> restoreResultList){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(Messages.restoreFailedPVs).append(System.lineSeparator());
+        stringBuilder.append(restoreResultList.stream()
+                .map(r -> r.getSnapshotItem().getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle(Messages.restoreFailed);
+            alert.setContentText(stringBuilder.toString());
+            alert.show();
         });
     }
 
