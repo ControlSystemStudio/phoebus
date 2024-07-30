@@ -66,4 +66,55 @@ public class DroppedPVNameParserTest
         names = DroppedPVNameParser.parseDroppedPVs("[ pv1\npv2 ] ");
         assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("pv2"))));
     }
+
+    @Test
+    public void testTab() throws Exception
+    {
+        List<Pair<String, String>> names = DroppedPVNameParser.parseDroppedPVs("pv1\tpv2");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("pv2"))));
+
+        names = DroppedPVNameParser.parseDroppedPVs(" pv1 \t  pv2 \t pv3");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("pv2"), duplicate("pv3"))));
+    }
+
+    @Test
+    public void testComma() throws Exception
+    {
+        List<Pair<String, String>> names = DroppedPVNameParser.parseDroppedPVs("pv1,pv2");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("pv2"))));
+
+        names = DroppedPVNameParser.parseDroppedPVs(" pv1,   pv2 , pv3");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("pv2"), duplicate("pv3"))));
+
+        // Ignore commata inside quoted text
+        names = DroppedPVNameParser.parseDroppedPVs(" pv1,   loc://txt(\"a, b, c\") , pv3");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("loc://txt(\"a, b, c\")"), duplicate("pv3"))));
+
+        // Ignore commata inside round brackets
+        names = DroppedPVNameParser.parseDroppedPVs(" pv1,   sim://sine(1, 2, 3) , pv3");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("sim://sine(1, 2, 3)"), duplicate("pv3"))));
+
+        // Ignore closing brace inside quotes
+        names = DroppedPVNameParser.parseDroppedPVs(" pv1,   loc://names(\"Fred\", \"Ed (3rd)\") , pv3");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("loc://names(\"Fred\", \"Ed (3rd)\")"), duplicate("pv3"))));
+
+        // Also allow semicolons
+        names = DroppedPVNameParser.parseDroppedPVs(" pv1;   pv2 ; pv3");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("pv2"), duplicate("pv3"))));
+    }
+
+    @Test
+    public void testSpace() throws Exception
+    {
+        List<Pair<String, String>> names = DroppedPVNameParser.parseDroppedPVs("pv1   pv2");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("pv2"))));
+
+        // Ignore spaces in brackets
+        names = DroppedPVNameParser.parseDroppedPVs("pv1   sim://sine(1, 2, 3)");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("sim://sine(1, 2, 3)"))));
+
+        // Ignore spaces in quotes
+        names = DroppedPVNameParser.parseDroppedPVs("  pv1   loc://tag(\"You're it!\")    ");
+        assertThat(names, equalTo(List.of(duplicate("pv1"), duplicate("loc://tag(\"You're it!\")"))));
+    }
 }
