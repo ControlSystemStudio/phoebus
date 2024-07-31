@@ -14,46 +14,18 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
+import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.stage.Window;
-import javafx.util.Pair;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.ContextMenuEvent;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
@@ -66,8 +38,12 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
+import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
@@ -79,11 +55,24 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 /** Dialog for displaying widget information
  *  @author Kay Kasemir
@@ -98,17 +87,14 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     private DisplayWidgetStats stats;
 
     /** PV info */
-    public static class NameStateValue
+    public static class NameStateValue extends ProcessVariable
     {
-        public SimpleBooleanProperty selected;
-        /** PV Name */
-        public final String name;
         /** State, incl. read-only or writable? */
-        public final String state;
+        private final String state;
         /** Last known value */
-        public final VType value;
+        private final VType value;
         /** Path to Widget within display that uses the PV */
-        public final String path;
+        private final String path;
 
         /** @param name PV Name
          *  @param state State, incl. read-only or writable?
@@ -117,11 +103,22 @@ public class WidgetInfoDialog extends Dialog<Boolean>
          */
         public NameStateValue(final String name, final String state, final VType value, final String path)
         {
-            this.selected = new SimpleBooleanProperty(false);
-            this.name = name;
+            super(name);
             this.state = state;
             this.value = value;
             this.path = path;
+        }
+
+        public String getState() {
+            return state;
+        }
+
+        public VType getValue() {
+            return value;
+        }
+
+        public String getPath() {
+            return path;
         }
     }
 
@@ -159,8 +156,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
      *  @param widget {@link Widget}
      *  @param pvs {@link Collection<NameStateValue>}s, may be empty
      */
-    public WidgetInfoDialog(final Widget widget,
-                            final Collection<NameStateValue> pvs)
+    public WidgetInfoDialog(final Widget widget, final Collection<NameStateValue> pvs)
     {
         this.pvs = pvs;
         this.widget = widget;
@@ -181,10 +177,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                 // No icon, no problem
             }
         }
-        final CheckBox selectAllPVsCheckBox = new CheckBox();
-        TableView<NameStateValue> pvsTable = createPVs(pvs, selectAllPVsCheckBox);
-        Tab pvTab = new Tab(Messages.WidgetInfoDialog_TabPVs, pvsTable);
-        final TabPane tabs = new TabPane(createProperties(widget), pvTab, createMacros(widget.getEffectiveMacros()));
+        final TabPane tabs = new TabPane(createProperties(widget), createPVs(pvs), createMacros(widget.getEffectiveMacros()));
 
         // For display model, show stats
         if (widget instanceof DisplayModel)
@@ -196,11 +189,9 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             tabs.getSelectionModel().select(1);
 
         final ButtonType export = new ButtonType(Messages.ExportWidgetInfo, ButtonData.LEFT);
-        final ButtonType copyPvNamesButtonType = new ButtonType(Messages.CopyPVNames, ButtonData.LEFT);
-        final ButtonType copyPvNamesWithDescriptionsButtonType = new ButtonType(Messages.CopyPVNamesAndDescriptions + "...", ButtonData.LEFT);
 
         getDialogPane().setContent(tabs);
-        getDialogPane().getButtonTypes().addAll(export, copyPvNamesButtonType, copyPvNamesWithDescriptionsButtonType, ButtonType.CLOSE);
+        getDialogPane().getButtonTypes().addAll(export, ButtonType.CLOSE);
         setResizable(true);
         tabs.setMinWidth(800);
 
@@ -219,107 +210,6 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                     event.consume();
                 }
         );
-
-        Button copyPvNamesWithDescriptionsButton = (Button) getDialogPane().lookupButton(copyPvNamesWithDescriptionsButtonType);
-
-        setOnCloseRequest(closeRequest -> {
-            // Prevent pressing copyPvNamesWithDescriptionsButton from closing the WidgetInfoDialog:
-            if (copyPvNamesWithDescriptionsButton.isPressed() || copyPvNamesWithDescriptionsButton.isArmed()) {
-                closeRequest.consume();
-            }
-        });
-
-        Button copyPvNamesButton = (Button) getDialogPane().lookupButton(copyPvNamesButtonType);
-
-        {
-            // copyPvNamesButton and copyPvNamesWithDescriptionsButton are only visible on the PV-tab:
-            tabs.getSelectionModel().selectedItemProperty().addListener((property, old_value, new_value) -> {
-                if (new_value == pvTab) {
-                    copyPvNamesButton.setVisible(true);
-                    copyPvNamesWithDescriptionsButton.setVisible(true);
-                }
-                else {
-                    copyPvNamesButton.setVisible(false);
-                    copyPvNamesWithDescriptionsButton.setVisible(false);
-                }
-            });
-
-            if (tabs.getSelectionModel().getSelectedItem() == pvTab) {
-                copyPvNamesButton.setVisible(true);
-                copyPvNamesWithDescriptionsButton.setVisible(true);
-            }
-            else {
-                copyPvNamesButton.setVisible(false);
-                copyPvNamesWithDescriptionsButton.setVisible(false);
-            }
-        }
-
-        {
-            // Disable copyPvNamesWithDescriptionsButton when no PV has been selected:
-            List<SimpleBooleanProperty> selectedStatuses = pvs.stream().map(nameStateValue -> nameStateValue.selected).collect(Collectors.toList());
-
-            Runnable enableOrDisableButtonsAndCheckbox = () -> {
-                if (selectedStatuses.stream().allMatch(selected -> !selected.get())) {
-                    copyPvNamesButton.setDisable(true);
-                    copyPvNamesWithDescriptionsButton.setDisable(true);
-                    selectAllPVsCheckBox.setIndeterminate(false);
-                    selectAllPVsCheckBox.setSelected(false);
-                }
-                else {
-                    copyPvNamesButton.setDisable(false);
-                    copyPvNamesWithDescriptionsButton.setDisable(false);
-                    if (selectedStatuses.stream().allMatch(selected -> selected.get())) {
-                        selectAllPVsCheckBox.setIndeterminate(false);
-                        selectAllPVsCheckBox.setSelected(true);
-                    }
-                    else {
-                        selectAllPVsCheckBox.setIndeterminate(true);
-                        selectAllPVsCheckBox.setSelected(false);
-                    }
-                }
-            };
-
-            for (var isPVSelectedProperty : selectedStatuses) {
-                isPVSelectedProperty.addListener((property, old_value, new_value) -> enableOrDisableButtonsAndCheckbox.run());
-            }
-
-            enableOrDisableButtonsAndCheckbox.run();
-        }
-
-        copyPvNamesButton.setOnAction(actionEvent -> {
-            List<String> pvNames = new LinkedList<>();
-            for (NameStateValue nameStateValue : pvsTable.getItems()) {
-                if (nameStateValue.selected.get()) {
-                    pvNames.add(nameStateValue.name);
-                }
-            }
-            copyPVNamesToClipboard(pvNames);
-        });
-
-        copyPvNamesWithDescriptionsButton.setOnAction(actionEvent -> {
-
-            List<Pair<String, String>> pvNamesAndDefaultDescriptions = new LinkedList<>();
-            for (NameStateValue nameStateValue : pvsTable.getItems()) {
-                if (nameStateValue.selected.get()) {
-                    String opiName;
-                    try {
-                        opiName = widget.getTopDisplayModel().getName();
-                    }
-                    catch (Exception exception) {
-                        String warningMessage_formatString = "The PV ''{0}'' doesn't have an associated top-level display model.";
-                        String warningMessage = MessageFormat.format(warningMessage_formatString, nameStateValue.name);
-                        Logger.getLogger(getClass().getName()).log(Level.WARNING, warningMessage, exception);
-
-                        opiName = "";
-                    }
-                    Pair<String, String> pvNameAndDefaultDescription = new Pair<>(nameStateValue.name, opiName);
-                    pvNamesAndDefaultDescriptions.add(pvNameAndDefaultDescription);
-                }
-            }
-
-            copyPVNamesAndDescriptionsDialog(pvNamesAndDefaultDescriptions,
-                                             pvsTable.getScene().getWindow());
-        });
 
         setResultConverter(button -> true);
     }
@@ -341,8 +231,8 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
         buffer.append("PVS (name, state, value, widget path)").append(System.lineSeparator())
                 .append(horizontalRuler).append(System.lineSeparator());
-        pvs.stream().sorted(Comparator.comparing(pv -> pv.name)).forEach(pv -> {
-            buffer.append(pv.name).append(itemSeparator)
+        pvs.stream().sorted(Comparator.comparing(pv -> pv.getName())).forEach(pv -> {
+            buffer.append(pv.getName()).append(itemSeparator)
                     .append(pv.state)
                     .append(itemSeparator)
                     .append(getPVValue(pv.value))
@@ -420,54 +310,17 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         return new Tab(Messages.WidgetInfoDialog_TabMacros, table);
     }
 
-    private TableView<NameStateValue> createPVs(final Collection<NameStateValue> pvs,
-                                                final CheckBox selectAllPVsCheckBox)
+    private Tab createPVs(final Collection<NameStateValue> pvs)
     {
-        final TableColumn<NameStateValue, Boolean> selectionColumn = new TableColumn<>();
-        {
-            double columnWidth = 40;
-            selectionColumn.setMinWidth(columnWidth);
-            selectionColumn.setPrefWidth(columnWidth);
-            selectionColumn.setMaxWidth(columnWidth);
-        }
-
-        selectionColumn.graphicProperty().set(selectAllPVsCheckBox);
-        selectAllPVsCheckBox.setOnAction(actionEvent -> {
-            if (selectAllPVsCheckBox.isSelected() || selectAllPVsCheckBox.isIndeterminate()) {
-                selectAllPVsCheckBox.setSelected(true);
-                pvs.forEach(nameStateValue -> nameStateValue.selected.set(true));
-            }
-            else {
-                pvs.forEach(nameStateValue -> nameStateValue.selected.set(false));
-            }
-        });
-
-        MenuItem selectAllMenuItem = new MenuItem(Messages.SelectAll);
-        selectAllMenuItem.setOnAction(actionEvent -> pvs.forEach(nameStateValue -> nameStateValue.selected.set(true)));
-        MenuItem deSelectAllMenuItem = new MenuItem(Messages.DeSelectAll);
-        deSelectAllMenuItem.setOnAction(actionEvent -> pvs.forEach(nameStateValue -> nameStateValue.selected.set(false)));
-
-        ContextMenu selectionContextMenu = new ContextMenu(selectAllMenuItem, deSelectAllMenuItem);
-
-        selectionColumn.setCellFactory(col -> {
-            CheckBoxTableCell checkBoxTableCell = new CheckBoxTableCell<>();
-            checkBoxTableCell.setContextMenu(selectionContextMenu);
-            return checkBoxTableCell;
-        });
-        selectionColumn.setCellValueFactory(param -> param.getValue().selected);
-
         // Use text field to allow users to copy the name, value to clipboard
         final TableColumn<NameStateValue, String> name = new TableColumn<>(Messages.WidgetInfoDialog_Name);
-        name.setCellFactory(col -> new ReadOnlyTextCell<>());
-        name.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().name));
+        name.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("name"));
 
         final TableColumn<NameStateValue, String> state = new TableColumn<>(Messages.WidgetInfoDialog_State);
-        state.setCellFactory(col -> new ReadOnlyTextCell<>());
-        state.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().state));
+        state.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("state"));
 
         final TableColumn<NameStateValue, String> path = new TableColumn<>(Messages.WidgetInfoDialog_Path);
-        path.setCellFactory(col -> new ReadOnlyTextCell<>());
-        path.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().path));
+        path.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("path"));
 
         final TableColumn<NameStateValue, String> value = new TableColumn<>(Messages.WidgetInfoDialog_Value);
         value.setCellFactory(col -> new AlarmColoredCell());
@@ -478,17 +331,52 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         });
 
         final ObservableList<NameStateValue> pv_data = FXCollections.observableArrayList(pvs);
-        pv_data.sort(Comparator.comparing(a -> a.name));
+        pv_data.sort(Comparator.comparing(a -> a.getName()));
         final TableView<NameStateValue> table = new TableView<>(pv_data);
-        table.setEditable(true);
-        table.getColumns().add(selectionColumn);
         table.getColumns().add(name);
         table.getColumns().add(state);
         table.getColumns().add(value);
         table.getColumns().add(path);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        return table;
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                SelectionService.getInstance().setSelection(table, table.getSelectionModel().getSelectedItems());
+            }
+        });
+
+        table.setOnContextMenuRequested(event -> {
+
+            final ContextMenu contextMenu = new ContextMenu();
+
+            List<ContextMenuEntry> contextEntries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+
+            contextEntries.forEach(entry -> {
+                MenuItem item = new MenuItem(entry.getName(), new ImageView(entry.getIcon()));
+                item.setOnAction(e -> {
+                    try {
+                        ObservableList<NameStateValue> old = table.getSelectionModel().getSelectedItems();
+
+                        List<Object> selectedPVs = SelectionService.getInstance().getSelection().getSelections().stream().map(s -> {
+                            return AdapterService.adapt(s, entry.getSupportedType()).get();
+                        }).collect(Collectors.toList());
+                        // set the selection
+                        SelectionService.getInstance().setSelection(table, selectedPVs);
+                        entry.call(SelectionService.getInstance().getSelection());
+                        // reset the selection
+                        SelectionService.getInstance().setSelection(table, old);
+                    } catch (Exception ex) {
+                        //logger.log(Level.WARNING, "Failed to execute action " + entry.getName(), ex);
+                    }
+                });
+                contextMenu.getItems().add(item);
+            });
+
+            table.setContextMenu(contextMenu);
+        });
+
+        return new Tab(Messages.WidgetInfoDialog_TabPVs, table);
     }
 
     private Tab createProperties(final Widget widget)
@@ -590,207 +478,5 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                         alarm.getName() + "]";
         }
         return text;
-    }
-
-    public static void copyPVNamesAndDescriptionsDialog(final List<Pair<String, String>> pvNamesAndDefaultDescriptions,
-                                                        final Window windowToPositionTheConfirmationDialogOver) {
-
-        FutureTask<Optional<Pair<String, String>>> displayCopyDialog = new FutureTask(() -> {
-            final Dialog copyDialog = new Dialog();
-
-            boolean usePlural = pvNamesAndDefaultDescriptions.size() > 1;
-            if (usePlural) {
-                copyDialog.setTitle(Messages.CopyPVNames);
-                copyDialog.setHeaderText(Messages.CopyPVNames);
-            }
-            else {
-                copyDialog.setTitle(Messages.CopyPVName);
-                copyDialog.setHeaderText(Messages.CopyPVName);
-            }
-
-            {
-                // In JavaFX, a button of type ButtonType.CLOSE must be present for the 'X'-button to work.
-                // The button created by ButtonType.CLOSE is, however, not left-aligned correctly, and
-                // therefore the button defined by ButtonType.CLOSE is hidden and a custom ButtonType is
-                // declared for the close-button.
-                copyDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-                Button hiddenCloseButton = (Button) copyDialog.getDialogPane().lookupButton(ButtonType.CLOSE);
-                hiddenCloseButton.setVisible(false);
-            }
-
-            // Custom close-button with correct alignment:
-            final Button closeButton;
-            {
-                ButtonType closeButtonType = new ButtonType(Messages.Cancel, ButtonData.LEFT);
-                copyDialog.getDialogPane().getButtonTypes().add(closeButtonType);
-                closeButton = (Button) copyDialog.getDialogPane().lookupButton(closeButtonType);
-                ButtonBar.setButtonUniformSize(closeButton, false);
-            }
-
-            final Button copyWithoutDescriptionButton;
-            {
-                ButtonType copyWithoutDescriptionButtonType = new ButtonType(usePlural ? Messages.CopyPVNames : Messages.CopyPVName, ButtonData.RIGHT);
-                copyDialog.getDialogPane().getButtonTypes().add(copyWithoutDescriptionButtonType);
-                copyWithoutDescriptionButton = (Button) copyDialog.getDialogPane().lookupButton(copyWithoutDescriptionButtonType);
-                copyWithoutDescriptionButton.setTooltip(new Tooltip(copyWithoutDescriptionButton.getText()));
-                ButtonBar.setButtonUniformSize(copyWithoutDescriptionButton, false);
-            }
-
-            final Button copyWithDescriptionButton;
-            {
-                ButtonType copyWithDescriptionButtonType = new ButtonType(usePlural ? Messages.CopyPVNamesAndDescriptions : Messages.CopyPVNameAndDescription, ButtonData.RIGHT);
-                copyDialog.getDialogPane().getButtonTypes().add(copyWithDescriptionButtonType);
-                copyWithDescriptionButton = (Button) copyDialog.getDialogPane().lookupButton(copyWithDescriptionButtonType);
-                copyWithDescriptionButton.setTooltip(new Tooltip(copyWithDescriptionButton.getText()));
-                ButtonBar.setButtonUniformSize(copyWithDescriptionButton, false);
-            }
-
-            final GridPane gridPane = new GridPane();
-            gridPane.setPrefWidth(Double.MAX_VALUE);
-            gridPane.setHgap(0);
-            gridPane.setVgap(4);
-
-            final ColumnConstraints firstColumnColumnConstraints = new ColumnConstraints();
-            gridPane.getColumnConstraints().add(0, firstColumnColumnConstraints);
-
-            // The second column defines the gap between the first and third columns.
-            final ColumnConstraints secondColumnColumnConstraints = new ColumnConstraints();
-            int width = 10;
-            secondColumnColumnConstraints.setMinWidth(width);
-            secondColumnColumnConstraints.setPrefWidth(width);
-            secondColumnColumnConstraints.setMaxWidth(width);
-            gridPane.getColumnConstraints().add(1, secondColumnColumnConstraints);
-
-            final ColumnConstraints thirdColumnColumnConstraints = new ColumnConstraints();
-            thirdColumnColumnConstraints.setHgrow(Priority.SOMETIMES);
-            thirdColumnColumnConstraints.setFillWidth(true);
-            gridPane.getColumnConstraints().add(2, thirdColumnColumnConstraints);
-
-            int currentRow = 0;
-
-            final List<Pair<String, TextField>> pvNamesAndDescriptionTextFields = new LinkedList<>();
-            boolean pvsHaveBeenAddedPreviously = false;
-            for (Pair<String, String> pvNameAndDefaultDescription : pvNamesAndDefaultDescriptions) {
-                String pvName = pvNameAndDefaultDescription.getKey();
-                String defaultDescription = pvNameAndDefaultDescription.getValue();
-
-                if (pvsHaveBeenAddedPreviously) {
-                    gridPane.add(new Separator(), 0, currentRow, 3, 1);
-                    currentRow++;
-                }
-
-                Text pvNameLabelText = new Text(Messages.PVName + ":");
-                pvNameLabelText.setStyle("-fx-font-size: 14; -fx-font-weight: bold; ");
-                gridPane.add(pvNameLabelText, 0, currentRow);
-
-                Text pvNameText = new Text(pvName);
-                pvNameText.setStyle("-fx-font-size: 14; -fx-font-style: italic; ");
-                gridPane.add(pvNameText, 2, currentRow);
-                currentRow++;
-
-                Text descriptionLabelText = new Text(Messages.Description + ":");
-                descriptionLabelText.setStyle("-fx-font-size: 14; -fx-font-weight: bold; ");
-                gridPane.add(descriptionLabelText, 0, currentRow);
-
-                TextField descriptionText = new TextField(defaultDescription);
-                descriptionText.setStyle("-fx-font-size: 14; ");
-                descriptionText.setOnKeyPressed(keyEvent -> {
-                    if (keyEvent.getCode() == KeyCode.ENTER) {
-                        keyEvent.consume();
-                        copyWithDescriptionButton.fire();
-                    }
-                });
-                gridPane.add(descriptionText, 2, currentRow);
-                currentRow++;
-
-                pvNamesAndDescriptionTextFields.add(new Pair(pvName, descriptionText));
-                pvsHaveBeenAddedPreviously = true;
-            }
-
-            copyWithoutDescriptionButton.setOnAction(actionEvent -> {
-                List<String> pvNames = pvNamesAndDescriptionTextFields.stream().map(pvNameAndTextField -> pvNameAndTextField.getKey()).collect(Collectors.toList());
-                copyPVNamesToClipboard(pvNames);
-            });
-
-            copyWithDescriptionButton.setOnAction(actionEvent -> {
-                List<Pair<String, String>> pvNamesAndDescriptions = pvNamesAndDescriptionTextFields.stream().map(pvNameAndTextField -> new Pair<String, String>(pvNameAndTextField.getKey(), pvNameAndTextField.getValue().getText())).collect(Collectors.toList());
-                copyPVNamesAndDescriptionsToClipboard(pvNamesAndDescriptions);
-            });
-
-            ScrollPane scrollPane = new ScrollPane(gridPane);
-            scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-            copyDialog.getDialogPane().setContent(scrollPane);
-
-            copyDialog.getDialogPane().setOnKeyPressed(keyEvent -> {
-                if (keyEvent.getCode() == KeyCode.ESCAPE) {
-                    closeButton.fire();
-                }
-            });
-
-            int prefWidth = 650;
-            int maxHeight = 600;
-            scrollPane.setFitToWidth(true);
-            scrollPane.setFitToHeight(true);
-            copyDialog.setResizable(true);
-            copyDialog.getDialogPane().setPrefWidth(prefWidth);
-            copyDialog.getDialogPane().setMaxHeight(maxHeight);
-            copyDialog.initOwner(windowToPositionTheConfirmationDialogOver);
-
-            Platform.runLater(() -> {
-                if (pvNamesAndDescriptionTextFields.size() > 0) {
-                    TextField topMostDescriptionTextField = pvNamesAndDescriptionTextFields.get(0).getValue();
-                    topMostDescriptionTextField.requestFocus();
-                    topMostDescriptionTextField.selectAll();
-                }
-            });
-
-            copyDialog.showAndWait();
-            return Optional.empty();
-        });
-
-        if (Platform.isFxApplicationThread()) {
-            displayCopyDialog.run();
-        }
-        else {
-            Platform.runLater(displayCopyDialog);
-        }
-    }
-
-    static private void copyPVNamesToClipboard(List<String> pvNames) {
-        String newClipboardContent = "";
-
-        for (String pvName : pvNames) {
-            if (!newClipboardContent.equals("")) {
-                newClipboardContent += System.lineSeparator();
-            }
-            newClipboardContent += pvName;
-        }
-
-        ClipboardContent newContent = new ClipboardContent();
-        newContent.putString(newClipboardContent);
-
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        clipboard.setContent(newContent);
-    }
-
-    static private void copyPVNamesAndDescriptionsToClipboard(List<Pair<String, String>> pvNamesAndDescriptions) {
-        String newClipboardContent = "";
-
-        for (Pair<String, String> pvNameAndDescription : pvNamesAndDescriptions) {
-            String pvName = pvNameAndDescription.getKey();
-            String description = pvNameAndDescription.getValue();
-
-            if (!newClipboardContent.equals("")) {
-                newClipboardContent += System.lineSeparator();
-            }
-            newClipboardContent +=  pvName + "," + description;
-        }
-
-        ClipboardContent newContent = new ClipboardContent();
-        newContent.putString(newClipboardContent);
-
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        clipboard.setContent(newContent);
     }
 }
