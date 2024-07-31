@@ -231,4 +231,25 @@ public interface SaveAndRestoreClient {
      * an exception.
      */
     UserData authenticate(String userName, String password);
+
+    /**
+     * Requests service to restore the specified {@link SnapshotItem}s
+     * @param snapshotItems A {@link List} of {@link SnapshotItem}s
+     * @return A @{@link List} of {@link RestoreResult}s with information on potentially failed {@link SnapshotItem}s.
+     */
+    List<RestoreResult> restore(List<SnapshotItem> snapshotItems);
+
+    /**
+     * Requests service to restore the specified snapshot.
+     * @param snapshotNodeId Unique id of a snapshot
+     * @return A @{@link List} of {@link RestoreResult}s with information on potentially failed {@link SnapshotItem}s.
+     */
+    List<RestoreResult> restore(String snapshotNodeId);
+
+    /**
+     * Requests service to take a snapshot.
+     * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
+     * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
+     */
+    List<SnapshotItem> takeSnapshot(String configurationNodeId);
 }

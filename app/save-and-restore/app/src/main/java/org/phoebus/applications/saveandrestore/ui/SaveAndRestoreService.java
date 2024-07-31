@@ -394,4 +394,37 @@ public class SaveAndRestoreService {
                 executor.submit(() -> saveAndRestoreClient.authenticate(userName, password));
         return future.get();
     }
+
+    /**
+     * Requests service to restore the specified {@link SnapshotItem}s
+     * @param snapshotItems A {@link List} of {@link SnapshotItem}s
+     * @return A @{@link List} of {@link RestoreResult}s with information on potentially failed {@link SnapshotItem}s.
+     */
+    public List<RestoreResult> restore(List<SnapshotItem> snapshotItems) throws Exception{
+        Future<List<RestoreResult>> future =
+                executor.submit(() -> saveAndRestoreClient.restore(snapshotItems));
+        return future.get();
+    }
+
+    /**
+     * Requests service to restore the specified snapshot.
+     * @param snapshotNodeId Unique id of a snapshot
+     * @return A @{@link List} of {@link RestoreResult}s with information on potentially failed {@link SnapshotItem}s.
+     */
+    public List<RestoreResult> restore(String snapshotNodeId) throws Exception{
+        Future<List<RestoreResult>> future =
+                executor.submit(() -> saveAndRestoreClient.restore(snapshotNodeId));
+        return future.get();
+    }
+
+    /**
+     * Requests service to take a snapshot, i.e. to read PVs as defined in a {@link Configuration}.
+     * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
+     * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
+     */
+    public List<SnapshotItem> takeSnapshot(String configurationNodeId) throws Exception{
+        Future<List<SnapshotItem>> future =
+                executor.submit(() -> saveAndRestoreClient.takeSnapshot(configurationNodeId));
+        return future.get();
+    }
 }

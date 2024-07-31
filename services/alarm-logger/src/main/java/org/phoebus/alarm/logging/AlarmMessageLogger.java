@@ -2,7 +2,9 @@ package org.phoebus.alarm.logging;
 
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -126,7 +128,7 @@ public class AlarmMessageLogger implements Runnable {
         Runtime.getRuntime().addShutdownHook(new Thread("streams-"+topic+"-alarm-messages-shutdown-hook") {
             @Override
             public void run() {
-                streams.close(10, TimeUnit.SECONDS);
+                streams.close(Duration.of(10, ChronoUnit.SECONDS));
                 System.out.println("\nShutting streams Done.");
                 latch.countDown();
             }

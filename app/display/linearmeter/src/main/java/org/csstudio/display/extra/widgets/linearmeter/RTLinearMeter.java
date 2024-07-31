@@ -21,6 +21,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 
 import javafx.application.Platform;
@@ -49,8 +51,9 @@ import javax.imageio.ImageIO;
 @SuppressWarnings("nls")
 public class RTLinearMeter extends ImageView
 {
-
-    // Note: To a first approximation, all methods that are called from different threads must be "synchronized".
+    // Note: All methods that are called from different threads must ensure thread-safety by running
+    // relevant code on the JavaFX application thread. (The helper function runOnJavaFXThread() can
+    // be used for this.)
 
     public RTLinearMeter(double initialValue,
                          int width,
@@ -224,13 +227,24 @@ public class RTLinearMeter extends ImageView
 
     private Boolean isHighlightActiveRegionEnabled;
 
-    public synchronized void setIsGradientEnabled(boolean isGradientEnabled) {
-        this.isGradientEnabled = isGradientEnabled;
-        updateActiveColors();
+    private void runOnJavaFXThread(Runnable runnable) {
+        if (Platform.isFxApplicationThread()) {
+            runnable.run();
+        }
+        else {
+            Platform.runLater(() -> runnable.run());
+        }
     }
 
-    public synchronized void setIsHighlightActiveRegionEnabled(boolean isHighlightActiveRegionEnabled) {
-        this.isHighlightActiveRegionEnabled = isHighlightActiveRegionEnabled;
+    public void setIsGradientEnabled(boolean isGradientEnabled) {
+        runOnJavaFXThread(() -> {
+            this.isGradientEnabled = isGradientEnabled;
+            updateActiveColors();
+        });
+    }
+
+    public void setIsHighlightActiveRegionEnabled(boolean isHighlightActiveRegionEnabled) {
+        runOnJavaFXThread(() -> this.isHighlightActiveRegionEnabled = isHighlightActiveRegionEnabled);
     }
 
     private void updateActiveColors() {
@@ -317,141 +331,168 @@ public class RTLinearMeter extends ImageView
         return lowlightedColor;
     }
 
-    public synchronized void setNormalStatusColor(Color normalStatusColor) {
-        this.normalStatusColor_lowlighted = computeLowlightedColor(normalStatusColor);
-        this.normalStatusColor_highlighted = normalStatusColor;
+    public void setNormalStatusColor(Color normalStatusColor) {
+        runOnJavaFXThread(() -> {
+            this.normalStatusColor_lowlighted = computeLowlightedColor(normalStatusColor);
+            this.normalStatusColor_highlighted = normalStatusColor;
 
-        this.normalStatusColorGradientStartPoint_lowlighted = computeGradientStartPoint(normalStatusColor_lowlighted);
-        this.normalStatusColorGradientEndPoint_lowlighted = computeGradientEndPoint(normalStatusColor_lowlighted);
+            this.normalStatusColorGradientStartPoint_lowlighted = computeGradientStartPoint(normalStatusColor_lowlighted);
+            this.normalStatusColorGradientEndPoint_lowlighted = computeGradientEndPoint(normalStatusColor_lowlighted);
 
-        this.normalStatusColorGradientStartPoint_highlighted = computeGradientStartPoint(normalStatusColor_highlighted);
-        this.normalStatusColorGradientEndPoint_highlighted = computeGradientEndPoint(normalStatusColor_highlighted);
+            this.normalStatusColorGradientStartPoint_highlighted = computeGradientStartPoint(normalStatusColor_highlighted);
+            this.normalStatusColorGradientEndPoint_highlighted = computeGradientEndPoint(normalStatusColor_highlighted);
 
-        updateActiveColors();
+            updateActiveColors();
+        });
     }
 
-    public synchronized void setMinorAlarmColor(Color minorAlarmColor) {
-        this.minorAlarmColor_lowlighted = computeLowlightedColor(minorAlarmColor);
-        this.minorAlarmColor_highlighted = minorAlarmColor;
+    public void setMinorAlarmColor(Color minorAlarmColor) {
+        runOnJavaFXThread(() -> {
+            this.minorAlarmColor_lowlighted = computeLowlightedColor(minorAlarmColor);
+            this.minorAlarmColor_highlighted = minorAlarmColor;
 
-        this.minorAlarmColorGradientStartPoint_lowlighted = computeGradientStartPoint(minorAlarmColor_lowlighted);
-        this.minorAlarmColorGradientEndPoint_lowlighted = computeGradientEndPoint(minorAlarmColor_lowlighted);
+            this.minorAlarmColorGradientStartPoint_lowlighted = computeGradientStartPoint(minorAlarmColor_lowlighted);
+            this.minorAlarmColorGradientEndPoint_lowlighted = computeGradientEndPoint(minorAlarmColor_lowlighted);
 
-        this.minorAlarmColorGradientStartPoint_highlighted = computeGradientStartPoint(minorAlarmColor_highlighted);
-        this.minorAlarmColorGradientEndPoint_highlighted = computeGradientEndPoint(minorAlarmColor_highlighted);
+            this.minorAlarmColorGradientStartPoint_highlighted = computeGradientStartPoint(minorAlarmColor_highlighted);
+            this.minorAlarmColorGradientEndPoint_highlighted = computeGradientEndPoint(minorAlarmColor_highlighted);
 
-        updateActiveColors();
+            updateActiveColors();
+        });
     }
 
-    public synchronized void setMajorAlarmColor(Color majorAlarmColor) {
-        this.majorAlarmColor_lowlighted = computeLowlightedColor(majorAlarmColor);
-        this.majorAlarmColor_highlighted = majorAlarmColor;
+    public void setMajorAlarmColor(Color majorAlarmColor) {
+        runOnJavaFXThread(() -> {
+            this.majorAlarmColor_lowlighted = computeLowlightedColor(majorAlarmColor);
+            this.majorAlarmColor_highlighted = majorAlarmColor;
 
-        this.majorAlarmColorGradientStartPoint_lowlighted = computeGradientStartPoint(majorAlarmColor_lowlighted);
-        this.majorAlarmColorGradientEndPoint_lowlighted = computeGradientEndPoint(majorAlarmColor_lowlighted);
+            this.majorAlarmColorGradientStartPoint_lowlighted = computeGradientStartPoint(majorAlarmColor_lowlighted);
+            this.majorAlarmColorGradientEndPoint_lowlighted = computeGradientEndPoint(majorAlarmColor_lowlighted);
 
-        this.majorAlarmColorGradientStartPoint_highlighted = computeGradientStartPoint(majorAlarmColor_highlighted);
-        this.majorAlarmColorGradientEndPoint_highlighted = computeGradientEndPoint(majorAlarmColor_highlighted);
+            this.majorAlarmColorGradientStartPoint_highlighted = computeGradientStartPoint(majorAlarmColor_highlighted);
+            this.majorAlarmColorGradientEndPoint_highlighted = computeGradientEndPoint(majorAlarmColor_highlighted);
 
-        updateActiveColors();
+            updateActiveColors();
+        });
     }
 
-    public synchronized void setNeedleWidth(int needleWidth) {
-        this.needleWidth = needleWidth;
+    public void setNeedleWidth(int needleWidth) {
+        runOnJavaFXThread(() -> this.needleWidth = needleWidth);
     }
 
-    public synchronized void setNeedleColor(Color needleColor) {
-        this.needleColor = needleColor;
+    public void setNeedleColor(Color needleColor) {
+        runOnJavaFXThread(() -> this.needleColor = needleColor);
     }
 
-    public synchronized void setShowUnits(boolean newValue) {
-        showUnits = newValue;
-        updateMeterBackground();
-        redrawIndicator(currentValue, currentWarning);
-    }
-
-    public synchronized void setUnits(String newValue) {
-        if (!units.equals(newValue)) {
-            units = newValue;
+    public void setShowUnits(boolean newValue) {
+        runOnJavaFXThread(() -> {
+            showUnits = newValue;
             updateMeterBackground();
             redrawIndicator(currentValue, currentWarning);
-        }
+        });
     }
 
-    public synchronized void setShowLimits(boolean newValue) {
-        showLimits = newValue;
-        updateMeterBackground();
-        determineWarning();
-        redrawIndicator(currentValue, currentWarning);
+    public void setUnits(String newValue) {
+        runOnJavaFXThread(() -> {
+            if (!units.equals(newValue)) {
+                units = newValue;
+                updateMeterBackground();
+                redrawIndicator(currentValue, currentWarning);
+            }
+        });
     }
 
-    public synchronized void setRange(double minimum, double maximum, boolean validRange) {
-
-        this.validRange = validRange;
-        linearMeterScale.setValueRange(minimum, maximum);
-
-        updateMeterBackground();
-        redrawIndicator(currentValue, currentWarning);
+    public void setShowLimits(boolean newValue) {
+        runOnJavaFXThread(() -> {
+            showLimits = newValue;
+            updateMeterBackground();
+            determineWarning();
+            redrawIndicator(currentValue, currentWarning);
+        });
     }
 
-    public synchronized void setMinMaxTolerance(double minMaxTolerance) {
-        this.minMaxTolerance = minMaxTolerance;
-        determineWarning();
-        redrawIndicator(currentValue, currentWarning);
+    public void setRange(double minimum, double maximum, boolean validRange) {
+        runOnJavaFXThread(() -> {
+            this.validRange = validRange;
+            linearMeterScale.setValueRange(minimum, maximum);
+
+            updateMeterBackground();
+            redrawIndicator(currentValue, currentWarning);
+        });
+    }
+
+    public void setMinMaxTolerance(double minMaxTolerance) {
+        runOnJavaFXThread(() -> {
+            this.minMaxTolerance = minMaxTolerance;
+            determineWarning();
+            redrawIndicator(currentValue, currentWarning);
+        });
     }
 
     public double getLoLo() {
         return loLo;
     }
 
-    public synchronized void setLoLo(double loLo) {
-        this.loLo = loLo;
-        layout();
-        updateMeterBackground();
+    public void setLoLo(double loLo) {
+        runOnJavaFXThread(() -> {
+            this.loLo = loLo;
+            layout();
+            updateMeterBackground();
+        });
     }
 
     public double getLow() {
         return low;
     }
 
-    public synchronized void setLow(double low) {
-        this.low = low;
-        layout();
-        updateMeterBackground();
+    public void setLow(double low) {
+        runOnJavaFXThread(() -> {
+            this.low = low;
+            layout();
+            updateMeterBackground();
+        });
     }
 
     public double getHigh() {
         return high;
     }
 
-    public synchronized void setHigh(double high) {
-        this.high = high;
-        layout();
-        updateMeterBackground();
+    public void setHigh(double high) {
+        runOnJavaFXThread(() -> {
+            this.high = high;
+            layout();
+            updateMeterBackground();
+        });
     }
 
     public double getHiHi() {
         return hiHi;
     }
 
-    public synchronized void setHiHi(double hiHi) {
-        this.hiHi = hiHi;
-        layout();
-        updateMeterBackground();
+    public void setHiHi(double hiHi) {
+        runOnJavaFXThread(() -> {
+            this.hiHi = hiHi;
+            layout();
+            updateMeterBackground();
+        });
     }
 
     private Color knobColor = new Color(0, 0, 0, 255);
 
-    public synchronized void setKnobColor(Color knobColor) {
-        this.knobColor = knobColor;
-        requestLayout();
+    public void setKnobColor(Color knobColor) {
+        runOnJavaFXThread(() -> {
+            this.knobColor = knobColor;
+            requestLayout();
+        });
     }
 
     private int knobSize;
 
-    public synchronized void setKnobSize(int knobSize) {
-        this.knobSize = knobSize;
-        requestLayout();
+    public void setKnobSize(int knobSize) {
+        runOnJavaFXThread(() -> {
+            this.knobSize = knobSize;
+            requestLayout();
+        });
     }
 
     private BufferedImage meter_background = null;
@@ -459,39 +500,41 @@ public class RTLinearMeter extends ImageView
     private WritableImage awt_jfx_convert_buffer = null;
 
     /** Redraw on UI thread by adding needle to 'meter_background' */
-    private synchronized void redrawIndicator (double value, WARNING warning)
+    private void redrawIndicator (double value, WARNING warning)
     {
-        if (meter_background != null)
-        {
-            if (meter_background.getType() != BufferedImage.TYPE_INT_ARGB){
-                throw new IllegalPathStateException("Need TYPE_INT_ARGB for direct buffer access, not " + meter_background.getType());
+        runOnJavaFXThread(() -> {
+            if (meter_background != null)
+            {
+                if (meter_background.getType() != BufferedImage.TYPE_INT_ARGB){
+                    throw new IllegalPathStateException("Need TYPE_INT_ARGB for direct buffer access, not " + meter_background.getType());
+                }
+
+                BufferedImage combined = new BufferedImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, BufferedImage.TYPE_INT_ARGB);
+                int[] src  = ((DataBufferInt) meter_background.getRaster().getDataBuffer()).getData();
+                int[] dest = ((DataBufferInt) combined.getRaster().getDataBuffer()).getData();
+                System.arraycopy(src, 0, dest, 0, linearMeterScale.getBounds().width * linearMeterScale.getBounds().height);
+
+                // Add needle & label
+                Graphics2D gc = combined.createGraphics();
+
+                drawValue(gc, value);
+                drawWarning(gc, warning);
+                if (showUnits) {
+                    drawUnit(gc);
+                }
+
+                // Convert to JFX image and show
+                if (awt_jfx_convert_buffer == null  ||
+                        awt_jfx_convert_buffer.getWidth() != linearMeterScale.getBounds().width ||
+                        awt_jfx_convert_buffer.getHeight() != linearMeterScale.getBounds().height)
+                    awt_jfx_convert_buffer = new WritableImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height);
+
+                awt_jfx_convert_buffer.getPixelWriter().setPixels(0, 0, linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, PixelFormat.getIntArgbInstance(), dest, 0, linearMeterScale.getBounds().width);
+
+                setImage(awt_jfx_convert_buffer);
+                logger.log(Level.FINE, "Redraw meter");
             }
-
-            BufferedImage combined = new BufferedImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, BufferedImage.TYPE_INT_ARGB);
-            int[] src  = ((DataBufferInt) meter_background.getRaster().getDataBuffer()).getData();
-            int[] dest = ((DataBufferInt) combined.getRaster().getDataBuffer()).getData();
-            System.arraycopy(src, 0, dest, 0, linearMeterScale.getBounds().width * linearMeterScale.getBounds().height);
-
-            // Add needle & label
-            Graphics2D gc = combined.createGraphics();
-
-            drawValue(gc, value);
-            drawWarning(gc, warning);
-            if (showUnits) {
-                drawUnit(gc);
-            }
-
-            // Convert to JFX image and show
-            if (awt_jfx_convert_buffer == null  ||
-                awt_jfx_convert_buffer.getWidth() != linearMeterScale.getBounds().width ||
-                awt_jfx_convert_buffer.getHeight() != linearMeterScale.getBounds().height)
-                awt_jfx_convert_buffer = new WritableImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height);
-
-            awt_jfx_convert_buffer.getPixelWriter().setPixels(0, 0, linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, PixelFormat.getIntArgbInstance(), dest, 0, linearMeterScale.getBounds().width);
-
-            setImage(awt_jfx_convert_buffer);
-            logger.log(Level.FINE, "Redraw meter");
-        }
+        });
     };
 
     /** Call to update size of meter
@@ -499,32 +542,38 @@ public class RTLinearMeter extends ImageView
      *  @param width
      *  @param height
      */
-    public synchronized void setSize(int width, int height)
+    public void setSize(int width, int height)
     {
-        linearMeterScale.setBounds(0, 0, width, height);
-        layout();
-        updateActiveColors();
-        requestLayout();
+        runOnJavaFXThread(() -> {
+            linearMeterScale.setBounds(0, 0, width, height);
+            layout();
+            updateActiveColors();
+            requestLayout();
+        });
     }
 
     /** @param color Foreground (labels, tick marks) color */
-    public synchronized void setForeground(javafx.scene.paint.Color color)
+    public void setForeground(javafx.scene.paint.Color color)
     {
-        foreground = GraphicsUtils.convert(color);
-        linearMeterScale.setColor(color);
+        runOnJavaFXThread(() -> {
+            foreground = GraphicsUtils.convert(color);
+            linearMeterScale.setColor(color);
+        });
     }
 
     /** @param color Background color */
-    public synchronized void setBackground(javafx.scene.paint.Color color)
+    public void setBackground(javafx.scene.paint.Color color)
     {
-        background = GraphicsUtils.convert(color);
+        runOnJavaFXThread(() -> background = GraphicsUtils.convert(color));
     }
 
     /** @param font Label font */
-    public synchronized void setFont(javafx.scene.text.Font font)
+    public void setFont(javafx.scene.text.Font font)
     {
-        linearMeterScale.setScaleFont(font);
-        this.font = GraphicsUtils.convert(font);
+        runOnJavaFXThread(() -> {
+            linearMeterScale.setScaleFont(font);
+            this.font = GraphicsUtils.convert(font);
+        });
     }
 
 
@@ -532,24 +581,24 @@ public class RTLinearMeter extends ImageView
     private Boolean isValueWaitingToBeDrawn = false;
     private double valueWaitingToBeDrawn;
     /** @param newValue Current value */
-    public synchronized void setCurrentValue(double newValue)
+    public void setCurrentValue(double newValue)
     {
-        valueWaitingToBeDrawn = newValue;
+        runOnJavaFXThread(() -> {
+            valueWaitingToBeDrawn = newValue;
 
-        if (isValueWaitingToBeDrawn) {
-            lag = true;
-        }
-        else {
-            isValueWaitingToBeDrawn = true;
+            if (isValueWaitingToBeDrawn) {
+                lag = true;
+            }
+            else {
+                isValueWaitingToBeDrawn = true;
 
-            Platform.runLater(() -> {
-                synchronized (this) {
+                Platform.runLater(() -> {
                     drawNewValue(valueWaitingToBeDrawn);
                     isValueWaitingToBeDrawn = false;
                     lag = false;
-                }
-            });
-        }
+                });
+            }
+        });
     }
 
     private void drawNewValue(double newValue) {
@@ -635,10 +684,12 @@ public class RTLinearMeter extends ImageView
     }
 
     /** @param visible Whether the scale must be displayed or not. */
-    public synchronized void setScaleVisible (boolean visible)
+    public void setScaleVisible (boolean visible)
     {
-        linearMeterScale.setVisible(visible);
-        updateMeterBackground();
+        runOnJavaFXThread(() -> {
+            linearMeterScale.setVisible(visible);
+            updateMeterBackground();
+        });
     }
 
     /** Request a complete redraw with new layout */
@@ -856,11 +907,13 @@ public class RTLinearMeter extends ImageView
         meter_background = null;
     }
 
-    public synchronized void setHorizontal(boolean horizontal) {
-        linearMeterScale.setHorizontal(horizontal);
-        redrawLinearMeterScale();
-        updateMeterBackground();
-        redrawIndicator(currentValue, currentWarning);
+    public void setHorizontal(boolean horizontal) {
+        runOnJavaFXThread(() -> {
+            linearMeterScale.setHorizontal(horizontal);
+            redrawLinearMeterScale();
+            updateMeterBackground();
+            redrawIndicator(currentValue, currentWarning);
+        });
     }
 
     private void drawUnit(Graphics2D gc) {

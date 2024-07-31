@@ -3,6 +3,7 @@ package org.phoebus.alarm.logging.rest;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchVersionInfo;
 import co.elastic.clients.elasticsearch.core.InfoResponse;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.phoebus.alarm.logging.AlarmLoggingService;
@@ -25,6 +26,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+
 /**
  * A REST service for querying the alarm message history
  *
@@ -32,6 +39,7 @@ import java.util.logging.Logger;
  */
 @RestController
 @SuppressWarnings("unused")
+@Tag(name = "Search controller")
 public class SearchController {
 
     static final Logger logger = Logger.getLogger(SearchController.class.getName());
@@ -44,6 +52,7 @@ public class SearchController {
     /**
      * @return Information about the alarm logging service
      */
+    @Operation(summary = "Get Service Info")
     @GetMapping
     public String info() {
 
@@ -74,22 +83,41 @@ public class SearchController {
         }
     }
 
+    @Operation(summary = "Search alarms")
+    @Parameters({
+        @Parameter(name = "pv", description = "PV name", schema = @Schema(type = "string"), required = false, example = "*"),
+        @Parameter(name = "severity", description = "Alarm severity", schema = @Schema(type = "string"), required = false, example = "*"),
+        @Parameter(name = "message", description = "Alarm message", schema = @Schema(type = "string"), required = false, example = "*"),
+        @Parameter(name = "current_severity", description = "PV severity", schema = @Schema(type = "string"), required = false, example = "*"),
+        @Parameter(name = "current_message", description = "PV message", schema = @Schema(type = "string"), required = false, example = "*"),
+        @Parameter(name = "user", description = "User", schema = @Schema(type = "string"), required = false, example = "*"),
+        @Parameter(name = "host", description = "Host", schema = @Schema(type = "string"), required = false, example = "*"),
+        @Parameter(name = "command", description = "Command", schema = @Schema(type = "string"), required = false, example = "*"),
+        @Parameter(name = "start", description = "Start time", schema = @Schema(type = "string"), required = false, example = "2024-06-12"),
+        @Parameter(name = "end", description = "End time", schema = @Schema(type = "string"), required = false, example = "2024-06-14"),
+    })
     @RequestMapping(value = "/search/alarm", method = RequestMethod.GET)
-    public List<AlarmLogMessage> search(@RequestParam Map<String, String> allRequestParams) {
+    public List<AlarmLogMessage> search(@Parameter(hidden = true) @RequestParam Map<String, String> allRequestParams) {
         List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), allRequestParams);
         return result;
     }
 
+    @Operation(summary = "Search alarms by PV name")
     @RequestMapping(value = "/search/alarm/pv/{pv}", method = RequestMethod.GET)
-    public List<AlarmLogMessage> searchPv(@PathVariable String pv) {
+    public List<AlarmLogMessage> searchPv(@Parameter(description = "PV name") @PathVariable String pv) {
         Map<String, String> searchParameters = new HashMap<>();
         searchParameters.put("pv", pv);
         List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), searchParameters);
         return result;
     }
 
+    @Operation(summary = "Search alarm config")
+    @Schema(name = "config", example = "/Accelerator/compteur", required = true)
+    @Parameters({
+        @Parameter(name = "config", description = "Config path", schema = @Schema(type = "string"), required = false, example = "/Accelerator/pvname"),
+    })
     @RequestMapping(value = "/search/alarm/config", method = RequestMethod.GET)
-    public List<AlarmLogMessage> searchConfig(@RequestParam Map<String, String> allRequestParams) {
+    public List<AlarmLogMessage> searchConfig(@Parameter(hidden = true) @RequestParam Map<String, String> allRequestParams) {
         if(allRequestParams == null ||
                 allRequestParams.isEmpty() ||
                 !allRequestParams.containsKey("config") ||

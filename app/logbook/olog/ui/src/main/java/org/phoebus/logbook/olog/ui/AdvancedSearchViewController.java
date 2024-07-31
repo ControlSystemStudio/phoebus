@@ -18,7 +18,6 @@
 
 package org.phoebus.logbook.olog.ui;
 
-import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -42,6 +41,7 @@ import org.phoebus.logbook.Tag;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
+import org.phoebus.util.text.Strings;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;

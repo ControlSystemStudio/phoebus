@@ -70,17 +70,6 @@ public class NLSMessagesTest
         assertThat(Bye, equalTo("Tschüss"));
     }
 
-    /** Check if we fall back to english if a localization is missing */
-    @Test
-    public void testMissingLocalization()
-    {
-        Locale.setDefault(Locale.FRENCH);
-        NLS.initializeMessages(NLSMessagesTest.class);
-        System.out.println("Messages for the nonexistent '" + Locale.getDefault().getLanguage() + "' localization: " + Hello + ", " + Bye);
-        assertThat(Hello, equalTo("Hello"));
-        assertThat(Bye, equalTo("Bye"));
-    }
-
     /** Check if we fall back to english if a localization is incomplete */
     @Test
     public void testIncompleteLocalization()

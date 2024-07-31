@@ -17,28 +17,21 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.service.saveandrestore.epics.SnapshotRestorer;
-import org.phoebus.service.saveandrestore.epics.RestoreResult;
+import org.phoebus.service.saveandrestore.epics.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * {@link RestController} performing server-side restore operation.
+ */
 @SuppressWarnings("unused")
 @RestController
 public class SnapshotRestoreController extends BaseController {
@@ -46,18 +39,20 @@ public class SnapshotRestoreController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    @Autowired
+    private SnapshotUtil snapshotUtil;
+
     @PostMapping(value = "/restore/items", produces = JSON)
     public List<RestoreResult> restoreFromSnapshotItems(
-        @RequestBody List<SnapshotItem> snapshotItems) throws Exception {
-            var snapshotRestorer = new SnapshotRestorer();
-            return snapshotRestorer.restorePVValues(snapshotItems);
+            @RequestBody List<SnapshotItem> snapshotItems) {
+        return snapshotUtil.restore(snapshotItems);
     }
+
     @PostMapping(value = "/restore/node", produces = JSON)
     public List<RestoreResult> restoreFromSnapshotNode(
-        @RequestParam(value = "parentNodeId") String parentNodeId) throws Exception {
-            var snapshotRestorer = new SnapshotRestorer();
-            var snapshot = nodeDAO.getSnapshotData(parentNodeId);
-            return snapshotRestorer.restorePVValues(snapshot.getSnapshotItems());
+            @RequestParam(value = "nodeId") String nodeId){
+        var snapshot = nodeDAO.getSnapshotData(nodeId);
+        return snapshotUtil.restore(snapshot.getSnapshotItems());
     }
 
 }

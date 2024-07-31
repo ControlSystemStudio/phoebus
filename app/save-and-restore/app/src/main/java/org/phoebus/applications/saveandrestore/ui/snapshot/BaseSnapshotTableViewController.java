@@ -23,14 +23,21 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -42,17 +49,15 @@ import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.util.time.TimestampFormats;
 
-import java.lang.reflect.Field;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 /**
  * Base controller class for the snapshot table view. It handles common items (UI components, methods) needed
@@ -93,8 +98,6 @@ public abstract class BaseSnapshotTableViewController {
 
     protected SnapshotController snapshotController;
 
-    protected static boolean resizePolicyNotInitialized = true;
-
     protected static final Logger LOGGER = Logger.getLogger(BaseSnapshotTableViewController.class.getName());
 
     @FXML
@@ -126,27 +129,6 @@ public abstract class BaseSnapshotTableViewController {
      * all others are snapshots added in the compare use-case.
      */
     protected List<Snapshot> snapshots = new ArrayList<>();
-
-    public BaseSnapshotTableViewController() {
-        if (resizePolicyNotInitialized) {
-            AccessController.doPrivileged(resizePolicyAction);
-        }
-    }
-
-    protected static PrivilegedAction<Object> resizePolicyAction = () -> {
-        try {
-            // Java FX bugfix: the table columns are not properly resized for the first table
-            Field f = TableView.CONSTRAINED_RESIZE_POLICY.getClass().getDeclaredField("isFirstRun");
-            f.setAccessible(true);
-            f.set(TableView.CONSTRAINED_RESIZE_POLICY, Boolean.FALSE);
-        } catch (NoSuchFieldException | IllegalAccessException | RuntimeException e) {
-            // ignore
-        }
-        // Even if failed to set the policy, pretend that it was set. In such case the UI will be slightly dorked the
-        // first time, but will be OK in all other cases.
-        resizePolicyNotInitialized = false;
-        return null;
-    };
 
     public void initialize() {
         snapshotTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -235,7 +217,7 @@ public abstract class BaseSnapshotTableViewController {
             VType updatedValue = e.getRowValue().readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            snapshotController.updateLoadedSnapshot( e.getRowValue(), updatedValue);
+            snapshotController.updateLoadedSnapshot(e.getRowValue(), updatedValue);
         });
 
         liveValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
@@ -278,11 +260,10 @@ public abstract class BaseSnapshotTableViewController {
         return pvName + "_" + isReadonly;
     }
 
-    protected void showSnapshotInTable(Snapshot snapshot){
-        if(snapshots.isEmpty()){
+    protected void showSnapshotInTable(Snapshot snapshot) {
+        if (snapshots.isEmpty()) {
             snapshots.add(snapshot);
-        }
-        else{
+        } else {
             snapshots.set(0, snapshot);
         }
         AtomicInteger counter = new AtomicInteger(0);
@@ -302,6 +283,7 @@ public abstract class BaseSnapshotTableViewController {
         });
 
         connectPVs();
+
         updateTable(null);
     }
 
@@ -313,21 +295,21 @@ public abstract class BaseSnapshotTableViewController {
     public void updateTable(List<TableEntry> entries) {
         final ObservableList<TableEntry> items = snapshotTableView.getItems();
         final boolean notHide = !snapshotController.isHideEqualItems();
-        snapshotTableView.getItems().clear();
-        tableEntryItems.entrySet().forEach(e -> {
+        items.clear();
+        tableEntryItems.forEach((key, value) -> {
             // there is no harm if this is executed more than once, because only one line is allowed for these
             // two properties (see SingleListenerBooleanProperty for more details)
-            e.getValue().liveStoredEqualProperty().addListener((a, o, n) -> {
+            value.liveStoredEqualProperty().addListener((a, o, n) -> {
                 if (snapshotController.isHideEqualItems()) {
                     if (n) {
-                        snapshotTableView.getItems().remove(e.getValue());
+                        snapshotTableView.getItems().remove(value);
                     } else {
-                        snapshotTableView.getItems().add(e.getValue());
+                        snapshotTableView.getItems().add(value);
                     }
                 }
             });
-            if (notHide || !e.getValue().liveStoredEqualProperty().get()) {
-                items.add(e.getValue());
+            if (notHide || !value.liveStoredEqualProperty().get()) {
+                items.add(value);
             }
         });
     }
