@@ -20,6 +20,7 @@ package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.util.Comparator;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -116,21 +117,23 @@ public class ActionsDialogController {
 
         ServiceLoader<ActionInfo> actionInfos = ServiceLoader.load(ActionInfo.class);
 
-        for (ActionInfo actionInfo : actionInfos)
-        {
-            final ImageView icon = new ImageView(actionInfo.getImage());
-            final MenuItem item = new MenuItem(actionInfo.toString(), icon);
-            item.setOnAction(event ->
-            {
-                ActionsDialogActionItem actionsDialogActionItem =
-                        new ActionsDialogActionItem(widget, actionInfo);
-                actionList.add(actionsDialogActionItem);
-                actionsListView.setItems(actionList);
-                detailsPane.getChildren().add(actionInfo.getEditor(widget));
-                actionsListView.getSelectionModel().select(actionsDialogActionItem);
-            });
-            addButton.getItems().add(item);
-        }
+        actionInfos.stream()
+                .sorted(Comparator.comparing(actionInfo -> actionInfo.get().getPriority()))
+                .forEach(actionInfoProvider -> {
+                    ActionInfo actionInfo = actionInfoProvider.get();
+                    final ImageView icon = new ImageView(actionInfo.getImage());
+                    final MenuItem item = new MenuItem(actionInfo.toString(), icon);
+                    item.setOnAction(event ->
+                    {
+                        ActionsDialogActionItem actionsDialogActionItem =
+                                new ActionsDialogActionItem(widget, actionInfo);
+                        actionList.add(actionsDialogActionItem);
+                        actionsListView.setItems(actionList);
+                        detailsPane.getChildren().add(actionInfo.getEditor(widget));
+                        actionsListView.getSelectionModel().select(actionsDialogActionItem);
+                    });
+                    addButton.getItems().add(item);
+                });
 
         actionsListView.setCellFactory(view -> new ActionInfoCell());
 
