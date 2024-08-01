@@ -13,30 +13,26 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.NodeSelectionController">
-   <VBox fx:id="dialogContent" disable="true">
-      <children>
-         <TreeView fx:id="treeView" VBox.vgrow="ALWAYS" />
-         <HBox alignment="CENTER">
-            <children>
-               <Button fx:id="createFolderButton" mnemonicParsing="false" text="Create a new folder">
-                  <HBox.margin>
-                     <Insets top="5.0" />
-                  </HBox.margin>
-               </Button>
-               <ButtonBar HBox.hgrow="ALWAYS">
-                  <buttons>
-                     <Button cancelButton="true" mnemonicParsing="false" onAction="#close" text="Cancel" />
-                     <Button fx:id="chooseButton" defaultButton="true" mnemonicParsing="false" text="Choose" />
-                  </buttons>
-                  <padding>
-                     <Insets bottom="5.0" left="5.0" right="5.0" top="10.0" />
-                  </padding>
-               </ButtonBar>
-            </children>
-         </HBox>
-
-      </children>
+<StackPane prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.NodeSelectionController">
+   <VBox>
+      <TreeView fx:id="treeView" VBox.vgrow="ALWAYS"/>
+      <HBox alignment="CENTER">
+         <children>
+            <Button fx:id="createFolderButton" mnemonicParsing="false" text="Create a new folder">
+               <HBox.margin>
+                  <Insets top="5.0"/>
+               </HBox.margin>
+            </Button>
+            <ButtonBar HBox.hgrow="ALWAYS">
+               <buttons>
+                  <Button cancelButton="true" mnemonicParsing="false" onAction="#close" text="%cancel"/>
+                  <Button fx:id="chooseButton" defaultButton="true" mnemonicParsing="false" text="%choose"/>
+               </buttons>
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="10.0"/>
+               </padding>
+            </ButtonBar>
+         </children>
+      </HBox>
    </VBox>
-   <ProgressIndicator fx:id="progressIndicator" />
 </StackPane>

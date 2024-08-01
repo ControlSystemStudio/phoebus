@@ -11,7 +11,6 @@ import org.csstudio.display.builder.model.ActionControllerBase;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.NodeSelectionDialog;
 
 import java.util.List;
@@ -46,10 +45,10 @@ public class OpenNodeActionController extends ActionControllerBase {
     }
 
     @FXML
-    public void selectNode(){
-        NodeSelectionDialog nodeSelectionDialog = new NodeSelectionDialog();
+    public void selectNode() {
+        NodeSelectionDialog nodeSelectionDialog = new NodeSelectionDialog(false);
         Optional<Node> nodeOptional = nodeSelectionDialog.showAndWait();
-        if(nodeOptional.isPresent()){
+        if (nodeOptional.isPresent()) {
             nodeIdProperty.set(nodeOptional.get().getUniqueId());
         }
     }
@@ -58,7 +57,7 @@ public class OpenNodeActionController extends ActionControllerBase {
         return nodeIdProperty.get();
     }
 
-    public void setInitialNodeId(String nodeId){
+    public void setInitialNodeId(String nodeId) {
         nodeIdProperty.set(nodeId);
     }
 }

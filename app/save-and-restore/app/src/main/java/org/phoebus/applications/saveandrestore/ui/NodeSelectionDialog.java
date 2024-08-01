@@ -31,20 +31,26 @@ import java.util.logging.Logger;
  */
 public class NodeSelectionDialog extends Dialog<Node> {
 
+
     /**
      * Constructor.
+     * @param supportsCreateFolder If <code>false</code>, the UI will not include button for the purpose
+     *                             of creating folders in the tree structure (yes, this is a hack).
      * @param hiddenNodeTypes Optional list of {@link NodeType}s to be hidden in the
      *                        {@link javafx.scene.control.TreeView}. Of course
      *                        {@link NodeType#FOLDER} does not make sense here.
      */
-    public NodeSelectionDialog(NodeType... hiddenNodeTypes){
+    public NodeSelectionDialog(boolean supportsCreateFolder, NodeType... hiddenNodeTypes){
         setTitle(Messages.nodeSelectionForConfiguration);
         try {
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             FXMLLoader loader = new FXMLLoader();
+            loader.setResources(resourceBundle);
             loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/NodeSelector.fxml"));
             loader.load();
             getDialogPane().setContent(loader.getRoot());
             NodeSelectionController nodeSelectionController = loader.getController();
+            nodeSelectionController.setShowCreateFolderButton(supportsCreateFolder);
             if(hiddenNodeTypes != null) {
                 nodeSelectionController.setHiddenNodeTypes(Arrays.asList(hiddenNodeTypes));
             }
@@ -55,5 +61,15 @@ public class NodeSelectionDialog extends Dialog<Node> {
         } catch (Exception e) {
             Logger.getLogger(NodeSelectionDialog.class.getName()).log(Level.WARNING, "Unable to launch node selection UI", e);
         }
+    }
+
+    /**
+     * Constructor.
+     * @param hiddenNodeTypes Optional list of {@link NodeType}s to be hidden in the
+     *                        {@link javafx.scene.control.TreeView}. Of course
+     *                        {@link NodeType#FOLDER} does not make sense here.
+     */
+    public NodeSelectionDialog(NodeType... hiddenNodeTypes){
+        this(false, hiddenNodeTypes);
     }
 }

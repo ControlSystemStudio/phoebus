@@ -5,6 +5,7 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -60,13 +61,8 @@ public class NodeSelectionController implements Initializable {
     @FXML
     private Button chooseButton;
 
-    @FXML
-    private ProgressIndicator progressIndicator;
-
-    @FXML
-    private VBox dialogContent;
-
     private final SimpleObjectProperty<Node> selectedNodeProperty = new SimpleObjectProperty<>();
+    private final SimpleBooleanProperty showCreateFolderButton = new SimpleBooleanProperty(true);
 
     /**
      * Specifies which {@link NodeType}s to hide from the tree view.
@@ -88,6 +84,7 @@ public class NodeSelectionController implements Initializable {
         createFolderButton.setOnAction(action -> createNewFolder(treeView.getSelectionModel().getSelectedItem()));
         createFolderButton.disableProperty().bind(Bindings.createBooleanBinding(() -> selectedNodeProperty.get() != null && !selectedNodeProperty.get().getNodeType().equals(NodeType.FOLDER),
                 selectedNodeProperty));
+        createFolderButton.visibleProperty().bind(showCreateFolderButton);
 
         chooseButton.setDefaultButton(true);
         chooseButton.disableProperty().bind(Bindings.createBooleanBinding(() -> selectedNodeProperty.get() == null, selectedNodeProperty));
@@ -103,8 +100,6 @@ public class NodeSelectionController implements Initializable {
                 rootItem.setExpanded(true);
                 treeView.setRoot(rootItem);
                 recursiveAddNode(rootItem);
-                dialogContent.disableProperty().set(false);
-                progressIndicator.visibleProperty().set(false);
             });
         });
     }
@@ -120,8 +115,6 @@ public class NodeSelectionController implements Initializable {
                 }).toList();
         List<TreeItem<Node>> sorted = childItems.stream().sorted(Comparator.comparing(TreeItem::getValue)).toList();
         parentItem.getChildren().addAll(sorted);
-        dialogContent.disableProperty().set(false);
-        progressIndicator.visibleProperty().set(false);
     }
 
     private TreeItem<Node> createNode(final Node node) {
@@ -197,5 +190,9 @@ public class NodeSelectionController implements Initializable {
      */
     public void addOkButtonActionHandler(EventHandler<ActionEvent> actionEventEventHandler){
         chooseButton.setOnAction(actionEventEventHandler);
+    }
+
+    public void setShowCreateFolderButton(boolean show){
+        showCreateFolderButton.set(show);
     }
 }
