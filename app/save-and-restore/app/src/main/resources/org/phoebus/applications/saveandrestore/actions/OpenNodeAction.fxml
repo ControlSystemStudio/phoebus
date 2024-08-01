@@ -14,8 +14,10 @@
       <TextField fx:id="description" text="%actionOpenNodeDescription" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
       <Label text="%actionOpenNodeId" GridPane.rowIndex="1" />
       <TextField fx:id="nodeId" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" prefHeight="26" GridPane.rowIndex="1" />
+      <Button text="..." onAction="#selectNode" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" prefHeight="26" GridPane.rowIndex="1" />
    </children>
    <columnConstraints>
+      <ColumnConstraints />
       <ColumnConstraints />
       <ColumnConstraints />
    </columnConstraints>
