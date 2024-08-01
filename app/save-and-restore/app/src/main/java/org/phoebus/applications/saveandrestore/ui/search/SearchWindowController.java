@@ -220,16 +220,6 @@ public class SearchWindowController implements Initializable {
         new HelpViewer().show();
     }
 
-    public void search(String queryString) {
-        clearSearchResult();
-        if (queryString == null || queryString.isEmpty()) {
-
-            query.set(null);
-        } else {
-            query.set(queryString);
-        }
-    }
-
     private void clearSearchResult() {
         resultTableView.getItems().setAll(Collections.emptyList());
         Platform.runLater(() -> {

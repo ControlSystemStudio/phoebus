@@ -34,6 +34,8 @@ import java.util.List;
 public interface ActionInfo {
 
     /**
+     * If action type is not sufficient to determine match, implementations may add additional logic
+     * to resolve match. For instance: legacy display formats may use a different string to define the action type.
      * @param actionId Action id, e.g. open_display.
      * @return <code>true</code> if the input string is implemented by the {@link ActionInfo}.
      */

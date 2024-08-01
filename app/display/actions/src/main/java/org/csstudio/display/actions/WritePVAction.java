@@ -86,11 +86,6 @@ public class WritePVAction extends ActionInfoBase {
         return ImageCache.getImage(ActionsDialog.class, "/icons/write_pv.png");
     }
 
-    @Override
-    public boolean matchesAction(String actionId) {
-        return actionId.equalsIgnoreCase(WRITE_PV);
-    }
-
     public String getPV() {
         return pv;
     }
