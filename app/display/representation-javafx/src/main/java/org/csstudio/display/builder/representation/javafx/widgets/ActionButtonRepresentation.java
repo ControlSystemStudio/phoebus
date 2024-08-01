@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Border;
@@ -74,8 +75,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     private final DirtyFlag dirty_actionls = new DirtyFlag();
 
     private volatile ButtonBase base;
-    private volatile String background;
-    private volatile Color foreground;
+    private volatile String style;
     private volatile String button_text;
     private volatile boolean enabled = true;
     private volatile boolean writable = true;
@@ -174,16 +174,13 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
 
             for (final ActionInfo action : actions.getActions()) {
                 final MenuItem item = new MenuItem(makeActionText(action),
-                        new ImageView(action.getImage())
-                );
-                item.getStyleClass().add("action_button_item");
+                                                   new ImageView(action.getImage())
+                                                  );
                 item.setOnAction(event -> confirm(() -> handleAction(action)));
                 button.getItems().add(item);
             }
             result = button;
         }
-
-        result.setStyle(background);
 
         // In edit mode, show dashed border for transparent/invisible widget
         if (toolkit.isEditMode() && model_widget.propTransparent().getValue())
@@ -349,12 +346,11 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         // is done in makeBaseButton()
     }
 
-    /**
-     * Complete button needs to be updated
-     */
-    private void buttonChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value) {
+    /** Complete button needs to be updated */
+    private void buttonChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
+    {
         pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
-                model_widget.propVerticalAlignment().getValue());
+                                 model_widget.propVerticalAlignment().getValue());
         dirty_actionls.mark();
         representationChanged(property, old_value, new_value);
     }
@@ -383,12 +379,17 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
 
 
     private void updateColors() {
-        foreground = JFXUtil.convert(model_widget.propForegroundColor().getValue());
         if (model_widget.propTransparent().getValue())
             // Set most colors to transparent, including the 'arrow' used by MenuButton
-            background = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1); -fx-mark-color: transparent; -fx-background-color: transparent;";
+            style = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1); -fx-mark-color: transparent; -fx-background-color: transparent;";
         else
-            background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
+            style = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
+        
+        final String fg_css = JFXUtil.webHex(model_widget.propForegroundColor().getValue());
+        // Most labels use -fx-text-fill
+        style += " -fx-text-fill: " + fg_css + ";";
+        // Modena sets .menu-button .label to -fx-text-fill: -fx-text-base-color, so patch -fx-text-base-color as well
+        style += " -fx-text-base-color: " + fg_css + ";";        
     }
 
     @Override
@@ -401,7 +402,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         if (dirty_representation.checkAndClear()) {
             button_text = makeButtonText();
             base.setText(button_text);
-            base.setTextFill(foreground);
+            base.setStyle(style);
             base.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
             // If widget is not wide enough to show the label, hide menu button 'arrow'.
@@ -411,6 +412,11 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
                 final Dimension2D size = TextUtils.computeTextSize(base.getFont(), button_text + "__VV_");
                 final boolean hide = size.getWidth() >= model_widget.propWidth().getValue();
                 Styles.update(base, "hide_arrow", hide);
+
+                // Duplicate button style on each menu item
+                final MenuButton mb = (MenuButton) base;
+                for (MenuItem item : mb.getItems())
+                    item.setStyle(style);
             }
 
             final RotationStep rotation = model_widget.propRotationStep().getValue();

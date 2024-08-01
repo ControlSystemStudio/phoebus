@@ -105,8 +105,7 @@ public class EdmConverter {
         }
 
         // Convert all widgets
-        for (EdmEntity edm_widget : edm.getWidgets())
-            convertWidget(model, edm_widget);
+        edm.getWidgets().stream().forEach(edmEntity -> convertWidget(model, edmEntity));
         correctChildWidgets(model);
     }
 
@@ -199,6 +198,11 @@ public class EdmConverter {
                         " @ " + w.getX() + "," + w.getY() + " sized " + w.getW() + " x " + w.getH());
                 return;
             }
+        }
+        if (Boolean.parseBoolean(ConverterPreferences.strip_close_button)) {
+            String type = edm.getType();
+            if (type.equalsIgnoreCase("activeExitButtonClass"))
+                return;
         }
 
         // Given an EDM Widget type like "activeXTextClass",

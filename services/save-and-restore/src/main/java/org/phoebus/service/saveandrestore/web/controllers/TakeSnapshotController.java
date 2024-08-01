@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @RestController
 public class TakeSnapshotController extends BaseController {
@@ -35,6 +37,8 @@ public class TakeSnapshotController extends BaseController {
     private final SimpleDateFormat simpleDateFormat =
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
+    private static final Logger LOG = Logger.getLogger(TakeSnapshotController.class.getName());
+
     /**
      * Take a snapshot based on the {@link org.phoebus.applications.saveandrestore.model.Configuration}'s unique id.
      *
@@ -45,6 +49,8 @@ public class TakeSnapshotController extends BaseController {
     @SuppressWarnings("unused")
     @GetMapping(value = "/take-snapshot/{configNodeId}", produces = JSON)
     public List<SnapshotItem> takeSnapshot(@PathVariable String configNodeId) {
+        Node configNode = nodeDAO.getNode(configNodeId);
+        LOG.log(Level.INFO, "Take snapshot for configuration '" + configNode.getName() + "'");
         ConfigurationData configurationData = nodeDAO.getConfigurationData(configNodeId);
         List<SnapshotItem> snapshotItems;
         try {
@@ -72,7 +78,7 @@ public class TakeSnapshotController extends BaseController {
     public Snapshot takeSnapshotAndSave(@PathVariable String configNodeId,
                                         @RequestParam(name = "name", required = false) String snapshotName,
                                         @RequestParam(name = "comment", required = false) String comment) {
-        if (snapshotName != null) {
+       if (snapshotName != null) {
             String _snapshotName = snapshotName;
             List<Node> childNodes = nodeDAO.getChildNodes(configNodeId);
             if (childNodes.stream().anyMatch(n -> n.getName().equals(_snapshotName) &&

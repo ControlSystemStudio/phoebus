@@ -700,9 +700,11 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
         }
     };
 
-    /** Close the toolkit's "window" that displays a model
-     *  @param model Model that has been represented in this toolkit
-     *  @throws Exception on error
+    /**
+     * Close the toolkit's "window" that displays a model
+     *
+     * @param model Model that has been represented in this toolkit
+     * @throws Exception on error
      */
     public void closeWindow(final DisplayModel model) throws Exception {
         throw new Exception("Not implemented");
