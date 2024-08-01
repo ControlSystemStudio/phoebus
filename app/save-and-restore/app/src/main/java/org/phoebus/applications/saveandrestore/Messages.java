@@ -119,7 +119,6 @@ public class Messages {
     public static String promptRenameNodeContent;
 
     public static String pvName;
-    public static String nodeSelectionForCompositeSnapshot;
     public static String nodeSelectionForConfiguration;
     public static String noValueAvailable;
     public static String readbackPVName;
