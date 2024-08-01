@@ -7,29 +7,30 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm.widgets;
 
-import static org.csstudio.display.converter.edm.Converter.logger;
-
-import java.util.List;
-import java.util.logging.Level;
-
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
-import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
-import org.csstudio.display.builder.model.properties.WritePVActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeMessageButtonClass;
+import org.csstudio.display.actions.WritePVAction;
 
-/** Convert an EDM widget into Display Builder counterpart
- *  @author Kay Kasemir
- *  @author Matevz, Lei Hu, Xihui Chen et al - Original logic in Opi_.. converter
+import java.util.List;
+import java.util.logging.Level;
+
+import static org.csstudio.display.converter.edm.Converter.logger;
+
+/**
+ * Convert an EDM widget into Display Builder counterpart
+ *
+ * @author Kay Kasemir
+ * @author Matevz, Lei Hu, Xihui Chen et al - Original logic in Opi_.. converter
  */
 @SuppressWarnings("nls")
-public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
-{
+public class Convert_activeMessageButtonClass extends ConverterBase<Widget> {
     // No perfect match.
     //
     // When EDM message button is 'toggle', we use a BoolButtonWidget that writes 0, 1.
@@ -37,12 +38,10 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
     //
     // When EDM message button is 'push', we use ActionButtonWidget that writes the 'push' value,
     // falling back to the 'release' value, but can't write both.
-    public Convert_activeMessageButtonClass(final EdmConverter converter, final Widget parent, final Edm_activeMessageButtonClass mb)
-    {
+    public Convert_activeMessageButtonClass(final EdmConverter converter, final Widget parent, final Edm_activeMessageButtonClass mb) {
         super(converter, parent, mb);
 
-        if (is_boolean(mb))
-        {
+        if (is_boolean(mb)) {
             // Create bool button that writes 0/1
             final BoolButtonWidget b = (BoolButtonWidget) widget;
             b.propShowLED().setValue(false);
@@ -56,8 +55,7 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
             // EDM MB has no alarms sensitive border
             b.propBorderAlarmSensitive().setValue(false);
 
-            if (mb.getPassword() != null)
-            {
+            if (mb.getPassword() != null) {
                 b.propConfirmDialog().setValue(ConfirmDialog.BOTH);
                 b.propPassword().setValue(mb.getPassword());
             }
@@ -65,28 +63,22 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
             final String pv = convertPVName(mb.getControlPv());
             b.propPVName().setValue(pv);
 
-            if (mb.isToggle())
-            {
+            if (mb.isToggle()) {
                 b.propMode().setValue(BoolButtonWidget.Mode.TOGGLE);
                 // Toggle will always write 1 in 'on', 0 in 'off' state.
                 // If EDM widget reversed 1/0, swap the labels and colors.
-                if ("0".equals(mb.getPressValue()))
-                {
+                if ("0".equals(mb.getPressValue())) {
                     b.propOffLabel().setValue(mb.getOnLabel());
                     b.propOnLabel().setValue(mb.getOffLabel());
                     convertColor(mb.getOffColor(), b.propOnColor());
                     convertColor(mb.getOnColor(), b.propOffColor());
                 }
-            }
-            else
-                if ("0".equals(mb.getPressValue())  &&
+            } else if ("0".equals(mb.getPressValue()) &&
                     "1".equals(mb.getReleaseValue()))
-                    b.propMode().setValue(BoolButtonWidget.Mode.PUSH_INVERTED);
-                else
-                    b.propMode().setValue(BoolButtonWidget.Mode.PUSH);
-        }
-        else
-        {
+                b.propMode().setValue(BoolButtonWidget.Mode.PUSH_INVERTED);
+            else
+                b.propMode().setValue(BoolButtonWidget.Mode.PUSH);
+        } else {
             // Create action button that writes a value on 'click'
             final ActionButtonWidget b = (ActionButtonWidget) widget;
             convertColor(mb.getOnColor(), b.propBackgroundColor());
@@ -103,49 +95,43 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
 
             if (mb.getControlPv() == null)
                 logger.log(Level.WARNING, "Message button '" + desc + "' without PV");
-            else
-            {
+            else {
                 final String pv = convertPVName(mb.getControlPv());
                 // Write a value when clicked.
                 // Ordinarily, that's the 'press' value.
                 // Could also be the 'release' value,
                 // but can only be one of them.
-                final boolean have_press_value   = mb.getPressValue()   != null  &&  !mb.getPressValue().isEmpty();
-                final boolean have_release_value = mb.getReleaseValue() != null  &&  !mb.getReleaseValue().isEmpty();
+                final boolean have_press_value = mb.getPressValue() != null && !mb.getPressValue().isEmpty();
+                final boolean have_release_value = mb.getReleaseValue() != null && !mb.getReleaseValue().isEmpty();
 
                 final String value;
-                if (have_press_value)
-                {
+                if (have_press_value) {
                     value = mb.getPressValue();
                     // If there is a release value, warn that it's ignored.
                     // OK to skip a release value that matches the press value,
                     // since we wrote it on press.
-                    if (have_release_value  &&  !mb.getReleaseValue().equals(mb.getPressValue()))
+                    if (have_release_value && !mb.getReleaseValue().equals(mb.getPressValue()))
                         logger.log(Level.WARNING, "Cannot convert EDM message 'push' button '" + desc + "' for release message '" + mb.getReleaseValue() +
                                 "', will only write the 'press' message " + pv + " = '" + mb.getPressValue() + "'");
-                }
-                else if (have_release_value)
+                } else if (have_release_value)
                     value = mb.getReleaseValue();
-                else
-                {
+                else {
                     value = "";
                     logger.log(Level.WARNING, "EDM message 'push' button '" + desc + "' lacks both 'press' and 'release'; writing empty string");
                 }
 
                 // Set the button's $(pv_name) macro to the PV name, and use that within the write-PV action
                 b.propPVName().setValue(pv);
-                b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(desc, "$(pv_name)", value))));
+                b.propActions().setValue(new ActionInfos(List.of(new WritePVAction(desc, "$(pv_name)", value))));
             }
 
-            if (mb.getPassword() != null)
-            {
+            if (mb.getPassword() != null) {
                 b.propConfirmDialog().setValue(true);
                 b.propPassword().setValue(mb.getPassword());
             }
 
             // Turn invisible EDM button into transparent, no text action button
-            if (mb.isInvisible())
-            {
+            if (mb.isInvisible()) {
                 b.propBackgroundColor().setValue(NamedWidgetColors.TRANSPARENT);
                 b.propText().setValue("");
                 b.propTransparent().setValue(true);
@@ -154,8 +140,7 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
     }
 
     @Override
-    protected Widget createWidget(final EdmWidget edm)
-    {
+    protected Widget createWidget(final EdmWidget edm) {
         final Edm_activeMessageButtonClass mb = (Edm_activeMessageButtonClass) edm;
         if (is_boolean(mb))
             return new BoolButtonWidget();
@@ -163,11 +148,10 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
             return new ActionButtonWidget();
     }
 
-    private boolean is_boolean(final Edm_activeMessageButtonClass mb)
-    {
+    private boolean is_boolean(final Edm_activeMessageButtonClass mb) {
         // When EDM button writes 1/0 or 0/1, use a BoolButtonWidget
         return ("1".equals(mb.getPressValue()) && "0".equals(mb.getReleaseValue()))
-               ||
-               ("0".equals(mb.getPressValue()) && "1".equals(mb.getReleaseValue()));
+                ||
+                ("0".equals(mb.getPressValue()) && "1".equals(mb.getReleaseValue()));
     }
 }

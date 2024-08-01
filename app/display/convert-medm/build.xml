@@ -9,6 +9,7 @@
       <classpath>
         <path refid="app-classpath"/>
         <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
+        <pathelement path="../actions/${build}/app-display-actions-${version}.jar"/>
       </classpath>
     </javac>
   	
