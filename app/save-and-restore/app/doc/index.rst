@@ -451,7 +451,7 @@ browser to select a node:
 .. image:: images/open_node.png
    :width: 70%
 
-For the open filyer action, user can select from a drop-down list showing existing named filters:
+For the open filter action, user can select from a drop-down list showing existing named filters:
 
 .. image:: images/open_filter.png
    :width: 70%
