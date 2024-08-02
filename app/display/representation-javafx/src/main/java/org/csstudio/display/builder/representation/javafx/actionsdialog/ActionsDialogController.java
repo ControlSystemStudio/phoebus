@@ -21,6 +21,7 @@ package org.csstudio.display.builder.representation.javafx.actionsdialog;
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -104,7 +105,7 @@ public class ActionsDialogController {
                 logger.log(Level.WARNING, "Error displaying " + actionsDialogActionItem, ex);
             }
         }
-    };
+    }
 
     /** Initialize */
     @FXML

@@ -74,11 +74,6 @@ public class OpenFileAction extends ActionInfoBase {
     }
 
     @Override
-    public boolean matchesAction(String actionId) {
-        return actionId.equalsIgnoreCase(OPEN_FILE);
-    }
-
-    @Override
     public Image getImage() {
         return ImageCache.getImage(ActionsDialog.class, "/icons/open_file.png");
     }

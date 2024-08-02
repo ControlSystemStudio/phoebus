@@ -30,10 +30,32 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
@@ -41,6 +63,8 @@ import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.applications.saveandrestore.actions.OpenFilterAction;
+import org.phoebus.applications.saveandrestore.actions.OpenNodeAction;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -68,8 +92,21 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Stack;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -119,7 +156,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private final SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
 
-    private final URI uri;
+    private static final Logger logger = Logger.getLogger(SaveAndRestoreController.class.getName());
 
     @FXML
     private Tooltip filterToolTip;
@@ -132,18 +169,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
 
-    /**
-     * @param uri If non-null, this is used to load a configuration or snapshot into the view.
-     */
-    public SaveAndRestoreController(URI uri) {
-        this.uri = uri;
-    }
-
+    private final CountDownLatch treeInitializationCountDownLatch = new CountDownLatch(1);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        // Tree items are first compared on type, then on name (case insensitive).
+        // Tree items are first compared on type, then on name (case-insensitive).
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
@@ -248,64 +279,43 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      */
     public void loadTreeData() {
 
-        Task<TreeItem<Node>> loadRootNode = new Task<>() {
-            @Override
-            protected TreeItem<Node> call() {
-                Node rootNode = saveAndRestoreService.getRootNode();
-                TreeItem<Node> rootItem = createTreeItem(rootNode);
-                List<String> savedTreeViewStructure = getSavedTreeStructure();
-                // Check if there is a save tree structure. Also check that the first node id (=tree root)
-                // has the same unique id as the actual root node retrieved from the remote service. This check
-                // is needed to handle the case when the client connects to a different save-and-restore service.
-                if (savedTreeViewStructure != null && !savedTreeViewStructure.isEmpty() && savedTreeViewStructure.get(0).equals(rootNode.getUniqueId())) {
-                    HashMap<String, List<TreeItem<Node>>> childNodesMap = new HashMap<>();
-                    savedTreeViewStructure.forEach(s -> {
-                        List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
-                        if (childNodes != null) { // This may be the case if the tree structure was modified externally
-                            List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createTreeItem(n)).sorted(treeNodeComparator).collect(Collectors.toList());
-                            childNodesMap.put(s, childItems);
-                        }
-                    });
-                    setChildItems(childNodesMap, rootItem);
-                } else {
-                    List<Node> childNodes = saveAndRestoreService.getChildNodes(rootItem.getValue());
-                    List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createTreeItem(n)).sorted(treeNodeComparator).collect(Collectors.toList());
-                    rootItem.getChildren().addAll(childItems);
-                }
-
-                return rootItem;
+        JobManager.schedule("Load save-and-restore tree data", monitor -> {
+            Node rootNode = saveAndRestoreService.getRootNode();
+            if(rootNode == null){ // Service off-line or not reachable
+                treeInitializationCountDownLatch.countDown();
+                errorPane.visibleProperty().set(true);
+                return;
+            }
+            TreeItem<Node> rootItem = createTreeItem(rootNode);
+            List<String> savedTreeViewStructure = getSavedTreeStructure();
+            // Check if there is a save tree structure. Also check that the first node id (=tree root)
+            // has the same unique id as the actual root node retrieved from the remote service. This check
+            // is needed to handle the case when the client connects to a different save-and-restore service.
+            if (savedTreeViewStructure != null && !savedTreeViewStructure.isEmpty() && savedTreeViewStructure.get(0).equals(rootNode.getUniqueId())) {
+                HashMap<String, List<TreeItem<Node>>> childNodesMap = new HashMap<>();
+                savedTreeViewStructure.forEach(s -> {
+                    List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
+                    if (childNodes != null) { // This may be the case if the tree structure was modified externally
+                        List<TreeItem<Node>> childItems = childNodes.stream().map(this::createTreeItem).sorted(treeNodeComparator).collect(Collectors.toList());
+                        childNodesMap.put(s, childItems);
+                    }
+                });
+                setChildItems(childNodesMap, rootItem);
+            } else {
+                List<Node> childNodes = saveAndRestoreService.getChildNodes(rootItem.getValue());
+                List<TreeItem<Node>> childItems = childNodes.stream().map(this::createTreeItem).sorted(treeNodeComparator).toList();
+                rootItem.getChildren().addAll(childItems);
             }
 
-            /**
-             * Performs additional configuration/initialization when data has been loaded from
-             * the service.
-             */
-            @Override
-            public void succeeded() {
-                TreeItem<Node> rootItem = getValue();
+            Platform.runLater(() -> {
                 treeView.setRoot(rootItem);
                 expandNodes(treeView.getRoot());
-                // Open a resource (e.g. a snapshot node) if one is specified.
-                openResource(uri);
                 // Event handler for expanding nodes
                 treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
-                // Load all filters from service
-                loadFilters();
-                // Get saved filter and apply it if non-null, otherwise select "no filter"
-                String savedFilterName = getSavedFilterName();
-                if (savedFilterName != null) {
-                    Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
-                    f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
-                }
-            }
-
-            @Override
-            public void failed() {
-                errorPane.visibleProperty().set(true);
-            }
-        };
-
-        new Thread(loadRootNode).start();
+                treeInitializationCountDownLatch.countDown();
+            });
+            loadFilters();
+        });
     }
 
     private List<String> getSavedTreeStructure() {
@@ -345,9 +355,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      */
     protected void expandTreeNode(TreeItem<Node> targetItem) {
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
-        List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
+        List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).toList();
         List<String> existingNodeIds =
-                targetItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+                targetItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).toList();
         List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
         childNodes.forEach(n -> {
             if (!existingNodeIds.contains(n.getUniqueId())) {
@@ -470,16 +480,31 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         tabPane.getSelectionModel().select(tab);
     }
 
-    public void openSearchWindow() {
+    public SearchAndFilterTab openSearchWindow() {
         Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId() != null &&
                 t.getId().equals(SearchAndFilterTab.SEARCH_AND_FILTER_TAB_ID)).findFirst();
         if (searchTabOptional.isPresent()) {
             tabPane.getSelectionModel().select(searchTabOptional.get());
+            return (SearchAndFilterTab) searchTabOptional.get();
         } else {
             SearchAndFilterTab searchAndFilterTab = new SearchAndFilterTab(this);
             tabPane.getTabs().add(0, searchAndFilterTab);
             tabPane.getSelectionModel().select(searchAndFilterTab);
+            return searchAndFilterTab;
         }
+    }
+
+    /**
+     * Requests {@link SearchAndFilterTab} to open/select search and filter view to show the specified filter.
+     *
+     * @param filterId Unique, case-sensitive id of a save filter.
+     */
+    private void openSearchWindowForFilter(String filterId) {
+        Platform.runLater(() -> {
+            SearchAndFilterTab searchAndFilterTab = openSearchWindow();
+            searchAndFilterTab.showFilter(filterId);
+            tabPane.getSelectionModel().select(searchAndFilterTab);
+        });
     }
 
     /**
@@ -499,7 +524,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 parentTreeItem.getChildren().stream()
                         .filter(item -> item.getValue().getNodeType().equals(NodeType.FOLDER))
                         .map(item -> item.getValue().getName())
-                        .collect(Collectors.toList());
+                        .toList();
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle(Messages.contextMenuNewFolder);
@@ -757,12 +782,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
         nodeSubjectToUpdate.setValue(node);
         // Folder and configuration node changes may include structure changes, so expand to force update.
-        if(nodeSubjectToUpdate.isExpanded() && (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) ||
-                    nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.CONFIGURATION))){
-                if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
-                    nodeSubjectToUpdate.getParent().getChildren().sort(treeNodeComparator);
-                }
-                expandTreeNode(nodeSubjectToUpdate);
+        if (nodeSubjectToUpdate.isExpanded() && (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) ||
+                nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.CONFIGURATION))) {
+            if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
+                nodeSubjectToUpdate.getParent().getChildren().sort(treeNodeComparator);
+            }
+            expandTreeNode(nodeSubjectToUpdate);
         }
     }
 
@@ -805,7 +830,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     public void locateNode(Stack<Node> nodeStack) {
         TreeItem<Node> parentTreeItem = treeView.getRoot();
 
-        while (nodeStack.size() > 0) {
+        while (!nodeStack.isEmpty()) {
             Node currentNode = nodeStack.pop();
             TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
             expandTreeNode(currentTreeItem);
@@ -1087,7 +1112,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * @param nodes          List of {@link Node}s that were moved.
      */
     private void addMovedNodes(TreeItem<Node> parentTreeItem, List<Node> nodes) {
-        parentTreeItem.getChildren().addAll(nodes.stream().map(this::createTreeItem).collect(Collectors.toList()));
+        parentTreeItem.getChildren().addAll(nodes.stream().map(this::createTreeItem).toList());
         parentTreeItem.getChildren().sort(treeNodeComparator);
         TreeItem<Node> nextItemToExpand = parentTreeItem;
         while (nextItemToExpand != null) {
@@ -1120,31 +1145,47 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Launches the save and restore app and highlights/loads the "resource" (configuration or snapshot) identified
-     * by the {@link URI}. If the configuration/snapshot in question cannot be found, an error dialog is shown.
+     * Parses the {@link URI} to determine what to do. Supported actions/behavior:
+     * <ul>
+     *     <li>Open a {@link Node}, which must not be of {@link NodeType#FOLDER}.</li>
+     *     <li>Launch the search/filter view to show a filter search result.</li>
+     * </ul>
      *
-     * @param uri An {@link URI} on the form file:/unique-id?app=saveandrestore, where unique-id is the
-     *            unique id of a configuration or snapshot.
+     * @param uri An {@link URI} on the form file:/unique-id?action=[open-node|open-filter]&app=saveandrestore, where unique-id is the
+     *            unique id of a {@link Node} or the unique id (name) of a {@link Filter}. If action is not sepcified,
+     *            it defaults to open-node.
      */
     public void openResource(URI uri) {
+
         if (uri == null) {
             return;
         }
-        String nodeId = uri.getPath().substring(1);
-        Node node = saveAndRestoreService.getNode(nodeId);
-        if (node == null) {
-            // Show error dialog.
-            Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle(Messages.openResourceFailedTitle);
-            alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, nodeId));
-            DialogHelper.positionDialog(alert, treeView, -200, -200);
-            alert.show();
+        String query = uri.getQuery();
+        if (query == null || query.isEmpty()) {
+            logger.log(Level.WARNING, "Called with empty URI");
             return;
         }
-        Stack<Node> copiedStack = new Stack<>();
-        DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
-        locateNode(copiedStack);
-        nodeDoubleClicked(node);
+        String[] queries = query.split("&");
+        String action = "open-node";
+        Optional<String> actionQuery = Arrays.stream(queries).filter(q -> q.startsWith("action=")).findFirst();
+        if (actionQuery.isEmpty()) {
+            logger.log(Level.WARNING, "Open resource does not specify action, defaulting to 'open node'");
+        } else if (actionQuery.get().substring("action=".length()).isEmpty()) {
+            logger.log(Level.WARNING, "Empty action specified, defaulting to 'open node'");
+        } else {
+            action = actionQuery.get().substring("action=".length());
+        }
+
+        switch (action) {
+            case OpenNodeAction.OPEN_SAR_NODE:
+                openNode(uri.getPath().substring(1));
+                break;
+            case OpenFilterAction.OPEN_SAR_FILTER:
+                openSearchWindowForFilter(URLDecoder.decode(uri.getPath().substring(1), StandardCharsets.UTF_8));
+                break;
+            default:
+                logger.log(Level.WARNING, "Action '" + action + "' not supported");
+        }
     }
 
     public void findSnapshotReferences() {
@@ -1176,7 +1217,14 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private void loadFilters() {
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
-            Platform.runLater(() -> filtersList.setAll(filters));
+            Platform.runLater(() -> {
+                filtersList.setAll(filters);
+                String savedFilterName = getSavedFilterName();
+                if (savedFilterName != null) {
+                    Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
+                    f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
+                }
+            });
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load filters", e);
         }
@@ -1226,8 +1274,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      */
     public Node[] getConfigAndSnapshotForActiveSnapshotTab() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
-        if (selectedTab instanceof SnapshotTab) {
-            SnapshotTab snapshotTab = (SnapshotTab) selectedTab;
+        if (selectedTab instanceof SnapshotTab snapshotTab) {
             return new Node[]{snapshotTab.getConfigNode(), snapshotTab.getSnapshotNode()};
         }
         return null;
@@ -1284,12 +1331,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (userIdentity.isNull().get()) {
             return false;
         }
-        List<Node> selectedNodes = browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
+        List<Node> selectedNodes = browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).toList();
         if (selectedNodes.size() == 1) {
             return true;
         }
         NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
-        if (selectedNodes.stream().filter(n -> !n.getNodeType().equals(nodeTypeOfFirst)).findFirst().isPresent()) {
+        if (selectedNodes.stream().anyMatch(n -> !n.getNodeType().equals(nodeTypeOfFirst))) {
             return false;
         }
         TreeItem<Node> parentOfFirst = browserSelectionModel.getSelectedItems().get(0).getParent();
@@ -1322,10 +1369,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if ((nodeTypeOfFirst.equals(NodeType.COMPOSITE_SNAPSHOT) ||
                 nodeTypeOfFirst.equals(NodeType.CONFIGURATION)) && !nodeTypeOfTarget.equals(NodeType.FOLDER)) {
             return false;
-        } else if (nodeTypeOfFirst.equals(NodeType.SNAPSHOT) && !nodeTypeOfTarget.equals(NodeType.CONFIGURATION)) {
-            return false;
-        }
-        return true;
+        } else return !nodeTypeOfFirst.equals(NodeType.SNAPSHOT) || nodeTypeOfTarget.equals(NodeType.CONFIGURATION);
     }
 
     public void pasteFromClipboard() {
@@ -1418,8 +1462,41 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @Override
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         super.secureStoreChanged(validTokens);
-        tabPane.getTabs().forEach(t -> {
-            ((SaveAndRestoreTab) t).secureStoreChanged(validTokens);
+        tabPane.getTabs().forEach(t -> ((SaveAndRestoreTab) t).secureStoreChanged(validTokens));
+    }
+
+    private void openNode(String nodeId) {
+        JobManager.schedule("Open save-and-restore node", monitor -> {
+            try {
+                if (!treeInitializationCountDownLatch.await(30000, TimeUnit.SECONDS)) {
+                    return;
+                }
+            } catch (InterruptedException e) {
+                logger.log(Level.WARNING, "Failed to await tree view to load", e);
+                return;
+            }
+            Node node = saveAndRestoreService.getNode(nodeId);
+            if (node == null) {
+                Platform.runLater(() -> {
+                    // Show error dialog.
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setTitle(Messages.openResourceFailedTitle);
+                    alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, nodeId));
+                    DialogHelper.positionDialog(alert, treeView, -200, -200);
+                    alert.show();
+                });
+                return;
+            }
+            if (node.getNodeType().equals(NodeType.FOLDER)) {
+                logger.log(Level.WARNING, "Requested to open node, but node must not be folder node");
+                return;
+            }
+            Stack<Node> copiedStack = new Stack<>();
+            DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
+            Platform.runLater(() -> {
+                locateNode(copiedStack);
+                nodeDoubleClicked(node);
+            });
         });
     }
 }

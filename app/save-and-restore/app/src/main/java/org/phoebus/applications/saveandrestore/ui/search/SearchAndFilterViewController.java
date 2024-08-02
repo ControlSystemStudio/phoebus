@@ -21,32 +21,59 @@ package org.phoebus.applications.saveandrestore.ui.search;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.*;
+import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Pagination;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.VBox;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.applications.saveandrestore.ui.*;
+import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
+import org.phoebus.applications.saveandrestore.ui.HelpViewer;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
@@ -60,7 +87,15 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -69,6 +104,10 @@ import java.util.stream.Collectors;
 public class SearchAndFilterViewController extends SaveAndRestoreBaseController implements Initializable, FilterChangeListener {
 
     private final SaveAndRestoreController saveAndRestoreController;
+
+
+    @FXML
+    private javafx.scene.Node mainUi;
 
     @FXML
     private TableColumn<Node, ImageView> typeColumn;
@@ -163,6 +202,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     @FXML
     private TextField pvsTextField;
 
+    @FXML
+    private VBox progressIndicator;
+
     private final SimpleStringProperty filterNameProperty = new SimpleStringProperty();
 
     private final SaveAndRestoreService saveAndRestoreService;
@@ -201,6 +243,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     private final SimpleBooleanProperty goldenOnlyProperty = new SimpleBooleanProperty();
 
     private static final Logger LOGGER = Logger.getLogger(SearchAndFilterViewController.class.getName());
+
+    private final SimpleBooleanProperty disableUi = new SimpleBooleanProperty();
 
     public SearchAndFilterViewController(SaveAndRestoreController saveAndRestoreController) {
         this.saveAndRestoreController = saveAndRestoreController;
@@ -344,9 +388,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         filterNameTextField.textProperty().bindBidirectional(filterNameProperty);
         filterNameTextField.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
         saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                filterNameProperty.get() == null ||
-                        filterNameProperty.get().isEmpty() ||
-                        saveAndRestoreController.getUserIdentity().isNull().get(),
+                        filterNameProperty.get() == null ||
+                                filterNameProperty.get().isEmpty() ||
+                                saveAndRestoreController.getUserIdentity().isNull().get(),
                 filterNameProperty, saveAndRestoreController.getUserIdentity()));
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
@@ -374,23 +418,41 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
 
         ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
-        Menu tagMenu = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
+        Menu tagMenuItem = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
 
         MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
         addTagWithCommentMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
-        tagMenu.getItems().add(addTagWithCommentMenuItem);
+        tagMenuItem.getItems().add(addTagWithCommentMenuItem);
+
+        MenuItem restoreMenuItem = new MenuItem(Messages.restore);
+        restoreMenuItem.setOnAction(e -> doRestore(resultTableView.getSelectionModel().getSelectedItem().getUniqueId()));
 
         contextMenu.setOnShowing(event -> {
-            TagUtil.tagWithComment(tagMenu,
-                    resultTableView.getSelectionModel().getSelectedItems(),
-                    updatedNodes -> { // Callback, any extra handling added here
-                    });
-            TagUtil.configureGoldenItem(resultTableView.getSelectionModel().getSelectedItems(), tagGoldenMenuItem);
+            NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();
+            if (selectedItemType.equals(NodeType.SNAPSHOT)) {
+                TagUtil.tagWithComment(tagMenuItem,
+                        resultTableView.getSelectionModel().getSelectedItems(),
+                        updatedNodes -> { // Callback, any extra handling added here
+                        });
+                TagUtil.configureGoldenItem(resultTableView.getSelectionModel().getSelectedItems(), tagGoldenMenuItem);
+                tagGoldenMenuItem.setVisible(true);
+            } else {
+                tagGoldenMenuItem.setVisible(false);
+            }
+
+            if (!selectedItemType.equals(NodeType.SNAPSHOT) && !selectedItemType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
+                tagMenuItem.setVisible(false);
+                restoreMenuItem.setVisible(false);
+            } else {
+                tagMenuItem.setVisible(true);
+                restoreMenuItem.setVisible(true);
+            }
         });
 
-        contextMenu.getItems().addAll(tagGoldenMenuItem, tagMenu);
 
+        contextMenu.getItems().addAll(tagGoldenMenuItem, tagMenuItem, restoreMenuItem);
 
+        resultTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         resultTableView.setContextMenu(contextMenu);
 
         // Bind search result table to tableEntries observable
@@ -462,19 +524,22 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             final ClipboardContent content = new ClipboardContent();
             final List<Node> nodes = new ArrayList<>(resultTableView.getSelectionModel().getSelectedItems());
             content.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, nodes);
-            final Dragboard db = resultTableView.startDragAndDrop(TransferMode.LINK);
-            db.setContent(content);
+            resultTableView.startDragAndDrop(TransferMode.LINK).setContent(content);
             e.consume();
         });
 
         loadFilters();
 
         saveAndRestoreService.addFilterChangeListener(this);
+
+        progressIndicator.visibleProperty().bind(disableUi);
+        disableUi.addListener((observable, oldValue, newValue) -> mainUi.setDisable(newValue));
     }
 
-    private void setFilter(Filter filter) {
+    public void setFilter(Filter filter) {
         query.set(filter.getQueryString());
         filterNameProperty.set(filter.getName());
+        filterTableView.getSelectionModel().select(filter);
         updatedQueryEditor();
     }
 
@@ -534,7 +599,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         updatedQueryEditor();
     }
 
-    public void search() {
+    @FXML
+    private void search() {
 
         if (searchDisabled) {
             return;
@@ -697,7 +763,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                         clearFilter(filter);
                     } catch (Exception e) {
                         LOGGER.log(Level.SEVERE, "Failed to delete filter", e);
-                        ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.faildDeleteFilter, e);
+                        ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.failedDeleteFilter, e);
                     }
                 });
                 button.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
@@ -795,5 +861,36 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     public void handleSaveAndFilterTabClosed() {
         saveAndRestoreService.removeFilterChangeListener(this);
+    }
+
+    /**
+     * Performs a restore operation, optionally showing an error message if there are errors.
+     *
+     * @param snapshotId Unique id of a {@link Node} of type {@link NodeType#SNAPSHOT} or
+     *                   {@link NodeType#COMPOSITE_SNAPSHOT}.
+     */
+    private void doRestore(String snapshotId) {
+        disableUi.set(true);
+        JobManager.schedule("Restore Snapshot", monitor -> {
+            try {
+                List<RestoreResult> restoreResultList = saveAndRestoreService.restore(snapshotId);
+                if (restoreResultList != null && !restoreResultList.isEmpty()) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append(Messages.restoreFailedPVs).append(System.lineSeparator());
+                    stringBuilder.append(restoreResultList.stream()
+                            .map(r -> r.getSnapshotItem().getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle(Messages.restoreFailed);
+                        alert.setContentText(stringBuilder.toString());
+                        alert.show();
+                    });
+                }
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(Messages.restoreFailed, "", e);
+            } finally {
+                disableUi.set(false);
+            }
+        });
     }
 }

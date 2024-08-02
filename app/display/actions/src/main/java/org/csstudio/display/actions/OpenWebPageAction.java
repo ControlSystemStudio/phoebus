@@ -62,11 +62,6 @@ public class OpenWebPageAction extends ActionInfoBase {
     }
 
     @Override
-    public boolean matchesAction(String actionId) {
-        return actionId.equalsIgnoreCase(OPEN_WEBPAGE);
-    }
-
-    @Override
     public Image getImage() {
         return ImageCache.getImage(ActionsDialog.class, "/icons/web_browser.png");
     }
