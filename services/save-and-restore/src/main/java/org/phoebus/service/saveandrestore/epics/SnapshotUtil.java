@@ -74,38 +74,10 @@ public class SnapshotUtil {
         List<SnapshotItem> cleanedSnapshotItems = cleanSnapshotItems(snapshotItems);
         List<RestoreResult> restoreResultList = new ArrayList<>();
 
-        List<Callable<Void>> callables = new ArrayList<>();
+        List<RestoreCallable> callables = new ArrayList<>();
         for (SnapshotItem si : cleanedSnapshotItems) {
-            Callable<Void> writePvCallable = () -> {
-                CountDownLatch countDownLatch = new CountDownLatch(1);
-                PV pv;
-                try {
-                    pv = PVPool.getPV(si.getConfigPv().getPvName());
-                    pv.onValueEvent().throttleLatest(1000, TimeUnit.MILLISECONDS).subscribe(value -> {
-                        if (!PV.isDisconnected(value)) {
-                            pv.write(VTypeHelper.toObject(si.getValue()));
-                            PVPool.releasePV(pv);
-                        }
-                        countDownLatch.countDown();
-                    });
-                    if (!countDownLatch.await(connectionTimeout, TimeUnit.MILLISECONDS)) {
-                        RestoreResult restoreResult = new RestoreResult();
-                        restoreResult.setSnapshotItem(si);
-                        restoreResult.setErrorMsg("No monitor event from PV " + si.getConfigPv().getPvName());
-                        restoreResultList.add(restoreResult);
-                    }
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Failed to write to PV " + si.getConfigPv().getPvName(), e);
-                    RestoreResult restoreResult = new RestoreResult();
-                    restoreResult.setSnapshotItem(si);
-                    restoreResult.setErrorMsg(e.getMessage());
-                    restoreResultList.add(restoreResult);
-                    countDownLatch.countDown();
-                }
-
-                return null;
-            };
-            callables.add(writePvCallable);
+            RestoreCallable restoreCallable = new RestoreCallable(si, restoreResultList);
+            callables.add(restoreCallable);
         }
 
         try {
@@ -114,6 +86,8 @@ public class SnapshotUtil {
             LOG.log(Level.WARNING, "Got exception waiting for all tasks to finish", e);
             // Return empty list here?
             return Collections.emptyList();
+        } finally {
+            callables.forEach(RestoreCallable::release);
         }
 
         return restoreResultList;
@@ -142,14 +116,19 @@ public class SnapshotUtil {
                     pv = PVPool.getPV(configPv.getPvName());
                     pv.onValueEvent().subscribe(value -> {
                         if (!VTypeHelper.isDisconnected(value)) {
-                            pvValues.put(configPv.getPvName(), value);
                             countDownLatch.countDown();
                         }
                     });
                     if (!countDownLatch.await(connectionTimeout, TimeUnit.MILLISECONDS)) {
+                        LOG.log(Level.WARNING, "Connection to PV '" + configPv.getPvName() +
+                                "' timed out after " + connectionTimeout + " ms.");
                         pvValues.put(configPv.getPvName(), null);
                     }
+                    else{
+                        pvValues.put(configPv.getPvName(), pv.read());
+                    }
                 } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Failed to read PV '" + configPv.getPvName() + "'", e);
                     pvValues.put(configPv.getPvName(), null);
                     countDownLatch.countDown();
                 } finally {
@@ -173,14 +152,19 @@ public class SnapshotUtil {
                     pv = PVPool.getPV(configPv.getReadbackPvName());
                     pv.onValueEvent().subscribe(value -> {
                         if (!VTypeHelper.isDisconnected(value)) {
-                            readbackPvValues.put(configPv.getPvName(), value);
                             countDownLatch.countDown();
                         }
                     });
                     if (!countDownLatch.await(connectionTimeout, TimeUnit.MILLISECONDS)) {
+                        LOG.log(Level.WARNING, "Connection to read-back PV '" + configPv.getReadbackPvName() +
+                                "' timed out after " + connectionTimeout + " ms.");
                         readbackPvValues.put(configPv.getPvName(), null);
                     }
+                    else{
+                        readbackPvValues.put(configPv.getPvName(), pv.read());
+                    }
                 } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Failed to read read-back PV '" + configPv.getReadbackPvName() + "'", e);
                     readbackPvValues.put(configPv.getPvName(), null);
                     countDownLatch.countDown();
                 } finally {
@@ -224,5 +208,58 @@ public class SnapshotUtil {
 
     private List<SnapshotItem> cleanSnapshotItems(List<SnapshotItem> snapshotItems) {
         return snapshotItems.stream().filter(si -> !si.getConfigPv().isReadOnly()).toList();
+    }
+
+    /**
+     * Wraps PV functionality such that client code may release PV back to the pool once
+     * write/restore operation has succeeded (or failed).
+     */
+    private class RestoreCallable implements Callable<Void> {
+
+        private final List<RestoreResult> restoreResultList;
+        private PV pv;
+        private final SnapshotItem snapshotItem;
+
+        public RestoreCallable(SnapshotItem snapshotItem, List<RestoreResult> restoreResultList) {
+            this.snapshotItem = snapshotItem;
+            this.restoreResultList = restoreResultList;
+        }
+
+        @Override
+        public Void call() {
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            try {
+                pv = PVPool.getPV(snapshotItem.getConfigPv().getPvName());
+                pv.onValueEvent().subscribe(value -> {
+                    if (!PV.isDisconnected(value)) {
+                        countDownLatch.countDown();
+                    }
+                });
+                if (!countDownLatch.await(connectionTimeout, TimeUnit.MILLISECONDS)) {
+                    LOG.log(Level.WARNING, "Connection to PV '" + snapshotItem.getConfigPv().getPvName() +
+                            "' timed out after " + connectionTimeout + "ms.");
+                    RestoreResult restoreResult = new RestoreResult();
+                    restoreResult.setSnapshotItem(snapshotItem);
+                    restoreResult.setErrorMsg("No monitor event from PV '" + snapshotItem.getConfigPv().getPvName() + "'");
+                    restoreResultList.add(restoreResult);
+                } else {
+                    pv.write(VTypeHelper.toObject(snapshotItem.getValue()));
+                }
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to write to PV '" + snapshotItem.getConfigPv().getPvName() + "'", e);
+                RestoreResult restoreResult = new RestoreResult();
+                restoreResult.setSnapshotItem(snapshotItem);
+                restoreResult.setErrorMsg("Failed to write to PV '" + snapshotItem.getConfigPv().getPvName() + "', cause: " + e.getMessage());
+                restoreResultList.add(restoreResult);
+                countDownLatch.countDown();
+            }
+            return null;
+        }
+
+        public void release() {
+            if (pv != null) {
+                PVPool.releasePV(pv);
+            }
+        }
     }
 }

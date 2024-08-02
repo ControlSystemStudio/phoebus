@@ -1,0 +1,6 @@
+org.csstudio.display.builder.runtime.app.actionhandlers.OpenDisplayActionHandler
+org.csstudio.display.builder.runtime.app.actionhandlers.WritePVActionHandler
+org.csstudio.display.builder.runtime.app.actionhandlers.ExecuteScriptActionHandler
+org.csstudio.display.builder.runtime.app.actionhandlers.ExecuteCommandActionHandler
+org.csstudio.display.builder.runtime.app.actionhandlers.OpenFileActionHandler
+org.csstudio.display.builder.runtime.app.actionhandlers.OpenWebPageActionHandler
