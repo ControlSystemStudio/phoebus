@@ -29,11 +29,14 @@ import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.w3c.dom.Element;
 
 import javax.xml.stream.XMLStreamWriter;
+import java.util.Comparator;
 import java.util.List;
 
-public interface ActionInfo {
+public interface ActionInfo extends Comparable<ActionInfo> {
 
     /**
+     * If action type is not sufficient to determine match, implementations may add additional logic
+     * to resolve match. For instance: legacy display formats may use a different string to define the action type.
      * @param actionId Action id, e.g. open_display.
      * @return <code>true</code> if the input string is implemented by the {@link ActionInfo}.
      */
@@ -42,8 +45,7 @@ public interface ActionInfo {
     }
 
     /**
-     * The id/type of action, which is either a fully qualified class name, or a legacy identifier
-     * string like 'open_display'. Must be unique between all implementations.
+     * Non-null identifier, must be unique between all implementations.
      *
      * @return The action 'type'.
      */
@@ -117,4 +119,18 @@ public interface ActionInfo {
      * @return The {@link ActionInfo} object with committed values.
      */
     ActionInfo commit();
+
+    /**
+     * Comparator for the sake of sorting {@link ActionInfo}s. Uses {@link ActionInfo#getDescription()}.
+     * @param other the object to be compared.
+     * @return Any occurrence of <code>null</code> in the {@link ActionInfo#getDescription()}
+     * fields will return 0. Otherwise, comparison of {@link ActionInfo#getDescription()}.
+     */
+    @Override
+    default int compareTo(ActionInfo other){
+        if(getDescription() == null || other.getDescription() == null){
+            return 0;
+        }
+        return getDescription().compareTo(other.getDescription());
+    }
 }

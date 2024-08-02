@@ -20,6 +20,8 @@ package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -103,7 +105,7 @@ public class ActionsDialogController {
                 logger.log(Level.WARNING, "Error displaying " + actionsDialogActionItem, ex);
             }
         }
-    };
+    }
 
     /** Initialize */
     @FXML
@@ -116,7 +118,10 @@ public class ActionsDialogController {
 
         ServiceLoader<ActionInfo> actionInfos = ServiceLoader.load(ActionInfo.class);
 
-        for (ActionInfo actionInfo : actionInfos)
+        // Order actions, see ActionInfo#compareTo
+        List<ActionInfo> sortedActionInfos = actionInfos.stream().map(p -> p.get()).sorted().toList();
+
+        for (ActionInfo actionInfo : sortedActionInfos)
         {
             final ImageView icon = new ImageView(actionInfo.getImage());
             final MenuItem item = new MenuItem(actionInfo.toString(), icon);
