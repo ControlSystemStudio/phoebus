@@ -14,7 +14,8 @@ public class Messages
 {
     // Keep in alphabetical order and aligned with messages.properties
     /** Localized message */
-    public static String NavigateBack_TT,
+    public static String AppendPVNameToClipboard,
+                         NavigateBack_TT,
                          NavigateForward_TT,
                          OpenDataBrowser,
                          OpenInEditor,
