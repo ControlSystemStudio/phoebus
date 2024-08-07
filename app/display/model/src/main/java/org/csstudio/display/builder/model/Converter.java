@@ -19,25 +19,30 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 
-/** 'Main' for converting *.opi or older *.bob files into the current format
- *  @author Kay Kasemir
+/**
+ * 'Main' for converting *.opi or older *.bob files into the current format
+ * 
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Converter
-{
-    /** @param infile Input file (*.opi, older *.bob)
-     *  @param outfile Output file (*.bob to write)
-     *  @throws Exception on error
-     */
+public class Converter {
+	/**
+	 * @param infile
+	 *            Input file (*.opi, older *.bob)
+	 * @param outfile
+	 *            Output file (*.bob to write)
+	 * @throws Exception
+	 *             on error
+	 */
 	/**
 	 * 
 	 * @return all opi files contained in a given folder
 	 */
-	
-	
 	public static final String OUTPUT_ARG = "-output";
 	public static final String OPI_EXTENSION = ".opi";
 	public static final String BOB_EXTENSION = ".bob";
+	public static final String OPI = "opi";
+	public static final String BOB = "bob";
 	public static final String PYTHON_EXTENSION = ".python";
 	public static final String PY_EXTENSION = ".py";
 	public static final String JAVASCRIPT_EXTENSION = ".javascript";
@@ -45,8 +50,14 @@ public class Converter
 	public static final String IMPORT_CSS = "org.csstudio.opibuilder";
 	public static final String IMPORT_PHOEBUS = "org.csstudio.display.builder.runtime.script";
 	public static final String PHOEBUS = "phoebus_";
-	
-	public static List<String> listOpiFiles(String folder) {
+
+	/**
+	 * 
+	 * @param folder
+	 * @return all opi files contained in a given folder
+	 */
+
+	public List<String> listOpiFiles(String folder) {
 		List<String> extensionsList = new ArrayList<String>();
 		extensionsList.add(OPI_EXTENSION);
 		return listFiles(folder, extensionsList);
@@ -56,7 +67,7 @@ public class Converter
 	 * 
 	 * @return all bob files contained in a given folder
 	 */
-	public static List<String> listBobFiles(String folder) {
+	public List<String> listBobFiles(String folder) {
 		List<String> extensionsList = new ArrayList<String>();
 		extensionsList.add(BOB_EXTENSION);
 		return listFiles(folder, extensionsList);
@@ -66,7 +77,7 @@ public class Converter
 	 * 
 	 * @return all script files contained in a given folder
 	 */
-	public static List<String> listScriptFiles(String folder) {
+	public List<String> listScriptFiles(String folder) {
 		List<String> extensionsList = new ArrayList<String>();
 		extensionsList.add(PYTHON_EXTENSION);
 		extensionsList.add(PY_EXTENSION);
@@ -81,7 +92,7 @@ public class Converter
 	 * @param fileName
 	 * @return true if the file is a script file
 	 */
-	public static boolean isScriptFile(String fileName) {
+	public boolean isScriptFile(String fileName) {
 		List<String> extensionsList = new ArrayList<String>();
 		extensionsList.add(PYTHON_EXTENSION);
 		extensionsList.add(PY_EXTENSION);
@@ -96,7 +107,7 @@ public class Converter
 	 * @param fileName
 	 * @return true if the file is a opi file
 	 */
-	public static boolean isOpiFile(String fileName) {
+	public boolean isOpiFile(String fileName) {
 		List<String> extensionsList = new ArrayList<String>();
 		extensionsList.add(OPI_EXTENSION);
 		return matchExtensions(fileName, extensionsList);
@@ -108,7 +119,7 @@ public class Converter
 	 * @param fileName
 	 * @return true if the file is a bob file
 	 */
-	public static boolean isBobFile(String fileName) {
+	public boolean isBobFile(String fileName) {
 		List<String> extensionsList = new ArrayList<String>();
 		extensionsList.add(BOB_EXTENSION);
 		return matchExtensions(fileName, extensionsList);
@@ -137,7 +148,7 @@ public class Converter
 	 * 
 	 * @return all files contained in a given folder and match with given extension
 	 */
-	public static List<String> listFiles(String folder, List<String> searchExtension) {
+	public List<String> listFiles(String folder, List<String> searchExtension) {
 		List<String> searchFiles = new ArrayList<String>();
 		File folderFile = new File(folder);
 		if (folderFile.exists() && folderFile.isDirectory()) {
@@ -158,80 +169,100 @@ public class Converter
 		return searchFiles;
 	}
 
-	
-	
-    private static void convert(final File infile, final File outfile) throws Exception
-    {
-        System.out.println("Converting: " + infile + " => " + outfile);
+	private void convert(final File infile, final File outfile) throws Exception {
+		traceProgression(infile, outfile); // displaying current file and it output location
+		try (FileOutputStream outStream = new FileOutputStream(outfile);
+			 ModelWriter writer = new ModelWriter(outStream);) 
+			{
+				final ModelReader reader = new ModelReader(new FileInputStream(infile));
+				DisplayModel model = reader.readModel();
+				writer.writeModel(model);
+				writer.close();
+			} catch (Exception e) {
+				throw e;
+			}
+	}
 
-        final ModelReader reader = new ModelReader(new FileInputStream(infile));
-        DisplayModel model = reader.readModel();
-        ModelWriter writer = new ModelWriter(new FileOutputStream(outfile));
-        writer.writeModel(model);
-        writer.close();
-    }
+	/**
+	 * displaying 2 files
+	 * 
+	 * @param infile
+	 * @param outfile
+	 */
+	protected void traceProgression(File infile, final File outfile) {
+		System.out.println("Converting: " + infile + " => " + outfile);
 
-    /** @param infile Input file (*.opi, older *.bob)
-     *  @param output_dir Folder where to create output.bob, <code>null</code> to use folder of input file
-     *  @throws Exception on error
-     */
-    private static void convert(final String input, final File output_dir) throws Exception
-    {
-        final File infile = new File(input);
-        if (! infile.canRead())
-            throw new Exception("Cannot read " + infile);
-        File outfile;
+	}
 
-        if (isOpiFile(input))
-            outfile = new File(input.substring(0, input.length()-4) + ".bob");
-        else
-            outfile = new File(input);
-        if (output_dir != null)
-            outfile = new File(output_dir, outfile.getName());
-        if (outfile.canRead())
-            throw new Exception("Output file " + outfile + " exists");
+	/**
+	 * @param infile
+	 *            Input file (*.opi, older *.bob)
+	 * @param output_dir
+	 *            Folder where to create output.bob, <code>null</code> to use folder
+	 *            of input file
+	 * @throws Exception
+	 *             on error
+	 */
+	private void convert(final String input, final File output_dir) throws Exception {
+		final File infile = new File(input);
+		if (!infile.canRead())
+			throw new Exception("Cannot read " + infile);
+		File outfile;
 
-        convert(infile, outfile);
-    }
+		if (isOpiFile(input))
+			outfile = new File(input.substring(0, input.length() - 4) + ".bob");
+		else
+			outfile = new File(input);
+		if (output_dir != null)
+			outfile = new File(output_dir, outfile.getName());
+		if (outfile.canRead())
+			throw new Exception("Output file " + outfile + " exists");
 
-    /** @param args Command line arguments */
-    public static void main(final String[] args)
-    {
-        if (args.length == 0  || args[0].startsWith("-h"))
-        {
-            System.out.println("Usage: -main org.csstudio.display.builder.model.Converter [-help] [-output /path/to/folder] <files>");
-            System.out.println();
-            System.out.println("Converts BOY *.opi files to Display Builder *.bob format");
-            System.out.println();
-            System.out.println("-output /path/to/folder   - Folder into which converted files are written");
-            System.out.println("<files>                   - One or more files to convert");
-            return;
-        }
-        final List<String> files = new ArrayList<>(List.of(args));
-        final File output_dir;
-        if (files.get(0).startsWith("-o"))
-        {
-            if (files.size() < 2)
-            {
-                System.err.println("Missing folder for -output /path/to/folder");
-                return;
-            }
-            output_dir = new File(files.get(1));
-            files.remove(0);
-            files.remove(0);
-        }
-        else
-            output_dir = null;
-        for (String file : files)
-        {
-            try
-            {
-                convert(file, output_dir);
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Cannot convert " + file, ex);
-            }
-        }
-    }
+		convert(infile, outfile);
+	}
+
+	protected void launchConversion(final String[] args) {
+		if (args.length == 0 || args[0].startsWith("-h")) {
+			System.out.println(
+					"Usage: -main org.csstudio.display.builder.model.Converter [-help] [-output /path/to/folder] <files>");
+			System.out.println();
+			System.out.println("Converts BOY *.opi files to Display Builder *.bob format");
+			System.out.println();
+			System.out.println("-output /path/to/folder   - Folder into which converted files are written");
+			System.out.println("<files>                   - One or more files to convert");
+			return;
+		}
+		final List<String> files = new ArrayList<>(List.of(args));
+		final File output_dir;
+		if (files.get(0).startsWith("-o")) {
+			if (files.size() < 2) {
+				System.err.println("Missing folder for -output /path/to/folder");
+				return;
+			}
+			output_dir = new File(files.get(1));
+			files.remove(0);
+			files.remove(0);
+		} else
+			output_dir = null;
+		for (String file : files) {
+			try {
+				convert(file, output_dir);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				System.err.println("Cannot convert " + file);
+				logger.log(Level.WARNING, "Cannot convert " + file, ex);
+			}
+		}
+	}
+
+	/**
+	 * @param args
+	 *            Command line arguments
+	 */
+	public static void main(final String[] args) {
+
+		Converter converter = new Converter();
+		converter.launchConversion(args);
+	}
+
 }
