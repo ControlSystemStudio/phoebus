@@ -49,10 +49,8 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 	private static final String SELECT_NULL = "Select Paths";
 	private static final String SELECT_A_FOLDER_OUTPUT = "select a folder who will receive the conversion";
 	private static final String SELECT_FOLDER_INPUT = "select a folder or a file to convert";
-	private static final Color VERY_DARK_GREEN = new Color(0,102,0);
-	  public static final Color VERY_DARK_RED = new Color(153,0,0);
-
-
+	private static final Color VERY_DARK_GREEN = new Color(0, 102, 0);
+	private static final Color VERY_DARK_RED = new Color(153, 0, 0);
 
 	private static BrowserConverter instance = null;
 	private int progress = 0;
@@ -360,20 +358,20 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 		// delete all duplicate file to the output
 		if (!over.isEmpty()) {
 			if (showConfirmDialog(null, OVERRIDING_MSG + " \n" + over, "Conflict", YES_NO_OPTION) == YES_OPTION) {
-				
+
 				List<Path> pathList = new ArrayList<Path>();
-				for(File file : over) {
+				for (File file : over) {
 					pathList.add(file.toPath());
 				}
-				
+
 				for (Path path : pathList) {
 					Files.delete(path);
 				}
-				
-//				for (int i = 0; i < over.size(); i++) {
-//					// System.out.println("im deleting " + over.get(i).toPath());
-//					Files.delete(over.get(i).toPath());
-//				}
+
+				// for (int i = 0; i < over.size(); i++) {
+				// // System.out.println("im deleting " + over.get(i).toPath());
+				// Files.delete(over.get(i).toPath());
+				// }
 			} else {
 				return;
 			}
@@ -462,7 +460,6 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 			break;
 		case NEWFILE:
 			incrementProgress();
-			// TODO
 			displayProgress("Convert " + event.getFile().getName());
 			progressMsg.setForeground(Color.BLACK);
 			break;
@@ -472,7 +469,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 			displayProgress("Error script");
 			progressMsg.setForeground(VERY_DARK_RED);
 			break;
-		
+
 		case SUCCESS:
 			displayProgress(event.getMessage());
 			progressMsg.setForeground(VERY_DARK_GREEN);
@@ -496,7 +493,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 		if (nbFile == 0) {
 			percentage = (progress * 100) / 1;
 		} else {
-			percentage = (progress * 100) / (nbFile-2);
+			percentage = (progress * 100) / (nbFile - 2);
 		}
 		b.setValue(percentage);
 
@@ -534,7 +531,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 		outputFolderList.clear();
 		errorArea.setText("");
 		over.clear();
-		if(progressMsg != null || b!=null) {
+		if (progressMsg != null || b != null) {
 			progressMsg.setForeground(Color.BLACK);
 			b.setValue(0);
 
