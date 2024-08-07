@@ -33,6 +33,8 @@ public class ExecuteScriptAction extends ActionInfoBase {
     public static final String EXECUTE_PYTHONSCRIPT = "EXECUTE_PYTHONSCRIPT";
     public static final String EXECUTE_JAVASCRIPT = "EXECUTE_JAVASCRIPT";
 
+    private static final Integer PRIORITY = 30;
+
     private ScriptInfo scriptInfo;
     private String text;
     private String path;
@@ -185,5 +187,10 @@ public class ExecuteScriptAction extends ActionInfoBase {
         text = executeScriptController.getScriptBody();
         description = executeScriptController.getDescription();
         return this;
+    }
+
+    @Override
+    public Integer getPriority() {
+        return PRIORITY;
     }
 }

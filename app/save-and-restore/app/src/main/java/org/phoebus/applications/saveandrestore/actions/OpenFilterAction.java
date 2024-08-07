@@ -36,6 +36,7 @@ public class OpenFilterAction extends ActionInfoBase {
 
     public static final String OPEN_SAR_FILTER = "open_sar_filter";
     private static final String FILTER_ID_TAG = "filter_id";
+    private static final Integer PRIORITY = 55;
 
     private OpenFilterActionController openFilterActionController;
 
@@ -47,6 +48,11 @@ public class OpenFilterAction extends ActionInfoBase {
     @Override
     public Image getImage() {
         return ImageCache.getImage(OpenFilterAction.class, "/icons/bookcase.png");
+    }
+
+    @Override
+    public Integer getPriority() {
+        return PRIORITY;
     }
 
     @Override

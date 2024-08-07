@@ -118,24 +118,23 @@ public class ActionsDialogController {
 
         ServiceLoader<ActionInfo> actionInfos = ServiceLoader.load(ActionInfo.class);
 
-        // Order actions, see ActionInfo#compareTo
-        List<ActionInfo> sortedActionInfos = actionInfos.stream().map(p -> p.get()).sorted().toList();
-
-        for (ActionInfo actionInfo : sortedActionInfos)
-        {
-            final ImageView icon = new ImageView(actionInfo.getImage());
-            final MenuItem item = new MenuItem(actionInfo.toString(), icon);
-            item.setOnAction(event ->
-            {
-                ActionsDialogActionItem actionsDialogActionItem =
-                        new ActionsDialogActionItem(widget, actionInfo);
-                actionList.add(actionsDialogActionItem);
-                actionsListView.setItems(actionList);
-                detailsPane.getChildren().add(actionInfo.getEditor(widget));
-                actionsListView.getSelectionModel().select(actionsDialogActionItem);
-            });
-            addButton.getItems().add(item);
-        }
+        actionInfos.stream()
+                .sorted(Comparator.comparing(actionInfo -> actionInfo.get().getPriority()))
+                .forEach(actionInfoProvider -> {
+                    ActionInfo actionInfo = actionInfoProvider.get();
+                    final ImageView icon = new ImageView(actionInfo.getImage());
+                    final MenuItem item = new MenuItem(actionInfo.toString(), icon);
+                    item.setOnAction(event ->
+                    {
+                        ActionsDialogActionItem actionsDialogActionItem =
+                                new ActionsDialogActionItem(widget, actionInfo);
+                        actionList.add(actionsDialogActionItem);
+                        actionsListView.setItems(actionList);
+                        detailsPane.getChildren().add(actionInfo.getEditor(widget));
+                        actionsListView.getSelectionModel().select(actionsDialogActionItem);
+                    });
+                    addButton.getItems().add(item);
+                });
 
         actionsListView.setCellFactory(view -> new ActionInfoCell());
 

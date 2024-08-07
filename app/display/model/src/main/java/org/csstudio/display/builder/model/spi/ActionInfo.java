@@ -64,6 +64,14 @@ public interface ActionInfo extends Comparable<ActionInfo> {
     String getDescription();
 
     /**
+     *
+     * @return
+     */
+    default Integer getPriority() {
+        return 100;
+    }
+
+    /**
      * @param description User-defined string, overriding the default.
      */
     void setDescription(String description);

@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 public class ExecuteCommandAction extends ActionInfoBase {
 
     public static final String EXECUTE_COMMAND = "command";
+    private static final Integer PRIORITY = 40;
     private String command;
     private ExecuteCommandActionController executeCommandActionController;
 
@@ -51,6 +52,10 @@ public class ExecuteCommandAction extends ActionInfoBase {
         return ImageCache.getImage(ActionsDialog.class, "/icons/execute_script.png");
     }
 
+    @Override
+    public Integer getPriority() {
+        return PRIORITY;
+    }
 
     @Override
     public void readFromXML(ModelReader modelReader, Element actionXml) {

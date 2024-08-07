@@ -46,7 +46,6 @@ public abstract class ActionInfoBase implements ActionInfo {
         return type;
     }
 
-    
     protected MenuItem createMenuItem(final Widget widget, final String description) {
         // Expand macros in action description
         String desc;
