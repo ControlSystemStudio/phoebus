@@ -47,6 +47,9 @@ public class DroppedPVNameParser
             final char c = text.charAt(pos);
             if (c == '"')
                 pos = locateClosingQuote(text, pos+1);
+            else if (c == '\'') {
+                pos = locateClosingSingleQuote(text, pos+1);
+            }
             else if (c == '(')
                 pos = locateClosingBrace(text, pos+1);
             else if ("\r\n\t,; ".indexOf(c) >= 0)
@@ -82,6 +85,24 @@ public class DroppedPVNameParser
             end = text.indexOf('"', end+1);
         if (end < 0)
             throw new Exception("Missing closing quote");
+        return end + 1;
+    }
+
+    /** Locate closing, non-escaped single quote
+     *  @param text Text to search
+     *  @param pos Position after opening single quote
+     *  @return Position after the closing single quote, or -1
+     *  @throws Exception if there is no closing single quote
+     */
+    private static int locateClosingSingleQuote(final String text, int pos) throws Exception
+    {
+        int end = text.indexOf('\'', pos);
+        while (end > pos && text.charAt(end-1) == '\\') {
+            end = text.indexOf('\'', end+1);
+        }
+        if (end < 0) {
+            throw new Exception("Missing closing single quote");
+        }
         return end + 1;
     }
 

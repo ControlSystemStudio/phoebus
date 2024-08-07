@@ -24,6 +24,8 @@ public class Messages
                          AddFormula_NameTT,
                          AddItemErrorFmt,
                          AddPV,
+                         AddPVs,
+                         AddPVsFromTheClipboard,
                          AddPV_Axis,
                          AddPV_AxisTT,
                          AddPVMsg,
@@ -221,6 +223,8 @@ public class Messages
                          NewPlotFileCreateFailed,
                          NewPlotOverwriteExisting,
                          NewPlotOverwriteExistingTitle,
+                         NoEachPVIsAssignedAnValueAxisIndividually,
+                         NoPVsFoundInTheClipboard,
                          NotApplicable,
                          OpenExportView,
                          OpenPropertiesView,
@@ -282,6 +286,7 @@ public class Messages
                          StatisticsSum,
                          StatisticsSampleCount,
                          StatusColumn,
+                         TheClipboardDoesNotContainPVs,
                          TimeAxis,
                          TimeColumn,
                          TitleFontLbl,
@@ -304,6 +309,7 @@ public class Messages
                          UseAxisName,
                          UseLines,
                          UsePoints,
+                         UseTheSameValueAxisForAllAddedPVs,
                          UseTraceNames,
                          UseUnixTimeStamp,
                          ValueAxes,
@@ -316,7 +322,8 @@ public class Messages
                          WaveformTimeSelector,
                          WaveformTimestamp,
                          WaveformView,
-                         WaveformViewSelect;
+                         WaveformViewSelect,
+                         YesAllPVsAreAddedToTheAxis;
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---

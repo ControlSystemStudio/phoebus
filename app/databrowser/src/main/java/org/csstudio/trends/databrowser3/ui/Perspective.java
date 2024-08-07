@@ -20,6 +20,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.internal.YAxisImpl;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
@@ -32,6 +33,7 @@ import org.csstudio.trends.databrowser3.ui.export.ExportView;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
+import org.csstudio.trends.databrowser3.ui.properties.AddPVsFromTheClipboardMenuItem;
 import org.csstudio.trends.databrowser3.ui.properties.DeleteAxes;
 import org.csstudio.trends.databrowser3.ui.properties.MoveAxisToTheLeft;
 import org.csstudio.trends.databrowser3.ui.properties.MoveAxisToTheRight;
@@ -152,6 +154,7 @@ public class Perspective extends SplitPane
         final List<MenuItem> add_data = new ArrayList<>();
         add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, false));
         add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, true));
+        add_data.add(new AddPVsFromTheClipboardMenuItem(undo, model, plot.getPlot()));
 
         for (String type : SampleImporters.getTypes())
             add_data.add(new SampleImportAction(model, type, undo));

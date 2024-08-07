@@ -711,12 +711,13 @@ public class TracesTab extends Tab
     {
         final MenuItem add_pv = new AddPVorFormulaMenuItem(trace_table, model, undo, false);
         final MenuItem add_formula = new AddPVorFormulaMenuItem(trace_table, model, undo, true);
+        final MenuItem add_pvs_from_the_clipboard = new AddPVsFromTheClipboardMenuItem(undo, model, trace_table);
         final ContextMenu menu = new ContextMenu();
 
         trace_table.setOnContextMenuRequested(event ->
         {
             final ObservableList<MenuItem> items = menu.getItems();
-            items.setAll(add_pv, add_formula);
+            items.setAll(add_pv, add_formula, add_pvs_from_the_clipboard);
 
             final List<ModelItem> selection = trace_table.getSelectionModel().getSelectedItems();
 
