@@ -26,9 +26,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -40,26 +38,22 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.phoebus.applications.saveandrestore.ui.NodeSelectionController;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVCommon;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.ui.NodeSelectionDialog;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.ui.javafx.ImageCache;
 
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -181,27 +175,9 @@ public class ConfigurationFromSelectionController implements Initializable {
         locationTextField.textProperty().bind(locationProperty);
 
         browseButton.setOnAction(action -> {
-            try {
-
-                FXMLLoader loader = new FXMLLoader();
-                Stage dialog = new Stage();
-                dialog.setTitle(Messages.nodeSelectionForConfiguration);
-                dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
-                dialog.initModality(Modality.APPLICATION_MODAL);
-                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/NodeSelector.fxml"));
-                dialog.setScene(new Scene(loader.load()));
-
-                final NodeSelectionController nodeSelectionController = loader.getController();
-                nodeSelectionController.setHiddenNodeTypes(Arrays.asList(NodeType.SNAPSHOT, NodeType.COMPOSITE_SNAPSHOT));
-                dialog.showAndWait();
-
-                final Node selectedNode = nodeSelectionController.getSelectedNode();
-                if (selectedNode != null) {
-                    targetNode.set(selectedNode);
-                }
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Unable to launch UI", e);
-            }
+            NodeSelectionDialog nodeSelectionDialog = new NodeSelectionDialog(NodeType.SNAPSHOT, NodeType.COMPOSITE_SNAPSHOT);
+            Optional<Node> selectedNodeOptional = nodeSelectionDialog.showAndWait();
+            selectedNodeOptional.ifPresent(targetNode::set);
         });
 
         configurationNameField.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());

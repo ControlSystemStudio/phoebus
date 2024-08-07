@@ -324,6 +324,7 @@
             <configuration>
               <aggregate>true</aggregate>
               <includes>**/messages*.properties</includes>
+              <excludes>**/application.properties</excludes>
               <locales>
                 <locale>de</locale>
                 <locale>es</locale>

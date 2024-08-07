@@ -17,7 +17,7 @@
  */
 package org.phoebus.service.saveandrestore.web.config;
 
-import org.phoebus.service.saveandrestore.epics.SnapshotRestorer;
+import org.phoebus.service.saveandrestore.epics.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +26,6 @@ import org.springframework.context.annotation.Scope;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * {@link Configuration} class setting up beans for {@link org.springframework.stereotype.Controller} classes.
@@ -57,8 +56,8 @@ public class WebConfiguration {
     @SuppressWarnings("unused")
     @Bean
     @Scope("singleton")
-    public SnapshotRestorer snapshotRestorer(){
-        return new SnapshotRestorer();
+    public SnapshotUtil snapshotRestorer(){
+        return new SnapshotUtil();
     }
 
     @Bean

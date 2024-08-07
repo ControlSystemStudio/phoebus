@@ -98,6 +98,10 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Toolbar button for navigation */
     private ButtonBase navigate_backward, navigate_forward;
 
+    public String getDisplayName() {
+        return active_model.getDisplayName();
+    }
+
     /** Obtain the DisplayRuntimeInstance of a display
      *  @param model {@link DisplayModel}
      *  @return {@link DisplayRuntimeInstance}
@@ -173,8 +177,10 @@ public class DisplayRuntimeInstance implements AppInstance
         return app;
     }
 
-    /** @return {@link JFXRepresentation} */
-    JFXRepresentation getRepresentation()
+    /** @return {@link JFXRepresentation}
+     * This method has public scope, but it should only be used carefully in
+     * a 'read-only' context (e.g. capturing zoom, dimensions, etc.)*/
+    public JFXRepresentation getRepresentation()
     {
         return representation;
     }

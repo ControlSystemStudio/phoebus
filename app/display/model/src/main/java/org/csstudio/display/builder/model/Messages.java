@@ -15,12 +15,7 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     /** Externalized strings */
-    public static String ActionExecuteCommand,
-                         ActionExecuteScript,
-                         ActionOpenDisplay,
-                         ActionOpenFile,
-                         ActionOpenWebPage,
-                         ActionWritePV,
+    public static String
                          Actions_N_Fmt,
                          ActiveTab,
                          ArrayWidget_Description,
@@ -128,10 +123,6 @@ public class Messages
                          TabsWidget_Description,
                          TabsWidget_Name,
                          TabsWidget_TabNameFmt,
-                         Target_Replace,
-                         Target_Standalone,
-                         Target_Tab,
-                         Target_Window,
                          Top,
                          TraceType_Bars,
                          TraceType_Errorbar,

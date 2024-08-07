@@ -65,22 +65,6 @@
     -fx-text-overrun: clip;
 }
 
-/* Action buttons with multiple actions become a MenuButton
- * with popup items for each action.
- * The text fill of that context menu uses a ladder()
- * to become black vs. white based on the background color
- * .. of the _button_, while the background of the context menu
- * remains white.
- * This can result in white text on white background.
- *  -> Force black text for the context menu.
- *
- * See MenuButtonDemo
- */
-.action_button_item .label
-{
-    -fx-text-fill: black;
-}
-
 /** Used by MenuButton (Action Button Widget)
  *  to hide the 'down' arrow when button is too narrow
  */

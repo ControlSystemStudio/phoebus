@@ -49,7 +49,9 @@ class AlarmTreeInstance implements AppInstance
         this.app = app;
 
         // split input with/without (raw) query
-        final URI resource = new URI(input.getScheme(), input.getUserInfo(), input.getHost(), input.getPort(), input.getPath(), null, null);
+        // When the URI specifies multiple host / port pairs getHost() will not
+        // work, so we use getAuthority() instead.
+        final URI resource = new URI(input.getScheme(), input.getAuthority(), input.getPath(), null, null);
         String itemName = AlarmURI.getRawQueryParametersValues(input).get(AlarmURI.QUERY_PARAMETER_ITEM_NAME);
         itemName = itemName != null ? URLDecoder.decode(itemName, StandardCharsets.UTF_8) : null;
 

@@ -11,15 +11,14 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfos;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgetParts.RelatedDisplayItem;
 import org.csstudio.utility.adlparser.fileParser.widgets.RelatedDisplay;
+import org.csstudio.display.actions.OpenDisplayAction;
 import org.phoebus.framework.macros.Macros;
 
 /**
@@ -60,7 +59,7 @@ public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> 
             // allow user to use 'Ctrl' etc at runtime.
             // Users can always close the new tab, but have no other way
             // to get new tab.
-            final Target target = displays.length == 1 ? Target.REPLACE : Target.TAB;
+            final OpenDisplayAction.Target target = displays.length == 1 ? OpenDisplayAction.Target.REPLACE : OpenDisplayAction.Target.TAB;
             for (RelatedDisplayItem display : displays)
             {
                 final ActionInfo action = createOpenDisplayAction(display, target);
@@ -88,7 +87,7 @@ public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> 
      * @param target
      * @return ActionInfo
      */
-    public ActionInfo createOpenDisplayAction(final RelatedDisplayItem rdDisplay, Target target)
+    public ActionInfo createOpenDisplayAction(final RelatedDisplayItem rdDisplay, OpenDisplayAction.Target target)
     {
         final String file = rdDisplay.getFileName()
                                      .replaceAll("\"", "")
@@ -108,7 +107,7 @@ public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> 
                 target = target.TAB;
         }
 
-        return new OpenDisplayActionInfo(description, file, getMacros(rdDisplay), target);
+        return new OpenDisplayAction(description, file, getMacros(rdDisplay), target);
     }
 
     public Macros getMacros(RelatedDisplayItem rdDisplay)
