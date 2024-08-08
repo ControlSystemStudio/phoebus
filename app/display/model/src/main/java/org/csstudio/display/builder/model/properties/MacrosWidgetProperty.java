@@ -18,6 +18,8 @@ import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.phoebus.framework.macros.Macros;
 import org.w3c.dom.Element;
 
+import java.util.Map;
+
 /** Widget property that describes macros.
  *
  *  @author Kay Kasemir
@@ -48,9 +50,34 @@ public class MacrosWidgetProperty extends WidgetProperty<Macros>
     public void setValueFromObject(final Object value) throws Exception
     {
         if (value instanceof Macros)
+        {
             setValue((Macros) value);
+        }
+        else if (value instanceof Map)
+        {
+            setValue(fromMap((Map<Object, Object>) value));
+        }
+        else if (value instanceof String)
+        {
+            setValue(Macros.fromSimpleSpec((String) value));
+        }
         else
+        {
             throw new Exception("Need Macros, got " + value);
+        }
+    }
+
+    /**
+     * Parse Macro information from a {@link Map}
+     * Note: since Maps do not preserve order, this helper is for limited backward compatibility
+     * @param names_and_values a map of macro names( keys ) and their values
+     * @return a {@link Macros} initialized using the names and values from the map
+     */
+    private static Macros fromMap(Map<Object, Object> names_and_values)
+    {
+        Macros macros = new Macros();
+        names_and_values.entrySet().forEach(e -> macros.add(String.valueOf(e.getKey()), String.valueOf(e.getValue())));
+        return macros;
     }
 
     @Override
