@@ -55,7 +55,7 @@ public class MacrosWidgetProperty extends WidgetProperty<Macros>
         }
         else if (value instanceof Map)
         {
-            setValue(fromMap((Map<String, String>) value));
+            setValue(fromMap((Map<Object, Object>) value));
         }
         else if (value instanceof String)
         {
@@ -73,10 +73,10 @@ public class MacrosWidgetProperty extends WidgetProperty<Macros>
      * @param names_and_values a map of macro names( keys ) and their values
      * @return a {@link Macros} initialized using the names and values from the map
      */
-    private static Macros fromMap(Map<String, String> names_and_values)
+    private static Macros fromMap(Map<Object, Object> names_and_values)
     {
         Macros macros = new Macros();
-        names_and_values.entrySet().forEach(e -> macros.add(e.getKey(), e.getValue()));
+        names_and_values.entrySet().forEach(e -> macros.add(String.valueOf(e.getKey()), String.valueOf(e.getValue())));
         return macros;
     }
 
