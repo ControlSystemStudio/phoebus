@@ -48,6 +48,8 @@ public class OpenDisplayAction extends ActionInfoBase {
 
     public static final String OPEN_DISPLAY = "open_display";
 
+    private static final Integer PRIORITY = 10;
+
     private OpenDisplayActionController openDisplayActionController;
 
     private static final Logger logger = Logger.getLogger(OpenDisplayAction.class.getName());
@@ -257,6 +259,11 @@ public class OpenDisplayAction extends ActionInfoBase {
     @Override
     public Image getImage() {
         return ImageCache.getImage(ActionsDialog.class, "/icons/open_display.png");
+    }
+
+    @Override
+    public Integer getPriority() {
+        return PRIORITY;
     }
 
     @Override

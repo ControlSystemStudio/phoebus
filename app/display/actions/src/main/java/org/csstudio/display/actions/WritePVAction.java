@@ -31,6 +31,7 @@ public class WritePVAction extends ActionInfoBase {
     private String value = "0";
 
     public static final String WRITE_PV = "write_pv";
+    private static final Integer PRIORITY = 20;
     private final Logger logger = Logger.getLogger(WritePVAction.class.getName());
 
     private WritePVActionController writePVActionController;
@@ -84,6 +85,16 @@ public class WritePVAction extends ActionInfoBase {
     @Override
     public Image getImage() {
         return ImageCache.getImage(ActionsDialog.class, "/icons/write_pv.png");
+    }
+
+    @Override
+    public Integer getPriority() {
+        return PRIORITY;
+    }
+
+    @Override
+    public boolean matchesAction(String actionId) {
+        return actionId.equalsIgnoreCase(WRITE_PV);
     }
 
     public String getPV() {
