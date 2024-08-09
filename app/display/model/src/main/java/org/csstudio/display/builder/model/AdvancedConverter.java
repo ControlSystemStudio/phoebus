@@ -349,10 +349,10 @@ public class AdvancedConverter extends Converter {
 				}
 
 				// Replace embedded opi by bob
-				newContains = newContains.replaceAll(OPI, BOB); // prevent replaceAll problem for opi becoming .bob in
+				newContains = newContains.replaceAll(OPI_EXTENSION, BOB_EXTENSION); // prevent replaceAll problem for opi becoming .bob in
 																// the bob file
-				newContains = newContains.replaceAll(OPI_EXTENSION, BOB_EXTENSION);
-				newContains = newContains.replaceAll(OPI_EXTENSION.toUpperCase(), BOB_EXTENSION.toUpperCase());
+				newContains = newContains.replaceAll("." + OPI_EXTENSION, "." + BOB_EXTENSION);
+				newContains = newContains.replaceAll("." + OPI_EXTENSION.toUpperCase(), "." + BOB_EXTENSION.toUpperCase());
 
 				// Replace name of script for phoebus => phoebus_scritfile.py
 				for (String scriptFile : scriptList) {

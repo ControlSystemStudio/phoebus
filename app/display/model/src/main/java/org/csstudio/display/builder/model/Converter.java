@@ -39,10 +39,8 @@ public class Converter {
 	 * @return all opi files contained in a given folder
 	 */
 	public static final String OUTPUT_ARG = "-output";
-	public static final String OPI_EXTENSION = ".opi";
-	public static final String BOB_EXTENSION = ".bob";
-	public static final String OPI = "opi";
-	public static final String BOB = "bob";
+	public static final String OPI_EXTENSION = "opi";
+	public static final String BOB_EXTENSION = "bob";
 	public static final String PYTHON_EXTENSION = ".python";
 	public static final String PY_EXTENSION = ".py";
 	public static final String JAVASCRIPT_EXTENSION = ".javascript";
@@ -135,7 +133,7 @@ public class Converter {
 		boolean match = false;
 		if (fileName != null && extensionsList != null && !extensionsList.isEmpty()) {
 			for (String ext : extensionsList) {
-				if (fileName.toLowerCase().endsWith(ext)) {
+				if (fileName.toLowerCase().endsWith("." + ext)) {
 					match = true;
 					break;
 				}
