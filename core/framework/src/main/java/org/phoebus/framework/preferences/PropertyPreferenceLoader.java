@@ -53,7 +53,7 @@ public class PropertyPreferenceLoader
             if (value.contains("$(phoebus.install)"))
                 value = value.replace("$(phoebus.install)", Locations.install().toString()).replace("\\", "/").replace(" ", "%20");
             if (value.contains("$(phoebus.user)"))
-                value = value.replace("$(user.home)", Locations.user().toString()).replace("\\", "/").replace(" ", "%20");
+                value = value.replace("$(phoebus.user)", Locations.user().toString()).replace("\\", "/").replace(" ", "%20");
             if (value.contains("$(user.home)"))
                 value = value.replace("$(user.home)", System.getProperty("user.home").toString()).replace("\\", "/").replace(" ", "%20");
 
