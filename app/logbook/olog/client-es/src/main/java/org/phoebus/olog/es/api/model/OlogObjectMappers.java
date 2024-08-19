@@ -112,6 +112,7 @@ public class OlogObjectMappers {
             String fileMetadataDescription = node.get("fileMetadataDescription").asText();
             OlogAttachment a = new OlogAttachment();
             a.setFileName(filename);
+            a.setId(id);
             a.setContentType(fileMetadataDescription);
             return a;
         }
