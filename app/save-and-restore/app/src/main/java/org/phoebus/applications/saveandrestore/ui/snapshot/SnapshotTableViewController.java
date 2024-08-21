@@ -57,7 +57,11 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -186,7 +190,11 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             snapshots.clear();
             List<SnapshotItem> snapshotItems;
             try {
-                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId());
+                //snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId());
+                Instant time = Instant.now();
+                time = time.minus(Duration.of(2, ChronoUnit.DAYS));
+                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId()
+                    , time);
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(snapshotTableView, Messages.errorGeneric, Messages.takeSnapshotFailed, e);
                 consumer.accept(null);

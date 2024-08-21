@@ -38,6 +38,7 @@ public class Messages {
     public static String contextMenuAddTagWithComment;
     public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
+    public static String contextMenuCompareSnapshotWithArchiverData;
     public static String contextMenuDelete;
     public static String copy;
 

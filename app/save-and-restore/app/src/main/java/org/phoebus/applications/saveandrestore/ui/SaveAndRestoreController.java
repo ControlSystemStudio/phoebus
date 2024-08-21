@@ -385,6 +385,21 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         compareSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
+    protected void compareSnapshotWithArchiverData(){
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab == null) {
+            return;
+        }
+        if (tab instanceof SnapshotTab) {
+            try {
+                SnapshotTab currentTab = (SnapshotTab) tab;
+                currentTab.addSnapshotFromArchiverData(null);
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to compare snapshot", e);
+            }
+        }
+    }
+
     /**
      * Action when user requests comparison between an opened snapshot and the specifies snapshot {@link Node}
      *

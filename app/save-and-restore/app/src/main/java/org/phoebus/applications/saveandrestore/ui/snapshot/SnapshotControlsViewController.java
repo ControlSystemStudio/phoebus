@@ -40,6 +40,8 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 

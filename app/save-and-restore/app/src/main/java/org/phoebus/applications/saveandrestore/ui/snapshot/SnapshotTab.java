@@ -26,6 +26,7 @@ import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -160,6 +161,10 @@ public class SnapshotTab extends SaveAndRestoreTab {
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node) {
         ((SnapshotController) controller).addSnapshot(node);
+    }
+
+    public void addSnapshotFromArchiverData(Snapshot snapshot){
+        ((SnapshotController) controller).addSnapshotFromArchiverData(snapshot);
     }
 
     @Override

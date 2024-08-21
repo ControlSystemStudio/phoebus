@@ -390,6 +390,10 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         }
     }
 
+    public void addSnapshotFromArchiverData(Snapshot snapshot){
+        snapshotTableViewController.addSnapshot(snapshot);
+    }
+
     private Snapshot getSnapshotFromService(Node snapshotNode) throws Exception {
         SnapshotData snapshotData;
         try {

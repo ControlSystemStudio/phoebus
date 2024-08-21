@@ -55,6 +55,9 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         compareSnapshotsMenuItem.setOnAction(ae -> saveAndRestoreController.compareSnapshot());
         compareSnapshotsMenuItem.disableProperty().bind(mayCompareSnapshotsProperty.not());
 
+        MenuItem compareSnapshotToArchiverDataMenuItem = new MenuItem(Messages.contextMenuCompareSnapshotWithArchiverData, new ImageView(compareSnapshotIcon));
+        compareSnapshotToArchiverDataMenuItem.setOnAction(ae -> saveAndRestoreController.compareSnapshotWithArchiverData());
+
         ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
 
         tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
@@ -94,6 +97,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         getItems().addAll(deleteNodesMenuItem,
                 compareSnapshotsMenuItem,
+                compareSnapshotToArchiverDataMenuItem,
                 tagGoldenMenuItem,
                 tagWithComment,
                 copyMenuItem,
