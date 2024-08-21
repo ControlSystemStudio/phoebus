@@ -38,6 +38,7 @@ import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -390,8 +391,8 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         }
     }
 
-    public void addSnapshotFromArchiverData(Snapshot snapshot){
-        snapshotTableViewController.addSnapshot(snapshot);
+    public void addSnapshotFromArchiverData(Instant time){
+        snapshotTableViewController.addSnapshot(null);
     }
 
     private Snapshot getSnapshotFromService(Node snapshotNode) throws Exception {

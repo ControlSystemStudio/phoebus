@@ -35,6 +35,7 @@ import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -163,8 +164,8 @@ public class SnapshotTab extends SaveAndRestoreTab {
         ((SnapshotController) controller).addSnapshot(node);
     }
 
-    public void addSnapshotFromArchiverData(Snapshot snapshot){
-        ((SnapshotController) controller).addSnapshotFromArchiverData(snapshot);
+    public void addSnapshotFromArchiverData(Instant time){
+        ((SnapshotController) controller).addSnapshotFromArchiverData(time);
     }
 
     @Override
