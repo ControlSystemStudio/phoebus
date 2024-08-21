@@ -1,30 +1,21 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
+ * Copyright (C) 2024 European Spallation Source ERIC.
  */
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -41,14 +32,18 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 /**
  * {@link Node} selection dialog controller. This can be used whenever user needs a UI to select a {@link Node}
  * in the save-and-restore data.
  * <p>
- * A version with UI design complying the original version
- * :All {@link NodeType} are shown in a {@link TreeView}
+ * A version with UI design complying the original version all
+ * {@link NodeType}s are shown in a {@link TreeView}.
+ * </p>
+ * <p>
+ * By default all {@link NodeType}s are shown in the {@link TreeView}, but this may be overridden by calling
+ * {@link #setHiddenNodeTypes(List)}.
+ * </p>
  *
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
@@ -66,54 +61,33 @@ public class NodeSelectionController implements Initializable {
     @FXML
     private Button chooseButton;
 
-    @FXML
-    private ProgressIndicator progressIndicator;
-
-    @FXML
-    private VBox dialogContent;
-
-    private Node selectedNode = null;
-
+    private final SimpleObjectProperty<Node> selectedNodeProperty = new SimpleObjectProperty<>();
+    private final SimpleBooleanProperty showCreateFolderButton = new SimpleBooleanProperty(true);
 
     /**
      * Specifies which {@link NodeType}s to hide from the tree view.
      */
-    private List<NodeType> hiddenNodeTypes = new ArrayList<>();
+    private final List<NodeType> hiddenNodeTypes = new ArrayList<>();
 
     public Node getSelectedNode() {
-        return selectedNode;
+        return selectedNodeProperty.get();
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         treeView.setShowRoot(true);
         treeView.setCellFactory(cell -> new BrowserTreeCell());
+        treeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
-        treeView.getSelectionModel().selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
-            if (selectedTreeItem == null) {
-                return;
-            }
-            Node selectedNode = selectedTreeItem.getValue();
-            chooseButton.setDisable(selectedNode.getUniqueId().equals(saveAndRestoreService.getRootNode().getUniqueId()));
-            createFolderButton.setDisable(!selectedNode.getNodeType().equals(NodeType.FOLDER));
-        });
-
-        treeView.getSelectionModel().selectFirst();
+        treeView.getSelectionModel().selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> selectedNodeProperty.set(selectedTreeItem.getValue()));
 
         createFolderButton.setOnAction(action -> createNewFolder(treeView.getSelectionModel().getSelectedItem()));
+        createFolderButton.disableProperty().bind(Bindings.createBooleanBinding(() -> selectedNodeProperty.get() != null && !selectedNodeProperty.get().getNodeType().equals(NodeType.FOLDER),
+                selectedNodeProperty));
+        createFolderButton.visibleProperty().bind(showCreateFolderButton);
 
         chooseButton.setDefaultButton(true);
-        chooseButton.setOnAction(action -> {
-            TreeItem<Node> treeItem = treeView.getSelectionModel().getSelectedItem();
-
-            if (treeItem.getValue().getUniqueId().equals("0")) {
-                selectedNode = treeItem.getParent().getValue();
-            } else {
-                selectedNode = treeItem.getValue();
-            }
-
-            close();
-        });
+        chooseButton.disableProperty().bind(Bindings.createBooleanBinding(() -> selectedNodeProperty.get() == null, selectedNodeProperty));
 
         initializeTreeView();
     }
@@ -125,27 +99,22 @@ public class NodeSelectionController implements Initializable {
             Platform.runLater(() -> {
                 rootItem.setExpanded(true);
                 treeView.setRoot(rootItem);
-                RecursiveAddNode(rootItem);
-                dialogContent.disableProperty().set(false);
-                progressIndicator.visibleProperty().set(false);
+                recursiveAddNode(rootItem);
             });
         });
     }
-
-
-    private void RecursiveAddNode(TreeItem<Node> parentItem) {
+    
+    private void recursiveAddNode(TreeItem<Node> parentItem) {
         List<Node> childNodes = saveAndRestoreService.getChildNodes(parentItem.getValue());
         List<TreeItem<Node>> childItems = childNodes.stream()
                 .filter(node -> !hiddenNodeTypes.contains(node.getNodeType()))
                 .map(node -> {
                     TreeItem<Node> treeItem = createNode(node);
-                    RecursiveAddNode(treeItem);
+                    recursiveAddNode(treeItem);
                     return treeItem;
-                }).collect(Collectors.toList());
-        List<TreeItem<Node>> sorted = childItems.stream().sorted(Comparator.comparing(TreeItem::getValue)).collect(Collectors.toList());
+                }).toList();
+        List<TreeItem<Node>> sorted = childItems.stream().sorted(Comparator.comparing(TreeItem::getValue)).toList();
         parentItem.getChildren().addAll(sorted);
-        dialogContent.disableProperty().set(false);
-        progressIndicator.visibleProperty().set(false);
     }
 
     private TreeItem<Node> createNode(final Node node) {
@@ -162,7 +131,7 @@ public class NodeSelectionController implements Initializable {
                 parentTreeItem.getChildren().stream()
                         .filter(item -> item.getValue().getNodeType().equals(NodeType.FOLDER))
                         .map(item -> item.getValue().getName())
-                        .collect(Collectors.toList());
+                        .toList();
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle(Messages.contextMenuNewFolder);
@@ -197,12 +166,33 @@ public class NodeSelectionController implements Initializable {
         }
     }
 
+    @SuppressWarnings("unused")
     @FXML
     private void close() {
         ((Stage) treeView.getScene().getWindow()).close();
     }
 
+    /**
+     * Sets the {@link NodeType}s that should be visible in the {@link TreeView}. If
+     * {@link NodeType#FOLDER} is included in the {@link List}, it will be removed.
+     * @param nodeTypes {@link List} of {@link NodeType}s. May be <code>null</code>
+     *                              for fault tolerance reasons.
+     */
     public void setHiddenNodeTypes(List<NodeType> nodeTypes) {
-        hiddenNodeTypes.addAll(nodeTypes);
+        if(nodeTypes != null){
+            hiddenNodeTypes.addAll(nodeTypes.stream().filter(nt -> !nt.equals(NodeType.FOLDER)).toList());
+        }
+    }
+
+    /**
+     * Sets the handler of the select button.
+     * @param actionEventEventHandler An event handler...
+     */
+    public void addOkButtonActionHandler(EventHandler<ActionEvent> actionEventEventHandler){
+        chooseButton.setOnAction(actionEventEventHandler);
+    }
+
+    public void setShowCreateFolderButton(boolean show){
+        showCreateFolderButton.set(show);
     }
 }

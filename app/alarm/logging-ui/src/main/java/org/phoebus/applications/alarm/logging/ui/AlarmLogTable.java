@@ -48,7 +48,7 @@ public class AlarmLogTable implements AppInstance {
             });
             tab = new DockItem(this, loader.load());
             controller = loader.getController();
-            tab.setOnClosed(event -> {
+            tab.addClosedNotification(() -> {
                 controller.shutdown();
             });
             if (resource != null) {

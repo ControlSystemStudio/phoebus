@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 public class OpenFileAction extends ActionInfoBase {
 
     public static final String OPEN_FILE = "open_file";
+    private static final Integer PRIORITY = 50;
     private String file;
 
     private OpenFileActionController openFileActionController;
@@ -73,13 +74,13 @@ public class OpenFileAction extends ActionInfoBase {
     }
 
     @Override
-    public boolean matchesAction(String actionId) {
-        return actionId.equalsIgnoreCase(OPEN_FILE);
+    public Image getImage() {
+        return ImageCache.getImage(ActionsDialog.class, "/icons/open_file.png");
     }
 
     @Override
-    public Image getImage() {
-        return ImageCache.getImage(ActionsDialog.class, "/icons/open_file.png");
+    public Integer getPriority() {
+        return PRIORITY;
     }
 
     public String getFile() {

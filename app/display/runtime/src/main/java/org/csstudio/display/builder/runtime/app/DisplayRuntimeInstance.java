@@ -98,6 +98,10 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Toolbar button for navigation */
     private ButtonBase navigate_backward, navigate_forward;
 
+    public String getDisplayName() {
+        return active_model.getDisplayName();
+    }
+
     /** Obtain the DisplayRuntimeInstance of a display
      *  @param model {@link DisplayModel}
      *  @return {@link DisplayRuntimeInstance}

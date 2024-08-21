@@ -38,37 +38,25 @@ public class SaveAndRestoreInstance implements AppInstance {
 
     private final AppDescriptor appDescriptor;
     private final SaveAndRestoreController saveAndRestoreController;
+    private DockItem tab;
 
-    public SaveAndRestoreInstance(AppDescriptor appDescriptor, URI uri) {
+    public SaveAndRestoreInstance(AppDescriptor appDescriptor) {
         this.appDescriptor = appDescriptor;
 
-        DockItem tab = null;
+        tab = null;
 
         FXMLLoader loader = new FXMLLoader();
         try {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             loader.setResources(resourceBundle);
             loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUI.fxml"));
-            loader.setControllerFactory(clazz -> {
-                try {
-                    if (clazz.isAssignableFrom(SaveAndRestoreController.class)) {
-                        return clazz.getConstructor(URI.class).newInstance(uri);
-                    }
-                } catch (Exception e) {
-                    Logger.getLogger(SaveAndRestoreInstance.class.getName()).log(Level.WARNING, "Failed to load Save & Restore UI", e);
-                }
-                return null;
-            });
             tab = new DockItem(this, loader.load());
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);
         }
 
         saveAndRestoreController = loader.getController();
-
         tab.setOnCloseRequest(event -> saveAndRestoreController.handleTabClosed());
-
-        DockPane.getActiveDockPane().addTab(tab);
     }
 
     @Override
@@ -87,5 +75,13 @@ public class SaveAndRestoreInstance implements AppInstance {
 
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
         saveAndRestoreController.secureStoreChanged(validTokens);
+    }
+
+    public void raise(){
+        if(!DockPane.getActiveDockPane().getDockItems().contains(tab)){
+            DockPane.getActiveDockPane().addTab(tab);
+        }
+
+        tab.select();
     }
 }

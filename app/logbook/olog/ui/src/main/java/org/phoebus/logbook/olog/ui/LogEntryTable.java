@@ -80,7 +80,7 @@ public class LogEntryTable implements AppInstance {
             loader.load();
             controller = loader.getController();
             DockItem tab = new DockItem(this, loader.getRoot());
-            tab.setOnClosed(event -> controller.shutdown());
+            tab.addClosedNotification(()-> controller.shutdown());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             log.log(Level.WARNING, "Cannot load UI", e);

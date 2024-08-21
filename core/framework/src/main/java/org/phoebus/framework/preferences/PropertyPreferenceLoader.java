@@ -18,6 +18,8 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Properties;
 import java.util.prefs.Preferences;
 
+import org.phoebus.framework.workbench.Locations;
+
 /** Load preferences from a property file
  *  @author Kay Kasemir
  */
@@ -46,7 +48,16 @@ public class PropertyPreferenceLoader
 
             final String pack = "/" + prop.substring(0, sep).replace('.', '/');
             final String name = prop.substring(sep+1);
-            final String value = props.getProperty(prop);
+            String value = props.getProperty(prop);
+
+            if (value.contains("$(phoebus.install)"))
+                value = value.replace("$(phoebus.install)", Locations.install().toString()).replace("\\", "/").replace(" ", "%20");
+            if (value.contains("$(phoebus.user)"))
+                value = value.replace("$(phoebus.user)", Locations.user().toString()).replace("\\", "/").replace(" ", "%20");
+            if (value.contains("$(user.home)"))
+                value = value.replace("$(user.home)", System.getProperty("user.home").toString()).replace("\\", "/").replace(" ", "%20");
+
+            
             final Preferences prefs = Preferences.userRoot().node(pack);
             prefs.put(name, value);
             // System.out.println(pack + "/" + name + "=" + value);
