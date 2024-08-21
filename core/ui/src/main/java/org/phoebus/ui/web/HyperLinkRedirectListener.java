@@ -33,6 +33,8 @@ import org.w3c.dom.events.EventTarget;
 import org.w3c.dom.html.HTMLAnchorElement;
 
 import java.net.URI;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,14 +55,18 @@ public class HyperLinkRedirectListener implements ChangeListener<State>, EventLi
     private static final String ANCHOR_TAG = "a";
 
     private final WebView webView;
+    private final Optional<String> webClientRoot;
+    private final Optional<Consumer<Long>> openLogentryWithID;
 
     private static final Logger LOGGER = Logger.getLogger(HyperLinkRedirectListener.class.getName());
 
     /**
      * @param webView The {@link WebView} showing the document.
      */
-    public HyperLinkRedirectListener(WebView webView) {
+    public HyperLinkRedirectListener(WebView webView, Optional<String> webClientRoot, Optional<Consumer<Long>> openLogentryWithID) {
         this.webView = webView;
+        this.webClientRoot = webClientRoot;
+        this.openLogentryWithID = openLogentryWithID;
     }
 
     @Override
@@ -78,13 +84,21 @@ public class HyperLinkRedirectListener implements ChangeListener<State>, EventLi
 
     @Override
     public void handleEvent(Event event) {
+        event.preventDefault();
         HTMLAnchorElement anchorElement = (HTMLAnchorElement) event.getCurrentTarget();
         String href = anchorElement.getHref();
-        try {
-            ApplicationService.createInstance("web", new URI(href));
-            event.preventDefault();
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to launch WebBrowserApplication", e);
+        if (webClientRoot.isPresent() && openLogentryWithID.isPresent() && href.startsWith(webClientRoot.get())) {
+            String withoutWebClientRoot = href.substring(webClientRoot.get().length());
+            String idString = withoutWebClientRoot.charAt(0) == '/' ? withoutWebClientRoot.substring(1) : withoutWebClientRoot.substring(0);
+            long id = Long.parseLong(idString);
+            openLogentryWithID.get().accept(id);
+        }
+        else {
+            try {
+                ApplicationService.createInstance("web", new URI(href));
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Failed to launch WebBrowserApplication", e);
+            }
         }
     }
 }

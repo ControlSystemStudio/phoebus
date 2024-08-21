@@ -50,7 +50,9 @@ public class LogEntryTable implements AppInstance {
                             return clazz.getConstructor(LogClient.class, SearchParameters.class)
                                     .newInstance(app.getClient(), searchParameters);
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
-                            return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
+                            SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
+                            singleLogEntryDisplayController.setSelectLogEntryInUI(logEntry -> controller.selectLogEntry(logEntry));
+                            return singleLogEntryDisplayController;
                         } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
                             return clazz.getConstructor().newInstance();
                         } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {

@@ -30,6 +30,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -87,9 +90,22 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
     private final SimpleBooleanProperty logEntryUpdated = new SimpleBooleanProperty();
 
+    private Optional<Consumer<Long>> openLogEntryWithID = Optional.empty();
+
     public SingleLogEntryDisplayController(LogClient logClient) {
         super(logClient.getServiceUrl());
         this.logClient = logClient;
+    }
+
+    public void setSelectLogEntryInUI(Function<LogEntry, Boolean> selectLogEntry) {
+        this.openLogEntryWithID = Optional.of(id -> {
+            LogEntry logEntry = logClient.getLog(id);
+            boolean selected = selectLogEntry.apply(logEntry);
+            if (!selected) {
+                // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
+                setLogEntry(logEntry);
+            }
+        });
     }
 
     @FXML
@@ -101,9 +117,12 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
                 && !LogbookUIPreferences.web_client_root_URL.isEmpty());
 
-        webEngine = webView.getEngine();
-        // This will make links clicked in the WebView to open in default browser.
-        webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView));
+        {
+            Optional<String> webClientRoot = LogbookUIPreferences.web_client_root_URL == null || LogbookUIPreferences.web_client_root_URL.equals("") ? Optional.empty() : Optional.of(LogbookUIPreferences.web_client_root_URL);
+            webEngine = webView.getEngine();
+            // This will make links clicked in the WebView to open in default browser.
+            webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView, webClientRoot, openLogEntryWithID));
+        }
 
         updatedIndicator.visibleProperty().bind(logEntryUpdated);
         updatedIndicator.setOnMouseEntered(me -> updatedIndicator.setCursor(Cursor.HAND));
