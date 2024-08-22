@@ -188,6 +188,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             // Update detailed view, but only if selection contains a single item.
             if (newValue != null && tableView.getSelectionModel().getSelectedItems().size() == 1) {
+                if (!goBackAndGoForwardActions.getIsRecordingHistoryDisabled()) {
+                    goBackAndGoForwardActions.addGoBackAction();
+                    goBackAndGoForwardActions.goForwardActions.clear();
+                }
                 logEntryDisplayController.setLogEntry(newValue.getLogEntry());
             }
             List<LogEntry> logEntries = tableView.getSelectionModel().getSelectedItems()
@@ -398,7 +402,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
             for (TableViewListItem selectedItem : selectedLogEntries) {
                 for (TableViewListItem item : tableView.getItems()) {
                     if (item.getLogEntry().getId().equals(selectedItem.getLogEntry().getId())) {
-                        Platform.runLater(() -> tableView.getSelectionModel().select(item));
+                        Platform.runLater(() -> {
+                            goBackAndGoForwardActions.setIsRecordingHistoryDisabled(true); // Do not create a "Back" action for the automatic reload.
+                            tableView.getSelectionModel().select(item);
+                            goBackAndGoForwardActions.setIsRecordingHistoryDisabled(false);
+                        });
                     }
                 }
             }

@@ -128,81 +128,71 @@ public class LogEntryTable implements AppInstance {
 
     public class GoBackAndGoForwardActions {
 
-        public ObservableList<Runnable> goBackActions;
-        public ObservableList<Runnable> goForwardActions;
-
         public GoBackAndGoForwardActions() {
             goBackActions = FXCollections.observableArrayList();
             goForwardActions = FXCollections.observableArrayList();
         }
 
+        public ObservableList<Runnable> goBackActions;
+        public ObservableList<Runnable> goForwardActions;
+
+        private boolean isRecordingHistoryDisabled = false; // Used to not add go-back actions when clicking "back".
+
+        public boolean getIsRecordingHistoryDisabled() {
+            return isRecordingHistoryDisabled;
+        }
+        public void setIsRecordingHistoryDisabled(boolean isRecordingHistoryDisabled) {
+            this.isRecordingHistoryDisabled = isRecordingHistoryDisabled;
+        }
+
+        private void gotoLogEntry(LogEntry logEntry) {
+            isRecordingHistoryDisabled = true;
+            boolean selected = controller.selectLogEntry(logEntry);
+            if (!selected) {
+                // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
+                controller.setLogEntry(logEntry);
+            }
+            isRecordingHistoryDisabled = false;
+        }
+
+        public void addGoBackAction() {
+            LogEntry currentLogEntry = controller.getLogEntry();
+
+            if (currentLogEntry != null) {
+                goBackActions.add(0, () -> gotoLogEntry(currentLogEntry));
+            }
+        }
+
+        public void addGoForwardAction() {
+            LogEntry currentLogEntry = controller.getLogEntry();
+
+            if (currentLogEntry != null) {
+                goForwardActions.add(0, () -> gotoLogEntry(currentLogEntry));
+            }
+        }
+
         public void loadLogEntryWithID(Long id) {
-            {
-                LogEntry currentLogEntry = controller.getLogEntry();
-
-                Runnable newGoBackAction = () -> {
-                    boolean selected = controller.selectLogEntry(currentLogEntry);
-                    if (!selected) {
-                        // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
-                        controller.setLogEntry(currentLogEntry);
-                    }
-                };
-
-                goBackActions.add(0, newGoBackAction);
-            }
-
             goForwardActions.clear();
+            addGoBackAction();
 
-            {
-                LogEntry logEntry = controller.client.getLog(id);
-                boolean selected = controller.selectLogEntry(logEntry);
-                if (!selected) {
-                    // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
-                    controller.setLogEntry(logEntry);
-                }
-            }
+            LogEntry logEntry = controller.client.getLog(id);
+            gotoLogEntry(logEntry);
         }
 
         public void goBack() {
             if (goBackActions.size() > 0) {
+                addGoForwardAction();
                 Runnable goBackAction = goBackActions.get(0);
                 goBackActions.remove(0);
-
-                {
-                    LogEntry currentLogEntry = controller.getLogEntry();
-                    Runnable newGoForwardAction = () -> {
-                        boolean selected = controller.selectLogEntry(currentLogEntry);
-                        if (!selected) {
-                            // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
-                            controller.setLogEntry(currentLogEntry);
-                        }
-                    };
-                    goForwardActions.add(0, newGoForwardAction);
-                }
-
                 goBackAction.run();
             }
         }
 
         public void goForward() {
             if (goForwardActions.size() > 0) {
+                addGoBackAction();
                 Runnable goForwardAction = goForwardActions.get(0);
                 goForwardActions.remove(0);
-
-                {
-                    LogEntry currentLogEntry = controller.getLogEntry();
-
-                    Runnable newGoBackAction = () -> {
-                        boolean selected = controller.selectLogEntry(currentLogEntry);
-                        if (!selected) {
-                            // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
-                            controller.setLogEntry(currentLogEntry);
-                        }
-                    };
-
-                    goBackActions.add(0, newGoBackAction);
-                }
-
                 goForwardAction.run();
             }
         }
