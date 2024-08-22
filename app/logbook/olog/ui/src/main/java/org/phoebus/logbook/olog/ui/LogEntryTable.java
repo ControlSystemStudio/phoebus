@@ -151,7 +151,7 @@ public class LogEntryTable implements AppInstance {
                 goBackActions.add(0, newGoBackAction);
             }
 
-            goForwardActions = FXCollections.observableArrayList();
+            goForwardActions.clear();
 
             {
                 LogEntry logEntry = controller.client.getLog(id);

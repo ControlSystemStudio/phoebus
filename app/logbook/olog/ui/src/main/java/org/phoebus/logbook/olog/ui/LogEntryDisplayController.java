@@ -161,5 +161,7 @@ public class LogEntryDisplayController {
 
     public void setLogEntryTableViewController(LogEntryTableViewController logEntryTableViewController){
         this.logEntryTableViewController = logEntryTableViewController;
+        goBackButton.disableProperty().bind(Bindings.isEmpty(logEntryTableViewController.goBackAndGoForwardActions.goBackActions));
+        goForwardButton.disableProperty().bind(Bindings.isEmpty(logEntryTableViewController.goBackAndGoForwardActions.goForwardActions));
     }
 }
