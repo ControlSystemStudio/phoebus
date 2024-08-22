@@ -118,12 +118,12 @@ public class LogEntryDisplayController {
 
     @FXML
     public void back() {
-        logEntryTableViewController.undoAndRedoActions.performUndo();
+        logEntryTableViewController.goBackAndGoForwardActions.goBack();
     }
 
     @FXML
     public void forward() {
-        logEntryTableViewController.undoAndRedoActions.performRedo();
+        logEntryTableViewController.goBackAndGoForwardActions.goForward();
     }
 
     public void setLogEntry(LogEntry logEntry) {

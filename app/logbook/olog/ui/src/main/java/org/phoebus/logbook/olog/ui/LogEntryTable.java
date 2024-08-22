@@ -31,11 +31,11 @@ public class LogEntryTable implements AppInstance {
     private final LogEntryTableApp app;
     private LogEntryTableViewController controller;
 
-    public UndoAndRedoActions undoAndRedoActions;
+    public GoBackAndGoForwardActions goBackAndGoForwardActions;
 
     public LogEntryTable(final LogEntryTableApp app) {
         this.app = app;
-        undoAndRedoActions = new UndoAndRedoActions();
+        goBackAndGoForwardActions = new GoBackAndGoForwardActions();
         try {
             OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
             SearchParameters searchParameters = new SearchParameters();
@@ -49,14 +49,14 @@ public class LogEntryTable implements AppInstance {
                 try {
                     if (app.getClient() != null) {
                         if (clazz.isAssignableFrom(LogEntryTableViewController.class)) {
-                            return clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class, UndoAndRedoActions.class)
-                                    .newInstance(app.getClient(), ologQueryManager, searchParameters, undoAndRedoActions);
+                            return clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class, GoBackAndGoForwardActions.class)
+                                    .newInstance(app.getClient(), ologQueryManager, searchParameters, goBackAndGoForwardActions);
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
                             return clazz.getConstructor(LogClient.class, SearchParameters.class)
                                     .newInstance(app.getClient(), searchParameters);
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                             SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
-                            singleLogEntryDisplayController.setSelectLogEntryInUI(id -> undoAndRedoActions.loadLogEntryWithID(id));
+                            singleLogEntryDisplayController.setSelectLogEntryInUI(id -> goBackAndGoForwardActions.loadLogEntryWithID(id));
                             return singleLogEntryDisplayController;
                         } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
                             return clazz.getConstructor().newInstance();
@@ -126,21 +126,21 @@ public class LogEntryTable implements AppInstance {
         controller.logEntryChanged(logEntry);
     }
 
-    public class UndoAndRedoActions {
+    public class GoBackAndGoForwardActions {
 
-        public ObservableList<Runnable> undoActions;
-        public ObservableList<Runnable> redoActions;
+        public ObservableList<Runnable> goBackActions;
+        public ObservableList<Runnable> goForwardActions;
 
-        public UndoAndRedoActions() {
-            undoActions = FXCollections.observableArrayList();
-            redoActions = FXCollections.observableArrayList();
+        public GoBackAndGoForwardActions() {
+            goBackActions = FXCollections.observableArrayList();
+            goForwardActions = FXCollections.observableArrayList();
         }
 
         public void loadLogEntryWithID(Long id) {
             {
                 LogEntry currentLogEntry = controller.getLogEntry();
 
-                Runnable undoAction = () -> {
+                Runnable newGoBackAction = () -> {
                     boolean selected = controller.selectLogEntry(currentLogEntry);
                     if (!selected) {
                         // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
@@ -148,10 +148,10 @@ public class LogEntryTable implements AppInstance {
                     }
                 };
 
-                undoActions.add(0, undoAction);
+                goBackActions.add(0, newGoBackAction);
             }
 
-            redoActions = FXCollections.observableArrayList();
+            goForwardActions = FXCollections.observableArrayList();
 
             {
                 LogEntry logEntry = controller.client.getLog(id);
@@ -163,36 +163,36 @@ public class LogEntryTable implements AppInstance {
             }
         }
 
-        public void performUndo() {
-            if (undoActions.size() > 0) {
-                Runnable undoAction = undoActions.get(0);
-                undoActions.remove(0);
+        public void goBack() {
+            if (goBackActions.size() > 0) {
+                Runnable goBackAction = goBackActions.get(0);
+                goBackActions.remove(0);
 
                 {
                     LogEntry currentLogEntry = controller.getLogEntry();
-                    Runnable redoAction = () -> {
+                    Runnable newGoForwardAction = () -> {
                         boolean selected = controller.selectLogEntry(currentLogEntry);
                         if (!selected) {
                             // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
                             controller.setLogEntry(currentLogEntry);
                         }
                     };
-                    redoActions.add(0, redoAction);
+                    goForwardActions.add(0, newGoForwardAction);
                 }
 
-                undoAction.run();
+                goBackAction.run();
             }
         }
 
-        public void performRedo() {
-            if (redoActions.size() > 0) {
-                Runnable redoAction = redoActions.get(0);
-                redoActions.remove(0);
+        public void goForward() {
+            if (goForwardActions.size() > 0) {
+                Runnable goForwardAction = goForwardActions.get(0);
+                goForwardActions.remove(0);
 
                 {
                     LogEntry currentLogEntry = controller.getLogEntry();
 
-                    Runnable undoAction = () -> {
+                    Runnable newGoBackAction = () -> {
                         boolean selected = controller.selectLogEntry(currentLogEntry);
                         if (!selected) {
                             // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
@@ -200,10 +200,10 @@ public class LogEntryTable implements AppInstance {
                         }
                     };
 
-                    undoActions.add(0, undoAction);
+                    goBackActions.add(0, newGoBackAction);
                 }
 
-                redoAction.run();
+                goForwardAction.run();
             }
         }
     }
