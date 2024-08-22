@@ -52,6 +52,10 @@ public class LogEntryDisplayController {
     @FXML
     private Button replyButton;
     @FXML
+    private Button goBackButton;
+    @FXML
+    private Button goForwardButton;
+    @FXML
     private BorderPane emptyPane;
     @FXML
     private Node singleLogEntryDisplay;
