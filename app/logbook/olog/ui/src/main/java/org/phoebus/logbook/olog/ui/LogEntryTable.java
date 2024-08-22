@@ -49,8 +49,8 @@ public class LogEntryTable implements AppInstance {
                 try {
                     if (app.getClient() != null) {
                         if (clazz.isAssignableFrom(LogEntryTableViewController.class)) {
-                            return clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class)
-                                    .newInstance(app.getClient(), ologQueryManager, searchParameters);
+                            return clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class, UndoAndRedoActions.class)
+                                    .newInstance(app.getClient(), ologQueryManager, searchParameters, undoAndRedoActions);
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
                             return clazz.getConstructor(LogClient.class, SearchParameters.class)
                                     .newInstance(app.getClient(), searchParameters);

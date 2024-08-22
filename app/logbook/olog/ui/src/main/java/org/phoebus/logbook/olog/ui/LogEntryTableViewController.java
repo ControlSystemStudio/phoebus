@@ -105,10 +105,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
      *
      * @param logClient Log client implementation
      */
-    public LogEntryTableViewController(LogClient logClient, OlogQueryManager ologQueryManager, SearchParameters searchParameters) {
+    public LogEntryTableViewController(LogClient logClient,
+                                       OlogQueryManager ologQueryManager,
+                                       SearchParameters searchParameters,
+                                       LogEntryTable.UndoAndRedoActions undoAndRedoActions) {
         setClient(logClient);
         this.ologQueryManager = ologQueryManager;
         this.searchParameters = searchParameters;
+        this.undoAndRedoActions = undoAndRedoActions;
     }
 
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
@@ -120,6 +124,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private final SimpleBooleanProperty userHasSignedIn = new SimpleBooleanProperty(false);
 
     private final SearchParameters searchParameters;
+
+    protected final LogEntryTable.UndoAndRedoActions undoAndRedoActions;
 
 
     @FXML

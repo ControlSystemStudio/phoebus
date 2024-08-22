@@ -116,6 +116,16 @@ public class LogEntryDisplayController {
         new LogEntryEditorStage(new OlogLog(),  null, null).show();
     }
 
+    @FXML
+    public void back() {
+        logEntryTableViewController.undoAndRedoActions.performUndo();
+    }
+
+    @FXML
+    public void forward() {
+        logEntryTableViewController.undoAndRedoActions.performRedo();
+    }
+
     public void setLogEntry(LogEntry logEntry) {
         if(logEntry == null){
             currentViewProperty.set(EMPTY);
