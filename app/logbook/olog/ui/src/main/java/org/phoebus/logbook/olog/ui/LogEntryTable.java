@@ -148,7 +148,7 @@ public class LogEntryTable implements AppInstance {
                     }
                 };
 
-                undoActions.add(undoAction);
+                undoActions.add(0, undoAction);
             }
 
             redoActions = FXCollections.observableArrayList();
@@ -200,7 +200,7 @@ public class LogEntryTable implements AppInstance {
                         }
                     };
 
-                    undoActions.add(undoAction);
+                    undoActions.add(0, undoAction);
                 }
 
                 redoAction.run();
