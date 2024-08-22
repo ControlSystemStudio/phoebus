@@ -29,6 +29,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
@@ -51,6 +54,8 @@ public class LogEntryDisplayController {
     private ToolBar toolBar;
     @FXML
     private Button replyButton;
+    @FXML
+    private Region spring;
     @FXML
     private Button goBackButton;
     @FXML
@@ -86,6 +91,7 @@ public class LogEntryDisplayController {
                 .bind(Bindings.createBooleanBinding(() -> currentViewProperty.get() == SINGLE, currentViewProperty));
         mergedLogEntryDisplay.visibleProperty()
                 .bind(Bindings.createBooleanBinding(() -> currentViewProperty.get() == MERGED, currentViewProperty));
+        HBox.setHgrow(spring, Priority.ALWAYS); // Spring to make subsequent elements right-aligned in the toolbar.
     }
 
     @FXML
