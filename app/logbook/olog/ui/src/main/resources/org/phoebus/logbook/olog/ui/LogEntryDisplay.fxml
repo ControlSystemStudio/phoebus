@@ -33,9 +33,9 @@
                 <ToggleButton fx:id="showHideLogEntryGroupButton" contentDisplay="RIGHT" mnemonicParsing="false"
                               text="%ShowHideLogEntryGroup" disable="true" onAction="#showHideLogEntryGroup"/>
                 <Button fx:id="backButton" contentDisplay="RIGHT" mnemonicParsing="false"
-                        onAction="#back" text="Back" disable="false" />
+                        onAction="#goBack" text="Back" disable="false" />
                 <Button fx:id="forwardButton" contentDisplay="RIGHT" mnemonicParsing="false"
-                        onAction="#forward" text="Forward" disable="false" />
+                        onAction="#goForward" text="Forward" disable="false" />
             </items>
         </ToolBar>
     </top>

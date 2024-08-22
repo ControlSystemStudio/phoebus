@@ -117,12 +117,12 @@ public class LogEntryDisplayController {
     }
 
     @FXML
-    public void back() {
+    public void goBack() {
         logEntryTableViewController.goBackAndGoForwardActions.goBack();
     }
 
     @FXML
-    public void forward() {
+    public void goForward() {
         logEntryTableViewController.goBackAndGoForwardActions.goForward();
     }
 
