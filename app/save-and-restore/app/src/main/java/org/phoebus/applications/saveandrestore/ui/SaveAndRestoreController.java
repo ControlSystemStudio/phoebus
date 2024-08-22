@@ -28,8 +28,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -38,7 +36,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -90,21 +87,17 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.time.DateTimePane;
-import org.phoebus.ui.time.TimeRelativeIntervalPane;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-import java.beans.EventHandler;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Time;
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -120,8 +113,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
 
 /**
  * Main controller for the save and restore UI.
@@ -397,31 +388,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         compareSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
-    protected void compareSnapshotWithArchiverData(){
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab == null) {
-            return;
-        }
-        if (tab instanceof SnapshotTab) {
-            DateTimePane dateTimePane = new DateTimePane();
-            Dialog<Instant> timePickerDialog = new Dialog<>();
-            timePickerDialog.getDialogPane().setContent(dateTimePane);
-            timePickerDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-            timePickerDialog.setResultConverter(b -> {
-                if(b.equals(ButtonType.OK)){
-                    return dateTimePane.getInstant();
-                }
-                return null;
-            });
-            Instant time = timePickerDialog.showAndWait().get();
-            try {
-                SnapshotTab currentTab = (SnapshotTab) tab;
-                currentTab.addSnapshotFromArchiverData(time);
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to compare snapshot", e);
-            }
-        }
-    }
 
     /**
      * Action when user requests comparison between an opened snapshot and the specifies snapshot {@link Node}

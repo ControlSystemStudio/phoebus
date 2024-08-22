@@ -190,11 +190,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             snapshots.clear();
             List<SnapshotItem> snapshotItems;
             try {
-                //snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId());
-                Instant time = Instant.now();
-                time = time.minus(Duration.of(2, ChronoUnit.DAYS));
-                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId()
-                    , time);
+                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId());
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(snapshotTableView, Messages.errorGeneric, Messages.takeSnapshotFailed, e);
                 consumer.accept(null);

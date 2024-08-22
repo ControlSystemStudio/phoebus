@@ -484,7 +484,7 @@ public class SaveAndRestoreService {
             return pvValue;
         } catch (Exception e) {
             // Not found in archiver
-            return org.phoebus.applications.saveandrestore.ui.VDisconnectedData.INSTANCE;
+            return VDisconnectedData.INSTANCE;
         }
     }
 }

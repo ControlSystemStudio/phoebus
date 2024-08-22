@@ -26,6 +26,7 @@ public class Messages {
     public static String actionOpenNodeDescription;
     public static String alertContinue;
     public static String alertAddingPVsToConfiguration;
+    public static String archiver;
     public static String authenticationFailed;
     public static String baseSetpoint;
     public static String buttonSearch;
@@ -66,6 +67,7 @@ public class Messages {
     public static String currentPVValue;
     public static String currentReadbackValue;
     public static String currentSetpointValue;
+    public static String dateTimePickerTitle;
     public static String deleteFilter;
     public static String deleteFilterFailed;
 
