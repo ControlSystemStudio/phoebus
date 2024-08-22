@@ -530,6 +530,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
         logEntryDisplayController.updateLogEntry(logEntry);
     }
 
+    protected LogEntry getLogEntry() {
+        return logEntryDisplayController.getLogEntry();
+    }
+
+    protected void setLogEntry(LogEntry logEntry) {
+        logEntryDisplayController.setLogEntry(logEntry);
+    }
+
     /**
      * Selects a log entry as a result of an action outside the {@link TreeView}, but selection happens on the
      * {@link TreeView} item, if it exists (match on log entry id). If it does not exist, selection is cleared

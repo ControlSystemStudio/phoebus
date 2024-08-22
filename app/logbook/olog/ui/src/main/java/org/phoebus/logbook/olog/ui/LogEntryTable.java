@@ -1,5 +1,7 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import org.phoebus.framework.nls.NLS;
@@ -29,8 +31,11 @@ public class LogEntryTable implements AppInstance {
     private final LogEntryTableApp app;
     private LogEntryTableViewController controller;
 
+    public UndoAndRedoActions undoAndRedoActions;
+
     public LogEntryTable(final LogEntryTableApp app) {
         this.app = app;
+        undoAndRedoActions = new UndoAndRedoActions();
         try {
             OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
             SearchParameters searchParameters = new SearchParameters();
@@ -51,7 +56,7 @@ public class LogEntryTable implements AppInstance {
                                     .newInstance(app.getClient(), searchParameters);
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                             SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
-                            singleLogEntryDisplayController.setSelectLogEntryInUI(logEntry -> controller.selectLogEntry(logEntry));
+                            singleLogEntryDisplayController.setSelectLogEntryInUI(id -> undoAndRedoActions.loadLogEntryWithID(id));
                             return singleLogEntryDisplayController;
                         } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
                             return clazz.getConstructor().newInstance();
@@ -119,5 +124,87 @@ public class LogEntryTable implements AppInstance {
      */
     public void logEntryChanged(LogEntry logEntry){
         controller.logEntryChanged(logEntry);
+    }
+
+    public class UndoAndRedoActions {
+
+        public ObservableList<Runnable> undoActions;
+        public ObservableList<Runnable> redoActions;
+
+        public UndoAndRedoActions() {
+            undoActions = FXCollections.observableArrayList();
+            redoActions = FXCollections.observableArrayList();
+        }
+
+        public void loadLogEntryWithID(Long id) {
+            {
+                LogEntry currentLogEntry = controller.getLogEntry();
+
+                Runnable undoAction = () -> {
+                    boolean selected = controller.selectLogEntry(currentLogEntry);
+                    if (!selected) {
+                        // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
+                        controller.setLogEntry(currentLogEntry);
+                    }
+                };
+
+                undoActions.add(undoAction);
+            }
+
+            redoActions = FXCollections.observableArrayList();
+
+            {
+                LogEntry logEntry = controller.client.getLog(id);
+                boolean selected = controller.selectLogEntry(logEntry);
+                if (!selected) {
+                    // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
+                    controller.setLogEntry(logEntry);
+                }
+            }
+        }
+
+        public void performUndo() {
+            if (undoActions.size() > 0) {
+                Runnable undoAction = undoActions.get(0);
+                undoActions.remove(0);
+
+                {
+                    LogEntry currentLogEntry = controller.getLogEntry();
+                    Runnable redoAction = () -> {
+                        boolean selected = controller.selectLogEntry(currentLogEntry);
+                        if (!selected) {
+                            // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
+                            controller.setLogEntry(currentLogEntry);
+                        }
+                    };
+                    redoActions.add(0, redoAction);
+                }
+
+                undoAction.run();
+            }
+        }
+
+        public void performRedo() {
+            if (redoActions.size() > 0) {
+                Runnable redoAction = redoActions.get(0);
+                redoActions.remove(0);
+
+                {
+                    LogEntry currentLogEntry = controller.getLogEntry();
+
+                    Runnable undoAction = () -> {
+                        boolean selected = controller.selectLogEntry(currentLogEntry);
+                        if (!selected) {
+                            // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
+                            controller.setLogEntry(currentLogEntry);
+                        }
+                    };
+
+                    undoActions.add(undoAction);
+                }
+
+                redoAction.run();
+            }
+        }
     }
 }
