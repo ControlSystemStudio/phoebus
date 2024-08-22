@@ -23,11 +23,13 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -36,6 +38,7 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
+import org.phoebus.ui.javafx.ImageCache;
 
 
 public class LogEntryDisplayController {
@@ -67,6 +70,11 @@ public class LogEntryDisplayController {
     @FXML
     private Node mergedLogEntryDisplay;
 
+    ImageView goBackButtonIcon = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/backward_nav.png");
+    ImageView goBackButtonIconDisabled = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/backward_disabled.png");
+    ImageView goForwardButtonIcon = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/forward_nav.png");
+    ImageView goForwardButtonIconDisabled = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/forward_disabled.png");
+
     private final SimpleObjectProperty<LogEntry> logEntryProperty =
             new SimpleObjectProperty<>();
 
@@ -92,6 +100,18 @@ public class LogEntryDisplayController {
         mergedLogEntryDisplay.visibleProperty()
                 .bind(Bindings.createBooleanBinding(() -> currentViewProperty.get() == MERGED, currentViewProperty));
         HBox.setHgrow(spring, Priority.ALWAYS); // Spring to make subsequent elements right-aligned in the toolbar.
+
+        {
+            ChangeListener<Boolean> goBackButtonDisabledPropertyChangeListener = (property, oldValue, newValue) -> goBackButton.setGraphic(newValue ? goBackButtonIconDisabled : goBackButtonIcon);
+            goBackButton.disableProperty().addListener(goBackButtonDisabledPropertyChangeListener);
+            goBackButtonDisabledPropertyChangeListener.changed(goBackButton.disableProperty(), false, true);
+        }
+
+        {
+            ChangeListener<Boolean> goForwardButtonDisabledPropertyChangeListener = (property, oldValue, newValue) -> goForwardButton.setGraphic(newValue ? goForwardButtonIconDisabled : goForwardButtonIcon);
+            goForwardButton.disableProperty().addListener(goForwardButtonDisabledPropertyChangeListener);
+            goForwardButtonDisabledPropertyChangeListener.changed(goForwardButton.disableProperty(), false, true);
+        }
     }
 
     @FXML
