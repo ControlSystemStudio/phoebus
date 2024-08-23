@@ -71,7 +71,9 @@ public class HyperLinkRedirectListener implements ChangeListener<State>, EventLi
             for (int i = 0; i < anchors.getLength(); i++) {
                 Node node = anchors.item(i);
                 EventTarget eventTarget = (EventTarget) node;
-                eventTarget.addEventListener(CLICK_EVENT, this, false);
+                eventTarget.addEventListener(CLICK_EVENT,
+                                             new HyperLinkRedirectListener(webView), // Note: A new instance MUST be created here, otherwise NullPointerExceptions may be thrown when trying to run the event handler!
+                                             false);
             }
         }
     }
