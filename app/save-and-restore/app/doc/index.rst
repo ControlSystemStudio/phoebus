@@ -308,6 +308,22 @@ the :math:`{\Delta}` Base Snapshot column will show the difference to the refere
 .. image:: images/compare-snapshots-view.png
    :width: 80%
 
+Compare to archiver data
+------------------------
+
+In the context menu of a tab showing a snapshot user can chose to compare the snapshot to data retrieved from an
+archiver, if one is configured:
+
+.. image:: images/compare_to_archiver.png
+
+Selecting this item will trigger a date/time picker where user can specify the point in time for which to get
+archiver data:
+
+.. image:: images/date_time_picker.png
+
+Once data has been returned from the archiver service, it will be rendered as a snapshot in the comparison view.
+
+**NOTE:** If the archiver does not contain a PV, it will be rendered as DISCONNECTED in the view.
 
 Search And Filters
 ------------------

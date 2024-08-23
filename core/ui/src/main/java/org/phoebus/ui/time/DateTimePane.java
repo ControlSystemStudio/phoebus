@@ -33,7 +33,7 @@ import javafx.util.StringConverter;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class DateTimePane extends GridPane
+public class DateTimePane extends GridPane
 {
     // Use TimestampFormats
     private static final StringConverter<LocalDate> DATE_CONVERTER = new StringConverter<>()
