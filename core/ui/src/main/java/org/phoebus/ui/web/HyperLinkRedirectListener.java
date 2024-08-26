@@ -48,7 +48,7 @@ import java.util.logging.Logger;
  * <a href="https://stackoverflow.com/questions/15555510/javafx-stop-opening-url-in-webview-open-in-browser-instead">
  * this Stackoverflow post</a>.
  */
-public class HyperLinkRedirectListener implements ChangeListener<State>, EventListener {
+public class HyperLinkRedirectListener implements ChangeListener<State> {
     private static final String CLICK_EVENT = "click";
     private static final String ANCHOR_TAG = "a";
 
@@ -72,21 +72,23 @@ public class HyperLinkRedirectListener implements ChangeListener<State>, EventLi
                 Node node = anchors.item(i);
                 EventTarget eventTarget = (EventTarget) node;
                 eventTarget.addEventListener(CLICK_EVENT,
-                                             new HyperLinkRedirectListener(webView), // Note: A new instance MUST be created here, otherwise NullPointerExceptions may be thrown when trying to run the event handler!
+                                             new HyperLinkRedirectEventListener(), // Note: A new instance MUST be created here, otherwise NullPointerExceptions may be thrown when trying to run the event handler!
                                              false);
             }
         }
     }
 
-    @Override
-    public void handleEvent(Event event) {
-        HTMLAnchorElement anchorElement = (HTMLAnchorElement) event.getCurrentTarget();
-        String href = anchorElement.getHref();
-        try {
-            ApplicationService.createInstance("web", new URI(href));
-            event.preventDefault();
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to launch WebBrowserApplication", e);
+    private class HyperLinkRedirectEventListener implements EventListener {
+        @Override
+        public void handleEvent(Event event) {
+            HTMLAnchorElement anchorElement = (HTMLAnchorElement) event.getCurrentTarget();
+            String href = anchorElement.getHref();
+            try {
+                ApplicationService.createInstance("web", new URI(href));
+                event.preventDefault();
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Failed to launch WebBrowserApplication", e);
+            }
         }
     }
 }
