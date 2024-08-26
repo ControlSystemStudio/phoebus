@@ -49,7 +49,7 @@
             <ColumnConstraints />
             <ColumnConstraints />
             <ColumnConstraints maxWidth="125.0" minWidth="120.0" prefWidth="125.0" />
-            <ColumnConstraints maxWidth="173.0" minWidth="154.0" prefWidth="173.0" />
+            <ColumnConstraints maxWidth="300.0" minWidth="154.0" prefWidth="300.0" />
 
         </columnConstraints>
         <rowConstraints>
@@ -118,6 +118,16 @@
                 <Insets bottom="5.0" left="5.0" right="3.0" top="6.0" />
             </GridPane.margin>
         </Button>
+        <HBox fx:id="snapshotModeSelection" GridPane.columnIndex="5" prefWidth="300.0" >
+            <RadioButton fx:id="radioButtonReadPvs" text="%snapshotFromPvs">
+            <HBox.margin>
+               <Insets right="5.0" />
+            </HBox.margin></RadioButton>
+            <RadioButton fx:id="radioButtonReadFromArchiver" text="%snapshotFromArchiver" />
+            <GridPane.margin>
+                <Insets bottom="5.0" left="5.0" right="3.0" top="6.0" />
+            </GridPane.margin>
+        </HBox>
         <Button fx:id="saveSnapshotButton" onAction="#saveSnapshot" prefWidth="120.0" text="%saveSnapshot" userData="false" GridPane.columnIndex="4" GridPane.rowIndex="1" GridPane.valignment="CENTER">
             <GridPane.margin>
                 <Insets bottom="5.0" left="5.0" right="3.0" top="5.0" />

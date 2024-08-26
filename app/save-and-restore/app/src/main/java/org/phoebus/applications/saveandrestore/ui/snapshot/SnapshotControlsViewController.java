@@ -40,8 +40,10 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
+import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
+import org.phoebus.pv.archive.Preferences;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -49,6 +51,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -110,6 +114,15 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     @FXML
     private ToolBar filterToolbar;
 
+    @FXML
+    private javafx.scene.Node snapshotModeSelection;
+
+    @FXML
+    private RadioButton radioButtonReadPvs;
+
+    @FXML
+    private RadioButton radioButtonReadFromArchiver;
+
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
     protected final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
@@ -136,6 +149,8 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     public void setSnapshotController(SnapshotController snapshotController) {
         this.snapshotController = snapshotController;
     }
+
+    private SnapshotMode defaultSnapshotMode;
 
     @FXML
     public void initialize() {
@@ -276,7 +291,29 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
             }
         });
 
+        snapshotModeSelection.visibleProperty().set(Preferences.archive_url != null && !Preferences.archive_url.isEmpty());
 
+        try {
+            defaultSnapshotMode = SnapshotMode.valueOf(org.phoebus.applications.saveandrestore.Preferences.default_snapshot_mode);
+        } catch (IllegalArgumentException e) {
+            Logger.getLogger(SnapshotControlsViewController.class.getName())
+                    .log(Level.WARNING, "No default snapshot mode mapped to \"" +
+                            org.phoebus.applications.saveandrestore.Preferences.default_snapshot_mode
+                    + "\", falling back to " + SnapshotMode.READ_PVS);
+             defaultSnapshotMode = SnapshotMode.READ_PVS;
+        }
+
+        radioButtonReadPvs.setUserData(SnapshotMode.READ_PVS);
+        radioButtonReadFromArchiver.setUserData(SnapshotMode.FROM_ARCHIVER);
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        toggleGroup.getToggles().addAll(radioButtonReadPvs, radioButtonReadFromArchiver);
+
+        toggleGroup.selectToggle(toggleGroup.getToggles().stream()
+                .filter(t -> t.getUserData().equals(defaultSnapshotMode)).findFirst().get());
+        toggleGroup.selectedToggleProperty().addListener((obs, o, n) -> {
+            defaultSnapshotMode = (SnapshotMode) n.getUserData();
+        });
     }
 
     public SimpleStringProperty getSnapshotNameProperty() {
@@ -336,5 +373,9 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     public void setSnapshotRestorableProperty(boolean restorable) {
         snapshotRestorableProperty.set(restorable);
+    }
+
+    public SnapshotMode getDefaultSnapshotMode(){
+        return defaultSnapshotMode;
     }
 }

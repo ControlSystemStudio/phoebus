@@ -24,8 +24,10 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -45,6 +47,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.Threshold;
 import org.phoebus.applications.saveandrestore.ui.Utilities;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
@@ -54,6 +57,7 @@ import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.time.DateTimePane;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.text.SimpleDateFormat;
@@ -184,7 +188,49 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         }
     }
 
-    public void takeSnapshot(Consumer<Snapshot> consumer) {
+    public void takeSnapshot(SnapshotMode snapshotMode, Consumer<Snapshot> consumer){
+        switch (snapshotMode){
+            case READ_PVS -> takeSnapshot(consumer);
+            case FROM_ARCHIVER -> takeSnapshotFromArchiver(consumer);
+            default -> throw new IllegalArgumentException("Snapshot mode " + snapshotMode + " not supported");
+        }
+    }
+
+    private void takeSnapshotFromArchiver(Consumer<Snapshot> consumer){
+        DateTimePane dateTimePane = new DateTimePane();
+        Dialog<Instant> timePickerDialog = new Dialog<>();
+        timePickerDialog.setTitle(Messages.dateTimePickerTitle);
+        timePickerDialog.getDialogPane().setContent(dateTimePane);
+        timePickerDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        timePickerDialog.setResultConverter(b -> {
+            if(b.equals(ButtonType.OK)){
+                return dateTimePane.getInstant();
+            }
+            return null;
+        });
+        Instant time = timePickerDialog.showAndWait().get();
+        if(time == null){ // User cancels date/time picker dialog
+            return;
+        }
+        JobManager.schedule("Add snapshot from archiver", monitor -> {
+            List<SnapshotItem> snapshotItems;
+            try {
+                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshotFromArchiver(snapshotController.configurationNode.getUniqueId(), time);
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Failed to query archiver for data", e);
+                return;
+            }
+            Snapshot snapshot = new Snapshot();
+            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(Messages.archiver).created(new Date(time.toEpochMilli())).build());
+            SnapshotData snapshotData = new SnapshotData();
+            snapshotData.setUniqueId("anonymous");
+            snapshotData.setSnapshotItems(snapshotItems);
+            snapshot.setSnapshotData(snapshotData);
+            consumer.accept(snapshot);
+        });
+    }
+
+    private void takeSnapshot(Consumer<Snapshot> consumer) {
         JobManager.schedule("Take snapshot", monitor -> {
             // Clear snapshots array
             snapshots.clear();

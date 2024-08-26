@@ -34,7 +34,6 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
-import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -119,21 +118,14 @@ public class SnapshotTab extends SaveAndRestoreTab {
 
         MenuItem compareSnapshotToArchiverDataMenuItem = new MenuItem(Messages.contextMenuCompareSnapshotWithArchiverData, new ImageView(compareSnapshotIcon));
         compareSnapshotToArchiverDataMenuItem.setOnAction(ae ->
-                addSnapshotFromArchive(((SnapshotController)controller).getConfigurationNode()));
+                addSnapshotFromArchive(((SnapshotController)controller).getSnapshot().getSnapshotNode()));
 
-        // If the view has been launched to take a new snapshot, there is no snapshot data to compare to,
-        // consequently the menu item is disabled. Also disabled if the configuration does not have any PVs.
         getContextMenu().setOnShowing(e -> {
             Snapshot snapshot = ((SnapshotController)controller).getSnapshot();
             if(snapshot.getSnapshotData().getSnapshotItems().isEmpty()){
                 compareSnapshotToArchiverDataMenuItem.disableProperty().set(true);
             }
-            else if(snapshot.getSnapshotData().getSnapshotItems().get(0).getValue().equals(VNoData.INSTANCE)){
-                compareSnapshotToArchiverDataMenuItem.disableProperty().set(true);
-            }
-            else{
-                compareSnapshotToArchiverDataMenuItem.disableProperty().set(false);
-            }
+            compareSnapshotToArchiverDataMenuItem.disableProperty().set(snapshot.getSnapshotNode().getUniqueId() == null);
         });
         getContextMenu().getItems().add(compareSnapshotToArchiverDataMenuItem);
 
@@ -171,7 +163,7 @@ public class SnapshotTab extends SaveAndRestoreTab {
      */
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
         setId(null);
-        ((SnapshotController) controller).newSnapshot(configurationNode);
+        ((SnapshotController) controller).initializeViewForNewSnapshot(configurationNode);
     }
 
     /**
@@ -185,20 +177,12 @@ public class SnapshotTab extends SaveAndRestoreTab {
         ((SnapshotController) controller).loadSnapshot(snapshotNode);
     }
 
-    /**
-     * Adds a user selected snapshot for the sake of comparison
-     * @param node A {@link Node} of type {@link NodeType#SNAPSHOT}
-     */
     public void addSnapshot(Node node) {
         ((SnapshotController) controller).addSnapshot(node);
     }
 
-    /**
-     * Adds a {@link Snapshot} created from archiver data, for the sake of comparison
-     * @param configurationNode A {@link Node} of type {@link NodeType#CONFIGURATION}.
-     */
-    private void addSnapshotFromArchive(Node configurationNode){
-        ((SnapshotController) controller).addSnapshotFromArchiver(configurationNode);
+    private void addSnapshotFromArchive(Node node){
+        ((SnapshotController) controller).addSnapshotFromArchiver(node);
     }
 
     @Override

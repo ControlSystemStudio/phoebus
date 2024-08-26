@@ -33,6 +33,7 @@ import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -113,7 +114,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
      *
      * @param configurationNode A {@link Node} of type {@link org.phoebus.applications.saveandrestore.model.NodeType#CONFIGURATION}
      */
-    public void newSnapshot(Node configurationNode) {
+    public void initializeViewForNewSnapshot(Node configurationNode) {
         this.configurationNode = configurationNode;
         snapshotTab.updateTabTitle(Messages.unnamedSnapshot);
         JobManager.schedule("Get configuration", monitor -> {
@@ -141,7 +142,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     public void takeSnapshot() {
         disabledUi.set(true);
         snapshotTab.setText(Messages.unnamedSnapshot);
-        snapshotTableViewController.takeSnapshot(snapshot -> {
+        snapshotTableViewController.takeSnapshot(snapshotControlsViewController.getDefaultSnapshotMode(), snapshot -> {
             disabledUi.set(false);
             if(snapshot != null){
                 snapshotProperty.set(snapshot);
@@ -405,6 +406,17 @@ public class SnapshotController extends SaveAndRestoreBaseController {
      * @param configurationNode A {@link Node} of type {@link NodeType#CONFIGURATION}.
      */
     public void addSnapshotFromArchiver(Node configurationNode){
+        disabledUi.set(true);
+        snapshotTableViewController.takeSnapshot(SnapshotMode.FROM_ARCHIVER, snapshot -> {
+            Platform.runLater(() -> {
+                try {
+                    snapshotTableViewController.addSnapshot(snapshot);
+                } finally {
+                    disabledUi.set(false);
+                }
+            });
+        });
+        /*
         DateTimePane dateTimePane = new DateTimePane();
         Dialog<Instant> timePickerDialog = new Dialog<>();
         timePickerDialog.setTitle(Messages.dateTimePickerTitle);
@@ -441,6 +453,8 @@ public class SnapshotController extends SaveAndRestoreBaseController {
                 disabledUi.set(false);
             });
         });
+
+         */
     }
 
     private Snapshot getSnapshotFromService(Node snapshotNode) throws Exception {

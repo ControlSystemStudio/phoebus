@@ -435,32 +435,31 @@ public class SaveAndRestoreService {
     }
 
     /**
-     * Requests service to take a snapshot, i.e. to read PVs as defined in a {@link Configuration}.
+     * Retrieves PV values from an archiver for the PVs as defined in a {@link Configuration}.
      * This should be called off the UI thread.
      * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
-     * @param time If non-null, the snapshot is created from archived values.
+     * @param time If <code>null</code>, time is set to {@link Instant#now()}.
      * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service or read
      * from an archiver.
      */
-    public List<SnapshotItem> takeSnapshot(String configurationNodeId, Instant time) throws Exception{
+    public List<SnapshotItem> takeSnapshotFromArchiver(String configurationNodeId, Instant time) throws Exception{
         if(time == null){
-            return takeSnapshot(configurationNodeId);
+            time = Instant.now();
         }
-        else{
-            ConfigurationData configNode = getConfiguration(configurationNodeId);
-            List<ConfigPv> configPvList = configNode.getPvList();
-            List<SnapshotItem> snapshotItems = new ArrayList<>();
-            configPvList.forEach(configPv -> {
-                SnapshotItem snapshotItem = new SnapshotItem();
-                snapshotItem.setConfigPv(configPv);
-                snapshotItem.setValue(readFromArchiver(configPv.getPvName(), time));
-                if(configPv.getReadbackPvName() != null){
-                    snapshotItem.setValue(readFromArchiver(configPv.getReadbackPvName(), time));
-                }
-                snapshotItems.add(snapshotItem);
-            });
-            return snapshotItems;
-        }
+        ConfigurationData configNode = getConfiguration(configurationNodeId);
+        List<ConfigPv> configPvList = configNode.getPvList();
+        List<SnapshotItem> snapshotItems = new ArrayList<>();
+        Instant _time = time;
+        configPvList.forEach(configPv -> {
+            SnapshotItem snapshotItem = new SnapshotItem();
+            snapshotItem.setConfigPv(configPv);
+            snapshotItem.setValue(readFromArchiver(configPv.getPvName(), _time));
+            if(configPv.getReadbackPvName() != null){
+                snapshotItem.setValue(readFromArchiver(configPv.getReadbackPvName(), _time));
+            }
+            snapshotItems.add(snapshotItem);
+        });
+        return snapshotItems;
     }
 
     /**
@@ -475,15 +474,14 @@ public class SaveAndRestoreService {
         if(indexSchemeSeparator > 0 && pvName.length() > indexSchemeSeparator){
             pvName = pvName.substring(indexSchemeSeparator + 1);
         }
-        // Prepend "alarm://"
+        // Prepend "archiver://"
         pvName = "archive://" + pvName + "(" + TimestampFormats.SECONDS_FORMAT.format(time) + ")";
         try {
             PV pv = PVPool.getPV(pvName);
             VType pvValue = pv.read();
             PVPool.releasePV(pv);
-            return pvValue;
+            return pvValue == null ? VDisconnectedData.INSTANCE : pvValue;
         } catch (Exception e) {
-            // Not found in archiver
             return VDisconnectedData.INSTANCE;
         }
     }
