@@ -81,11 +81,11 @@ public class HyperLinkRedirectListener implements ChangeListener<State> {
     private class HyperLinkRedirectEventListener implements EventListener {
         @Override
         public void handleEvent(Event event) {
+            event.preventDefault();
             HTMLAnchorElement anchorElement = (HTMLAnchorElement) event.getCurrentTarget();
             String href = anchorElement.getHref();
             try {
                 ApplicationService.createInstance("web", new URI(href));
-                event.preventDefault();
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to launch WebBrowserApplication", e);
             }
