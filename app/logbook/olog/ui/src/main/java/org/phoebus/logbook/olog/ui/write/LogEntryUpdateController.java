@@ -273,7 +273,15 @@ public class LogEntryUpdateController {
         titleProperty.set(logEntry.getTitle());
 
         textArea.textProperty().bindBidirectional(descriptionProperty);
-        descriptionProperty.set(logEntry.getDescription() != null ? logEntry.getDescription() : "");
+        if (logEntry.getSource() != null) {
+            descriptionProperty.set(logEntry.getSource());
+        }
+        else if (logEntry.getDescription() != null) {
+            descriptionProperty.set(logEntry.getDescription());
+        }
+        else {
+            descriptionProperty.set("");
+        }
         descriptionProperty.addListener((observable, oldValue, newValue) -> isDirty = true);
 
         Image tagIcon = ImageCache.getImage(LogEntryUpdateController.class, "/icons/add_tag.png");
