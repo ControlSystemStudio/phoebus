@@ -1,0 +1,23 @@
+name: build Swagger documentation
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs/swagger
+    steps:
+    - uses: actions/checkout@v4
+    - name: run service
+      run: mvn spring-boot:run
+    - name: check service is running
+      run: curl http://localhost:8080
+    - name: get swagger.js
+      run: curl http://localhost:8080/v3/api-docs
+    
