@@ -18,12 +18,10 @@ jobs:
         maven-version: '3.9.6'
     #- name: Build
     #  run: mvn --batch-mode install -DskipTests
-    - name: pwd
-      run: pwd
-    - name: ls
-      run: ls
     - name: cd
-      run: cd ./services/alarm-logger
+      run: |
+        cd ./services/alarm-logger
+        pwd
     - name: pwd
       run: pwd
     - name: ls
