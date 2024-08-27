@@ -141,8 +141,7 @@ public class LogEntryTable implements AppInstance {
         protected boolean getIsRecordingHistoryDisabled() {
             return isRecordingHistoryDisabled;
         }
-        
-        protected void setIsRecordingHistoryDisabled(boolean isRecordingHistoryDisabled) {
+        public void setIsRecordingHistoryDisabled(boolean isRecordingHistoryDisabled) {
             this.isRecordingHistoryDisabled = isRecordingHistoryDisabled;
         }
 
