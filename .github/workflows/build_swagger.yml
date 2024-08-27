@@ -22,6 +22,7 @@ jobs:
       run: |
         cd ./services/alarm-logger
         pwd
+        mvn spring-boot:run
     - name: pwd
       run: pwd
     - name: ls
