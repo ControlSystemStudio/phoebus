@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+  ~ Copyright (C) 2024 European Spallation Source ERIC.
+  -->
+
+<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.actions.ExecuteScriptActionController">
+   <children>
+      <Label text="%ActionsDialog_Description" />
+      <TextField fx:id="description" text="Execute Script" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" />
+      <Label text="%ActionsDialog_ScriptPath" GridPane.rowIndex="1" />
+      <TextField fx:id="scriptPath" text="EmbeddedPy" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+      <Button mnemonicParsing="false" text="..." GridPane.columnIndex="2" GridPane.rowIndex="1" onAction="#selectScriptFile"/>
+      <HBox GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
+         <children>
+            <Button fx:id="embedPyButton" text="%ScriptsDialog_BtnEmbedPy" onAction="#embedPy">
+               <HBox.margin>
+                  <Insets right="5.0" />
+               </HBox.margin></Button>
+            <Button fx:id="embedJsButton" text="%ScriptsDialog_BtnEmbedJS" onAction="#embedJs">
+               <HBox.margin>
+                  <Insets left="5.0" right="5.0" />
+               </HBox.margin></Button>
+            <Button fx:id="openExternalEditorButton" text="%OpenInExternalEditor" onAction="#openExternalEditor">
+               <HBox.margin>
+                  <Insets left="5.0" />
+               </HBox.margin></Button>
+         </children>
+      </HBox>
+      <Label text="%ActionsDialog_ScriptText" GridPane.rowIndex="3" />
+      <TextArea fx:id="scriptBody" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS" />
+   </children>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+</GridPane>

@@ -53,6 +53,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.7.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-model</artifactId>
 			<version>4.7.4-SNAPSHOT</version>

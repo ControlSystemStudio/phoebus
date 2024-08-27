@@ -199,11 +199,21 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
                         fileAttachment.setContentType(attachment.getContentType());
                         fileAttachment.setThumbnail(false);
                         fileAttachment.setFileName(attachment.getName());
+                        // A bit of a hack here. The idea is to create a temporary file with a known name,
+                        // i.e. without the random file name part.
+                        // Files.createdTempFile does not support it, so a bit of workaround is needed.
                         try {
-                            Path temp = Files.createTempFile("phoebus", attachment.getName());
-                            Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
-                            fileAttachment.setFile(temp.toFile());
-                            temp.toFile().deleteOnExit();
+                            // This creates a temp file with a random part
+                            Path random = Files.createTempFile(attachment.getId(),  attachment.getName());
+                            // This does NOT create a file
+                            Path nonRandom = random.resolveSibling(attachment.getId());
+                            if(!Files.exists(nonRandom.toAbsolutePath())){
+                                // Moves the temp file with random part to file with non-random part.
+                                nonRandom = Files.move(random, nonRandom);
+                                Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), nonRandom, StandardCopyOption.REPLACE_EXISTING);
+                                fileAttachment.setFile(nonRandom.toFile());
+                                nonRandom.toFile().deleteOnExit();
+                            }
                         } catch (LogbookException | IOException e) {
                             Logger.getLogger(SingleLogEntryDisplayController.class.getName())
                                     .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName(), e);

@@ -5,14 +5,13 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.ActionInfos;
-import org.csstudio.display.builder.model.properties.ExecuteCommandActionInfo;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgetParts.CommandItem;
 import org.csstudio.utility.adlparser.fileParser.widgets.ShellCommand;
+import org.csstudio.display.actions.ExecuteCommandAction;
 
 public class ShellCommand2Model extends AbstractADL2Model<ActionButtonWidget> {
 
@@ -32,11 +31,10 @@ public class ShellCommand2Model extends AbstractADL2Model<ActionButtonWidget> {
             if (! cmd.getCommandName().replaceAll("\"", "").isEmpty())
             {
                 final String command = cmd.getCommandName() + " " + cmd.getArgs();
-                actions.add(new ExecuteCommandActionInfo(cmd.getLabel(), command));
+                actions.add(new ExecuteCommandAction(cmd.getLabel(), command));
             }
 
         widgetModel.propText().setValue(commandWidget.getLabel());
-        widgetModel.propActions().setValue(new ActionInfos(actions));
     }
 
     @Override

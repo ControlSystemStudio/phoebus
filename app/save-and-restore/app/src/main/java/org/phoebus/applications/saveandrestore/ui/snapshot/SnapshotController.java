@@ -24,6 +24,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.epics.vtype.*;
@@ -37,7 +38,9 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.time.DateTimePane;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -140,7 +143,9 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         snapshotTab.setText(Messages.unnamedSnapshot);
         snapshotTableViewController.takeSnapshot(snapshot -> {
             disabledUi.set(false);
-            snapshotProperty.set(snapshot);
+            if(snapshot != null){
+                snapshotProperty.set(snapshot);
+            }
         });
     }
 
@@ -376,16 +381,66 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         });
     }
 
+    /**
+     * Adds a snapshot for the sake of comparison with the one currently in view.
+     * @param snapshotNode A snapshot {@link Node} selected by user in the {@link javafx.scene.control.TreeView},
+     *                     i.e. a snapshot previously persisten in the service.
+     */
     public void addSnapshot(Node snapshotNode) {
         disabledUi.set(true);
-        try {
-            Snapshot snapshot = getSnapshotFromService(snapshotNode);
-            snapshotTableViewController.addSnapshot(snapshot);
-        } catch (Exception e) {
-            Logger.getLogger(SnapshotController.class.getName()).log(Level.WARNING, "Failed to add snapshot", e);
-        } finally {
-            disabledUi.set(false);
+        JobManager.schedule("Add snapshot", monitor -> {
+            try {
+                Snapshot snapshot = getSnapshotFromService(snapshotNode);
+                Platform.runLater(() -> snapshotTableViewController.addSnapshot(snapshot));
+            } catch (Exception e) {
+                Logger.getLogger(SnapshotController.class.getName()).log(Level.WARNING, "Failed to add snapshot", e);
+            } finally {
+                disabledUi.set(false);
+            }
+        });
+    }
+
+    /**
+     * Launches a date/time picker and then reads from archiver to construct an in-memory {@link Snapshot} used for comparison.
+     * @param configurationNode A {@link Node} of type {@link NodeType#CONFIGURATION}.
+     */
+    public void addSnapshotFromArchiver(Node configurationNode){
+        DateTimePane dateTimePane = new DateTimePane();
+        Dialog<Instant> timePickerDialog = new Dialog<>();
+        timePickerDialog.setTitle(Messages.dateTimePickerTitle);
+        timePickerDialog.getDialogPane().setContent(dateTimePane);
+        timePickerDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        timePickerDialog.setResultConverter(b -> {
+            if(b.equals(ButtonType.OK)){
+                return dateTimePane.getInstant();
+            }
+            return null;
+        });
+        Instant time = timePickerDialog.showAndWait().get();
+        if(time == null){ // User cancels date/time picker dialog
+            return;
         }
+        disabledUi.set(true);
+        JobManager.schedule("Add snapshot from archiver", monitor -> {
+            List<SnapshotItem> snapshotItems;
+            try {
+                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(configurationNode.getUniqueId(), time);
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Failed to query archiver for data", e);
+                disabledUi.set(false);
+                return;
+            }
+            Snapshot snapshot = new Snapshot();
+            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(Messages.archiver).created(new Date(time.toEpochMilli())).build());
+            SnapshotData snapshotData = new SnapshotData();
+            snapshotData.setUniqueId("anonymous");
+            snapshotData.setSnapshotItems(snapshotItems);
+            snapshot.setSnapshotData(snapshotData);
+            Platform.runLater(() -> {
+                snapshotTableViewController.addSnapshot(snapshot);
+                disabledUi.set(false);
+            });
+        });
     }
 
     private Snapshot getSnapshotFromService(Node snapshotNode) throws Exception {

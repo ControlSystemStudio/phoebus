@@ -308,6 +308,22 @@ the :math:`{\Delta}` Base Snapshot column will show the difference to the refere
 .. image:: images/compare-snapshots-view.png
    :width: 80%
 
+Compare to archiver data
+------------------------
+
+In the context menu of a tab showing a snapshot user can chose to compare the snapshot to data retrieved from an
+archiver, if one is configured:
+
+.. image:: images/compare_to_archiver.png
+
+Selecting this item will trigger a date/time picker where user can specify the point in time for which to get
+archiver data:
+
+.. image:: images/date_time_picker.png
+
+Once data has been returned from the archiver service, it will be rendered as a snapshot in the comparison view.
+
+**NOTE:** If the archiver does not contain a PV, it will be rendered as DISCONNECTED in the view.
 
 Search And Filters
 ------------------
@@ -384,6 +400,12 @@ The search result table of the Search And Filter view also supports a contect me
 
 .. image:: images/search-result-context-menu.png
 
+Invoke a restore operation from search result
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Snapshot and composite snapshot items in the search result table support an additional context menu item users can
+choose in order to perform a restore operation.
+
 Snapshot View Context Menu
 --------------------------
 
@@ -416,4 +438,36 @@ Authorization uses a role-based approach like so:
 
 Roles are defined and managed on the service. Role (group) membership is managed in Active Directory or LDAP.
 
+Integration with the Display Builder application
+------------------------------------------------
 
+It is possible to configure Display Builder actions to interact with the Save-And-Restore application. Such actions are available as either items
+in the context menu of a Display Builder widget, or actions associated with an Action Button widget, or both.
+
+When Save-And-Restore actions are executed, the application is launched or put in focus. The following action types
+are supported:
+
+* | Open a configuration, snapshot or composite snapshot node in the Save-And-Restore application.
+  | This can be used to quickly access a particular node in order to invoke a restore operation.
+* | Open a named filter in the Save-And-Restore application.
+  | This will open/show the search and filter view and automatically perform the search associated with the named filter.
+  | This feature can be used to quickly navigate from a Display Builder screen to a view containing a set of commonly used snapshots.
+
+Configuring actions
+^^^^^^^^^^^^^^^^^^^
+
+When configuring an action in the Display Builder editor, supported actions are available from a list:
+
+.. image:: images/select_action.png
+   :width: 70%
+
+For the open node action, user may either paste the unique id of a node into the input field, or launch a
+browser to select a node:
+
+.. image:: images/open_node.png
+   :width: 70%
+
+For the open filter action, user can select from a drop-down list showing existing named filters:
+
+.. image:: images/open_filter.png
+   :width: 70%

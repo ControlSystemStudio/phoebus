@@ -53,19 +53,21 @@ import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -183,71 +185,39 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     }
 
     public void takeSnapshot(Consumer<Snapshot> consumer) {
-        // Clear snapshots array
-        snapshots.clear();
-        List<SnapshotItem> entries = new ArrayList<>();
-        readAll(list ->
-                Platform.runLater(() -> {
-                    tableEntryItems.clear();
-                    entries.addAll(list);
-                    Snapshot snapshot = new Snapshot();
-                    snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).build());
-                    SnapshotData snapshotData = new SnapshotData();
-                    snapshotData.setSnapshotItems(entries);
-                    snapshot.setSnapshotData(snapshotData);
-                    showSnapshotInTable(snapshot);
-                    if (!Preferences.default_snapshot_name_date_format.isEmpty()) {
-                        SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
-                        snapshot.getSnapshotNode().setName(formatter.format(new Date()));
-                    }
-                    consumer.accept(snapshot);
-                })
-        );
-    }
-
-    /**
-     * Reads all PVs using a thread pool. All reads are asynchronous, waiting at most the amount of time
-     * configured through a preference setting.
-     *
-     * @param completion Callback receiving a list of {@link SnapshotItem}s where values for PVs that could
-     *                   not be read are set to {@link org.phoebus.applications.saveandrestore.ui.VDisconnectedData#INSTANCE}.
-     */
-    private void readAll(Consumer<List<SnapshotItem>> completion) {
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        SnapshotItem[] snapshotEntries = new SnapshotItem[tableEntryItems.values().size()];
         JobManager.schedule("Take snapshot", monitor -> {
-            final CountDownLatch countDownLatch = new CountDownLatch(tableEntryItems.values().size());
-            for (TableEntry t : tableEntryItems.values()) {
-                // Submit read request only if job has not been cancelled
-                executorService.submit(() -> {
-                    SaveAndRestorePV pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()));
-                    VType value = VDisconnectedData.INSTANCE;
-                    try {
-                        value = pv.getPv().asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
-                    } catch (Exception e) {
-                        LOGGER.log(Level.WARNING, "Failed to read PV " + pv.getPvName(), e);
-                    }
-                    VType readBackValue = VDisconnectedData.INSTANCE;
-                    if (pv.getReadbackPv() != null && !pv.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
-                        try {
-                            readBackValue = pv.getReadbackPv().asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
-                        } catch (Exception e) {
-                            LOGGER.log(Level.WARNING, "Failed to read read-back PV " + pv.getReadbackPvName(), e);
-                        }
-                    }
-                    SnapshotItem snapshotItem = new SnapshotItem();
-                    snapshotItem.setConfigPv(t.getConfigPv());
-                    snapshotItem.setValue(value);
-                    snapshotItem.setReadbackValue(readBackValue);
-
-                    snapshotEntries[t.idProperty().get() - 1] = snapshotItem;
-                    countDownLatch.countDown();
-                });
+            // Clear snapshots array
+            snapshots.clear();
+            List<SnapshotItem> snapshotItems;
+            try {
+                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId());
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(snapshotTableView, Messages.errorGeneric, Messages.takeSnapshotFailed, e);
+                consumer.accept(null);
+                return;
             }
-            countDownLatch.await();
-            completion.accept(Arrays.asList(snapshotEntries));
-            executorService.shutdown();
+            // Service can only return nulls for disconnected PVs, but UI expects VDisonnectedData
+            snapshotItems.forEach(si -> {
+                if (si.getValue() == null) {
+                    si.setValue(VDisconnectedData.INSTANCE);
+                }
+                if (si.getReadbackValue() == null) {
+                    si.setReadbackValue(VDisconnectedData.INSTANCE);
+                }
+            });
+            Snapshot snapshot = new Snapshot();
+            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).build());
+            SnapshotData snapshotData = new SnapshotData();
+            snapshotData.setSnapshotItems(snapshotItems);
+            snapshot.setSnapshotData(snapshotData);
+            showSnapshotInTable(snapshot);
+            if (!Preferences.default_snapshot_name_date_format.isEmpty()) {
+                SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
+                snapshot.getSnapshotNode().setName(formatter.format(new Date()));
+            }
+            consumer.accept(snapshot);
         });
+
     }
 
     public void updateThreshold(Snapshot snapshot, double threshold) {

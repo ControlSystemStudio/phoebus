@@ -22,8 +22,11 @@ import org.phoebus.framework.nls.NLS;
 @SuppressWarnings("unused")
 public class Messages {
 
+    public static String actionOpenFilterDescription;
+    public static String actionOpenNodeDescription;
     public static String alertContinue;
     public static String alertAddingPVsToConfiguration;
+    public static String archiver;
     public static String authenticationFailed;
     public static String baseSetpoint;
     public static String buttonSearch;
@@ -36,9 +39,10 @@ public class Messages {
     public static String contextMenuAddTagWithComment;
     public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
+    public static String contextMenuCompareSnapshotWithArchiverData;
     public static String contextMenuDelete;
     public static String copy;
-    public static String Edit;
+
     public static String contextMenuAddToCompositeSnapshot;
     public static String contextMenuNewFolder;
     public static String contextMenuNewCompositeSnapshot;
@@ -63,12 +67,14 @@ public class Messages {
     public static String currentPVValue;
     public static String currentReadbackValue;
     public static String currentSetpointValue;
+    public static String dateTimePickerTitle;
     public static String deleteFilter;
     public static String deleteFilterFailed;
 
     public static String duplicatePVNamesAdditionalItems;
     public static String duplicatePVNamesCheckFailed;
     public static String duplicatePVNamesFoundInSelection;
+    public static String Edit;
     public static String editFilter;
     public static String errorActionFailed;
     public static String errorAddTagFailed;
@@ -81,9 +87,11 @@ public class Messages {
     public static String exportConfigurationLabel;
     public static String exportSnapshotLabel;
     public static String exportSnapshotFailed;
-    public static String faildDeleteFilter;
+    public static String failedDeleteFilter;
+    public static String failedGetFilters;
     public static String failedSaveFilter;
     public static String failedToPasteObjects;
+    public static String filterNotFound;
     public static String findSnapshotReferences;
     public static String importConfigurationLabel;
     public static String importSnapshotLabel;
@@ -114,10 +122,10 @@ public class Messages {
     public static String promptRenameNodeContent;
 
     public static String pvName;
-    public static String nodeSelectionForCompositeSnapshot;
     public static String nodeSelectionForConfiguration;
     public static String noValueAvailable;
     public static String readbackPVName;
+    public static String restore;
     public static String restoreFailed;
     public static String restoreFailedPVs;
     public static String saveFilter;
@@ -144,6 +152,7 @@ public class Messages {
     public static String tagCommentLabel;
     public static String tagRemoveConfirmationTitle;
     public static String tagRemoveConfirmationContent;
+    public static String takeSnapshotFailed;
     public static String timestamp;
 
     public static String toolTipTableColumnPVName;
