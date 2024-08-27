@@ -14,6 +14,10 @@ jobs:
         working-directory: docs/swagger
     steps:
     - uses: actions/checkout@v4
+    - name: cd
+      run: cd services/alarm-logger
+    - name: pwd
+      run: pwd
     - name: run service
       run: mvn spring-boot:run
     - name: check service is running
