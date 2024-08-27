@@ -17,15 +17,15 @@ jobs:
     - name: pwd
       run: pwd
     - name: run alarm logger service
-      run: mvn spring-boot:run &
-    - name: get alarm logger ID
-      run: jobpid="$!"
+      run: mvn spring-boot:run
+    #- name: get alarm logger ID
+    #  run: jobpid="$!"
     - name: wait
       run: sleep 120
     - name: check service is running
       run: curl http://localhost:8080
     - name: get swagger.js
       run: curl http://localhost:8080/v3/api-docs
-    - name: kill alarm logger
-      run: kill "$jobpid"
+    #- name: kill alarm logger
+    #  run: kill "$jobpid"
     
