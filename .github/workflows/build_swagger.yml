@@ -16,14 +16,16 @@ jobs:
       with:
         java-version: '17'
         maven-version: '3.9.6'
-    - name: Build
-      run: mvn --batch-mode install -DskipTests
-    - name: cd
-      run: cd services/alarm-logger
+    #- name: Build
+    #  run: mvn --batch-mode install -DskipTests
+    #- name: cd
+    #  run: cd services/alarm-logger
     - name: pwd
       run: pwd
-    - name: run alarm logger service
-      run: mvn spring-boot:run
+    - name: ls
+      run: ls
+    #- name: run alarm logger service
+    #  run: mvn spring-boot:run
     #- name: get alarm logger ID
     #  run: jobpid="$!"
     - name: wait
