@@ -9,13 +9,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
     steps:
     - uses: actions/checkout@v4
-    - name: dependencies
-      run: mvn clean verify -Djavafx.platform=linux -f dependencies/pom.xml
+    - name: Setup Maven and Java Action
+      uses: s4u/setup-maven-action@v1.13.0
+      with:
+        java-version: '17'
+        maven-version: '3.9.6'
+    - name: Build
+      run: mvn --batch-mode install -DskipTests
     - name: cd
       run: cd services/alarm-logger
     - name: pwd
