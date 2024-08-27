@@ -18,18 +18,13 @@ jobs:
         maven-version: '3.9.6'
     #- name: Build
     #  run: mvn --batch-mode install -DskipTests
-    - name: run alarm logger service
+    - name: Get swagger.json
       run: |
         cd ./services/alarm-logger
         pwd
         mvn spring-boot:run &
-        jobpid="$!"
-    - name: wait
-      run: sleep 30
-    - name: check service is running
-      run: curl http://localhost:8080
-    - name: get swagger.js
-      run: curl http://localhost:8080/v3/api-docs
-    - name: kill alarm logger
-      run: kill "$jobpid"
-    
+        export jobpid="$!"
+        sleep 30
+        curl http://localhost:8080
+        curl http://localhost:8080/v3/api-docs
+        kill "$jobpid"
