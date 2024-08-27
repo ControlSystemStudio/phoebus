@@ -11,11 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: docs/swagger
+        working-directory: services/alarm-logger
     steps:
     - uses: actions/checkout@v4
-    - name: cd
-      run: cd services/alarm-logger
     - name: pwd
       run: pwd
     - name: run service
