@@ -11,9 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: services/alarm-logger
+        working-directory: .
     steps:
     - uses: actions/checkout@v4
+    - name: dependencies
+      run: mvn clean verify -Djavafx.platform=linux -f dependencies/pom.xml
+    - name: cd
+      run: cd services/alarm-logger
     - name: pwd
       run: pwd
     - name: run alarm logger service
