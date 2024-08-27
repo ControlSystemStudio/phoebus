@@ -126,19 +126,19 @@ public class LogEntryTable implements AppInstance {
         controller.logEntryChanged(logEntry);
     }
 
-    public class GoBackAndGoForwardActions {
+    protected class GoBackAndGoForwardActions {
 
-        public GoBackAndGoForwardActions() {
+        private GoBackAndGoForwardActions() {
             goBackActions = FXCollections.observableArrayList();
             goForwardActions = FXCollections.observableArrayList();
         }
 
-        public ObservableList<Runnable> goBackActions;
-        public ObservableList<Runnable> goForwardActions;
+        protected ObservableList<Runnable> goBackActions;
+        protected ObservableList<Runnable> goForwardActions;
 
         private boolean isRecordingHistoryDisabled = false; // Used to not add go-back actions when clicking "back".
 
-        public boolean getIsRecordingHistoryDisabled() {
+        protected boolean getIsRecordingHistoryDisabled() {
             return isRecordingHistoryDisabled;
         }
         public void setIsRecordingHistoryDisabled(boolean isRecordingHistoryDisabled) {
@@ -155,7 +155,7 @@ public class LogEntryTable implements AppInstance {
             isRecordingHistoryDisabled = false;
         }
 
-        public void addGoBackAction() {
+        protected void addGoBackAction() {
             LogEntry currentLogEntry = controller.getLogEntry();
 
             if (currentLogEntry != null) {
@@ -163,7 +163,7 @@ public class LogEntryTable implements AppInstance {
             }
         }
 
-        public void addGoForwardAction() {
+        private void addGoForwardAction() {
             LogEntry currentLogEntry = controller.getLogEntry();
 
             if (currentLogEntry != null) {
@@ -171,7 +171,7 @@ public class LogEntryTable implements AppInstance {
             }
         }
 
-        public void loadLogEntryWithID(Long id) {
+        private void loadLogEntryWithID(Long id) {
             goForwardActions.clear();
             addGoBackAction();
 
@@ -179,7 +179,7 @@ public class LogEntryTable implements AppInstance {
             gotoLogEntry(logEntry);
         }
 
-        public void goBack() {
+        protected void goBack() {
             if (goBackActions.size() > 0) {
                 addGoForwardAction();
                 Runnable goBackAction = goBackActions.get(0);
@@ -188,7 +188,7 @@ public class LogEntryTable implements AppInstance {
             }
         }
 
-        public void goForward() {
+        protected void goForward() {
             if (goForwardActions.size() > 0) {
                 addGoBackAction();
                 Runnable goForwardAction = goForwardActions.get(0);
