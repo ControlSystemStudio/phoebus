@@ -34,9 +34,9 @@
                               text="%ShowHideLogEntryGroup" disable="true" onAction="#showHideLogEntryGroup"/>
                 <Region fx:id="spring" /> <!-- Spring to make the next elements right-aligned. -->
                 <Button fx:id="goBackButton" mnemonicParsing="false"
-                        onAction="#goBack" text="Back" disable="true" />
+                        onAction="#goBack" text="%Back" disable="true" />
                 <Button fx:id="goForwardButton" mnemonicParsing="false"
-                        onAction="#goForward" text="Forward" disable="true" />
+                        onAction="#goForward" text="%Forward" disable="true" />
             </items>
         </ToolBar>
     </top>
