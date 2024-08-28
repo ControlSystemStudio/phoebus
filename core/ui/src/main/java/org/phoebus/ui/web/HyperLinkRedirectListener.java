@@ -85,15 +85,32 @@ public class HyperLinkRedirectListener implements ChangeListener<State> {
     }
 
     private class HyperLinkRedirectEventListener implements EventListener {
+
+        private Optional<Long> parseLogEntryID(String href) {
+            if (webClientRoot.isPresent() && openLogentryWithID.isPresent() && href.startsWith(webClientRoot.get())) {
+                try {
+                    String withoutWebClientRoot = href.substring(webClientRoot.get().length());
+                    String idString = withoutWebClientRoot.charAt(0) == '/' ? withoutWebClientRoot.substring(1) : withoutWebClientRoot;
+                    long id = Long.parseLong(idString);
+                    return Optional.of(id);
+                }
+                catch (Exception exception) {
+                    return Optional.empty();
+                }
+            }
+            else {
+                return Optional.empty();
+            }
+        }
+
         @Override
         public void handleEvent(Event event) {
             event.preventDefault();
             HTMLAnchorElement anchorElement = (HTMLAnchorElement) event.getCurrentTarget();
             String href = anchorElement.getHref();
-            if (webClientRoot.isPresent() && openLogentryWithID.isPresent() && href.startsWith(webClientRoot.get())) {
-                String withoutWebClientRoot = href.substring(webClientRoot.get().length());
-                String idString = withoutWebClientRoot.charAt(0) == '/' ? withoutWebClientRoot.substring(1) : withoutWebClientRoot.substring(0);
-                long id = Long.parseLong(idString);
+            Optional<Long> maybeID = parseLogEntryID(href);
+            if (maybeID.isPresent()) {
+                Long id = maybeID.get();
                 openLogentryWithID.get().accept(id);
             } else {
                 try {
