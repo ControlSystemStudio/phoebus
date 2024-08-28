@@ -50,6 +50,8 @@ public class Messages
                          ConvertToEmbeddedJavaScript,
                          ConvertToEmbeddedPython,
                          ConvertToScriptFile,
+                         CopyWidgetInfo,
+                         CopyButton,
                          Edit,
                          ExportWidgetInfo,
                          ExportFailed,

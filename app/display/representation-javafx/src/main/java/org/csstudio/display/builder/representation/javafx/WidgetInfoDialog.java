@@ -20,12 +20,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.geometry.Pos;
+import javafx.scene.layout.FlowPane;
 import javafx.event.EventHandler;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SelectionMode;
+import javafx.geometry.Insets;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.layout.TilePane;
+import javafx.stage.Stage;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
@@ -34,6 +42,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.util.DisplayWidgetStats;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
+import org.epics.pva.data.PVAValue;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VNumberArray;
@@ -55,17 +64,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -189,13 +189,18 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             tabs.getSelectionModel().select(1);
 
         final ButtonType export = new ButtonType(Messages.ExportWidgetInfo, ButtonData.LEFT);
+        final ButtonType copy = new ButtonType(Messages.CopyWidgetInfo, ButtonData.LEFT);
+
 
         getDialogPane().setContent(tabs);
         getDialogPane().getButtonTypes().addAll(export, ButtonType.CLOSE);
+        getDialogPane().getButtonTypes().addAll(copy);
         setResizable(true);
         tabs.setMinWidth(800);
 
         Button exportButton = (Button)getDialogPane().lookupButton(export);
+        Button copyButton = (Button)getDialogPane().lookupButton(copy);
+
         exportButton.addEventFilter(
                 ActionEvent.ACTION,
                 event -> {
@@ -210,8 +215,68 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                     event.consume();
                 }
         );
+        copyButton.addEventFilter(
+                ActionEvent.ACTION,
+                event -> {
+                    pvListDisplay();
+                    event.consume();
+                }
+        );
 
         setResultConverter(button -> true);
+    }
+
+
+    private void pvListDisplay(){
+        FlowPane layout = new FlowPane();
+        layout.setVgap(10);
+        layout.setHgap(20);
+        layout.setAlignment(Pos.TOP_CENTER);
+        Stage stage = new Stage();
+        TextArea area = new TextArea();
+        TilePane container = new TilePane();
+        Button copyPv = new Button(Messages.CopyButton);
+        Button ok = new Button("OK");
+        area.setPadding(new Insets(10, 10, 10, 10));
+        area.setPrefSize(250,450);
+        stage.setResizable(false);
+        //stage.setMaxHeight(530);
+        //stage.setMaxWidth(270);
+
+        layout.getChildren().add(area);
+        layout.getChildren().add(copyPv);
+        layout.getChildren().add(ok);
+
+        Scene scene = new Scene(layout, 250, 500);
+        stage.setAlwaysOnTop(true);
+        stage.setTitle("PV List");
+        stage.setScene(scene);
+        stage.show();
+
+
+        pvs.stream().sorted(Comparator.comparing(pv -> pv.getName())).forEach(pv -> {
+            if(!area.getText().contains(pv.getName()))
+                area.setText(area.getText()+pv.getName()+"\n");
+        });
+
+        EventHandler<ActionEvent> copying = new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent e)
+            {
+                final Clipboard clipboard = Clipboard.getSystemClipboard();
+                final ClipboardContent content = new ClipboardContent();
+                content.putString(area.getText());
+                clipboard.setContent(content);
+            }
+        };
+        EventHandler<ActionEvent> cancel = new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent e)
+            {
+                stage.close();
+            }
+        };
+
+        copyPv.setOnAction(copying);
+        ok.setOnAction(cancel);
     }
 
     /**
