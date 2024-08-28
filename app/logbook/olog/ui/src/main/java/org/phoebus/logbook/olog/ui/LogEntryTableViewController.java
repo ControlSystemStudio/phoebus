@@ -107,12 +107,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     public LogEntryTableViewController(LogClient logClient,
                                        OlogQueryManager ologQueryManager,
-                                       SearchParameters searchParameters,
-                                       LogEntryTable.GoBackAndGoForwardActions goBackAndGoForwardActions) {
+                                       SearchParameters searchParameters) {
         setClient(logClient);
         this.ologQueryManager = ologQueryManager;
         this.searchParameters = searchParameters;
-        this.goBackAndGoForwardActions = goBackAndGoForwardActions;
+    }
+
+    protected void setGoBackAndGoForwardActions(LogEntryTable.GoBackAndGoForwardActions goBackAndGoForwardActions) {
+        this.goBackAndGoForwardActions = Optional.of(goBackAndGoForwardActions);
     }
 
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
@@ -125,8 +127,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private final SearchParameters searchParameters;
 
-    protected final LogEntryTable.GoBackAndGoForwardActions goBackAndGoForwardActions;
-
+    protected Optional<LogEntryTable.GoBackAndGoForwardActions> goBackAndGoForwardActions = Optional.empty();
 
     @FXML
     public void initialize() {
@@ -188,9 +189,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             // Update detailed view, but only if selection contains a single item.
             if (newValue != null && tableView.getSelectionModel().getSelectedItems().size() == 1) {
-                if (!goBackAndGoForwardActions.getIsRecordingHistoryDisabled()) {
-                    goBackAndGoForwardActions.addGoBackAction();
-                    goBackAndGoForwardActions.goForwardActions.clear();
+                if (goBackAndGoForwardActions.isPresent() && !goBackAndGoForwardActions.get().getIsRecordingHistoryDisabled()) {
+                    goBackAndGoForwardActions.get().addGoBackAction();
+                    goBackAndGoForwardActions.get().goForwardActions.clear();
                 }
                 logEntryDisplayController.setLogEntry(newValue.getLogEntry());
             }
@@ -403,9 +404,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 for (TableViewListItem item : tableView.getItems()) {
                     if (item.getLogEntry().getId().equals(selectedItem.getLogEntry().getId())) {
                         Platform.runLater(() -> {
-                            goBackAndGoForwardActions.setIsRecordingHistoryDisabled(true); // Do not create a "Back" action for the automatic reload.
-                            tableView.getSelectionModel().select(item);
-                            goBackAndGoForwardActions.setIsRecordingHistoryDisabled(false);
+                            if (goBackAndGoForwardActions.isPresent()) {
+                                goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(true); // Do not create a "Back" action for the automatic reload.
+                                tableView.getSelectionModel().select(item);
+                                goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(false);
+                            }
+                            else {
+                                tableView.getSelectionModel().select(item);
+                            }
                         });
                     }
                 }

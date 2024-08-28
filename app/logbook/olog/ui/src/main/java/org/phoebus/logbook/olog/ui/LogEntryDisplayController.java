@@ -148,12 +148,16 @@ public class LogEntryDisplayController {
 
     @FXML
     public void goBack() {
-        logEntryTableViewController.goBackAndGoForwardActions.goBack();
+        if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
+            logEntryTableViewController.goBackAndGoForwardActions.get().goBack();
+        }
     }
 
     @FXML
     public void goForward() {
-        logEntryTableViewController.goBackAndGoForwardActions.goForward();
+        if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
+            logEntryTableViewController.goBackAndGoForwardActions.get().goForward();
+        }
     }
 
     public void setLogEntry(LogEntry logEntry) {
@@ -187,7 +191,9 @@ public class LogEntryDisplayController {
 
     public void setLogEntryTableViewController(LogEntryTableViewController logEntryTableViewController){
         this.logEntryTableViewController = logEntryTableViewController;
-        goBackButton.disableProperty().bind(Bindings.isEmpty(logEntryTableViewController.goBackAndGoForwardActions.goBackActions));
-        goForwardButton.disableProperty().bind(Bindings.isEmpty(logEntryTableViewController.goBackAndGoForwardActions.goForwardActions));
+        if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
+            goBackButton.disableProperty().bind(Bindings.isEmpty(logEntryTableViewController.goBackAndGoForwardActions.get().goBackActions));
+            goForwardButton.disableProperty().bind(Bindings.isEmpty(logEntryTableViewController.goBackAndGoForwardActions.get().goForwardActions));
+        }
     }
 }
