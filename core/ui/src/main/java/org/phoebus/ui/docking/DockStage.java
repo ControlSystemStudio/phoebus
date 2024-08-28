@@ -16,15 +16,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Border;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
