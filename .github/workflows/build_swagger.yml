@@ -21,10 +21,27 @@ jobs:
     - name: Get swagger.json
       run: |
         cd ./services/alarm-logger
-        pwd
         mvn spring-boot:run &
         export jobpid="$!"
         sleep 30
         curl http://localhost:8080
-        curl http://localhost:8080/v3/api-docs
+        curl http://localhost:8080/v3/api-docs --output ../../docs/swagger/swagger.json
         kill "$jobpid"
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+    - name: Install dependencies
+      run: |
+        cd docs/swagger
+        npm install
+    - name: Run converter
+      run: |
+        cd docs/swagger
+        node convertMarkDown.js
+        ls
+    - name: Archive swagger.md
+      uses: actions/upload-artifact@v4
+      with:
+        name: markdown
+        path: docs/swagger/swagger.md
