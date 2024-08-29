@@ -105,10 +105,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
      *
      * @param logClient Log client implementation
      */
-    public LogEntryTableViewController(LogClient logClient, OlogQueryManager ologQueryManager, SearchParameters searchParameters) {
+    public LogEntryTableViewController(LogClient logClient,
+                                       OlogQueryManager ologQueryManager,
+                                       SearchParameters searchParameters) {
         setClient(logClient);
         this.ologQueryManager = ologQueryManager;
         this.searchParameters = searchParameters;
+    }
+
+    protected void setGoBackAndGoForwardActions(LogEntryTable.GoBackAndGoForwardActions goBackAndGoForwardActions) {
+        this.goBackAndGoForwardActions = Optional.of(goBackAndGoForwardActions);
     }
 
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
@@ -121,6 +127,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private final SearchParameters searchParameters;
 
+    protected Optional<LogEntryTable.GoBackAndGoForwardActions> goBackAndGoForwardActions = Optional.empty();
 
     @FXML
     public void initialize() {
@@ -182,6 +189,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             // Update detailed view, but only if selection contains a single item.
             if (newValue != null && tableView.getSelectionModel().getSelectedItems().size() == 1) {
+                if (goBackAndGoForwardActions.isPresent() && !goBackAndGoForwardActions.get().getIsRecordingHistoryDisabled()) {
+                    goBackAndGoForwardActions.get().addGoBackAction();
+                    goBackAndGoForwardActions.get().goForwardActions.clear();
+                }
                 logEntryDisplayController.setLogEntry(newValue.getLogEntry());
             }
             List<LogEntry> logEntries = tableView.getSelectionModel().getSelectedItems()
@@ -392,7 +403,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
             for (TableViewListItem selectedItem : selectedLogEntries) {
                 for (TableViewListItem item : tableView.getItems()) {
                     if (item.getLogEntry().getId().equals(selectedItem.getLogEntry().getId())) {
-                        Platform.runLater(() -> tableView.getSelectionModel().select(item));
+                        Platform.runLater(() -> {
+                            if (goBackAndGoForwardActions.isPresent()) {
+                                goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(true); // Do not create a "Back" action for the automatic reload.
+                                tableView.getSelectionModel().select(item);
+                                goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(false);
+                            }
+                            else {
+                                tableView.getSelectionModel().select(item);
+                            }
+                        });
                     }
                 }
             }
@@ -528,6 +548,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
     public void logEntryChanged(LogEntry logEntry) {
         search();
         logEntryDisplayController.updateLogEntry(logEntry);
+    }
+
+    protected LogEntry getLogEntry() {
+        return logEntryDisplayController.getLogEntry();
+    }
+
+    protected void setLogEntry(LogEntry logEntry) {
+        logEntryDisplayController.setLogEntry(logEntry);
     }
 
     /**
