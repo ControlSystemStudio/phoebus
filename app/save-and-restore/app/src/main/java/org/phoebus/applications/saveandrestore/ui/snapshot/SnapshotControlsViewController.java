@@ -27,7 +27,16 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -41,9 +50,6 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
-import org.phoebus.pv.PV;
-import org.phoebus.pv.PVPool;
-import org.phoebus.pv.archive.Preferences;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -70,9 +76,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     protected Button saveSnapshotButton;
 
     @FXML
-    private Button saveSnapshotAndCreateLogEntryButton;
-
-    @FXML
     private Label createdBy;
 
     @FXML
@@ -86,9 +89,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     @FXML
     private Button restoreButton;
-
-    @FXML
-    private Button restoreAndLogButton;
 
     @FXML
     private Spinner<Double> thresholdSpinner;
@@ -115,13 +115,7 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     private ToolBar filterToolbar;
 
     @FXML
-    private javafx.scene.Node snapshotModeSelection;
-
-    @FXML
-    private RadioButton radioButtonReadPvs;
-
-    @FXML
-    private RadioButton radioButtonReadFromArchiver;
+    private CheckBox logAction;
 
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
@@ -137,6 +131,8 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     protected final SimpleBooleanProperty showDeltaPercentageProperty = new SimpleBooleanProperty(false);
 
     private final SimpleBooleanProperty hideEqualItemsProperty = new SimpleBooleanProperty(false);
+
+    private final SimpleBooleanProperty logActionProperty = new SimpleBooleanProperty(false);
 
     /**
      * Property used to indicate if there is new snapshot data to save, or if snapshot metadata
@@ -179,21 +175,12 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
                                 userIdentity.isNull().get(),
                 snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
 
-        saveSnapshotAndCreateLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (
-                        snapshotDataDirty.not().get()) ||
-                        snapshotNameProperty.isEmpty().get() ||
-                        snapshotCommentProperty.isEmpty().get() ||
-                        userIdentity.isNull().get(),
-                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
-
-        // Do not show the create log entry button if no event receivers have been registered
-        saveSnapshotAndCreateLogEntryButton.visibleProperty().set(ServiceLoader.load(SaveAndRestoreEventReceiver.class).iterator().hasNext());
+        // Do not show the create log checkbox if no event receivers have been registered
+        logAction.visibleProperty().set(ServiceLoader.load(SaveAndRestoreEventReceiver.class).iterator().hasNext());
 
         restoreButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                 snapshotRestorableProperty.not().get() ||
                         userIdentity.isNull().get(), snapshotRestorableProperty, userIdentity));
-        restoreAndLogButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                snapshotRestorableProperty.not().get() || userIdentity.isNull().get(), snapshotRestorableProperty, userIdentity));
 
         SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
         thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
@@ -291,29 +278,17 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
             }
         });
 
-        snapshotModeSelection.visibleProperty().set(Preferences.archive_url != null && !Preferences.archive_url.isEmpty());
-
         try {
             defaultSnapshotMode = SnapshotMode.valueOf(org.phoebus.applications.saveandrestore.Preferences.default_snapshot_mode);
         } catch (IllegalArgumentException e) {
             Logger.getLogger(SnapshotControlsViewController.class.getName())
                     .log(Level.WARNING, "No default snapshot mode mapped to \"" +
                             org.phoebus.applications.saveandrestore.Preferences.default_snapshot_mode
-                    + "\", falling back to " + SnapshotMode.READ_PVS);
-             defaultSnapshotMode = SnapshotMode.READ_PVS;
+                            + "\", falling back to " + SnapshotMode.READ_PVS);
+            defaultSnapshotMode = SnapshotMode.READ_PVS;
         }
 
-        radioButtonReadPvs.setUserData(SnapshotMode.READ_PVS);
-        radioButtonReadFromArchiver.setUserData(SnapshotMode.FROM_ARCHIVER);
-
-        ToggleGroup toggleGroup = new ToggleGroup();
-        toggleGroup.getToggles().addAll(radioButtonReadPvs, radioButtonReadFromArchiver);
-
-        toggleGroup.selectToggle(toggleGroup.getToggles().stream()
-                .filter(t -> t.getUserData().equals(defaultSnapshotMode)).findFirst().get());
-        toggleGroup.selectedToggleProperty().addListener((obs, o, n) -> {
-            defaultSnapshotMode = (SnapshotMode) n.getUserData();
-        });
+        logAction.selectedProperty().bindBidirectional(logActionProperty);
     }
 
     public SimpleStringProperty getSnapshotNameProperty() {
@@ -375,7 +350,11 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         snapshotRestorableProperty.set(restorable);
     }
 
-    public SnapshotMode getDefaultSnapshotMode(){
+    public SnapshotMode getDefaultSnapshotMode() {
         return defaultSnapshotMode;
+    }
+
+    public boolean logAction() {
+        return logActionProperty.get();
     }
 }

@@ -118,39 +118,19 @@
                 <Insets bottom="5.0" left="5.0" right="3.0" top="6.0" />
             </GridPane.margin>
         </Button>
-        <HBox fx:id="snapshotModeSelection" GridPane.columnIndex="5" prefWidth="300.0" >
-            <RadioButton fx:id="radioButtonReadPvs" text="%snapshotFromPvs">
-            <HBox.margin>
-               <Insets right="5.0" />
-            </HBox.margin></RadioButton>
-            <RadioButton fx:id="radioButtonReadFromArchiver" text="%snapshotFromArchiver" />
-            <GridPane.margin>
-                <Insets bottom="5.0" left="5.0" right="3.0" top="6.0" />
-            </GridPane.margin>
-        </HBox>
         <Button fx:id="saveSnapshotButton" onAction="#saveSnapshot" prefWidth="120.0" text="%saveSnapshot" userData="false" GridPane.columnIndex="4" GridPane.rowIndex="1" GridPane.valignment="CENTER">
             <GridPane.margin>
                 <Insets bottom="5.0" left="5.0" right="3.0" top="5.0" />
             </GridPane.margin>
         </Button>
-        <Button fx:id="saveSnapshotAndCreateLogEntryButton" onAction="#saveSnapshot" prefWidth="120.0" text="%saveSnapshotAndCreateLogEntry" userData="true" GridPane.columnIndex="5" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+        <CheckBox fx:id="logAction" text="%logAction" GridPane.columnIndex="4" GridPane.rowIndex="3" GridPane.columnSpan="2">
             <GridPane.margin>
-                <Insets bottom="5.0" right="5.0" top="5.0" />
+               <Insets bottom="5.0" left="5.0" top="5.0" />
             </GridPane.margin>
             <tooltip>
-                <Tooltip text="%createLogEntryToolTip" />
+                <Tooltip text="%logActionTooltip" />
             </tooltip>
-        </Button>
-
-        <Button fx:id="restoreAndLogButton" onAction="#restore" prefWidth="120.0" text="%restoreAndLog" userData="true" GridPane.columnIndex="5" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-            <GridPane.margin>
-                <Insets bottom="5.0" right="5.0" top="5.0" />
-            </GridPane.margin>
-            <tooltip>
-                <Tooltip text="%createLogEntryToolTip" />
-            </tooltip>
-        </Button>
-
+        </CheckBox>
     </GridPane>
     <ToolBar fx:id="filterToolbar" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="1188.0">
         <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="%preserveSelection" />
