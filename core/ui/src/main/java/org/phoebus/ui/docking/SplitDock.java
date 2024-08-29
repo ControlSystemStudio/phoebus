@@ -38,6 +38,10 @@ public class SplitDock extends SplitPane
      */
     private Parent dock_parent;
 
+    public void setDockParent(Parent dockParent) {
+        this.dock_parent = dockParent;
+    }
+
     /** Create a split section
      *  @param dock_parent {@link BorderPane} of {@link SplitDock}
      *  @param horizontally Horizontal?
@@ -157,9 +161,20 @@ public class SplitDock extends SplitPane
         }
         else if (dock_parent instanceof SplitDock)
         {
+            // Note: the check for "instanceof SplitDock" must occur
+            //       before "instanceof SplitPane" (the next clause),
+            //       since the class SplitDock extends the class
+            //       SplitPane. (Otherwise, the wrong code is run
+            //       for instances of SplitDock.)
             final SplitDock parent = (SplitDock) dock_parent;
             final boolean was_first = parent.removeItem(this);
             parent.addItem(was_first, child);
+        }
+        else if (dock_parent instanceof SplitPane) {
+            final SplitPane parent = (SplitPane) dock_parent;
+            // parent.getItems().get(1) == this, parent.getItems().get(0) == Navigator application
+            // No need to remove 'this' from parent, just update parent.getItems().get(1) to child
+            parent.getItems().set(1, child);
         }
         else
         {
