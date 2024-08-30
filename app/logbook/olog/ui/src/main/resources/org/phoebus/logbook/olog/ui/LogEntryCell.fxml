@@ -17,13 +17,15 @@ summary of the log entry and its metadata.
             <ColumnConstraints/>
             <ColumnConstraints/>
             <ColumnConstraints/>
+            <ColumnConstraints/>
         </columnConstraints>
         <rowConstraints>
             <RowConstraints/>
             <RowConstraints/>
         </rowConstraints>
         <children>
-            <Label fx:id="title" text="Title" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
+            <HBox fx:id="decorations" GridPane.columnIndex="0" />
+            <Label fx:id="title" text="Title" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS">
                 <font>
                     <Font size="18.0"/>
                 </font>
@@ -31,7 +33,7 @@ summary of the log entry and its metadata.
                     <Insets/>
                 </GridPane.margin>
             </Label>
-            <HBox GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS">
+            <HBox GridPane.columnIndex="3" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS">
                 <children>
                     <Pane HBox.hgrow="ALWAYS"/>
                     <ImageView fx:id="conversationIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true"
@@ -40,8 +42,8 @@ summary of the log entry and its metadata.
                                preserveRatio="true"/>
                 </children>
             </HBox>
-            <Label fx:id="owner" text="Owner" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
-            <Label fx:id="time" text="Time" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
+            <Label fx:id="owner" text="Owner" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
+            <Label fx:id="time" text="Time" GridPane.columnIndex="3" GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
         </children>
         <padding>
             <Insets bottom="2.0" left="5.0" right="5.0"/>
