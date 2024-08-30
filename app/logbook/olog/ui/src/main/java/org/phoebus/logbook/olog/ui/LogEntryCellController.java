@@ -6,6 +6,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.commonmark.Extension;
@@ -44,6 +45,8 @@ public class LogEntryCellController {
     Label time;
     @FXML
     Label owner;
+    @FXML
+    HBox decorations;
     @FXML
     Label title;
     @FXML
