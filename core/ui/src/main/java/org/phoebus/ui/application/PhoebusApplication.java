@@ -470,6 +470,10 @@ public class PhoebusApplication extends Application {
         });
     }
 
+    public ToolBar getToolbar() {
+        return toolbar;
+    }
+
     private void startUI(final MementoTree memento, final JobMonitor monitor) throws Exception {
         monitor.beginTask(Messages.MonitorTaskUi, 4);
 

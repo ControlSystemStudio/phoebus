@@ -445,22 +445,22 @@ public class SnapshotController extends SaveAndRestoreBaseController {
             }
             return null;
         });
-        Instant time = timePickerDialog.showAndWait().get();
-        if(time == null){ // User cancels date/time picker dialog
+        Optional<Instant> time = timePickerDialog.showAndWait();
+        if(time.isEmpty()){ // User cancels date/time picker dialog
             return;
         }
         disabledUi.set(true);
         JobManager.schedule("Add snapshot from archiver", monitor -> {
             List<SnapshotItem> snapshotItems;
             try {
-                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(configurationNode.getUniqueId(), time);
+                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(configurationNode.getUniqueId(), time.get());
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Failed to query archiver for data", e);
                 disabledUi.set(false);
                 return;
             }
             Snapshot snapshot = new Snapshot();
-            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(Messages.archiver).created(new Date(time.toEpochMilli())).build());
+            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(Messages.archiver).created(new Date(time.get().toEpochMilli())).build());
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setUniqueId("anonymous");
             snapshotData.setSnapshotItems(snapshotItems);
