@@ -18,7 +18,6 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.MenuItem;
@@ -39,7 +38,6 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,7 +48,7 @@ import java.util.logging.Logger;
  * and maintenance.
  *
  * <p>
- *     Note that this class is used also to show the snapshot view for {@link Node}s of type {@link NodeType#COMPOSITE_SNAPSHOT}.
+ * Note that this class is used also to show the snapshot view for {@link Node}s of type {@link NodeType#COMPOSITE_SNAPSHOT}.
  * </p>
  */
 public class SnapshotTab extends SaveAndRestoreTab {
@@ -117,12 +115,11 @@ public class SnapshotTab extends SaveAndRestoreTab {
         });
 
         MenuItem compareSnapshotToArchiverDataMenuItem = new MenuItem(Messages.contextMenuCompareSnapshotWithArchiverData, new ImageView(compareSnapshotIcon));
-        compareSnapshotToArchiverDataMenuItem.setOnAction(ae ->
-                addSnapshotFromArchive(((SnapshotController)controller).getSnapshot().getSnapshotNode()));
+        compareSnapshotToArchiverDataMenuItem.setOnAction(ae -> addSnapshotFromArchive());
 
         getContextMenu().setOnShowing(e -> {
-            Snapshot snapshot = ((SnapshotController)controller).getSnapshot();
-            if(snapshot.getSnapshotData().getSnapshotItems().isEmpty()){
+            Snapshot snapshot = ((SnapshotController) controller).getSnapshot();
+            if (snapshot.getSnapshotData().getSnapshotItems().isEmpty()) {
                 compareSnapshotToArchiverDataMenuItem.disableProperty().set(true);
             }
             compareSnapshotToArchiverDataMenuItem.disableProperty().set(snapshot.getSnapshotNode().getUniqueId() == null);
@@ -138,18 +135,17 @@ public class SnapshotTab extends SaveAndRestoreTab {
 
     /**
      * Set tab image based on node type, and optionally golden tag
+     *
      * @param node A snapshot {@link Node}
      */
     private void setTabImage(Node node) {
-        if(node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+        if (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
             tabGraphicImageProperty.set(ImageRepository.COMPOSITE_SNAPSHOT);
-        }
-        else{
+        } else {
             boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
             if (golden) {
                 tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
-            }
-            else {
+            } else {
                 tabGraphicImageProperty.set(ImageRepository.SNAPSHOT);
             }
         }
@@ -181,8 +177,8 @@ public class SnapshotTab extends SaveAndRestoreTab {
         ((SnapshotController) controller).addSnapshot(node);
     }
 
-    private void addSnapshotFromArchive(Node node){
-        ((SnapshotController) controller).addSnapshotFromArchiver(node);
+    private void addSnapshotFromArchive() {
+        ((SnapshotController) controller).addSnapshotFromArchiver();
     }
 
     @Override

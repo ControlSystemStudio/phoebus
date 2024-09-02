@@ -1,20 +1,6 @@
 /*
  * Copyright (C) 2024 European Spallation Source ERIC.
  *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
  */
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
@@ -61,11 +47,7 @@ import org.phoebus.ui.time.DateTimePane;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -188,40 +170,41 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         }
     }
 
-    public void takeSnapshot(SnapshotMode snapshotMode, Consumer<Snapshot> consumer){
-        switch (snapshotMode){
+    public void takeSnapshot(SnapshotMode snapshotMode, Consumer<Snapshot> consumer) {
+        switch (snapshotMode) {
             case READ_PVS -> takeSnapshot(consumer);
             case FROM_ARCHIVER -> takeSnapshotFromArchiver(consumer);
             default -> throw new IllegalArgumentException("Snapshot mode " + snapshotMode + " not supported");
         }
     }
 
-    private void takeSnapshotFromArchiver(Consumer<Snapshot> consumer){
+    private void takeSnapshotFromArchiver(Consumer<Snapshot> consumer) {
         DateTimePane dateTimePane = new DateTimePane();
         Dialog<Instant> timePickerDialog = new Dialog<>();
         timePickerDialog.setTitle(Messages.dateTimePickerTitle);
         timePickerDialog.getDialogPane().setContent(dateTimePane);
         timePickerDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         timePickerDialog.setResultConverter(b -> {
-            if(b.equals(ButtonType.OK)){
+            if (b.equals(ButtonType.OK)) {
                 return dateTimePane.getInstant();
             }
             return null;
         });
-        Instant time = timePickerDialog.showAndWait().get();
-        if(time == null){ // User cancels date/time picker dialog
+        Optional<Instant> time = timePickerDialog.showAndWait();
+        if (time.isEmpty()) { // User cancels date/time picker dialog
+            consumer.accept(null);
             return;
         }
         JobManager.schedule("Add snapshot from archiver", monitor -> {
             List<SnapshotItem> snapshotItems;
             try {
-                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshotFromArchiver(snapshotController.configurationNode.getUniqueId(), time);
+                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshotFromArchiver(snapshotController.configurationNode.getUniqueId(), time.get());
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Failed to query archiver for data", e);
                 return;
             }
             Snapshot snapshot = new Snapshot();
-            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(Messages.archiver).created(new Date(time.toEpochMilli())).build());
+            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(Messages.archiver).created(new Date(time.get().toEpochMilli())).build());
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setUniqueId("anonymous");
             snapshotData.setSnapshotItems(snapshotItems);

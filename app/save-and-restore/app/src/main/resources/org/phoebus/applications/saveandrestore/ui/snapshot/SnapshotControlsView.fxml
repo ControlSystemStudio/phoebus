@@ -1,22 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (C) 2020 European Spallation Source ERIC.
-  ~
-  ~  This program is free software; you can redistribute it and/or
-  ~  modify it under the terms of the GNU General Public License
-  ~  as published by the Free Software Foundation; either version 2
-  ~  of the License, or (at your option) any later version.
-  ~
-  ~  This program is distributed in the hope that it will be useful,
-  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~  GNU General Public License for more details.
-  ~
-  ~  You should have received a copy of the GNU General Public License
-  ~  along with this program; if not, write to the Free Software
-  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-  ~
+  ~ Copyright (C) 2024 European Spallation Source ERIC.
   -->
 
 <?import javafx.geometry.*?>
@@ -123,7 +108,17 @@
                 <Insets bottom="5.0" left="5.0" right="3.0" top="5.0" />
             </GridPane.margin>
         </Button>
-        <CheckBox fx:id="logAction" text="%logAction" GridPane.columnIndex="4" GridPane.rowIndex="3" GridPane.columnSpan="2">
+        <HBox GridPane.columnIndex="5" GridPane.rowIndex="0">
+            <RadioButton fx:id="readPVs" text="%readSnapshotFromPVs">
+            <HBox.margin>
+               <Insets right="5.0" />
+            </HBox.margin></RadioButton>
+            <RadioButton fx:id="readFromArchiver" text="%readSnapshotFromArchiver" />
+            <GridPane.margin>
+                <Insets bottom="5.0" left="5.0" top="5.0" />
+            </GridPane.margin>
+        </HBox>
+        <CheckBox fx:id="logAction" text="%logAction" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.rowIndex="3">
             <GridPane.margin>
                <Insets bottom="5.0" left="5.0" top="5.0" />
             </GridPane.margin>
@@ -131,6 +126,7 @@
                 <Tooltip text="%logActionTooltip" />
             </tooltip>
         </CheckBox>
+
     </GridPane>
     <ToolBar fx:id="filterToolbar" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="1188.0">
         <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="%preserveSelection" />

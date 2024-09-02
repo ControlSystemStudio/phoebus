@@ -1,19 +1,5 @@
 /**
  * Copyright (C) 2024 European Spallation Source ERIC.
- * <p>
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * <p>
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * <p>
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
@@ -73,6 +59,7 @@ import java.util.stream.Collectors;
 public class SnapshotController extends SaveAndRestoreBaseController {
 
 
+    @SuppressWarnings("unused")
     @FXML
     private BorderPane borderPane;
 
@@ -419,12 +406,14 @@ public class SnapshotController extends SaveAndRestoreBaseController {
 
     /**
      * Launches a date/time picker and then reads from archiver to construct an in-memory {@link Snapshot} used for comparison.
-     *
-     * @param configurationNode A {@link Node} of type {@link NodeType#CONFIGURATION}.
      */
-    public void addSnapshotFromArchiver(Node configurationNode) {
+    public void addSnapshotFromArchiver() {
         disabledUi.set(true);
         snapshotTableViewController.takeSnapshot(SnapshotMode.FROM_ARCHIVER, snapshot -> {
+            if(snapshot == null){
+                disabledUi.set(false);
+                return;
+            }
             Platform.runLater(() -> {
                 try {
                     snapshotTableViewController.addSnapshot(snapshot);
@@ -433,45 +422,6 @@ public class SnapshotController extends SaveAndRestoreBaseController {
                 }
             });
         });
-        /*
-        DateTimePane dateTimePane = new DateTimePane();
-        Dialog<Instant> timePickerDialog = new Dialog<>();
-        timePickerDialog.setTitle(Messages.dateTimePickerTitle);
-        timePickerDialog.getDialogPane().setContent(dateTimePane);
-        timePickerDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        timePickerDialog.setResultConverter(b -> {
-            if(b.equals(ButtonType.OK)){
-                return dateTimePane.getInstant();
-            }
-            return null;
-        });
-        Optional<Instant> time = timePickerDialog.showAndWait();
-        if(time.isEmpty()){ // User cancels date/time picker dialog
-            return;
-        }
-        disabledUi.set(true);
-        JobManager.schedule("Add snapshot from archiver", monitor -> {
-            List<SnapshotItem> snapshotItems;
-            try {
-                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(configurationNode.getUniqueId(), time.get());
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Failed to query archiver for data", e);
-                disabledUi.set(false);
-                return;
-            }
-            Snapshot snapshot = new Snapshot();
-            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(Messages.archiver).created(new Date(time.get().toEpochMilli())).build());
-            SnapshotData snapshotData = new SnapshotData();
-            snapshotData.setUniqueId("anonymous");
-            snapshotData.setSnapshotItems(snapshotItems);
-            snapshot.setSnapshotData(snapshotData);
-            Platform.runLater(() -> {
-                snapshotTableViewController.addSnapshot(snapshot);
-                disabledUi.set(false);
-            });
-        });
-
-         */
     }
 
     private Snapshot getSnapshotFromService(Node snapshotNode) throws Exception {
