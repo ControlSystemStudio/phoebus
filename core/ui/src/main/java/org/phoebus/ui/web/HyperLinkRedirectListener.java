@@ -33,6 +33,8 @@ import org.w3c.dom.events.EventTarget;
 import org.w3c.dom.html.HTMLAnchorElement;
 
 import java.net.URI;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,19 +50,23 @@ import java.util.logging.Logger;
  * <a href="https://stackoverflow.com/questions/15555510/javafx-stop-opening-url-in-webview-open-in-browser-instead">
  * this Stackoverflow post</a>.
  */
-public class HyperLinkRedirectListener implements ChangeListener<State>, EventListener {
+public class HyperLinkRedirectListener implements ChangeListener<State> {
     private static final String CLICK_EVENT = "click";
     private static final String ANCHOR_TAG = "a";
 
     private final WebView webView;
+    private final Optional<String> webClientRoot;
+    private final Optional<Consumer<Long>> openLogentryWithID;
 
     private static final Logger LOGGER = Logger.getLogger(HyperLinkRedirectListener.class.getName());
 
     /**
      * @param webView The {@link WebView} showing the document.
      */
-    public HyperLinkRedirectListener(WebView webView) {
+    public HyperLinkRedirectListener(WebView webView, Optional<String> webClientRoot, Optional<Consumer<Long>> openLogentryWithID) {
         this.webView = webView;
+        this.webClientRoot = webClientRoot;
+        this.openLogentryWithID = openLogentryWithID;
     }
 
     @Override
@@ -71,20 +77,48 @@ public class HyperLinkRedirectListener implements ChangeListener<State>, EventLi
             for (int i = 0; i < anchors.getLength(); i++) {
                 Node node = anchors.item(i);
                 EventTarget eventTarget = (EventTarget) node;
-                eventTarget.addEventListener(CLICK_EVENT, this, false);
+                eventTarget.addEventListener(CLICK_EVENT,
+                                             new HyperLinkRedirectEventListener(), // Note: A new instance MUST be created here, otherwise NullPointerExceptions may be thrown when trying to run the event handler!
+                                             false);
             }
         }
     }
 
-    @Override
-    public void handleEvent(Event event) {
-        HTMLAnchorElement anchorElement = (HTMLAnchorElement) event.getCurrentTarget();
-        String href = anchorElement.getHref();
-        try {
-            ApplicationService.createInstance("web", new URI(href));
+    private class HyperLinkRedirectEventListener implements EventListener {
+
+        private Optional<Long> parseLogEntryID(String href) {
+            if (webClientRoot.isPresent() && openLogentryWithID.isPresent() && href.startsWith(webClientRoot.get())) {
+                try {
+                    String withoutWebClientRoot = href.substring(webClientRoot.get().length());
+                    String idString = withoutWebClientRoot.charAt(0) == '/' ? withoutWebClientRoot.substring(1) : withoutWebClientRoot;
+                    long id = Long.parseLong(idString);
+                    return Optional.of(id);
+                }
+                catch (Exception exception) {
+                    return Optional.empty();
+                }
+            }
+            else {
+                return Optional.empty();
+            }
+        }
+
+        @Override
+        public void handleEvent(Event event) {
             event.preventDefault();
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to launch WebBrowserApplication", e);
+            HTMLAnchorElement anchorElement = (HTMLAnchorElement) event.getCurrentTarget();
+            String href = anchorElement.getHref();
+            Optional<Long> maybeID = parseLogEntryID(href);
+            if (maybeID.isPresent()) {
+                Long id = maybeID.get();
+                openLogentryWithID.get().accept(id);
+            } else {
+                try {
+                    ApplicationService.createInstance("web", new URI(href));
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "Failed to launch WebBrowserApplication", e);
+                }
+            }
         }
     }
 }
