@@ -76,17 +76,16 @@ public class PropertyPreferenceLoader
                 location.substring(0, 8).equalsIgnoreCase("https://")) {
             loadFromRemoteURL(location);
         } else {
-            // Assume location is absolute
+            // Assume location is absolute or a file is in current directory
             if (new File(location).exists()) {
                 load(new FileInputStream(location));
             }
-            // If not absolute, try current directory
-            else if (new File(new File("."), location).exists()){
-                load(new File(new File("."), location).getAbsolutePath());
-            }
             // If not absolute or current directory, try user's home
-            else {
+            else if(new File(new File(System.getProperty("user.home")), location).exists()){
                 load(new File(new File(System.getProperty("user.home")), location).getAbsolutePath());
+            }
+            else {
+                throw new RuntimeException("Unable to locate settings file: " + location);
             }
         }
     }
