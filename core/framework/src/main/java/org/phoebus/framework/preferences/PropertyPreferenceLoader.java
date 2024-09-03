@@ -8,6 +8,7 @@
 package org.phoebus.framework.preferences;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
@@ -66,15 +67,27 @@ public class PropertyPreferenceLoader
 
     /**
      * Loads settings from file or remote URL.
-     * @param location Location speciifying a file name or a remote http(s) URL.
+     * @param location Location specifying a file name or a remote http(s) URL. If it identifies a file, it
+     *                 must be an absolute path, a file in current directory, or a file in user's home directory.
      * @throws Exception If settings cannot be loaded, e.g. file not found or invalid URL.
      */
-    public static void load(String location) throws Exception{
-        if(location.substring(0, 4).equalsIgnoreCase("http")){
+    public static void load(String location) throws Exception {
+        if (location.substring(0, 7).equalsIgnoreCase("http://") ||
+                location.substring(0, 8).equalsIgnoreCase("https://")) {
             loadFromRemoteURL(location);
-        }
-        else{
-            load(new FileInputStream(location));
+        } else {
+            // Assume location is absolute
+            if (new File(location).exists()) {
+                load(new FileInputStream(location));
+            }
+            // If not absolute, try current directory
+            else if (new File(new File("."), location).exists()){
+                load(new File(new File("."), location).getAbsolutePath());
+            }
+            // If not absolute or current directory, try user's home
+            else {
+                load(new File(new File(System.getProperty("user.home")), location).getAbsolutePath());
+            }
         }
     }
 
