@@ -51,6 +51,11 @@ public class Preferences {
     @Preference
     public static String default_snapshot_name_date_format;
 
+    /**
+     * Default snapshot mode
+     */
+    @Preference
+    public static String default_snapshot_mode;
 
     static {
         AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");
