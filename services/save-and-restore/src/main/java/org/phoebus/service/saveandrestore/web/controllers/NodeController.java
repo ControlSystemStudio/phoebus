@@ -23,16 +23,18 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.expression.SecurityExpressionRoot;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Controller offering endpoints for CRUD operations on {@link Node}s, which represent
@@ -45,7 +47,6 @@ public class NodeController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
-    private final Logger logger = Logger.getLogger(NodeController.class.getName());
 
     /**
      * Create a new folder in the tree structure.
@@ -108,7 +109,6 @@ public class NodeController extends BaseController {
     }
 
     /**
-     *
      * @param uniqueNodeId Unique {@link Node} id.
      * @return The parent {@link Node} of #uniqueNodeId.
      */
@@ -119,7 +119,6 @@ public class NodeController extends BaseController {
     }
 
     /**
-     *
      * @param uniqueNodeId Unique {@link Node} id.
      * @return Potentially empty list of child {@link Node}s of the {@link Node} identified by #uniqueNodeId.
      */
@@ -128,33 +127,6 @@ public class NodeController extends BaseController {
     public List<Node> getChildNodes(@PathVariable final String uniqueNodeId) {
         return nodeDAO.getChildNodes(uniqueNodeId);
     }
-
-    /**
-     * Recursively deletes a node and all its child nodes, if any. In particular, if the node id points to a configuration,
-     * all snapshots associated with that configuration will also be deleted. A client may wish to alert the
-     * user of this side effect.
-     * <p>
-     * A {@link HttpStatus#NOT_FOUND} is returned if the specified unique node id does not exist.
-     * </p>
-     * <p>
-     * A {@link HttpStatus#BAD_REQUEST} is returned if the specified unique node id is the tree root node id,
-     * see {@link Node#ROOT_FOLDER_UNIQUE_ID}.
-     * </p>
-     *
-     * @param uniqueNodeId The non-zero id of the node to delete
-     * @param authentication {@link Authentication} of authenticated user.
-     */
-    /*
-    @SuppressWarnings("unused")
-    @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or @authorizationHelper.mayDelete(#uniqueNodeId, #authentication)")
-    @Deprecated
-    public void deleteNode(@PathVariable final String uniqueNodeId, Authentication authentication) {
-        logger.info("Deleting node with unique id " + uniqueNodeId);
-        nodeDAO.deleteNode(uniqueNodeId);
-    }
-
-     */
 
     /**
      * Deletes all {@link Node}s contained in the provided list.
@@ -168,7 +140,8 @@ public class NodeController extends BaseController {
      * authorities of the user.
      * <br>
      * Note also that an unauthenticated user (e.g. no basic authentication header in client's request) will
-     * receive a HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
+     * receive an HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
+     *
      * @param nodeIds List of {@link Node} ids to remove.
      */
     @SuppressWarnings("unused")
@@ -191,7 +164,7 @@ public class NodeController extends BaseController {
      * authorities of the user.
      * <br>
      * Note also that an unauthenticated user (e.g. no basic authentication header in client's request) will
-     * receive a HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
+     * receive an HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
      *
      * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if a node of the same name and type already exists in the parent folder,
@@ -213,7 +186,7 @@ public class NodeController extends BaseController {
             throw new IllegalArgumentException("Node may not contain golden tag");
         }
         nodeToUpdate.setUserName(principal.getName());
-        return nodeDAO.updateNode(nodeToUpdate, Boolean.valueOf(customTimeForMigration));
+        return nodeDAO.updateNode(nodeToUpdate, Boolean.parseBoolean(customTimeForMigration));
     }
 
     /**

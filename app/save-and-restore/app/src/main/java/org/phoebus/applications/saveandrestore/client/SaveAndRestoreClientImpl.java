@@ -5,11 +5,14 @@
 package org.phoebus.applications.saveandrestore.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
@@ -31,6 +34,8 @@ import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -41,6 +46,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -97,21 +103,12 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public Node getRoot() {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.jmasarServiceUrl + "/node/" + Node.ROOT_FOLDER_UNIQUE_ID))
-                .GET()
-                .build();
-        try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return null;
+        return getNode(Node.ROOT_FOLDER_UNIQUE_ID);
     }
 
     @Override
     public Node getNode(String uniqueNodeId) {
-        return null;
+        return getCall("/node/" + uniqueNodeId, Node.class);
     }
 
     @Override
@@ -125,13 +122,14 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
     }
 
     @Override
-    public Node getParentNode(String unqiueNodeId) {
-        return null;
+    public Node getParentNode(String uniqueNodeId) {
+        return getCall("/node/" + uniqueNodeId + "/parent", Node.class);
     }
 
     @Override
     public List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException {
-        return List.of();
+        return getCall("/node/" + uniqueNodeId + "/children", new TypeReference<>() {
+        });
     }
 
     @Override
@@ -156,12 +154,12 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public List<Tag> getAllTags() {
-        return List.of();
+        return getCall("/tags", new TypeReference<>(){});
     }
 
     @Override
     public List<Node> getAllSnapshots() {
-        return List.of();
+        return getCall("/snapshots", new TypeReference<>(){});
     }
 
     @Override
@@ -176,17 +174,12 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public String getFullPath(String uniqueNodeId) {
-        return "";
-    }
-
-    @Override
-    public List<Node> getFromPath(String path) {
-        return List.of();
+        return getCall("/path/" + uniqueNodeId, String.class);
     }
 
     @Override
     public ConfigurationData getConfigurationData(String nodeId) {
-        return null;
+        return getCall("/config/" + nodeId, ConfigurationData.class);
     }
 
     @Override
@@ -201,7 +194,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public SnapshotData getSnapshotData(String uniqueId) {
-        return null;
+        return getCall("/snapshot/" + uniqueId, SnapshotData.class);
     }
 
     @Override
@@ -241,7 +234,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public List<Filter> getAllFilters() {
-        return List.of();
+        return getCall("/filters", new TypeReference<>(){});
     }
 
     @Override
@@ -261,7 +254,22 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public UserData authenticate(String userName, String password) {
-        return null;
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(Preferences.jmasarServiceUrl)
+                .append("/login?username=")
+                .append(userName)
+                .append("&password=")
+                .append(password);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(stringBuilder.toString()))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return objectMapper.readValue(response.body(), UserData.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -277,5 +285,43 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
     @Override
     public List<SnapshotItem> takeSnapshot(String configurationNodeId) {
         return List.of();
+    }
+
+    private <T> T getCall(String relativeUrl, Class<T> clazz){
+        HttpResponse<String> response = getCall(relativeUrl);
+        try {
+            return objectMapper.readValue(response.body(), clazz);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private <T> T getCall(String relativeUrl, TypeReference<T> typeReference){
+        HttpResponse<String> response = getCall(relativeUrl);
+        try {
+            return objectMapper.readValue(response.body(), typeReference);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private HttpResponse<String> getCall(String relativeUrl){
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(Preferences.jmasarServiceUrl + relativeUrl))
+                .GET()
+                .build();
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String responseBody = response.body();
+            if(response.statusCode() != 200){
+                if(responseBody == null || responseBody.isEmpty()){
+                    responseBody = "N/A";
+                }
+                throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.statusCode() + ", error message: " + responseBody);
+            }
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

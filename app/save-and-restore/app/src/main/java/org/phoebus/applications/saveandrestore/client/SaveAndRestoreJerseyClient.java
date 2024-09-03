@@ -314,11 +314,6 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public List<Node> getFromPath(String path) {
-        return null;
-    }
-
-    @Override
     public ConfigurationData getConfigurationData(String nodeId) {
         ClientResponse clientResponse = getCall("/config/" + nodeId);
         return clientResponse.getEntity(ConfigurationData.class);

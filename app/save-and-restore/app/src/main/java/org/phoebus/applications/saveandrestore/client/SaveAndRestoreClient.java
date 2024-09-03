@@ -55,11 +55,11 @@ public interface SaveAndRestoreClient {
     List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId);
 
     /**
-     * @param unqiueNodeId Unique id of a {@link Node}
+     * @param uniqueNodeId Unique id of a {@link Node}
      * @return The parent {@link Node} of the specified id. May be null if the unique id is associated with the root
      * {@link Node}
      */
-    Node getParentNode(String unqiueNodeId);
+    Node getParentNode(String uniqueNodeId);
 
     /**
      * @param uniqueNodeId Id of an existing {@link Node}
@@ -131,8 +131,6 @@ public interface SaveAndRestoreClient {
     Node copyNodes(List<String> sourceNodeIds, String targetNodeId);
 
     String getFullPath(String uniqueNodeId);
-
-    List<Node> getFromPath(String path);
 
     ConfigurationData getConfigurationData(String nodeId);
 
