@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.csstudio.display.converter.edm.widgets;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
@@ -44,6 +45,20 @@ public class Convert_relatedDisplayClass extends ConverterBase<ActionButtonWidge
             convertColor(t.getBgColor(), widget.propBackgroundColor());
         convertColor(t.getFgColor(), widget.propForegroundColor());
         convertFont(t.getFont(), widget.propFont());
+        
+        if (widget.propTransparent().getValue())
+        {   // EDM used the fore & back colors for the button, not the menu,
+            // which was always black-on-gray.
+            // For the display builder, the foreground color is used
+            // in the menu, which can then become unreadable
+            // --> Force bright foreground color to black
+            final WidgetColor color = widget.propForegroundColor().getValue();
+            if (color.getRed() + color.getGreen() + color.getBlue() > 100)
+            {
+                logger.log(Level.INFO, "Change transparent EDM Related Display button color " + color + " to black");
+                widget.propForegroundColor().setValue(new WidgetColor(0, 0, 0));
+            }
+        }
 
         List<ActionInfo> actions = new ArrayList<>();
         for (int i = 0; i < t.getNumDsps(); ++i) {
