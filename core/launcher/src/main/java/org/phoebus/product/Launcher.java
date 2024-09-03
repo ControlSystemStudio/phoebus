@@ -1,5 +1,14 @@
 package org.phoebus.product;
 
+import javafx.application.Application;
+import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.framework.workbench.Locations;
+import org.phoebus.ui.application.ApplicationServer;
+import org.phoebus.ui.application.PhoebusApplication;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,23 +24,13 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
-import org.phoebus.framework.preferences.PropertyPreferenceLoader;
-import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.framework.workbench.Locations;
-import org.phoebus.ui.application.ApplicationServer;
-import org.phoebus.ui.application.PhoebusApplication;
-
-import javafx.application.Application;
-
 @SuppressWarnings("nls")
-public class Launcher
-{
-    public static void main(final String[] original_args) throws Exception
-    {
+public class Launcher {
+    public static void main(final String[] original_args) throws Exception {
         LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
         final Logger logger = Logger.getLogger(Launcher.class.getName());
+
+        boolean showLaunchError = false;
 
         // Can't change default charset, but warn if it's not UTF-8.
         // Config files for displays, data browser etc. explicitly use XMLUtil.ENCODING = "UTF-8".
@@ -40,11 +39,10 @@ public class Launcher
         // but library code including JCA simply calls new String(byte[]).
         // The underlying Charset.defaultCharset() checks "file.encoding",
         // but this happens at an early stage of VM startup.
-        // Calling System.setPropertu("file.encoding", "UTF-8") in main() is already too late,
+        // Calling System.setProperty("file.encoding", "UTF-8") in main() is already too late,
         // must add -D"file.encoding=UTF-8" to java start up or JAVA_TOOL_OPTIONS.
         final Charset cs = Charset.defaultCharset();
-        if (! "UTF-8".equalsIgnoreCase(cs.displayName()))
-        {
+        if (!"UTF-8".equalsIgnoreCase(cs.displayName())) {
             logger.severe("Default charset is " + cs.displayName() + " instead of UTF-8.");
             logger.severe("Add    -D\"file.encoding=UTF-8\"    to java command line or JAVA_TOOL_OPTIONS");
         }
@@ -52,8 +50,7 @@ public class Launcher
         // Check for site-specific settings.ini bundled into distribution
         // before potentially adding command-line settings.
         final File site_settings = new File(Locations.install(), "settings.ini");
-        if (site_settings.canRead())
-        {
+        if (site_settings.canRead()) {
             logger.log(Level.CONFIG, "Loading settings from " + site_settings);
             PropertyPreferenceLoader.load(new FileInputStream(site_settings));
         }
@@ -62,41 +59,31 @@ public class Launcher
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
         int port = -1;
-        try
-        {
-            while (iter.hasNext())
-            {
+        try {
+            while (iter.hasNext()) {
                 final String cmd = iter.next();
-                if (cmd.startsWith("-h"))
-                {
+                if (cmd.startsWith("-h")) {
                     help();
                     return;
                 }
 
-                if (cmd.equals("-splash"))
-                {
+                if (cmd.equals("-splash")) {
                     iter.remove();
                     Preferences.userNodeForPackage(org.phoebus.ui.Preferences.class)
-                               .putBoolean(org.phoebus.ui.Preferences.SPLASH, true);
-                }
-                else if (cmd.equals("-nosplash"))
-                {
+                            .putBoolean(org.phoebus.ui.Preferences.SPLASH, true);
+                } else if (cmd.equals("-nosplash")) {
                     iter.remove();
                     Preferences.userNodeForPackage(org.phoebus.ui.Preferences.class)
-                               .putBoolean(org.phoebus.ui.Preferences.SPLASH, false);
-                }
-                else if (cmd.equals("-logging"))
-                {
-                    if (! iter.hasNext())
+                            .putBoolean(org.phoebus.ui.Preferences.SPLASH, false);
+                } else if (cmd.equals("-logging")) {
+                    if (!iter.hasNext())
                         throw new Exception("Missing -logging file name");
                     iter.remove();
                     final String filename = iter.next();
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
-                }
-                else if (cmd.equals("-settings"))
-                {
-                    if (! iter.hasNext())
+                } else if (cmd.equals("-settings")) {
+                    if (!iter.hasNext())
                         throw new Exception("Missing -settings file name");
                     iter.remove();
                     final String location = iter.next();
@@ -107,11 +94,9 @@ public class Launcher
                         Preferences.importPreferences(new FileInputStream(location));
                     else
                         PropertyPreferenceLoader.load(location);
-                  
-                }
-                else if (cmd.equals("-export_settings"))
-                {
-                    if (! iter.hasNext())
+
+                } else if (cmd.equals("-export_settings")) {
+                    if (!iter.hasNext())
                         throw new Exception("Missing -export_settings file name");
                     iter.remove();
                     final String filename = iter.next();
@@ -119,39 +104,29 @@ public class Launcher
                     System.out.println("Exporting settings to " + filename);
                     Preferences.userRoot().node("org/phoebus").exportSubtree(new FileOutputStream(filename));
                     return;
-                }
-                else if (cmd.equals("-server"))
-                {
-                    if (! iter.hasNext())
+                } else if (cmd.equals("-server")) {
+                    if (!iter.hasNext())
                         throw new Exception("Missing -server port");
                     iter.remove();
                     port = Integer.parseInt(iter.next());
                     iter.remove();
-                }
-                else if (cmd.equals("-list"))
-                {
+                } else if (cmd.equals("-list")) {
                     iter.remove();
                     final Collection<AppDescriptor> apps = ApplicationService.getApplications();
                     System.out.format("Name                 Description          File Extensions\n");
-                    for (AppDescriptor app : apps)
-                    {
-                        if (app instanceof AppResourceDescriptor)
-                        {
-                            final AppResourceDescriptor app_res = (AppResourceDescriptor) app;
+                    for (AppDescriptor app : apps) {
+                        if (app instanceof AppResourceDescriptor app_res) {
                             System.out.format("%-20s %-20s %s\n",
-                                              "'" + app.getName() + "'",
-                                              app.getDisplayName(),
-                                              app_res.supportedFileExtentions().stream().collect(Collectors.joining(", ")));
-                        }
-                        else
+                                    "'" + app.getName() + "'",
+                                    app.getDisplayName(),
+                                    app_res.supportedFileExtentions().stream().collect(Collectors.joining(", ")));
+                        } else
                             System.out.format("%-20s %s\n", "'" + app.getName() + "'", app.getDisplayName());
                     }
                     return;
-                }
-                else if (cmd.equals("-main"))
-                {
+                } else if (cmd.equals("-main")) {
                     iter.remove();
-                    if (! iter.hasNext())
+                    if (!iter.hasNext())
                         throw new Exception("Missing -main name");
                     final String main = iter.next();
                     iter.remove();
@@ -162,16 +137,19 @@ public class Launcher
                     // Collect remaining arguments
                     final List<String> new_args = new ArrayList<>();
                     iter.forEachRemaining(new_args::add);
-                    main_method.invoke(null, new Object[] { new_args.toArray(new String[new_args.size()]) });
+                    main_method.invoke(null, new Object[]{new_args.toArray(new String[new_args.size()])});
                     return;
+                } else if (cmd.equals("-launch_error_dialog")) {
+                    showLaunchError = true;
                 }
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             help();
             System.out.println();
             ex.printStackTrace();
+            if (showLaunchError) {
+                LaunchErrorDialog.show(ex);
+            }
             return;
         }
 
@@ -180,11 +158,9 @@ public class Launcher
         // Check for an existing instance
         // If found, pass remaining arguments to it,
         // instead of starting a new application
-        if (port > 0)
-        {
+        if (port > 0) {
             final ApplicationServer server = ApplicationServer.create(port);
-            if (! server.isServer())
-            {
+            if (!server.isServer()) {
                 server.sendArguments(args);
                 return;
             }
@@ -194,8 +170,7 @@ public class Launcher
         Application.launch(PhoebusApplication.class, args.toArray(new String[args.size()]));
     }
 
-    private static void help()
-    {
+    private static void help() {
         System.out.println(" _______           _______  _______  ______            _______ ");
         System.out.println("(  ____ )|\\     /|(  ___  )(  ____ \\(  ___ \\ |\\     /|(  ____ \\");
         System.out.println("| (    )|| )   ( || (   ) || (    \\/| (   ) )| )   ( || (    \\/");
@@ -210,6 +185,7 @@ public class Launcher
         System.out.println("-help                                   -  This text");
         System.out.println("-splash                                 -  Show splash screen");
         System.out.println("-nosplash                               -  Suppress the splash screen");
+        System.out.println("-launch_error_dialog                    -  Shows dialog if launch fails. Must be first program argument.");
         System.out.println("-settings settings.xml                  -  Import settings from file, either exported XML or property file format");
         System.out.println("-export_settings settings.xml           -  Export settings to file");
         System.out.println("-logging logging.properties             -  Load log settings");
@@ -238,5 +214,6 @@ public class Launcher
         System.out.println("-resource '...&target=window'                                                - Opens resource in separate window.");
         System.out.println("-resource '...&target=window@800x600+200+150'                                - Opens resource in separate window sized 800 by 600 at x=200, y=150.");
         System.out.println("-resource '...&target=name_of_pane'                                          - Opens resource in named pane.");
+
     }
 }

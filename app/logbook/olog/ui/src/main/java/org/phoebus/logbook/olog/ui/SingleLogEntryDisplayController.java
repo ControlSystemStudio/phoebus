@@ -30,6 +30,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -87,10 +89,16 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
     private final SimpleBooleanProperty logEntryUpdated = new SimpleBooleanProperty();
 
+    private Optional<Consumer<Long>> selectLogEntryInUI = Optional.empty();
+
     public SingleLogEntryDisplayController(LogClient logClient) {
         super(logClient.getServiceUrl());
         this.logClient = logClient;
     }
+
+    public void setSelectLogEntryInUI(Consumer<Long> selectLogEntryInUI) {
+        this.selectLogEntryInUI = Optional.of(id -> selectLogEntryInUI.accept(id));
+    };
 
     @FXML
     public void initialize() {
@@ -101,9 +109,12 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
                 && !LogbookUIPreferences.web_client_root_URL.isEmpty());
 
-        webEngine = webView.getEngine();
-        // This will make links clicked in the WebView to open in default browser.
-        webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView));
+        {
+            Optional<String> webClientRoot = LogbookUIPreferences.web_client_root_URL == null || LogbookUIPreferences.web_client_root_URL.equals("") ? Optional.empty() : Optional.of(LogbookUIPreferences.web_client_root_URL);
+            webEngine = webView.getEngine();
+            // This will make links clicked in the WebView to open in default browser.
+            webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView, webClientRoot, selectLogEntryInUI));
+        }
 
         updatedIndicator.visibleProperty().bind(logEntryUpdated);
         updatedIndicator.setOnMouseEntered(me -> updatedIndicator.setCursor(Cursor.HAND));
@@ -199,11 +210,21 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
                         fileAttachment.setContentType(attachment.getContentType());
                         fileAttachment.setThumbnail(false);
                         fileAttachment.setFileName(attachment.getName());
+                        // A bit of a hack here. The idea is to create a temporary file with a known name,
+                        // i.e. without the random file name part.
+                        // Files.createdTempFile does not support it, so a bit of workaround is needed.
                         try {
-                            Path temp = Files.createTempFile("phoebus", attachment.getName());
-                            Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
-                            fileAttachment.setFile(temp.toFile());
-                            temp.toFile().deleteOnExit();
+                            // This creates a temp file with a random part
+                            Path random = Files.createTempFile(attachment.getId(),  attachment.getName());
+                            // This does NOT create a file
+                            Path nonRandom = random.resolveSibling(attachment.getId());
+                            if(!Files.exists(nonRandom.toAbsolutePath())){
+                                // Moves the temp file with random part to file with non-random part.
+                                nonRandom = Files.move(random, nonRandom);
+                                Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), nonRandom, StandardCopyOption.REPLACE_EXISTING);
+                                fileAttachment.setFile(nonRandom.toFile());
+                                nonRandom.toFile().deleteOnExit();
+                            }
                         } catch (LogbookException | IOException e) {
                             Logger.getLogger(SingleLogEntryDisplayController.class.getName())
                                     .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName(), e);

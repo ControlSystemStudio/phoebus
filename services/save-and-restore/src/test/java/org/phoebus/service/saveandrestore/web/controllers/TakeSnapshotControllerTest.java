@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.epics.SnapshotUtil;
@@ -50,6 +51,7 @@ public class TakeSnapshotControllerTest {
     public void testTakeSnapshot() throws Exception {
         ConfigurationData configurationData = new ConfigurationData();
 
+        when(nodeDAO.getNode("uniqueId")).thenReturn(Node.builder().name("name").uniqueId("uniqueId").build());
         when(nodeDAO.getConfigurationData("uniqueId")).thenReturn(configurationData);
         when(snapshotUtil.takeSnapshot(configurationData))
                 .thenReturn(Collections.emptyList());
@@ -69,6 +71,7 @@ public class TakeSnapshotControllerTest {
     @Test
     public void testTakeSnapshotBadConfigId() throws Exception {
 
+        when(nodeDAO.getNode("uniqueId")).thenReturn(Node.builder().name("name").uniqueId("uniqueId").build());
         when(nodeDAO.getConfigurationData("uniqueId")).thenThrow(new NodeNotFoundException(""));
 
         MockHttpServletRequestBuilder request = get("/take-snapshot/uniqueId");

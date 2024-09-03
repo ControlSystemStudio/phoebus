@@ -60,7 +60,7 @@ public class LogEntryCalender implements AppInstance {
         {
             Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot load UI", e);
         }
-        tab.setOnClosed(event -> {
+        tab.addClosedNotification(()->{
             // dispose();
         });
     }

@@ -9,6 +9,7 @@ import org.epics.vtype.VFloat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
@@ -61,6 +62,7 @@ public class SnapshotRestorerControllerTest {
         item.setConfigPv(configPv);
         snapshotData.setSnapshotItems(List.of(item));
 
+        when(nodeDAO.getNode("uniqueId")).thenReturn(Node.builder().name("name").uniqueId("uniqueId").build());
         when(nodeDAO.getSnapshotData("uniqueId")).thenReturn(snapshotData);
 
         MockHttpServletRequestBuilder request = post("/restore/node?nodeId=uniqueId")

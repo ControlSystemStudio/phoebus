@@ -36,6 +36,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -85,6 +86,7 @@ import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.time.DateTimePane;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -95,6 +97,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -384,6 +387,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     protected void compareSnapshot() {
         compareSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
+
 
     /**
      * Action when user requests comparison between an opened snapshot and the specifies snapshot {@link Node}
