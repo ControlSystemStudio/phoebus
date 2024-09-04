@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
@@ -113,12 +114,12 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId) {
-        return List.of();
+        return getCall("/composite-snapshot/" + uniqueNodeId + "/nodes", new TypeReference<>(){});
     }
 
     @Override
     public List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId) {
-        return List.of();
+        return getCall("/composite-snapshot/" + uniqueNodeId + "/items", new TypeReference<>(){});
     }
 
     @Override
@@ -149,7 +150,22 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public void deleteNodes(List<String> nodeIds) {
-
+        try {
+            String s = objectMapper.writeValueAsString(nodeIds);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/node/delete"))
+                    .POST(HttpRequest.BodyPublishers.ofString(s))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                String message = response.body();
+                throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.statusCode() + ", error message: " + message);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

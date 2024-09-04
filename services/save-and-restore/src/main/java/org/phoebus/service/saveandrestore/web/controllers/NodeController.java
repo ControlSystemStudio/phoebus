@@ -129,6 +129,19 @@ public class NodeController extends BaseController {
     }
 
     /**
+     * This is deprecated, replaced by {@link #deleteNodesAsPost(List)}. Reason for deprecation is that
+     * the native {@link java.net.http.HttpClient} does not support a body for DELETE requests.
+     * @param nodeIds
+     */
+    @Deprecated
+    @SuppressWarnings("unused")
+    @DeleteMapping(value = "/node", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayDelete(#nodeIds, #root)")
+    public void deleteNodes(@RequestBody List<String> nodeIds) {
+        deleteNodesAsPost(nodeIds);
+    }
+
+    /**
      * Deletes all {@link Node}s contained in the provided list.
      * <br>
      * Checks are made to make sure user may delete
@@ -144,10 +157,9 @@ public class NodeController extends BaseController {
      *
      * @param nodeIds List of {@link Node} ids to remove.
      */
-    @SuppressWarnings("unused")
-    @DeleteMapping(value = "/node", produces = JSON)
+    @PostMapping(value = "/node/delete", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayDelete(#nodeIds, #root)")
-    public void deleteNodes(@RequestBody List<String> nodeIds) {
+    public void deleteNodesAsPost(@RequestBody List<String> nodeIds) {
         nodeDAO.deleteNodes(nodeIds);
     }
 
