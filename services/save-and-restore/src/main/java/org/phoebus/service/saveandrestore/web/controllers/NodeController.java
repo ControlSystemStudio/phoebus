@@ -129,19 +129,6 @@ public class NodeController extends BaseController {
     }
 
     /**
-     * This is deprecated, replaced by {@link #deleteNodesAsPost(List)}. Reason for deprecation is that
-     * the native {@link java.net.http.HttpClient} does not support a body for DELETE requests.
-     * @param nodeIds
-     */
-    @Deprecated
-    @SuppressWarnings("unused")
-    @DeleteMapping(value = "/node", produces = JSON)
-    @PreAuthorize("@authorizationHelper.mayDelete(#nodeIds, #root)")
-    public void deleteNodes(@RequestBody List<String> nodeIds) {
-        deleteNodesAsPost(nodeIds);
-    }
-
-    /**
      * Deletes all {@link Node}s contained in the provided list.
      * <br>
      * Checks are made to make sure user may delete
@@ -157,10 +144,34 @@ public class NodeController extends BaseController {
      *
      * @param nodeIds List of {@link Node} ids to remove.
      */
-    @PostMapping(value = "/node/delete", produces = JSON)
+    @SuppressWarnings("unused")
+    @DeleteMapping(value = "/node", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayDelete(#nodeIds, #root)")
-    public void deleteNodesAsPost(@RequestBody List<String> nodeIds) {
+    public void deleteNodes(@RequestBody List<String> nodeIds) {
         nodeDAO.deleteNodes(nodeIds);
+    }
+
+    /**
+     * Deletes one {@link Node}.
+     * <br>
+     * Checks are made to make sure user may delete
+     * the {@link Node}, see {@link AuthorizationHelper}. If the checks fail on any of the {@link Node} ids,
+     * checks are aborted and client will receive an HTTP 403 response.
+     * <br>
+     * Note that the {@link PreAuthorize} annotations calls a helper method in {@link AuthorizationHelper}, using
+     * the list of {@link Node} ids and a Spring injected object - <code>root</code> - used to check
+     * authorities of the user.
+     * <br>
+     * Note also that an unauthenticated user (e.g. no basic authentication header in client's request) will
+     * receive an HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
+     *
+     * @param nodeId {@link Node} id to remove.
+     */
+    @SuppressWarnings("unused")
+    @DeleteMapping(value = "/node/{nodeId}", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayDelete(#nodeId, #root)")
+    public void deleteNode(@PathVariable String nodeId) {
+        deleteNodes(List.of(nodeId));
     }
 
     /**

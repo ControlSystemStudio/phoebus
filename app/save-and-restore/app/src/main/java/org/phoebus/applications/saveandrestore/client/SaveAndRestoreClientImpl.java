@@ -14,7 +14,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Configuration;
@@ -58,6 +63,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     private static final int DEFAULT_READ_TIMEOUT = 5000; // ms
     private static final int DEFAULT_CONNECT_TIMEOUT = 5000; // ms
+    private static final Log log = LogFactory.getLog(SaveAndRestoreClientImpl.class);
 
     private static ObjectMapper objectMapper;
 
@@ -150,22 +156,23 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public void deleteNodes(List<String> nodeIds) {
-        try {
-            String s = objectMapper.writeValueAsString(nodeIds);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.jmasarServiceUrl + "/node/delete"))
-                    .POST(HttpRequest.BodyPublishers.ofString(s))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", getBasicAuthenticationHeader())
-                    .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                String message = response.body();
-                throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.statusCode() + ", error message: " + message);
+        // Native HttpClient does not support body in DELETE, so need to delete one by one...
+        nodeIds.forEach(id -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Preferences.jmasarServiceUrl + "/node/" + id))
+                        .DELETE()
+                        .header("Content-Type", CONTENT_TYPE_JSON)
+                        .header("Authorization", getBasicAuthenticationHeader())
+                        .build();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() != 200) {
+                    throw new SaveAndRestoreClientException( "Failed to delete node " + id + ", " + response.body());
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        });
     }
 
     @Override
@@ -255,7 +262,20 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient{
 
     @Override
     public void deleteFilter(String name) {
-
+        String filterName = name.replace(" ", "%20");
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/filter/" + filterName))
+                    .DELETE()
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new RuntimeException(response.body() != null ? response.body() : Messages.deleteFilterFailed);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
