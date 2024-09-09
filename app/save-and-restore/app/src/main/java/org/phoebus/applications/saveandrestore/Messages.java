@@ -144,6 +144,8 @@ public class Messages {
     public static String setpoint;
     public static String setpointPVWhen;
     public static String severity;
+    public static String snapshotFromArchiver;
+    public static String snapshotFromPvs;
     public static String status;
     public static String storedReadbackValue;
     public static String storedValues;
