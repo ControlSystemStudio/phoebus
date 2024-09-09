@@ -42,7 +42,9 @@ public class ContextMenuRootFolder extends ContextMenuBase {
                 multipleNodesSelectedProperty, userIsAuthenticatedProperty));
         newFolderMenuItem.setOnAction(ae -> saveAndRestoreController.createNewFolder());
 
-        getItems().addAll(newFolderMenuItem);
+        getItems().addAll(
+                loginMenuItem,
+                newFolderMenuItem);
 
     }
 

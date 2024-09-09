@@ -99,6 +99,7 @@ public class Messages {
     public static String inverseSelection;
     public static String liveReadbackVsSetpoint;
     public static String liveSetpoint;
+    public static String login;
     public static String loggingFailedTitle;
     public static String loggingFailed;
     public static String loggingFailedCauseUnknown;
