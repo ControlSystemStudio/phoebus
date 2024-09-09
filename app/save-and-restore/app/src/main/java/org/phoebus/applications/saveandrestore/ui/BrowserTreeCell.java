@@ -19,6 +19,7 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
@@ -202,17 +203,9 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 hBox.getChildren().add(new Label(node.getName()));
                 if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     setTooltip(new Tooltip(SaveAndRestoreService.getInstance().getServiceIdentifier()));
-                    ContextMenu rootFolderContextMenu = new ContextMenu();
-                    MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
-                    newRootFolderMenuItem.setOnAction(ae -> saveAndRestoreController.createNewFolder());
-                    rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
-                    rootFolderContextMenu.setOnShowing(event -> {
-                        if (saveAndRestoreController.getUserIdentity().isNull().get()) {
-                            Platform.runLater(() -> rootFolderContextMenu.hide());
-                        }
-                    });
+
                     if(saveAndRestoreController != null){
-                        setContextMenu(rootFolderContextMenu);
+                        setContextMenu(new ContextMenuRootFolder(saveAndRestoreController));
                     }
 
                 } else if (saveAndRestoreController != null){
