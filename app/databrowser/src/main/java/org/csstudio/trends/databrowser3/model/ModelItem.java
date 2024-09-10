@@ -172,13 +172,16 @@ abstract public class ModelItem
     /** @param new_display_name New display name
      *  @see #getDisplayName()
      */
-    public void setDisplayName(String new_display_name)
+    public void setDisplayName(final String new_display_name)
     {
-        new_display_name = new_display_name.trim();
-        if (new_display_name.equals(display_name))
-            return;
-        display_name = new_display_name;
-        fireItemLookChanged();
+        if (new_display_name != null) 
+        {
+            new_display_name = new_display_name.trim();
+            if (new_display_name.equals(display_name))
+                return;
+            display_name = new_display_name;
+            fireItemLookChanged();
+        }
     }
 
     /** @param units Units, may be <code>null</code> */

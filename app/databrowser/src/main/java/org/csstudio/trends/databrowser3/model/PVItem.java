@@ -85,6 +85,8 @@ public class PVItem extends ModelItem
      * the live buffer is too small to show all the data */
     private boolean automaticRefresh = Preferences.automatic_history_refresh;
 
+    private boolean firstDisplayName = false;
+
     /** Initialize
      *  @param name PV name
      *  @param period Scan period in seconds, &le;0 to 'monitor'
@@ -368,6 +370,12 @@ public class PVItem extends ModelItem
         // Set units unless already defined
         if (getUnits() == null)
             updateUnits(value);
+        // Define the descriptions if they are not already defined and if the PV have this information.
+        if (getDisplayName() == getName() && firstDisplayName == false)
+        {
+            updateDescription(value);
+            firstDisplayName = true;
+        }
         if (automaticRefresh && added &&
             model.isPresent() &&
             samples.isHistoryRefreshNeeded(model.get().getTimerange()))
@@ -388,6 +396,12 @@ public class PVItem extends ModelItem
         setUnits(display.getUnit());
     }
 
+    public void updateDescription(final VType value)
+    {
+        final Display display = Display.displayOf(value);
+        setDisplayName(display.getDescription());
+    }
+    
     /** Scan, i.e. add 'current' value to live samples */
     private void doScan()
     {
