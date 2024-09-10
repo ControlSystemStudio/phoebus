@@ -172,7 +172,7 @@ abstract public class ModelItem
     /** @param new_display_name New display name
      *  @see #getDisplayName()
      */
-    public void setDisplayName(final String new_display_name)
+    public void setDisplayName(String new_display_name)
     {
         if (new_display_name != null) 
         {
