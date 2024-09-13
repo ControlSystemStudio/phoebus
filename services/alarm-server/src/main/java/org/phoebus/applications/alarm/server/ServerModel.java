@@ -472,7 +472,7 @@ class ServerModel
         {
             final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state, AlarmLogic.getMaintenanceMode(), AlarmLogic.getDisableNotify()));
             final ProducerRecord<String, String> record = new ProducerRecord<>(config_state_topic, AlarmSystem.STATE_PREFIX + path, json);
-            producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
+            producer.send(record);
             last_state_update = System.currentTimeMillis();
         }
         catch (Throwable ex)
@@ -491,7 +491,7 @@ class ServerModel
         {
             final String json = config == null ? null : new String(JsonModelWriter.toJsonBytes(config));
             final ProducerRecord<String, String> record = new ProducerRecord<>(config_state_topic, AlarmSystem.CONFIG_PREFIX + path, json);
-            producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
+            producer.send(record);
         }
         catch (Throwable ex)
         {
@@ -512,7 +512,7 @@ class ServerModel
 
             final String json = JsonModelWriter.talkToString(severity, message);
             final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, AlarmSystem.TALK_PREFIX + path, json);
-            producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
+            producer.send(record);
         }
         catch (Throwable ex)
         {
