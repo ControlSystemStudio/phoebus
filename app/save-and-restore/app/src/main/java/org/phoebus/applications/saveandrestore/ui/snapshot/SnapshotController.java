@@ -360,9 +360,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
 
     public void restore(ActionEvent actionEvent) {
         snapshotTableViewController.restore(snapshotProperty.get(), restoreResultList -> {
-            javafx.scene.Node jfxNode = (javafx.scene.Node) actionEvent.getSource();
-            String userData = (String) jfxNode.getUserData();
-            if (userData.equalsIgnoreCase("true")) {
+            if (snapshotControlsViewController.logAction()) {
                 eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreResultList, this::showLoggingError));
             }
             if (restoreResultList != null && !restoreResultList.isEmpty()) {
