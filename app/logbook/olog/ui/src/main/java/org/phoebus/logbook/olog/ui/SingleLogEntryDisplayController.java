@@ -210,6 +210,12 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
                         fileAttachment.setContentType(attachment.getContentType());
                         fileAttachment.setThumbnail(false);
                         fileAttachment.setFileName(attachment.getName());
+                        // Determine file extension, needed to support transition to Image Viewer app for image attachments
+                        String fileExtension = "";
+                        int indexOfLastDot = attachment.getName().lastIndexOf('.');
+                        if(indexOfLastDot > -1){
+                            fileExtension = attachment.getName().substring(indexOfLastDot);
+                        }
                         // A bit of a hack here. The idea is to create a temporary file with a known name,
                         // i.e. without the random file name part.
                         // Files.createdTempFile does not support it, so a bit of workaround is needed.
@@ -217,7 +223,7 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
                             // This creates a temp file with a random part
                             Path random = Files.createTempFile(attachment.getId(),  attachment.getName());
                             // This does NOT create a file
-                            Path nonRandom = random.resolveSibling(attachment.getId());
+                            Path nonRandom = random.resolveSibling(attachment.getId() + fileExtension);
                             if(!Files.exists(nonRandom.toAbsolutePath())){
                                 // Moves the temp file with random part to file with non-random part.
                                 nonRandom = Files.move(random, nonRandom);
