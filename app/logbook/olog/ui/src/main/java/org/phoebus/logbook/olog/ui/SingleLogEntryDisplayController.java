@@ -222,9 +222,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
                                 // Moves the temp file with random part to file with non-random part.
                                 nonRandom = Files.move(random, nonRandom);
                                 Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), nonRandom, StandardCopyOption.REPLACE_EXISTING);
-                                fileAttachment.setFile(nonRandom.toFile());
                                 nonRandom.toFile().deleteOnExit();
                             }
+                            fileAttachment.setFile(nonRandom.toFile());
                         } catch (LogbookException | IOException e) {
                             Logger.getLogger(SingleLogEntryDisplayController.class.getName())
                                     .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName(), e);
