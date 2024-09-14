@@ -174,6 +174,7 @@ abstract public class ModelItem
      */
     public void setDisplayName(String new_display_name)
     {
+        new_display_name = new_display_name.trim();
         if (new_display_name.equals(display_name))
             return;
         display_name = new_display_name;
