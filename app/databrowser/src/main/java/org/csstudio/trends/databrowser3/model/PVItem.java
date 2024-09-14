@@ -86,7 +86,8 @@ public class PVItem extends ModelItem
     private boolean automaticRefresh = Preferences.automatic_history_refresh;
 
     /** Indicates whether the display name has been updated for the first time.
-     * once upon the first reception of a value from the PV */
+     * once upon the first reception of a value from the PV.
+     */
     private boolean firstDisplayName = false;
 
     /** Initialize
@@ -400,7 +401,8 @@ public class PVItem extends ModelItem
     public void updateDescription(final VType value)
     {
         final Display display = Display.displayOf(value);
-        setDisplayName(display.getDescription());
+        if (display.getDescription() != null)
+            setDisplayName(display.getDescription());
     }
 
     /** Scan, i.e. add 'current' value to live samples */
