@@ -85,6 +85,8 @@ public class PVItem extends ModelItem
      * the live buffer is too small to show all the data */
     private boolean automaticRefresh = Preferences.automatic_history_refresh;
 
+    /** Indicates whether the display name has been updated for the first time.
+     * once upon the first reception of a value from the PV */
     private boolean firstDisplayName = false;
 
     /** Initialize
@@ -370,12 +372,11 @@ public class PVItem extends ModelItem
         // Set units unless already defined
         if (getUnits() == null)
             updateUnits(value);
-        // Define the descriptions if they are not already defined and if the PV have this information.
-        if (getDisplayName() == getName() && firstDisplayName == false)
+        if (!firstDisplayName && getDisplayName().equals(getName()))
         {
             updateDescription(value);
-            firstDisplayName = true;
         }
+        this.firstDisplayName = true;
         if (automaticRefresh && added &&
             model.isPresent() &&
             samples.isHistoryRefreshNeeded(model.get().getTimerange()))
@@ -401,7 +402,7 @@ public class PVItem extends ModelItem
         final Display display = Display.displayOf(value);
         setDisplayName(display.getDescription());
     }
-    
+
     /** Scan, i.e. add 'current' value to live samples */
     private void doScan()
     {
