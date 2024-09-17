@@ -1,19 +1,5 @@
 /**
  * Copyright (C) 2024 European Spallation Source ERIC.
- * <p>
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * <p>
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * <p>
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
@@ -26,19 +12,40 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import org.epics.vtype.*;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -52,6 +59,7 @@ import java.util.stream.Collectors;
 public class SnapshotController extends SaveAndRestoreBaseController {
 
 
+    @SuppressWarnings("unused")
     @FXML
     private BorderPane borderPane;
 
@@ -110,7 +118,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
      *
      * @param configurationNode A {@link Node} of type {@link org.phoebus.applications.saveandrestore.model.NodeType#CONFIGURATION}
      */
-    public void newSnapshot(Node configurationNode) {
+    public void initializeViewForNewSnapshot(Node configurationNode) {
         this.configurationNode = configurationNode;
         snapshotTab.updateTabTitle(Messages.unnamedSnapshot);
         JobManager.schedule("Get configuration", monitor -> {
@@ -138,9 +146,9 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     public void takeSnapshot() {
         disabledUi.set(true);
         snapshotTab.setText(Messages.unnamedSnapshot);
-        snapshotTableViewController.takeSnapshot(snapshot -> {
+        snapshotTableViewController.takeSnapshot(snapshotControlsViewController.getDefaultSnapshotMode(), snapshot -> {
             disabledUi.set(false);
-            if(snapshot != null){
+            if (snapshot != null) {
                 snapshotProperty.set(snapshot);
             }
         });
@@ -171,9 +179,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
                 snapshot = SaveAndRestoreService.getInstance().saveSnapshot(configurationNode, snapshot);
                 snapshotProperty.set(snapshot);
                 Node _snapshotNode = snapshot.getSnapshotNode();
-                javafx.scene.Node jfxNode = (javafx.scene.Node) actionEvent.getSource();
-                String userData = (String) jfxNode.getUserData();
-                if (userData.equalsIgnoreCase("true")) {
+                if (snapshotControlsViewController.logAction()) {
                     eventReceivers.forEach(r -> r.snapshotSaved(_snapshotNode, this::showLoggingError));
                 }
                 snapshotControlsViewController.snapshotDataDirty.set(false);
@@ -354,18 +360,16 @@ public class SnapshotController extends SaveAndRestoreBaseController {
 
     public void restore(ActionEvent actionEvent) {
         snapshotTableViewController.restore(snapshotProperty.get(), restoreResultList -> {
-            javafx.scene.Node jfxNode = (javafx.scene.Node) actionEvent.getSource();
-            String userData = (String) jfxNode.getUserData();
-            if (userData.equalsIgnoreCase("true")) {
+            if (snapshotControlsViewController.logAction()) {
                 eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreResultList, this::showLoggingError));
             }
-            if(restoreResultList != null && !restoreResultList.isEmpty()){
+            if (restoreResultList != null && !restoreResultList.isEmpty()) {
                 showFailedRestoreResult(restoreResultList);
             }
         });
     }
 
-    private void showFailedRestoreResult(List<RestoreResult> restoreResultList){
+    private void showFailedRestoreResult(List<RestoreResult> restoreResultList) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(Messages.restoreFailedPVs).append(System.lineSeparator());
         stringBuilder.append(restoreResultList.stream()
@@ -378,16 +382,44 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         });
     }
 
+    /**
+     * Adds a snapshot for the sake of comparison with the one currently in view.
+     *
+     * @param snapshotNode A snapshot {@link Node} selected by user in the {@link javafx.scene.control.TreeView},
+     *                     i.e. a snapshot previously persisten in the service.
+     */
     public void addSnapshot(Node snapshotNode) {
         disabledUi.set(true);
-        try {
-            Snapshot snapshot = getSnapshotFromService(snapshotNode);
-            snapshotTableViewController.addSnapshot(snapshot);
-        } catch (Exception e) {
-            Logger.getLogger(SnapshotController.class.getName()).log(Level.WARNING, "Failed to add snapshot", e);
-        } finally {
-            disabledUi.set(false);
-        }
+        JobManager.schedule("Add snapshot", monitor -> {
+            try {
+                Snapshot snapshot = getSnapshotFromService(snapshotNode);
+                Platform.runLater(() -> snapshotTableViewController.addSnapshot(snapshot));
+            } catch (Exception e) {
+                Logger.getLogger(SnapshotController.class.getName()).log(Level.WARNING, "Failed to add snapshot", e);
+            } finally {
+                disabledUi.set(false);
+            }
+        });
+    }
+
+    /**
+     * Launches a date/time picker and then reads from archiver to construct an in-memory {@link Snapshot} used for comparison.
+     */
+    public void addSnapshotFromArchiver() {
+        disabledUi.set(true);
+        snapshotTableViewController.takeSnapshot(SnapshotMode.FROM_ARCHIVER, snapshot -> {
+            if(snapshot == null){
+                disabledUi.set(false);
+                return;
+            }
+            Platform.runLater(() -> {
+                try {
+                    snapshotTableViewController.addSnapshot(snapshot);
+                } finally {
+                    disabledUi.set(false);
+                }
+            });
+        });
     }
 
     private Snapshot getSnapshotFromService(Node snapshotNode) throws Exception {

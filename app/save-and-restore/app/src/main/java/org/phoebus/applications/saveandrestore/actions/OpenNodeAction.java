@@ -35,6 +35,7 @@ public class OpenNodeAction extends ActionInfoBase {
 
     public static final String OPEN_SAR_NODE = "open_sar_node";
     private static final String NODE_ID_TAG = "node_id";
+    private static final Integer PRIORITY = 56;
 
     private OpenNodeActionController openNodeActionController;
 
@@ -46,6 +47,11 @@ public class OpenNodeAction extends ActionInfoBase {
     @Override
     public Image getImage() {
         return ImageCache.getImage(OpenNodeAction.class, "/icons/bookcase.png");
+    }
+
+    @Override
+    public Integer getPriority() {
+        return PRIORITY;
     }
 
     @Override

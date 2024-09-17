@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Configuration;
@@ -35,8 +36,12 @@ import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreJerseyClient;
 
 import org.phoebus.core.vtypes.VDisconnectedData;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
+import org.phoebus.util.time.TimestampFormats;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -419,6 +424,7 @@ public class SaveAndRestoreService {
 
     /**
      * Requests service to take a snapshot, i.e. to read PVs as defined in a {@link Configuration}.
+     * This should be called off the UI thread.
      * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
      * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
      */
@@ -426,5 +432,57 @@ public class SaveAndRestoreService {
         Future<List<SnapshotItem>> future =
                 executor.submit(() -> saveAndRestoreClient.takeSnapshot(configurationNodeId));
         return future.get();
+    }
+
+    /**
+     * Retrieves PV values from an archiver for the PVs as defined in a {@link Configuration}.
+     * This should be called off the UI thread.
+     * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
+     * @param time If <code>null</code>, time is set to {@link Instant#now()}.
+     * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service or read
+     * from an archiver.
+     */
+    public List<SnapshotItem> takeSnapshotFromArchiver(String configurationNodeId, Instant time) throws Exception{
+        if(time == null){
+            time = Instant.now();
+        }
+        ConfigurationData configNode = getConfiguration(configurationNodeId);
+        List<ConfigPv> configPvList = configNode.getPvList();
+        List<SnapshotItem> snapshotItems = new ArrayList<>();
+        Instant _time = time;
+        configPvList.forEach(configPv -> {
+            SnapshotItem snapshotItem = new SnapshotItem();
+            snapshotItem.setConfigPv(configPv);
+            snapshotItem.setValue(readFromArchiver(configPv.getPvName(), _time));
+            if(configPv.getReadbackPvName() != null){
+                snapshotItem.setValue(readFromArchiver(configPv.getReadbackPvName(), _time));
+            }
+            snapshotItems.add(snapshotItem);
+        });
+        return snapshotItems;
+    }
+
+    /**
+     * Reads the PV value from archiver.
+     * @param pvName Name of PV, scheme like for instance pva:// will be removed.
+     * @param time The point in time supplied in the archiver request
+     * @return A {@link VType} value if archiver contains the wanted data, otherwise {@link VDisconnectedData}.
+     */
+    private VType readFromArchiver(String pvName, Instant time){
+        // Check if pv name is prefixed with a scheme, e.g. pva://, ca://...
+        int indexSchemeSeparator = pvName.indexOf("://");
+        if(indexSchemeSeparator > 0 && pvName.length() > indexSchemeSeparator){
+            pvName = pvName.substring(indexSchemeSeparator + 1);
+        }
+        // Prepend "archiver://"
+        pvName = "archive://" + pvName + "(" + TimestampFormats.SECONDS_FORMAT.format(time) + ")";
+        try {
+            PV pv = PVPool.getPV(pvName);
+            VType pvValue = pv.read();
+            PVPool.releasePV(pv);
+            return pvValue == null ? VDisconnectedData.INSTANCE : pvValue;
+        } catch (Exception e) {
+            return VDisconnectedData.INSTANCE;
+        }
     }
 }

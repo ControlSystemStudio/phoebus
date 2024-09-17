@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 public class OpenWebPageAction extends ActionInfoBase {
 
     public static final String OPEN_WEBPAGE = "open_webpage";
+    private static final Integer PRIORITY = 60;
     private String url;
     private OpenWebPageActionController openWebPageController;
 
@@ -63,6 +64,11 @@ public class OpenWebPageAction extends ActionInfoBase {
     @Override
     public Image getImage() {
         return ImageCache.getImage(ActionsDialog.class, "/icons/web_browser.png");
+    }
+
+    @Override
+    public Integer getPriority() {
+        return PRIORITY;
     }
 
     public String getURL() {

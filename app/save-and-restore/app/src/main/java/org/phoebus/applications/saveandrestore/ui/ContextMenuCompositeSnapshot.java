@@ -70,7 +70,9 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
                         userIsAuthenticatedProperty.not().get() || mayCopyProperty.not().get(),
                 userIsAuthenticatedProperty, mayCopyProperty));
 
-        getItems().addAll(editCompositeSnapshotMenuItem,
+        getItems().addAll(
+                loginMenuItem,
+                editCompositeSnapshotMenuItem,
                 copyMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,

@@ -1,5 +1,7 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import org.phoebus.framework.nls.NLS;
@@ -29,8 +31,11 @@ public class LogEntryTable implements AppInstance {
     private final LogEntryTableApp app;
     private LogEntryTableViewController controller;
 
+    public GoBackAndGoForwardActions goBackAndGoForwardActions;
+
     public LogEntryTable(final LogEntryTableApp app) {
         this.app = app;
+        goBackAndGoForwardActions = new GoBackAndGoForwardActions();
         try {
             OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
             SearchParameters searchParameters = new SearchParameters();
@@ -44,13 +49,16 @@ public class LogEntryTable implements AppInstance {
                 try {
                     if (app.getClient() != null) {
                         if (clazz.isAssignableFrom(LogEntryTableViewController.class)) {
-                            return clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class)
-                                    .newInstance(app.getClient(), ologQueryManager, searchParameters);
+                            LogEntryTableViewController logEntryTableViewController = (LogEntryTableViewController) clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class).newInstance(app.getClient(), ologQueryManager, searchParameters);
+                            logEntryTableViewController.setGoBackAndGoForwardActions(goBackAndGoForwardActions);
+                            return logEntryTableViewController;
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
                             return clazz.getConstructor(LogClient.class, SearchParameters.class)
                                     .newInstance(app.getClient(), searchParameters);
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
-                            return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
+                            SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
+                            singleLogEntryDisplayController.setSelectLogEntryInUI(id -> goBackAndGoForwardActions.loadLogEntryWithID(id));
+                            return singleLogEntryDisplayController;
                         } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
                             return clazz.getConstructor().newInstance();
                         } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {
@@ -80,7 +88,7 @@ public class LogEntryTable implements AppInstance {
             loader.load();
             controller = loader.getController();
             DockItem tab = new DockItem(this, loader.getRoot());
-            tab.setOnClosed(event -> controller.shutdown());
+            tab.addClosedNotification(()-> controller.shutdown());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             log.log(Level.WARNING, "Cannot load UI", e);
@@ -117,5 +125,77 @@ public class LogEntryTable implements AppInstance {
      */
     public void logEntryChanged(LogEntry logEntry){
         controller.logEntryChanged(logEntry);
+    }
+
+    protected class GoBackAndGoForwardActions {
+
+        private GoBackAndGoForwardActions() {
+            goBackActions = FXCollections.observableArrayList();
+            goForwardActions = FXCollections.observableArrayList();
+        }
+
+        protected ObservableList<Runnable> goBackActions;
+        protected ObservableList<Runnable> goForwardActions;
+
+        private boolean isRecordingHistoryDisabled = false; // Used to not add go-back actions when clicking "back".
+
+        protected boolean getIsRecordingHistoryDisabled() {
+            return isRecordingHistoryDisabled;
+        }
+        public void setIsRecordingHistoryDisabled(boolean isRecordingHistoryDisabled) {
+            this.isRecordingHistoryDisabled = isRecordingHistoryDisabled;
+        }
+
+        private void gotoLogEntry(LogEntry logEntry) {
+            isRecordingHistoryDisabled = true;
+            boolean selected = controller.selectLogEntry(logEntry);
+            if (!selected) {
+                // The log entry was not available in the TreeView. Set the log entry without selecting it in the treeview:
+                controller.setLogEntry(logEntry);
+            }
+            isRecordingHistoryDisabled = false;
+        }
+
+        protected void addGoBackAction() {
+            LogEntry currentLogEntry = controller.getLogEntry();
+
+            if (currentLogEntry != null) {
+                goBackActions.add(0, () -> gotoLogEntry(currentLogEntry));
+            }
+        }
+
+        private void addGoForwardAction() {
+            LogEntry currentLogEntry = controller.getLogEntry();
+
+            if (currentLogEntry != null) {
+                goForwardActions.add(0, () -> gotoLogEntry(currentLogEntry));
+            }
+        }
+
+        private void loadLogEntryWithID(Long id) {
+            goForwardActions.clear();
+            addGoBackAction();
+
+            LogEntry logEntry = controller.client.getLog(id);
+            gotoLogEntry(logEntry);
+        }
+
+        protected void goBack() {
+            if (goBackActions.size() > 0) {
+                addGoForwardAction();
+                Runnable goBackAction = goBackActions.get(0);
+                goBackActions.remove(0);
+                goBackAction.run();
+            }
+        }
+
+        protected void goForward() {
+            if (goForwardActions.size() > 0) {
+                addGoBackAction();
+                Runnable goForwardAction = goForwardActions.get(0);
+                goForwardActions.remove(0);
+                goForwardAction.run();
+            }
+        }
     }
 }

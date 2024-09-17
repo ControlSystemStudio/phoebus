@@ -26,6 +26,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 
 /**
@@ -37,6 +38,9 @@ public abstract class ContextMenuBase extends ContextMenu {
 
     protected MenuItem deleteNodesMenuItem;
     protected MenuItem copyUniqueIdToClipboardMenuItem;
+
+    protected MenuItem loginMenuItem;
+    private static final String loginAppName = "credentials_management";
 
     protected SimpleBooleanProperty multipleNodesSelectedProperty = new SimpleBooleanProperty();
 
@@ -83,6 +87,12 @@ public abstract class ContextMenuBase extends ContextMenu {
         copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
         copyUniqueIdToClipboardMenuItem.setOnAction(ae -> saveAndRestoreController.copyUniqueNodeIdToClipboard());
         copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
+
+        loginMenuItem = new MenuItem(Messages.login, ImageCache.getImageView(ImageCache.class, "/icons/credentials.png"));
+        loginMenuItem.setOnAction(ae -> {
+            ApplicationService.createInstance(loginAppName);
+        });
+        loginMenuItem.visibleProperty().bind(userIsAuthenticatedProperty.not());
 
         // Controller may be null, e.g. when adding PVs from channel table
         if(saveAndRestoreController != null){
