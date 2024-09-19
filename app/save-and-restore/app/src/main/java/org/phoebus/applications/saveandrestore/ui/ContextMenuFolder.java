@@ -79,7 +79,9 @@ public class ContextMenuFolder extends ContextMenuBase {
                         mayPasteProperty.not().get() || userIsAuthenticatedProperty.not().get(),
                 mayPasteProperty, userIsAuthenticatedProperty));
 
-        getItems().addAll(newFolderMenuItem,
+        getItems().addAll(
+                loginMenuItem,
+                newFolderMenuItem,
                 renameNodeMenuItem,
                 pasteMenuItem,
                 deleteNodesMenuItem,
