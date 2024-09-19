@@ -92,7 +92,9 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         copyMenuItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
         copyMenuItem.disableProperty().bind(mayCopyProperty.not());
 
-        getItems().addAll(deleteNodesMenuItem,
+        getItems().addAll(
+                loginMenuItem,
+                deleteNodesMenuItem,
                 compareSnapshotsMenuItem,
                 tagGoldenMenuItem,
                 tagWithComment,

@@ -70,7 +70,9 @@ public class ContextMenuConfiguration extends ContextMenuBase {
         pasteMenuItem.setOnAction(ae -> saveAndRestoreController.pasteFromClipboard());
         pasteMenuItem.disableProperty().bind(mayPasteProperty.not());
 
-        getItems().addAll(openConfigurationMenuItem,
+        getItems().addAll(
+                loginMenuItem,
+                openConfigurationMenuItem,
                 copyMenuItem,
                 pasteMenuItem,
                 deleteNodesMenuItem,
