@@ -10,6 +10,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -32,6 +34,7 @@ import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -208,7 +211,22 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     @Override
     public Node moveNodes(List<String> sourceNodeIds, String targetNodeId) {
-        return null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/move?to=" + targetNodeId))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(sourceNodeIds)))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return objectMapper.readValue(response.body(), Node.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
