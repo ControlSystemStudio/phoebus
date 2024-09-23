@@ -86,9 +86,8 @@ public class PVItem extends ModelItem
     private boolean automaticRefresh = Preferences.automatic_history_refresh;
 
     /** Indicates whether the display name has been updated for the first time.
-     * once upon the first reception of a value from the PV.
-     */
-    private boolean firstDisplayName = false;
+     * once upon the first reception of a value from the PV*/
+    private boolean checkDisplayName = false;
 
     /** Initialize
      *  @param name PV name
@@ -373,11 +372,12 @@ public class PVItem extends ModelItem
         // Set units unless already defined
         if (getUnits() == null)
             updateUnits(value);
-        if (!firstDisplayName && getDisplayName().equals(getName()))
+        if (!checkDisplayName)
         {
-            updateDescription(value);
+            if (getDisplayName().equals(getName()))
+                updateDescription(value);
+            this.checkDisplayName = true;
         }
-        this.firstDisplayName = true;
         if (automaticRefresh && added &&
             model.isPresent() &&
             samples.isHistoryRefreshNeeded(model.get().getTimerange()))
