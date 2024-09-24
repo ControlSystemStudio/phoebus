@@ -85,7 +85,7 @@ public class TimeRelativeIntervalPane extends GridPane
         add(abs_end, 2, 1);
 
         rel_end.setPadding(new Insets(5));
-        //add(rel_end, 2, 2);
+        add(rel_end, 2, 2);
 
         add(new Separator(Orientation.HORIZONTAL), 0, 3, 3, 1);
 
