@@ -20,7 +20,7 @@ public class AdvancedConverterTest {
 		String tmpOpiFolder = "src/test/resources/opiFiles";
 		File file = new File(tmpOpiFolder);
 
-		List<String> listOpiFiles = AdvancedConverter.listOpiFiles(file.getAbsolutePath());
+		List<String> listOpiFiles = AdvancedConverter.getInstance().listOpiFiles(file.getAbsolutePath());
 		assertTrue(listOpiFiles.size() == 4);
 
 		for (String opiFile : listOpiFiles) {
@@ -33,11 +33,11 @@ public class AdvancedConverterTest {
 		String tmpOpiFolder = "src/test/resources/opiFiles";
 		File file = new File(tmpOpiFolder);
 
-		List<String> listScriptFiles = AdvancedConverter.listScriptFiles(file.getAbsolutePath());
+		List<String> listScriptFiles = AdvancedConverter.getInstance().listScriptFiles(file.getAbsolutePath());
 		assertTrue(listScriptFiles.size() == 4);
 
 		for (String scriptFile : listScriptFiles) {
-			assertTrue(AdvancedConverter.isScriptFile(scriptFile));
+			assertTrue(AdvancedConverter.getInstance().isScriptFile(scriptFile));
 		}
 	}
 	
@@ -48,7 +48,7 @@ public class AdvancedConverterTest {
 			String tmpOpiFolder = "src/test/resources/opiFiles";
 			File file = new File(tmpOpiFolder);
 			String[] arg = new String[] { file.getAbsolutePath() };
-			String[] generateArguments = AdvancedConverter.generateRecursiveArguments(arg);
+			String[] generateArguments = AdvancedConverter.getInstance().generateRecursiveArguments(arg);
 //			System.out.println(Arrays.toString(generateArguments));
 //			System.out.println(generateArguments.length);
 			assertTrue(generateArguments.length == 6);
