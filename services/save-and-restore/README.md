@@ -21,12 +21,37 @@ deployment to an application server, see https://spring.io/guides/gs/convert-jar
 
 Run the service like so:
 
-java [options] -jar service-save-and-restore-<version>.jar
+`java [options] -jar service-save-and-restore-<version>.jar`
 
 Where [options] may override default values for Elasticsearch host (localhost) and port (9200):
 
 -Delasticsearch.network.host=[host]  
 -Delasticsearch.http.port=[port]
+
+or you can use a `.properties file`
+
+`java -Dspring.config.location=/path/to/save_restore.properties -jar service-save-and-restore-<version>.jar`
+
+# Verification
+
+To check that the server is running correctly.
+
+```
+$ curl --fail-with-body http://localhost:8080/save-restore
+{
+  "name" : "service-save-and-restore",
+  "version" : "4.7.4-SNAPSHOT",
+  "elastic" : {
+    "status" : "Connected",
+    "clusterName" : "elastic-nasa",
+    "clusterUuid" : "QNeYpFlWRueYPH3uXGUiGw",
+    "version" : "co.elastic.clients.elasticsearch._types.ElasticsearchVersionInfo@3d95cef6"
+  },
+  "rootNodeID" : "44bef5de-e8e6-4014-af37-b8f6c8a939a2"
+}
+```
+
+The response will have information about the service version, the root node id, the status of the connection with the elastic backend.
 
 # Features
 
