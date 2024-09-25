@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.GenericType;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -231,7 +233,22 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     @Override
     public Node copyNodes(List<String> sourceNodeIds, String targetNodeId) {
-        return null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/copy?to=" + targetNodeId))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(sourceNodeIds)))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return objectMapper.readValue(response.body(), Node.class);
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -246,12 +263,44 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     @Override
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
-        return null;
+
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/config?parentNodeId=" + parentNodeId))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(configuration)))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return objectMapper.readValue(response.body(), Configuration.class);
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Configuration updateConfiguration(Configuration configuration) {
-        return null;
+
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/config"))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(configuration)))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return objectMapper.readValue(response.body(), Configuration.class);
+        }
+        catch(Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -261,22 +310,78 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     @Override
     public Snapshot createSnapshot(String parentNodeId, Snapshot snapshot) {
-        return null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/snapshot?parentNodeId=" + parentNodeId))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(snapshot)))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return objectMapper.readValue(response.body(), Snapshot.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Snapshot updateSnapshot(Snapshot snapshot) {
-        return null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/snapshot"))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(snapshot)))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return objectMapper.readValue(response.body(), Snapshot.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot) {
-        return null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/composite-snapshot?parentNodeId=" + parentNodeId))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(compositeSnapshot)))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return objectMapper.readValue(response.body(), CompositeSnapshot.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) {
-        return List.of();
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/composite-snapshot-consistency-check"))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(snapshotNodeIds)))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return objectMapper.readValue(response.body(), new TypeReference<>() {});
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
