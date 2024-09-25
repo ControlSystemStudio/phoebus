@@ -36,7 +36,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -86,7 +85,6 @@ import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.time.DateTimePane;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -97,7 +95,6 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -129,15 +126,19 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @FXML
     protected SplitPane splitPane;
 
+    @SuppressWarnings("unused")
     @FXML
     private ProgressIndicator progressIndicator;
 
+    @SuppressWarnings("unused")
     @FXML
     private ComboBox<Filter> filtersComboBox;
 
+    @SuppressWarnings("unused")
     @FXML
     private Button searchButton;
 
+    @SuppressWarnings("unused")
     @FXML
     private CheckBox enableFilterCheckBox;
 
@@ -161,6 +162,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private static final Logger logger = Logger.getLogger(SaveAndRestoreController.class.getName());
 
+    @SuppressWarnings("unused")
     @FXML
     private Tooltip filterToolTip;
 
@@ -284,7 +286,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         JobManager.schedule("Load save-and-restore tree data", monitor -> {
             Node rootNode = saveAndRestoreService.getRootNode();
-            if(rootNode == null){ // Service off-line or not reachable
+            if (rootNode == null) { // Service off-line or not reachable
                 treeInitializationCountDownLatch.countDown();
                 errorPane.visibleProperty().set(true);
                 return;
@@ -1441,7 +1443,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Determines if comparing snapshots is possible, which is the case if all of the following holds true:
+     * Determines if comparing snapshots is possible, which is the case if all the following holds true:
      * <ul>
      *     <li>The active tab must be a {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
      *     <li>The active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab} must not show an unsaved snapshot.</li>
