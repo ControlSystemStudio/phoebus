@@ -31,6 +31,7 @@ import org.phoebus.ui.docking.DockPane;
 import java.net.URI;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,25 +39,33 @@ public class SaveAndRestoreInstance implements AppInstance {
 
     private final AppDescriptor appDescriptor;
     private final SaveAndRestoreController saveAndRestoreController;
-    private DockItem tab;
+    private DockItem dockItem;
+
+    public static SaveAndRestoreInstance INSTANCE;
 
     public SaveAndRestoreInstance(AppDescriptor appDescriptor) {
         this.appDescriptor = appDescriptor;
 
-        tab = null;
+        dockItem = null;
 
         FXMLLoader loader = new FXMLLoader();
         try {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             loader.setResources(resourceBundle);
             loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUI.fxml"));
-            tab = new DockItem(this, loader.load());
+            dockItem = new DockItem(this, loader.load());
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);
         }
 
         saveAndRestoreController = loader.getController();
-        tab.setOnCloseRequest(event -> saveAndRestoreController.handleTabClosed());
+        dockItem.addCloseCheck(() -> {
+            saveAndRestoreController.handleTabClosed();
+            INSTANCE = null;
+            return CompletableFuture.completedFuture(true);
+        });
+
+        DockPane.getActiveDockPane().addTab(dockItem);
     }
 
     @Override
@@ -78,10 +87,6 @@ public class SaveAndRestoreInstance implements AppInstance {
     }
 
     public void raise(){
-        if(!DockPane.getActiveDockPane().getDockItems().contains(tab)){
-            DockPane.getActiveDockPane().addTab(tab);
-        }
-
-        tab.select();
+        dockItem.select();
     }
 }

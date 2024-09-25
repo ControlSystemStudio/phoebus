@@ -221,13 +221,16 @@ public class ModelReader
         final List<Widget> widgets = new ArrayList<>();
         final String source = xml_file == null ? "line" : xml_file;
         widget_errors_during_parse = 0;
-        for (final Element widget_xml : XMLUtil.getChildElements(parent_xml, XMLTags.WIDGET))
+        Iterable<Element> childElements = XMLUtil.getChildElements(parent_xml, XMLTags.WIDGET);
+        for (final Element widget_xml : childElements)
         {
             boolean added = false;
 
             try
             {
-                widgets.add(readWidget(widget_xml));
+            	//Assign widget for debugging mode
+            	Widget widget = readWidget(widget_xml);
+            	widgets.add(widget);
                 added = true;
             }
             catch (ParseAgainException ex)

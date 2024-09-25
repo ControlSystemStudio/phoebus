@@ -94,6 +94,7 @@ public class LogEntryUpdateStage extends Stage {
             we.consume();
             handleCloseEditor(logEntryUpdateController.isDirty(), fxmlLoader.getRoot());
         });
+        setTitle(Messages.EditLogEntry);
     }
 
     /**
