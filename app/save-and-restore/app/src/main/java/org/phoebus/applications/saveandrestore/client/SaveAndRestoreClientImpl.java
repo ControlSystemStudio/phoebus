@@ -129,6 +129,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
+     *
      * @param parentsUniqueId Unique id of the parent {@link Node} for the new {@link Node}
      * @param node            A {@link Node} object that should be created (=persisted).
      * @return {@inheritDoc}
@@ -178,31 +179,30 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
+     *
      * @param nodeIds List of unique {@link Node} ids.
      */
     @Override
     public void deleteNodes(List<String> nodeIds) {
-        // Native HttpClient does not support body in DELETE, so need to delete one by one...
-        nodeIds.forEach(id -> {
-            try {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Preferences.jmasarServiceUrl + "/node/" + id))
-                        .DELETE()
-                        .header("Content-Type", CONTENT_TYPE_JSON)
-                        .header("Authorization", getBasicAuthenticationHeader())
-                        .build();
-                HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-                if (response.statusCode() != 200) {
-                    throw new SaveAndRestoreClientException("Failed to delete node " + id + ", " + response.body());
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/node"))
+                    .method("DELETE", HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(nodeIds)))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException("Failed to delete nodes: " + response.body());
             }
-        });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * {@inheritDoc}
+     *
      * @return {@inheritDoc}
      */
     @Override
@@ -213,6 +213,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
+     *
      * @param sourceNodeIds List of unique {@link Node} ids.
      * @param targetNodeId  The unique id of the parent {@link Node} to which the source {@link Node}s are moved.
      * @return
@@ -281,8 +282,9 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
-     * @param parentNodeId Non-null and non-empty unique id of an existing parent {@link Node},
-     *                     which must be of type {@link org.phoebus.applications.saveandrestore.model.NodeType#FOLDER}.
+     *
+     * @param parentNodeId  Non-null and non-empty unique id of an existing parent {@link Node},
+     *                      which must be of type {@link org.phoebus.applications.saveandrestore.model.NodeType#FOLDER}.
      * @param configuration {@link ConfigurationData} object
      * @return
      */
@@ -307,6 +309,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
+     *
      * @param configuration
      * @return
      */
@@ -337,8 +340,9 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
+     *
      * @param parentNodeId The unique id of the configuration {@link Node} associated with the {@link Snapshot}
-     * @param snapshot The {@link Snapshot} data object.
+     * @param snapshot     The {@link Snapshot} data object.
      * @return {@inheritDoc}
      */
     @Override
@@ -381,7 +385,8 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
-     * @param parentNodeId The parent {@link Node} for the new {@link CompositeSnapshot}
+     *
+     * @param parentNodeId      The parent {@link Node} for the new {@link CompositeSnapshot}
      * @param compositeSnapshot The data object
      * @return A {@link CompositeSnapshot} as persisted by the service.
      */
@@ -490,6 +495,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
+     *
      * @return {@inheritDoc}
      */
     @Override
@@ -549,10 +555,10 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     public List<Node> deleteTag(TagData tagData) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.jmasarServiceUrl + "/delete-tags"))
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/tags"))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(tagData)))
+                    .method("DELETE", HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(tagData)))
                     .build();
             HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
@@ -593,6 +599,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
+     *
      * @param snapshotItems A {@link List} of {@link SnapshotItem}s
      * @return {@inheritDoc}
      */
@@ -618,6 +625,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
+     *
      * @param snapshotNodeId Unique id of a snapshot
      * @return {@inheritDoc}
      */
@@ -643,6 +651,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     /**
      * {@inheritDoc}
+     *
      * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
      * @return {@inheritDoc}
      */

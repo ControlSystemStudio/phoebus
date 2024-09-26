@@ -34,7 +34,6 @@ import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
-import org.phoebus.applications.saveandrestore.client.SaveAndRestoreJerseyClient;
 
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
@@ -71,7 +70,6 @@ public class SaveAndRestoreService {
     private final SaveAndRestoreClient saveAndRestoreClient;
 
     private SaveAndRestoreService() {
-        //saveAndRestoreClient = new SaveAndRestoreJerseyClient();
         saveAndRestoreClient = new SaveAndRestoreClientImpl();
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
