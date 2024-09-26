@@ -22,13 +22,27 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.sun.jersey.api.client.*;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.GenericType;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
-import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.security.store.SecureStore;
@@ -80,7 +94,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         mapper.setSerializationInclusion(Include.NON_NULL);
     }
 
-    private Client getClient(){
+    private Client getClient() {
         try {
             SecureStore store = new SecureStore();
             ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
@@ -251,13 +265,6 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public List<Node> getAllSnapshots() {
-        ClientResponse response = getCall("/snapshots");
-        return response.getEntity(new GenericType<>() {
-        });
-    }
-
-    @Override
     public Node moveNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
                 getClient().resource(Preferences.jmasarServiceUrl + "/move")
@@ -413,7 +420,12 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         return response.getEntity(Snapshot.class);
     }
 
-
+    /**
+     * {@inheritDoc}
+     * @param parentNodeId The parent {@link Node} for the new {@link CompositeSnapshot}
+     * @param compositeSnapshot The data object
+     * @return
+     */
     @Override
     public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot) {
         WebResource webResource =
@@ -434,6 +446,12 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         return response.getEntity(CompositeSnapshot.class);
     }
 
+    /**
+     * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types
+     *                        {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     *                        and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @return
+     */
     @Override
     public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) {
         WebResource webResource =
@@ -635,7 +653,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public List<RestoreResult> restore(List<SnapshotItem> snapshotItems){
+    public List<RestoreResult> restore(List<SnapshotItem> snapshotItems) {
         WebResource webResource =
                 getClient().resource(Preferences.jmasarServiceUrl + "/restore/items");
         ClientResponse response;
@@ -659,7 +677,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         });
     }
 
-    public List<RestoreResult> restore(String snapshotNodeId){
+    public List<RestoreResult> restore(String snapshotNodeId) {
         WebResource webResource =
                 getClient()
                         .resource(Preferences.jmasarServiceUrl + "/restore/node")
@@ -685,7 +703,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public List<SnapshotItem> takeSnapshot(String configNodeId){
+    public List<SnapshotItem> takeSnapshot(String configNodeId) {
         WebResource webResource =
                 getClient()
                         .resource(Preferences.jmasarServiceUrl + "/take-snapshot/" + configNodeId);

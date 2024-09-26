@@ -10,12 +10,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
@@ -36,7 +30,6 @@ import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -53,33 +46,32 @@ import java.util.logging.Logger;
 public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
-    private static final Logger logger = Logger.getLogger(SaveAndRestoreClientImpl.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SaveAndRestoreClientImpl.class.getName());
 
     private static final int DEFAULT_READ_TIMEOUT = 5000; // ms
     private static final int DEFAULT_CONNECT_TIMEOUT = 5000; // ms
-    private static final Log log = LogFactory.getLog(SaveAndRestoreClientImpl.class);
 
-    private static ObjectMapper objectMapper;
+    private static final ObjectMapper OBJECT_MAPPER;
 
-    private static HttpClient client;
+    private static final HttpClient CLIENT;
 
     static {
         int httpClientReadTimeout = Preferences.httpClientReadTimeout > 0 ? Preferences.httpClientReadTimeout : DEFAULT_READ_TIMEOUT;
-        logger.log(Level.INFO, "Save&restore client using read timeout " + httpClientReadTimeout + " ms");
+        LOGGER.log(Level.INFO, "Save&restore client using read timeout " + httpClientReadTimeout + " ms");
 
         int httpClientConnectTimeout = Preferences.httpClientConnectTimeout > 0 ? Preferences.httpClientConnectTimeout : DEFAULT_CONNECT_TIMEOUT;
-        logger.log(Level.INFO, "Save&restore client using connect timeout " + httpClientConnectTimeout + " ms");
+        LOGGER.log(Level.INFO, "Save&restore client using connect timeout " + httpClientConnectTimeout + " ms");
         CookieHandler.setDefault(new CookieManager());
 
-        client = HttpClient.newBuilder()
+        CLIENT = HttpClient.newBuilder()
                 .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofMillis(httpClientConnectTimeout))
                 .build();
-        objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        OBJECT_MAPPER = new ObjectMapper();
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        OBJECT_MAPPER.registerModule(new JavaTimeModule());
+        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     private String getBasicAuthenticationHeader() {
@@ -92,7 +84,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                 return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Unable to retrieve credentials from secure store", e);
+            LOGGER.log(Level.WARNING, "Unable to retrieve credentials from secure store", e);
         }
         return null;
     }
@@ -135,6 +127,12 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parentsUniqueId Unique id of the parent {@link Node} for the new {@link Node}
+     * @param node            A {@link Node} object that should be created (=persisted).
+     * @return {@inheritDoc}
+     */
     @Override
     public Node createNewNode(String parentsUniqueId, Node node) {
         try {
@@ -142,13 +140,13 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/node?parentNodeId=" + parentsUniqueId))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(node)))
+                    .PUT(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(node)))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), Node.class);
+            return OBJECT_MAPPER.readValue(response.body(), Node.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -166,18 +164,22 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/node?customTimeForMigration=" + customTimeForMigration))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(nodeToUpdate)))
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(nodeToUpdate)))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), Node.class);
+            return OBJECT_MAPPER.readValue(response.body(), Node.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param nodeIds List of unique {@link Node} ids.
+     */
     @Override
     public void deleteNodes(List<String> nodeIds) {
         // Native HttpClient does not support body in DELETE, so need to delete one by one...
@@ -189,7 +191,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                         .header("Content-Type", CONTENT_TYPE_JSON)
                         .header("Authorization", getBasicAuthenticationHeader())
                         .build();
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() != 200) {
                     throw new SaveAndRestoreClientException("Failed to delete node " + id + ", " + response.body());
                 }
@@ -199,18 +201,22 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     * @return {@inheritDoc}
+     */
     @Override
     public List<Tag> getAllTags() {
         return getCall("/tags", new TypeReference<>() {
         });
     }
 
-    @Override
-    public List<Node> getAllSnapshots() {
-        return getCall("/snapshots", new TypeReference<>() {
-        });
-    }
-
+    /**
+     * {@inheritDoc}
+     * @param sourceNodeIds List of unique {@link Node} ids.
+     * @param targetNodeId  The unique id of the parent {@link Node} to which the source {@link Node}s are moved.
+     * @return
+     */
     @Override
     public Node moveNodes(List<String> sourceNodeIds, String targetNodeId) {
         try {
@@ -218,19 +224,26 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/move?to=" + targetNodeId))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(sourceNodeIds)))
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(sourceNodeIds)))
                     .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), Node.class);
+            return OBJECT_MAPPER.readValue(response.body(), Node.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param sourceNodeIds List of unique {@link Node} ids.
+     * @param targetNodeId  The unique id of the parent {@link Node} to which the source {@link Node}s are copied.
+     * @return
+     */
     @Override
     public Node copyNodes(List<String> sourceNodeIds, String targetNodeId) {
         try {
@@ -238,19 +251,24 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/copy?to=" + targetNodeId))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(sourceNodeIds)))
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(sourceNodeIds)))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), Node.class);
-        }
-        catch(Exception e){
+            return OBJECT_MAPPER.readValue(response.body(), Node.class);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param uniqueNodeId Unique id
+     * @return
+     */
     @Override
     public String getFullPath(String uniqueNodeId) {
         return getCall("/path/" + uniqueNodeId, String.class);
@@ -261,27 +279,37 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         return getCall("/config/" + nodeId, ConfigurationData.class);
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parentNodeId Non-null and non-empty unique id of an existing parent {@link Node},
+     *                     which must be of type {@link org.phoebus.applications.saveandrestore.model.NodeType#FOLDER}.
+     * @param configuration {@link ConfigurationData} object
+     * @return
+     */
     @Override
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
-
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/config?parentNodeId=" + parentNodeId))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(configuration)))
+                    .PUT(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(configuration)))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), Configuration.class);
-        }
-        catch(Exception e){
+            return OBJECT_MAPPER.readValue(response.body(), Configuration.class);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param configuration
+     * @return
+     */
     @Override
     public Configuration updateConfiguration(Configuration configuration) {
 
@@ -290,15 +318,14 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/config"))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(configuration)))
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(configuration)))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), Configuration.class);
-        }
-        catch(Exception e){
+            return OBJECT_MAPPER.readValue(response.body(), Configuration.class);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -308,6 +335,12 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         return getCall("/snapshot/" + uniqueId, SnapshotData.class);
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parentNodeId The unique id of the configuration {@link Node} associated with the {@link Snapshot}
+     * @param snapshot The {@link Snapshot} data object.
+     * @return {@inheritDoc}
+     */
     @Override
     public Snapshot createSnapshot(String parentNodeId, Snapshot snapshot) {
         try {
@@ -315,13 +348,13 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/snapshot?parentNodeId=" + parentNodeId))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(snapshot)))
+                    .PUT(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(snapshot)))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), Snapshot.class);
+            return OBJECT_MAPPER.readValue(response.body(), Snapshot.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -334,18 +367,24 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/snapshot"))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(snapshot)))
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(snapshot)))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), Snapshot.class);
+            return OBJECT_MAPPER.readValue(response.body(), Snapshot.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parentNodeId The parent {@link Node} for the new {@link CompositeSnapshot}
+     * @param compositeSnapshot The data object
+     * @return A {@link CompositeSnapshot} as persisted by the service.
+     */
     @Override
     public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot) {
         try {
@@ -353,18 +392,26 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/composite-snapshot?parentNodeId=" + parentNodeId))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .PUT(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(compositeSnapshot)))
+                    .PUT(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(compositeSnapshot)))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), CompositeSnapshot.class);
+            return OBJECT_MAPPER.readValue(response.body(), CompositeSnapshot.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types
+     *                        {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     *                        and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @return
+     */
     @Override
     public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) {
         try {
@@ -372,13 +419,14 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/composite-snapshot-consistency-check"))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", getBasicAuthenticationHeader())
-                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(snapshotNodeIds)))
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(snapshotNodeIds)))
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new SaveAndRestoreClientException(response.body());
             }
-            return objectMapper.readValue(response.body(), new TypeReference<>() {});
+            return OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -386,25 +434,73 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
 
     @Override
     public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot) {
-        return null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/composite-snapshot"))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(compositeSnapshot)))
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return OBJECT_MAPPER.readValue(response.body(), CompositeSnapshot.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public SearchResult search(MultivaluedMap<String, String> searchParams) {
-        return null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/search?" + mapToQueryParams(searchParams)))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .GET()
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return OBJECT_MAPPER.readValue(response.body(), SearchResult.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Filter saveFilter(Filter filter) {
-        return null;
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/filter"))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .PUT(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(filter)))
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return OBJECT_MAPPER.readValue(response.body(), Filter.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    /**
+     * {@inheritDoc}
+     * @return {@inheritDoc}
+     */
     @Override
     public List<Filter> getAllFilters() {
         return getCall("/filters", new TypeReference<>() {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deleteFilter(String name) {
         String filterName = name.replace(" ", "%20");
@@ -414,7 +510,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .DELETE()
                     .header("Authorization", getBasicAuthenticationHeader())
                     .build();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new RuntimeException(response.body() != null ? response.body() : Messages.deleteFilterFailed);
             }
@@ -423,55 +519,143 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param tagData see {@link TagData}
+     * @return
+     */
     @Override
     public List<Node> addTag(TagData tagData) {
-        return List.of();
-    }
-
-    @Override
-    public List<Node> deleteTag(TagData tagData) {
-        return List.of();
-    }
-
-    @Override
-    public UserData authenticate(String userName, String password) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(Preferences.jmasarServiceUrl)
-                .append("/login?username=")
-                .append(userName)
-                .append("&password=")
-                .append(password);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(stringBuilder.toString()))
-                .POST(HttpRequest.BodyPublishers.noBody())
-                .build();
         try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            return objectMapper.readValue(response.body(), UserData.class);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/tags"))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(tagData)))
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public List<RestoreResult> restore(List<SnapshotItem> snapshotItems) {
-        return List.of();
+    public List<Node> deleteTag(TagData tagData) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/delete-tags"))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(tagData)))
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param userName User's account name
+     * @param password User's password
+     * @return {@inheritDoc}
+     */
+    @Override
+    public UserData authenticate(String userName, String password) {
+        String stringBuilder = Preferences.jmasarServiceUrl +
+                "/login?username=" +
+                userName +
+                "&password=" +
+                password;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(stringBuilder))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        try {
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            return OBJECT_MAPPER.readValue(response.body(), UserData.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param snapshotItems A {@link List} of {@link SnapshotItem}s
+     * @return {@inheritDoc}
+     */
+    @Override
+    public List<RestoreResult> restore(List<SnapshotItem> snapshotItems) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/restore/items"))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(snapshotItems)))
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param snapshotNodeId Unique id of a snapshot
+     * @return {@inheritDoc}
+     */
     @Override
     public List<RestoreResult> restore(String snapshotNodeId) {
-        return List.of();
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/restore/node?nodeId=" + snapshotNodeId))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .header("Authorization", getBasicAuthenticationHeader())
+                    .POST(HttpRequest.BodyPublishers.noBody())
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new SaveAndRestoreClientException(response.body());
+            }
+            return OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
+     * @return {@inheritDoc}
+     */
     @Override
     public List<SnapshotItem> takeSnapshot(String configurationNodeId) {
-        return List.of();
+        return getCall("/take-snapshot/" + configurationNodeId, new TypeReference<>() {
+        });
     }
 
     private <T> T getCall(String relativeUrl, Class<T> clazz) {
         HttpResponse<String> response = getCall(relativeUrl);
         try {
-            return objectMapper.readValue(response.body(), clazz);
+            return OBJECT_MAPPER.readValue(response.body(), clazz);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -480,7 +664,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     private <T> T getCall(String relativeUrl, TypeReference<T> typeReference) {
         HttpResponse<String> response = getCall(relativeUrl);
         try {
-            return objectMapper.readValue(response.body(), typeReference);
+            return OBJECT_MAPPER.readValue(response.body(), typeReference);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -492,7 +676,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                 .GET()
                 .build();
         try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             String responseBody = response.body();
             if (response.statusCode() != 200) {
                 if (responseBody == null || responseBody.isEmpty()) {
@@ -504,5 +688,18 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String mapToQueryParams(MultivaluedMap<String, String> map) {
+        StringBuilder stringBuilder = new StringBuilder();
+        map.keySet().forEach(k -> {
+            List<String> value = map.get(k);
+            if (value != null && !value.isEmpty()) {
+                stringBuilder.append(k).append("=");
+                stringBuilder.append(String.join(",", value));
+                stringBuilder.append("&");
+            }
+        });
+        return stringBuilder.toString();
     }
 }

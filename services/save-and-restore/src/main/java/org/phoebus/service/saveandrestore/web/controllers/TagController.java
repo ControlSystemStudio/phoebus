@@ -27,7 +27,11 @@ import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
@@ -46,7 +50,6 @@ public class TagController extends BaseController {
     private NodeDAO nodeDAO;
 
     /**
-     *
      * @return A {@link List} of all {@link Tag}s.
      */
     @GetMapping("/tags")
@@ -72,7 +75,7 @@ public class TagController extends BaseController {
 
     /**
      * Removes a {@link Tag} from specified list of target {@link Node}s. The {@link Tag} contained
-     * * in tagData must be non-null, and its name must be non-null and non-empty.
+     * in tagData must be non-null, and its name must be non-null and non-empty.
      *
      * @param tagData See {@link TagData}
      * @return The list of updated {@link Node}s
@@ -80,6 +83,22 @@ public class TagController extends BaseController {
     @DeleteMapping("/tags")
     @PreAuthorize("@authorizationHelper.mayAddOrDeleteTag(#tagData, #root)")
     public List<Node> deleteTag(@RequestBody TagData tagData) {
+        return nodeDAO.deleteTag(tagData);
+    }
+
+    /**
+     * Removes a {@link Tag} from specified list of target {@link Node}s. The {@link Tag} contained
+     * in tagData must be non-null, and its name must be non-null and non-empty.
+     * <p>
+     * This is exposed as an HTTP POST as the native {@link java.net.http.HttpClient} does not
+     * support a body in a DELETE request.
+     *
+     * @param tagData See {@link TagData}
+     * @return The list of updated {@link Node}s
+     */
+    @PostMapping("/delete-tags")
+    @PreAuthorize("@authorizationHelper.mayAddOrDeleteTag(#tagData, #root)")
+    public List<Node> deleteTagsAsPost(@RequestBody TagData tagData) {
         return nodeDAO.deleteTag(tagData);
     }
 }

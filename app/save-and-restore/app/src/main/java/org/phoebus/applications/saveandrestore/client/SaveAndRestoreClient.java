@@ -107,10 +107,6 @@ public interface SaveAndRestoreClient {
      */
     List<Tag> getAllTags();
 
-    /**
-     * @return All snapshot {@link Node}s persisted on the remote service
-     */
-    List<Node> getAllSnapshots();
 
     /**
      * Move a set of {@link Node}s to a new parent {@link Node}
@@ -130,6 +126,11 @@ public interface SaveAndRestoreClient {
      */
     Node copyNodes(List<String> sourceNodeIds, String targetNodeId);
 
+    /**
+     * Constructs a path like string to facilitate location of a {@link Node} in the tree structure.
+     * @param uniqueNodeId Unique id
+     * @return Path like /Root folder/foo/bar/my/favourite/node
+     */
     String getFullPath(String uniqueNodeId);
 
     ConfigurationData getConfigurationData(String nodeId);
@@ -149,6 +150,12 @@ public interface SaveAndRestoreClient {
 
     SnapshotData getSnapshotData(String uniqueId);
 
+    /**
+     * Creates a {@link Snapshot}
+     * @param parentNodeId The unique id of the configuration {@link Node} associated with the {@link Snapshot}
+     * @param snapshot The {@link Snapshot} data object.
+     * @return The new {@link Snapshot} as persisted by the service
+     */
     Snapshot createSnapshot(String parentNodeId, Snapshot snapshot);
 
     Snapshot updateSnapshot(Snapshot snapshot);
