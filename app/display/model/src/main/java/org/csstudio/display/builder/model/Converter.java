@@ -41,10 +41,10 @@ public class Converter {
 	public static final String OUTPUT_ARG = "-output";
 	public static final String OPI_EXTENSION = "opi";
 	public static final String BOB_EXTENSION = "bob";
-	public static final String PYTHON_EXTENSION = ".python";
-	public static final String PY_EXTENSION = ".py";
-	public static final String JAVASCRIPT_EXTENSION = ".javascript";
-	public static final String JS_EXTENSION = ".js";
+	public static final String PYTHON_EXTENSION = "python";
+	public static final String PY_EXTENSION = "py";
+	public static final String JAVASCRIPT_EXTENSION = "javascript";
+	public static final String JS_EXTENSION = "js";
 	public static final String IMPORT_CSS = "org.csstudio.opibuilder";
 	public static final String IMPORT_PHOEBUS = "org.csstudio.display.builder.runtime.script";
 	public static final String PHOEBUS = "phoebus_";
