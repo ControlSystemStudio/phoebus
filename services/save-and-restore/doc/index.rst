@@ -822,9 +822,9 @@ If there was no error in PV restoration then the error message is null.
     ]
 
 Restore from snapshot node
-"""""""""""""""""""""""""""
+""""""""""""""""""""""""""
 
-**.../restore/node?parentNodeId=<snapshot node id>**
+**.../restore/node?nodeId=<snapshot node id>**
 
 Method: POST
 
