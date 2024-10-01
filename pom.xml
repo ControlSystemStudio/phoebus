@@ -187,6 +187,7 @@
           <format>json</format>
           <excludeProperties>
             <excludeProperty>^git.build.*$</excludeProperty>
+            <excludeProperty>^git.local.branch.*$</excludeProperty>
           </excludeProperties>
         </configuration>
       </plugin>
