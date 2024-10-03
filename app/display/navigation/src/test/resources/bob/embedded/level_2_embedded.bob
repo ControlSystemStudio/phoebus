@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-10-03 15:20:01 by shroffk-->
+<display version="2.0.0">
+  <name>level_2_embedded</name>
+  <width>400</width>
+  <height>50</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Level 2</text>
+    <width>400</width>
+    <height>50</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+</display>
