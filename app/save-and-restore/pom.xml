@@ -11,5 +11,6 @@
     <module>model</module>
     <module>app</module>
     <module>logging</module>
+    <module>util</module>
   </modules>
 </project>
