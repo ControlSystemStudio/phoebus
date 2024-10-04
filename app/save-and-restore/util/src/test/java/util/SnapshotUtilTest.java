@@ -17,33 +17,33 @@
  *
  */
 
-package org.phoebus.service.saveandrestore.epics;
+package util;
 
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VFloat;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.phoebus.saveandrestore.util.SnapshotUtil;
 
 import java.util.List;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = SnapshotUtilTestConfig.class)
 public class SnapshotUtilTest {
 
-    @Autowired
-    private SnapshotUtil snapshotUtil;
+    private static SnapshotUtil snapshotUtil;
+
+    @BeforeAll
+    public static void setup(){
+        snapshotUtil = new SnapshotUtil();
+    }
 
     @Test
     public void testRestorePVValues() throws Exception {
@@ -74,7 +74,7 @@ public class SnapshotUtilTest {
 
     @Test
     public void testTakeSnapshot(){
-         ConfigurationData configurationData = new ConfigurationData();
+        ConfigurationData configurationData = new ConfigurationData();
         ConfigPv configPv = new ConfigPv();
         configPv.setPvName("loc://x(42.0)");
         configPv.setReadbackPvName("loc://y(777.0)");
