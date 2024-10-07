@@ -20,7 +20,7 @@ package org.phoebus.service.saveandrestore.web.config;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.mockito.Mockito;
-import org.phoebus.service.saveandrestore.epics.SnapshotUtil;
+import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchTreeRepository;
