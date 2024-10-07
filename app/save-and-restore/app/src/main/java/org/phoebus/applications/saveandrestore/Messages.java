@@ -36,6 +36,8 @@ public class Messages {
     public static String closeCompositeSnapshotWarning;
     public static String closeTabPrompt;
     public static String compositeSnapshotConsistencyCheckFailed;
+    public static String contextMenuAddTag;
+    @Deprecated
     public static String contextMenuAddTagWithComment;
     public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
@@ -52,6 +54,8 @@ public class Messages {
     public static String contextMenuRename;
     public static String contextMenuRemoveGoldenTag;
     public static String contextMenuTagAsGolden;
+    public static String contextMenuTags;
+    @Deprecated
     public static String contextMenuTagsWithComment;
     public static String contextMenuOpenCompositeSnapshotForRestore;
 

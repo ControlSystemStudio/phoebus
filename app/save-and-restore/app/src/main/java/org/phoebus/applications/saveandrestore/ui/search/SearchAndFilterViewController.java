@@ -417,12 +417,12 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         ContextMenu contextMenu = new ContextMenu();
         MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
 
-        ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
-        Menu tagMenuItem = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
+        ImageView snapshotTagsIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG);
+        Menu tagMenuItem = new Menu(Messages.contextMenuTags, snapshotTagsIconImage);
 
-        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
-        tagMenuItem.getItems().add(addTagWithCommentMenuItem);
+        MenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
+        addTagMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
+        tagMenuItem.getItems().add(addTagMenuItem);
 
         MenuItem restoreMenuItem = new MenuItem(Messages.restore);
         restoreMenuItem.setOnAction(e -> doRestore(resultTableView.getSelectionModel().getSelectedItem().getUniqueId()));
@@ -430,7 +430,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         contextMenu.setOnShowing(event -> {
             NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();
             if (selectedItemType.equals(NodeType.SNAPSHOT)) {
-                TagUtil.tagWithComment(tagMenuItem,
+                TagUtil.tag(tagMenuItem,
                         resultTableView.getSelectionModel().getSelectedItems(),
                         updatedNodes -> { // Callback, any extra handling added here
                         });
