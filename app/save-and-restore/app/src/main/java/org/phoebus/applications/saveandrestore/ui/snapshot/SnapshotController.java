@@ -359,7 +359,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     }
 
     public void restore(ActionEvent actionEvent) {
-        snapshotTableViewController.restore(snapshotProperty.get(), restoreResultList -> {
+        snapshotTableViewController.restoreSnapshot(snapshotControlsViewController.getRestoreMode(), snapshotProperty.get(), restoreResultList -> {
             if (snapshotControlsViewController.logAction()) {
                 eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreResultList, this::showLoggingError));
             }

@@ -32,6 +32,7 @@ import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.Threshold;
@@ -363,13 +364,28 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         Platform.runLater(() -> updateTable(arrayList));
     }
 
+
+    /**
+     * Restore a snapshot either from the client or from the services
+     * @param restoreMode
+     * @param snapshot
+     * @param consumer
+     */
+    public void restoreSnapshot(RestoreMode restoreMode, Snapshot snapshot, Consumer<List<RestoreResult>> consumer) {
+        switch (restoreMode) {
+            case CLIENT_RESTORE -> restoreFromClient(snapshot, consumer);
+            case SERVICE_RESTORE -> restoreFromService(snapshot, consumer);
+            default -> throw new IllegalArgumentException("RestoreMode mode " + restoreMode + " not supported");
+        }
+    }
+
     /**
      * Restores a snapshot through a call to the remote service.
      *
      * @param snapshot   The {@link Snapshot} object subject to restore
      * @param completion A handler for the outcome of the restore operation
      */
-    public void restore(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
+    public void restoreFromService(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
         JobManager.schedule("Restore snapshot " + snapshot.getSnapshotNode().getName(), monitor -> {
             List<SnapshotItem> itemsToRestore = new ArrayList<>();
             List<RestoreResult> restoreResultList = null;
@@ -410,15 +426,22 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
      * @param completion A handler for the outcome of the restore operation
      */
     @SuppressWarnings("unused")
-    public void restoreFromClient(Snapshot snapshot, Consumer<List<String>> completion) {
+    public void restoreFromClient(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
         new Thread(() -> {
+            // TODO merge this list with the restoreResultList
             List<String> restoreFailedPVNames = new ArrayList<>();
             CountDownLatch countDownLatch = new CountDownLatch(snapshot.getSnapshotData().getSnapshotItems().size());
+
+            List<RestoreResult> restoreResultList = new ArrayList<>();
+
             snapshot.getSnapshotData().getSnapshotItems()
                     .forEach(e -> pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly())).setCountDownLatch(countDownLatch));
 
             for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
+
+                RestoreResult restoreResult = new RestoreResult();
+                restoreResult.setSnapshotItem(entry);
 
                 boolean restorable = e.selectedProperty().get() &&
                         !e.readOnlyProperty().get() &&
@@ -432,11 +455,15 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                             pv.getPv().write(VTypeHelper.toObject(entry.getValue()));
                         } catch (Exception writeException) {
                             restoreFailedPVNames.add(entry.getConfigPv().getPvName());
+                            restoreResult.setErrorMsg(writeException.getMessage());
+                            restoreResultList.add(restoreResult);
                         } finally {
+                            restoreResultList.add(restoreResult);
                             pv.countDown();
                         }
                     }
                 } else {
+                    restoreResult.setErrorMsg(entry.getConfigPv().getPvName() + " is not restoreable");
                     countDownLatch.countDown();
                 }
             }
@@ -457,7 +484,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                         "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
                         new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), sb.toString()});
             }
-            completion.accept(restoreFailedPVNames);
+            completion.accept(restoreResultList);
         }).start();
     }
 
