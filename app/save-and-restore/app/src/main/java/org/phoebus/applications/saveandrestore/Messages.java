@@ -133,6 +133,8 @@ public class Messages {
     public static String restore;
     public static String restoreFailed;
     public static String restoreFailedPVs;
+    public static String restoreFromClient;
+    public static String restoreFromService;
     public static String saveFilter;
 
     public static String saveFilterConfirmOverwrite;
