@@ -51,6 +51,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -428,8 +429,6 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     @SuppressWarnings("unused")
     public void restoreFromClient(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
         new Thread(() -> {
-            // TODO merge this list with the restoreResultList
-            List<String> restoreFailedPVNames = new ArrayList<>();
             CountDownLatch countDownLatch = new CountDownLatch(snapshot.getSnapshotData().getSnapshotItems().size());
 
             List<RestoreResult> restoreResultList = new ArrayList<>();
@@ -454,11 +453,9 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                         try {
                             pv.getPv().write(VTypeHelper.toObject(entry.getValue()));
                         } catch (Exception writeException) {
-                            restoreFailedPVNames.add(entry.getConfigPv().getPvName());
                             restoreResult.setErrorMsg(writeException.getMessage());
                             restoreResultList.add(restoreResult);
                         } finally {
-                            restoreResultList.add(restoreResult);
                             pv.countDown();
                         }
                     }
@@ -474,15 +471,16 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                 LOGGER.log(Level.INFO, "Encountered InterruptedException", e);
             }
 
-            if (restoreFailedPVNames.isEmpty()) {
+            if (restoreResultList.isEmpty()) {
                 LOGGER.log(Level.FINE, "Restored snapshot {0}", snapshot.getSnapshotNode().getName());
             } else {
-                Collections.sort(restoreFailedPVNames);
-                StringBuilder sb = new StringBuilder(restoreFailedPVNames.size() * 200);
-                restoreFailedPVNames.forEach(e -> sb.append(e).append('\n'));
+                String msg = restoreResultList.stream()
+                        .sorted(Comparator.comparing(o -> o.getSnapshotItem().getConfigPv().getPvName()))
+                        .map(r -> r.getSnapshotItem().getConfigPv().getPvName())
+                        .collect(Collectors.joining(System.lineSeparator()));
                 LOGGER.log(Level.WARNING,
                         "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
-                        new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), sb.toString()});
+                        new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), msg});
             }
             completion.accept(restoreResultList);
         }).start();
