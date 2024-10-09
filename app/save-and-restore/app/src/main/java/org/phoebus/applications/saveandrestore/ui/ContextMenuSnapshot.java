@@ -40,7 +40,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
     private final MenuItem tagGoldenMenuItem;
 
-    private final Menu tagWithComment;
+    private final Menu tags;
 
     private final SimpleBooleanProperty mayTagProperty = new SimpleBooleanProperty();
 
@@ -55,21 +55,21 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         compareSnapshotsMenuItem.setOnAction(ae -> saveAndRestoreController.compareSnapshot());
         compareSnapshotsMenuItem.disableProperty().bind(mayCompareSnapshotsProperty.not());
 
-        ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
+        ImageView snapshotTagsIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG);
 
-        tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment));
-        tagWithComment.disableProperty().bind(Bindings.createBooleanBinding(() ->
+        tags = new Menu(Messages.contextMenuTags, snapshotTagsIconImage);
+        tags.setOnShowing(event -> saveAndRestoreController.tag(tags));
+        tags.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get(),
                 multipleNodesSelectedProperty, userIsAuthenticatedProperty));
 
-        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.setOnAction(action -> saveAndRestoreController.addTagToSnapshots());
-        addTagWithCommentMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
+        MenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
+        addTagMenuItem.setOnAction(action -> saveAndRestoreController.addTagToSnapshots());
+        addTagMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         multipleNodesSelectedProperty.get() || mayTagProperty.not().get(),
                 multipleNodesSelectedProperty, mayTagProperty));
 
-        tagWithComment.getItems().addAll(addTagWithCommentMenuItem);
+        tags.getItems().addAll(addTagMenuItem);
 
         MenuItem findReferencesMenuItem = new MenuItem(Messages.findSnapshotReferences, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
         findReferencesMenuItem.setOnAction(ae -> saveAndRestoreController.findSnapshotReferences());
@@ -97,7 +97,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
                 deleteNodesMenuItem,
                 compareSnapshotsMenuItem,
                 tagGoldenMenuItem,
-                tagWithComment,
+                tags,
                 copyMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 exportSnapshotMenuItem);

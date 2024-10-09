@@ -50,7 +50,7 @@ import java.util.List;
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
 
-public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
+public class SnapshotNewTagDialog extends Dialog<String> {
 
     private final TextInputControl tagNameTextField;
 
@@ -81,21 +81,15 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
         gridPane.setPadding(new Insets(12, 8, 3, 8));
 
         Label tagNameLabel = new Label(Messages.tagNameLabel);
-        Label tagCommentLabel = new Label(Messages.tagCommentLabel);
 
         GridPane.setHalignment(tagNameLabel, HPos.RIGHT);
-        GridPane.setHalignment(tagCommentLabel, HPos.RIGHT);
-
         tagNameTextField = new TextField();
-        TextField tagCommentTextField = new TextField();
+//        TextField tagCommentTextField = new TextField();
 
         tagNameTextField.setMinWidth(400);
-        tagCommentTextField.setMinWidth(400);
 
         gridPane.add(tagNameLabel, 0, 0);
-        gridPane.add(tagCommentLabel, 0, 1);
         gridPane.add(tagNameTextField, 1, 0);
-        gridPane.add(tagCommentTextField, 1, 1);
 
         getDialogPane().setContent(gridPane);
 
@@ -117,7 +111,7 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
         setResultConverter(dialogButton -> {
             if (dialogButton == saveTagButton) {
 
-                return new Pair<>(tagNameTextField.getText(), tagCommentTextField.getText());
+                return tagNameTextField.getText();
             }
 
             return null;

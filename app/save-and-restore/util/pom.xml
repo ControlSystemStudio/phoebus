@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.phoebus</groupId>
+        <artifactId>app-save-and-restore</artifactId>
+        <version>4.7.4-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>save-and-restore-util</artifactId>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>save-and-restore-model</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pva</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-pva</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-ca</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-vtype</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
