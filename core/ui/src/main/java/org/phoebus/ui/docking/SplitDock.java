@@ -172,9 +172,11 @@ public class SplitDock extends SplitPane
         }
         else if (dock_parent instanceof SplitPane) {
             final SplitPane parent = (SplitPane) dock_parent;
-            // parent.getItems().get(1) == this, parent.getItems().get(0) == Navigator application
-            // No need to remove 'this' from parent, just update parent.getItems().get(1) to child
-            parent.getItems().set(1, child);
+            // parent.getItems().get(1) == this, parent.getItems().get(0) == Navigator application,
+            // when Navigator is being displayed.
+            // parent.getItems().get(0) == this when Navigator is not being displayed.
+            // No need to remove 'this' from parent, just update parent.getItems().get(last index) to child
+            parent.getItems().set(parent.getItems().size()-1, child);
         }
         else
         {

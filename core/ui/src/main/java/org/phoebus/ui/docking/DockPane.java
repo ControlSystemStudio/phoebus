@@ -14,6 +14,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -658,7 +659,13 @@ public class DockPane extends TabPane
         {
             final SplitPane parent = (SplitPane) dock_parent;
             // Remove this dock pane from BorderPane
-            double dividerPosition = parent.getDividerPositions()[0];
+            Optional<Double> dividerPosition;
+            if (parent.getDividerPositions().length > 1) {
+                dividerPosition = Optional.of(parent.getDividerPositions()[0]);
+            }
+            else {
+                dividerPosition = Optional.empty();
+            }
             parent.getItems().remove(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
@@ -668,7 +675,9 @@ public class DockPane extends TabPane
             new_pane.setDockParent(split);
             // Place that new split in the border pane
             parent.getItems().add(split);
-            parent.setDividerPosition(0, dividerPosition);
+            if (dividerPosition.isPresent()) {
+                parent.setDividerPosition(0, dividerPosition.get());
+            }
         }
         else
             throw new IllegalStateException("Cannot split, dock_parent is " + dock_parent);
