@@ -655,7 +655,7 @@ public class DockPane extends TabPane
             // Place that new split in the border pane
             parent.setCenter(split);
         }
-        else if (dock_parent instanceof SplitPane)
+        else if (dock_parent instanceof SplitPane) // "dock_parent instanceof SplitPane" is for the case of the ESS-specific Navigator application running
         {
             final SplitPane parent = (SplitPane) dock_parent;
             // Remove this dock pane from BorderPane
