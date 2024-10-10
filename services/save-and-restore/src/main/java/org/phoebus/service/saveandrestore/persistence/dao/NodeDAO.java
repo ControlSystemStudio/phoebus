@@ -67,7 +67,6 @@ public interface NodeDAO {
      *
      * @param nodeId The unique id of the node to delete.
      */
-    @Deprecated
     void deleteNode(String nodeId);
 
     /**

@@ -118,5 +118,6 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         mayTagProperty.set(saveAndRestoreController.checkTaggable());
         mayCompareSnapshotsProperty.set(saveAndRestoreController.compareSnapshotsPossible());
         mayTagOrUntagGoldenProperty.set(saveAndRestoreController.configureGoldenItem(tagGoldenMenuItem));
+        mayCopyProperty.set(saveAndRestoreController.mayCopy());
     }
 }

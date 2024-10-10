@@ -67,16 +67,32 @@ public class AuthorizationHelper {
      * @return <code>true</code> only if <b>all</b> if the nodes can be deleted by the user.
      */
     public boolean mayDelete(List<String> nodeIds, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
+        for (String nodeId : nodeIds) {
+            if (!mayDelete(nodeId, methodSecurityExpressionOperations)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Checks if all the provided node id to this method can be deleted by the user. User with admin privileges is always
+     * permitted to delete, while a user not having required role may never delete.
+     *
+     * @param nodeId                            A {@link Node} id subject to the check.
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *                                           queried for authorization.
+     * @return <code>true</code> only if <b>all</b> if the node can be deleted by the user.
+     */
+    public boolean mayDelete(String nodeId, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
         if (permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin)) {
             return true;
         }
         if (!methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleUser)) {
             return false;
         }
-        for (String nodeId : nodeIds) {
-            if (!mayDelete(nodeId, ((UserDetails) methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername())) {
-                return false;
-            }
+        if (!mayDelete(nodeId, ((UserDetails) methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername())) {
+            return false;
         }
         return true;
     }
