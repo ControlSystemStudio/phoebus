@@ -152,7 +152,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private static final String FILTER_NAME = "filter_name";
 
-    protected static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
+    protected static final Logger LOG = Logger.getLogger(SaveAndRestoreController.class.getName());
 
     protected Comparator<TreeItem<Node>> treeNodeComparator;
 
@@ -1172,12 +1172,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             return;
         }
         String[] queries = query.split("&");
-        String action = "open-node";
+        String action = OpenNodeAction.OPEN_SAR_NODE;
         Optional<String> actionQuery = Arrays.stream(queries).filter(q -> q.startsWith("action=")).findFirst();
         if (actionQuery.isEmpty()) {
-            logger.log(Level.WARNING, "Open resource does not specify action, defaulting to 'open node'");
+            logger.log(Level.WARNING, "Open resource does not specify action, defaulting to '" + action + "'");
         } else if (actionQuery.get().substring("action=".length()).isEmpty()) {
-            logger.log(Level.WARNING, "Empty action specified, defaulting to 'open node'");
+            logger.log(Level.WARNING, "Empty action specified, defaulting to '" + action + "'");
         } else {
             action = actionQuery.get().substring("action=".length());
         }
