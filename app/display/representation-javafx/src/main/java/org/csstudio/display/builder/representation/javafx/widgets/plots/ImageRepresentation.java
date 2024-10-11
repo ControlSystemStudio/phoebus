@@ -455,7 +455,7 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
             final int height = image.getHeight();
             if (model_widget.propLimitsFromPV().getValue())
             {
-                final int x0, x1, y0, y1;
+                final double x0, x1, y0, y1;
                 if (image.isXReversed())
                 {
                     x1 = image.getXOffset();
@@ -476,6 +476,14 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
                     y0 = image.getYOffset() + height;
                     y1 = image.getYOffset();
                 }
+                
+                // Update model because otherwise we'll revert back to its range
+                changing_axis_range = true;
+                model_widget.propXAxis().minimum().setValue(x0);
+                model_widget.propXAxis().maximum().setValue(x1);
+                model_widget.propYAxis().minimum().setValue(y0);
+                model_widget.propYAxis().maximum().setValue(y1);
+                changing_axis_range = false;
                 image_plot.setAxisRange(x0, x1, y0, y1);
             }
             image_plot.setValue(width, height, image.getData(),
