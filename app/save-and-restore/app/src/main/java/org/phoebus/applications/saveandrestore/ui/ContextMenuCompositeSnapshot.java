@@ -76,6 +76,7 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
                 copyMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
+                copyUniqueIdAsResourceUrlToClipboardMenuItem,
                 tagWithComment);
     }
 

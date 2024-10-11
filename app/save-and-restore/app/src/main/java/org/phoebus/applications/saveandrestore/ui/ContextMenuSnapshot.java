@@ -100,6 +100,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
                 tagWithComment,
                 copyMenuItem,
                 copyUniqueIdToClipboardMenuItem,
+                copyUniqueIdAsResourceUrlToClipboardMenuItem,
                 exportSnapshotMenuItem);
     }
 

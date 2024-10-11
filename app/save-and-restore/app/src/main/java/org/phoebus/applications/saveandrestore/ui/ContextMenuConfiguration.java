@@ -77,6 +77,7 @@ public class ContextMenuConfiguration extends ContextMenuBase {
                 pasteMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
+                copyUniqueIdAsResourceUrlToClipboardMenuItem,
                 exportConfigurationMenuItem,
                 importSnapshotMenuItem);
     }

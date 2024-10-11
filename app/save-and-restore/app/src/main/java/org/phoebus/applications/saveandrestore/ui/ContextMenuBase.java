@@ -38,6 +38,7 @@ public abstract class ContextMenuBase extends ContextMenu {
 
     protected MenuItem deleteNodesMenuItem;
     protected MenuItem copyUniqueIdToClipboardMenuItem;
+    protected MenuItem copyUniqueIdAsResourceUrlToClipboardMenuItem;
 
     protected MenuItem loginMenuItem;
     private static final String loginAppName = "credentials_management";
@@ -87,6 +88,11 @@ public abstract class ContextMenuBase extends ContextMenu {
         copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
         copyUniqueIdToClipboardMenuItem.setOnAction(ae -> saveAndRestoreController.copyUniqueNodeIdToClipboard());
         copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
+
+        copyUniqueIdAsResourceUrlToClipboardMenuItem =
+                new MenuItem(Messages.copyUniqueIdAsResourceToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
+        copyUniqueIdAsResourceUrlToClipboardMenuItem.setOnAction(ae -> saveAndRestoreController.copyUniqueNodeIdAsResourceUrlToClipboard());
+        copyUniqueIdAsResourceUrlToClipboardMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
 
         loginMenuItem = new MenuItem(Messages.login, ImageCache.getImageView(ImageCache.class, "/icons/credentials.png"));
         loginMenuItem.setOnAction(ae -> {

@@ -709,10 +709,23 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         renameNode(node.getValue(), existingSiblingNodes);
     }
 
+    /**
+     * Puts the unique node id on the clipboard as text
+     */
     protected void copyUniqueNodeIdToClipboard() {
         Node node = browserSelectionModel.getSelectedItem().getValue();
         ClipboardContent content = new ClipboardContent();
         content.putString(node.getUniqueId());
+        Clipboard.getSystemClipboard().setContent(content);
+    }
+
+    /**
+     * Puts the unique node id as a resource URL on the clipboard as text
+     */
+    protected void copyUniqueNodeIdAsResourceUrlToClipboard() {
+        Node node = browserSelectionModel.getSelectedItem().getValue();
+        ClipboardContent content = new ClipboardContent();
+        content.putString("file:/" + node.getUniqueId() + "?app=" + SaveAndRestoreApplication.NAME);
         Clipboard.getSystemClipboard().setContent(content);
     }
 
