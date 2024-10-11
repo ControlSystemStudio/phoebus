@@ -5,7 +5,6 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.logbook.*;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.util.text.Strings;
 
 import java.net.URI;
 import java.util.logging.Logger;
@@ -13,9 +12,9 @@ import java.util.logging.Logger;
 public class LogEntryTableApp implements AppResourceDescriptor {
 
     public static final Logger logger = Logger.getLogger(LogEntryTableApp.class.getName());
-    static final Image icon = ImageCache.getImage(LogEntryTableApp.class, "/icons/logbook-16.png");
+    public static final Image icon = ImageCache.getImage(LogEntryTableApp.class, "/icons/logbook-16.png");
     public static final String NAME = "logEntryTable";
-    public static String DISPLAYNAME = "Log Entry Table";
+    public static String DISPLAY_NAME = Messages.Logbook;
 
     private static final String SUPPORTED_SCHEMA = "logbook";
     private LogFactory logFactory;
@@ -25,15 +24,11 @@ public class LogEntryTableApp implements AppResourceDescriptor {
     @Override
     public void start() {
         logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
-        String displayName = LogbookUIPreferences.log_entry_table_display_name;
-        if(!Strings.isNullOrEmpty(displayName)){
-            DISPLAYNAME = displayName;
-        }
     }
 
     @Override
     public String getDisplayName() {
-        return DISPLAYNAME;
+        return DISPLAY_NAME;
     }
     
     @Override
