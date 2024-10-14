@@ -40,8 +40,8 @@ import org.phoebus.applications.saveandrestore.ui.Utilities;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
-import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.time.DateTimePane;
@@ -50,13 +50,10 @@ import org.phoebus.util.time.TimestampFormats;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -83,6 +80,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
 
     private final SimpleBooleanProperty compareViewEnabled = new SimpleBooleanProperty(false);
 
+    private SnapshotUtil snapshotUtil;
 
     @FXML
     public void initialize() {
@@ -147,6 +145,8 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         valueColumn.visibleProperty().bind(compareViewEnabled.not());
 
         compareViewEnabled.addListener((ob, o, n) -> snapshotTableView.layout());
+
+        snapshotUtil = new SnapshotUtil();
     }
 
     public void setSnapshotController(SnapshotController snapshotController) {
@@ -429,18 +429,12 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     @SuppressWarnings("unused")
     public void restoreFromClient(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
         new Thread(() -> {
-            CountDownLatch countDownLatch = new CountDownLatch(snapshot.getSnapshotData().getSnapshotItems().size());
 
+            List<SnapshotItem> itemsToRestore = new ArrayList<>();
             List<RestoreResult> restoreResultList = new ArrayList<>();
-
-            snapshot.getSnapshotData().getSnapshotItems()
-                    .forEach(e -> pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly())).setCountDownLatch(countDownLatch));
 
             for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
-
-                RestoreResult restoreResult = new RestoreResult();
-                restoreResult.setSnapshotItem(entry);
 
                 boolean restorable = e.selectedProperty().get() &&
                         !e.readOnlyProperty().get() &&
@@ -448,29 +442,23 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                         !entry.getValue().equals(VNoData.INSTANCE);
 
                 if (restorable) {
-                    final SaveAndRestorePV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
-                    if (entry.getValue() != null) {
-                        try {
-                            pv.getPv().write(VTypeHelper.toObject(entry.getValue()));
-                        } catch (Exception writeException) {
-                            restoreResult.setErrorMsg(writeException.getMessage());
-                            restoreResultList.add(restoreResult);
-                        } finally {
-                            pv.countDown();
-                        }
-                    }
-                } else {
-                    restoreResult.setErrorMsg(entry.getConfigPv().getPvName() + " is not restoreable");
-                    countDownLatch.countDown();
+                    itemsToRestore.add(entry);
                 }
             }
 
             try {
-                countDownLatch.await(10, TimeUnit.MINUTES);
-            } catch (InterruptedException e) {
-                LOGGER.log(Level.INFO, "Encountered InterruptedException", e);
+                restoreResultList = snapshotUtil.restore(itemsToRestore);
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle(Messages.errorActionFailed);
+                    alert.setContentText(e.getMessage());
+                    alert.setHeaderText(Messages.restoreFailed);
+                    DialogHelper.positionDialog(alert, snapshotTableView, -150, -150);
+                    alert.showAndWait();
+                });
             }
-
+            // Legacy
             if (restoreResultList.isEmpty()) {
                 LOGGER.log(Level.FINE, "Restored snapshot {0}", snapshot.getSnapshotNode().getName());
             } else {
