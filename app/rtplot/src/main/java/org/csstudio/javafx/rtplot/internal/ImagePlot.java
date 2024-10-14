@@ -649,9 +649,16 @@ public class ImagePlot extends PlotCanvasBase
             logger.log(Level.FINE, "Autoscale range {0} .. {1}", new Object[] { min_value, max_value });
         }
 
-        // If log, min needs to be > 0
-        if (colorbar_axis.isLogarithmic()  &&  min_value <= 0.0)
-            min_value = 0.001;  // arbitrary minimum
+        if (colorbar_axis.isLogarithmic())
+        {   // If log, min needs to be > 0
+            if (min_value <= 0.0)
+                min_value = 0.001;  // arbitrary minimum
+        }
+        else
+        {   // Linear axis needs non-empty value range
+            if (Math.abs(max_value - min_value) < 1e-100)
+                max_value = min_value + 1.0; // Range suitable for most histogram-type plots
+        }
         colorbar_axis.setValueRange(min_value, max_value);
         if (need_layout.getAndSet(false))
             computeLayout(gc, area_copy, min_value, max_value);
