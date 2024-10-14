@@ -28,4 +28,13 @@ public class LoggingConfigurationToolbarEntry implements ToolbarEntry {
         ApplicationService.createInstance(LoggingConfigurationApplication.NAME);
         return null;
     }
+
+    /**
+     * DO NOT CHANGE RETURN VALUE!
+     * @return The unique id of this {@link ToolbarEntry}.
+     */
+    @Override
+    public String getId(){
+        return "Logging Config";
+    }
 }
