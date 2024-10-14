@@ -37,6 +37,7 @@ import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.ui.docking.DockPane;
@@ -128,6 +129,14 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     @FXML
     private RadioButton readFromArchiver;
 
+    @SuppressWarnings("unused")
+    @FXML
+    private RadioButton restoreFromClient;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private RadioButton restoreFromService;
+
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
     protected final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
@@ -154,6 +163,8 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     private final SimpleObjectProperty<Node> snapshotNodeProperty = new SimpleObjectProperty<>();
 
     private final SimpleObjectProperty<SnapshotMode> snapshotModeProperty = new SimpleObjectProperty<>(SnapshotMode.READ_PVS);
+
+    private final SimpleObjectProperty<RestoreMode> restoreModeProperty = new SimpleObjectProperty<>(RestoreMode.CLIENT_RESTORE);
 
     public void setSnapshotController(SnapshotController snapshotController) {
         this.snapshotController = snapshotController;
@@ -313,6 +324,29 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         toggleGroup.selectedToggleProperty().addListener((obs, o, n) -> {
             snapshotModeProperty.set((SnapshotMode) n.getUserData());
         });
+
+        restoreFromClient.setUserData(RestoreMode.CLIENT_RESTORE);
+        restoreFromService.setUserData(RestoreMode.SERVICE_RESTORE);
+
+        String restoreModeString = Preferences.default_restore_mode;
+        if (restoreModeString == null || restoreModeString.isEmpty()) {
+            restoreModeProperty.set(RestoreMode.CLIENT_RESTORE);
+        } else {
+            try {
+                restoreModeProperty.set(RestoreMode.valueOf(restoreModeString));
+            } catch (IllegalArgumentException e) {
+                logger.log(Level.WARNING, "Unknown restore mode \"" + restoreModeString + "\", defaulting to " + RestoreMode.CLIENT_RESTORE);
+                restoreModeProperty.set(RestoreMode.CLIENT_RESTORE);
+            }
+        }
+
+        ToggleGroup restoreToggleGroup = new ToggleGroup();
+        restoreToggleGroup.getToggles().addAll(restoreFromClient, restoreFromService);
+        restoreToggleGroup.selectToggle(restoreToggleGroup.getToggles().stream()
+                .filter(t -> t.getUserData().equals(restoreModeProperty.get())).findFirst().get());
+        restoreToggleGroup.selectedToggleProperty().addListener((obs, o, n) -> {
+            restoreModeProperty.set((RestoreMode) n.getUserData());
+        });
     }
 
     public SimpleStringProperty getSnapshotNameProperty() {
@@ -378,6 +412,9 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     public SnapshotMode getDefaultSnapshotMode() {
         return snapshotModeProperty.get();
+    }
+    public RestoreMode getRestoreMode() {
+        return restoreModeProperty.get();
     }
 
     public boolean logAction() {

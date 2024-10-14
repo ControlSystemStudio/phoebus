@@ -1,4 +1,4 @@
-package org.phoebus.service.saveandrestore.epics;
+package org.phoebus.saveandrestore.util;
 
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -7,11 +7,10 @@ import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,16 +34,11 @@ public class SnapshotUtil {
 
     private final Logger LOG = Logger.getLogger(SnapshotUtil.class.getName());
 
-    @SuppressWarnings("unused")
-    @Value("${connection.timeout:5000}")
-    private int connectionTimeout;
+    private int connectionTimeout = Preferences.connectionTimeout;
 
-    @SuppressWarnings("unused")
-    @Value("${write.timeout:5000}")
-    private int writeTimeout;
+    private int writeTimeout = Preferences.writeTimeout;
 
-    @Autowired
-    private ExecutorService executorService;
+    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     public SnapshotUtil() {
         final File site_settings = new File("settings.ini");
