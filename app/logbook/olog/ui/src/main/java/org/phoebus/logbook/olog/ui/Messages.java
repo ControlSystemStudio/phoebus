@@ -35,6 +35,8 @@ public class Messages
             GroupingFailed,
             GroupSelectedEntries,
             Level,
+            Logbook,
+            LogbookNotSupported,
             LogbooksSearchFailTitle,
             LogbookServiceUnavailableTitle,
             LogbookServiceHasNoLogbooks,
