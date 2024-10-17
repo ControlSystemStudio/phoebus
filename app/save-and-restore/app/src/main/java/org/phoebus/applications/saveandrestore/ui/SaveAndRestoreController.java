@@ -36,6 +36,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -50,9 +51,11 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
@@ -81,6 +84,7 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -175,6 +179,26 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
 
     private final CountDownLatch treeInitializationCountDownLatch = new CountDownLatch(1);
+
+    private ContextMenu contextMenu = new ContextMenu();
+    private MenuItem loginMenuItem = new MenuItem(Messages.login, ImageCache.getImageView(ImageCache.class, "/icons/credentials.png"));
+    private Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
+    private MenuItem deleteNodesMenuItem= new MenuItem(Messages.contextMenuDelete, new ImageView(ImageRepository.DELETE));
+    private MenuItem copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
+    private MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
+    private MenuItem renameNodeMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png")));
+    private MenuItem pasteMenuItem = new MenuItem(Messages.paste, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/paste.png")));
+    private MenuItem newConfigurationMenuItem = new MenuItem(Messages.contextMenuNewConfiguration, new ImageView(ImageRepository.CONFIGURATION));
+    private MenuItem newCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuNewCompositeSnapshot, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
+    private MenuItem importConfigurationToFolderMenuItem = new MenuItem(Messages.importConfigurationLabel, new ImageView(csvImportIcon));
+    private MenuItem createSnapshotMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(ImageRepository.SNAPSHOT));
+    private MenuItem copyMenuItem = new MenuItem(Messages.copy, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png")));
+    private MenuItem exportConfigurationMenuItem = new MenuItem(Messages.exportConfigurationLabel, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png")));
+    private MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, new ImageView(csvImportIcon));
+    private MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png")));
+
+    protected SimpleBooleanProperty mayPasteProperty =
+            new SimpleBooleanProperty();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -275,8 +299,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             treeView.getRoot().setValue(Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).name(name).build());
         });
 
+        configureContextMenuItems();
+        treeView.setContextMenu(contextMenu);
+
         loadTreeData();
     }
+
+
 
     /**
      * Loads the data for the tree root as provided (persisted) by the current
@@ -1504,5 +1533,89 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 nodeDoubleClicked(node);
             });
         });
+    }
+
+    private void configureContextMenuItems(){
+        loginMenuItem.setOnAction(ae -> ApplicationService.createInstance("credentials_management"));
+        loginMenuItem.visibleProperty().bind(userIdentity.isNull());
+
+        newFolderMenuItem.setOnAction(ae -> createNewFolder());
+        newFolderMenuItem.disableProperty().bind(userIdentity.isNull());
+        renameNodeMenuItem.setOnAction(ae -> renameNode());
+        renameNodeMenuItem.disableProperty().bind(userIdentity.isNull());
+        pasteMenuItem.setOnAction(ae -> pasteFromClipboard());
+        deleteNodesMenuItem.setOnAction(ae -> deleteNodes());
+        newConfigurationMenuItem.setOnAction(ae -> createNewConfiguration());
+        newConfigurationMenuItem.disableProperty().bind(userIdentity.isNull());
+        newCompositeSnapshotMenuItem.disableProperty().bind(userIdentity.isNull());
+        newCompositeSnapshotMenuItem.setOnAction(ae -> createNewCompositeSnapshot());
+        importConfigurationToFolderMenuItem.disableProperty().bind(userIdentity.isNull());
+        importConfigurationToFolderMenuItem.setOnAction(ae -> importConfiguration());
+        createSnapshotMenuItem.setOnAction(ae -> openConfigurationForSnapshot());
+        createSnapshotMenuItem.disableProperty().bind(userIdentity.isNull());
+        copyMenuItem.setOnAction(action -> copySelectionToClipboard());
+        exportConfigurationMenuItem.setOnAction(ae -> exportConfiguration());
+        exportConfigurationMenuItem.disableProperty().bind(userIdentity.isNull());
+        importSnapshotMenuItem.setOnAction(ae -> importSnapshot());
+        importSnapshotMenuItem.disableProperty().bind(userIdentity.isNull());
+        compareSnapshotsMenuItem.setOnAction(ae -> compareSnapshot());
+    }
+
+    @SuppressWarnings("unused")
+    @FXML
+    public void createContextMenu(ContextMenuEvent e){
+        ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
+        ObservableList<MenuItem> contextMenuItems = contextMenu.getItems();
+        contextMenuItems.clear();
+
+        // Login item always on top
+        contextMenuItems.add(loginMenuItem);
+
+        // Create snapshot, copy items
+        if(selectedItems.size() == 1 && selectedItems.get(0).getValue().getNodeType().equals(NodeType.CONFIGURATION)){
+            contextMenuItems.add(createSnapshotMenuItem);
+            copyMenuItem.disableProperty().setValue(!mayCopy());
+            contextMenuItems.add(copyMenuItem);
+        }
+
+        // New folder, New configuration, rename items
+        if(selectedItems.size() == 1 && selectedItems.get(0).getValue().getNodeType().equals(NodeType.FOLDER)){
+            contextMenuItems.add(newFolderMenuItem);
+            if(!selectedItems.get(0).getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)){
+                contextMenuItems.add(renameNodeMenuItem);
+            }
+        }
+
+        // Paste item
+        if(selectedItems.size() == 1 &&
+                (selectedItems.get(0).getValue().getNodeType().equals(NodeType.FOLDER) || selectedItems.get(0).getValue().getNodeType().equals(NodeType.CONFIGURATION)) &&
+                        !selectedItems.get(0).getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)){
+            pasteMenuItem.disableProperty().setValue(!mayPaste());
+            contextMenuItems.add(pasteMenuItem);
+        }
+
+        // Delete item
+        boolean rootNodeIncluded = selectedItems.stream().filter(t -> t.getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)).findFirst().isPresent();
+        deleteNodesMenuItem.disableProperty().setValue(userIdentity.isNull().get() || rootNodeIncluded || !hasSameParent());
+        if(selectedItems.stream().filter(t -> t.getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)).findFirst().isEmpty()){
+            contextMenuItems.add(deleteNodesMenuItem);
+        }
+
+        // New configuration, New composite snapshot, Copy unique id, import configuration items
+        if(selectedItems.size() == 1 &&
+                !selectedItems.get(0).getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)){
+            if(selectedItems.get(0).getValue().getNodeType().equals(NodeType.FOLDER)){
+                contextMenuItems.add(newConfigurationMenuItem);
+                contextMenuItems.add(newCompositeSnapshotMenuItem);
+            }
+            contextMenuItems.add(copyUniqueIdToClipboardMenuItem);
+            if(selectedItems.get(0).getValue().getNodeType().equals(NodeType.FOLDER)) {
+                contextMenuItems.add(importConfigurationToFolderMenuItem);
+            }
+            else if(selectedItems.get(0).getValue().getNodeType().equals(NodeType.CONFIGURATION)){
+                contextMenuItems.add(exportConfigurationMenuItem);
+                contextMenuItems.add(importSnapshotMenuItem);
+            }
+        }
     }
 }

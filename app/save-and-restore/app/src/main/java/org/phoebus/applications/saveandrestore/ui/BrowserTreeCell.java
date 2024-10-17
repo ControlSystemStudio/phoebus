@@ -168,6 +168,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         }
         // Tooltip with at least date and user id is set on all tree items
         setTooltip(new Tooltip(stringBuilder.toString()));
+
         switch (node.getNodeType()) {
             case SNAPSHOT:
                 if (node.hasTag(Tag.GOLDEN)) {
@@ -183,7 +184,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     hBox.getChildren().add(tagImage);
                 }
                 if(saveAndRestoreController != null){
-                    setContextMenu(new ContextMenuSnapshot(saveAndRestoreController));
+                    //setContextMenu(new ContextMenuSnapshot(saveAndRestoreController));
                 }
                 break;
             case COMPOSITE_SNAPSHOT:
@@ -196,14 +197,14 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     getChildren().add(tagImage);
                 }
                 if(saveAndRestoreController != null){
-                    setContextMenu(new ContextMenuCompositeSnapshot(saveAndRestoreController));
+                    //setContextMenu(new ContextMenuCompositeSnapshot(saveAndRestoreController));
                 }
                 break;
             case CONFIGURATION:
                 hBox.getChildren().add(new ImageView(ImageRepository.CONFIGURATION));
                 hBox.getChildren().add(new Label(node.getName()));
                 if(saveAndRestoreController != null){
-                    setContextMenu(new ContextMenuConfiguration(saveAndRestoreController));
+                    //setContextMenu(new ContextMenuConfiguration(saveAndRestoreController));
                 }
                 break;
             case FOLDER:
@@ -213,14 +214,16 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     setTooltip(new Tooltip(SaveAndRestoreService.getInstance().getServiceIdentifier()));
 
                     if(saveAndRestoreController != null){
-                        setContextMenu(new ContextMenuRootFolder(saveAndRestoreController));
+                        //setContextMenu(new ContextMenuRootFolder(saveAndRestoreController));
                     }
 
                 } else if (saveAndRestoreController != null){
-                    setContextMenu(new ContextMenuFolder(saveAndRestoreController));
+                    //setContextMenu(new ContextMenuFolder(saveAndRestoreController));
                 }
                 break;
         }
+
+
         setGraphic(hBox);
     }
 }
