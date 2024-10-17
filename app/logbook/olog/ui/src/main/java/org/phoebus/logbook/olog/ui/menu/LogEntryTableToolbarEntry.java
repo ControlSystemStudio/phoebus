@@ -37,4 +37,13 @@ public class LogEntryTableToolbarEntry implements ToolbarEntry {
     {
         return LogEntryTableApp.icon;
     }
+
+    /**
+     * DO NOT CHANGE RETURN VALUE!
+     * @return The unique id of this {@link ToolbarEntry}.
+     */
+    @Override
+    public String getId(){
+        return "Log Entry Table";
+    }
 }

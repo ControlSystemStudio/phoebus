@@ -41,4 +41,13 @@ public class CredentialsManagementToolbarEntry implements ToolbarEntry {
         ApplicationService.createInstance(CredentialsManagementApp.name);
         return null;
     }
+
+    /**
+     * DO NOT CHANGE RETURN VALUE!
+     * @return The unique id of this {@link ToolbarEntry}.
+     */
+    @Override
+    public String getId(){
+        return "Credentials Management";
+    }
 }

@@ -31,4 +31,12 @@ public interface ToolbarEntry extends Callable<Void> {
     {
         return null;
     }
+
+    /**
+     * A unique id for the {@link ToolbarEntry}. Implementations <b>must</b> ensure that this
+     * is indeed unique and immutable. In particular, it should be insensitive to localization and
+     * customization of an app name.
+     * @return Unique id of the {@link ToolbarEntry}.
+     */
+    String getId();
 }
