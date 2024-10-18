@@ -117,7 +117,7 @@ public class AdvancedSearchViewController {
     private final SimpleBooleanProperty requireAttachments = new SimpleBooleanProperty(false);
 
     private Runnable searchCallback = () -> {
-        throw new IllegalStateException("Search callback is not set on AdvancedSearchViewConroller!");
+        throw new IllegalStateException("Search callback is not set on AdvancedSearchViewController!");
     };
 
     private Consumer setPVForDecorationCallback = pvName -> {
