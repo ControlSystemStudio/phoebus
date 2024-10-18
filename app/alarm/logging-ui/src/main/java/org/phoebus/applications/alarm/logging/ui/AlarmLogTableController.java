@@ -150,7 +150,7 @@ public class AlarmLogTableController {
     public void initialize() {
         resize.setText("<");
         tableView.getColumns().clear();
-        configCol = new TableColumn<>("Config");
+
         configCol.setCellValueFactory(
                 alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getConfig()));
         tableView.getColumns().add(configCol);
@@ -159,7 +159,6 @@ public class AlarmLogTableController {
         pvCol.setCellValueFactory(alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getPv()));
         tableView.getColumns().add(pvCol);
 
-        severityCol = new TableColumn<>("Severity");
         severityCol.setCellValueFactory(
                 alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getSeverity()));
         severityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
@@ -179,12 +178,17 @@ public class AlarmLogTableController {
         });
         tableView.getColumns().add(severityCol);
 
-        messageCol = new TableColumn<>("Message");
         messageCol.setCellValueFactory(
                 alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getMessage()));
         tableView.getColumns().add(messageCol);
 
-        timeCol = new TableColumn<>("Time");
+        valueCol.setCellValueFactory(
+                alarmMessage -> {
+                    String value = alarmMessage.getValue().getValue(); 
+                    return new SimpleStringProperty(value);
+                });
+        tableView.getColumns().add(valueCol);
+
         timeCol.setCellValueFactory(
                 alarmMessage -> {
                     if (alarmMessage.getValue().getTime() != null) {
@@ -195,7 +199,6 @@ public class AlarmLogTableController {
                 });
         tableView.getColumns().add(timeCol);
 
-        msgTimeCol = new TableColumn<>("Message Time");
         msgTimeCol.setCellValueFactory(
                 alarmMessage -> {
                     String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getMessage_time());
@@ -203,17 +206,14 @@ public class AlarmLogTableController {
                 });
         tableView.getColumns().add(msgTimeCol);
 
-        deltaTimeCol = new TableColumn<>("Time Delta");
         deltaTimeCol.setCellValueFactory(
                 alarmMessage -> {
                     java.time.Duration delta = java.time.Duration.between(alarmMessage.getValue().getMessage_time(), Instant.now());
                     return new SimpleStringProperty(delta.toHours() + ":" + delta.toMinutesPart() + ":" + delta.toSecondsPart()
                             + "." + delta.toMillisPart());
                 });
-        deltaTimeCol.setVisible(false);
         tableView.getColumns().add(deltaTimeCol);
 
-        currentSeverityCol = new TableColumn<>("Current Severity");
         currentSeverityCol.setCellValueFactory(
                 alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getCurrent_severity()));
         currentSeverityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
@@ -234,12 +234,10 @@ public class AlarmLogTableController {
         });
         tableView.getColumns().add(currentSeverityCol);
 
-        currentMessageCol = new TableColumn<>("Current Message");
         currentMessageCol.setCellValueFactory(
                 alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getCurrent_message()));
         tableView.getColumns().add(currentMessageCol);
 
-        commandCol = new TableColumn<>("Command");
         commandCol.setCellValueFactory(
                 alarmMessage -> {
                     String action = alarmMessage.getValue().getCommand();
@@ -258,12 +256,10 @@ public class AlarmLogTableController {
                 });
         tableView.getColumns().add(commandCol);
 
-        userCol = new TableColumn<>("User");
         userCol.setCellValueFactory(
                 alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getUser()));
         tableView.getColumns().add(userCol);
 
-        hostCol = new TableColumn<>("Host");
         hostCol.setCellValueFactory(
                 alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getHost()));
         tableView.getColumns().add(hostCol);
