@@ -25,6 +25,13 @@ import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import org.csstudio.trends.databrowser3.archive.ArchiveFetchJob;
+import org.csstudio.trends.databrowser3.archive.ArchiveFetchJobListener;
+import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
+import org.csstudio.trends.databrowser3.model.PVItem;
+import org.csstudio.trends.databrowser3.model.PVSamples;
+import org.csstudio.trends.databrowser3.model.RequestType;
+import org.epics.vtype.VEnum;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.*;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
@@ -40,11 +47,17 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -100,6 +113,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private final SimpleBooleanProperty advancedSearchVisibile = new SimpleBooleanProperty(false);
 
+    private final AtomicReference<TreeMap<Instant, VEnum>> instantToValue = new AtomicReference<>();
     /**
      * Constructor.
      *
@@ -207,6 +221,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
         descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty<>(col.getValue()));
         descriptionCol.setCellFactory(col -> new TableCell<>() {
+            {
+                setStyle("-fx-padding: -1px");
+            }
+
             private final Node graphic;
             private final PseudoClass childlessTopLevel =
                     PseudoClass.getPseudoClass("grouped");
@@ -381,6 +399,95 @@ public class LogEntryTableViewController extends LogbookSearchController {
             pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
             refresh();
         });
+
+        decorate(searchResult);
+    }
+
+    private Optional<String> pvNameForDecoration = Optional.empty();
+
+    protected void setPVNameForDecoration(String pvName) {
+        if (pvName.equals("")) {
+            pvNameForDecoration = Optional.empty();
+        }
+        else {
+            pvNameForDecoration = Optional.of(pvName);
+        }
+        decorate(searchResult);
+    }
+
+    private void decorate(SearchResult searchResult) {
+        if (pvNameForDecoration.isPresent()) {
+            var x = searchResult.getLogs().stream().map(logEntry -> logEntry.getCreatedDate()).collect(Collectors.toUnmodifiableList());
+            Instant start = Collections.min(x);
+            Instant end = Collections.max(x);
+
+            retrievePVValues(pvNameForDecoration.get(), start, end);
+        }
+    }
+
+    private void retrievePVValues(String pvName,
+                                  Instant start,
+                                  Instant end) {
+            TreeMap<Instant, VEnum> newInstantToValue = new TreeMap<>();
+
+            PVItem pvItem = new PVItem(pvName, Double.MAX_VALUE);
+            pvItem.setRequestType(RequestType.RAW);
+
+            pvItem.useDefaultArchiveDataSources();
+
+            ArchiveFetchJobListener archiveFetchJobListener = new ArchiveFetchJobListener() {
+
+                @Override
+                public void fetchCompleted(ArchiveFetchJob archiveFetchJob) {
+                    PVSamples samples = pvItem.getSamples();
+                    Lock lock = samples.getLock();
+                    lock.lock();
+
+                    try {
+                        Optional<VEnum> mostRecentDataPointBeforeStart = Optional.empty(); // When merging data from multiple sources, there may be moe than one data point before the start of the time period.
+                        for (int i = 0; i < samples.size(); i++) {
+                            if (samples.get(i).getVType() instanceof VEnum vEnum) {
+                                if (vEnum.getTime().getTimestamp().equals(start) || vEnum.getTime().getTimestamp().isAfter(start)) {
+                                    newInstantToValue.put(vEnum.getTime().getTimestamp(), vEnum);
+                                }
+                                else if (vEnum.getTime().getTimestamp().isBefore(start)) {
+                                    if (mostRecentDataPointBeforeStart.isEmpty()) {
+                                        mostRecentDataPointBeforeStart = Optional.of(vEnum);
+                                    }
+                                    else if (vEnum.getTime().getTimestamp().isAfter(mostRecentDataPointBeforeStart.get().getTime().getTimestamp())) {
+                                        mostRecentDataPointBeforeStart = Optional.of(vEnum);
+                                    }
+                                }
+                            }
+                        }
+                        if (mostRecentDataPointBeforeStart.isPresent()) {
+                            newInstantToValue.put(mostRecentDataPointBeforeStart.get().getTime().getTimestamp(), mostRecentDataPointBeforeStart.get());
+                        }
+                        instantToValue.set(newInstantToValue);
+                        refresh();
+                    }
+                    finally {
+                        lock.unlock();
+                    }
+                }
+
+                @Override
+                public void archiveFetchFailed(ArchiveFetchJob archiveFetchJob, ArchiveDataSource archiveDataSource, Exception e) {
+
+                }
+
+                @Override
+                public void channelNotFound(ArchiveFetchJob archiveFetchJob, boolean b, List<ArchiveDataSource> list) {
+
+                }
+            };
+
+            ArchiveFetchJob archiveFetchJob = new ArchiveFetchJob(pvItem,
+                                                                  start,
+                                                                  end,
+                                                                  archiveFetchJobListener); // Note: The archive fetch job is automatically scheduled by the constructor!
+
+        return;
     }
 
     public void setQuery(String parsedQuery) {
@@ -396,7 +503,51 @@ public class LogEntryTableViewController extends LogbookSearchController {
         if (this.searchResult != null) {
             List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
             ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList();
-            logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le, showDetails.get())).toList());
+
+            List<LogEntry> logEntries = searchResult.getLogs();
+            logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
+
+            Map<LogEntry, List<VEnum>> logEntryToVEnumsFromPreviousLogEntryToLogEntry = new TreeMap<>((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
+            {
+                TreeMap<Instant, VEnum> instantToVEnum = instantToValue.get();
+
+                if (instantToVEnum != null) {
+                    Instant previousLogEntryCreatedDate = Instant.ofEpochSecond(0);
+                    Optional<VEnum> previousLogEntryVEnum = Optional.empty();
+                    for (int i=logEntries.size()-1; i>=0; i--) {
+                        LogEntry currentLogEntry = logEntries.get(i);
+                        Instant currentLogEntryCreatedDate = currentLogEntry.getCreatedDate();
+                        List<VEnum> vEnumsFromPreviousLogEntryToCurrentLogEntry = new LinkedList<>(instantToVEnum.subMap(previousLogEntryCreatedDate, false,
+                                                                                                                         currentLogEntryCreatedDate, true)
+                                                                                                                 .values());
+                        if (previousLogEntryVEnum.isPresent()) {
+                            // Append currentLogEntryVEnum to vEnumsFromPreviousLogEntryToCurrentLogEntry
+                            // so that the current status is known.
+                            vEnumsFromPreviousLogEntryToCurrentLogEntry.add(0, previousLogEntryVEnum.get());
+                        }
+
+                        Optional<VEnum> currentLogEntryVEnum;
+                        if (vEnumsFromPreviousLogEntryToCurrentLogEntry.isEmpty()) {
+                            // No changes have occurred since the last log entry.
+                            // Therefore, the VEnum of the last log entry is still
+                            // the current one.
+
+                            currentLogEntryVEnum = previousLogEntryVEnum;
+                        }
+                        else {
+                            currentLogEntryVEnum = Optional.of(vEnumsFromPreviousLogEntryToCurrentLogEntry.get(vEnumsFromPreviousLogEntryToCurrentLogEntry.size()-1));
+                        }
+                        logEntryToVEnumsFromPreviousLogEntryToLogEntry.put(currentLogEntry, vEnumsFromPreviousLogEntryToCurrentLogEntry);
+                        previousLogEntryCreatedDate = currentLogEntryCreatedDate;
+                        previousLogEntryVEnum = currentLogEntryVEnum;
+                    }
+                }
+            }
+
+            logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le,
+                                                                                            showDetails.get(),
+                                                                                            logEntryToVEnumsFromPreviousLogEntryToLogEntry.getOrDefault(le, null))).toList());
+
             tableView.setItems(logsList);
             // This will ensure that selected entries stay selected after the list has been
             // updated from the search result.
@@ -507,6 +658,19 @@ public class LogEntryTableViewController extends LogbookSearchController {
     public static class TableViewListItem {
         private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty(true);
         private final LogEntry logEntry;
+        private Optional<List<VEnum>> vEnumFromPreviousLogEntryToThisLogEntry = Optional.empty();
+
+        public TableViewListItem(LogEntry logEntry,
+                                 boolean showDetails,
+                                 List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry) {
+            this(logEntry, showDetails);
+            if (vEnumFromPreviousLogEntryToThisLogEntry != null) {
+                this.vEnumFromPreviousLogEntryToThisLogEntry = Optional.of(vEnumFromPreviousLogEntryToThisLogEntry);
+            }
+            else {
+                this.vEnumFromPreviousLogEntryToThisLogEntry = Optional.empty();
+            }
+        }
 
         public TableViewListItem(LogEntry logEntry, boolean showDetails) {
             this.logEntry = logEntry;
@@ -523,6 +687,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         public void setShowDetails(boolean show) {
             this.showDetails.set(show);
+        }
+
+        protected Optional<List<VEnum>> getVEnumFromPreviousLogEntryToThisLogEntry() {
+            return vEnumFromPreviousLogEntryToThisLogEntry;
         }
     }
 

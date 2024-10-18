@@ -53,8 +53,12 @@ public class LogEntryTable implements AppInstance {
                             logEntryTableViewController.setGoBackAndGoForwardActions(goBackAndGoForwardActions);
                             return logEntryTableViewController;
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
-                            return clazz.getConstructor(LogClient.class, SearchParameters.class)
-                                    .newInstance(app.getClient(), searchParameters);
+                            AdvancedSearchViewController advancedSearchViewController = (AdvancedSearchViewController) clazz.getConstructor(LogClient.class, SearchParameters.class)
+                                                                                                                            .newInstance(app.getClient(), searchParameters);
+                            advancedSearchViewController.setSetPVForDecorationCallback(pvName -> {
+                                controller.setPVNameForDecoration(pvName);
+                            });
+                            return advancedSearchViewController;
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                             SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                             singleLogEntryDisplayController.setSelectLogEntryInUI(id -> goBackAndGoForwardActions.loadLogEntryWithID(id));

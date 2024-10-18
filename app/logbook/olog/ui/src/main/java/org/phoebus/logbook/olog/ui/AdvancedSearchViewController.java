@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -107,6 +108,9 @@ public class AdvancedSearchViewController {
     @FXML
     private TextField attachmentTypes;
 
+    @FXML
+    private TextField decorationsPV1;
+
     private SearchParameters searchParameters;
 
     private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
@@ -116,6 +120,10 @@ public class AdvancedSearchViewController {
         throw new IllegalStateException("Search callback is not set on AdvancedSearchViewConroller!");
     };
 
+    private Consumer setPVForDecorationCallback = pvName -> {
+        throw new IllegalStateException("Set PVs for decoration callback is not set on AdvancedSearchViewController!");
+    };
+
     public AdvancedSearchViewController(LogClient logClient, SearchParameters searchParameters) {
         this.logClient = logClient;
         this.searchParameters = searchParameters;
@@ -123,6 +131,10 @@ public class AdvancedSearchViewController {
 
     public void setSearchCallback(Runnable searchCallback) {
         this.searchCallback = searchCallback;
+    }
+
+    protected void setSetPVForDecorationCallback(Consumer<String> setPVForDecorationCallback) {
+        this.setPVForDecorationCallback = setPVForDecorationCallback;
     }
 
     @FXML
@@ -148,6 +160,15 @@ public class AdvancedSearchViewController {
             updateControls(newValue);
         });
         sortAscending.addListener(searchOnSortChange);
+
+        decorationsPV1.setOnAction(actionEvent -> {
+            setPVForDecorationCallback.accept(decorationsPV1.getText());
+        });
+        decorationsPV1.focusedProperty().addListener((property, oldValue, newValue) -> {
+            if (oldValue && !newValue) {
+                setPVForDecorationCallback.accept(decorationsPV1.getText());
+            }
+        });
 
         attachmentTypes.textProperty().bindBidirectional(this.searchParameters.attachmentsProperty());
         attachmentTypes.setOnKeyReleased(this::searchOnEnter);
