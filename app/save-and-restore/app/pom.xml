@@ -23,6 +23,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
+			<artifactId>save-and-restore-util</artifactId>
+			<version>4.7.4-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.phoebus</groupId>
 			<artifactId>app-display-model</artifactId>
 			<version>4.7.4-SNAPSHOT</version>
 		</dependency>
@@ -75,6 +81,7 @@
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
+
 
 	</dependencies>
 	<build>
