@@ -48,7 +48,7 @@
                     <TextField fx:id="searchHost" GridPane.columnSpan="2" GridPane.rowIndex="13" />
                     <Label text="%Command" GridPane.rowIndex="14" />
                     <TextField fx:id="searchCommand" GridPane.columnSpan="2" GridPane.rowIndex="15" />
-                    <Label text="%Time" GridPane.columnSpan="2" GridPane.rowIndex="16">
+                    <Label text="%MessageTime" GridPane.columnSpan="2" GridPane.rowIndex="16">
                         <GridPane.margin>
                             <Insets top="5.0" />
                         </GridPane.margin>
