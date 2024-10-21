@@ -16,14 +16,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore;
+package org.phoebus.saveandrestore.util;
 
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 
 /**
  * Preferences for save-and-restore. HTTP connection preferences managed in sub-package class
- * {@link org.phoebus.applications.saveandrestore.client.Preferences}
+ * {@link org.phoebus.saveandrestore.util.Preferences}
  */
 public class Preferences {
 
@@ -31,39 +31,15 @@ public class Preferences {
      * Timeout for PV read operations when taking snapshot.
      */
     @Preference
-    public static int readTimeout;
+    public static int connectionTimeout;
 
     /**
      * Page size used in search UI.
      */
     @Preference
-    public static int search_result_page_size;
-
-    /**
-     * Default search query in search UI.
-     */
-    @Preference
-    public static String default_search_query;
-
-    /**
-     * Date format of default/automatic snapshot name.
-     */
-    @Preference
-    public static String default_snapshot_name_date_format;
-
-    /**
-     * Default snapshot mode
-     */
-    @Preference
-    public static String default_snapshot_mode;
-
-    /**
-     * Default restore mode
-     */
-    @Preference
-    public static String default_restore_mode;
+    public static int writeTimeout;
 
     static {
-        AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");
+        AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_util_preferences.properties");
     }
 }

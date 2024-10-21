@@ -51,8 +51,8 @@ import org.phoebus.ui.javafx.ImageCache;
  */
 
 public class TagWidget {
-    public static final Image snapshotTagWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tag.png");
-    public static final Image snapshotAddTagWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-add_tag.png");
+    public static final Image snapshotTagIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tag.png");
+    public static final Image snapshotAddTagIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-add_tag.png");
     public static final Image snapshotTrashcanIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-trashcan.png");
 
     /**
@@ -110,8 +110,8 @@ public class TagWidget {
      *
      * @return Add {@link Tag} {@link CustomMenuItem}
      */
-    public static CustomMenuItem AddTagWithCommentMenuItem() {
-        return getBaseWidget(snapshotAddTagWithCommentIcon, Messages.contextMenuAddTagWithComment);
+    public static CustomMenuItem AddTagMenuItem() {
+        return getBaseWidget(snapshotAddTagIcon, Messages.contextMenuAddTag);
     }
 
     /**
@@ -129,14 +129,12 @@ public class TagWidget {
      * @param tag {@link Tag} to show
      * @return {@link CustomMenuItem} with a customized {@link Node}
      */
-    public static CustomMenuItem TagWithCommentMenuItem(Tag tag) {
-        ImageView imageView = new ImageView(snapshotTagWithCommentIcon);
+    public static CustomMenuItem TagMenuItem(Tag tag) {
+        ImageView imageView = new ImageView(snapshotTagIcon);
         imageView.setFitWidth(22);
         imageView.setFitHeight(22);
 
         Label tagName = new Label(tag.getName());
-        Label tagComment = new Label(tag.getComment());
-        tagComment.setFont(Font.font(Font.getDefault().getSize()*0.9));
 
         Label tagCreator = new Label(tag.getUserName());
         Label tagCreated = new Label(tag.getCreated().toString());
@@ -144,7 +142,7 @@ public class TagWidget {
 
         VBox vBoxLeft = new VBox();
         vBoxLeft.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/save-and-restore-style.css").toExternalForm());
-        vBoxLeft.getChildren().addAll(tagName, tagComment);
+        vBoxLeft.getChildren().addAll(tagName);
 
         VBox vBoxRight = new VBox();
         vBoxRight.setAlignment(Pos.CENTER_RIGHT);
