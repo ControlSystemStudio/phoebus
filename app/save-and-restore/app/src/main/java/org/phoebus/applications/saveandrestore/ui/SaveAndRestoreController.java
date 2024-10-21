@@ -26,6 +26,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -73,6 +74,7 @@ import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
@@ -82,6 +84,7 @@ import org.phoebus.applications.saveandrestore.ui.search.SearchAndFilterTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
+import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -111,6 +114,7 @@ import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -180,7 +184,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private final CountDownLatch treeInitializationCountDownLatch = new CountDownLatch(1);
 
-    private ContextMenu contextMenu = new ContextMenu();
+    private final ContextMenu contextMenu = new ContextMenu();
     private MenuItem loginMenuItem = new MenuItem(Messages.login, ImageCache.getImageView(ImageCache.class, "/icons/credentials.png"));
     private Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
     private MenuItem deleteNodesMenuItem= new MenuItem(Messages.contextMenuDelete, new ImageView(ImageRepository.DELETE));
@@ -196,9 +200,24 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private MenuItem exportConfigurationMenuItem = new MenuItem(Messages.exportConfigurationLabel, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png")));
     private MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, new ImageView(csvImportIcon));
     private MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png")));
+    private MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
+    private final Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT));
+    private final  MenuItem exportSnapshotMenuItem = new MenuItem(Messages.exportSnapshotLabel, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png")));
+    private final MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
 
-    protected SimpleBooleanProperty mayPasteProperty =
-            new SimpleBooleanProperty();
+    private final SimpleBooleanProperty multipleNodeSelection = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty rootNodeSelected = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty selectionHasSameParent = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty mayCopyProperty = new SimpleBooleanProperty();
+    protected final SimpleBooleanProperty mayPasteProperty = new SimpleBooleanProperty();
+    private final SimpleObjectProperty<NodeType> selectedItemNodeTypeProperty = new SimpleObjectProperty<>(NodeType.FOLDER);
+    private final SimpleBooleanProperty compareSnapshotsPossible = new SimpleBooleanProperty();
+    /**
+     * Indicates if a selection of snapshot nodes are tagged (or not tagged) equally with respect to the Golden tag.
+     */
+    private final SimpleBooleanProperty snapshotTagsEqual = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty snapshotsOnlySelection = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty snapshotOrCompositeSnapshotOnlySelection = new SimpleBooleanProperty();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -209,7 +228,29 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         saveAndRestoreService = SaveAndRestoreService.getInstance();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
+
         browserSelectionModel = treeView.getSelectionModel();
+        browserSelectionModel.getSelectedItems().addListener((ListChangeListener<TreeItem<Node>>) change -> {
+            /*
+            ObservableList<? extends TreeItem<Node>> selectedItems = change.getList();
+            multipleNodeSelection.setValue(selectedItems.size() > 1);
+            rootNodeSelected.setValue(selectedItems.stream().filter(t -> t.getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)).findFirst().isPresent());
+            selectionHasSameParent.setValue(hasSameParent());
+            mayCopyProperty.setValue(mayCopy());
+            mayPasteProperty.setValue(mayPaste());
+            if(selectedItems.size() > 0){
+                selectedItemNodeTypeProperty.set(selectedItems.get(0).getValue().getNodeType());
+            }
+            compareSnapshotsPossible.setValue(compareSnapshotsPossible());
+            snapshotsOnlySelection.set(selectedItems.stream().filter(t ->
+                    !t.getValue().getNodeType().equals(NodeType.SNAPSHOT)).findFirst().isEmpty());
+            snapshotOrCompositeSnapshotOnlySelection.set(selectedItems.stream().filter(t ->
+                    !t.getValue().getNodeType().equals(NodeType.SNAPSHOT) &&
+                    !t.getValue().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty());
+            snapshotTagsEqual.setValue(snapshotsTaggedEqual(selectedItems));
+
+             */
+        });
 
         ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
         searchButtonImageView.setFitWidth(20);
@@ -299,8 +340,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             treeView.getRoot().setValue(Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).name(name).build());
         });
 
-        configureContextMenuItems();
-        treeView.setContextMenu(contextMenu);
+        JobManager.schedule("Configure context menu", monitor -> {
+            configureContextMenuItems();
+            treeView.setContextMenu(contextMenu);
+        });
 
         loadTreeData();
     }
@@ -1538,84 +1581,232 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private void configureContextMenuItems(){
         loginMenuItem.setOnAction(ae -> ApplicationService.createInstance("credentials_management"));
         loginMenuItem.visibleProperty().bind(userIdentity.isNull());
+        contextMenu.getItems().add(loginMenuItem);
 
         newFolderMenuItem.setOnAction(ae -> createNewFolder());
-        newFolderMenuItem.disableProperty().bind(userIdentity.isNull());
-        renameNodeMenuItem.setOnAction(ae -> renameNode());
-        renameNodeMenuItem.disableProperty().bind(userIdentity.isNull());
-        pasteMenuItem.setOnAction(ae -> pasteFromClipboard());
-        deleteNodesMenuItem.setOnAction(ae -> deleteNodes());
-        newConfigurationMenuItem.setOnAction(ae -> createNewConfiguration());
-        newConfigurationMenuItem.disableProperty().bind(userIdentity.isNull());
-        newCompositeSnapshotMenuItem.disableProperty().bind(userIdentity.isNull());
-        newCompositeSnapshotMenuItem.setOnAction(ae -> createNewCompositeSnapshot());
-        importConfigurationToFolderMenuItem.disableProperty().bind(userIdentity.isNull());
-        importConfigurationToFolderMenuItem.setOnAction(ae -> importConfiguration());
+        newFolderMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            multipleNodeSelection.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER),
+            userIdentity, multipleNodeSelection, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(newFolderMenuItem);
+
+        editCompositeSnapshotMenuItem.setOnAction(ae -> editCompositeSnapshot());
+        editCompositeSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            multipleNodeSelection.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.COMPOSITE_SNAPSHOT),
+            userIdentity, multipleNodeSelection, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(editCompositeSnapshotMenuItem);
+
         createSnapshotMenuItem.setOnAction(ae -> openConfigurationForSnapshot());
-        createSnapshotMenuItem.disableProperty().bind(userIdentity.isNull());
+        createSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            multipleNodeSelection.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION),
+            userIdentity, multipleNodeSelection, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(createSnapshotMenuItem);
+
+        renameNodeMenuItem.setOnAction(ae -> renameNode());
+        renameNodeMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            multipleNodeSelection.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER) &&
+            rootNodeSelected.not().get(),
+            userIdentity, multipleNodeSelection, selectedItemNodeTypeProperty, rootNodeSelected));
+        contextMenu.getItems().add(renameNodeMenuItem);
+
         copyMenuItem.setOnAction(action -> copySelectionToClipboard());
-        exportConfigurationMenuItem.setOnAction(ae -> exportConfiguration());
-        exportConfigurationMenuItem.disableProperty().bind(userIdentity.isNull());
-        importSnapshotMenuItem.setOnAction(ae -> importSnapshot());
-        importSnapshotMenuItem.disableProperty().bind(userIdentity.isNull());
+        copyMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            rootNodeSelected.not().get() &&
+            mayCopyProperty.get() &&
+            (selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION) || selectedItemNodeTypeProperty.get().equals(NodeType.COMPOSITE_SNAPSHOT)),
+            userIdentity, rootNodeSelected, mayCopyProperty, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(copyMenuItem);
+
+        pasteMenuItem.setOnAction(ae -> pasteFromClipboard());
+        pasteMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            rootNodeSelected.not().get() &&
+            mayPasteProperty.get() &&
+            (selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER) || selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION)),
+            userIdentity, rootNodeSelected, mayPasteProperty, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(pasteMenuItem);
+
+        deleteNodesMenuItem.setOnAction(ae -> deleteNodes());
+        deleteNodesMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            rootNodeSelected.not().get() &&
+            selectionHasSameParent.get(),
+            userIdentity, rootNodeSelected, selectionHasSameParent));
+        contextMenu.getItems().add(deleteNodesMenuItem);
+
         compareSnapshotsMenuItem.setOnAction(ae -> compareSnapshot());
+        compareSnapshotsMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            compareSnapshotsPossible.get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.SNAPSHOT),
+            compareSnapshotsPossible, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(compareSnapshotsMenuItem);
+
+        tagGoldenMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            snapshotsOnlySelection.get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.SNAPSHOT) &&
+            snapshotTagsEqual.get(),
+            userIdentity, snapshotsOnlySelection, selectedItemNodeTypeProperty, snapshotTagsEqual));
+        contextMenu.getItems().add(tagGoldenMenuItem);
+
+        tagWithComment.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            (snapshotsOnlySelection.get() || snapshotOrCompositeSnapshotOnlySelection.get()),
+            userIdentity, snapshotsOnlySelection, snapshotOrCompositeSnapshotOnlySelection));
+        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        addTagWithCommentMenuItem.setOnAction(action -> addTagToSnapshots());
+        tagWithComment.getItems().addAll(addTagWithCommentMenuItem);
+        contextMenu.getItems().add(tagWithComment);
+
+        newConfigurationMenuItem.setOnAction(ae -> createNewConfiguration());
+        newConfigurationMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            multipleNodeSelection.not().get() &&
+            rootNodeSelected.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER),
+            userIdentity, multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(newConfigurationMenuItem);
+
+        newCompositeSnapshotMenuItem.setOnAction(ae -> createNewCompositeSnapshot());
+        newCompositeSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            multipleNodeSelection.not().get() &&
+            rootNodeSelected.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER),
+            userIdentity, multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(newCompositeSnapshotMenuItem);
+
+        importConfigurationToFolderMenuItem.setOnAction(ae -> importConfiguration());
+        importConfigurationToFolderMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            multipleNodeSelection.not().get() &&
+            rootNodeSelected.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER),
+            userIdentity, multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(importConfigurationToFolderMenuItem);
+
+        copyUniqueIdToClipboardMenuItem.setOnAction(ae -> copySelectionToClipboard());
+        copyUniqueIdToClipboardMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            rootNodeSelected.not().get() &&
+            multipleNodeSelection.not().get(),
+            rootNodeSelected, multipleNodeSelection));
+        contextMenu.getItems().add(copyUniqueIdToClipboardMenuItem);
+
+        importSnapshotMenuItem.setOnAction(ae -> importSnapshot());
+        importSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            userIdentity.isNull().not().get() &&
+            multipleNodeSelection.not().get() &&
+            rootNodeSelected.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION),
+            userIdentity, multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(importSnapshotMenuItem);
+
+        exportConfigurationMenuItem.setOnAction(ae -> exportConfiguration());
+        exportConfigurationMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            rootNodeSelected.not().get() &&
+            multipleNodeSelection.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION),
+            rootNodeSelected, multipleNodeSelection, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(exportConfigurationMenuItem);
+
+        exportSnapshotMenuItem.setOnAction(ae -> exportSnapshot());
+        exportSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+            multipleNodeSelection.not().get() &&
+            rootNodeSelected.not().get() &&
+            selectedItemNodeTypeProperty.get().equals(NodeType.SNAPSHOT),
+            multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
+        contextMenu.getItems().add(exportSnapshotMenuItem);
     }
+
 
     @SuppressWarnings("unused")
     @FXML
     public void createContextMenu(ContextMenuEvent e){
-        ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
-        ObservableList<MenuItem> contextMenuItems = contextMenu.getItems();
-        contextMenuItems.clear();
 
-        // Login item always on top
-        contextMenuItems.add(loginMenuItem);
-
-        // Create snapshot, copy items
-        if(selectedItems.size() == 1 && selectedItems.get(0).getValue().getNodeType().equals(NodeType.CONFIGURATION)){
-            contextMenuItems.add(createSnapshotMenuItem);
-            copyMenuItem.disableProperty().setValue(!mayCopy());
-            contextMenuItems.add(copyMenuItem);
+        ObservableList<? extends TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
+        multipleNodeSelection.setValue(selectedItems.size() > 1);
+        rootNodeSelected.setValue(selectedItems.stream().filter(t -> t.getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)).findFirst().isPresent());
+        selectionHasSameParent.setValue(hasSameParent());
+        mayCopyProperty.setValue(mayCopy());
+        mayPasteProperty.setValue(mayPaste());
+        if(selectedItems.size() > 0){
+            selectedItemNodeTypeProperty.set(selectedItems.get(0).getValue().getNodeType());
         }
+        compareSnapshotsPossible.setValue(compareSnapshotsPossible());
+        snapshotsOnlySelection.set(selectedItems.stream().filter(t ->
+                !t.getValue().getNodeType().equals(NodeType.SNAPSHOT)).findFirst().isEmpty());
+        snapshotOrCompositeSnapshotOnlySelection.set(selectedItems.stream().filter(t ->
+                !t.getValue().getNodeType().equals(NodeType.SNAPSHOT) &&
+                        !t.getValue().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty());
+        snapshotTagsEqual.setValue(snapshotsTaggedEqual(selectedItems));
 
-        // New folder, New configuration, rename items
-        if(selectedItems.size() == 1 && selectedItems.get(0).getValue().getNodeType().equals(NodeType.FOLDER)){
-            contextMenuItems.add(newFolderMenuItem);
-            if(!selectedItems.get(0).getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)){
-                contextMenuItems.add(renameNodeMenuItem);
-            }
+        if(tagGoldenMenuItem.visibleProperty().get()){
+            configureTagGoldenMenuItem();
         }
-
-        // Paste item
-        if(selectedItems.size() == 1 &&
-                (selectedItems.get(0).getValue().getNodeType().equals(NodeType.FOLDER) || selectedItems.get(0).getValue().getNodeType().equals(NodeType.CONFIGURATION)) &&
-                        !selectedItems.get(0).getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)){
-            pasteMenuItem.disableProperty().setValue(!mayPaste());
-            contextMenuItems.add(pasteMenuItem);
+        if (tagWithComment.visibleProperty().get()) {
+            tagWithComment(tagWithComment);
         }
+    }
 
-        // Delete item
-        boolean rootNodeIncluded = selectedItems.stream().filter(t -> t.getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)).findFirst().isPresent();
-        deleteNodesMenuItem.disableProperty().setValue(userIdentity.isNull().get() || rootNodeIncluded || !hasSameParent());
-        if(selectedItems.stream().filter(t -> t.getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)).findFirst().isEmpty()){
-            contextMenuItems.add(deleteNodesMenuItem);
+
+
+    private boolean snapshotsTaggedEqual(ObservableList<? extends TreeItem<Node>> selectedItems){
+        List<Node> snapshotNodes =
+                selectedItems.stream().filter(t -> t.getValue().getNodeType().equals(NodeType.SNAPSHOT))
+                        .map(TreeItem::getValue).toList();
+        AtomicInteger goldenTagCount = new AtomicInteger();
+        snapshotNodes.forEach(n -> {
+            if(n.hasTag(Tag.GOLDEN)){
+                goldenTagCount.incrementAndGet();
+            }
+        });
+        return goldenTagCount.get() == 0 || goldenTagCount.get() == snapshotNodes.size();
+    }
+
+    private void configureTagGoldenMenuItem(){
+        if(browserSelectionModel.getSelectedItems().get(0).getValue().hasTag(Tag.GOLDEN)){
+            tagGoldenMenuItem.setText(Messages.contextMenuRemoveGoldenTag);
+            tagGoldenMenuItem.setGraphic(new ImageView(ImageRepository.SNAPSHOT));
+            tagGoldenMenuItem.setOnAction(event -> {
+                TagData tagData = new TagData();
+                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
+                tagData.setUniqueNodeIds(browserSelectionModel.getSelectedItems().stream()
+                        .map(t -> t.getValue().getUniqueId()).collect(Collectors.toList()));
+                try {
+                    SaveAndRestoreService.getInstance().deleteTag(tagData);
+                } catch (Exception e) {
+                    ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                            Messages.errorDeleteTagFailed,
+                            e);
+                    logger.log(Level.SEVERE, "Failed to delete tag");
+                }
+            });
         }
-
-        // New configuration, New composite snapshot, Copy unique id, import configuration items
-        if(selectedItems.size() == 1 &&
-                !selectedItems.get(0).getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)){
-            if(selectedItems.get(0).getValue().getNodeType().equals(NodeType.FOLDER)){
-                contextMenuItems.add(newConfigurationMenuItem);
-                contextMenuItems.add(newCompositeSnapshotMenuItem);
-            }
-            contextMenuItems.add(copyUniqueIdToClipboardMenuItem);
-            if(selectedItems.get(0).getValue().getNodeType().equals(NodeType.FOLDER)) {
-                contextMenuItems.add(importConfigurationToFolderMenuItem);
-            }
-            else if(selectedItems.get(0).getValue().getNodeType().equals(NodeType.CONFIGURATION)){
-                contextMenuItems.add(exportConfigurationMenuItem);
-                contextMenuItems.add(importSnapshotMenuItem);
-            }
+        else{
+            tagGoldenMenuItem.setText(Messages.contextMenuTagAsGolden);
+            tagGoldenMenuItem.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
+            tagGoldenMenuItem.setOnAction(event -> {
+                TagData tagData = new TagData();
+                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
+                tagData.setUniqueNodeIds(browserSelectionModel.getSelectedItems().stream()
+                        .map(t -> t.getValue().getUniqueId()).collect(Collectors.toList()));
+                try {
+                    SaveAndRestoreService.getInstance().addTag(tagData);
+                } catch (Exception e) {
+                    ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                            Messages.errorAddTagFailed,
+                            e);
+                    Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to add tag");
+                }
+            });
         }
     }
 }

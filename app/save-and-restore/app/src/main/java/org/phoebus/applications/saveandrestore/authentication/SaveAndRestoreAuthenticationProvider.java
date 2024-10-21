@@ -20,6 +20,7 @@
 package org.phoebus.applications.saveandrestore.authentication;
 
 import org.phoebus.applications.saveandrestore.Preferences;
+import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
@@ -36,7 +37,9 @@ public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticati
     public void authenticate(String username, String password){
         SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
         try {
-            saveAndRestoreService.authenticate(username, password);
+            UserData userData = saveAndRestoreService.authenticate(username, password);
+            Logger.getLogger(SaveAndRestoreAuthenticationProvider.class.getName())
+                    .log(Level.INFO, "User " + userData.getUserName() + " successfully signed in");
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestoreAuthenticationProvider.class.getName())
                     .log(Level.WARNING, "Failed to authenticate user " + username + " against save&restore service", e);
