@@ -46,7 +46,6 @@ import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -93,7 +92,7 @@ public class TagUtil {
         return commonTags;
     }
 
-    public static void tagWithComment(Menu parentMenu,
+    public static void tag(Menu parentMenu,
                                       List<org.phoebus.applications.saveandrestore.model.Node> selectedNodes,
                                       Consumer<List<org.phoebus.applications.saveandrestore.model.Node>> callback) {
         AtomicInteger nonSnapshotCount = new AtomicInteger(0);
@@ -119,7 +118,7 @@ public class TagUtil {
             additionalItems.add(new SeparatorMenuItem());
             commonTags.sort(new TagComparator());
             commonTags.forEach(tag -> {
-                CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
+                CustomMenuItem tagItem = TagWidget.TagMenuItem(tag);
                 tagItem.setOnAction(actionEvent -> {
                     Alert confirmation = new Alert(AlertType.CONFIRMATION);
                     confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
@@ -159,11 +158,10 @@ public class TagUtil {
         AutocompleteMenu autocompleteMenu = new AutocompleteMenu(proposalService);
         snapshotNewTagDialog.configureAutocompleteMenu(autocompleteMenu);
         List<org.phoebus.applications.saveandrestore.model.Node> updatedNodes = new ArrayList<>();
-        Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
+        Optional<String> result = snapshotNewTagDialog.showAndWait();
         result.ifPresent(items -> {
             Tag aNewTag = Tag.builder()
-                    .name(items.getKey())
-                    .comment(items.getValue())
+                    .name(items.trim())
                     .created(new Date())
                     .userName(System.getProperty("user.name"))
                     .build();

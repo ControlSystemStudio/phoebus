@@ -1039,17 +1039,17 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Configures the "tag with comment" sub-menu. Items are added based on existing {@link Tag}s on the
+     * Configures the "tag" sub-menu. Items are added based on existing {@link Tag}s on the
      * selected {@link Node}s
      *
-     * @param tagWithCommentMenu The {@link Menu} subject to configuration.
+     * @param tagMenu The {@link Menu} subject to configuration.
      */
-    public void tagWithComment(final Menu tagWithCommentMenu) {
+    public void tag(final Menu tagMenu) {
 
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
 
-        TagUtil.tagWithComment(tagWithCommentMenu, selectedNodes, updatedNodes -> updatedNodes.forEach(this::nodeChanged));
+        TagUtil.tag(tagMenu, selectedNodes, updatedNodes -> updatedNodes.forEach(this::nodeChanged));
     }
 
     /**

@@ -38,7 +38,7 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
     public ContextMenuCompositeSnapshot(SaveAndRestoreController saveAndRestoreController) {
         super(saveAndRestoreController);
 
-        Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
+        Image snapshotTagsIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
 
         MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
         editCompositeSnapshotMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
@@ -48,20 +48,20 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
                 userIsAuthenticatedProperty.not().get() || multipleNodesSelectedProperty.get(),
                 userIsAuthenticatedProperty, multipleNodesSelectedProperty));
 
-        ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
-        snapshotTagsWithCommentIconImage.setFitHeight(22);
-        snapshotTagsWithCommentIconImage.setFitWidth(22);
+        ImageView snapshotTagsIconImage = new ImageView(snapshotTagsIcon);
+        snapshotTagsIconImage.setFitHeight(22);
+        snapshotTagsIconImage.setFitWidth(22);
 
-        Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment));
-        tagWithComment.disableProperty().bind(Bindings.createBooleanBinding(() ->
+        Menu tags = new Menu(Messages.contextMenuTags, snapshotTagsIconImage);
+        tags.setOnShowing(event -> saveAndRestoreController.tag(tags));
+        tags.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get(),
                 multipleNodesSelectedProperty, userIsAuthenticatedProperty));
 
-        CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.setOnAction(action -> saveAndRestoreController.addTagToSnapshots());
+        CustomMenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
+        addTagMenuItem.setOnAction(action -> saveAndRestoreController.addTagToSnapshots());
 
-        tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
+        tags.getItems().addAll(addTagMenuItem, new SeparatorMenuItem());
 
         Image copyIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png");
         MenuItem copyMenuItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
@@ -76,8 +76,7 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
                 copyMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
-                copyUniqueIdAsResourceUrlToClipboardMenuItem,
-                tagWithComment);
+                tags);
     }
 
     /**

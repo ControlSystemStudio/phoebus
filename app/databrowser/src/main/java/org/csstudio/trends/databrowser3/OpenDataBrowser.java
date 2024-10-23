@@ -18,30 +18,34 @@ import javafx.scene.image.Image;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class OpenDataBrowser implements MenuEntry, ToolbarEntry
-{
+public class OpenDataBrowser implements MenuEntry, ToolbarEntry {
     @Override
-    public String getName()
-    {
+    public String getName() {
         return Messages.DataBrowser;
     }
 
     @Override
-    public String getMenuPath()
-    {
+    public String getMenuPath() {
         return Messages.DataBrowserMenuPath;
     }
 
     @Override
-    public Image getIcon()
-    {
+    public Image getIcon() {
         return ImageCache.getImage(getClass(), "/icons/databrowser.png");
     }
 
     @Override
-    public Void call() throws Exception
-    {
+    public Void call() throws Exception {
         ApplicationService.createInstance(DataBrowserApp.NAME);
         return null;
+    }
+
+    /**
+     * DO NOT CHANGE RETURN VALUE!
+     * @return The unique id of this {@link ToolbarEntry}.
+     */
+    @Override
+    public String getId(){
+        return "Data Browser";
     }
 }
