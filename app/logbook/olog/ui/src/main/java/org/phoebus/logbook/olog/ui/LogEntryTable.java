@@ -53,12 +53,7 @@ public class LogEntryTable implements AppInstance {
                             logEntryTableViewController.setGoBackAndGoForwardActions(goBackAndGoForwardActions);
                             return logEntryTableViewController;
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
-                            AdvancedSearchViewController advancedSearchViewController = (AdvancedSearchViewController) clazz.getConstructor(LogClient.class, SearchParameters.class)
-                                                                                                                            .newInstance(app.getClient(), searchParameters);
-                            advancedSearchViewController.setSetPVForDecorationCallback(pvName -> {
-                                controller.setPVNameForDecoration(pvName);
-                            });
-                            return advancedSearchViewController;
+                            return clazz.getConstructor(LogClient.class, SearchParameters.class).newInstance(app.getClient(), searchParameters);
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                             SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                             singleLogEntryDisplayController.setSelectLogEntryInUI(id -> goBackAndGoForwardActions.loadLogEntryWithID(id));
@@ -73,6 +68,12 @@ public class LogEntryTable implements AppInstance {
                             return clazz.getConstructor().newInstance();
                         } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
                             return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
+                        } else if (clazz.isAssignableFrom(DecorationsController.class)) {
+                            DecorationsController decorationsController = (DecorationsController) clazz.getConstructor().newInstance();
+                            decorationsController.setSetPVForDecorationCallback(pvName -> {
+                                controller.setPVNameForDecoration.accept(pvName);
+                            });
+                            return decorationsController;
                         }
                     } else {
                         // no logbook client available

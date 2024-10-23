@@ -109,7 +109,7 @@ public class AdvancedSearchViewController {
     private TextField attachmentTypes;
 
     @FXML
-    private TextField decorationsPV1;
+    public DecorationsController decorationsController;
 
     private SearchParameters searchParameters;
 
@@ -120,10 +120,6 @@ public class AdvancedSearchViewController {
         throw new IllegalStateException("Search callback is not set on AdvancedSearchViewController!");
     };
 
-    private Consumer setPVForDecorationCallback = pvName -> {
-        throw new IllegalStateException("Set PVs for decoration callback is not set on AdvancedSearchViewController!");
-    };
-
     public AdvancedSearchViewController(LogClient logClient, SearchParameters searchParameters) {
         this.logClient = logClient;
         this.searchParameters = searchParameters;
@@ -131,10 +127,6 @@ public class AdvancedSearchViewController {
 
     public void setSearchCallback(Runnable searchCallback) {
         this.searchCallback = searchCallback;
-    }
-
-    protected void setSetPVForDecorationCallback(Consumer<String> setPVForDecorationCallback) {
-        this.setPVForDecorationCallback = setPVForDecorationCallback;
     }
 
     @FXML
@@ -160,15 +152,6 @@ public class AdvancedSearchViewController {
             updateControls(newValue);
         });
         sortAscending.addListener(searchOnSortChange);
-
-        decorationsPV1.setOnAction(actionEvent -> {
-            setPVForDecorationCallback.accept(decorationsPV1.getText());
-        });
-        decorationsPV1.focusedProperty().addListener((property, oldValue, newValue) -> {
-            if (oldValue && !newValue) {
-                setPVForDecorationCallback.accept(decorationsPV1.getText());
-            }
-        });
 
         attachmentTypes.textProperty().bindBidirectional(this.searchParameters.attachmentsProperty());
         attachmentTypes.setOnKeyReleased(this::searchOnEnter);

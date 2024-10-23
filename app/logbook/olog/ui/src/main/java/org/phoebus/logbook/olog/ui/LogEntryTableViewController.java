@@ -58,6 +58,7 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -405,7 +406,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private Optional<String> pvNameForDecoration = Optional.empty();
 
-    protected void setPVNameForDecoration(String pvName) {
+    protected Consumer<String> setPVNameForDecoration = pvName -> {
         if (pvName.equals("")) {
             pvNameForDecoration = Optional.empty();
         }
@@ -413,7 +414,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             pvNameForDecoration = Optional.of(pvName);
         }
         decorate(searchResult);
-    }
+    };
 
     private void decorate(SearchResult searchResult) {
         if (pvNameForDecoration.isPresent()) {

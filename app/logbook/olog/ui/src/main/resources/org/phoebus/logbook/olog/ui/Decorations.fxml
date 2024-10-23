@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane fx:id="decorationsController"
+            xmlns="http://javafx.com/javafx/16"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.phoebus.logbook.olog.ui.DecorationsController">
+    <children>
+        <VBox>
+            <Label text="Decorations" style="-fx-font-weight: bold;" />
+            <HBox>
+                <Label text="PV: " />
+                <TextField fx:id="PV" />
+            </HBox>
+        </VBox>
+    </children>
+</AnchorPane>
