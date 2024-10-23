@@ -62,7 +62,7 @@ public abstract class SaveAndRestoreTab extends Tab implements NodeChangedListen
         setContextMenu(contextMenu);
     }
 
-    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         controller.secureStoreChanged(validTokens);
     }
 }

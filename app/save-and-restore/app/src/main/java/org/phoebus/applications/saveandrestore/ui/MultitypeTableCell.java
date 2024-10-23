@@ -10,8 +10,6 @@
  */
 package org.phoebus.applications.saveandrestore.ui;
 
-import java.util.List;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -21,25 +19,24 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TextField;
 import javafx.util.StringConverter;
 
+import java.util.List;
+
 /**
- *
  * <code>MultitypeTableCell</code> is a table cell which is used for editing multiple types of values. Based on the
  * return value of the {@link #isTextFieldType()} the cell will display either a text field or a combo box. The combo
  * box will show the values provided to the {@link #setItems(List)} method.
  *
- * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
- *
  * @param <S> the type of table view generic
  * @param <T> the type of the item in this cell
+ * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  */
 public class MultitypeTableCell<S, T> extends TableCell<S, T> {
 
     private TextField textField;
     private ComboBox<T> comboBox;
-    private final ObjectProperty<StringConverter<T>> converter = new SimpleObjectProperty<StringConverter<T>>(this,
-        "converter");
+    private final ObjectProperty<StringConverter<T>> converter = new SimpleObjectProperty<>(this,
+            "converter");
     private final ObservableList<T> items = FXCollections.observableArrayList();
-
 
 
     /**
@@ -59,7 +56,7 @@ public class MultitypeTableCell<S, T> extends TableCell<S, T> {
      * @param converter the converter
      */
     public void setConverter(StringConverter<T> converter) {
-        this.converter.set(converter == null ? CellUtils.<T> defaultStringConverter() : converter);
+        this.converter.set(converter == null ? CellUtils.defaultStringConverter() : converter);
     }
 
     /**

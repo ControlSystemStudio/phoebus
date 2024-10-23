@@ -20,7 +20,6 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.scene.image.Image;
-import org.phoebus.applications.saveandrestore.ui.search.SearchWindowController;
 import org.phoebus.ui.javafx.ImageCache;
 
 /**
@@ -44,7 +43,7 @@ public class ImageRepository {
             ImageCache.getImage(ImageRepository.class, "/icons/save-and-restore/edit-configuration.png");
 
     public static final Image SNAPSHOT_ADD_TAG_WITH_COMMENT =
-        ImageCache.getImage(ImageRepository.class, "/icons/save-and-restore/snapshot-add_tag.png");
+            ImageCache.getImage(ImageRepository.class, "/icons/save-and-restore/snapshot-add_tag.png");
 
     public static final Image DELETE = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
 }

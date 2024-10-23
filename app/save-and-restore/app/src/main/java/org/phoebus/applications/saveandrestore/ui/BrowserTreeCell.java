@@ -183,9 +183,6 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     tagImage.setPreserveRatio(true);
                     hBox.getChildren().add(tagImage);
                 }
-                if(saveAndRestoreController != null){
-                    //setContextMenu(new ContextMenuSnapshot(saveAndRestoreController));
-                }
                 break;
             case COMPOSITE_SNAPSHOT:
                 hBox.getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
@@ -196,33 +193,19 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     tagImage.setPreserveRatio(true);
                     getChildren().add(tagImage);
                 }
-                if(saveAndRestoreController != null){
-                    //setContextMenu(new ContextMenuCompositeSnapshot(saveAndRestoreController));
-                }
                 break;
             case CONFIGURATION:
                 hBox.getChildren().add(new ImageView(ImageRepository.CONFIGURATION));
                 hBox.getChildren().add(new Label(node.getName()));
-                if(saveAndRestoreController != null){
-                    //setContextMenu(new ContextMenuConfiguration(saveAndRestoreController));
-                }
                 break;
             case FOLDER:
                 hBox.getChildren().add(new ImageView(ImageRepository.FOLDER));
                 hBox.getChildren().add(new Label(node.getName()));
                 if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     setTooltip(new Tooltip(SaveAndRestoreService.getInstance().getServiceIdentifier()));
-
-                    if(saveAndRestoreController != null){
-                        //setContextMenu(new ContextMenuRootFolder(saveAndRestoreController));
-                    }
-
-                } else if (saveAndRestoreController != null){
-                    //setContextMenu(new ContextMenuFolder(saveAndRestoreController));
                 }
                 break;
         }
-
 
         setGraphic(hBox);
     }

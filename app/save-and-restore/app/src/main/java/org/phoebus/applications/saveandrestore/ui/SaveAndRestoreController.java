@@ -45,6 +45,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -52,7 +53,6 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -80,6 +80,21 @@ import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.CompareSnapshotsMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.CopyMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.CopyUniqueIdToClipboardMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.CreateSnapshotMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.DeleteNodeMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.EditCompositeMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.ExportToCSVMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.ImportFromCSVMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.NewCompositeSnapshotMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.NewConfigurationMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.NewFolderMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.PasteMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.RenameFolderMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.TagGoldenMenuItem;
 import org.phoebus.applications.saveandrestore.ui.search.SearchAndFilterTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -114,7 +129,6 @@ import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -160,7 +174,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private static final String FILTER_NAME = "filter_name";
 
-    protected static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
+    protected static final Logger LOG = Logger.getLogger(SaveAndRestoreController.class.getName());
 
     protected Comparator<TreeItem<Node>> treeNodeComparator;
 
@@ -185,39 +199,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private final CountDownLatch treeInitializationCountDownLatch = new CountDownLatch(1);
 
     private final ContextMenu contextMenu = new ContextMenu();
-    private MenuItem loginMenuItem = new MenuItem(Messages.login, ImageCache.getImageView(ImageCache.class, "/icons/credentials.png"));
-    private Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
-    private MenuItem deleteNodesMenuItem= new MenuItem(Messages.contextMenuDelete, new ImageView(ImageRepository.DELETE));
-    private MenuItem copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
-    private MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
-    private MenuItem renameNodeMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png")));
-    private MenuItem pasteMenuItem = new MenuItem(Messages.paste, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/paste.png")));
-    private MenuItem newConfigurationMenuItem = new MenuItem(Messages.contextMenuNewConfiguration, new ImageView(ImageRepository.CONFIGURATION));
-    private MenuItem newCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuNewCompositeSnapshot, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
-    private MenuItem importConfigurationToFolderMenuItem = new MenuItem(Messages.importConfigurationLabel, new ImageView(csvImportIcon));
-    private MenuItem createSnapshotMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(ImageRepository.SNAPSHOT));
-    private MenuItem copyMenuItem = new MenuItem(Messages.copy, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png")));
-    private MenuItem exportConfigurationMenuItem = new MenuItem(Messages.exportConfigurationLabel, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png")));
-    private MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, new ImageView(csvImportIcon));
-    private MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png")));
-    private MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
-    private final Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT));
-    private final  MenuItem exportSnapshotMenuItem = new MenuItem(Messages.exportSnapshotLabel, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png")));
-    private final MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
+    private final Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-add_tag.png")));
 
-    private final SimpleBooleanProperty multipleNodeSelection = new SimpleBooleanProperty();
-    private final SimpleBooleanProperty rootNodeSelected = new SimpleBooleanProperty();
-    private final SimpleBooleanProperty selectionHasSameParent = new SimpleBooleanProperty();
-    private final SimpleBooleanProperty mayCopyProperty = new SimpleBooleanProperty();
-    protected final SimpleBooleanProperty mayPasteProperty = new SimpleBooleanProperty();
-    private final SimpleObjectProperty<NodeType> selectedItemNodeTypeProperty = new SimpleObjectProperty<>(NodeType.FOLDER);
-    private final SimpleBooleanProperty compareSnapshotsPossible = new SimpleBooleanProperty();
-    /**
-     * Indicates if a selection of snapshot nodes are tagged (or not tagged) equally with respect to the Golden tag.
-     */
-    private final SimpleBooleanProperty snapshotTagsEqual = new SimpleBooleanProperty();
-    private final SimpleBooleanProperty snapshotsOnlySelection = new SimpleBooleanProperty();
     private final SimpleBooleanProperty snapshotOrCompositeSnapshotOnlySelection = new SimpleBooleanProperty();
+
+    private final ObservableList<Node> selectedItemsProperty = FXCollections.observableArrayList();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -231,6 +217,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         browserSelectionModel = treeView.getSelectionModel();
         browserSelectionModel.getSelectedItems().addListener((ListChangeListener<TreeItem<Node>>) change -> {
+
             /*
             ObservableList<? extends TreeItem<Node>> selectedItems = change.getList();
             multipleNodeSelection.setValue(selectedItems.size() > 1);
@@ -244,12 +231,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             compareSnapshotsPossible.setValue(compareSnapshotsPossible());
             snapshotsOnlySelection.set(selectedItems.stream().filter(t ->
                     !t.getValue().getNodeType().equals(NodeType.SNAPSHOT)).findFirst().isEmpty());
-            snapshotOrCompositeSnapshotOnlySelection.set(selectedItems.stream().filter(t ->
-                    !t.getValue().getNodeType().equals(NodeType.SNAPSHOT) &&
-                    !t.getValue().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty());
-            snapshotTagsEqual.setValue(snapshotsTaggedEqual(selectedItems));
-
-             */
+            snapshotTagsEqual.setValue(snapshotsTaggedEqual(selectedItems));*/
         });
 
         ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
@@ -347,7 +329,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         loadTreeData();
     }
-
 
 
     /**
@@ -455,20 +436,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Action when user requests comparison between an opened snapshot and a snapshot item selected from
-     * the tree view.
+     * Action when user requests comparison between an opened snapshot and the selected {@link Node}.
      */
-    protected void compareSnapshot() {
-        compareSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
-    }
-
-
-    /**
-     * Action when user requests comparison between an opened snapshot and the specifies snapshot {@link Node}
-     *
-     * @param node The snapshot used in the comparison.
-     */
-    protected void compareSnapshot(Node node) {
+    private void compareSnapshot() {
+        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         if (tab == null) {
             return;
@@ -486,17 +457,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * Deletes the tree items selected in the tree view.
      */
-    protected void deleteNodes() {
-        deleteNodes(browserSelectionModel.getSelectedItems());
-    }
-
-    /**
-     * Deletes the specified tree nodes from the tree view.
-     *
-     * @param selectedItems List of nodes to delete.
-     */
-    private void deleteNodes(ObservableList<TreeItem<Node>> selectedItems) {
-
+    private void deleteNodes() {
+        ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle(Messages.promptDeleteSelectedTitle);
         alert.setHeaderText(Messages.promptDeleteSelectedHeader);
@@ -549,7 +511,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * Opens a new snapshot view tab associated with the selected configuration.
      */
-    protected void openConfigurationForSnapshot() {
+    public void openConfigurationForSnapshot() {
         TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
         tab.newSnapshot(treeItem.getValue());
@@ -588,16 +550,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * Creates a new folder {@link Node}.
      */
-    protected void createNewFolder() {
-        createNewFolder(browserSelectionModel.getSelectedItems().get(0));
-    }
-
-    /**
-     * Creates a new folder {@link Node} in the specified parent.
-     *
-     * @param parentTreeItem The tree node to which a new folder is added.
-     */
-    protected void createNewFolder(TreeItem<Node> parentTreeItem) {
+    private void createNewFolder() {
+        TreeItem<Node> parentTreeItem = browserSelectionModel.getSelectedItems().get(0);
         List<String> existingFolderNames =
                 parentTreeItem.getChildren().stream()
                         .filter(item -> item.getValue().getNodeType().equals(NodeType.FOLDER))
@@ -757,31 +711,16 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * Creates a new configuration in the selected tree node.
      */
-    protected void createNewConfiguration() {
+    public void createNewConfiguration() {
         launchTabForNewConfiguration(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
-    protected void createNewCompositeSnapshot() {
+    public void createNewCompositeSnapshot() {
         launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue(),
                 Collections.emptyList());
     }
 
-    /**
-     * Renames a node through the service and its underlying data provider.
-     * If there is a problem in the call to the remote service,
-     * the user is shown a suitable error dialog and the name of the node is restored.
-     */
-    protected void renameNode() {
-        TreeItem<Node> node = browserSelectionModel.getSelectedItems().get(0);
-        List<String> existingSiblingNodes =
-                node.getParent().getChildren().stream()
-                        .filter(item -> item.getValue().getNodeType().equals(node.getValue().getNodeType()))
-                        .map(item -> item.getValue().getName())
-                        .collect(Collectors.toList());
-        renameNode(node.getValue(), existingSiblingNodes);
-    }
-
-    protected void copyUniqueNodeIdToClipboard() {
+    private void copyUniqueNodeIdToClipboard() {
         Node node = browserSelectionModel.getSelectedItem().getValue();
         ClipboardContent content = new ClipboardContent();
         content.putString(node.getUniqueId());
@@ -789,19 +728,24 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Renames the selected node. A check is made to ensure that user cannot specify a name
-     * that is the same as any of its sibling nodes if they are of the same {@link Node} type.
-     *
-     * @param node                 The node to rename
-     * @param existingSiblingNodes List of sibling nodes
+     * Renames a node through the service and its underlying data provider.
+     * If there is a problem in the call to the remote service,
+     * the user is shown a suitable error dialog and the name of the node is restored.
      */
-    public void renameNode(Node node, List<String> existingSiblingNodes) {
+    private void renameNode() {
+        TreeItem<Node> node = browserSelectionModel.getSelectedItems().get(0);
+        List<String> existingSiblingNodes =
+                node.getParent().getChildren().stream()
+                        .filter(item -> item.getValue().getNodeType().equals(node.getValue().getNodeType()))
+                        .map(item -> item.getValue().getName())
+                        .toList();
+
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle(Messages.promptRenameNodeTitle);
         dialog.setContentText(Messages.promptRenameNodeContent);
         dialog.setHeaderText(null);
         dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
-        dialog.getEditor().textProperty().setValue(node.getName());
+        dialog.getEditor().textProperty().setValue(node.getValue().getName());
 
         dialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
             String value = newValue.trim();
@@ -812,15 +756,15 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         Optional<String> result = dialog.showAndWait();
 
         if (result.isPresent()) {
-            node.setName(result.get());
+            node.getValue().setName(result.get());
             try {
-                saveAndRestoreService.updateNode(node);
+                saveAndRestoreService.updateNode(node.getValue());
                 // Since a changed node name may push the node to a different location in the tree view,
                 // we need to locate it to keep it selected. The tree view will otherwise "select" the node
                 // at the previous position of the renamed node. This is standard JavaFX TreeView behavior
                 // where TreeItems are "recycled", and updated by the cell renderer.
                 Stack<Node> copiedStack = new Stack<>();
-                DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
+                DirectoryUtilities.CreateLocationStringAndNodeStack(node.getValue(), false).getValue().forEach(copiedStack::push);
                 locateNode(copiedStack);
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
@@ -837,7 +781,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * @param node The {@link Node} object for the {@link TreeItem}.
      * @return The new {@link TreeItem}.
      */
-    protected TreeItem<Node> createTreeItem(final Node node) {
+    private TreeItem<Node> createTreeItem(final Node node) {
         return new TreeItem<>(node) {
             @Override
             public boolean isLeaf() {
@@ -996,54 +940,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Imports a configuration to a folder {@link Node} from file.
+     * Imports configuration or snapshot from CSV.
      */
-    protected void importConfiguration() {
+    private void importFromCSV(){
         Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
         try {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(Messages.importConfigurationLabel);
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.bms"));
-            File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
-            if (file != null) {
-                CSVImporter.importFile(node, file);
-            }
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "CSV import failed", e);
-        }
-    }
-
-    /**
-     * Exports a configuration to file.
-     */
-    protected void exportConfiguration() {
-        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
-        try {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(Messages.exportConfigurationLabel);
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (BMS compatible)", "*.csv"));
-            fileChooser.setInitialFileName(browserSelectionModel.getSelectedItems().get(0).getValue().getName());
-            File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
-            if (file != null) {
-                if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
-                    file = new File(file.getAbsolutePath() + ".csv");
-                }
-
-                CSVExporter.export(node, file.getAbsolutePath());
-            }
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Configuration export failed", e);
-        }
-    }
-
-    /**
-     * Imports a snapshot from file to a configuration. Contents must match the PV list of the selected configuration.
-     */
-    protected void importSnapshot() {
-        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
-        try {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(Messages.importSnapshotLabel);
+            fileChooser.setTitle(node.getNodeType().equals(NodeType.FOLDER) ? Messages.importConfigurationLabel : Messages.importSnapshotLabel);
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.snp"));
             File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
             if (file != null) {
@@ -1055,23 +958,18 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Exports a snapshot to file from selected snapshot node.
+     * Exports configuration or snapshot to CSV.
      */
-    protected void exportSnapshot() {
-        exportSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
-    }
-
-    /**
-     * Exports the specified snapshot node
-     *
-     * @param node The snapshot {@link Node} to export.
-     */
-    public void exportSnapshot(Node node) {
+    private void exportToCSV(){
+        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
         try {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(Messages.exportSnapshotLabel);
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (SNP compatible)", "*.csv"));
-            fileChooser.setInitialFileName(browserSelectionModel.getSelectedItems().get(0).getValue().getName());
+            fileChooser.setTitle(node.getNodeType().equals(NodeType.FOLDER) ? Messages.exportConfigurationLabel : Messages.exportSnapshotLabel);
+            String extensionFilterDesc = node.getNodeType().equals(NodeType.CONFIGURATION) ?
+                    "CSV (BMS compatible)" :
+                    "CSV (SNP compatible)";
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(extensionFilterDesc, "*.csv"));
+            fileChooser.setInitialFileName(node.getName());
             File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
             if (file != null) {
                 if (!file.getAbsolutePath().toLowerCase().endsWith("csv")) {
@@ -1107,30 +1005,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-
         TagUtil.tagWithComment(tagWithCommentMenu, selectedNodes, updatedNodes -> updatedNodes.forEach(this::nodeChanged));
     }
-
-    /**
-     * Configures the "tag as golden" menu item. Depending on the occurrence of the golden {@link Tag} on the
-     * selected {@link Node}s, the logic goes as:
-     * <ul>
-     *     <li>If all selected {@link Node}s have been tagged as golden, the item will offer possibility to remove
-     *     the tag on all {@link Node}s.</li>
-     *     <li>If none of the selected {@link Node}s have been tagged as golden, the item will offer possibility
-     *     to add the tag on all {@link Node}s.</li>
-     *     <li>If some - but not all - of the selected {@link Node}s have been tagged as golden, the item is disabled.</li>
-     * </ul>
-     *
-     * @param menuItem The {@link MenuItem} subject to configuration.
-     * @return <code>false</code> if the menu item should be disabled.
-     */
-    public boolean configureGoldenItem(MenuItem menuItem) {
-        List<Node> selectedNodes =
-                browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        return TagUtil.configureGoldenItem(selectedNodes, menuItem);
-    }
-
 
     /**
      * Performs check of selection to determine if all selected nodes are of same type.
@@ -1265,11 +1141,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 logger.log(Level.WARNING, "Action '" + action + "' not supported");
         }
     }
-
-    public void findSnapshotReferences() {
-        // TODO: implement this as a search request and use search result UI to display result.
-    }
-
     /**
      * @param node A {@link Node} to be checked
      * @return <code>true</code> if a {@link Filter} is enabled/selected and if the {@link Node} is
@@ -1387,7 +1258,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
     }
 
-    public void copySelectionToClipboard() {
+    private void copySelectionToClipboard() {
         List<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
         ClipboardContent clipboardContent = new ClipboardContent();
@@ -1450,7 +1321,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         } else return !nodeTypeOfFirst.equals(NodeType.SNAPSHOT) || nodeTypeOfTarget.equals(NodeType.CONFIGURATION);
     }
 
-    public void pasteFromClipboard() {
+    private void pasteFromClipboard() {
         disabledUi.set(true);
         Object selectedNodes = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
         if (selectedNodes == null || browserSelectionModel.getSelectedItems().size() != 1) {
@@ -1494,24 +1365,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             }
         }
         return true;
-    }
-
-    /**
-     * @return <code>true</code> selection contains multiple {@link Node}s, otherwise <code>false</code>.
-     */
-    public boolean multipleNodesSelected() {
-        return browserSelectionModel.getSelectedItems().size() > 1;
-    }
-
-    /**
-     * Checks if selection is not allowed, i.e. not all selected nodes are snapshot nodes.
-     *
-     * @return <code>false</code> if any of the selected nodes is of type {@link NodeType#FOLDER} or
-     * {@link NodeType#CONFIGURATION}. Since these {@link NodeType}s cannot be tagged.
-     */
-    public boolean checkTaggable() {
-        return browserSelectionModel.getSelectedItems().stream().filter(i -> i.getValue().getNodeType().equals(NodeType.FOLDER) ||
-                i.getValue().getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isEmpty();
     }
 
     /**
@@ -1578,235 +1431,102 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         });
     }
 
-    private void configureContextMenuItems(){
-        loginMenuItem.setOnAction(ae -> ApplicationService.createInstance("credentials_management"));
-        loginMenuItem.visibleProperty().bind(userIdentity.isNull());
-        contextMenu.getItems().add(loginMenuItem);
+    /**
+     * Creates context menu items.
+     */
+    private void configureContextMenuItems() {
+        contextMenu.getItems().add(new LoginMenuItem(this, selectedItemsProperty,
+                unused -> ApplicationService.createInstance("credentials_management")));
+        contextMenu.getItems().add(new NewFolderMenuItem(this, selectedItemsProperty,
+                unused -> createNewFolder()));
+        contextMenu.getItems().add(new NewConfigurationMenuItem(this, selectedItemsProperty,
+                unused -> createNewConfiguration()));
+        contextMenu.getItems().add(new CreateSnapshotMenuItem(this, selectedItemsProperty,
+                unused -> openConfigurationForSnapshot()));
+        contextMenu.getItems().add(new NewCompositeSnapshotMenuItem(this, selectedItemsProperty,
+                unused -> createNewCompositeSnapshot()));
+        contextMenu.getItems().add(new SeparatorMenuItem());
+        contextMenu.getItems().add(new EditCompositeMenuItem(this, selectedItemsProperty,
+                unused -> editCompositeSnapshot()));
 
-        newFolderMenuItem.setOnAction(ae -> createNewFolder());
-        newFolderMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            multipleNodeSelection.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER),
-            userIdentity, multipleNodeSelection, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(newFolderMenuItem);
+        contextMenu.getItems().add(new RenameFolderMenuItem(this, selectedItemsProperty,
+                unused -> renameNode()));
+        contextMenu.getItems().add(new CopyMenuItem(this, selectedItemsProperty, unused -> copySelectionToClipboard()));
+        contextMenu.getItems().add(new PasteMenuItem(this, selectedItemsProperty,
+                unused -> pasteFromClipboard()));
+        contextMenu.getItems().add(new DeleteNodeMenuItem(this, selectedItemsProperty,
+                unused -> deleteNodes()));
+        contextMenu.getItems().add(new SeparatorMenuItem());
 
-        editCompositeSnapshotMenuItem.setOnAction(ae -> editCompositeSnapshot());
-        editCompositeSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            multipleNodeSelection.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.COMPOSITE_SNAPSHOT),
-            userIdentity, multipleNodeSelection, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(editCompositeSnapshotMenuItem);
+        contextMenu.getItems().add(new CompareSnapshotsMenuItem(this, selectedItemsProperty,
+                unused -> compareSnapshot()));
+        contextMenu.getItems().add(new TagGoldenMenuItem(this, selectedItemsProperty, null));
 
-        createSnapshotMenuItem.setOnAction(ae -> openConfigurationForSnapshot());
-        createSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            multipleNodeSelection.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION),
-            userIdentity, multipleNodeSelection, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(createSnapshotMenuItem);
-
-        renameNodeMenuItem.setOnAction(ae -> renameNode());
-        renameNodeMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            multipleNodeSelection.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER) &&
-            rootNodeSelected.not().get(),
-            userIdentity, multipleNodeSelection, selectedItemNodeTypeProperty, rootNodeSelected));
-        contextMenu.getItems().add(renameNodeMenuItem);
-
-        copyMenuItem.setOnAction(action -> copySelectionToClipboard());
-        copyMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            rootNodeSelected.not().get() &&
-            mayCopyProperty.get() &&
-            (selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION) || selectedItemNodeTypeProperty.get().equals(NodeType.COMPOSITE_SNAPSHOT)),
-            userIdentity, rootNodeSelected, mayCopyProperty, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(copyMenuItem);
-
-        pasteMenuItem.setOnAction(ae -> pasteFromClipboard());
-        pasteMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            rootNodeSelected.not().get() &&
-            mayPasteProperty.get() &&
-            (selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER) || selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION)),
-            userIdentity, rootNodeSelected, mayPasteProperty, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(pasteMenuItem);
-
-        deleteNodesMenuItem.setOnAction(ae -> deleteNodes());
-        deleteNodesMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            rootNodeSelected.not().get() &&
-            selectionHasSameParent.get(),
-            userIdentity, rootNodeSelected, selectionHasSameParent));
-        contextMenu.getItems().add(deleteNodesMenuItem);
-
-        compareSnapshotsMenuItem.setOnAction(ae -> compareSnapshot());
-        compareSnapshotsMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            compareSnapshotsPossible.get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.SNAPSHOT),
-            compareSnapshotsPossible, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(compareSnapshotsMenuItem);
-
-        tagGoldenMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            snapshotsOnlySelection.get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.SNAPSHOT) &&
-            snapshotTagsEqual.get(),
-            userIdentity, snapshotsOnlySelection, selectedItemNodeTypeProperty, snapshotTagsEqual));
-        contextMenu.getItems().add(tagGoldenMenuItem);
-
-        tagWithComment.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            (snapshotsOnlySelection.get() || snapshotOrCompositeSnapshotOnlySelection.get()),
-            userIdentity, snapshotsOnlySelection, snapshotOrCompositeSnapshotOnlySelection));
         MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
         addTagWithCommentMenuItem.setOnAction(action -> addTagToSnapshots());
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem);
         contextMenu.getItems().add(tagWithComment);
 
-        newConfigurationMenuItem.setOnAction(ae -> createNewConfiguration());
-        newConfigurationMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            multipleNodeSelection.not().get() &&
-            rootNodeSelected.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER),
-            userIdentity, multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(newConfigurationMenuItem);
 
-        newCompositeSnapshotMenuItem.setOnAction(ae -> createNewCompositeSnapshot());
-        newCompositeSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            multipleNodeSelection.not().get() &&
-            rootNodeSelected.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER),
-            userIdentity, multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(newCompositeSnapshotMenuItem);
-
-        importConfigurationToFolderMenuItem.setOnAction(ae -> importConfiguration());
-        importConfigurationToFolderMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            multipleNodeSelection.not().get() &&
-            rootNodeSelected.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.FOLDER),
-            userIdentity, multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(importConfigurationToFolderMenuItem);
-
-        copyUniqueIdToClipboardMenuItem.setOnAction(ae -> copySelectionToClipboard());
-        copyUniqueIdToClipboardMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            rootNodeSelected.not().get() &&
-            multipleNodeSelection.not().get(),
-            rootNodeSelected, multipleNodeSelection));
-        contextMenu.getItems().add(copyUniqueIdToClipboardMenuItem);
-
-        importSnapshotMenuItem.setOnAction(ae -> importSnapshot());
-        importSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            userIdentity.isNull().not().get() &&
-            multipleNodeSelection.not().get() &&
-            rootNodeSelected.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION),
-            userIdentity, multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(importSnapshotMenuItem);
-
-        exportConfigurationMenuItem.setOnAction(ae -> exportConfiguration());
-        exportConfigurationMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            rootNodeSelected.not().get() &&
-            multipleNodeSelection.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.CONFIGURATION),
-            rootNodeSelected, multipleNodeSelection, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(exportConfigurationMenuItem);
-
-        exportSnapshotMenuItem.setOnAction(ae -> exportSnapshot());
-        exportSnapshotMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            multipleNodeSelection.not().get() &&
-            rootNodeSelected.not().get() &&
-            selectedItemNodeTypeProperty.get().equals(NodeType.SNAPSHOT),
-            multipleNodeSelection, rootNodeSelected, selectedItemNodeTypeProperty));
-        contextMenu.getItems().add(exportSnapshotMenuItem);
+        contextMenu.getItems().add(new SeparatorMenuItem());
+        contextMenu.getItems().add(new CopyUniqueIdToClipboardMenuItem(this, selectedItemsProperty,
+                unused -> copyUniqueNodeIdToClipboard()));
+        contextMenu.getItems().add(new SeparatorMenuItem());
+        contextMenu.getItems().add(new ImportFromCSVMenuItem(this, selectedItemsProperty,
+                unused -> importFromCSV()));
+        contextMenu.getItems().add(new ExportToCSVMenuItem(this, selectedItemsProperty,
+                unused -> exportToCSV()));
     }
 
 
+    /**
+     * Called when user requests context menu. Updates the {@link #selectedItemsProperty}, and since
+     * all {@link org.phoebus.applications.saveandrestore.ui.contextmenu.SaveAndRestoreMenuItem}s listen
+     * to changes to this property, they will update themselves based on the user selection.
+     * @param e A {@link ContextMenuEvent}
+     */
     @SuppressWarnings("unused")
     @FXML
-    public void createContextMenu(ContextMenuEvent e){
-
+    public void createContextMenu(ContextMenuEvent e) {
         ObservableList<? extends TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
-        multipleNodeSelection.setValue(selectedItems.size() > 1);
-        rootNodeSelected.setValue(selectedItems.stream().filter(t -> t.getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)).findFirst().isPresent());
-        selectionHasSameParent.setValue(hasSameParent());
-        mayCopyProperty.setValue(mayCopy());
-        mayPasteProperty.setValue(mayPaste());
-        if(selectedItems.size() > 0){
-            selectedItemNodeTypeProperty.set(selectedItems.get(0).getValue().getNodeType());
-        }
-        compareSnapshotsPossible.setValue(compareSnapshotsPossible());
-        snapshotsOnlySelection.set(selectedItems.stream().filter(t ->
-                !t.getValue().getNodeType().equals(NodeType.SNAPSHOT)).findFirst().isEmpty());
+        selectedItemsProperty.setAll(selectedItems.stream().map(t -> t.getValue()).toList());
         snapshotOrCompositeSnapshotOnlySelection.set(selectedItems.stream().filter(t ->
                 !t.getValue().getNodeType().equals(NodeType.SNAPSHOT) &&
                         !t.getValue().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty());
-        snapshotTagsEqual.setValue(snapshotsTaggedEqual(selectedItems));
+        tagWithComment.disableProperty().set(userIdentity.isNull().get() ||
+                selectedItemsProperty.size() != 1 ||
+                (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
+                        !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
+        tagWithComment(tagWithComment);
+    }
 
-        if(tagGoldenMenuItem.visibleProperty().get()){
-            configureTagGoldenMenuItem();
-        }
-        if (tagWithComment.visibleProperty().get()) {
-            tagWithComment(tagWithComment);
+    /**
+     * Adds a tag to the {@link Node}s contained in <code>tagData</code>
+     * @param tagData Data object consumed by service
+     */
+    public void addTag(TagData tagData) {
+        try {
+            SaveAndRestoreService.getInstance().addTag(tagData);
+        } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                    Messages.errorAddTagFailed,
+                    e);
+            Logger.getLogger(SaveAndRestoreController.class.getName()).log(Level.SEVERE, "Failed to add tag");
         }
     }
 
-
-
-    private boolean snapshotsTaggedEqual(ObservableList<? extends TreeItem<Node>> selectedItems){
-        List<Node> snapshotNodes =
-                selectedItems.stream().filter(t -> t.getValue().getNodeType().equals(NodeType.SNAPSHOT))
-                        .map(TreeItem::getValue).toList();
-        AtomicInteger goldenTagCount = new AtomicInteger();
-        snapshotNodes.forEach(n -> {
-            if(n.hasTag(Tag.GOLDEN)){
-                goldenTagCount.incrementAndGet();
-            }
-        });
-        return goldenTagCount.get() == 0 || goldenTagCount.get() == snapshotNodes.size();
-    }
-
-    private void configureTagGoldenMenuItem(){
-        if(browserSelectionModel.getSelectedItems().get(0).getValue().hasTag(Tag.GOLDEN)){
-            tagGoldenMenuItem.setText(Messages.contextMenuRemoveGoldenTag);
-            tagGoldenMenuItem.setGraphic(new ImageView(ImageRepository.SNAPSHOT));
-            tagGoldenMenuItem.setOnAction(event -> {
-                TagData tagData = new TagData();
-                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
-                tagData.setUniqueNodeIds(browserSelectionModel.getSelectedItems().stream()
-                        .map(t -> t.getValue().getUniqueId()).collect(Collectors.toList()));
-                try {
-                    SaveAndRestoreService.getInstance().deleteTag(tagData);
-                } catch (Exception e) {
-                    ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                            Messages.errorDeleteTagFailed,
-                            e);
-                    logger.log(Level.SEVERE, "Failed to delete tag");
-                }
-            });
-        }
-        else{
-            tagGoldenMenuItem.setText(Messages.contextMenuTagAsGolden);
-            tagGoldenMenuItem.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
-            tagGoldenMenuItem.setOnAction(event -> {
-                TagData tagData = new TagData();
-                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
-                tagData.setUniqueNodeIds(browserSelectionModel.getSelectedItems().stream()
-                        .map(t -> t.getValue().getUniqueId()).collect(Collectors.toList()));
-                try {
-                    SaveAndRestoreService.getInstance().addTag(tagData);
-                } catch (Exception e) {
-                    ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                            Messages.errorAddTagFailed,
-                            e);
-                    Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to add tag");
-                }
-            });
+    /**
+     * Removes a tag from the {@link Node}s contained in <code>tagData</code>
+     * @param tagData Data object consumed by service
+     */
+    public void deleteTag(TagData tagData) {
+        try {
+            SaveAndRestoreService.getInstance().deleteTag(tagData);
+        } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                    Messages.errorDeleteTagFailed,
+                    e);
+            logger.log(Level.SEVERE, "Failed to delete tag");
         }
     }
 }

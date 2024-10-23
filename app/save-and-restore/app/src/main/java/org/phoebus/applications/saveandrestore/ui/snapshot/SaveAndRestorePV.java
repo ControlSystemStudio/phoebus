@@ -20,8 +20,8 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import org.epics.vtype.VType;
-import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
+import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
@@ -113,21 +113,22 @@ public class SaveAndRestorePV {
         }
     }
 
-    public PV getPv(){
+    public PV getPv() {
         return pv;
     }
 
-    public PV getReadbackPv(){
+    public PV getReadbackPv() {
         return readbackPv;
     }
 
-    public String getPvName(){
+    public String getPvName() {
         return pvName;
     }
 
-    public String getReadbackPvName(){
+    public String getReadbackPvName() {
         return readbackPvName;
     }
+
     public VType getReadbackValue() {
         return readbackValue;
     }

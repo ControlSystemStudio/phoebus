@@ -11,11 +11,28 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.epics.pva.data.nt.PVAAlarm;
-import org.epics.vtype.*;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.ui.*;
+import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
+import org.phoebus.applications.saveandrestore.ui.Threshold;
+import org.phoebus.applications.saveandrestore.ui.Utilities;
+import org.phoebus.applications.saveandrestore.ui.VNoData;
+import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.time.Instant;

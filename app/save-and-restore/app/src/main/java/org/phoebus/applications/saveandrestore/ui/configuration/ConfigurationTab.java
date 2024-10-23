@@ -27,9 +27,7 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
 import org.phoebus.framework.nls.NLS;
-import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,7 +66,7 @@ public class ConfigurationTab extends SaveAndRestoreTab {
         }
 
         setOnCloseRequest(event -> {
-            if (!((ConfigurationController)controller).handleConfigurationTabClosed()) {
+            if (!((ConfigurationController) controller).handleConfigurationTabClosed()) {
                 event.consume();
             } else {
                 SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
@@ -86,12 +84,12 @@ public class ConfigurationTab extends SaveAndRestoreTab {
     public void editConfiguration(Node configurationNode) {
         setId(configurationNode.getUniqueId());
         textProperty().set(configurationNode.getName());
-        ((ConfigurationController)controller).loadConfiguration(configurationNode);
+        ((ConfigurationController) controller).loadConfiguration(configurationNode);
     }
 
     public void configureForNewConfiguration(Node parentNode) {
         textProperty().set(Messages.contextMenuNewConfiguration);
-        ((ConfigurationController)controller).newConfiguration(parentNode);
+        ((ConfigurationController) controller).newConfiguration(parentNode);
     }
 
     @Override
@@ -114,7 +112,7 @@ public class ConfigurationTab extends SaveAndRestoreTab {
         String tabTitle = textProperty().get();
         if (dirty && !tabTitle.contains("*")) {
             updateTabTitle("* " + tabTitle);
-        } else if(!dirty){
+        } else if (!dirty) {
             updateTabTitle(tabTitle.substring(2));
         }
     }

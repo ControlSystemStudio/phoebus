@@ -29,8 +29,6 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.nls.NLS;
@@ -50,14 +48,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *  Provide a context menu item for creating or adding to a saveset
- *  from the selection of {@link ProcessVariable}s.
+ * Provide a context menu item for creating or adding to a saveset
+ * from the selection of {@link ProcessVariable}s.
  *
- *  @author Genie Jhang {@literal <changj@frib.msu.edu>}
+ * @author Genie Jhang {@literal <changj@frib.msu.edu>}
  */
 @SuppressWarnings("nls")
-public class ContextMenuCreateSaveset implements ContextMenuEntry
-{
+public class ContextMenuCreateSaveset implements ContextMenuEntry {
     private static final Logger LOGGER = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private static final Class<?> supportedTypes = ProcessVariable.class;
@@ -67,20 +64,17 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
     private SaveAndRestoreService saveAndRestoreService = null;
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "Create/add to a Configuration";
     }
 
     @Override
-    public Image getIcon()
-    {
+    public Image getIcon() {
         return ImageRepository.CONFIGURATION;
     }
 
     @Override
-    public Class<?> getSupportedType()
-    {
+    public Class<?> getSupportedType() {
         return supportedTypes;
     }
 
@@ -88,7 +82,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
      * @return <code>true</code> only if user has been authenticated by the save-n-restore service.
      */
     @Override
-    public boolean isEnabled(){
+    public boolean isEnabled() {
         try {
             SecureStore secureStore = new SecureStore();
             ScopedAuthenticationToken token =
@@ -102,9 +96,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
     }
 
     @Override
-    public void call(final Selection selection)
-    {
-
+    public void call(final Selection selection) {
 
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();

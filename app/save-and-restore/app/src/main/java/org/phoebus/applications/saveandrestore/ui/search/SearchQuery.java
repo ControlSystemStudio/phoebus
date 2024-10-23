@@ -33,11 +33,11 @@ public class SearchQuery {
      */
     private boolean defaultQuery;
 
-    public SearchQuery(){
+    public SearchQuery() {
 
     }
 
-    public SearchQuery(String query){
+    public SearchQuery(String query) {
         this.query = query;
         this.lastUsed = System.currentTimeMillis();
     }
@@ -67,16 +67,15 @@ public class SearchQuery {
     }
 
     @Override
-    public boolean equals(Object other){
-        if(!(other instanceof SearchQuery)){
+    public boolean equals(Object other) {
+        if (!(other instanceof SearchQuery otherOlogQuery)) {
             return false;
         }
-        SearchQuery otherOlogQuery = (SearchQuery)other;
         return query.equals(otherOlogQuery.getQuery());
     }
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return query.hashCode();
     }
 }

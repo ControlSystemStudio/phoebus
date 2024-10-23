@@ -5,22 +5,14 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
 import org.phoebus.framework.nls.NLS;
-import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,13 +26,14 @@ public class NodeSelectionDialog extends Dialog<Node> {
 
     /**
      * Constructor.
+     *
      * @param supportsCreateFolder If <code>false</code>, the UI will not include button for the purpose
      *                             of creating folders in the tree structure (yes, this is a hack).
-     * @param hiddenNodeTypes Optional list of {@link NodeType}s to be hidden in the
-     *                        {@link javafx.scene.control.TreeView}. Of course
-     *                        {@link NodeType#FOLDER} does not make sense here.
+     * @param hiddenNodeTypes      Optional list of {@link NodeType}s to be hidden in the
+     *                             {@link javafx.scene.control.TreeView}. Of course
+     *                             {@link NodeType#FOLDER} does not make sense here.
      */
-    public NodeSelectionDialog(boolean supportsCreateFolder, NodeType... hiddenNodeTypes){
+    public NodeSelectionDialog(boolean supportsCreateFolder, NodeType... hiddenNodeTypes) {
         setTitle(Messages.nodeSelectionForConfiguration);
         try {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
@@ -51,7 +44,7 @@ public class NodeSelectionDialog extends Dialog<Node> {
             getDialogPane().setContent(loader.getRoot());
             NodeSelectionController nodeSelectionController = loader.getController();
             nodeSelectionController.setShowCreateFolderButton(supportsCreateFolder);
-            if(hiddenNodeTypes != null) {
+            if (hiddenNodeTypes != null) {
                 nodeSelectionController.setHiddenNodeTypes(Arrays.asList(hiddenNodeTypes));
             }
             nodeSelectionController.addOkButtonActionHandler(e -> {
@@ -65,11 +58,12 @@ public class NodeSelectionDialog extends Dialog<Node> {
 
     /**
      * Constructor.
+     *
      * @param hiddenNodeTypes Optional list of {@link NodeType}s to be hidden in the
      *                        {@link javafx.scene.control.TreeView}. Of course
      *                        {@link NodeType#FOLDER} does not make sense here.
      */
-    public NodeSelectionDialog(NodeType... hiddenNodeTypes){
+    public NodeSelectionDialog(NodeType... hiddenNodeTypes) {
         this(false, hiddenNodeTypes);
     }
 }
