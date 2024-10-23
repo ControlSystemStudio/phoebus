@@ -32,12 +32,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
-import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 
 import java.util.ArrayList;
@@ -60,9 +58,9 @@ public class SnapshotNewTagDialog extends Dialog<String> {
         // Construct a list of all (unique) tags found in the node list.
         List<Tag> tagList = new ArrayList<>();
         nodes.forEach(node -> {
-            if(node.getTags() != null){
+            if (node.getTags() != null) {
                 node.getTags().forEach(tag -> {
-                    if(!tagList.contains(tag)){
+                    if (!tagList.contains(tag)) {
                         tagList.add(tag);
                     }
                 });
@@ -134,18 +132,19 @@ public class SnapshotNewTagDialog extends Dialog<String> {
      *     <li>A tag name must not exist on any of the {@link Node}s.</li>
      * </ul>
      * Uniqueness of {@link Tag} is determined by its case-sensitive name.
-     * @param nodes A list of {@link Node}s to check.
+     *
+     * @param nodes   A list of {@link Node}s to check.
      * @param tagName A {@link Tag} name
      * @return <code>true</code> if the tag name can be used on all {@link Node}s in the list.
      */
-    private boolean isTagSelectable(List<Node> nodes, String tagName){
-        for(Node node : nodes){
-            if(tagName.equalsIgnoreCase(Tag.GOLDEN)){
+    private boolean isTagSelectable(List<Node> nodes, String tagName) {
+        for (Node node : nodes) {
+            if (tagName.equalsIgnoreCase(Tag.GOLDEN)) {
                 return false;
             }
-            if(node.getTags() != null){
-                for(Tag tag : node.getTags()){
-                    if(tag.getName().equals(tagName)){
+            if (node.getTags() != null) {
+                for (Tag tag : node.getTags()) {
+                    if (tag.getName().equals(tagName)) {
                         return false;
                     }
                 }

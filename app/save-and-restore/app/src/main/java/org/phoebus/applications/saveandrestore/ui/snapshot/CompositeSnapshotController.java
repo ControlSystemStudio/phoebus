@@ -29,8 +29,21 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
@@ -40,7 +53,11 @@ import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
-import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
@@ -53,43 +70,57 @@ import org.phoebus.util.time.TimestampFormats;
 
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
+    @SuppressWarnings("unused")
     @FXML
     private StackPane root;
 
     @FXML
     BorderPane borderPane;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, Node> snapshotNameColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, Date> snapshotDateColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, Node> snapshotPathColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableView<Node> snapshotTable;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextArea descriptionTextArea;
 
+    @SuppressWarnings("unused")
     @FXML
     private Button saveButton;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField compositeSnapshotNameField;
+    @SuppressWarnings("unused")
     @FXML
     private Label compositeSnapshotCreatedDateField;
-
+    @SuppressWarnings("unused")
     @FXML
     private Label compositeSnapshotLastModifiedDateField;
+    @SuppressWarnings("unused")
     @FXML
     private Label createdByField;
 
@@ -118,6 +149,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
+    @SuppressWarnings("unused")
     @FXML
     private VBox progressIndicator;
 
@@ -425,11 +457,8 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
      * @return <code>true</code> if the source {@link Node}s may be added.
      */
     private boolean mayDrop(List<Node> sourceNodes) {
-        if (sourceNodes.stream().anyMatch(n -> !n.getNodeType().equals(NodeType.SNAPSHOT) &&
-                !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT))) {
-            return false;
-        }
-        return true;
+        return sourceNodes.stream().noneMatch(n -> !n.getNodeType().equals(NodeType.SNAPSHOT) &&
+                !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT));
     }
 
     /**

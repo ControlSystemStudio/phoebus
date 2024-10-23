@@ -25,7 +25,7 @@ public enum SnapshotMode {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return name;
     }
 }

@@ -170,48 +170,6 @@ public class CSVImporter extends CSVCommon {
         dialog.show();
     }
 
-    /*
-    // Leave the code for the time we decide to use hierarchy. Probably never.
-    private static Node getTargetNode(List<String> hierarchy, NodeType nodeType) throws Exception {
-        int lastOne = hierarchy.size() - 1; // Last one is the saveset
-
-        Node parentNode = saveAndRestoreService.getRootNode();
-        for (int index = 0; index < lastOne; index++) {
-            List<Node> children = saveAndRestoreService.getChildNodes(parentNode);
-            boolean isFound = false;
-            for (Node child : children) {
-                if (child.getName().equals(hierarchy.get(index)) && child.getNodeType().equals(nodeType)) {
-                    parentNode = child;
-                    isFound = true;
-                    break;
-                }
-            }
-
-            if (!isFound) {
-                Node newNode = Node.builder()
-                        .name(hierarchy.get(index))
-                        .nodeType(NodeType.FOLDER)
-                        .build();
-
-                saveAndRestoreService.createNode(parentNode.getUniqueId(), newNode);
-                parentNode = newNode;
-            }
-        }
-
-        // Check if there exists the saveset having the same name with the import
-        List<Node> children = saveAndRestoreService.getChildNodes(parentNode);
-        for (Node child : children) {
-            if (child.getName().equals(hierarchy.get(lastOne)) && child.getNodeType().equals(NodeType.CONFIGURATION)) {
-                parentNode = child;
-                duplicateSavesetFound = true;
-                break;
-            }
-        }
-
-        return parentNode;
-    }
-   */
-
     private static void importSnapshot() throws Exception {
         if (csvParser.getColumnHeaders().size() < numColumnHeadersThreshold) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -321,7 +279,7 @@ public class CSVImporter extends CSVCommon {
     private static ConfigPv createConfigPv(Map<String, String> entry) {
         return ConfigPv.builder()
                 .pvName(entry.get(H_PV_NAME))
-                .readbackPvName(entry.get(H_READBACK).isEmpty() ? "" : entry.get(H_READBACK))
+                .readbackPvName(entry.get(H_READBACK).isEmpty() ? null : entry.get(H_READBACK))
                 .readOnly(Boolean.parseBoolean(entry.get(H_READ_ONLY)) || "1".equals(entry.get(H_READ_ONLY)))
                 .build();
     }

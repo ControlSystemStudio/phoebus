@@ -1,23 +1,23 @@
 /**
  * Copyright (C) 2020 Facility for Rare Isotope Beams
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
+ * <p>
  * Contact Information: Facility for Rare Isotope Beam,
- *                      Michigan State University,
- *                      East Lansing, MI 48824-1321
- *                      http://frib.msu.edu
+ * Michigan State University,
+ * East Lansing, MI 48824-1321
+ * http://frib.msu.edu
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot.tag;
 
@@ -43,7 +43,6 @@ import org.phoebus.ui.javafx.ImageCache;
 /**
  * {@link TagWidget} class provides static methods for {@link Tag} entries in
  * snapshot {@link ContextMenu}.
- *
  * Key feature of the class is to provide custom {@link Node} via {@link CustomMenuItem}
  * having the same width as {@link MenuItem} with the largest width.
  *
@@ -61,13 +60,10 @@ public class TagWidget {
      *
      * @param image An image for the icon
      * @param text Item label
-     * @return
+     * @return The {@link CustomMenuItem}
      */
     private static CustomMenuItem getBaseWidget(Image image, String text) {
         ImageView imageView = new ImageView(image);
-        imageView.setFitWidth(22);
-        imageView.setFitHeight(22);
-
         Label label = new Label(text);
 
         HBox hBox = new HBox();
@@ -82,23 +78,19 @@ public class TagWidget {
         menuItem.parentPopupProperty().addListener((observableValue, contextMenu, newContextMenu) -> {
             if (newContextMenu != null) {
                 newContextMenu.setOnShown(action -> {
-                    Double myMax = 0.;
+                    double myMax = 0.;
 
                     for (int index = 0; index < newContextMenu.getItems().size(); index++) {
                         MenuItem item = newContextMenu.getItems().get(index);
                         if (item instanceof CustomMenuItem) {
                             Node node = ((CustomMenuItem) item).getContent();
                             if (node instanceof HBox) {
-                                Double hBoxWidth = ((HBox) ((CustomMenuItem) item).getContent()).getWidth();
+                                double hBoxWidth = ((HBox) ((CustomMenuItem) item).getContent()).getWidth();
                                 myMax = hBoxWidth > myMax ? hBoxWidth : myMax;
                             }
                         }
                     }
-
-                    //UpdatePrefWidth(newContextMenu, myMax);
                 });
-
-                //newContextMenu.setOnHiding(action -> UpdatePrefWidth(newContextMenu, 0.0));
             }
         });
 
@@ -112,15 +104,6 @@ public class TagWidget {
      */
     public static CustomMenuItem AddTagMenuItem() {
         return getBaseWidget(snapshotAddTagIcon, Messages.contextMenuAddTag);
-    }
-
-    /**
-     * Empty {@link Tag} {@link CustomMenuItem} generator
-     *
-     * @return Empty {@link Tag} {@link CustomMenuItem}
-     */
-    public static CustomMenuItem NoTagMenuItem() {
-        return getBaseWidget(null, Messages.contextMenuNoTagWithComment);
     }
 
     /**
@@ -138,7 +121,7 @@ public class TagWidget {
 
         Label tagCreator = new Label(tag.getUserName());
         Label tagCreated = new Label(tag.getCreated().toString());
-        tagCreated.setFont(Font.font(Font.getDefault().getSize()*0.9));
+        tagCreated.setFont(Font.font(Font.getDefault().getSize() * 0.9));
 
         VBox vBoxLeft = new VBox();
         vBoxLeft.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/save-and-restore-style.css").toExternalForm());
@@ -151,8 +134,6 @@ public class TagWidget {
 
         ImageView trashcanImageView = new ImageView(snapshotTrashcanIcon);
         trashcanImageView.setId("trashcan");
-        trashcanImageView.setFitWidth(20);
-        trashcanImageView.setFitHeight(20);
 
         Pane spacer = new Pane();
         spacer.setMinWidth(10);
@@ -171,45 +152,22 @@ public class TagWidget {
         menuItem.parentPopupProperty().addListener((observableValue, contextMenu, newContextMenu) -> {
             if (newContextMenu != null) {
                 newContextMenu.setOnShown(action -> {
-                    Double myMax = 0.;
+                    double myMax = 0.;
 
                     for (int index = 0; index < newContextMenu.getItems().size(); index++) {
                         MenuItem item = newContextMenu.getItems().get(index);
                         if (item instanceof CustomMenuItem) {
                             Node node = ((CustomMenuItem) item).getContent();
                             if (node instanceof HBox) {
-                                Double hBoxWidth = ((HBox) ((CustomMenuItem) item).getContent()).getWidth();
+                                double hBoxWidth = ((HBox) ((CustomMenuItem) item).getContent()).getWidth();
                                 myMax = hBoxWidth > myMax ? hBoxWidth : myMax;
                             }
                         }
                     }
-
-                    //UpdatePrefWidth(newContextMenu, myMax);
                 });
-
-               // newContextMenu.setOnHiding(action -> UpdatePrefWidth(newContextMenu, 0.0));
             }
         });
 
         return menuItem;
-    }
-
-    /**
-     * Updates {@link HBox} width in {@link CustomMenuItem} generated by {@link TagWidget} class
-     *
-     * @param contextMenu {@link ContextMenu} object containing {@link CustomMenuItem}s created by
-     *                    {@link TagWidget} class.
-     * @param width Width value to update
-     */
-    private static void UpdatePrefWidth(ContextMenu contextMenu, Double width) {
-        contextMenu.getItems().stream()
-                .forEach(item -> {
-                    if (item instanceof CustomMenuItem) {
-                        Node node = ((CustomMenuItem) item).getContent();
-                        if (node instanceof HBox) {
-                            ((HBox) ((CustomMenuItem) item).getContent()).setPrefWidth(width);
-                        }
-                    }
-                });
     }
 }

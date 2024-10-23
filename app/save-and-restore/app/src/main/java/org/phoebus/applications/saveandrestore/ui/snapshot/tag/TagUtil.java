@@ -101,9 +101,7 @@ public class TagUtil {
                 nonSnapshotCount.incrementAndGet();
             }
         });
-        if (nonSnapshotCount.get() > 0) {
-            parentMenu.disableProperty().set(true);
-        }
+
         ObservableList<javafx.scene.control.MenuItem> items = parentMenu.getItems();
         // Need to remove items as they would otherwise be maintained when user selects another node with tags
         if (items.size() > 1) {

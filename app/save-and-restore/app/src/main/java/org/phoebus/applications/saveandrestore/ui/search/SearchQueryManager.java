@@ -83,7 +83,7 @@ public class SearchQueryManager {
         }
     }
 
-    public int getQueryListSize(){
+    public int getQueryListSize() {
         return QUERY_LIST_SIZE;
     }
 

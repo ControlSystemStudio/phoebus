@@ -42,8 +42,8 @@ import java.util.logging.Logger;
  * i.e. for node type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
  *
  * <p>
- *     Note that this class is only for editing of {@link Node}s of type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
- *     {@link SnapshotTab} is used to show actual snapshot data.
+ * Note that this class is only for editing of {@link Node}s of type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
+ * {@link SnapshotTab} is used to show actual snapshot data.
  * </p>
  */
 public class CompositeSnapshotTab extends SaveAndRestoreTab {
@@ -80,7 +80,7 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
         try {
             rootNode = loader.load();
         } catch (IOException e) {
-            Logger.getLogger(SnapshotTab.class.getName())
+            Logger.getLogger(CompositeSnapshotTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
             return;
         }

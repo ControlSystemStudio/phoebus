@@ -115,7 +115,7 @@ Folder
 
 Folder nodes can be created from the New Folder option of the folder node context menu:
 
-.. image:: images/context-menu-folder-new-folder.png
+.. image:: images/new-folder.png
     :width: 30%
 
 Folder names are case-sensitive and must be unique within the same parent folder.
@@ -125,7 +125,7 @@ Configuration View
 
 A new configuration is created from the context menu launched when right-clicking on a folder node in the tree view:
 
-.. image:: images/context-menu-folder-create-configuration.png
+.. image:: images/new-configuration.png
     :width: 30%
 
 This will launch the configuration editor:
@@ -144,7 +144,7 @@ PV entries in a configuration marked as read only will be omitted whe performing
 To add a very large number of PVs, user should consider the import feature available via the "Import Configuration file to this folder"
 option in the context menu of a folder node in the tree view:
 
-.. image:: images/context-menu-folder-import-configuration.png
+.. image:: images/import-configuration.png
    :width: 30%
 
 The file format for such a file is::
@@ -181,9 +181,9 @@ PVs removed from a configurations will remain in existing snapshots.
 Create Snapshot
 ---------------
 
-To create a new snapshot one selects the Create Snapshot option from the context menu of a configuration:
+To create a new snapshot one selects the New Snapshot option from the context menu of a configuration:
 
-.. image:: images/context-menu-configuration-create-snapshot.png
+.. image:: images/new-snapshot.png
 
 This will open the snapshot view:
 
@@ -216,7 +216,7 @@ referenced snapshots.
 To create a composite snapshot user must select the New Composite Snapshot context menu option of a folder node into
 which the composite snapshot will be saved:
 
-.. image:: images/context-menu-folder-new-composite-snapshot.png
+.. image:: images/new-composite-snapshot.png
    :width: 30%
 
 This launches the composite snapshot editor:
@@ -300,7 +300,7 @@ Comparing Snapshots
 To compare two (or more) snapshots, user must first open an existing snapshot (double click in tree view). Using the
 Compare Snapshots context menu item for a snapshot node user may choose a snapshot to load for comparison:
 
-.. image:: images/context-menu-snapshot-compare.png
+.. image:: images/compare-snapshot.png
 
 Once the additional snapshot has been loaded, the snapshot view will show stored values from both snapshots. In this view
 the :math:`{\Delta}` Base Snapshot column will show the difference to the reference snapshot values:
@@ -364,7 +364,7 @@ Tagging
 Tagging of snapshots can be used to facilitate search and filtering. The Tags with comment context menu option of the
 snapshot node is used to launch the tagging dialog:
 
-.. image:: images/context-menu-snapshot-add-tag.png
+.. image:: images/add-tag.png
 
 In the dialog user may specify a case sensitive tag name and optionally a comment. When typing in the Tag name field,
 a list of existing tag names that may match the typed text is shown. User may hence "reuse" existing tags:
@@ -378,7 +378,7 @@ snapshots are rendered using a golden snapshot icon: |golden|
 
 User may delete a tag through the tagging sub-menu:
 
-.. image:: images/context-menu-delete-tag.png
+.. image:: images/delete-tag.png
 
 
 Tagging multiple snapshots

@@ -408,7 +408,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     public void addSnapshotFromArchiver() {
         disabledUi.set(true);
         snapshotTableViewController.takeSnapshot(SnapshotMode.FROM_ARCHIVER, snapshot -> {
-            if(snapshot == null){
+            if (snapshot == null) {
                 disabledUi.set(false);
                 return;
             }
