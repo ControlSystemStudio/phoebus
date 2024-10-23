@@ -29,6 +29,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -51,6 +52,7 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -74,9 +76,12 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.TagGoldenMenuItem;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
@@ -105,103 +110,135 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     private final SaveAndRestoreController saveAndRestoreController;
 
-
+    @SuppressWarnings("unused")
     @FXML
     private javafx.scene.Node mainUi;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, ImageView> typeColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, String> nameColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, String> commentColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, String> tagsColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, String> lastUpdatedColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, String> createdColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, String> userColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField pageSizeTextField;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField filterNameTextField;
 
+    @SuppressWarnings("unused")
     @FXML
     private Button saveFilterButton;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField nodeNameTextField;
 
+    @SuppressWarnings("unused")
     @FXML
     private CheckBox nodeTypeFolderCheckBox;
 
+    @SuppressWarnings("unused")
     @FXML
     private CheckBox nodeTypeConfigurationCheckBox;
 
+    @SuppressWarnings("unused")
     @FXML
     private CheckBox nodeTypeSnapshotCheckBox;
 
+    @SuppressWarnings("unused")
     @FXML
     private CheckBox nodeTypeCompositeSnapshotCheckBox;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField tagsTextField;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField userTextField;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField descTextField;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField startTime;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField endTime;
 
+    @SuppressWarnings("unused")
     @FXML
     private CheckBox goldenOnlyCheckbox;
 
+    @SuppressWarnings("unused")
     @FXML
     private Label queryLabel;
 
+    @SuppressWarnings("unused")
     @FXML
     private Pagination pagination;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableView<Node> resultTableView;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableView<Filter> filterTableView;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Filter, String> filterNameColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Filter, String> queryColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Filter, String> filterLastUpdatedColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Filter, String> filterUserColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<Filter, Filter> deleteColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField pvsTextField;
 
+    @SuppressWarnings("unused")
     @FXML
     private VBox progressIndicator;
 
@@ -245,6 +282,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     private static final Logger LOGGER = Logger.getLogger(SearchAndFilterViewController.class.getName());
 
     private final SimpleBooleanProperty disableUi = new SimpleBooleanProperty();
+
+    private final ObservableList<Node> selectedItemsProperty = FXCollections.observableArrayList();
 
     public SearchAndFilterViewController(SaveAndRestoreController saveAndRestoreController) {
         this.saveAndRestoreController = saveAndRestoreController;
@@ -415,7 +454,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         });
 
         ContextMenu contextMenu = new ContextMenu();
-        MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
+        MenuItem loginMenuItem =
+                new LoginMenuItem(saveAndRestoreController, selectedItemsProperty, unused -> ApplicationService.createInstance("credentials_management"));
+        MenuItem tagGoldenMenuItem = new TagGoldenMenuItem(saveAndRestoreController, selectedItemsProperty, null);
 
         ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
         Menu tagMenuItem = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
@@ -428,6 +469,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         restoreMenuItem.setOnAction(e -> doRestore(resultTableView.getSelectionModel().getSelectedItem().getUniqueId()));
 
         contextMenu.setOnShowing(event -> {
+            selectedItemsProperty.setAll(resultTableView.getSelectionModel().getSelectedItems());
+            tagMenuItem.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
+            restoreMenuItem.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
             NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();
             if (selectedItemType.equals(NodeType.SNAPSHOT)) {
                 TagUtil.tagWithComment(tagMenuItem,
@@ -450,7 +494,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         });
 
 
-        contextMenu.getItems().addAll(tagGoldenMenuItem, tagMenuItem, restoreMenuItem);
+        contextMenu.getItems().addAll(loginMenuItem, tagGoldenMenuItem, tagMenuItem, restoreMenuItem);
 
         resultTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         resultTableView.setContextMenu(contextMenu);
@@ -547,11 +591,13 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         saveAndRestoreController.locateNode(stack);
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void showHelp() {
         new HelpViewer().show();
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void saveFilter() {
         // Check if the filter name is already used.
@@ -637,6 +683,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         });
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void showTagsSelectionPopover() {
         if (tagSearchPopover.isShowing()) {

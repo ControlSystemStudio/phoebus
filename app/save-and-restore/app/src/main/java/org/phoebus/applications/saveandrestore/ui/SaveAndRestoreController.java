@@ -216,23 +216,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         treeView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
         browserSelectionModel = treeView.getSelectionModel();
-        browserSelectionModel.getSelectedItems().addListener((ListChangeListener<TreeItem<Node>>) change -> {
-
-            /*
-            ObservableList<? extends TreeItem<Node>> selectedItems = change.getList();
-            multipleNodeSelection.setValue(selectedItems.size() > 1);
-            rootNodeSelected.setValue(selectedItems.stream().filter(t -> t.getValue().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)).findFirst().isPresent());
-            selectionHasSameParent.setValue(hasSameParent());
-            mayCopyProperty.setValue(mayCopy());
-            mayPasteProperty.setValue(mayPaste());
-            if(selectedItems.size() > 0){
-                selectedItemNodeTypeProperty.set(selectedItems.get(0).getValue().getNodeType());
-            }
-            compareSnapshotsPossible.setValue(compareSnapshotsPossible());
-            snapshotsOnlySelection.set(selectedItems.stream().filter(t ->
-                    !t.getValue().getNodeType().equals(NodeType.SNAPSHOT)).findFirst().isEmpty());
-            snapshotTagsEqual.setValue(snapshotsTaggedEqual(selectedItems));*/
-        });
 
         ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
         searchButtonImageView.setFitWidth(20);
