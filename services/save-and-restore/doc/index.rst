@@ -197,7 +197,7 @@ Delete nodes
 
 Method: DELETE
 
-Caller must list the unique ids of the nodes subject to deletion:
+Caller must specify a body, which is a list of the unique ids of the nodes subject to deletion:
 
 .. code-block:: JSON
 
