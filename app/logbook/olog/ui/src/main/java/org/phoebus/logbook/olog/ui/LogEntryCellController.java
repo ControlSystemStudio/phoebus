@@ -29,7 +29,7 @@ import org.phoebus.ui.javafx.ImageCache;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
+import java.util.SortedMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -173,10 +173,13 @@ public class LogEntryCellController {
         }
 
         if (logEntry != null) {
-            Optional<List<VEnum>> maybeVEnumFromPreviousLogEntryToThisLogEntry = logEntry.getVEnumFromPreviousLogEntryToThisLogEntry();
+            SortedMap<Integer, List<VEnum>> decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry = logEntry.getDecorationIndexToVEnumsFromPreviousLogEntryToLogEntry();
 
-            if (maybeVEnumFromPreviousLogEntryToThisLogEntry.isPresent()) {
-                List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry = maybeVEnumFromPreviousLogEntryToThisLogEntry.get();
+            decorations.getChildren().clear();
+            for (int i : decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.keySet()) {
+                List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry = decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.get(i);
+
+                // TODO: vEnumFromPreviousLogEntryToThisLogEntry.size() == 0
 
                 if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 1) {
                     VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
@@ -193,7 +196,7 @@ public class LogEntryCellController {
                     HBox hBox = new HBox(path);
                     hBox.setAlignment(Pos.TOP_CENTER);
                     hBox.setPrefWidth(40);
-                    decorations.getChildren().clear();
+
                     decorations.getChildren().add(path);
                 }
                 else if (vEnumFromPreviousLogEntryToThisLogEntry.size() > 1) {
@@ -225,8 +228,8 @@ public class LogEntryCellController {
 
                     VBox union = new VBox(outgoingTriangle, stack);
                     int numberOfIncomingVEnumsToDisplay = Math.min(indexOfLastVEnum, 4);
-                    for (int i=numberOfIncomingVEnumsToDisplay-1; i>=0; i--) {
-                        VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(i);
+                    for (int j=numberOfIncomingVEnumsToDisplay-1; j>=0; j--) {
+                        VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
                         Paint paintOfFirstVEnum = vEnumToColor.apply(firstVEnum);
                         double height = Math.floor(15 / numberOfIncomingVEnumsToDisplay);
                         Rectangle incomingPath = new Rectangle(40, height, paintOfFirstVEnum);
@@ -239,8 +242,6 @@ public class LogEntryCellController {
                     Paint paintOfFirstVEnum = vEnumToColor.apply(firstVEnum);
                     incomingRectangle.setFill(paintOfFirstVEnum);
                     union.getChildren().add(incomingRectangle);
-
-                    decorations.getChildren().clear();
 
                     union.setAlignment(Pos.TOP_CENTER);
                     union.setSpacing(0.0);

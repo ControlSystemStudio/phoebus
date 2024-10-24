@@ -121,7 +121,16 @@
                         </GridPane.margin>
                     </Label>
                     <TextField fx:id="attachmentTypes" GridPane.columnSpan="2" GridPane.rowIndex="18"/>
-                    <fx:include GridPane.rowIndex="19"
+                    <Label text="Decorations" style="-fx-font-weight: bold;" GridPane.rowIndex="19"/>
+                    <fx:include GridPane.rowIndex="20"
+                                GridPane.columnSpan="2"
+                                source="Decorations.fxml"
+                                prefWidth="Infinity"/>
+                    <fx:include GridPane.rowIndex="21"
+                                GridPane.columnSpan="2"
+                                source="Decorations.fxml"
+                                prefWidth="Infinity"/>
+                    <fx:include GridPane.rowIndex="22"
                                 GridPane.columnSpan="2"
                                 source="Decorations.fxml"
                                 prefWidth="Infinity"/>

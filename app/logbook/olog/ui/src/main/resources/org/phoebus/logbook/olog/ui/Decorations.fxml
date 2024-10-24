@@ -11,7 +11,6 @@
             fx:controller="org.phoebus.logbook.olog.ui.DecorationsController">
     <children>
         <VBox>
-            <Label text="Decorations" style="-fx-font-weight: bold;" />
             <HBox>
                 <Label text="PV: " />
                 <TextField fx:id="PV" />

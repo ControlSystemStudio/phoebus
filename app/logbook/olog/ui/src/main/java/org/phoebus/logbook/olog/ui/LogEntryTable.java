@@ -32,7 +32,7 @@ public class LogEntryTable implements AppInstance {
     private LogEntryTableViewController controller;
 
     public GoBackAndGoForwardActions goBackAndGoForwardActions;
-
+    private int i = 0;
     public LogEntryTable(final LogEntryTableApp app) {
         this.app = app;
         goBackAndGoForwardActions = new GoBackAndGoForwardActions();
@@ -70,9 +70,11 @@ public class LogEntryTable implements AppInstance {
                             return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                         } else if (clazz.isAssignableFrom(DecorationsController.class)) {
                             DecorationsController decorationsController = (DecorationsController) clazz.getConstructor().newInstance();
+                            int j = i;
                             decorationsController.setSetPVForDecorationCallback(pvName -> {
-                                controller.setPVNameForDecoration.accept(pvName);
+                                controller.setPVNameForDecoration(j, pvName);
                             });
+                            i++;
                             return decorationsController;
                         }
                     } else {
