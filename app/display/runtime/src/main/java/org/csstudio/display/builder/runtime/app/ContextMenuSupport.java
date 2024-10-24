@@ -21,7 +21,6 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
-import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
@@ -129,9 +128,8 @@ class ContextMenuSupport {
 
         // Widget actions
         for (ActionInfo info : widget.propActions().getValue().getActions()) {
-            List<MenuItem> actionMenuItems = info.getContextMenuItems(widget);
+            List<MenuItem> actionMenuItems = info.getContextMenuItems(RuntimeUtil.getExecutor(), widget);
             if (actionMenuItems != null) {
-                actionMenuItems.forEach(i -> i.setOnAction(e -> ActionUtil.handleAction(widget, info)));
                 items.addAll(actionMenuItems);
             }
         }
