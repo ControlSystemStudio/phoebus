@@ -361,13 +361,13 @@ are expanded. To easily find *all* matching items user will need to use the sear
 Tagging
 -------
 
-Tagging of snapshots can be used to facilitate search and filtering. The Tags with comment context menu option of the
+Tagging of snapshots can be used to facilitate search and filtering. The Tags context menu option of the
 snapshot node is used to launch the tagging dialog:
 
 .. image:: images/add-tag.png
 
-In the dialog user may specify a case sensitive tag name and optionally a comment. When typing in the Tag name field,
-a list of existing tag names that may match the typed text is shown. User may hence "reuse" existing tags:
+In the dialog user may specify a case sensitive tag name. When typing in the Tag name field,
+a list of existing tag names that may match the typed text is shown. User may hence reuse existing tags:
 
 .. image:: images/tag-hints.png
 
