@@ -8,6 +8,9 @@
 package org.csstudio.display.builder.runtime.app;
 
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.Preference;
 
 import javafx.application.Platform;
 import javafx.scene.control.ComboBox;
@@ -19,13 +22,19 @@ public class ZoomAction extends ComboBox<String>
 {
     private boolean updating = false;
 
+    @Preference public static double default_zoom_factor;
+
+    static
+    {
+        AnnotatedPreferences.initialize(ZoomAction.class, "/zoom_preferences.properties");
+    }
+
     /** @param instance {@link DisplayRuntimeInstance} */
     public ZoomAction(final DisplayRuntimeInstance instance)
     {
         setEditable(true);
         setPrefWidth(100.0);
         getItems().addAll(JFXRepresentation.ZOOM_LEVELS);
-        setValue(JFXRepresentation.DEFAULT_ZOOM_LEVEL);
         // For Ctrl-Wheel zoom gesture
         instance.getRepresentation().setZoomListener(txt ->
         {
@@ -33,6 +42,13 @@ public class ZoomAction extends ComboBox<String>
             getEditor().setText(txt);
         });
         setOnAction(event -> zoom(instance.getRepresentation()));
+
+        // Add the zoom action into a queue
+        Platform.runLater(() ->
+        {
+            String zoom = String.format("%d %%", (int)(default_zoom_factor * 100));
+            setValue(zoom);
+        });
     }
 
     private void zoom(final JFXRepresentation representation)
