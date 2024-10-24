@@ -31,6 +31,7 @@ public class LogbookUIPreferences
     @Preference public static boolean log_entry_groups_support;
     @Preference public static boolean log_entry_update_support;
     @Preference public static String[] hidden_properties;
+    @Preference public static String log_entry_table_display_name;
     @Preference public static String log_entry_calendar_display_name;
     @Preference public static String log_attribute_desc;
     @Preference public static int search_result_page_size;

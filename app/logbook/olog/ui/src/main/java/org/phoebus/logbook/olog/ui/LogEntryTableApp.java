@@ -5,6 +5,7 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.logbook.*;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.util.text.Strings;
 
 import java.net.URI;
 import java.util.logging.Logger;
@@ -24,6 +25,10 @@ public class LogEntryTableApp implements AppResourceDescriptor {
     @Override
     public void start() {
         logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
+        String displayName = LogbookUIPreferences.log_entry_table_display_name;
+        if(!Strings.isNullOrEmpty(displayName)){
+            DISPLAY_NAME = displayName;
+        }
     }
 
     @Override
