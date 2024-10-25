@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -497,7 +497,6 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                         Pair<Double, Double> adjustedRange = axis.ticks.adjustRange(low, high);
                         low = adjustedRange.getKey();
                         high = adjustedRange.getValue();
-
                     }
                     else {
                         final ValueRange rounded = roundValueRange(low, high);
@@ -511,16 +510,31 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                         high += headroom;
                     }
 
-                    // Autoscale happens 'all the time'.
-                    // Do not use undo, but notify listeners.
                     if (low != high)
                     {
                         final AxisRange<Double> orig = axis.getValueRange();
                         final boolean normal = orig.getLow() < orig.getHigh();
-                        final boolean changed = normal ? axis.setValueRange(low, high)
-                                                       : axis.setValueRange(high, low);
-                        if (changed)
-                            plot.fireYAxisChange(axis);
+                        final double span = Math.abs(high - low);
+                        if (span > 0)
+                        {
+                            boolean changed = false;
+                            if (normal)
+                            {   // Hysteresis: Did low..high change beyond headroom?
+                                if (Math.abs(orig.getLow()  -  low) / span > 0.05  ||
+                                    Math.abs(orig.getHigh() - high) / span > 0.05)
+                                    changed = axis.setValueRange(low, high);
+                            }
+                            else
+                            {   // Hysteresis for inverted high...low range
+                                if (Math.abs(orig.getLow()  - high) / span > 0.05  ||
+                                    Math.abs(orig.getHigh() -  low) / span > 0.05)
+                                    changed = axis.setValueRange(high, low);
+                            }
+                            // Autoscale happens 'all the time'.
+                            // Do not use undo, but notify listeners.
+                            if (changed)
+                                plot.fireYAxisChange(axis);
+                        }
                     }
                 }
                 catch (Exception ex)
