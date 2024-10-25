@@ -15,6 +15,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.ActionInfoBase;
+import org.csstudio.display.builder.model.spi.ActionHandler;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
 import org.phoebus.framework.macros.Macros;
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.ServiceLoader;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -215,17 +218,22 @@ public class OpenDisplayAction extends ActionInfoBase {
     }
 
     @Override
-    public List<MenuItem> getContextMenuItems(Widget widget) {
+    public List<MenuItem> getContextMenuItems(ExecutorService executorService, Widget widget) {
+        ActionHandler handler = getActionHandler();
         List<MenuItem> items = new ArrayList<>();
 
-        items.add(createMenuItem(widget, description));
+        // Default item
+        items.add(createMenuItem(executorService, widget, description));
 
         // Add variant for all the available Target types: Replace, new Tab, ...
         for (OpenDisplayAction.Target target : OpenDisplayAction.Target.values()) {
             if (target == OpenDisplayAction.Target.STANDALONE || target == this.target)
                 continue;
             // Mention non-default targets in the description
-            items.add(createMenuItem(widget, description + " (" + target + ")"));
+            MenuItem additionalItem = createMenuItem(widget, description + " (" + target + ")");
+            OpenDisplayAction openDisplayAction = new OpenDisplayAction(description, file, macros, target);
+            additionalItem.setOnAction(ae -> executorService.execute(() -> handler.handleAction(widget, openDisplayAction)));
+            items.add(additionalItem);
         }
 
         return items;

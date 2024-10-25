@@ -20,7 +20,7 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
-import org.phoebus.applications.saveandrestore.client.SaveAndRestoreJerseyClient;
+import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClientImpl;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
@@ -71,7 +71,7 @@ public class SaveAndRestoreService {
     private final SaveAndRestoreClient saveAndRestoreClient;
 
     private SaveAndRestoreService() {
-        saveAndRestoreClient = new SaveAndRestoreJerseyClient();
+        saveAndRestoreClient = new SaveAndRestoreClientImpl();
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
