@@ -24,6 +24,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import javafx.util.Pair;
 import javafx.util.StringConverter;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJob;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJobListener;
@@ -115,7 +116,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private final SimpleBooleanProperty advancedSearchVisibile = new SimpleBooleanProperty(false);
 
-    private final ConcurrentMap<Integer, TreeMap<Instant, VEnum>> decorationIndexToInstantToValue = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, Pair<String, TreeMap<Instant, VEnum>>> decorationIndexToPVNameAndInstantToValue = new ConcurrentHashMap<>();
     /**
      * Constructor.
      *
@@ -480,7 +481,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                         if (mostRecentDataPointBeforeStart.isPresent()) {
                             newInstantToValue.put(mostRecentDataPointBeforeStart.get().getTime().getTimestamp(), mostRecentDataPointBeforeStart.get());
                         }
-                        decorationIndexToInstantToValue.put(decorationIndex, newInstantToValue);
+                        decorationIndexToPVNameAndInstantToValue.put(decorationIndex, new Pair(pvName, newInstantToValue));
                         refresh();
                     }
                     finally {
@@ -524,20 +525,20 @@ public class LogEntryTableViewController extends LogbookSearchController {
             List<LogEntry> logEntries = searchResult.getLogs();
             logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
 
-            Map<LogEntry, SortedMap<Integer, List<VEnum>>> logEntryToVEnumsFromPreviousLogEntryToLogEntry = new TreeMap<>((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
-            logEntries.forEach(logEntry -> logEntryToVEnumsFromPreviousLogEntryToLogEntry.put(logEntry, new TreeMap<>())); // Initialize logEntryToVEnumsFromPreviousLogEntryToLogEntry
+            Map<LogEntry, SortedMap<Integer, Pair<String, List<VEnum>>>> logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = new TreeMap<>((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
+            logEntries.forEach(logEntry -> logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry.put(logEntry, new TreeMap<>())); // Initialize logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry
             {
                 for (int i=0; i< pvNamesForDecoration.length; i++) {
-                    if (decorationIndexToInstantToValue.containsKey(i)) {
-                        TreeMap<Instant, VEnum> instantToVEnum = decorationIndexToInstantToValue.get(i);
+                    if (decorationIndexToPVNameAndInstantToValue.containsKey(i)) {
+                        Pair<String, TreeMap<Instant, VEnum>> pvNameAndInstantToVEnum = decorationIndexToPVNameAndInstantToValue.get(i);
 
-                        if (instantToVEnum != null) {
+                        if (pvNameAndInstantToVEnum != null) {
                             Instant previousLogEntryCreatedDate = Instant.ofEpochSecond(0);
                             Optional<VEnum> previousLogEntryVEnum = Optional.empty();
                             for (int j=logEntries.size()-1; j>=0; j--) {
                                 LogEntry currentLogEntry = logEntries.get(j);
                                 Instant currentLogEntryCreatedDate = currentLogEntry.getCreatedDate();
-                                List<VEnum> vEnumsFromPreviousLogEntryToCurrentLogEntry = new LinkedList<>(instantToVEnum.subMap(previousLogEntryCreatedDate, false,
+                                List<VEnum> vEnumsFromPreviousLogEntryToCurrentLogEntry = new LinkedList<>(pvNameAndInstantToVEnum.getValue().subMap(previousLogEntryCreatedDate, false,
                                                 currentLogEntryCreatedDate, true)
                                         .values());
                                 if (previousLogEntryVEnum.isPresent()) {
@@ -557,7 +558,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                                 else {
                                     currentLogEntryVEnum = Optional.of(vEnumsFromPreviousLogEntryToCurrentLogEntry.get(vEnumsFromPreviousLogEntryToCurrentLogEntry.size()-1));
                                 }
-                                logEntryToVEnumsFromPreviousLogEntryToLogEntry.get(currentLogEntry).put(i, vEnumsFromPreviousLogEntryToCurrentLogEntry);
+                                logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry.get(currentLogEntry).put(i, new Pair(pvNameAndInstantToVEnum.getKey(), vEnumsFromPreviousLogEntryToCurrentLogEntry));
                                 previousLogEntryCreatedDate = currentLogEntryCreatedDate;
                                 previousLogEntryVEnum = currentLogEntryVEnum;
                             }
@@ -568,7 +569,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
             logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le,
                                                                                             showDetails.get(),
-                                                                                            logEntryToVEnumsFromPreviousLogEntryToLogEntry.getOrDefault(le, null))).toList());
+                                                                                            logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry.getOrDefault(le, null))).toList());
 
             tableView.setItems(logsList);
             // This will ensure that selected entries stay selected after the list has been
@@ -680,17 +681,17 @@ public class LogEntryTableViewController extends LogbookSearchController {
     public static class TableViewListItem {
         private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty(true);
         private final LogEntry logEntry;
-        private SortedMap<Integer, List<VEnum>> decorationIndexToVEnumsFromPreviousLogEntryToLogEntry = new TreeMap<>();
+        private SortedMap<Integer, Pair<String, List<VEnum>>> decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = new TreeMap<>();
 
         public TableViewListItem(LogEntry logEntry,
                                  boolean showDetails,
-                                 SortedMap<Integer, List<VEnum>> decorationIndexToVEnumsFromPreviousLogEntryToLogEntry) {
+                                 SortedMap<Integer, Pair<String, List<VEnum>>> decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry) {
             this(logEntry, showDetails);
-            if (decorationIndexToVEnumsFromPreviousLogEntryToLogEntry != null) {
-                this.decorationIndexToVEnumsFromPreviousLogEntryToLogEntry = decorationIndexToVEnumsFromPreviousLogEntryToLogEntry;
+            if (decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry != null) {
+                this.decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry;
             }
             else {
-                this.decorationIndexToVEnumsFromPreviousLogEntryToLogEntry = new TreeMap<>();
+                this.decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = new TreeMap<>();
             }
         }
 
@@ -711,8 +712,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
             this.showDetails.set(show);
         }
 
-        protected SortedMap<Integer, List<VEnum>> getDecorationIndexToVEnumsFromPreviousLogEntryToLogEntry() {
-            return decorationIndexToVEnumsFromPreviousLogEntryToLogEntry;
+        protected SortedMap<Integer, Pair<String, List<VEnum>>> getDecorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry() {
+            return decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry;
         }
     }
 

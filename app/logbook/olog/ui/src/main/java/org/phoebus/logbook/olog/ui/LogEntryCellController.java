@@ -17,6 +17,7 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import javafx.util.Pair;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.ext.image.attributes.ImageAttributesExtension;
@@ -175,13 +176,17 @@ public class LogEntryCellController {
         }
 
         if (logEntry != null) {
-            SortedMap<Integer, List<VEnum>> decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry = logEntry.getDecorationIndexToVEnumsFromPreviousLogEntryToLogEntry();
+            SortedMap<Integer, Pair<String, List<VEnum>>> decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry = logEntry.getDecorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry();
 
             decorations.getChildren().clear();
             for (int i : decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.keySet()) {
-                List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry = decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.get(i);
+                Pair<String, List<VEnum>> pvNameAndVEnumFromPreviousLogEntryToThisLogEntry = decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.get(i);
+
+                String pvName = pvNameAndVEnumFromPreviousLogEntryToThisLogEntry.getKey();
+                List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry = pvNameAndVEnumFromPreviousLogEntryToThisLogEntry.getValue();
 
                 StringBuilder toolTipStringBuilder = new StringBuilder();
+                toolTipStringBuilder.append("PV Name: \t" + pvName + "\n\n");
                 for (int j=vEnumFromPreviousLogEntryToThisLogEntry.size()-1; j >= 0; j--) {
                     VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
 
