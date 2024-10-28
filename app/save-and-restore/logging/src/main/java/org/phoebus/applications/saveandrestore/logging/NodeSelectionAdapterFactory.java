@@ -10,7 +10,6 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl;
 import org.phoebus.logbook.PropertyImpl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,14 +19,14 @@ import java.util.Optional;
 import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.log;
 
 /**
- * Adapts a selection of save&restore {@link Node}s to a log entry. Each selected {@link Node}
- * is added as a separate property with a name constructed from the {@link Node}'s name.
+ * Adapts a selection of save&restore {@link Node} to a log entry. The {@link Node} is
+ * added as a resource property.
  */
 public class NodeSelectionAdapterFactory implements AdapterFactory {
 
     @Override
     public Class getAdaptableObject() {
-        return ArrayList.class;
+        return Node.class;
     }
 
     @Override
@@ -37,17 +36,13 @@ public class NodeSelectionAdapterFactory implements AdapterFactory {
 
     @Override
     public <T> Optional<T> adapt(Object adaptableObject, Class<T> adapterType) {
-        List<Node> selectedNodes = (List<Node>) adaptableObject;
-        List<Map> properties = new ArrayList<>();
-        selectedNodes.forEach(n -> {
-            Map<String, String> map = new HashMap<>();
-            map.put("file", "file:/" + n.getUniqueId() + "?app=saveandrestore");
-            map.put("name", n.getName());
-            properties.add(map);
-        });
+        Node selectedNode = (Node) adaptableObject;
+        Map<String, String> map = new HashMap<>();
+        map.put("file", "file:/" + selectedNode.getUniqueId() + "?app=saveandrestore");
+        map.put("name", selectedNode.getName());
 
-        LogEntryImpl.LogEntryBuilder log = log().description("");
-        properties.forEach(m -> log.appendProperty(PropertyImpl.of("Save&restore resource " + m.get("name"), m)));
+        LogEntryImpl.LogEntryBuilder log = log().description("")
+                .appendProperty(PropertyImpl.of("resource", map));
         return Optional.of(adapterType.cast(log.build()));
     }
 }

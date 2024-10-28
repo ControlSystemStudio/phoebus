@@ -1463,18 +1463,15 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         ObservableList<? extends TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         selectedItemsProperty.setAll(selectedItems.stream().map(TreeItem::getValue).toList());
 
-        // Need to construct the selection carefully in order to be able to match an AdapterFactory to it.
-        List<List<Node>> selection = new ArrayList<>();
-        List<Node> nodes = new ArrayList<>();
-        nodes.addAll(selectedItemsProperty);
-        selection.add(nodes);
-        SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selection);
-
         contextMenu.getItems().clear();
         contextMenu.getItems().addAll(menuItems);
+
+        // Add log entry menu item...
+        SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME,
+                selectedItemsProperty.size() == 1 ? List.of(selectedItemsProperty.get(0)) : Collections.emptyList());
         List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
 
-        supported.stream().forEach(action -> {
+        supported.forEach(action -> {
             MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
             menuItem.setOnAction((ee) -> {
                 try {
@@ -1483,7 +1480,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from display builder.", ex);
                 }
             });
-            menuItem.disableProperty().set(selectedItemsProperty.isEmpty());
+            //... but disable if selection count != 1
+            menuItem.disableProperty().set(selectedItemsProperty.size() != 1);
             contextMenu.getItems().add(menuItem);
         });
 
