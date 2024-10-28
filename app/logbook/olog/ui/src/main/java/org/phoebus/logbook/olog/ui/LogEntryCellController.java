@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -15,6 +16,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.ext.image.attributes.ImageAttributesExtension;
@@ -179,6 +181,18 @@ public class LogEntryCellController {
             for (int i : decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.keySet()) {
                 List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry = decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.get(i);
 
+                StringBuilder toolTipStringBuilder = new StringBuilder();
+                for (int j=vEnumFromPreviousLogEntryToThisLogEntry.size()-1; j >= 0; j--) {
+                    VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
+
+                    String vEnumDate = vEnum.getTime().toString();
+                    String vEnumDateLessPrecision = vEnumDate.substring(0, vEnumDate.lastIndexOf("."));
+                    String vEnumValue = vEnum.getValue();
+                    toolTipStringBuilder.append(vEnumDateLessPrecision + ": \t" + vEnumValue + "\n");
+                }
+                Tooltip tooltip = new Tooltip(toolTipStringBuilder.toString());
+                tooltip.setShowDuration(Duration.INDEFINITE);
+                // TODO: Add PV name
                 // TODO: vEnumFromPreviousLogEntryToThisLogEntry.size() == 0
 
                 if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 1) {
@@ -196,6 +210,8 @@ public class LogEntryCellController {
                     HBox hBox = new HBox(path);
                     hBox.setAlignment(Pos.TOP_CENTER);
                     hBox.setPrefWidth(40);
+
+                    Tooltip.install(path, tooltip);
 
                     decorations.getChildren().add(path);
                 }
@@ -245,6 +261,9 @@ public class LogEntryCellController {
 
                     union.setAlignment(Pos.TOP_CENTER);
                     union.setSpacing(0.0);
+
+                    Tooltip.install(union, tooltip);
+
                     decorations.getChildren().add(union);
                 }
             }
