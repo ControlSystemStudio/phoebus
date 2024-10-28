@@ -101,11 +101,14 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -304,10 +307,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             treeView.getRoot().setValue(Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).name(name).build());
         });
 
-        JobManager.schedule("Configure context menu", monitor -> {
-            configureContextMenuItems();
-            treeView.setContextMenu(contextMenu);
-        });
+        //JobManager.schedule("Configure context menu", monitor -> {
+        MenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
+        addTagMenuItem.setOnAction(action -> addTagToSnapshots());
+        tagWithComment.getItems().addAll(addTagMenuItem);
+        //configureContextMenuItems();
+        treeView.setContextMenu(contextMenu);
+        //});
 
         loadTreeData();
     }
@@ -983,7 +989,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      *
      * @param tagMenu The {@link Menu} subject to configuration.
      */
-    public void tag(final Menu tagMenu) {
+    public void configureTagContextMenu(final Menu tagMenu) {
 
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
@@ -1414,53 +1420,35 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         });
     }
 
-    /**
-     * Creates context menu items.
-     */
-    private void configureContextMenuItems() {
-        contextMenu.getItems().add(new LoginMenuItem(this, selectedItemsProperty,
-                unused -> ApplicationService.createInstance("credentials_management")));
-        contextMenu.getItems().add(new NewFolderMenuItem(this, selectedItemsProperty,
-                unused -> createNewFolder()));
-        contextMenu.getItems().add(new NewConfigurationMenuItem(this, selectedItemsProperty,
-                unused -> createNewConfiguration()));
-        contextMenu.getItems().add(new CreateSnapshotMenuItem(this, selectedItemsProperty,
-                unused -> openConfigurationForSnapshot()));
-        contextMenu.getItems().add(new NewCompositeSnapshotMenuItem(this, selectedItemsProperty,
-                unused -> createNewCompositeSnapshot()));
-        contextMenu.getItems().add(new SeparatorMenuItem());
-        contextMenu.getItems().add(new EditCompositeMenuItem(this, selectedItemsProperty,
-                unused -> editCompositeSnapshot()));
-
-        contextMenu.getItems().add(new RenameFolderMenuItem(this, selectedItemsProperty,
-                unused -> renameNode()));
-        contextMenu.getItems().add(new CopyMenuItem(this, selectedItemsProperty, unused -> copySelectionToClipboard()));
-        contextMenu.getItems().add(new PasteMenuItem(this, selectedItemsProperty,
-                unused -> pasteFromClipboard()));
-        contextMenu.getItems().add(new DeleteNodeMenuItem(this, selectedItemsProperty,
-                unused -> deleteNodes()));
-        contextMenu.getItems().add(new SeparatorMenuItem());
-
-        contextMenu.getItems().add(new CompareSnapshotsMenuItem(this, selectedItemsProperty,
-                unused -> compareSnapshot()));
-        contextMenu.getItems().add(new TagGoldenMenuItem(this, selectedItemsProperty, null));
-
-        MenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
-        addTagMenuItem.setOnAction(action -> addTagToSnapshots());
-        tagWithComment.getItems().addAll(addTagMenuItem);
-        contextMenu.getItems().add(tagWithComment);
-
-
-        contextMenu.getItems().add(new SeparatorMenuItem());
-        contextMenu.getItems().add(new CopyUniqueIdToClipboardMenuItem(this, selectedItemsProperty,
-                unused -> copyUniqueNodeIdToClipboard()));
-        contextMenu.getItems().add(new SeparatorMenuItem());
-        contextMenu.getItems().add(new ImportFromCSVMenuItem(this, selectedItemsProperty,
-                unused -> importFromCSV()));
-        contextMenu.getItems().add(new ExportToCSVMenuItem(this, selectedItemsProperty,
-                unused -> exportToCSV()));
-    }
-
+    List<MenuItem> menuItems = Arrays.asList(
+            new LoginMenuItem(this, selectedItemsProperty,
+                    unused -> ApplicationService.createInstance("credentials_management")),
+            new NewFolderMenuItem(this, selectedItemsProperty,
+                    unused -> createNewFolder()),
+            new NewConfigurationMenuItem(this, selectedItemsProperty,
+                    unused -> createNewConfiguration()),
+            new CreateSnapshotMenuItem(this, selectedItemsProperty,
+                    unused -> openConfigurationForSnapshot()),
+            new NewCompositeSnapshotMenuItem(this, selectedItemsProperty,
+                    unused -> createNewCompositeSnapshot()),
+            new SeparatorMenuItem(),
+            new EditCompositeMenuItem(this, selectedItemsProperty, unused -> editCompositeSnapshot()),
+            new RenameFolderMenuItem(this, selectedItemsProperty, unused -> renameNode()),
+            new CopyMenuItem(this, selectedItemsProperty, unused -> copySelectionToClipboard()),
+            new PasteMenuItem(this, selectedItemsProperty, unused -> pasteFromClipboard()),
+            new DeleteNodeMenuItem(this, selectedItemsProperty, unused -> deleteNodes()),
+            new SeparatorMenuItem(),
+            new CompareSnapshotsMenuItem(this, selectedItemsProperty, unused -> compareSnapshot()),
+            new TagGoldenMenuItem(this, selectedItemsProperty, null),
+            tagWithComment,
+            new SeparatorMenuItem(),
+            new CopyUniqueIdToClipboardMenuItem(this, selectedItemsProperty,
+                    unused -> copyUniqueNodeIdToClipboard()),
+            new SeparatorMenuItem(),
+            new ImportFromCSVMenuItem(this, selectedItemsProperty, unused -> importFromCSV()),
+            new ExportToCSVMenuItem(this, selectedItemsProperty, unused -> exportToCSV()),
+            new SeparatorMenuItem()
+    );
 
     /**
      * Called when user requests context menu. Updates the {@link #selectedItemsProperty}, and since
@@ -1471,9 +1459,34 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      */
     @SuppressWarnings("unused")
     @FXML
-    public void createContextMenu(ContextMenuEvent e) {
+    public void configureContextMenu(ContextMenuEvent e) {
         ObservableList<? extends TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         selectedItemsProperty.setAll(selectedItems.stream().map(TreeItem::getValue).toList());
+
+        // Need to construct the selection carefully in order to be able to match an AdapterFactory to it.
+        List<List<Node>> selection = new ArrayList<>();
+        List<Node> nodes = new ArrayList<>();
+        nodes.addAll(selectedItemsProperty);
+        selection.add(nodes);
+        SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selection);
+
+        contextMenu.getItems().clear();
+        contextMenu.getItems().addAll(menuItems);
+        List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+
+        supported.stream().forEach(action -> {
+            MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+            menuItem.setOnAction((ee) -> {
+                try {
+                    action.call(null, SelectionService.getInstance().getSelection());
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from display builder.", ex);
+                }
+            });
+            menuItem.disableProperty().set(selectedItemsProperty.isEmpty());
+            contextMenu.getItems().add(menuItem);
+        });
+
         snapshotOrCompositeSnapshotOnlySelection.set(selectedItems.stream().filter(t ->
                 !t.getValue().getNodeType().equals(NodeType.SNAPSHOT) &&
                         !t.getValue().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty());
@@ -1481,7 +1494,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 selectedItemsProperty.size() != 1 ||
                 (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
                         !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
-        tag(tagWithComment);
+        configureTagContextMenu(tagWithComment);
+
+
     }
 
     /**
