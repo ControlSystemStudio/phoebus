@@ -1466,7 +1466,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         contextMenu.getItems().clear();
         contextMenu.getItems().addAll(menuItems);
 
-        // Add log entry menu item...
         SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME,
                 selectedItemsProperty.size() == 1 ? List.of(selectedItemsProperty.get(0)) : Collections.emptyList());
         List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
@@ -1477,11 +1476,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 try {
                     action.call(null, SelectionService.getInstance().getSelection());
                 } catch (Exception ex) {
-                    logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from display builder.", ex);
+                    logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from save&restore", ex);
                 }
             });
-            //... but disable if selection count != 1
-            menuItem.disableProperty().set(selectedItemsProperty.size() != 1);
             contextMenu.getItems().add(menuItem);
         });
 
