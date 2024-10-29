@@ -103,6 +103,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -1446,8 +1447,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     unused -> copyUniqueNodeIdToClipboard()),
             new SeparatorMenuItem(),
             new ImportFromCSVMenuItem(this, selectedItemsProperty, unused -> importFromCSV()),
-            new ExportToCSVMenuItem(this, selectedItemsProperty, unused -> exportToCSV()),
-            new SeparatorMenuItem()
+            new ExportToCSVMenuItem(this, selectedItemsProperty, unused -> exportToCSV())
     );
 
     /**
@@ -1466,21 +1466,25 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         contextMenu.getItems().clear();
         contextMenu.getItems().addAll(menuItems);
 
-        SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME,
-                selectedItemsProperty.size() == 1 ? List.of(selectedItemsProperty.get(0)) : Collections.emptyList());
-        List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+        // If logbook has been configured, add the Create Log menu item
+        if(LogbookPreferences.is_supported){
+            contextMenu.getItems().add(new SeparatorMenuItem());
+            SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME,
+                    selectedItemsProperty.size() == 1 ? List.of(selectedItemsProperty.get(0)) : Collections.emptyList());
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
 
-        supported.forEach(action -> {
-            MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
-            menuItem.setOnAction((ee) -> {
-                try {
-                    action.call(null, SelectionService.getInstance().getSelection());
-                } catch (Exception ex) {
-                    logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from save&restore", ex);
-                }
+            supported.forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((ee) -> {
+                    try {
+                        action.call(null, SelectionService.getInstance().getSelection());
+                    } catch (Exception ex) {
+                        logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from save&restore", ex);
+                    }
+                });
+                contextMenu.getItems().add(menuItem);
             });
-            contextMenu.getItems().add(menuItem);
-        });
+        }
 
         snapshotOrCompositeSnapshotOnlySelection.set(selectedItems.stream().filter(t ->
                 !t.getValue().getNodeType().equals(NodeType.SNAPSHOT) &&

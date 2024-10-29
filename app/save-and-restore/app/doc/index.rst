@@ -100,10 +100,20 @@ For a multi-selection of nodes the same restrictions apply as for a drag-n-drop 
 Logging
 -------
 
-If a logbook implementation is available in the application, the optional logging module can be used to launch a log entry
+If a logbook implementation is available, the optional logging module can be used to launch a log entry
 editor for the purpose of logging when a new snapshot has been saved or restored.
 Properties of the snapshot (name, date etc) are automatically set on the log entry rendered by the editor. If
 a restore action has failed to write one or multiple PVs, a list of these PVs is also added to the log entry.
+
+User may also launch the log entry editor from the context menu of the tree view:
+
+.. image:: images/create_log.png
+    :width: 30%
+
+In this case the log entry is empty save for a log entry property containing the name and path to
+the selected item in the tree. Note that this context menu entry is not available if a logbook implementation
+has not been configured. Moreover, the context menu entry is enabled only if a single node in the tree view
+is selected.
 
 Workflow
 --------
