@@ -34,16 +34,18 @@ import java.util.logging.Logger;
 public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticationProvider {
 
     @Override
-    public void authenticate(String username, String password){
+    public void authenticate(String username, String password) {
         SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
         try {
             UserData userData = saveAndRestoreService.authenticate(username, password);
             Logger.getLogger(SaveAndRestoreAuthenticationProvider.class.getName())
                     .log(Level.INFO, "User " + userData.getUserName() + " successfully signed in");
         } catch (Exception e) {
+            // NOTE!!! Exception message and/or stack trace could contain request URL and consequently
+            // user's password, so do not log or propagate it.
             Logger.getLogger(SaveAndRestoreAuthenticationProvider.class.getName())
-                    .log(Level.WARNING, "Failed to authenticate user " + username + " against save&restore service", e);
-            throw new RuntimeException(e);
+                    .log(Level.WARNING, "Failed to authenticate user " + username + " with save&restore service");
+            throw new RuntimeException("Failed to authenticate user " + username + " with save&restore service");
         }
     }
 
@@ -53,7 +55,7 @@ public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticati
     }
 
     @Override
-    public AuthenticationScope getAuthenticationScope(){
+    public AuthenticationScope getAuthenticationScope() {
         return AuthenticationScope.SAVE_AND_RESTORE;
     }
 

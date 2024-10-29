@@ -34,9 +34,11 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
@@ -582,9 +584,9 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     public UserData authenticate(String userName, String password) {
         String stringBuilder = Preferences.jmasarServiceUrl +
                 "/login?username=" +
-                userName +
+                URLEncoder.encode(userName, StandardCharsets.UTF_8) +
                 "&password=" +
-                password;
+                URLEncoder.encode(password, StandardCharsets.UTF_8);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(stringBuilder))
                 .POST(HttpRequest.BodyPublishers.noBody())
