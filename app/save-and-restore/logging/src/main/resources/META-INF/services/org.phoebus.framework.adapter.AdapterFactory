@@ -1,2 +1,3 @@
 org.phoebus.applications.saveandrestore.logging.SaveSnapshotActionAdapterFactory
 org.phoebus.applications.saveandrestore.logging.RestoreSnapshotActionAdapterFactory
+org.phoebus.applications.saveandrestore.logging.NodeSelectionAdapterFactory

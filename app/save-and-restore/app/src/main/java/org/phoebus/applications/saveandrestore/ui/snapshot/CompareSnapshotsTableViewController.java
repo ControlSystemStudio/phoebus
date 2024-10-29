@@ -19,24 +19,20 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.ui.Utilities;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 
 import java.util.List;
 
 
-public class CompareSnapshotsTableViewController extends BaseSnapshotTableViewController{
+public class CompareSnapshotsTableViewController extends BaseSnapshotTableViewController {
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<TableEntry, VTypePair> deltaColumn;
-
-    private final SimpleBooleanProperty showReadbacks = new SimpleBooleanProperty(false);
-    private boolean showDeltaPercentage;
 
     @FXML
     public void initialize() {
@@ -45,31 +41,13 @@ public class CompareSnapshotsTableViewController extends BaseSnapshotTableViewCo
 
 
         deltaColumn.setCellValueFactory(e -> e.getValue().valueProperty());
-        deltaColumn.setCellFactory(e -> {
-            VDeltaCellEditor<VTypePair> vDeltaCellEditor = new VDeltaCellEditor<>();
-            if (showDeltaPercentage) {
-                vDeltaCellEditor.setShowDeltaPercentage(true);
-            }
-            return vDeltaCellEditor;
-        });
+        deltaColumn.setCellFactory(e -> new VDeltaCellEditor<>());
         deltaColumn.setComparator((pair1, pair2) -> {
             Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
             Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
             return Double.compare(vtc1.getAbsoluteDelta(), vtc2.getAbsoluteDelta());
         });
 
-    }
-
-    public void setSnapshotController(SnapshotController snapshotController) {
-        this.snapshotController = snapshotController;
-    }
-
-    public void updateTable(List<TableEntry> entries, List<Snapshot> snapshots, boolean showLiveReadback, boolean showDeltaPercentage) {
-        // we should always know if we are showing the stored readback or not, to properly extract the selection
-        this.showReadbacks.set(showLiveReadback);
-        this.showDeltaPercentage = showDeltaPercentage;
-        //updateTableColumnTitles();
-        updateTable(entries);
     }
 
     /**

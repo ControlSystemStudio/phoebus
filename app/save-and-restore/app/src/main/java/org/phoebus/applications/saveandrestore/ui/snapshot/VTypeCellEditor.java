@@ -24,8 +24,17 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.StringConverter;
-import org.epics.vtype.*;
-import org.phoebus.applications.saveandrestore.ui.*;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
+import org.phoebus.applications.saveandrestore.ui.Utilities;
+import org.phoebus.applications.saveandrestore.ui.VNoData;
+import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.util.ArrayList;
@@ -81,8 +90,7 @@ public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
                         return item;
                     } else if (item instanceof VType) {
                         return (T) Utilities.valueFromString(string, (VType) item);
-                    } else if (item instanceof VTypePair) {
-                        VTypePair t = (VTypePair) item;
+                    } else if (item instanceof VTypePair t) {
                         if (t.value instanceof VDisconnectedData) {
                             return (T) new VTypePair(t.base, Utilities.valueFromString(string, t.base),
                                     t.threshold);
@@ -104,10 +112,9 @@ public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
     @Override
     public boolean isTextFieldType() {
         T item = getItem();
-        if (item instanceof VEnum) {
+        if (item instanceof VEnum value) {
             getItems().clear();
 
-            VEnum value = (VEnum) item;
             List<String> labels = value.getDisplay().getChoices();
             List<T> values = new ArrayList<>(labels.size());
             for (int i = 0; i < labels.size(); i++) {
@@ -116,13 +123,11 @@ public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
             setItems(values);
 
             return false;
-        } else if (item instanceof VTypePair) {
-            VTypePair v = ((VTypePair) item);
+        } else if (item instanceof VTypePair v) {
             VType type = v.value;
-            if (type instanceof VEnum) {
+            if (type instanceof VEnum value) {
                 getItems().clear();
 
-                VEnum value = (VEnum) type;
                 List<String> labels = value.getDisplay().getChoices();
                 List<T> values = new ArrayList<>(labels.size());
                 for (int i = 0; i < labels.size(); i++) {
@@ -167,8 +172,7 @@ public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
                 setGraphic(null);
                 tooltip.setText(item.toString());
                 setTooltip(tooltip);
-            } else if (item instanceof VTypePair) {
-                VTypePair pair = (VTypePair) item;
+            } else if (item instanceof VTypePair pair) {
                 if (pair.value == VDisconnectedData.INSTANCE) {
                     setText(VDisconnectedData.DISCONNECTED);
                     if (pair.base != VDisconnectedData.INSTANCE) {
@@ -188,8 +192,7 @@ public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
         TableRow tableRow = getTableRow();
         // If this is a TableEntry row and read-only it should not be editable.
         if (tableRow != null) {
-            if (tableRow.getItem() != null && tableRow.getItem() instanceof TableEntry) {
-                TableEntry tableEntry = (TableEntry) tableRow.getItem();
+            if (tableRow.getItem() != null && tableRow.getItem() instanceof TableEntry tableEntry) {
                 setEditable(tableEntry.readOnlyProperty().not().get());
             }
         }

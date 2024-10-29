@@ -22,13 +22,10 @@ import org.epics.vtype.VType;
 import java.util.Optional;
 
 
-
 /**
- *
  * <code>VTypePair</code> is an object that combines two VType objects, which can later be compared one to another.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
- *
  */
 public class VTypePair {
 
@@ -39,8 +36,8 @@ public class VTypePair {
     /**
      * Constructs a new pair.
      *
-     * @param base the base value
-     * @param value the value that can be compared to base
+     * @param base      the base value
+     * @param value     the value that can be compared to base
      * @param threshold the threshold values used for comparison
      */
     public VTypePair(VType base, VType value, Optional<Threshold<?>> threshold) {

@@ -17,15 +17,74 @@
  */
 package org.phoebus.applications.saveandrestore.ui;
 
-import org.epics.util.array.*;
-import org.epics.util.number.*;
+import org.epics.util.array.ArrayBoolean;
+import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayFloat;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayLong;
+import org.epics.util.array.ArrayShort;
+import org.epics.util.array.ArrayUByte;
+import org.epics.util.array.ArrayUInteger;
+import org.epics.util.array.ArrayULong;
+import org.epics.util.array.ArrayUShort;
+import org.epics.util.array.ListBoolean;
+import org.epics.util.array.ListLong;
+import org.epics.util.array.ListNumber;
+import org.epics.util.array.ListUInteger;
+import org.epics.util.array.ListULong;
+import org.epics.util.number.UByte;
+import org.epics.util.number.UInteger;
+import org.epics.util.number.ULong;
+import org.epics.util.number.UShort;
+import org.epics.util.number.UnsignedConversions;
 import org.epics.util.text.NumberFormats;
-import org.epics.vtype.*;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.SimpleValueFormat;
+import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
+import org.epics.vtype.VBooleanArray;
+import org.epics.vtype.VByte;
+import org.epics.vtype.VByteArray;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VFloat;
+import org.epics.vtype.VFloatArray;
+import org.epics.vtype.VInt;
+import org.epics.vtype.VIntArray;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VLongArray;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VShort;
+import org.epics.vtype.VShortArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
+import org.epics.vtype.VUByte;
+import org.epics.vtype.VUByteArray;
+import org.epics.vtype.VUInt;
+import org.epics.vtype.VUIntArray;
+import org.epics.vtype.VULong;
+import org.epics.vtype.VULongArray;
+import org.epics.vtype.VUShort;
+import org.epics.vtype.VUShortArray;
+import org.epics.vtype.ValueFormat;
 import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -222,7 +281,7 @@ public final class Utilities {
             List<String> list = Arrays.stream(elements).map(String::trim).collect(Collectors.toList());
             boolean[] booleans = new boolean[list.size()];
             for (int i = 0; i < list.size(); i++) {
-                booleans[i] = Integer.parseInt(list.get(i)) > 0 ? true : false;
+                booleans[i] = Integer.parseInt(list.get(i)) > 0;
             }
             ListBoolean listBoolean = ArrayBoolean.of(booleans);
             return VBooleanArray.of(listBoolean, alarm, time);
@@ -387,8 +446,7 @@ public final class Utilities {
             } else {
                 return String.valueOf(((VNumber) type).getValue());
             }
-        } else if (type instanceof VEnum) {
-            VEnum en = (VEnum) type;
+        } else if (type instanceof VEnum en) {
             String val = en.getValue();
             if (val.isEmpty()) {
                 // if all labels are empty, return the index as a string, otherwise return the label
@@ -1075,9 +1133,7 @@ public final class Utilities {
                 }
             }
             return true;
-        } else if (v1 instanceof VTable && v2 instanceof VTable) {
-            VTable vTable1 = (VTable) v1;
-            VTable vTable2 = (VTable) v2;
+        } else if (v1 instanceof VTable vTable1 && v2 instanceof VTable vTable2) {
             if (vTable1.getColumnCount() != vTable2.getColumnCount() ||
                     vTable1.getRowCount() != vTable2.getRowCount()) {
                 return false;
@@ -1104,8 +1160,8 @@ public final class Utilities {
      * Compares array objects
      *
      * @param clazz Class of the input data objects
-     * @param a1 First object
-     * @param a2 Second object
+     * @param a1    First object
+     * @param a2    Second object
      * @return <code>true</code> if all elements in arrays are equal.
      */
     public static boolean areVTypeArraysEqual(Class clazz, Object a1, Object a2) {
@@ -1264,33 +1320,23 @@ public final class Utilities {
 
     private static boolean isAlarmAndTimeEqual(VType a1, VType a2) {
 
-        if (a1 instanceof VNumber && a2 instanceof VNumber) {
-            VNumber vn1 = (VNumber) a1;
-            VNumber vn2 = (VNumber) a2;
+        if (a1 instanceof VNumber vn1 && a2 instanceof VNumber vn2) {
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
-        } else if (a1 instanceof VNumberArray && a2 instanceof VNumberArray) {
-            VNumberArray vn1 = (VNumberArray) a1;
-            VNumberArray vn2 = (VNumberArray) a2;
+        } else if (a1 instanceof VNumberArray vn1 && a2 instanceof VNumberArray vn2) {
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
-        } else if (a1 instanceof VNumber && a2 instanceof VNumberArray) {
-            VNumber vn1 = (VNumber) a1;
-            VNumberArray vn2 = (VNumberArray) a2;
+        } else if (a1 instanceof VNumber vn1 && a2 instanceof VNumberArray vn2) {
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
-        } else if (a1 instanceof VNumberArray && a2 instanceof VNumber) {
-            VNumberArray vn1 = (VNumberArray) a1;
-            VNumber vn2 = (VNumber) a2;
+        } else if (a1 instanceof VNumberArray vn1 && a2 instanceof VNumber vn2) {
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
-        } else if (a1 instanceof VEnum && a2 instanceof VEnum) {
-            VEnum vn1 = (VEnum) a1;
-            VEnum vn2 = (VEnum) a2;
+        } else if (a1 instanceof VEnum vn1 && a2 instanceof VEnum vn2) {
             return vn1.getAlarm().getName().equals(vn2.getAlarm().getName()) &&
                     vn1.getAlarm().getSeverity().equals(vn2.getAlarm().getSeverity()) &&
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());

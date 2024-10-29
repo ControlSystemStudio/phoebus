@@ -23,8 +23,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -50,7 +48,7 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
     public static final String SEARCH_AND_FILTER_TAB_ID = "SearchAndFilterTab";
 
     private SearchAndFilterViewController searchAndFilterViewController;
-    private SaveAndRestoreService saveAndRestoreService;
+    private final SaveAndRestoreService saveAndRestoreService;
 
     public SearchAndFilterTab(SaveAndRestoreController saveAndRestoreController) {
 
@@ -104,9 +102,10 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
     /**
      * Shows a {@link Filter} in the view. If the filter identified through the specified (unique) id does not
      * exist, an error message is show.
+     *
      * @param filterId Unique, case-sensitive name of a persisted {@link Filter}.
      */
-    public void showFilter(String filterId){
+    public void showFilter(String filterId) {
         JobManager.schedule("Show Filter", monitor -> {
             List<Filter> allFilters = null;
             try {

@@ -17,30 +17,30 @@
  */
 package org.phoebus.applications.saveandrestore.ui;
 
-import javax.script.*;
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import javax.script.SimpleBindings;
 import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * <code>Threshold</code> represents threshold values for a pv. It provides two values, one for positive threshold and
  * one for negative. When comparing two values using this threshold the values are equal if the difference between the
  * first and the second value is less than positive threshold and more than negative threshold. The generic
  * parameter of this class has to be one of the primitive types wrappers: {@link Byte}, {@link Short}, {@link Integer},
  * {@link Long}, {@link Float}, {@link Double}.
  *
- * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
- *
  * @param <T> the type of the number that this threshold contains
+ * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  */
 public class Threshold<T extends Number> implements Serializable {
 
     private static final Logger LOGGER = Logger.getLogger(Threshold.class.getName());
     private static final long serialVersionUID = 7839497629386640415L;
 
-    // private static final String[] FUNCTIONS = new String[] { "PI", "E", "abs(", "cos(", "acos(", "sin(", "asin(",
-    // "tan(", "atan(", "exp(", "log(", "max(", "min(", "pow(", "sqrt(" };
     private static final String BASE = "base";
     private static final String VALUE = "value";
     private static final ScriptEngine EVALUATOR = new ScriptEngineManager().getEngineByName("JavaScript");
@@ -60,21 +60,21 @@ public class Threshold<T extends Number> implements Serializable {
         } else if (n instanceof Double) {
             return (U) Double.valueOf(-n.doubleValue());
         }
-        throw new IllegalArgumentException(String.format("Cannot negate the value %s.", String.valueOf(n)));
+        throw new IllegalArgumentException(String.format("Cannot negate the value %s.", n));
     }
 
     private static void checkValue(Number n, boolean positive) {
         if (!(n instanceof Byte || n instanceof Short || n instanceof Integer || n instanceof Long || n instanceof Float
-            || n instanceof Double)) {
+                || n instanceof Double)) {
             throw new IllegalArgumentException(
-                String.format("The value %s is not one of the primitive type wrappers.", String.valueOf(n)));
+                    String.format("The value %s is not one of the primitive type wrappers.", n));
         }
         if (positive && n.doubleValue() < 0.) {
             throw new IllegalArgumentException(
-                String.format("The value %s should be non negative.", String.valueOf(n)));
+                    String.format("The value %s should be non negative.", n));
         } else if (!positive && n.doubleValue() > 0.) {
             throw new IllegalArgumentException(
-                String.format("The value %s should be non positive.", String.valueOf(n)));
+                    String.format("The value %s should be non positive.", n));
         }
     }
 
@@ -197,7 +197,7 @@ public class Threshold<T extends Number> implements Serializable {
      * {@link #getFunction()}), the function is used to calculate whether the value is within limits.
      *
      * @param value the value to compare to the thresholds
-     * @param base value to compare to
+     * @param base  value to compare to
      * @return true if the value is within threshold limits or false otherwise
      */
     public boolean isWithinThreshold(T value, T base) {
@@ -232,7 +232,7 @@ public class Threshold<T extends Number> implements Serializable {
                 isMalformed = true;
                 if (logError) {
                     LOGGER.log(Level.WARNING, String.format("Threshold function %s cannot be evaluated.", function),
-                        (Throwable) e);
+                            e);
                     logError = false;
                 }
             }
@@ -240,21 +240,5 @@ public class Threshold<T extends Number> implements Serializable {
         } else {
             return false;
         }
-    }
-
-    /**
-     * Test if this threshold is defined in a way that it can be evaluated. If it is, the method returns true, otherwise
-     * it returns false. Note that if the method returns false it does not necessary means that the definition is not
-     * correct, but is only an indication that it should be double checked.
-     *
-     * @return true if the definition is acceptable or false if there is a potential error
-     */
-    @SuppressWarnings("unchecked")
-    public boolean test() {
-        boolean log = logError;
-        logError = false;
-        isWithinThreshold((T) Long.valueOf(1), (T) Long.valueOf(0));
-        logError = log;
-        return !isMalformed;
     }
 }

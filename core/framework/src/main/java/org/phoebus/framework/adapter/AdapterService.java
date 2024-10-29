@@ -88,27 +88,27 @@ public class AdapterService {
     }
 
     /**
-     * Adapts the adaptableObject to type adapterType using registered adaptor factories.
+     * Adapts the adaptableObject to type targetType using registered adaptor factories.
      * @param <T> , the type to convert
      * @param adaptableObject , the object to adapt
-     * @param adapterType , the target type 
-     * @return an {@link Optional} with the the adapted object or empty
+     * @param targetType , the target type of <code>adaptableObject</code>
+     * @return an {@link Optional} with the adapted object or empty
      */
-    public static <T> Optional<T> adapt(Object adaptableObject, Class<T> adapterType)
+    public static <T> Optional<T> adapt(Object adaptableObject, Class<T> targetType)
     {
-        if(adapterType.isInstance(adaptableObject))
+        if(targetType.isInstance(adaptableObject))
         {
-            return Optional.of(adapterType.cast(adaptableObject));
+            return Optional.of(targetType.cast(adaptableObject));
         }
         List<AdapterFactory> factories = AdapterService.getAdaptersforAdaptable(adaptableObject.getClass()).stream().filter(factory -> {
-            return factory.getAdapterList().contains(adapterType);
+            return factory.getAdapterList().contains(targetType);
         }).collect(Collectors.toList());
         if(factories.isEmpty())
         {
             logger.warning("failed to adapt the object " + adaptableObject + " due to no avaiable adaptor factories.");
         } else if(factories.size() == 1)
         {
-            return factories.get(0).adapt(adaptableObject, adapterType);
+            return factories.get(0).adapt(adaptableObject, targetType);
         } else if(factories.size() >= 1)
         {
             logger.warning("failed to adapt the object " + adaptableObject + " due to multiple factories " + factories.size());

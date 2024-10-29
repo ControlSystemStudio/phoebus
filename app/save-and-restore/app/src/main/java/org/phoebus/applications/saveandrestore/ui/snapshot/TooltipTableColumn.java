@@ -22,11 +22,7 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
-
-import javax.tools.Tool;
 
 /**
  * <code>TooltipTableColumn</code> is the common table column implementation, which can also provide the tooltip.
@@ -44,19 +40,19 @@ public class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
         label.setTooltip(new Tooltip(tooltip));
     }
 
-    public void setLabelText(String labelText){
+    public void setLabelText(String labelText) {
         label.textProperty().set(labelText);
     }
 
-    public String getTooltip(){
+    public String getTooltip() {
         return label.getTooltip().textProperty().get();
     }
 
-    public String getLabelText(){
+    public String getLabelText() {
         return label.textProperty().get();
     }
 
-    public TooltipTableColumn(){
+    public TooltipTableColumn() {
         label = new Label();
         setGraphic(label);
     }
@@ -69,7 +65,7 @@ public class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
         setup(text, tooltip, minWidth, prefWidth, resizable);
     }
 
-    public void setPreferredWidth(int prefWidth){
+    public void setPreferredWidth(int prefWidth) {
         setPrefWidth(prefWidth);
     }
 
