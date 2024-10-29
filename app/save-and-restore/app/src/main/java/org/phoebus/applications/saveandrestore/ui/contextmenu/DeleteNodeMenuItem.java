@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 public class DeleteNodeMenuItem extends SaveAndRestoreMenuItem {
 
-    public DeleteNodeMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Consumer onAction) {
+    public DeleteNodeMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.contextMenuDelete);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));

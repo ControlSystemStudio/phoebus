@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 public class CopyUniqueIdToClipboardMenuItem extends SaveAndRestoreMenuItem {
 
-    public CopyUniqueIdToClipboardMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Consumer onAction) {
+    public CopyUniqueIdToClipboardMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.copyUniqueIdToClipboard);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));

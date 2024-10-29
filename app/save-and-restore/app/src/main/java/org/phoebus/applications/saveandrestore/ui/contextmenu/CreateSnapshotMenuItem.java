@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 
 public class CreateSnapshotMenuItem extends SaveAndRestoreMenuItem {
 
-    public CreateSnapshotMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Consumer onAction) {
+    public CreateSnapshotMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.contextMenuCreateSnapshot);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/snapshot.png"));

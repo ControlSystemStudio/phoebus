@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 
 public class NewFolderMenuItem extends SaveAndRestoreMenuItem {
 
-    public NewFolderMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItems, Consumer onAction) {
+    public NewFolderMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItems, Runnable onAction) {
         super(saveAndRestoreController, selectedItems, onAction);
         setText(Messages.contextMenuNewFolder);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/folder.png"));

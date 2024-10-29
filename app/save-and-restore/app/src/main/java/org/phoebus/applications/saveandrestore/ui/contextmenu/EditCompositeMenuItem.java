@@ -17,7 +17,7 @@ public class EditCompositeMenuItem extends SaveAndRestoreMenuItem {
 
     public EditCompositeMenuItem(SaveAndRestoreController saveAndRestoreController,
                                  ObservableList<Node> selectedItemsProperty,
-                                 Consumer onAction) {
+                                 Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.Edit);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/edit-configuration.png"));

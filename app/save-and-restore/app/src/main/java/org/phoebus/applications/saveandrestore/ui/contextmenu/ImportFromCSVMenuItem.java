@@ -18,7 +18,7 @@ public class ImportFromCSVMenuItem extends SaveAndRestoreMenuItem {
 
     public ImportFromCSVMenuItem(SaveAndRestoreController saveAndRestoreController,
                                  ObservableList<Node> selectedItemsProperty,
-                                 Consumer onAction) {
+                                 Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         // Set text in configure()
         setGraphic(new ImageView(ImageCache.getImage(ImportFromCSVMenuItem.class, "/icons/csv_import.png")));

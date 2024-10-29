@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 public class CompareSnapshotsMenuItem extends SaveAndRestoreMenuItem {
 
-    public CompareSnapshotsMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Consumer onAction) {
+    public CompareSnapshotsMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.contextMenuCompareSnapshots);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/compare.png"));

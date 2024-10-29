@@ -24,9 +24,8 @@ public class TagGoldenMenuItem extends SaveAndRestoreMenuItem {
     private final ImageView goldenIcon = ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/snapshot-golden.png");
 
     public TagGoldenMenuItem(SaveAndRestoreController saveAndRestoreController,
-                             ObservableList<Node> selectedItemsProperty,
-                             Consumer onAction) {
-        super(saveAndRestoreController, selectedItemsProperty, onAction);
+                             ObservableList<Node> selectedItemsProperty) {
+        super(saveAndRestoreController, selectedItemsProperty, null);
         setText(Messages.contextMenuTagAsGolden);
         setGraphic(regularIcon);
     }

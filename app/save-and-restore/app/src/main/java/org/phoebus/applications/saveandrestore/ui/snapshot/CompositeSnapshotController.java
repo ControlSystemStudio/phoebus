@@ -457,8 +457,8 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
      * @return <code>true</code> if the source {@link Node}s may be added.
      */
     private boolean mayDrop(List<Node> sourceNodes) {
-        return sourceNodes.stream().noneMatch(n -> !n.getNodeType().equals(NodeType.SNAPSHOT) &&
-                !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT));
+        return sourceNodes.stream().allMatch(n -> n.getNodeType().equals(NodeType.SNAPSHOT) ||
+                n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT));
     }
 
     /**

@@ -17,7 +17,7 @@ public class ExportToCSVMenuItem extends SaveAndRestoreMenuItem {
 
     public ExportToCSVMenuItem(SaveAndRestoreController saveAndRestoreController,
                                ObservableList<Node> selectedItemsProperty,
-                               Consumer onAction) {
+                               Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         // Set text in configure()
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/csv_export.png"));

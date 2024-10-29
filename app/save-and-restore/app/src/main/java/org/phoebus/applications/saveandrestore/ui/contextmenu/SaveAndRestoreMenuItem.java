@@ -28,17 +28,17 @@ public abstract class SaveAndRestoreMenuItem extends MenuItem {
      *                                 needed to determine if and how to render this {@link MenuItem}.
      * @param selectedItemsProperty An {@link ObservableList} property objects of this class will listen on. When
      *                              a change is detected, the {@link #configure()} is called.
-     * @param onAction Client provided {@link Consumer} defining the action of the {@link MenuItem}.
+     * @param onAction Client provided {@link Runnable} defining the action of the {@link MenuItem}.
      */
     public SaveAndRestoreMenuItem(SaveAndRestoreController saveAndRestoreController,
                                   ObservableList<Node> selectedItemsProperty,
-                                  Consumer onAction) {
+                                  Runnable onAction) {
         this.saveAndRestoreController = saveAndRestoreController;
         this.selectedItemsProperty = selectedItemsProperty;
         ListChangeListener<Node> l = change -> configure();
         this.selectedItemsProperty.addListener(l);
-        if (onAction != null) {
-            setOnAction(ae -> onAction.accept(null));
+        if(onAction != null){
+            setOnAction(ae -> onAction.run());
         }
     }
 

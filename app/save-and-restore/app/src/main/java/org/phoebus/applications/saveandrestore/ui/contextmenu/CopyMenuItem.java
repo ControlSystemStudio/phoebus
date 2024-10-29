@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 public class CopyMenuItem extends SaveAndRestoreMenuItem {
 
-    public CopyMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Consumer onAction) {
+    public CopyMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.copy);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
@@ -23,7 +23,6 @@ public class CopyMenuItem extends SaveAndRestoreMenuItem {
 
     @Override
     public void configure() {
-        //visibleProperty().set(!allFoldersOrRootFolder(selectedItemsProperty));
         disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get() ||
                 allFoldersOrRootFolder(selectedItemsProperty) ||
                 !saveAndRestoreController.mayCopy());

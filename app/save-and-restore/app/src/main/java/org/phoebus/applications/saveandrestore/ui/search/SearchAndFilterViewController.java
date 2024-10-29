@@ -455,8 +455,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
         ContextMenu contextMenu = new ContextMenu();
         MenuItem loginMenuItem =
-                new LoginMenuItem(saveAndRestoreController, selectedItemsProperty, unused -> ApplicationService.createInstance("credentials_management"));
-        MenuItem tagGoldenMenuItem = new TagGoldenMenuItem(saveAndRestoreController, selectedItemsProperty, null);
+                new LoginMenuItem(saveAndRestoreController, selectedItemsProperty, () -> ApplicationService.createInstance("credentials_management"));
+        MenuItem tagGoldenMenuItem = new TagGoldenMenuItem(saveAndRestoreController, selectedItemsProperty);
 
         ImageView snapshotTagsIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG);
         Menu tagMenuItem = new Menu(Messages.contextMenuTags, snapshotTagsIconImage);
@@ -470,6 +470,11 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
         contextMenu.setOnShowing(event -> {
             selectedItemsProperty.setAll(resultTableView.getSelectionModel().getSelectedItems());
+            // Empty result table -> hide menu and return
+            if(selectedItemsProperty.isEmpty()){
+                Platform.runLater(() -> contextMenu.hide());
+                return;
+            }
             tagMenuItem.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
             restoreMenuItem.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
             NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();

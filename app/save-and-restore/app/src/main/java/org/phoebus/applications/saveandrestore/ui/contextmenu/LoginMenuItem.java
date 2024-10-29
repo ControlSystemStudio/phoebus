@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 public class LoginMenuItem extends SaveAndRestoreMenuItem {
 
-    public LoginMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Consumer<Void> onAction) {
+    public LoginMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.login);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/credentials.png"));

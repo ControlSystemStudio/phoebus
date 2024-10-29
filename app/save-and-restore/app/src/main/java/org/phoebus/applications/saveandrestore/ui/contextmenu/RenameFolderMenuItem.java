@@ -17,7 +17,7 @@ public class RenameFolderMenuItem extends SaveAndRestoreMenuItem {
 
     public RenameFolderMenuItem(SaveAndRestoreController saveAndRestoreController,
                                 ObservableList<Node> selectedItemsProperty,
-                                Consumer onAction) {
+                                Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.contextMenuRename);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/rename_col.png"));

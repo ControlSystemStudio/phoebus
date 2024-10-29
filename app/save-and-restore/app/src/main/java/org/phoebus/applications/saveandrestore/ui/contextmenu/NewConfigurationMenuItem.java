@@ -17,7 +17,7 @@ public class NewConfigurationMenuItem extends SaveAndRestoreMenuItem {
 
     public NewConfigurationMenuItem(SaveAndRestoreController saveAndRestoreController,
                                     ObservableList<Node> selectedItemsProperty,
-                                    Consumer onAction) {
+                                    Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.contextMenuNewConfiguration);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/configuration.png"));

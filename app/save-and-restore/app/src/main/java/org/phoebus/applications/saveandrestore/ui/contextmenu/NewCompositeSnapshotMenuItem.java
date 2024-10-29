@@ -17,7 +17,7 @@ public class NewCompositeSnapshotMenuItem extends SaveAndRestoreMenuItem {
 
     public NewCompositeSnapshotMenuItem(SaveAndRestoreController saveAndRestoreController,
                                         ObservableList<Node> selectedItemsProperty,
-                                        Consumer onAction) {
+                                        Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.contextMenuNewCompositeSnapshot);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/composite-snapshot.png"));

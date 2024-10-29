@@ -17,7 +17,7 @@ public class PasteMenuItem extends SaveAndRestoreMenuItem {
 
     public PasteMenuItem(SaveAndRestoreController saveAndRestoreController,
                          ObservableList<Node> selectedItemsProperty,
-                         Consumer onAction) {
+                         Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.paste);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));

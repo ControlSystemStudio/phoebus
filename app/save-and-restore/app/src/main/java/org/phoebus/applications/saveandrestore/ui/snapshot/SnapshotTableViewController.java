@@ -172,7 +172,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         }
     }
 
-    public void takeSnapshot(SnapshotMode snapshotMode, Consumer<Snapshot> consumer) {
+    public void takeSnapshot(SnapshotMode snapshotMode, Consumer<Optional<Snapshot>> consumer) {
         switch (snapshotMode) {
             case READ_PVS -> takeSnapshot(consumer);
             case FROM_ARCHIVER -> takeSnapshotFromArchiver(consumer);
@@ -180,7 +180,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         }
     }
 
-    private void takeSnapshotFromArchiver(Consumer<Snapshot> consumer) {
+    private void takeSnapshotFromArchiver(Consumer<Optional<Snapshot>> consumer) {
         DateTimePane dateTimePane = new DateTimePane();
         Dialog<Instant> timePickerDialog = new Dialog<>();
         timePickerDialog.setTitle(Messages.dateTimePickerTitle);
@@ -194,7 +194,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         });
         Optional<Instant> time = timePickerDialog.showAndWait();
         if (time.isEmpty()) { // User cancels date/time picker dialog
-            consumer.accept(null);
+            consumer.accept(Optional.empty());
             return;
         }
         JobManager.schedule("Add snapshot from archiver", monitor -> {
@@ -211,11 +211,11 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             snapshotData.setUniqueId("anonymous");
             snapshotData.setSnapshotItems(snapshotItems);
             snapshot.setSnapshotData(snapshotData);
-            consumer.accept(snapshot);
+            consumer.accept(Optional.of(snapshot));
         });
     }
 
-    private void takeSnapshot(Consumer<Snapshot> consumer) {
+    private void takeSnapshot(Consumer<Optional<Snapshot>> consumer) {
         JobManager.schedule("Take snapshot", monitor -> {
             // Clear snapshots array
             snapshots.clear();
@@ -224,7 +224,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                 snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId());
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(snapshotTableView, Messages.errorGeneric, Messages.takeSnapshotFailed, e);
-                consumer.accept(null);
+                consumer.accept(Optional.empty());
                 return;
             }
             // Service can only return nulls for disconnected PVs, but UI expects VDisonnectedData
@@ -246,7 +246,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                 SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
                 snapshot.getSnapshotNode().setName(formatter.format(new Date()));
             }
-            consumer.accept(snapshot);
+            consumer.accept(Optional.of(snapshot));
         });
 
     }
