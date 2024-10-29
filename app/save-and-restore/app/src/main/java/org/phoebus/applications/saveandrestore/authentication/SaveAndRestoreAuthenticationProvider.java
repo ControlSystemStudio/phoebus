@@ -19,7 +19,6 @@
 
 package org.phoebus.applications.saveandrestore.authentication;
 
-import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
@@ -33,7 +32,7 @@ import java.util.logging.Logger;
 public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticationProvider {
 
     @Override
-    public void authenticate(String username, String password){
+    public void authenticate(String username, String password) {
         SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
         try {
             saveAndRestoreService.authenticate(username, password);
@@ -52,7 +51,7 @@ public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticati
     }
 
     @Override
-    public AuthenticationScope getAuthenticationScope(){
+    public AuthenticationScope getAuthenticationScope() {
         return AuthenticationScope.SAVE_AND_RESTORE;
     }
 
