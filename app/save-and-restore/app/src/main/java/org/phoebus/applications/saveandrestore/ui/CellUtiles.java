@@ -29,10 +29,8 @@ import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Cell;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
@@ -40,35 +38,23 @@ import javafx.util.StringConverter;
 // This class was copied from the jfxrt, because it is required by the MultitypeTableCell
 class CellUtils {
 
-    static int TREE_VIEW_HBOX_GRAPHIC_PADDING = 3;
-
     /***************************************************************************
      *                                                                         *
      * Private fields                                                          *
      *                                                                         *
      **************************************************************************/
 
-    private final static StringConverter<?> defaultStringConverter = new StringConverter<Object>() {
-        @Override public String toString(Object t) {
+    private final static StringConverter<?> defaultStringConverter = new StringConverter<>() {
+        @Override
+        public String toString(Object t) {
             return t == null ? null : t.toString();
         }
 
-        @Override public Object fromString(String string) {
-            return (Object) string;
+        @Override
+        public Object fromString(String string) {
+            return string;
         }
     };
-
-    private final static StringConverter<?> defaultTreeItemStringConverter =
-        new StringConverter<TreeItem<?>>() {
-            @Override public String toString(TreeItem<?> treeItem) {
-                return (treeItem == null || treeItem.getValue() == null) ?
-                        "" : treeItem.getValue().toString();
-            }
-
-            @Override public TreeItem<?> fromString(String string) {
-                return new TreeItem<>(string);
-            }
-        };
 
     /***************************************************************************
      *                                                                         *
@@ -85,96 +71,13 @@ class CellUtils {
         return (StringConverter<T>) defaultStringConverter;
     }
 
-    /*
-     * Simple method to provide a TreeItem-specific StringConverter
-     * implementation in various cell implementations.
-     */
-    @SuppressWarnings("unchecked")
-    static <T> StringConverter<TreeItem<T>> defaultTreeItemStringConverter() {
-        return (StringConverter<TreeItem<T>>) defaultTreeItemStringConverter;
-    }
 
     private static <T> String getItemText(Cell<T> cell, StringConverter<T> converter) {
         return converter == null ?
-            cell.getItem() == null ? "" : cell.getItem().toString() :
-            converter.toString(cell.getItem());
+                cell.getItem() == null ? "" : cell.getItem().toString() :
+                converter.toString(cell.getItem());
     }
 
-
-    static Node getGraphic(TreeItem<?> treeItem) {
-        return treeItem == null ? null : treeItem.getGraphic();
-    }
-
-
-
-    /***************************************************************************
-     *                                                                         *
-     * ChoiceBox convenience                                                   *
-     *                                                                         *
-     **************************************************************************/
-
-    static <T> void updateItem(final Cell<T> cell,
-                               final StringConverter<T> converter,
-                               final ChoiceBox<T> choiceBox) {
-        updateItem(cell, converter, null, null, choiceBox);
-    }
-
-    static <T> void updateItem(final Cell<T> cell,
-                               final StringConverter<T> converter,
-                               final HBox hbox,
-                               final Node graphic,
-                               final ChoiceBox<T> choiceBox) {
-        if (cell.isEmpty()) {
-            cell.setText(null);
-            cell.setGraphic(null);
-        } else {
-            if (cell.isEditing()) {
-                if (choiceBox != null) {
-                    choiceBox.getSelectionModel().select(cell.getItem());
-                }
-                cell.setText(null);
-
-                if (graphic != null) {
-                    hbox.getChildren().setAll(graphic, choiceBox);
-                    cell.setGraphic(hbox);
-                } else {
-                    cell.setGraphic(choiceBox);
-                }
-            } else {
-                cell.setText(getItemText(cell, converter));
-                cell.setGraphic(graphic);
-            }
-        }
-    };
-
-    static <T> ChoiceBox<T> createChoiceBox(
-            final Cell<T> cell,
-            final ObservableList<T> items,
-            final ObjectProperty<StringConverter<T>> converter) {
-        ChoiceBox<T> choiceBox = new ChoiceBox<T>(items);
-        choiceBox.setMaxWidth(Double.MAX_VALUE);
-        choiceBox.converterProperty().bind(converter);
-        choiceBox.getSelectionModel().selectedItemProperty().addListener((ov, oldValue, newValue) -> {
-            if (cell.isEditing()) {
-                cell.commitEdit(newValue);
-            }
-        });
-        return choiceBox;
-    }
-
-
-
-    /***************************************************************************
-     *                                                                         *
-     * TextField convenience                                                   *
-     *                                                                         *
-     **************************************************************************/
-
-    static <T> void updateItem(final Cell<T> cell,
-                               final StringConverter<T> converter,
-                               final TextField textField) {
-        updateItem(cell, converter, null, null, textField);
-    }
 
     static <T> void updateItem(final Cell<T> cell,
                                final StringConverter<T> converter,
@@ -255,18 +158,6 @@ class CellUtils {
         return textField;
     }
 
-
-
-    /***************************************************************************
-     *                                                                         *
-     * ComboBox convenience                                                   *
-     *                                                                         *
-     **************************************************************************/
-
-    static <T> void updateItem(Cell<T> cell, StringConverter<T> converter, ComboBox<T> comboBox) {
-        updateItem(cell, converter, null, null, comboBox);
-    }
-
     static <T> void updateItem(final Cell<T> cell,
                                final StringConverter<T> converter,
                                final HBox hbox,
@@ -293,12 +184,12 @@ class CellUtils {
                 cell.setGraphic(graphic);
             }
         }
-    };
+    }
 
     static <T> ComboBox<T> createComboBox(final Cell<T> cell,
                                           final ObservableList<T> items,
                                           final ObjectProperty<StringConverter<T>> converter) {
-        ComboBox<T> comboBox = new ComboBox<T>(items);
+        ComboBox<T> comboBox = new ComboBox<>(items);
         comboBox.converterProperty().bind(converter);
         comboBox.setMaxWidth(Double.MAX_VALUE);
         comboBox.getSelectionModel().selectedItemProperty().addListener((ov, oldValue, newValue) -> {

@@ -21,9 +21,9 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.fxml.FXML;
 
-public class CompareSnapshotsController extends SnapshotController{
+public class CompareSnapshotsController extends SnapshotController {
 
-    public CompareSnapshotsController(SnapshotTab snapshotTab){
+    public CompareSnapshotsController(SnapshotTab snapshotTab) {
         super(snapshotTab);
     }
 

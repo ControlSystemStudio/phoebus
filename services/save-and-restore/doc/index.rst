@@ -35,6 +35,12 @@ they do not yet exist.
 REST API for Save Restore Service
 =================================
 
+Swagger UI
+----------
+
+A Swagger UI is by default available on ``.../swagger-ui/index.html``. This should be considered the reference
+documentation of the API endpoints.
+
 Node
 ----
 
@@ -184,22 +190,26 @@ The updated node.
 Updates an existing node with respect to its name or description, or both. The ``nodeType`` cannot be
 updated.
 
-Delete a node
-"""""""""""""
+Delete nodes
+""""""""""""
 
-**.../node/{uniqueNodeId}**
+**.../node
 
 Method: DELETE
 
-Deletes the node identified by ``uniqueNodeId``. Deletion is agnostic to the node type.
+Caller must specify a body, which is a list of the unique ids of the nodes subject to deletion:
 
-Note that deletion is recursive:
+.. code-block:: JSON
+
+    ["id_1", "id_2",...., "id_n"]
+
+Note that deletion is recursive and non-reversible:
 
 - Deleting a configuration node will also delete all associated snapshot nodes.
 - Deleting a folder node will delete also delete all nodes in its sub-tree.
 
-Get a node parent
-"""""""""""""""""
+Get a node's parent
+"""""""""""""""""""
 
 **.../node/{uniqueNodeId}/parent**
 
@@ -783,8 +793,8 @@ Body:
         }
     ]
 
-Return: A list of the snapshot items restored, and optionally the error message. 
-If there was no error in PV restoration then the error message is null.
+Return: A list of objects associated with PVs that could not be written for whatever reason. If
+the list is empty, all PVs in the snapshot were restored correctly.
 
 .. code-block:: JSON
 
@@ -817,7 +827,7 @@ If there was no error in PV restoration then the error message is null.
                     }
                 }
             },
-        "errorMsg": null
+        "errorMsg": "Connection to PV 'COUNTER10' timed out after 5000ms."
         }
     ]
 

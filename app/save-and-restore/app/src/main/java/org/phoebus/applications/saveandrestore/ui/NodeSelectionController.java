@@ -14,12 +14,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -52,12 +50,15 @@ public class NodeSelectionController implements Initializable {
 
     private final SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
 
+    @SuppressWarnings("unused")
     @FXML
     private TreeView<Node> treeView;
 
+    @SuppressWarnings("unused")
     @FXML
     private Button createFolderButton;
 
+    @SuppressWarnings("unused")
     @FXML
     private Button chooseButton;
 
@@ -103,7 +104,7 @@ public class NodeSelectionController implements Initializable {
             });
         });
     }
-    
+
     private void recursiveAddNode(TreeItem<Node> parentItem) {
         List<Node> childNodes = saveAndRestoreService.getChildNodes(parentItem.getValue());
         List<TreeItem<Node>> childItems = childNodes.stream()
@@ -175,24 +176,26 @@ public class NodeSelectionController implements Initializable {
     /**
      * Sets the {@link NodeType}s that should be visible in the {@link TreeView}. If
      * {@link NodeType#FOLDER} is included in the {@link List}, it will be removed.
+     *
      * @param nodeTypes {@link List} of {@link NodeType}s. May be <code>null</code>
-     *                              for fault tolerance reasons.
+     *                  for fault tolerance reasons.
      */
     public void setHiddenNodeTypes(List<NodeType> nodeTypes) {
-        if(nodeTypes != null){
+        if (nodeTypes != null) {
             hiddenNodeTypes.addAll(nodeTypes.stream().filter(nt -> !nt.equals(NodeType.FOLDER)).toList());
         }
     }
 
     /**
      * Sets the handler of the select button.
+     *
      * @param actionEventEventHandler An event handler...
      */
-    public void addOkButtonActionHandler(EventHandler<ActionEvent> actionEventEventHandler){
+    public void addOkButtonActionHandler(EventHandler<ActionEvent> actionEventEventHandler) {
         chooseButton.setOnAction(actionEventEventHandler);
     }
 
-    public void setShowCreateFolderButton(boolean show){
+    public void setShowCreateFolderButton(boolean show) {
         showCreateFolderButton.set(show);
     }
 }
