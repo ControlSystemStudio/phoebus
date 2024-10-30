@@ -869,6 +869,21 @@ Authorization uses a role-based approach like so:
         * Object is a tag
 * Save-and-restore role "sar-admin": no restrictions
 
+Authentication endpoint
+"""""""""""""""""""""""
+
+A client can may use the /login endpoint to check if user is authenticated:
+
+**.../login**
+
+Method: POST
+
+Body:
+
+.. code-block:: JSON
+
+    {"username":"johndoe", "password":"undisclosed"}
+
 
 Enabled authentication, disabled authorization
 ----------------------------------------------
