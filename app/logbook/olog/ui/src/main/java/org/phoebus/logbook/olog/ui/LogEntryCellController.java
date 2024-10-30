@@ -263,7 +263,7 @@ public class LogEntryCellController {
                         StackPane stack = new StackPane();
                         stack.getChildren().addAll(outgoingPath, text);
 
-                        VBox union = new VBox(outgoingTriangle, stack);
+                        VBox vBox = new VBox(outgoingTriangle, stack);
                         int numberOfIncomingVEnumsToDisplay = Math.min(indexOfLastVEnum, 4);
                         for (int j=numberOfIncomingVEnumsToDisplay-1; j>=0; j--) {
                             VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
@@ -271,21 +271,21 @@ public class LogEntryCellController {
                             double height = Math.floor(15 / numberOfIncomingVEnumsToDisplay);
                             Rectangle incomingPath = new Rectangle(40, height, paintOfFirstVEnum);
 
-                            union.getChildren().add(incomingPath);
+                            vBox.getChildren().add(incomingPath);
                         }
 
                         Rectangle incomingRectangle = new Rectangle(4, 6);
                         VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
                         Paint paintOfFirstVEnum = vEnumToColor.apply(firstVEnum);
                         incomingRectangle.setFill(paintOfFirstVEnum);
-                        union.getChildren().add(incomingRectangle);
+                        vBox.getChildren().add(incomingRectangle);
 
-                        union.setAlignment(Pos.TOP_CENTER);
-                        union.setSpacing(0.0);
+                        vBox.setAlignment(Pos.TOP_CENTER);
+                        vBox.setSpacing(0.0);
 
-                        Tooltip.install(union, tooltip);
+                        Tooltip.install(vBox, tooltip);
 
-                        decorations.getChildren().add(union);
+                        decorations.getChildren().add(vBox);
                     }
                 }
             }
