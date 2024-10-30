@@ -452,9 +452,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private void decorate(int i, SearchResult searchResult) {
         if (pvNamesForDecoration[i].isPresent()) {
-            var x = searchResult.getLogs().stream().map(logEntry -> logEntry.getCreatedDate()).collect(Collectors.toUnmodifiableList());
-            Instant start = Collections.min(x);
-            Instant end = Collections.max(x);
+            List<LogEntry> logEntries = searchResult.getLogs();
+            List<Instant> createdDates = logEntries.stream().map(logEntry -> logEntry.getCreatedDate()).collect(Collectors.toUnmodifiableList());
+            Instant start = Collections.min(createdDates);
+            Instant end = Collections.max(createdDates);
 
             retrievePVValues(i, pvNamesForDecoration[i].get(), start, end);
         } else {
@@ -538,10 +539,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
         return query.getValue().getQuery();
     }
 
-    private void refresh() {
+    private synchronized void refresh() {
         if (this.searchResult != null) {
             List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
-            ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList();
 
             List<LogEntry> logEntries = searchResult.getLogs();
             logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
@@ -613,12 +613,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 }
             }
 
-            logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le,
-                                                                                            showDetails.get(),
-                                                                                            logEntryToPVNameAndVEnumDecorationDataToDisplay.getOrDefault(le, new TreeMap<>()))).toList());
-            synchronized (this) {
-                tableView.setItems(logsList);
-            }
+            boolean showDetailsBoolean = showDetails.get();
+            var logs = logEntries.stream().map(le -> new TableViewListItem(le,
+                                                                           showDetailsBoolean,
+                                                                           logEntryToPVNameAndVEnumDecorationDataToDisplay.getOrDefault(le, new TreeMap<>()))).toList();
+
+            ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList(logs);
+            tableView.setItems(logsList);
+
             // This will ensure that selected entries stay selected after the list has been
             // updated from the search result.
             for (TableViewListItem selectedItem : selectedLogEntries) {

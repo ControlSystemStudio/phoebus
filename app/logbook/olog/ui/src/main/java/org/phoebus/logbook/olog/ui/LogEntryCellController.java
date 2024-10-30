@@ -3,6 +3,7 @@ package org.phoebus.logbook.olog.ui;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Tooltip;
@@ -187,7 +188,13 @@ public class LogEntryCellController {
 
                 LogEntryTableViewController.DecorationDataToDisplay decorationDataToDisplay = pvNameAndVEnumFromPreviousLogEntryToThisLogEntry.getValue();
 
+                Node decoration;
+                StringBuilder toolTipStringBuilder = new StringBuilder();
+                toolTipStringBuilder.append("PV Name: \t" + pvName + "\n\n");
                 if (decorationDataToDisplay instanceof LogEntryTableViewController.LoadingInProgress) {
+
+                    toolTipStringBuilder.append("Loading...");
+
                     ProgressIndicator progressIndicator = new ProgressIndicator();
                     progressIndicator.setMinWidth(40);
                     progressIndicator.setPrefWidth(40);
@@ -196,13 +203,30 @@ public class LogEntryCellController {
                     progressIndicator.setMinWidth(40);
                     progressIndicator.setPrefWidth(40);
                     progressIndicator.setMaxWidth(40);
-                    decorations.getChildren().add(progressIndicator);
+
+                    decoration = progressIndicator;
+                }
+                else if (decorationDataToDisplay instanceof LogEntryTableViewController.ChannelNotFound) {
+
+                    toolTipStringBuilder.append("Channel not found.");
+
+                    Rectangle rectangle = new Rectangle(40, 40);
+                    rectangle.setFill(Color.GRAY);
+
+                    decoration = rectangle;
+                }
+                else if (decorationDataToDisplay instanceof LogEntryTableViewController.FetchFailed) {
+
+                    toolTipStringBuilder.append("Fetch failed.");
+
+                    Rectangle rectangle = new Rectangle(40, 40);
+                    rectangle.setFill(Color.GRAY);
+
+                    decoration = rectangle;
                 }
                 else if (decorationDataToDisplay instanceof LogEntryTableViewController.DataToToDisplay dataToToDisplay) {
                     List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry = dataToToDisplay.instantToVEnum();
 
-                    StringBuilder toolTipStringBuilder = new StringBuilder();
-                    toolTipStringBuilder.append("PV Name: \t" + pvName + "\n\n");
                     for (int j=vEnumFromPreviousLogEntryToThisLogEntry.size()-1; j >= 0; j--) {
                         VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
 
@@ -211,32 +235,24 @@ public class LogEntryCellController {
                         String vEnumValue = vEnum.getValue();
                         toolTipStringBuilder.append(vEnumDateLessPrecision + ": \t" + vEnumValue + "\n");
                     }
-                    Tooltip tooltip = new Tooltip(toolTipStringBuilder.toString());
-                    tooltip.setShowDuration(Duration.INDEFINITE);
-                    // TODO: Add PV name
-                    // TODO: vEnumFromPreviousLogEntryToThisLogEntry.size() == 0
 
-                    if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 1) {
+                    if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 0) {
+                        Rectangle background = new Rectangle(40, 40);
+                        background.setFill(Color.TRANSPARENT);
+                        decoration = background;
+                    }
+                    else if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 1) {
                         VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
                         Paint paintVEnum = vEnumToColor.apply(vEnum);
 
-                        StackPane path;
-                        {
-                            Rectangle background = new Rectangle(40, 40);
-                            background.setFill(Color.TRANSPARENT);
-                            Rectangle line = new Rectangle(4, 40);
-                            line.setFill(paintVEnum);
-                            path = new StackPane(background, line);
-                        }
-                        HBox hBox = new HBox(path);
-                        hBox.setAlignment(Pos.TOP_CENTER);
-                        hBox.setPrefWidth(40);
+                        Rectangle background = new Rectangle(40, 40);
+                        background.setFill(Color.TRANSPARENT);
+                        Rectangle line = new Rectangle(4, 40);
+                        line.setFill(paintVEnum);
 
-                        Tooltip.install(path, tooltip);
-
-                        decorations.getChildren().add(path);
+                        decoration = new StackPane(background, line);
                     }
-                    else if (vEnumFromPreviousLogEntryToThisLogEntry.size() > 1) {
+                    else { //vEnumFromPreviousLogEntryToThisLogEntry.size() > 1
                         int indexOfLastVEnum = vEnumFromPreviousLogEntryToThisLogEntry.size() - 1;
                         VEnum lastVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(indexOfLastVEnum);
                         Paint paintOfLastVEnum = vEnumToColor.apply(lastVEnum);
@@ -283,11 +299,24 @@ public class LogEntryCellController {
                         vBox.setAlignment(Pos.TOP_CENTER);
                         vBox.setSpacing(0.0);
 
-                        Tooltip.install(vBox, tooltip);
-
-                        decorations.getChildren().add(vBox);
+                        decoration = vBox;
                     }
                 }
+                else {
+                    throw new RuntimeException("Unhandled instance of \"DecorationDataToDisplay: \"" + decorationDataToDisplay.getClass().toString());
+                }
+
+                Tooltip tooltip = new Tooltip(toolTipStringBuilder.toString());
+                tooltip.setShowDuration(Duration.INDEFINITE);
+                Tooltip.install(decoration, tooltip);
+
+                Rectangle margin = new Rectangle(5, 40);
+                margin.setFill(Color.TRANSPARENT);
+
+                HBox hBox = new HBox(decoration, margin);
+                hBox.setAlignment(Pos.TOP_CENTER);
+
+                decorations.getChildren().add(hBox);
             }
         }
     }
