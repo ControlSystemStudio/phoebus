@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -176,100 +177,116 @@ public class LogEntryCellController {
         }
 
         if (logEntry != null) {
-            SortedMap<Integer, Pair<String, List<VEnum>>> decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry = logEntry.getDecorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry();
+            SortedMap<Integer, Pair<String, LogEntryTableViewController.DecorationDataToDisplay>> decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry = logEntry.getDecorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry();
 
             decorations.getChildren().clear();
             for (int i : decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.keySet()) {
-                Pair<String, List<VEnum>> pvNameAndVEnumFromPreviousLogEntryToThisLogEntry = decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.get(i);
+                Pair<String, LogEntryTableViewController.DecorationDataToDisplay> pvNameAndVEnumFromPreviousLogEntryToThisLogEntry = decorationIndexToVEnumFromPreviousLogEntryToThisLogEntry.get(i);
 
                 String pvName = pvNameAndVEnumFromPreviousLogEntryToThisLogEntry.getKey();
-                List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry = pvNameAndVEnumFromPreviousLogEntryToThisLogEntry.getValue();
 
-                StringBuilder toolTipStringBuilder = new StringBuilder();
-                toolTipStringBuilder.append("PV Name: \t" + pvName + "\n\n");
-                for (int j=vEnumFromPreviousLogEntryToThisLogEntry.size()-1; j >= 0; j--) {
-                    VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
+                LogEntryTableViewController.DecorationDataToDisplay decorationDataToDisplay = pvNameAndVEnumFromPreviousLogEntryToThisLogEntry.getValue();
 
-                    String vEnumDate = vEnum.getTime().toString();
-                    String vEnumDateLessPrecision = vEnumDate.substring(0, vEnumDate.lastIndexOf("."));
-                    String vEnumValue = vEnum.getValue();
-                    toolTipStringBuilder.append(vEnumDateLessPrecision + ": \t" + vEnumValue + "\n");
+                if (decorationDataToDisplay instanceof LogEntryTableViewController.LoadingInProgress) {
+                    ProgressIndicator progressIndicator = new ProgressIndicator();
+                    progressIndicator.setMinWidth(40);
+                    progressIndicator.setPrefWidth(40);
+                    progressIndicator.setMaxWidth(40);
+
+                    progressIndicator.setMinWidth(40);
+                    progressIndicator.setPrefWidth(40);
+                    progressIndicator.setMaxWidth(40);
+                    decorations.getChildren().add(progressIndicator);
                 }
-                Tooltip tooltip = new Tooltip(toolTipStringBuilder.toString());
-                tooltip.setShowDuration(Duration.INDEFINITE);
-                // TODO: Add PV name
-                // TODO: vEnumFromPreviousLogEntryToThisLogEntry.size() == 0
+                else if (decorationDataToDisplay instanceof LogEntryTableViewController.DataToToDisplay dataToToDisplay) {
+                    List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry = dataToToDisplay.instantToVEnum();
 
-                if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 1) {
-                    VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
-                    Paint paintVEnum = vEnumToColor.apply(vEnum);
+                    StringBuilder toolTipStringBuilder = new StringBuilder();
+                    toolTipStringBuilder.append("PV Name: \t" + pvName + "\n\n");
+                    for (int j=vEnumFromPreviousLogEntryToThisLogEntry.size()-1; j >= 0; j--) {
+                        VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
 
-                    StackPane path;
-                    {
-                        Rectangle background = new Rectangle(40, 40);
-                        background.setFill(Color.TRANSPARENT);
-                        Rectangle line = new Rectangle(4, 40);
-                        line.setFill(paintVEnum);
-                        path = new StackPane(background, line);
+                        String vEnumDate = vEnum.getTime().toString();
+                        String vEnumDateLessPrecision = vEnumDate.substring(0, vEnumDate.lastIndexOf("."));
+                        String vEnumValue = vEnum.getValue();
+                        toolTipStringBuilder.append(vEnumDateLessPrecision + ": \t" + vEnumValue + "\n");
                     }
-                    HBox hBox = new HBox(path);
-                    hBox.setAlignment(Pos.TOP_CENTER);
-                    hBox.setPrefWidth(40);
+                    Tooltip tooltip = new Tooltip(toolTipStringBuilder.toString());
+                    tooltip.setShowDuration(Duration.INDEFINITE);
+                    // TODO: Add PV name
+                    // TODO: vEnumFromPreviousLogEntryToThisLogEntry.size() == 0
 
-                    Tooltip.install(path, tooltip);
+                    if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 1) {
+                        VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
+                        Paint paintVEnum = vEnumToColor.apply(vEnum);
 
-                    decorations.getChildren().add(path);
-                }
-                else if (vEnumFromPreviousLogEntryToThisLogEntry.size() > 1) {
-                    int indexOfLastVEnum = vEnumFromPreviousLogEntryToThisLogEntry.size() - 1;
-                    VEnum lastVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(indexOfLastVEnum);
-                    Paint paintOfLastVEnum = vEnumToColor.apply(lastVEnum);
+                        StackPane path;
+                        {
+                            Rectangle background = new Rectangle(40, 40);
+                            background.setFill(Color.TRANSPARENT);
+                            Rectangle line = new Rectangle(4, 40);
+                            line.setFill(paintVEnum);
+                            path = new StackPane(background, line);
+                        }
+                        HBox hBox = new HBox(path);
+                        hBox.setAlignment(Pos.TOP_CENTER);
+                        hBox.setPrefWidth(40);
 
-                    StackPane outgoingTriangle = new StackPane();
-                    {
-                        outgoingTriangle.setAlignment(Pos.BOTTOM_CENTER);
-                        Polygon triangle = new Polygon(15, 6,
-                                                       25, 6,
-                                                       20, 0);
-                        triangle.setFill(paintOfLastVEnum);
-                        outgoingTriangle.getChildren().add(triangle);
+                        Tooltip.install(path, tooltip);
 
-                        Rectangle rectangle = new Rectangle(4, 10);
-                        rectangle.setFill(paintOfLastVEnum);
-                        rectangle.setFill(paintOfLastVEnum);
-                        outgoingTriangle.getChildren().add(rectangle);
+                        decorations.getChildren().add(path);
                     }
+                    else if (vEnumFromPreviousLogEntryToThisLogEntry.size() > 1) {
+                        int indexOfLastVEnum = vEnumFromPreviousLogEntryToThisLogEntry.size() - 1;
+                        VEnum lastVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(indexOfLastVEnum);
+                        Paint paintOfLastVEnum = vEnumToColor.apply(lastVEnum);
 
-                    Rectangle outgoingPath = new Rectangle(40, 20, paintOfLastVEnum);
-                    String abbreviatedName = computeAbbreviatedName(lastVEnum);
-                    Text text = new Text(abbreviatedName);
-                    text.setFill(Color.WHITE);
-                    StackPane stack = new StackPane();
-                    stack.getChildren().addAll(outgoingPath, text);
+                        StackPane outgoingTriangle = new StackPane();
+                        {
+                            outgoingTriangle.setAlignment(Pos.BOTTOM_CENTER);
+                            Polygon triangle = new Polygon(15, 6,
+                                    25, 6,
+                                    20, 0);
+                            triangle.setFill(paintOfLastVEnum);
+                            outgoingTriangle.getChildren().add(triangle);
 
-                    VBox union = new VBox(outgoingTriangle, stack);
-                    int numberOfIncomingVEnumsToDisplay = Math.min(indexOfLastVEnum, 4);
-                    for (int j=numberOfIncomingVEnumsToDisplay-1; j>=0; j--) {
-                        VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
+                            Rectangle rectangle = new Rectangle(4, 10);
+                            rectangle.setFill(paintOfLastVEnum);
+                            rectangle.setFill(paintOfLastVEnum);
+                            outgoingTriangle.getChildren().add(rectangle);
+                        }
+
+                        Rectangle outgoingPath = new Rectangle(40, 20, paintOfLastVEnum);
+                        String abbreviatedName = computeAbbreviatedName(lastVEnum);
+                        Text text = new Text(abbreviatedName);
+                        text.setFill(Color.WHITE);
+                        StackPane stack = new StackPane();
+                        stack.getChildren().addAll(outgoingPath, text);
+
+                        VBox union = new VBox(outgoingTriangle, stack);
+                        int numberOfIncomingVEnumsToDisplay = Math.min(indexOfLastVEnum, 4);
+                        for (int j=numberOfIncomingVEnumsToDisplay-1; j>=0; j--) {
+                            VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
+                            Paint paintOfFirstVEnum = vEnumToColor.apply(firstVEnum);
+                            double height = Math.floor(15 / numberOfIncomingVEnumsToDisplay);
+                            Rectangle incomingPath = new Rectangle(40, height, paintOfFirstVEnum);
+
+                            union.getChildren().add(incomingPath);
+                        }
+
+                        Rectangle incomingRectangle = new Rectangle(4, 6);
+                        VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
                         Paint paintOfFirstVEnum = vEnumToColor.apply(firstVEnum);
-                        double height = Math.floor(15 / numberOfIncomingVEnumsToDisplay);
-                        Rectangle incomingPath = new Rectangle(40, height, paintOfFirstVEnum);
+                        incomingRectangle.setFill(paintOfFirstVEnum);
+                        union.getChildren().add(incomingRectangle);
 
-                        union.getChildren().add(incomingPath);
+                        union.setAlignment(Pos.TOP_CENTER);
+                        union.setSpacing(0.0);
+
+                        Tooltip.install(union, tooltip);
+
+                        decorations.getChildren().add(union);
                     }
-
-                    Rectangle incomingRectangle = new Rectangle(4, 6);
-                    VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
-                    Paint paintOfFirstVEnum = vEnumToColor.apply(firstVEnum);
-                    incomingRectangle.setFill(paintOfFirstVEnum);
-                    union.getChildren().add(incomingRectangle);
-
-                    union.setAlignment(Pos.TOP_CENTER);
-                    union.setSpacing(0.0);
-
-                    Tooltip.install(union, tooltip);
-
-                    decorations.getChildren().add(union);
                 }
             }
         }

@@ -54,6 +54,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -116,7 +117,25 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private final SimpleBooleanProperty advancedSearchVisibile = new SimpleBooleanProperty(false);
 
-    private final ConcurrentMap<Integer, Pair<String, TreeMap<Instant, VEnum>>> decorationIndexToPVNameAndInstantToValue = new ConcurrentHashMap<>();
+    sealed interface DecorationDataLoadingStatus permits LoadingSuccessful,
+                                                         LoadingInProgress,
+                                                         ChannelNotFound,
+                                                         FetchFailed {}
+
+    public record LoadingSuccessful (TreeMap<Instant, VEnum> instantToVEnum) implements DecorationDataLoadingStatus { }
+    public record LoadingInProgress () implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
+    public record ChannelNotFound() implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
+    public record FetchFailed() implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
+
+    sealed interface DecorationDataToDisplay permits DataToToDisplay,
+                                                     LoadingInProgress,
+                                                     ChannelNotFound,
+                                                     FetchFailed {}
+
+    public record DataToToDisplay(List<VEnum> instantToVEnum) implements DecorationDataToDisplay { }
+
+    private final ConcurrentMap<Integer, Pair<String, DecorationDataLoadingStatus>> decorationIndexToPVNameAndStatus = new ConcurrentHashMap<>();
+
     /**
      * Constructor.
      *
@@ -410,8 +429,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     protected void setPVNameForDecoration(int i, String pvName) {
         if (i >= pvNamesForDecoration.length) {
-            Optional<String>[] newPvNamesForDecoration = new Optional[i+1];
-            for (int j=0; j<newPvNamesForDecoration.length; j++) {
+            Optional<String>[] newPvNamesForDecoration = new Optional[i + 1];
+            for (int j = 0; j < newPvNamesForDecoration.length; j++) {
                 newPvNamesForDecoration[j] = j < pvNamesForDecoration.length ? pvNamesForDecoration[j] : Optional.empty();
             }
             pvNamesForDecoration = newPvNamesForDecoration;
@@ -419,15 +438,14 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         if (pvName.isEmpty()) {
             pvNamesForDecoration[i] = Optional.empty();
-        }
-        else {
+        } else {
             pvNamesForDecoration[i] = Optional.of(pvName);
         }
         decorate(i, searchResult);
     }
 
     private void decorate(SearchResult searchResult) {
-        for (int i=0; i<pvNamesForDecoration.length; i++) {
+        for (int i = 0; i < pvNamesForDecoration.length; i++) {
             decorate(i, searchResult);
         }
     }
@@ -439,6 +457,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
             Instant end = Collections.max(x);
 
             retrievePVValues(i, pvNamesForDecoration[i].get(), start, end);
+        } else {
+            decorationIndexToPVNameAndStatus.remove(i);
+            refresh();
         }
     }
 
@@ -446,64 +467,64 @@ public class LogEntryTableViewController extends LogbookSearchController {
                                   String pvName,
                                   Instant start,
                                   Instant end) {
-            TreeMap<Instant, VEnum> newInstantToValue = new TreeMap<>();
+        PVItem pvItem = new PVItem(pvName, Double.MAX_VALUE);
+        pvItem.setRequestType(RequestType.RAW);
 
-            PVItem pvItem = new PVItem(pvName, Double.MAX_VALUE);
-            pvItem.setRequestType(RequestType.RAW);
+        pvItem.useDefaultArchiveDataSources();
 
-            pvItem.useDefaultArchiveDataSources();
+        ArchiveFetchJobListener archiveFetchJobListener = new ArchiveFetchJobListener() {
 
-            ArchiveFetchJobListener archiveFetchJobListener = new ArchiveFetchJobListener() {
+            @Override
+            public void fetchCompleted(ArchiveFetchJob archiveFetchJob) {
+                PVSamples samples = pvItem.getSamples();
+                Lock lock = samples.getLock();
+                lock.lock();
 
-                @Override
-                public void fetchCompleted(ArchiveFetchJob archiveFetchJob) {
-                    PVSamples samples = pvItem.getSamples();
-                    Lock lock = samples.getLock();
-                    lock.lock();
-
-                    try {
-                        Optional<VEnum> mostRecentDataPointBeforeStart = Optional.empty(); // When merging data from multiple sources, there may be moe than one data point before the start of the time period.
-                        for (int i = 0; i < samples.size(); i++) {
-                            if (samples.get(i).getVType() instanceof VEnum vEnum) {
-                                if (vEnum.getTime().getTimestamp().equals(start) || vEnum.getTime().getTimestamp().isAfter(start)) {
-                                    newInstantToValue.put(vEnum.getTime().getTimestamp(), vEnum);
-                                }
-                                else if (vEnum.getTime().getTimestamp().isBefore(start)) {
-                                    if (mostRecentDataPointBeforeStart.isEmpty()) {
-                                        mostRecentDataPointBeforeStart = Optional.of(vEnum);
-                                    }
-                                    else if (vEnum.getTime().getTimestamp().isAfter(mostRecentDataPointBeforeStart.get().getTime().getTimestamp())) {
-                                        mostRecentDataPointBeforeStart = Optional.of(vEnum);
-                                    }
+                try {
+                    TreeMap<Instant, VEnum> newInstantToValue = new TreeMap<>();
+                    Optional<VEnum> mostRecentDataPointBeforeStart = Optional.empty(); // When merging data from multiple sources, there may be moe than one data point before the start of the time period.
+                    for (int i = 0; i < samples.size(); i++) {
+                        if (samples.get(i).getVType() instanceof VEnum vEnum) {
+                            if (vEnum.getTime().getTimestamp().equals(start) || vEnum.getTime().getTimestamp().isAfter(start)) {
+                                newInstantToValue.put(vEnum.getTime().getTimestamp(), vEnum);
+                            } else if (vEnum.getTime().getTimestamp().isBefore(start)) {
+                                if (mostRecentDataPointBeforeStart.isEmpty()) {
+                                    mostRecentDataPointBeforeStart = Optional.of(vEnum);
+                                } else if (vEnum.getTime().getTimestamp().isAfter(mostRecentDataPointBeforeStart.get().getTime().getTimestamp())) {
+                                    mostRecentDataPointBeforeStart = Optional.of(vEnum);
                                 }
                             }
                         }
-                        if (mostRecentDataPointBeforeStart.isPresent()) {
-                            newInstantToValue.put(mostRecentDataPointBeforeStart.get().getTime().getTimestamp(), mostRecentDataPointBeforeStart.get());
-                        }
-                        decorationIndexToPVNameAndInstantToValue.put(decorationIndex, new Pair(pvName, newInstantToValue));
-                        refresh();
                     }
-                    finally {
-                        lock.unlock();
+                    if (mostRecentDataPointBeforeStart.isPresent()) {
+                        newInstantToValue.put(mostRecentDataPointBeforeStart.get().getTime().getTimestamp(), mostRecentDataPointBeforeStart.get());
                     }
+                    decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new LoadingSuccessful(newInstantToValue)));
+                    refresh();
+                } finally {
+                    lock.unlock();
                 }
+            }
 
-                @Override
-                public void archiveFetchFailed(ArchiveFetchJob archiveFetchJob, ArchiveDataSource archiveDataSource, Exception e) {
+            @Override
+            public void archiveFetchFailed(ArchiveFetchJob archiveFetchJob, ArchiveDataSource archiveDataSource, Exception e) {
+                decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new FetchFailed()));
+                refresh();
+            }
 
-                }
+            @Override
+            public void channelNotFound(ArchiveFetchJob archiveFetchJob, boolean b, List<ArchiveDataSource> list) {
+                decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new ChannelNotFound()));
+                refresh();
+            }
+        };
 
-                @Override
-                public void channelNotFound(ArchiveFetchJob archiveFetchJob, boolean b, List<ArchiveDataSource> list) {
-
-                }
-            };
-
-            ArchiveFetchJob archiveFetchJob = new ArchiveFetchJob(pvItem,
-                                                                  start,
-                                                                  end,
-                                                                  archiveFetchJobListener); // Note: The archive fetch job is automatically scheduled by the constructor!
+        decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new LoadingInProgress()));
+        refresh();
+        ArchiveFetchJob archiveFetchJob = new ArchiveFetchJob(pvItem,
+                                                              start,
+                                                              end,
+                                                              archiveFetchJobListener); // Note: The archive fetch job is automatically scheduled by the constructor!
 
         return;
     }
@@ -525,20 +546,41 @@ public class LogEntryTableViewController extends LogbookSearchController {
             List<LogEntry> logEntries = searchResult.getLogs();
             logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
 
-            Map<LogEntry, SortedMap<Integer, Pair<String, List<VEnum>>>> logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = new TreeMap<>((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
-            logEntries.forEach(logEntry -> logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry.put(logEntry, new TreeMap<>())); // Initialize logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry
+            Map<LogEntry, SortedMap<Integer, Pair<String, DecorationDataToDisplay>>> logEntryToPVNameAndVEnumDecorationDataToDisplay = new TreeMap<>((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
+            logEntries.forEach(logEntry -> logEntryToPVNameAndVEnumDecorationDataToDisplay.put(logEntry, new TreeMap<>())); // Initialize logEntryToPVNameAndVEnumDecorationDataToDisplay
             {
-                for (int i=0; i< pvNamesForDecoration.length; i++) {
-                    if (decorationIndexToPVNameAndInstantToValue.containsKey(i)) {
-                        Pair<String, TreeMap<Instant, VEnum>> pvNameAndInstantToVEnum = decorationIndexToPVNameAndInstantToValue.get(i);
+                for (int i = 0; i < pvNamesForDecoration.length; i++) {
+                    if (decorationIndexToPVNameAndStatus.containsKey(i)) {
+                        Pair<String, DecorationDataLoadingStatus> pvNameAndStatus = decorationIndexToPVNameAndStatus.get(i);
+                        String pvName = pvNameAndStatus.getKey();
+                        DecorationDataLoadingStatus status = pvNameAndStatus.getValue();
 
-                        if (pvNameAndInstantToVEnum != null) {
+                        if (status instanceof LoadingInProgress) {
+                            for (int j = logEntries.size() - 1; j >= 0; j--) {
+                                LogEntry currentLogEntry = logEntries.get(j);
+                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new LoadingInProgress()));
+                            }
+                        }
+                        else if (status instanceof FetchFailed) {
+                            for (int j = logEntries.size() - 1; j >= 0; j--) {
+                                LogEntry currentLogEntry = logEntries.get(j);
+                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new FetchFailed()));
+                            }
+                        }
+                        else if (status instanceof ChannelNotFound) {
+                            for (int j = logEntries.size() - 1; j >= 0; j--) {
+                                LogEntry currentLogEntry = logEntries.get(j);
+                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new ChannelNotFound()));
+                            }
+                        }
+                        else if (status instanceof LoadingSuccessful loadingSuccessful) {
+                            TreeMap<Instant, VEnum> instantToVEnum = loadingSuccessful.instantToVEnum;
                             Instant previousLogEntryCreatedDate = Instant.ofEpochSecond(0);
                             Optional<VEnum> previousLogEntryVEnum = Optional.empty();
-                            for (int j=logEntries.size()-1; j>=0; j--) {
+                            for (int j = logEntries.size() - 1; j >= 0; j--) {
                                 LogEntry currentLogEntry = logEntries.get(j);
                                 Instant currentLogEntryCreatedDate = currentLogEntry.getCreatedDate();
-                                List<VEnum> vEnumsFromPreviousLogEntryToCurrentLogEntry = new LinkedList<>(pvNameAndInstantToVEnum.getValue().subMap(previousLogEntryCreatedDate, false,
+                                List<VEnum> vEnumsFromPreviousLogEntryToCurrentLogEntry = new LinkedList<>(instantToVEnum.subMap(previousLogEntryCreatedDate, false,
                                                 currentLogEntryCreatedDate, true)
                                         .values());
                                 if (previousLogEntryVEnum.isPresent()) {
@@ -554,14 +596,18 @@ public class LogEntryTableViewController extends LogbookSearchController {
                                     // the current one.
 
                                     currentLogEntryVEnum = previousLogEntryVEnum;
+                                } else {
+                                    currentLogEntryVEnum = Optional.of(vEnumsFromPreviousLogEntryToCurrentLogEntry.get(vEnumsFromPreviousLogEntryToCurrentLogEntry.size() - 1));
                                 }
-                                else {
-                                    currentLogEntryVEnum = Optional.of(vEnumsFromPreviousLogEntryToCurrentLogEntry.get(vEnumsFromPreviousLogEntryToCurrentLogEntry.size()-1));
-                                }
-                                logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry.get(currentLogEntry).put(i, new Pair(pvNameAndInstantToVEnum.getKey(), vEnumsFromPreviousLogEntryToCurrentLogEntry));
+                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new DataToToDisplay(vEnumsFromPreviousLogEntryToCurrentLogEntry)));
                                 previousLogEntryCreatedDate = currentLogEntryCreatedDate;
                                 previousLogEntryVEnum = currentLogEntryVEnum;
                             }
+                        }
+                    } else {
+                        for (int j = logEntries.size() - 1; j >= 0; j--) {
+                            LogEntry currentLogEntry = logEntries.get(j);
+                            logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).remove(i);
                         }
                     }
                 }
@@ -569,9 +615,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
             logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le,
                                                                                             showDetails.get(),
-                                                                                            logEntryToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry.getOrDefault(le, null))).toList());
-
-            tableView.setItems(logsList);
+                                                                                            logEntryToPVNameAndVEnumDecorationDataToDisplay.getOrDefault(le, new TreeMap<>()))).toList());
+            synchronized (this) {
+                tableView.setItems(logsList);
+            }
             // This will ensure that selected entries stay selected after the list has been
             // updated from the search result.
             for (TableViewListItem selectedItem : selectedLogEntries) {
@@ -582,8 +629,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                                 goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(true); // Do not create a "Back" action for the automatic reload.
                                 tableView.getSelectionModel().select(item);
                                 goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(false);
-                            }
-                            else {
+                            } else {
                                 tableView.getSelectionModel().select(item);
                             }
                         });
@@ -681,18 +727,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
     public static class TableViewListItem {
         private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty(true);
         private final LogEntry logEntry;
-        private SortedMap<Integer, Pair<String, List<VEnum>>> decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = new TreeMap<>();
+        private SortedMap<Integer, Pair<String, DecorationDataToDisplay>> decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = new TreeMap<>();
 
         public TableViewListItem(LogEntry logEntry,
                                  boolean showDetails,
-                                 SortedMap<Integer, Pair<String, List<VEnum>>> decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry) {
+                                 SortedMap<Integer, Pair<String, DecorationDataToDisplay>> decorationIndexToPVNameAndDecorationDataToDisplay) {
             this(logEntry, showDetails);
-            if (decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry != null) {
-                this.decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry;
-            }
-            else {
-                this.decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = new TreeMap<>();
-            }
+
+            Objects.requireNonNull(decorationIndexToPVNameAndDecorationDataToDisplay);
+            this.decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = decorationIndexToPVNameAndDecorationDataToDisplay;
         }
 
         public TableViewListItem(LogEntry logEntry, boolean showDetails) {
@@ -712,7 +755,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
             this.showDetails.set(show);
         }
 
-        protected SortedMap<Integer, Pair<String, List<VEnum>>> getDecorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry() {
+        protected SortedMap<Integer, Pair<String, DecorationDataToDisplay>> getDecorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry() {
             return decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry;
         }
     }
@@ -753,14 +796,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
      * Selects a log entry as a result of an action outside the {@link TreeView}, but selection happens on the
      * {@link TreeView} item, if it exists (match on log entry id). If it does not exist, selection is cleared
      * anyway to indicate that user selected log entry is not visible in {@link TreeView}.
+     *
      * @param logEntry User selected log entry.
      * @return <code>true</code> if user selected log entry is present in {@link TreeView}, otherwise
      * <code>false</code>.
      */
-    public boolean selectLogEntry(LogEntry logEntry){
+    public boolean selectLogEntry(LogEntry logEntry) {
         tableView.getSelectionModel().clearSelection();
         Optional<TableViewListItem> optional = tableView.getItems().stream().filter(i -> i.getLogEntry().getId().equals(logEntry.getId())).findFirst();
-        if(optional.isPresent()){
+        if (optional.isPresent()) {
             tableView.getSelectionModel().select(optional.get());
             return true;
         }
