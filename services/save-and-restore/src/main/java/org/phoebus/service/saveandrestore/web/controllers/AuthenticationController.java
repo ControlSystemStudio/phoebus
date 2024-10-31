@@ -19,6 +19,7 @@
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import org.phoebus.applications.saveandrestore.model.LoginCredentials;
 import org.phoebus.applications.saveandrestore.model.UserData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -50,20 +51,18 @@ public class AuthenticationController extends BaseController {
     /**
      * Authenticates user.
      *
-     * @param userName The user principal name
-     * @param password User's password
+     * @param loginCredentials User's credentials
      * @return A {@link ResponseEntity} carrying a {@link UserData} object if the login was successful,
      * otherwise the body will be <code>null</code>.
      */
     @PostMapping(value = "login")
-    public ResponseEntity<UserData> login(@RequestParam(value = "username") String userName,
-                                          @RequestParam(value = "password") String password) {
+    public ResponseEntity<UserData> login(@RequestBody LoginCredentials loginCredentials) {
         Authentication authentication =
-                new UsernamePasswordAuthenticationToken(userName, password);
+                new UsernamePasswordAuthenticationToken(loginCredentials.username(), loginCredentials.password());
         try {
             authentication = authenticationManager.authenticate(authentication);
         } catch (AuthenticationException e) {
-            Logger.getLogger(AuthenticationController.class.getName()).log(Level.WARNING, "Unable to authenticate", e);
+            Logger.getLogger(AuthenticationController.class.getName()).log(Level.WARNING, "Unable to authenticate user " + loginCredentials.username());
             return new ResponseEntity<>(
                     null,
                     HttpStatus.UNAUTHORIZED);
@@ -71,7 +70,7 @@ public class AuthenticationController extends BaseController {
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toList());
         return new ResponseEntity<>(
-                new UserData(userName, roles),
+                new UserData(loginCredentials.username(), roles),
                 HttpStatus.OK);
     }
 }

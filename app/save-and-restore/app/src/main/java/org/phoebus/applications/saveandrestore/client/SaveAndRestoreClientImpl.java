@@ -15,6 +15,7 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.LoginCredentials;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
@@ -34,11 +35,9 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
@@ -582,16 +581,14 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
      */
     @Override
     public UserData authenticate(String userName, String password) {
-        String stringBuilder = Preferences.jmasarServiceUrl +
-                "/login?username=" +
-                URLEncoder.encode(userName, StandardCharsets.UTF_8) +
-                "&password=" +
-                URLEncoder.encode(password, StandardCharsets.UTF_8);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(stringBuilder))
-                .POST(HttpRequest.BodyPublishers.noBody())
-                .build();
         try {
+            String stringBuilder = Preferences.jmasarServiceUrl +
+                    "/login";
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(stringBuilder))
+                .header("Content-Type", CONTENT_TYPE_JSON)
+                .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
+                .build();
             HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             return OBJECT_MAPPER.readValue(response.body(), UserData.class);
         } catch (Exception e) {
