@@ -120,17 +120,20 @@ public class LogEntryTableViewController extends LogbookSearchController {
     sealed interface DecorationDataLoadingStatus permits LoadingSuccessful,
                                                          LoadingInProgress,
                                                          ChannelNotFound,
-                                                         FetchFailed {}
+                                                         FetchFailed,
+                                                         PVIsNotOfEnumType {}
 
     public record LoadingSuccessful (TreeMap<Instant, VEnum> instantToVEnum) implements DecorationDataLoadingStatus { }
     public record LoadingInProgress () implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
-    public record ChannelNotFound() implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
-    public record FetchFailed() implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
+    public record ChannelNotFound () implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
+    public record FetchFailed () implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
+    public record PVIsNotOfEnumType () implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
 
     sealed interface DecorationDataToDisplay permits DataToToDisplay,
                                                      LoadingInProgress,
                                                      ChannelNotFound,
-                                                     FetchFailed {}
+                                                     FetchFailed,
+                                                     PVIsNotOfEnumType {}
 
     public record DataToToDisplay(List<VEnum> instantToVEnum) implements DecorationDataToDisplay { }
 
@@ -484,23 +487,36 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 try {
                     TreeMap<Instant, VEnum> newInstantToValue = new TreeMap<>();
                     Optional<VEnum> mostRecentDataPointBeforeStart = Optional.empty(); // When merging data from multiple sources, there may be moe than one data point before the start of the time period.
+
+                    boolean isEnumPV = true;
                     for (int i = 0; i < samples.size(); i++) {
-                        if (samples.get(i).getVType() instanceof VEnum vEnum) {
-                            if (vEnum.getTime().getTimestamp().equals(start) || vEnum.getTime().getTimestamp().isAfter(start)) {
-                                newInstantToValue.put(vEnum.getTime().getTimestamp(), vEnum);
-                            } else if (vEnum.getTime().getTimestamp().isBefore(start)) {
-                                if (mostRecentDataPointBeforeStart.isEmpty()) {
-                                    mostRecentDataPointBeforeStart = Optional.of(vEnum);
-                                } else if (vEnum.getTime().getTimestamp().isAfter(mostRecentDataPointBeforeStart.get().getTime().getTimestamp())) {
-                                    mostRecentDataPointBeforeStart = Optional.of(vEnum);
+                        if (!(samples.get(i).getVType() instanceof VEnum)) {
+                            isEnumPV = false;
+                        }
+                    }
+
+                    if (isEnumPV) {
+                        for (int i = 0; i < samples.size(); i++) {
+                            if (samples.get(i).getVType() instanceof VEnum vEnum) {
+                                if (vEnum.getTime().getTimestamp().equals(start) || vEnum.getTime().getTimestamp().isAfter(start)) {
+                                    newInstantToValue.put(vEnum.getTime().getTimestamp(), vEnum);
+                                } else if (vEnum.getTime().getTimestamp().isBefore(start)) {
+                                    if (mostRecentDataPointBeforeStart.isEmpty()) {
+                                        mostRecentDataPointBeforeStart = Optional.of(vEnum);
+                                    } else if (vEnum.getTime().getTimestamp().isAfter(mostRecentDataPointBeforeStart.get().getTime().getTimestamp())) {
+                                        mostRecentDataPointBeforeStart = Optional.of(vEnum);
+                                    }
                                 }
                             }
                         }
+                        if (mostRecentDataPointBeforeStart.isPresent()) {
+                            newInstantToValue.put(mostRecentDataPointBeforeStart.get().getTime().getTimestamp(), mostRecentDataPointBeforeStart.get());
+                        }
+                        decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new LoadingSuccessful(newInstantToValue)));
                     }
-                    if (mostRecentDataPointBeforeStart.isPresent()) {
-                        newInstantToValue.put(mostRecentDataPointBeforeStart.get().getTime().getTimestamp(), mostRecentDataPointBeforeStart.get());
+                    else {
+                        decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new PVIsNotOfEnumType()));
                     }
-                    decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new LoadingSuccessful(newInstantToValue)));
                     refresh();
                 } finally {
                     lock.unlock();
@@ -571,6 +587,12 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             for (int j = logEntries.size() - 1; j >= 0; j--) {
                                 LogEntry currentLogEntry = logEntries.get(j);
                                 logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new ChannelNotFound()));
+                            }
+                        }
+                        else if (status instanceof PVIsNotOfEnumType) {
+                            for (int j = logEntries.size() - 1; j >= 0; j--) {
+                                LogEntry currentLogEntry = logEntries.get(j);
+                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new PVIsNotOfEnumType()));
                             }
                         }
                         else if (status instanceof LoadingSuccessful loadingSuccessful) {

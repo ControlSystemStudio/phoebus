@@ -224,6 +224,14 @@ public class LogEntryCellController {
 
                     decoration = rectangle;
                 }
+                else if (decorationDataToDisplay instanceof LogEntryTableViewController.PVIsNotOfEnumType) {
+                    toolTipStringBuilder.append("PV is not of enum type!");
+
+                    Rectangle rectangle = new Rectangle(40, 40);
+                    rectangle.setFill(Color.GRAY);
+
+                    decoration = rectangle;
+                }
                 else if (decorationDataToDisplay instanceof LogEntryTableViewController.DataToToDisplay dataToToDisplay) {
                     List<VEnum> vEnumFromPreviousLogEntryToThisLogEntry = dataToToDisplay.instantToVEnum();
 
