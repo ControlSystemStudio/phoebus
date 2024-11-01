@@ -1,7 +1,6 @@
 package org.phoebus.applications.alarm.logging.ui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -259,11 +258,9 @@ public class AlarmLogTableController {
                                     return null;
                                 }
                                 final boolean latching = jsonNode.get("latching").asBoolean();
-                                return new SimpleStringProperty(latching ? "Latched" : "Enabled");
-                            } catch (JsonParseException e) {
-                                logger.log(Level.SEVERE, "Error parsing JSON in alarmMesssage " + e.getMessage());
+                                return new SimpleStringProperty(latching ? "Enabled:Latched" : "Enabled:Unlatch");
                             } catch (Exception e) {
-                                logger.log(Level.SEVERE, "Unexpected error in alarmMessage" + e.getMessage());
+                                logger.log(Level.SEVERE, "Unexpected error in alarmMessage" + e);
                             }
                         }
                     }
