@@ -478,49 +478,56 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         ArchiveFetchJobListener archiveFetchJobListener = new ArchiveFetchJobListener() {
 
+            private boolean channelFoundAtLeastOnce = true;
+
             @Override
             public void fetchCompleted(ArchiveFetchJob archiveFetchJob) {
-                PVSamples samples = pvItem.getSamples();
-                Lock lock = samples.getLock();
-                lock.lock();
+                if (channelFoundAtLeastOnce) {
+                    PVSamples samples = pvItem.getSamples();
+                    Lock lock = samples.getLock();
+                    lock.lock();
 
-                try {
-                    TreeMap<Instant, VEnum> newInstantToValue = new TreeMap<>();
-                    Optional<VEnum> mostRecentDataPointBeforeStart = Optional.empty(); // When merging data from multiple sources, there may be moe than one data point before the start of the time period.
+                    try {
+                        TreeMap<Instant, VEnum> newInstantToValue = new TreeMap<>();
+                        Optional<VEnum> mostRecentDataPointBeforeStart = Optional.empty(); // When merging data from multiple sources, there may be moe than one data point before the start of the time period.
 
-                    boolean isEnumPV = true;
-                    for (int i = 0; i < samples.size(); i++) {
-                        if (!(samples.get(i).getVType() instanceof VEnum)) {
-                            isEnumPV = false;
-                        }
-                    }
-
-                    if (isEnumPV) {
+                        boolean isEnumPV = true;
                         for (int i = 0; i < samples.size(); i++) {
-                            if (samples.get(i).getVType() instanceof VEnum vEnum) {
-                                if (vEnum.getTime().getTimestamp().equals(start) || vEnum.getTime().getTimestamp().isAfter(start)) {
-                                    newInstantToValue.put(vEnum.getTime().getTimestamp(), vEnum);
-                                } else if (vEnum.getTime().getTimestamp().isBefore(start)) {
-                                    if (mostRecentDataPointBeforeStart.isEmpty()) {
-                                        mostRecentDataPointBeforeStart = Optional.of(vEnum);
-                                    } else if (vEnum.getTime().getTimestamp().isAfter(mostRecentDataPointBeforeStart.get().getTime().getTimestamp())) {
-                                        mostRecentDataPointBeforeStart = Optional.of(vEnum);
+                            if (!(samples.get(i).getVType() instanceof VEnum)) {
+                                isEnumPV = false;
+                            }
+                        }
+
+                        if (isEnumPV) {
+                            for (int i = 0; i < samples.size(); i++) {
+                                if (samples.get(i).getVType() instanceof VEnum vEnum) {
+                                    if (vEnum.getTime().getTimestamp().equals(start) || vEnum.getTime().getTimestamp().isAfter(start)) {
+                                        newInstantToValue.put(vEnum.getTime().getTimestamp(), vEnum);
+                                    } else if (vEnum.getTime().getTimestamp().isBefore(start)) {
+                                        if (mostRecentDataPointBeforeStart.isEmpty()) {
+                                            mostRecentDataPointBeforeStart = Optional.of(vEnum);
+                                        } else if (vEnum.getTime().getTimestamp().isAfter(mostRecentDataPointBeforeStart.get().getTime().getTimestamp())) {
+                                            mostRecentDataPointBeforeStart = Optional.of(vEnum);
+                                        }
                                     }
                                 }
                             }
+                            if (mostRecentDataPointBeforeStart.isPresent()) {
+                                newInstantToValue.put(mostRecentDataPointBeforeStart.get().getTime().getTimestamp(), mostRecentDataPointBeforeStart.get());
+                            }
+                            decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new LoadingSuccessful(newInstantToValue)));
                         }
-                        if (mostRecentDataPointBeforeStart.isPresent()) {
-                            newInstantToValue.put(mostRecentDataPointBeforeStart.get().getTime().getTimestamp(), mostRecentDataPointBeforeStart.get());
+                        else {
+                            decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new PVIsNotOfEnumType()));
                         }
-                        decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new LoadingSuccessful(newInstantToValue)));
+                    } finally {
+                        lock.unlock();
                     }
-                    else {
-                        decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new PVIsNotOfEnumType()));
-                    }
-                    refresh();
-                } finally {
-                    lock.unlock();
                 }
+                else {
+                    decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new ChannelNotFound()));
+                }
+                refresh();
             }
 
             @Override
@@ -530,9 +537,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
             }
 
             @Override
-            public void channelNotFound(ArchiveFetchJob archiveFetchJob, boolean b, List<ArchiveDataSource> list) {
-                decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new ChannelNotFound()));
-                refresh();
+            public void channelNotFound(ArchiveFetchJob archiveFetchJob,
+                                        boolean channelFoundAtLeastOnce,
+                                        List<ArchiveDataSource> list) {
+                this.channelFoundAtLeastOnce = channelFoundAtLeastOnce;
             }
         };
 
