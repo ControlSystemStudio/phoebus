@@ -209,17 +209,8 @@ public class LogEntryCellController {
                 if (decorationDataToDisplay instanceof LogEntryTableViewController.LoadingInProgress) {
 
                     toolTipStringBuilder.append("Loading...");
-
-                    ProgressIndicator progressIndicator = new ProgressIndicator();
-                    progressIndicator.setMinWidth(40);
-                    progressIndicator.setPrefWidth(40);
-                    progressIndicator.setMaxWidth(40);
-
-                    progressIndicator.setMinWidth(40);
-                    progressIndicator.setPrefWidth(40);
-                    progressIndicator.setMaxWidth(40);
-
-                    decoration = progressIndicator;
+                    Node rectangle = createRectangleWithText.apply("Load-\ning...");
+                    decoration = rectangle;
                 }
                 else if (decorationDataToDisplay instanceof LogEntryTableViewController.ChannelNotFound) {
                     toolTipStringBuilder.append("Error: Channel not found");
