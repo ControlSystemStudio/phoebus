@@ -15,6 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -311,14 +312,41 @@ public class LogEntryCellController {
                         stack.getChildren().addAll(outgoingPath, text);
 
                         VBox vBox = new VBox(outgoingTriangle, stack);
-                        int numberOfIncomingVEnumsToDisplay = Math.min(indexOfLastVEnum, 4);
-                        for (int j=numberOfIncomingVEnumsToDisplay-1; j>=0; j--) {
-                            VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(j);
+
+                        if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 2) {
+                            VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
                             Paint paintOfFirstVEnum = vEnumToColor.apply(firstVEnum);
-                            double height = Math.floor(15 / numberOfIncomingVEnumsToDisplay);
+
+                            double height = Math.floor(15);
                             Rectangle incomingPath = new Rectangle(40, height, paintOfFirstVEnum);
 
                             vBox.getChildren().add(incomingPath);
+                        }
+                        else { // vEnumFromPreviousLogEntryToThisLogEntry.size() > 2
+                            VEnum firstVEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
+                            Paint paintOfFirstVEnum = vEnumToColor.apply(firstVEnum);
+
+                            StackPane dots;
+                            {
+                                double height1 = Math.floor(8);
+                                Rectangle rectangle1 = new Rectangle(40, height1, Color.TRANSPARENT);
+
+                                Circle circle1 = new Circle(2.0, Color.BLACK);
+                                Circle circle2 = new Circle(2.0, Color.BLACK);
+                                Circle circle3 = new Circle(2.0, Color.BLACK);
+
+                                HBox hBox = new HBox(circle1, circle2, circle3);
+                                hBox.setSpacing(3.0);
+                                hBox.setAlignment(Pos.CENTER);
+
+                                dots = new StackPane(rectangle1, hBox);
+                                dots.setAlignment(Pos.BASELINE_CENTER);
+                            }
+                            vBox.getChildren().add(dots);
+
+                            double height2 = Math.floor(7);
+                            Rectangle rectangle2 = new Rectangle(40, height2, paintOfFirstVEnum);
+                            vBox.getChildren().add(rectangle2);
                         }
 
                         Rectangle incomingRectangle = new Rectangle(4, 6);
