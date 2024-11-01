@@ -143,6 +143,20 @@ public class LogEntryCellController {
 
     @FXML
     public void refresh() {
+
+        Function<String, Node> createRectangleWithText = text -> {
+            Rectangle rectangle = new Rectangle(40, 40);
+            rectangle.setFill(Color.GRAY);
+
+            Text textNode = new Text(text);
+            textNode.setFill(Color.BLACK);
+
+            StackPane stack = new StackPane();
+            stack.getChildren().addAll(rectangle, textNode);
+
+            return stack;
+        };
+
         if (logEntry != null) {
 
             time.setText(SECONDS_FORMAT.format(logEntry.getLogEntry().getCreatedDate()));
@@ -207,28 +221,22 @@ public class LogEntryCellController {
                     decoration = progressIndicator;
                 }
                 else if (decorationDataToDisplay instanceof LogEntryTableViewController.ChannelNotFound) {
-
-                    toolTipStringBuilder.append("Channel not found.");
-
-                    Rectangle rectangle = new Rectangle(40, 40);
-                    rectangle.setFill(Color.GRAY);
-
+                    toolTipStringBuilder.append("Error: Channel not found");
+                    Node rectangle = createRectangleWithText.apply("Error");
                     decoration = rectangle;
                 }
                 else if (decorationDataToDisplay instanceof LogEntryTableViewController.FetchFailed) {
 
-                    toolTipStringBuilder.append("Fetch failed.");
+                    toolTipStringBuilder.append("Error: Fetch operation from the archiver failed");
 
-                    Rectangle rectangle = new Rectangle(40, 40);
-                    rectangle.setFill(Color.GRAY);
+                    Node rectangle = createRectangleWithText.apply("Error");
 
                     decoration = rectangle;
                 }
                 else if (decorationDataToDisplay instanceof LogEntryTableViewController.PVIsNotOfEnumType) {
-                    toolTipStringBuilder.append("PV is not of enum type!");
+                    toolTipStringBuilder.append("Error: PV is not of enum type");
 
-                    Rectangle rectangle = new Rectangle(40, 40);
-                    rectangle.setFill(Color.GRAY);
+                    Node rectangle = createRectangleWithText.apply("Error");
 
                     decoration = rectangle;
                 }
