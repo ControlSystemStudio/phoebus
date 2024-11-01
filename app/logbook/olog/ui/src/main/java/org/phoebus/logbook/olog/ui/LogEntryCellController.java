@@ -248,14 +248,29 @@ public class LogEntryCellController {
 
                         String vEnumDate = vEnum.getTime().toString();
                         String vEnumDateLessPrecision = vEnumDate.substring(0, vEnumDate.lastIndexOf("."));
-                        String vEnumValue = vEnum.getValue();
-                        toolTipStringBuilder.append(vEnumDateLessPrecision + ": \t" + vEnumValue + "\n");
+                        {
+                            int k = vEnum.getIndex();
+                            var choices = vEnum.getDisplay().getChoices();
+                            if (k < choices.size()) {
+                                String vEnumValue = choices.get(k);
+                                toolTipStringBuilder.append(vEnumDateLessPrecision + ": \t" + vEnumValue + "\n");
+                            }
+                            else if (choices.size() > 0) {
+                                toolTipStringBuilder.append(vEnumDateLessPrecision + ": \t" + "Invalid index " + k + "\n");
+                            }
+                            else { // choices.size() == 0
+                                toolTipStringBuilder.append(vEnumDateLessPrecision + ": \t" + "Enum choice " + k + " (The names of the enum-choices are not available) \n");
+                            }
+                        }
+
+
                     }
 
                     if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 0) {
-                        Rectangle background = new Rectangle(40, 40);
-                        background.setFill(Color.TRANSPARENT);
-                        decoration = background;
+                        toolTipStringBuilder.append("No data available");
+
+                        Node rectangle = createRectangleWithText.apply("No\ndata");
+                        decoration = rectangle;
                     }
                     else if (vEnumFromPreviousLogEntryToThisLogEntry.size() == 1) {
                         VEnum vEnum = vEnumFromPreviousLogEntryToThisLogEntry.get(0);
@@ -338,16 +353,22 @@ public class LogEntryCellController {
     }
 
     private String computeAbbreviatedName(VEnum vEnum) {
-        String statusName = vEnum.getValue();
-        char[] chars = statusName.toCharArray();
-        List<Character> abbreviatedNameChars = new LinkedList<>();
-        for (int i=0; i<chars.length; i++) {
-            if (Character.isUpperCase(chars[i])) {
-                abbreviatedNameChars.add(chars[i]);
+        int i = vEnum.getIndex();
+        var choices = vEnum.getDisplay().getChoices();
+        if (i < choices.size()) {
+            String statusName = choices.get(i);
+            char[] chars = statusName.toCharArray();
+            List<Character> abbreviatedNameChars = new LinkedList<>();
+            for (int j=0; j<chars.length; j++) {
+                if (Character.isUpperCase(chars[j])) {
+                    abbreviatedNameChars.add(chars[j]);
+                }
             }
+            String abbreviatedName = abbreviatedNameChars.stream().map(c -> c.toString()).collect(Collectors.joining());
+            return abbreviatedName;
+        } else {
+            return String.valueOf(i);
         }
-        String abbreviatedName = abbreviatedNameChars.stream().map(c -> c.toString()).collect(Collectors.joining());
-        return abbreviatedName;
     }
 
     public void setLogEntry(TableViewListItem logEntry) {
