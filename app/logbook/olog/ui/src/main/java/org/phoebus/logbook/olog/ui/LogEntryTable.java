@@ -3,6 +3,7 @@ package org.phoebus.logbook.olog.ui;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
@@ -11,6 +12,7 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
+import org.phoebus.logbook.olog.ui.spi.Decoration;
 import org.phoebus.logbook.olog.ui.write.AttachmentsEditorController;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
@@ -18,8 +20,11 @@ import org.phoebus.ui.docking.DockPane;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,10 +37,19 @@ public class LogEntryTable implements AppInstance {
     private LogEntryTableViewController controller;
 
     public GoBackAndGoForwardActions goBackAndGoForwardActions;
-    private int i = 0;
     public LogEntryTable(final LogEntryTableApp app) {
         this.app = app;
         goBackAndGoForwardActions = new GoBackAndGoForwardActions();
+
+        List<Node> decorationInputNodes = new LinkedList<>();
+        {
+            ServiceLoader<Decoration> decorationClasses = ServiceLoader.load(Decoration.class);
+            for (var decoration : decorationClasses) {
+                Node decorationInputNode = decoration.decorationInputNode();
+                decorationInputNodes.add(decorationInputNode);
+            }
+        }
+
         try {
             OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
             SearchParameters searchParameters = new SearchParameters();
@@ -53,7 +67,7 @@ public class LogEntryTable implements AppInstance {
                             logEntryTableViewController.setGoBackAndGoForwardActions(goBackAndGoForwardActions);
                             return logEntryTableViewController;
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
-                            return clazz.getConstructor(LogClient.class, SearchParameters.class).newInstance(app.getClient(), searchParameters);
+                            return clazz.getConstructor(LogClient.class, SearchParameters.class, List.class).newInstance(app.getClient(), searchParameters, decorationInputNodes);
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                             SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                             singleLogEntryDisplayController.setSelectLogEntryInUI(id -> goBackAndGoForwardActions.loadLogEntryWithID(id));
@@ -68,14 +82,6 @@ public class LogEntryTable implements AppInstance {
                             return clazz.getConstructor().newInstance();
                         } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
                             return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
-                        } else if (clazz.isAssignableFrom(DecorationsController.class)) {
-                            DecorationsController decorationsController = (DecorationsController) clazz.getConstructor().newInstance();
-                            int j = i;
-                            decorationsController.setSetPVForDecorationCallback(pvName -> {
-                                controller.setPVNameForDecoration(j, pvName);
-                            });
-                            i++;
-                            return decorationsController;
                         }
                     } else {
                         // no logbook client available

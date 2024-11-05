@@ -24,6 +24,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -50,7 +51,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -63,6 +63,9 @@ import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_N
 public class AdvancedSearchViewController {
 
     static final Logger logger = Logger.getLogger(AdvancedSearchViewController.class.getName());
+
+    @FXML
+    public VBox decorationInputNodesVBox;
 
     @FXML
     Label levelLabel;
@@ -108,21 +111,23 @@ public class AdvancedSearchViewController {
     @FXML
     private TextField attachmentTypes;
 
-    @FXML
-    public DecorationsController decorationsController;
-
     private SearchParameters searchParameters;
 
     private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty requireAttachments = new SimpleBooleanProperty(false);
 
+    private List<Node> decorationInputNodes;
+
     private Runnable searchCallback = () -> {
         throw new IllegalStateException("Search callback is not set on AdvancedSearchViewController!");
     };
 
-    public AdvancedSearchViewController(LogClient logClient, SearchParameters searchParameters) {
+    public AdvancedSearchViewController(LogClient logClient,
+                                        SearchParameters searchParameters,
+                                        List<Node> decorationInputNodes) {
         this.logClient = logClient;
         this.searchParameters = searchParameters;
+        this.decorationInputNodes = decorationInputNodes;
     }
 
     public void setSearchCallback(Runnable searchCallback) {
@@ -300,6 +305,10 @@ public class AdvancedSearchViewController {
         sortDescRadioButton.setOnAction(ae -> sortAscending.set(false));
 
         sortAscRadioButton.setOnAction(ae -> sortAscending.set(true));
+
+        if (decorationInputNodes != null) {
+            decorationInputNodesVBox.getChildren().addAll(decorationInputNodes);
+        }
     }
 
     public AnchorPane getPane() {
