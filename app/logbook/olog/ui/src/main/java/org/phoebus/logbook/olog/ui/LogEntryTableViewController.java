@@ -400,6 +400,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private List<Decoration> decorations;
     protected void setDecorations(List<Decoration> decorations) {
         this.decorations = decorations;
+        for (Decoration decoration : decorations) {
+            decoration.setRefreshLogEntryTableView(() -> refresh());
+        }
     }
 
     private void setSearchResult(SearchResult searchResult) {
