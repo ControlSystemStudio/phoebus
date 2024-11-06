@@ -37,6 +37,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.*;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
+import org.phoebus.logbook.olog.ui.spi.Decoration;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.logbook.olog.ui.write.LogEntryUpdateStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
@@ -116,28 +117,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty();
 
     private final SimpleBooleanProperty advancedSearchVisibile = new SimpleBooleanProperty(false);
-
-    sealed interface DecorationDataLoadingStatus permits LoadingSuccessful,
-                                                         LoadingInProgress,
-                                                         ChannelNotFound,
-                                                         FetchFailed,
-                                                         PVIsNotOfEnumType {}
-
-    public record LoadingSuccessful (TreeMap<Instant, VEnum> instantToVEnum) implements DecorationDataLoadingStatus { }
-    public record LoadingInProgress () implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
-    public record ChannelNotFound () implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
-    public record FetchFailed () implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
-    public record PVIsNotOfEnumType () implements DecorationDataLoadingStatus, DecorationDataToDisplay { }
-
-    sealed interface DecorationDataToDisplay permits DataToToDisplay,
-                                                     LoadingInProgress,
-                                                     ChannelNotFound,
-                                                     FetchFailed,
-                                                     PVIsNotOfEnumType {}
-
-    public record DataToToDisplay(List<VEnum> instantToVEnum) implements DecorationDataToDisplay { }
-
-    private final ConcurrentMap<Integer, Pair<String, DecorationDataLoadingStatus>> decorationIndexToPVNameAndStatus = new ConcurrentHashMap<>();
 
     /**
      * Constructor.
@@ -260,6 +239,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
                     graphic = loader.load();
                     controller = loader.getController();
+                    controller.setDecorations(decorations);
                 } catch (IOException exc) {
                     throw new RuntimeException(exc);
                 }
@@ -417,141 +397,22 @@ public class LogEntryTableViewController extends LogbookSearchController {
         throw new RuntimeException(new UnsupportedOperationException());
     }
 
+    private List<Decoration> decorations;
+    protected void setDecorations(List<Decoration> decorations) {
+        this.decorations = decorations;
+    }
+
     private void setSearchResult(SearchResult searchResult) {
         this.searchResult = searchResult;
+
+        List<LogEntry> logEntries = searchResult.getLogs();
+        decorations.forEach(decoration -> decoration.setLogEntries(logEntries));
+
         Platform.runLater(() -> {
             hitCountProperty.set(searchResult.getHitCount());
             pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
             refresh();
         });
-
-        decorate(searchResult);
-    }
-
-    private Optional<String>[] pvNamesForDecoration = new Optional[0];
-
-    protected void setPVNameForDecoration(int i, String pvName) {
-        if (i >= pvNamesForDecoration.length) {
-            Optional<String>[] newPvNamesForDecoration = new Optional[i + 1];
-            for (int j = 0; j < newPvNamesForDecoration.length; j++) {
-                newPvNamesForDecoration[j] = j < pvNamesForDecoration.length ? pvNamesForDecoration[j] : Optional.empty();
-            }
-            pvNamesForDecoration = newPvNamesForDecoration;
-        }
-
-        if (pvName.isEmpty()) {
-            pvNamesForDecoration[i] = Optional.empty();
-        } else {
-            pvNamesForDecoration[i] = Optional.of(pvName);
-        }
-        decorate(i, searchResult);
-    }
-
-    private void decorate(SearchResult searchResult) {
-        for (int i = 0; i < pvNamesForDecoration.length; i++) {
-            decorate(i, searchResult);
-        }
-    }
-
-    private void decorate(int i, SearchResult searchResult) {
-        if (pvNamesForDecoration[i].isPresent()) {
-            List<LogEntry> logEntries = searchResult.getLogs();
-            List<Instant> createdDates = logEntries.stream().map(logEntry -> logEntry.getCreatedDate()).collect(Collectors.toUnmodifiableList());
-            Instant start = Collections.min(createdDates);
-            Instant end = Collections.max(createdDates);
-
-            retrievePVValues(i, pvNamesForDecoration[i].get(), start, end);
-        } else {
-            decorationIndexToPVNameAndStatus.remove(i);
-            refresh();
-        }
-    }
-
-    private void retrievePVValues(int decorationIndex,
-                                  String pvName,
-                                  Instant start,
-                                  Instant end) {
-        PVItem pvItem = new PVItem(pvName, Double.MAX_VALUE);
-        pvItem.setRequestType(RequestType.RAW);
-
-        pvItem.useDefaultArchiveDataSources();
-
-        ArchiveFetchJobListener archiveFetchJobListener = new ArchiveFetchJobListener() {
-
-            private boolean channelFoundAtLeastOnce = true;
-
-            @Override
-            public void fetchCompleted(ArchiveFetchJob archiveFetchJob) {
-                if (channelFoundAtLeastOnce) {
-                    PVSamples samples = pvItem.getSamples();
-                    Lock lock = samples.getLock();
-                    lock.lock();
-
-                    try {
-                        TreeMap<Instant, VEnum> newInstantToValue = new TreeMap<>();
-                        Optional<VEnum> mostRecentDataPointBeforeStart = Optional.empty(); // When merging data from multiple sources, there may be moe than one data point before the start of the time period.
-
-                        boolean isEnumPV = true;
-                        for (int i = 0; i < samples.size(); i++) {
-                            if (!(samples.get(i).getVType() instanceof VEnum)) {
-                                isEnumPV = false;
-                            }
-                        }
-
-                        if (isEnumPV) {
-                            for (int i = 0; i < samples.size(); i++) {
-                                if (samples.get(i).getVType() instanceof VEnum vEnum) {
-                                    if (vEnum.getTime().getTimestamp().equals(start) || vEnum.getTime().getTimestamp().isAfter(start)) {
-                                        newInstantToValue.put(vEnum.getTime().getTimestamp(), vEnum);
-                                    } else if (vEnum.getTime().getTimestamp().isBefore(start)) {
-                                        if (mostRecentDataPointBeforeStart.isEmpty()) {
-                                            mostRecentDataPointBeforeStart = Optional.of(vEnum);
-                                        } else if (vEnum.getTime().getTimestamp().isAfter(mostRecentDataPointBeforeStart.get().getTime().getTimestamp())) {
-                                            mostRecentDataPointBeforeStart = Optional.of(vEnum);
-                                        }
-                                    }
-                                }
-                            }
-                            if (mostRecentDataPointBeforeStart.isPresent()) {
-                                newInstantToValue.put(mostRecentDataPointBeforeStart.get().getTime().getTimestamp(), mostRecentDataPointBeforeStart.get());
-                            }
-                            decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new LoadingSuccessful(newInstantToValue)));
-                        }
-                        else {
-                            decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new PVIsNotOfEnumType()));
-                        }
-                    } finally {
-                        lock.unlock();
-                    }
-                }
-                else {
-                    decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new ChannelNotFound()));
-                }
-                refresh();
-            }
-
-            @Override
-            public void archiveFetchFailed(ArchiveFetchJob archiveFetchJob, ArchiveDataSource archiveDataSource, Exception e) {
-                decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new FetchFailed()));
-                refresh();
-            }
-
-            @Override
-            public void channelNotFound(ArchiveFetchJob archiveFetchJob,
-                                        boolean channelFoundAtLeastOnce,
-                                        List<ArchiveDataSource> list) {
-                this.channelFoundAtLeastOnce = channelFoundAtLeastOnce;
-            }
-        };
-
-        decorationIndexToPVNameAndStatus.put(decorationIndex, new Pair(pvName, new LoadingInProgress()));
-        refresh();
-        ArchiveFetchJob archiveFetchJob = new ArchiveFetchJob(pvItem,
-                                                              start,
-                                                              end,
-                                                              archiveFetchJobListener); // Note: The archive fetch job is automatically scheduled by the constructor!
-
-        return;
     }
 
     public void setQuery(String parsedQuery) {
@@ -570,83 +431,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
             List<LogEntry> logEntries = searchResult.getLogs();
             logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
 
-            Map<LogEntry, SortedMap<Integer, Pair<String, DecorationDataToDisplay>>> logEntryToPVNameAndVEnumDecorationDataToDisplay = new TreeMap<>((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
-            logEntries.forEach(logEntry -> logEntryToPVNameAndVEnumDecorationDataToDisplay.put(logEntry, new TreeMap<>())); // Initialize logEntryToPVNameAndVEnumDecorationDataToDisplay
-            {
-                for (int i = 0; i < pvNamesForDecoration.length; i++) {
-                    if (decorationIndexToPVNameAndStatus.containsKey(i)) {
-                        Pair<String, DecorationDataLoadingStatus> pvNameAndStatus = decorationIndexToPVNameAndStatus.get(i);
-                        String pvName = pvNameAndStatus.getKey();
-                        DecorationDataLoadingStatus status = pvNameAndStatus.getValue();
-
-                        if (status instanceof LoadingInProgress) {
-                            for (int j = logEntries.size() - 1; j >= 0; j--) {
-                                LogEntry currentLogEntry = logEntries.get(j);
-                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new LoadingInProgress()));
-                            }
-                        }
-                        else if (status instanceof FetchFailed) {
-                            for (int j = logEntries.size() - 1; j >= 0; j--) {
-                                LogEntry currentLogEntry = logEntries.get(j);
-                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new FetchFailed()));
-                            }
-                        }
-                        else if (status instanceof ChannelNotFound) {
-                            for (int j = logEntries.size() - 1; j >= 0; j--) {
-                                LogEntry currentLogEntry = logEntries.get(j);
-                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new ChannelNotFound()));
-                            }
-                        }
-                        else if (status instanceof PVIsNotOfEnumType) {
-                            for (int j = logEntries.size() - 1; j >= 0; j--) {
-                                LogEntry currentLogEntry = logEntries.get(j);
-                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new PVIsNotOfEnumType()));
-                            }
-                        }
-                        else if (status instanceof LoadingSuccessful loadingSuccessful) {
-                            TreeMap<Instant, VEnum> instantToVEnum = loadingSuccessful.instantToVEnum;
-                            Instant previousLogEntryCreatedDate = Instant.ofEpochSecond(0);
-                            Optional<VEnum> previousLogEntryVEnum = Optional.empty();
-                            for (int j = logEntries.size() - 1; j >= 0; j--) {
-                                LogEntry currentLogEntry = logEntries.get(j);
-                                Instant currentLogEntryCreatedDate = currentLogEntry.getCreatedDate();
-                                List<VEnum> vEnumsFromPreviousLogEntryToCurrentLogEntry = new LinkedList<>(instantToVEnum.subMap(previousLogEntryCreatedDate, false,
-                                                currentLogEntryCreatedDate, true)
-                                        .values());
-                                if (previousLogEntryVEnum.isPresent()) {
-                                    // Append currentLogEntryVEnum to vEnumsFromPreviousLogEntryToCurrentLogEntry
-                                    // so that the current status is known.
-                                    vEnumsFromPreviousLogEntryToCurrentLogEntry.add(0, previousLogEntryVEnum.get());
-                                }
-
-                                Optional<VEnum> currentLogEntryVEnum;
-                                if (vEnumsFromPreviousLogEntryToCurrentLogEntry.isEmpty()) {
-                                    // No changes have occurred since the last log entry.
-                                    // Therefore, the VEnum of the last log entry is still
-                                    // the current one.
-
-                                    currentLogEntryVEnum = previousLogEntryVEnum;
-                                } else {
-                                    currentLogEntryVEnum = Optional.of(vEnumsFromPreviousLogEntryToCurrentLogEntry.get(vEnumsFromPreviousLogEntryToCurrentLogEntry.size() - 1));
-                                }
-                                logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).put(i, new Pair(pvName, new DataToToDisplay(vEnumsFromPreviousLogEntryToCurrentLogEntry)));
-                                previousLogEntryCreatedDate = currentLogEntryCreatedDate;
-                                previousLogEntryVEnum = currentLogEntryVEnum;
-                            }
-                        }
-                    } else {
-                        for (int j = logEntries.size() - 1; j >= 0; j--) {
-                            LogEntry currentLogEntry = logEntries.get(j);
-                            logEntryToPVNameAndVEnumDecorationDataToDisplay.get(currentLogEntry).remove(i);
-                        }
-                    }
-                }
-            }
-
             boolean showDetailsBoolean = showDetails.get();
-            var logs = logEntries.stream().map(le -> new TableViewListItem(le,
-                                                                           showDetailsBoolean,
-                                                                           logEntryToPVNameAndVEnumDecorationDataToDisplay.getOrDefault(le, new TreeMap<>()))).toList();
+            var logs = logEntries.stream().map(le -> new TableViewListItem(le, showDetailsBoolean)).toList();
 
             ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList(logs);
             tableView.setItems(logsList);
@@ -759,16 +545,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
     public static class TableViewListItem {
         private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty(true);
         private final LogEntry logEntry;
-        private SortedMap<Integer, Pair<String, DecorationDataToDisplay>> decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = new TreeMap<>();
-
-        public TableViewListItem(LogEntry logEntry,
-                                 boolean showDetails,
-                                 SortedMap<Integer, Pair<String, DecorationDataToDisplay>> decorationIndexToPVNameAndDecorationDataToDisplay) {
-            this(logEntry, showDetails);
-
-            Objects.requireNonNull(decorationIndexToPVNameAndDecorationDataToDisplay);
-            this.decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry = decorationIndexToPVNameAndDecorationDataToDisplay;
-        }
 
         public TableViewListItem(LogEntry logEntry, boolean showDetails) {
             this.logEntry = logEntry;
@@ -785,10 +561,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         public void setShowDetails(boolean show) {
             this.showDetails.set(show);
-        }
-
-        protected SortedMap<Integer, Pair<String, DecorationDataToDisplay>> getDecorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry() {
-            return decorationIndexToPVNameAndVEnumValuesFromPreviousLogEntryToLogEntry;
         }
     }
 

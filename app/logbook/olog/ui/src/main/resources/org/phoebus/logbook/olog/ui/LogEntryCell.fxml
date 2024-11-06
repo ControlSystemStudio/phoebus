@@ -13,7 +13,7 @@ summary of the log entry and its metadata.
 <VBox fx:id="root" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
     <HBox>
-        <HBox fx:id="decorations" fillHeight="true" />
+        <HBox fx:id="decorationNodes" fillHeight="true" />
         <VBox fx:id="logEntryCell">
             <HBox.hgrow><Priority fx:value="ALWAYS"/></HBox.hgrow>
             <GridPane>

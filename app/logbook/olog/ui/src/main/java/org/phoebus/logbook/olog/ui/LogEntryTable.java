@@ -3,7 +3,6 @@ package org.phoebus.logbook.olog.ui;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
@@ -41,12 +40,11 @@ public class LogEntryTable implements AppInstance {
         this.app = app;
         goBackAndGoForwardActions = new GoBackAndGoForwardActions();
 
-        List<Node> decorationInputNodes = new LinkedList<>();
+        List<Decoration> decorations = new LinkedList<>();
         {
             ServiceLoader<Decoration> decorationClasses = ServiceLoader.load(Decoration.class);
-            for (var decoration : decorationClasses) {
-                Node decorationInputNode = decoration.decorationInputNode();
-                decorationInputNodes.add(decorationInputNode);
+            for (Decoration decoration : decorationClasses) {
+                decorations.add(decoration);
             }
         }
 
@@ -65,9 +63,10 @@ public class LogEntryTable implements AppInstance {
                         if (clazz.isAssignableFrom(LogEntryTableViewController.class)) {
                             LogEntryTableViewController logEntryTableViewController = (LogEntryTableViewController) clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class).newInstance(app.getClient(), ologQueryManager, searchParameters);
                             logEntryTableViewController.setGoBackAndGoForwardActions(goBackAndGoForwardActions);
+                            logEntryTableViewController.setDecorations(decorations);
                             return logEntryTableViewController;
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
-                            return clazz.getConstructor(LogClient.class, SearchParameters.class, List.class).newInstance(app.getClient(), searchParameters, decorationInputNodes);
+                            return clazz.getConstructor(LogClient.class, SearchParameters.class, List.class).newInstance(app.getClient(), searchParameters, decorations.stream().map(decoration -> decoration.getDecorationInputNode()).toList());
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                             SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                             singleLogEntryDisplayController.setSelectLogEntryInUI(id -> goBackAndGoForwardActions.loadLogEntryWithID(id));
