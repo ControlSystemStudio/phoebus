@@ -321,7 +321,7 @@ public class AttachmentsViewController {
         attachments.removeAll(attachmentsToRemove);
     }
 
-    public List<Attachment> getAttachments() {
+    public ObservableList<Attachment> getAttachments() {
         return attachments;
     }
 

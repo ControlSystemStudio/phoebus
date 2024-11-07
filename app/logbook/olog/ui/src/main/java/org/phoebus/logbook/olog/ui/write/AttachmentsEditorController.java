@@ -23,6 +23,8 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -75,6 +77,8 @@ public class AttachmentsEditorController {
     private final Logger logger = Logger.getLogger(AttachmentsEditorController.class.getName());
 
     private final SimpleBooleanProperty imageAttachmentSelected = new SimpleBooleanProperty(false);
+    private final ObservableList<Attachment> attachmentList = FXCollections.observableArrayList();
+
 
     /**
      * List of (temporary) attachment {@link File}s deleted when log entry has been successfully persisted.
@@ -320,7 +324,7 @@ public class AttachmentsEditorController {
         }
     }
 
-    public List<Attachment> getAttachments() {
+    public ObservableList<Attachment> getAttachments() {
         return attachmentsViewController.getAttachments();
     }
 
