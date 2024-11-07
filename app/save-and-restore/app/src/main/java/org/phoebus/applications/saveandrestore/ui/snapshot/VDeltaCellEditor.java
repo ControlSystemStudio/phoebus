@@ -23,9 +23,9 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.ui.Utilities;
-import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
+import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.util.Formatter;
 
@@ -36,7 +36,7 @@ import java.util.Formatter;
  * @param <T>
  * @author Kunal Shroff
  */
-public class VDeltaCellEditor<T> extends VTypeCellEditor<T>{
+public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
 
     private static final Image WARNING_IMAGE = new Image(
             SnapshotController.class.getResourceAsStream("/icons/hprio_tsk.png"));
@@ -73,8 +73,7 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T>{
                 setText(item.toString());
                 tooltip.setText("No Value Available");
                 setTooltip(tooltip);
-            } else if (item instanceof VTypePair) {
-                VTypePair pair = (VTypePair) item;
+            } else if (item instanceof VTypePair pair) {
                 if (pair.value == VDisconnectedData.INSTANCE) {
                     setText(VDisconnectedData.DISCONNECTED);
                     if (pair.base != VDisconnectedData.INSTANCE) {

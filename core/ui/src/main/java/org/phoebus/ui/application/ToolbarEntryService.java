@@ -34,7 +34,7 @@ public class ToolbarEntryService {
             // Add specific 'desired' entry
             ToolbarEntry found = null;
             for (ToolbarEntry entry : available)
-                if (entry.getName().equalsIgnoreCase(desired))
+                if (entry.getId().equalsIgnoreCase(desired))
                 {
                     found = entry;
                     break;

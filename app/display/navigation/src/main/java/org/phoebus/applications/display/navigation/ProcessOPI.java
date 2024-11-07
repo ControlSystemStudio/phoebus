@@ -52,13 +52,13 @@ public class ProcessOPI {
         }, () -> {
             throw new UnsupportedOperationException("File extension unknown");
         });
-        System.out.println("Processing file : " + this.rootFile);
+        logger.log(Level.INFO, "Processing file : " + this.rootFile);
         getAllLinkedFiles(this.rootFile);
         return this.allLinkedFiles;
     }
 
     private synchronized void getAllLinkedFiles(File file) {
-        System.out.println("Calculating linked files for " + file.getName());
+        logger.log(Level.INFO, "Calculating linked files for " + file.getName());
         Set<File> linkedFiles = getLinkedFiles(file);
         linkedFiles.forEach(f -> {
             if (allLinkedFiles.contains(f) || f.equals(rootFile)) {
@@ -71,6 +71,13 @@ public class ProcessOPI {
         });
     }
 
+    /**
+     * A Utility method which creates a list of all the files that can be launched from a given OPI.
+     * It only inlcudes files launched via actions.
+     *
+     * @param file root OPI file
+     * @return a unique Set of all files that can be reached from root OPI file
+     */
     public static synchronized Set<File> getLinkedFiles(File file) {
         Set<File> result = new HashSet<>();
         try {

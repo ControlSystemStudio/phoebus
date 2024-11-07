@@ -29,12 +29,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -164,17 +168,25 @@ public class CSVParser extends CSVCommon {
 
                     String[] columns = csvParser.split(Uncomment(line));
 
+                    // Try to parse date, may not be parsable
+                    Date date = null;
+                    try {
+                        date = TIMESTAMP_FORMATTER.get().parse(columns[3]);
+                    } catch (ParseException e) {
+                        Logger.getLogger(CSVParser.class.getName()).log(Level.WARNING, "Cannot parse date string '" + columns[3] + "'");
+                    }
+
                     Tag tag = Tag.builder()
                             .name(columns[0])
                             .comment(columns[1])
                             .userName(columns[2])
-                            .created(TIMESTAMP_FORMATTER.get().parse(columns[3]))
                             .build();
+                    if(date != null){
+                        tag.setCreated(date);
+                    }
 
                     csvParser.getTags().add(tag);
                 }
-            } else if (line.startsWith(COMMENT_PREFIX)) {
-                // Do nothing for comments
             } else if (!line.startsWith(COMMENT_PREFIX) && csvParser.getColumnHeaders().isEmpty()) {
                 csvParser.analyzeColumnHeader(line);
             } else {
@@ -200,7 +212,7 @@ public class CSVParser extends CSVCommon {
         encapsulatedDataInQuotes.clear();
 
         while (true) {
-            if (line.indexOf("\"") >= 0) {
+            if (line.contains("\"")) {
                 int startIndex = line.indexOf("\"");
                 int endIndex = line.indexOf("\"", startIndex + 1);
 

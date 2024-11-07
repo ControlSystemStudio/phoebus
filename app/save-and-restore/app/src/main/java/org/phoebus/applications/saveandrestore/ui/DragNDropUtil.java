@@ -38,7 +38,8 @@ public class DragNDropUtil {
      *     the transfer mode must be {@link TransferMode#LINK}. If not, then source node list must not
      *     contain items of type {@link NodeType#COMPOSITE_SNAPSHOT} or {@link NodeType#SNAPSHOT}.</li>
      * </ul>
-     * @param targetNode The drop target
+     *
+     * @param targetNode  The drop target
      * @param sourceNodes Selection of {@link Node}s
      * @return <code>true</code> if the selection (source nodes) may be dropped on the target, otherwise <code>false</code>.
      */
@@ -47,14 +48,13 @@ public class DragNDropUtil {
         if (sourceNodes.contains(targetNode)) {
             return false;
         }
-        switch (targetNode.getNodeType()){
+        switch (targetNode.getNodeType()) {
             case COMPOSITE_SNAPSHOT:
                 return snapshotsOrCompositeSnapshotsOnly(sourceNodes);
             case FOLDER:
-                if(sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent()) {
+                if (sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent()) {
                     return transferMode.equals(TransferMode.MOVE);
-                }
-                else{
+                } else {
                     return sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.SNAPSHOT)).findFirst().isEmpty();
                 }
             default:
@@ -86,7 +86,7 @@ public class DragNDropUtil {
          */
     }
 
-    public static boolean snapshotsOrCompositeSnapshotsOnly(List<Node> sourceNodes){
+    public static boolean snapshotsOrCompositeSnapshotsOnly(List<Node> sourceNodes) {
         return sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.FOLDER) ||
                 n.getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isEmpty();
     }

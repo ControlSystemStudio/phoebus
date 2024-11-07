@@ -57,6 +57,12 @@ public class Preferences {
     @Preference
     public static String default_snapshot_mode;
 
+    /**
+     * Default restore mode
+     */
+    @Preference
+    public static String default_restore_mode;
+
     static {
         AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");
     }

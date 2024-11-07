@@ -19,22 +19,23 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
+import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClientImpl;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
-import org.phoebus.applications.saveandrestore.client.SaveAndRestoreJerseyClient;
-
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -70,7 +71,7 @@ public class SaveAndRestoreService {
     private final SaveAndRestoreClient saveAndRestoreClient;
 
     private SaveAndRestoreService() {
-        saveAndRestoreClient = new SaveAndRestoreJerseyClient();
+        saveAndRestoreClient = new SaveAndRestoreClientImpl();
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
@@ -243,10 +244,9 @@ public class SaveAndRestoreService {
         }).collect(Collectors.toList());
         snapshot.getSnapshotData().setSnapshotItems(beautifiedItems);
         Future<Snapshot> future = executor.submit(() -> {
-            if(snapshot.getSnapshotNode().getUniqueId() == null){
+            if (snapshot.getSnapshotNode().getUniqueId() == null) {
                 return saveAndRestoreClient.createSnapshot(configurationNode.getUniqueId(), snapshot);
-            }
-            else{
+            } else {
                 return saveAndRestoreClient.updateSnapshot(snapshot);
             }
         });
@@ -389,12 +389,13 @@ public class SaveAndRestoreService {
 
     /**
      * Authenticate user, needed for all non-GET endpoints if service requires it
+     *
      * @param userName User's account name
      * @param password User's password
      * @return A {@link UserData} object
      * @throws Exception if authentication fails
      */
-    public UserData authenticate(String userName, String password) throws Exception{
+    public UserData authenticate(String userName, String password) throws Exception {
         Future<UserData> future =
                 executor.submit(() -> saveAndRestoreClient.authenticate(userName, password));
         return future.get();
@@ -402,10 +403,11 @@ public class SaveAndRestoreService {
 
     /**
      * Requests service to restore the specified {@link SnapshotItem}s
+     *
      * @param snapshotItems A {@link List} of {@link SnapshotItem}s
      * @return A @{@link List} of {@link RestoreResult}s with information on potentially failed {@link SnapshotItem}s.
      */
-    public List<RestoreResult> restore(List<SnapshotItem> snapshotItems) throws Exception{
+    public List<RestoreResult> restore(List<SnapshotItem> snapshotItems) throws Exception {
         Future<List<RestoreResult>> future =
                 executor.submit(() -> saveAndRestoreClient.restore(snapshotItems));
         return future.get();
@@ -413,10 +415,11 @@ public class SaveAndRestoreService {
 
     /**
      * Requests service to restore the specified snapshot.
+     *
      * @param snapshotNodeId Unique id of a snapshot
      * @return A @{@link List} of {@link RestoreResult}s with information on potentially failed {@link SnapshotItem}s.
      */
-    public List<RestoreResult> restore(String snapshotNodeId) throws Exception{
+    public List<RestoreResult> restore(String snapshotNodeId) throws Exception {
         Future<List<RestoreResult>> future =
                 executor.submit(() -> saveAndRestoreClient.restore(snapshotNodeId));
         return future.get();
@@ -425,10 +428,11 @@ public class SaveAndRestoreService {
     /**
      * Requests service to take a snapshot, i.e. to read PVs as defined in a {@link Configuration}.
      * This should be called off the UI thread.
+     *
      * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
      * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
      */
-    public List<SnapshotItem> takeSnapshot(String configurationNodeId) throws Exception{
+    public List<SnapshotItem> takeSnapshot(String configurationNodeId) throws Exception {
         Future<List<SnapshotItem>> future =
                 executor.submit(() -> saveAndRestoreClient.takeSnapshot(configurationNodeId));
         return future.get();
@@ -437,13 +441,14 @@ public class SaveAndRestoreService {
     /**
      * Retrieves PV values from an archiver for the PVs as defined in a {@link Configuration}.
      * This should be called off the UI thread.
+     *
      * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
-     * @param time If <code>null</code>, time is set to {@link Instant#now()}.
+     * @param time                If <code>null</code>, time is set to {@link Instant#now()}.
      * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service or read
      * from an archiver.
      */
-    public List<SnapshotItem> takeSnapshotFromArchiver(String configurationNodeId, Instant time) throws Exception{
-        if(time == null){
+    public List<SnapshotItem> takeSnapshotFromArchiver(String configurationNodeId, Instant time) {
+        if (time == null) {
             time = Instant.now();
         }
         ConfigurationData configNode = getConfiguration(configurationNodeId);
@@ -454,7 +459,7 @@ public class SaveAndRestoreService {
             SnapshotItem snapshotItem = new SnapshotItem();
             snapshotItem.setConfigPv(configPv);
             snapshotItem.setValue(readFromArchiver(configPv.getPvName(), _time));
-            if(configPv.getReadbackPvName() != null){
+            if (configPv.getReadbackPvName() != null) {
                 snapshotItem.setValue(readFromArchiver(configPv.getReadbackPvName(), _time));
             }
             snapshotItems.add(snapshotItem);
@@ -464,14 +469,15 @@ public class SaveAndRestoreService {
 
     /**
      * Reads the PV value from archiver.
+     *
      * @param pvName Name of PV, scheme like for instance pva:// will be removed.
-     * @param time The point in time supplied in the archiver request
+     * @param time   The point in time supplied in the archiver request
      * @return A {@link VType} value if archiver contains the wanted data, otherwise {@link VDisconnectedData}.
      */
-    private VType readFromArchiver(String pvName, Instant time){
+    private VType readFromArchiver(String pvName, Instant time) {
         // Check if pv name is prefixed with a scheme, e.g. pva://, ca://...
         int indexSchemeSeparator = pvName.indexOf("://");
-        if(indexSchemeSeparator > 0 && pvName.length() > indexSchemeSeparator){
+        if (indexSchemeSeparator > 0 && pvName.length() > indexSchemeSeparator) {
             pvName = pvName.substring(indexSchemeSeparator + 1);
         }
         // Prepend "archiver://"

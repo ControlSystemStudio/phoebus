@@ -148,8 +148,8 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         snapshotTab.setText(Messages.unnamedSnapshot);
         snapshotTableViewController.takeSnapshot(snapshotControlsViewController.getDefaultSnapshotMode(), snapshot -> {
             disabledUi.set(false);
-            if (snapshot != null) {
-                snapshotProperty.set(snapshot);
+            if (snapshot.isPresent()) {
+                snapshotProperty.set(snapshot.get());
             }
         });
     }
@@ -359,7 +359,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     }
 
     public void restore(ActionEvent actionEvent) {
-        snapshotTableViewController.restore(snapshotProperty.get(), restoreResultList -> {
+        snapshotTableViewController.restoreSnapshot(snapshotControlsViewController.getRestoreMode(), snapshotProperty.get(), restoreResultList -> {
             if (snapshotControlsViewController.logAction()) {
                 eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreResultList, this::showLoggingError));
             }
@@ -408,13 +408,13 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     public void addSnapshotFromArchiver() {
         disabledUi.set(true);
         snapshotTableViewController.takeSnapshot(SnapshotMode.FROM_ARCHIVER, snapshot -> {
-            if(snapshot == null){
+            if (snapshot.isEmpty()) {
                 disabledUi.set(false);
                 return;
             }
             Platform.runLater(() -> {
                 try {
-                    snapshotTableViewController.addSnapshot(snapshot);
+                    snapshotTableViewController.addSnapshot(snapshot.get());
                 } finally {
                     disabledUi.set(false);
                 }

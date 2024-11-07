@@ -36,6 +36,8 @@ public class Messages {
     public static String closeCompositeSnapshotWarning;
     public static String closeTabPrompt;
     public static String compositeSnapshotConsistencyCheckFailed;
+    public static String contextMenuAddTag;
+    @Deprecated
     public static String contextMenuAddTagWithComment;
     public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
@@ -52,12 +54,15 @@ public class Messages {
     public static String contextMenuRename;
     public static String contextMenuRemoveGoldenTag;
     public static String contextMenuTagAsGolden;
+    public static String contextMenuTags;
+    @Deprecated
     public static String contextMenuTagsWithComment;
     public static String contextMenuOpenCompositeSnapshotForRestore;
 
     public static String copyOrMoveNotAllowedBody;
     public static String copyOrMoveNotAllowedHeader;
     public static String copyUniqueIdToClipboard;
+    public static String copyUniqueIdAsResourceToClipboard;
 
     public static String createNewTagDialogHeader;
     public static String createNewTagDialogTitle;
@@ -129,6 +134,8 @@ public class Messages {
     public static String restore;
     public static String restoreFailed;
     public static String restoreFailedPVs;
+    public static String restoreFromClient;
+    public static String restoreFromService;
     public static String saveFilter;
 
     public static String saveFilterConfirmOverwrite;
