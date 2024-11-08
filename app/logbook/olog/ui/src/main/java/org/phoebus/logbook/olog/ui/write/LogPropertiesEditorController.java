@@ -173,6 +173,13 @@ public class LogPropertiesEditorController {
         return selectedProperties;
     }
 
+    public void setProperties(Collection<Property> properties){
+        if(properties == null){
+            return;
+        }
+        selectedProperties.addAll(properties);
+    }
+
     /**
      * Move the user selected available properties from the available list to the selected properties tree view
      */

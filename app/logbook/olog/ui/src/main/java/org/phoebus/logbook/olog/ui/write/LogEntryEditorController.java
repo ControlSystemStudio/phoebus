@@ -31,14 +31,38 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.util.Callback;
+import javafx.util.StringConverter;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.logbook.*;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogFactory;
+import org.phoebus.logbook.LogService;
+import org.phoebus.logbook.LogTemplate;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.LogbookPreferences;
+import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
@@ -55,7 +79,11 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -97,11 +125,11 @@ public class LogEntryEditorController {
     @FXML
     private TextField userField;
     @FXML
+    private TextField dateField;
+    @FXML
     private PasswordField passwordField;
     @FXML
     private Label levelLabel;
-    @FXML
-    private TextField dateField;
     @FXML
     private ComboBox<String> levelSelector;
     @FXML
@@ -124,6 +152,10 @@ public class LogEntryEditorController {
     private TextField logbooksSelection;
     @FXML
     private TextField tagsSelection;
+    @FXML
+    private HBox templateControls;
+    @FXML
+    private ComboBox<LogTemplate> templateSelector;
 
     private final ContextMenu logbookDropDown = new ContextMenu();
     private final ContextMenu tagDropDown = new ContextMenu();
@@ -199,6 +231,8 @@ public class LogEntryEditorController {
     @FXML
     public void initialize() {
 
+        templateControls.managedProperty().bind(templateControls.visibleProperty());
+
         // This could be configured in the fxml, but then these UI components would not be visible
         // in Scene Builder.
         completionMessageLabel.textProperty().set("");
@@ -211,6 +245,7 @@ public class LogEntryEditorController {
             return;
         }
 
+        submitButton.managedProperty().bind(submitButton.visibleProperty());
         submitButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         !inputValid.get() || submissionInProgress.get(),
                 inputValid, submissionInProgress));
@@ -272,8 +307,8 @@ public class LogEntryEditorController {
         selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : availableLevels.get(0));
 
         levelSelector.getSelectionModel().select(selectedLevelProperty.get());
-
         dateField.setText(TimestampFormats.DATE_FORMAT.format(Instant.now()));
+
 
         titleField.textProperty().bindBidirectional(titleProperty);
         titleProperty.addListener((changeListener, oldVal, newVal) ->
@@ -368,15 +403,71 @@ public class LogEntryEditorController {
         );
 
         selectedTags.addListener((ListChangeListener<String>) change -> {
+            if(change.getList() == null){
+                return;
+            }
             List<String> newSelection = new ArrayList<>(change.getList());
             tagsPopOver.setAvailable(availableTagsAsStringList, newSelection);
             tagsPopOver.setSelected(newSelection);
+            newSelection.forEach(t -> updateDropDown(tagDropDown, t, true));
         });
 
         selectedLogbooks.addListener((ListChangeListener<String>) change -> {
+            if(change.getList() == null){
+                return;
+            }
             List<String> newSelection = new ArrayList<>(change.getList());
             logbooksPopOver.setAvailable(availableLogbooksAsStringList, newSelection);
             logbooksPopOver.setSelected(newSelection);
+            newSelection.forEach(l -> updateDropDown(logbookDropDown, l, true));
+        });
+
+        templateSelector.setCellFactory(new Callback<>() {
+            @Override
+            public ListCell<LogTemplate> call(ListView<LogTemplate> logTemplateListView) {
+                return new ListCell<>() {
+                    @Override
+                    protected void updateItem(LogTemplate item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (item == null || empty) {
+                            setGraphic(null);
+                        } else {
+                            setGraphic(new Label(item.name()));
+                        }
+                    }
+                };
+            }
+        });
+
+        templateSelector.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                if (!newValue.equals(oldValue)) {
+                    loadTemplate(newValue);
+                }
+            }
+        });
+
+        templateSelector.setConverter(
+                new StringConverter<>() {
+                    @Override
+                    public String toString(LogTemplate template) {
+                        if (template == null) {
+                            return "";
+                        } else {
+                            return template.name();
+                        }
+                    }
+
+                    @Override
+                    public LogTemplate fromString(String s) {
+                        return null;
+                    }
+                });
+
+        JobManager.schedule("Get templates", monitor -> {
+            LogClient logClient = logFactory.getLogClient();
+            Collection<LogTemplate> templates = logClient.getTemplates();
+            Platform.runLater(() -> templateSelector.getItems().addAll(templates));
         });
 
         // Note: logbooks and tags are retrieved asynchronously from service
@@ -701,8 +792,17 @@ public class LogEntryEditorController {
             logClient.serviceInfo();
             return true;
         } catch (Exception e) {
-            Logger.getLogger(SendToLogBookApp.class.getName()).warning("Failed to query logbook service, it may be off-line.");
+            Logger.getLogger(LogEntryEditorController.class.getName()).warning("Failed to query logbook service, it may be off-line.");
             return false;
         }
+    }
+
+    private void loadTemplate(LogTemplate logTemplate){
+        titleProperty.set(logTemplate.title());
+        descriptionProperty.set(logTemplate.source());
+        logPropertiesEditorController.setProperties(logTemplate.properties());
+        selectedTags.setAll(logTemplate.tags().stream().map(Tag::getName).toList());
+        selectedLogbooks.setAll(logTemplate.logbooks().stream().map(Logbook::getName).toList());
+        levelSelector.getSelectionModel().select(logTemplate.level());
     }
 }

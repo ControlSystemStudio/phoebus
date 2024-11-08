@@ -14,7 +14,12 @@ public record LogTemplate(String id,
                           Instant modifiedDate,
                           String title,
                           String source,
+                          String level,
                           Collection<Logbook> logbooks,
                           Collection<Tag> tags,
                           Collection<Property> properties){
+
+    public LogTemplate(){
+        this(null, null, null, null, null, null, null, null, null, null, null);
+    }
 }
