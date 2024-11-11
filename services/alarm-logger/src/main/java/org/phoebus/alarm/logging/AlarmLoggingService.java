@@ -274,7 +274,7 @@ public class AlarmLoggingService {
         final List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(","));
         logger.info("Starting logger for '..State': " + topicNames);
 
-        final boolean standalone = Boolean.valueOf(properties.gerProperty("standalone"));
+        final boolean standalone = Boolean.valueOf(properties.getProperty("standalone"));
 
         // If the standalone is true, ignore the Schedulers for AlarmMessageLogger and AlarmCmdLogger
         // otherwise run the Alarm Logger service as is.
