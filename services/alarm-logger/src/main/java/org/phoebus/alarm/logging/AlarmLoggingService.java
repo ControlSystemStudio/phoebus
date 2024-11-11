@@ -62,6 +62,7 @@ public class AlarmLoggingService {
         System.out.println("-properties /opt/alarm_logger.properties - Properties file to be used (instead of command line arguments)");
         System.out.println("-date_span_units M                       - Date units for the time based index to span.");
         System.out.println("-date_span_value 1                       - Date value for the time based index to span.");
+        System.out.println("-standalone false                        - Standalone Alarm Logger Service without Alarm (Kafka) Server");
         System.out.println("-logging logging.properties              - Load log settings");
         System.out.println();
     }
@@ -210,6 +211,14 @@ public class AlarmLoggingService {
                     properties.put("date_span_value",iter.next());
                     iter.remove();
                 }
+                else if (cmd.equals("-standalone"))
+                {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -standalone false or true");
+                    iter.remove();
+                    properties.put("standalone",iter.next());
+                    iter.remove();
+                }
                 else if (cmd.equals("-logging"))
                 {
                     if (! iter.hasNext())
@@ -265,18 +274,29 @@ public class AlarmLoggingService {
         final List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(","));
         logger.info("Starting logger for '..State': " + topicNames);
 
-        // Start a new stream consumer for each topic
-        topicNames.forEach(topic -> {
-            try
-            {
-                Scheduler.execute(new AlarmMessageLogger(topic));
-                Scheduler.execute(new AlarmCmdLogger(topic));
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.SEVERE, "Creation of alarm logging service for '" + topic + "' failed", ex);
-            }
-        });
+        final boolean standalone = Boolean.valueOf(properties.gerProperty("standalone"));
+
+        // If the standalone is true, ignore the Schedulers for AlarmMessageLogger and AlarmCmdLogger
+        // otherwise run the Alarm Logger service as is.
+        if(standalone == true)
+        {
+            logger.info("We are in the Standalone Alarm Logger Service.");
+        }
+        else
+        {
+            // Start a new stream consumer for each topic
+            topicNames.forEach(topic -> {
+                try
+                {
+                    Scheduler.execute(new AlarmMessageLogger(topic));
+                    Scheduler.execute(new AlarmCmdLogger(topic));
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.SEVERE, "Creation of alarm logging service for '" + topic + "' failed", ex);
+                }
+            });
+         }
 
         // Wait in command shell until closed
         if(use_shell)
@@ -291,7 +311,9 @@ public class AlarmLoggingService {
             Thread.currentThread().join();
         }
 
-        close();
+        if(standalone == false){
+            close();
+        }
         System.exit(0);
     }
 
