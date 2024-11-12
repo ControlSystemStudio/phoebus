@@ -340,15 +340,31 @@ eg. for the 'drop_failed_archives' preference in the 'trends.databrowser3' secti
 
 """)
         for pack in sorted(pref_files.keys()):
+            pkgname = None
             pref_file = pref_files[pack]
             out.write("\n")
             out.write(pack + "\n")
             out.write(("-" * len(pack)) + "\n")
             out.write("\n")
             out.write("File " + pref_file + "::\n\n")
+            print('processing', pref_file)
             with open(pref_file) as prefs:
                 for line in prefs:
+                    # expect lines like:
+                    # 1) Special comment with package id.
+                    #   '# Package org.phoebus.applications.alarm\n'
+                    # 2) ignore...
+                    #   '--------------\n'
+                    #   '# ... ignore ...\n'
+                    #   '  \n'
+                    # 4) preference
+                    #   'key = value'
                     line = line.strip()
+                    if line.startswith('# Package'):
+                        pkgname = line.split(' ')[2]
+                    elif line[:1] not in ('', '#', '-'):
+                        assert pkgname is not None, pref_file # preference file missing "# Package ..." name line
+                        line = '%s/%s'%(pkgname, line)
                     out.write("   " + line + "\n")
             out.write("\n")
 
