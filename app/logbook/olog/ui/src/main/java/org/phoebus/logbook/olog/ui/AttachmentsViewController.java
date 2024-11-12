@@ -21,6 +21,7 @@ package org.phoebus.logbook.olog.ui;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -47,7 +48,6 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.olog.ui.write.AttachmentsEditorController;
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -61,7 +61,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -75,39 +74,45 @@ import java.util.logging.Logger;
 public class AttachmentsViewController {
 
     @FXML
+    @SuppressWarnings("unused")
     private SplitPane splitPane;
 
     @FXML
+    @SuppressWarnings("unused")
     private StackPane previewPane;
 
     @FXML
+    @SuppressWarnings("unused")
     private ImageView imagePreview;
 
     @FXML
+    @SuppressWarnings("unused")
     private GridPane noPreviewPane;
 
     @FXML
+    @SuppressWarnings("unused")
     private ListView<Attachment> attachmentListView;
 
     @FXML
+    @SuppressWarnings("unused")
     private Label placeholderLabel;
 
     /**
-     * List of attachments selected by user in the preview's {@link ListView}.
+     * List of attachments selected by user in the {@link ListView}.
      */
     private final ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
 
+    /**
+     * Keeps track of the {@link Attachment} currently in the {@link ImageView}, if any.
+     */
     private final SimpleObjectProperty<Attachment> selectedAttachment = new SimpleObjectProperty<>();
 
     /**
-     * List of listeners that will be notified when user has selected one or multiple attachments in
-     * the {@link ListView}.
+     * List of all {@link Attachment}s currently in view.
      */
-    private final List<ListChangeListener<Attachment>> listSelectionChangeListeners = new ArrayList<>();
-
     private final ObservableList<Attachment> attachments = FXCollections.observableArrayList();
 
-    public AttachmentsViewController(){
+    public AttachmentsViewController() {
     }
 
     @FXML
@@ -115,9 +120,19 @@ public class AttachmentsViewController {
 
         attachmentListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         attachmentListView.setCellFactory(view -> new AttachmentRow());
-        attachmentListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            selectedAttachment.set(newValue);
-            showPreview();
+
+        // Show preview when single selection property changes
+        selectedAttachment.addListener((obs, o, n) -> showPreview(n));
+
+        attachmentListView.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Attachment>) change -> {
+            selectedAttachments.setAll(change.getList());
+            if (change.getList().size() == 1) {
+                // Set single selection property only if selection contains a single element
+                selectedAttachment.set(change.getList().get(0));
+            }
+            else if(attachments.isEmpty()){
+                showPreview(null);
+            }
         });
 
         attachmentListView.setOnMouseClicked(me -> {
@@ -145,17 +160,12 @@ public class AttachmentsViewController {
                             ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
                         }
                     }
-                }
-                else {
-                   showImageAttachment();
+                } else {
+                    showImageAttachment();
                 }
             }
         });
 
-        attachmentListView.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Attachment>) change -> {
-            selectedAttachments.setAll(change.getList());
-            listSelectionChangeListeners.forEach(l -> l.onChanged(change));
-        });
 
         attachmentListView.setOnContextMenuRequested((e) -> {
             ContextMenu contextMenu = new ContextMenu();
@@ -195,12 +205,14 @@ public class AttachmentsViewController {
             }
             event.consume();
         });
+
+        attachmentListView.itemsProperty().bindBidirectional(new SimpleListProperty<>(attachments));
     }
 
     /**
      * Launches the Image Viewer application to show the selected image attachment with a watermark.
      */
-    private void showImageAttachment(){
+    private void showImageAttachment() {
         URI uri = selectedAttachment.get().getFile().toURI();
         URI withWatermark = UriBuilder.fromUri(uri).queryParam("watermark", "true").build();
         ApplicationLauncherService.openResource(withWatermark,
@@ -217,13 +229,13 @@ public class AttachmentsViewController {
         } else {
             placeholderLabel.setText(Messages.DownloadingAttachments);
         }
-        setAttachments(Collections.emptyList());
+        attachments.setAll(Collections.emptyList());
     }
 
-    public void setAttachments(Collection<Attachment> attachments) {
+    public void setAttachments(Collection<Attachment> attachmentsList) {
         Platform.runLater(() -> {
-            this.attachments.setAll(attachments);
-            attachmentListView.setItems(this.attachments);
+            this.attachments.setAll(attachmentsList);
+            //attachmentListView.setItems(this.attachments);
             // Update UI
             if (!this.attachments.isEmpty()) {
                 attachmentListView.getSelectionModel().select(this.attachments.get(0));
@@ -246,13 +258,15 @@ public class AttachmentsViewController {
     /**
      * Shows selected attachment in preview pane.
      */
-    private void showPreview() {
-        if (selectedAttachment.get() == null) {
+    private void showPreview(Attachment attachment) {
+        if (attachment == null) {
             imagePreview.visibleProperty().setValue(false);
             return;
         }
-        if (selectedAttachment.get().getContentType().startsWith("image")) {
-            showImagePreview(selectedAttachment.get());
+        if (attachment.getContentType().startsWith("image")) {
+            imagePreview.visibleProperty().setValue(true);
+            noPreviewPane.visibleProperty().setValue(false);
+            showImagePreview(attachment);
         } else {
             imagePreview.visibleProperty().setValue(false);
             noPreviewPane.visibleProperty().setValue(true);
@@ -279,9 +293,9 @@ public class AttachmentsViewController {
                         Image image = SwingFXUtils.toFXImage(bufferedImage, null);
                         imagePreview.visibleProperty().setValue(true);
                         imagePreview.setImage(image);
-                   });
+                    });
                 } catch (IOException ex) {
-                    Logger.getLogger(AttachmentsEditorController.class.getName())
+                    Logger.getLogger(AttachmentsViewController.class.getName())
                             .log(Level.SEVERE, "Unable to load image file " + attachment.getFile().getAbsolutePath(), ex);
                 }
             });
@@ -313,26 +327,24 @@ public class AttachmentsViewController {
         }
     }
 
-    public void addListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
-        listSelectionChangeListeners.add(changeListener);
-    }
-
-    public void removeAttachments(List<Attachment> attachmentsToRemove) {
-        attachments.removeAll(attachmentsToRemove);
-    }
-
-    public List<Attachment> getAttachments() {
+    /**
+     * @return The {@link ObservableList} of attachments.
+     */
+    public ObservableList<Attachment> getAttachments() {
         return attachments;
     }
 
     /**
-     * Adds an {@link Attachment} to the list of {@link Attachment}s and selects it in order
-     * to show a preview (image files only).
+     * Adds {@link Attachment}s to the list of {@link Attachment}s. If only one
+     * {@link Attachment} is added it is also selected.
      *
-     * @param attachment The new {@link Attachment}
+     * @param attachmentsList The new {@link Attachment}s
      */
-    public void addAttachment(Attachment attachment) {
-        attachments.add(attachment);
-        attachmentListView.getSelectionModel().select(attachment);
+    public void addAttachments(List<Attachment> attachmentsList) {
+        Platform.runLater(() -> {
+            attachmentListView.getSelectionModel().clearSelection();
+            attachments.addAll(attachmentsList);
+            attachmentListView.getSelectionModel().select(attachmentsList.get(0));
+        });
     }
 }
