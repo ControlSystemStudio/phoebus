@@ -414,6 +414,7 @@ public class PVItem extends ModelItem
                 if (display.getDescription() != null && !display.getDescription().isEmpty()){
                     setDisplayName(display.getDescription());
                 }
+                break;
         }
     }
 
