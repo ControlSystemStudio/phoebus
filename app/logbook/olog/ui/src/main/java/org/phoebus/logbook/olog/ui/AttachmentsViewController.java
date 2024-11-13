@@ -235,7 +235,6 @@ public class AttachmentsViewController {
     public void setAttachments(Collection<Attachment> attachmentsList) {
         Platform.runLater(() -> {
             this.attachments.setAll(attachmentsList);
-            //attachmentListView.setItems(this.attachments);
             // Update UI
             if (!this.attachments.isEmpty()) {
                 attachmentListView.getSelectionModel().select(this.attachments.get(0));

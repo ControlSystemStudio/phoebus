@@ -572,7 +572,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     public void logEntryChanged(LogEntry logEntry) {
         search();
-        //logEntryDisplayController.updateLogEntry(logEntry);
         setLogEntry(logEntry);
     }
 
