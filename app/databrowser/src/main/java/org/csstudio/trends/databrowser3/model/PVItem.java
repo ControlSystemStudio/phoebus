@@ -398,11 +398,23 @@ public class PVItem extends ModelItem
         setUnits(display.getUnit());
     }
 
+    /**
+     * Updates the value axis label based on the {@link Preferences#value_axis_label_policy} property.
+     * If the property is set to pv-desc, then DESC field is used if defined and non-empty (works with pva only).
+     * @param value Value of PV update.
+     */
     public void updateDescription(final VType value)
     {
-        final Display display = Display.displayOf(value);
-        if (display.getDescription() != null)
-            setDisplayName(display.getDescription());
+        switch(Preferences.value_axis_label_policy){
+            case "pv-name":
+            default:
+                return;
+            case "pv-desc":
+                final Display display = Display.displayOf(value);
+                if (display.getDescription() != null && !display.getDescription().isEmpty()){
+                    setDisplayName(display.getDescription());
+                }
+        }
     }
 
     /** Scan, i.e. add 'current' value to live samples */

@@ -101,6 +101,10 @@ public class Preferences
     /** Setting */
     @Preference public static boolean config_dialog_supported;
 
+    @Preference
+    public static String value_axis_label_policy;
+
+
     static
     {
         final PreferencesReader prefs = AnnotatedPreferences.initialize(Activator.class, Preferences.class, "/databrowser_preferences.properties");
