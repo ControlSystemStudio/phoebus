@@ -86,33 +86,14 @@ public class Activator
         return new ImageView(getImage(base_name));
     }
 
-    public static void addPVsToPlotDialog(List<String> names,
+    public static void addPVsToPlotDialog(List<String> pvNames,
                                           UndoableActionManager undoableActionManager,
                                           Model model,
                                           Node nodeToPositionDialogOver)
     {
-        List<Pair<String, String>> namesWithDisplayNames = new ArrayList<>();
-        Optional<String> currentPVName = Optional.empty();
-        for (String name : names) {
-            if (name.startsWith("'") && name.endsWith("'") && name.length() >= 2) {
-                if (currentPVName.isPresent()) {
-                    namesWithDisplayNames.add(new Pair<>(currentPVName.get(), name.substring(1,name.length()-1)));
-                    currentPVName = Optional.empty();
-                }
-            }
-            else {
-                if (currentPVName.isPresent()) {
-                    namesWithDisplayNames.add(new Pair<>(currentPVName.get(), currentPVName.get()));
-                }
-                currentPVName = currentPVName.of(name);
-            }
-        }
-        if (currentPVName.isPresent()) {
-            namesWithDisplayNames.add(new Pair<>(currentPVName.get(), currentPVName.get()));
-        }
         // Offer potential PV name in dialog so user can edit/cancel
         // sim://sine sim://ramp sim://noise
-        AddPVDialog addPVDialog = new AddPVDialog(namesWithDisplayNames.size(), model, false);
+        AddPVDialog addPVDialog = new AddPVDialog(pvNames.size(), model, false);
 
         { // Set layout of addPVDialog:
             int addPVDialogWidth = 750;
@@ -132,15 +113,15 @@ public class Activator
             DialogHelper.positionDialog(addPVDialog, nodeToPositionDialogOver, (int) -addPVDialowWindow.getWidth()/2, (int) -addPVDialowWindow.getHeight()/2);
         }
 
-        for (int i=0; i<namesWithDisplayNames.size(); ++i) {
-            addPVDialog.setNameAndDisplayName(i, namesWithDisplayNames.get(i));
+        for (int i=0; i<pvNames.size(); ++i) {
+            addPVDialog.setNameAndDisplayName(i, pvNames.get(i));
         }
 
         if (!addPVDialog.showAndWait().orElse(false)) {
             return;
         }
 
-        for (int i=0; i<namesWithDisplayNames.size(); ++i) {
+        for (int i=0; i<pvNames.size(); ++i) {
             AxisConfig axis = addPVDialog.getOrCreateAxis(model, undoableActionManager, addPVDialog.getAxisIndex(i));
             AddModelItemCommand.forPV(undoableActionManager,
                                       model,

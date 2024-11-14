@@ -8,6 +8,7 @@
 package org.csstudio.trends.databrowser3.ui;
 
 import java.text.MessageFormat;
+import java.util.Optional;
 
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
@@ -34,6 +35,7 @@ public class AddModelItemCommand extends UndoableAction
      *  @param operations_manager OperationsManager where command will be reg'ed
      *  @param model Model were PV is to be added
      *  @param pv_name Name of new PV
+     *  @param optional_display_name Optional Display Name to associate with the PV
      *  @param period scan period
      *  @param axis Axis
      *  @param archive Archive data source
@@ -43,7 +45,7 @@ public class AddModelItemCommand extends UndoableAction
             final UndoableActionManager operations_manager,
             final Model model,
             final String pv_name,
-            final String display_name,
+            final Optional<String> optional_display_name,
             final double period,
             final AxisConfig axis,
             final ArchiveDataSource archive)
@@ -53,7 +55,9 @@ public class AddModelItemCommand extends UndoableAction
         try
         {
             item = new PVItem(pv_name, period);
-            item.setDisplayName(display_name);
+            if (optional_display_name.isPresent()) {
+                item.setDisplayName(optional_display_name.get());
+            }
             if (archive != null)
                 item.addArchiveDataSource(archive);
             else

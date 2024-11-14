@@ -9,6 +9,7 @@ package org.csstudio.trends.databrowser3.imports;
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.Optional;
 
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
@@ -64,7 +65,7 @@ public class SampleImportAction extends MenuItem
             final ArchiveDataSource imported = new ArchiveDataSource(url, type);
             // Add PV Item with data to model
             AddModelItemCommand.forPV(op_manager, model,
-                                      type, type, Preferences.scan_period, axis, imported);
+                                      type, Optional.empty(), Preferences.scan_period, axis, imported);
         }
         catch (Exception ex)
         {

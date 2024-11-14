@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.ui;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javafx.scene.control.Button;
@@ -237,12 +238,13 @@ public class AddPVDialog extends Dialog<Boolean>
 
     /** Set initial name. Only effective when called before dialog is opened.
      *  @param i Index
-     *  @param nameAndDisplayName Suggested name
+     *  @param pvName Suggested name
      */
-    public void setNameAndDisplayName(final int i, final Pair<String, String> nameAndDisplayName)
+    public void setNameAndDisplayName(final int i, final String pvName)
     {
-        nameAndDisplayNames.get(i).getKey().setText(nameAndDisplayName.getKey());
-        nameAndDisplayNames.get(i).getValue().setText(nameAndDisplayName.getValue());
+        nameAndDisplayNames.get(i).getKey().setText(pvName);
+        nameAndDisplayNames.get(i).getValue().setText("");
+        nameAndDisplayNames.get(i).getValue().setPromptText("Default");
     }
 
     /** @param i Index
@@ -254,11 +256,17 @@ public class AddPVDialog extends Dialog<Boolean>
     }
 
     /** @param i Index
-     *  @return Display name associated with PV
+     *  @return Optionally, the display name to be associated with the PV in the Data Browser
      */
-    public String getDisplayName(final int i)
+    public Optional<String> getDisplayName(final int i)
     {
-        return nameAndDisplayNames.get(i).getValue().getText().trim();
+        String trimmedDisplayName = nameAndDisplayNames.get(i).getValue().getText().trim();
+        if (trimmedDisplayName.isEmpty()) {
+            return Optional.empty();
+        }
+        else {
+            return Optional.of(trimmedDisplayName);
+        }
     }
 
     /** @param i Index

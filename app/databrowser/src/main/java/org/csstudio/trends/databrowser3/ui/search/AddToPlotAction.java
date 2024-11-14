@@ -8,6 +8,7 @@
 package org.csstudio.trends.databrowser3.ui.search;
 
 import java.util.List;
+import java.util.Optional;
 
 import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.Activator;
@@ -50,7 +51,7 @@ class AddToPlotAction extends MenuItem
             DialogHelper.positionDialog(dlg, node, 200, -200);
             for (int i=0; i<channels.size(); ++i) {
                 String channelName = channels.get(i).getName();
-                dlg.setNameAndDisplayName(i, new Pair(channelName, channelName));
+                dlg.setNameAndDisplayName(i, channelName);
             }
             if (! dlg.showAndWait().orElse(false))
                 return;
@@ -61,7 +62,7 @@ class AddToPlotAction extends MenuItem
                 final AxisConfig axis = dlg.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
                 AddModelItemCommand.forPV(undo, model,
                         channel.getName(),
-                        channel.getName(),
+                        Optional.empty(),
                         0.0,
                         axis,
                         channel.getArchiveDataSource());

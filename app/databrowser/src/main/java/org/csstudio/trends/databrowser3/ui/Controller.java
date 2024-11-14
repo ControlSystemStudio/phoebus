@@ -279,7 +279,7 @@ public class Controller
                 DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
                 for (int i=0; i<names.size(); ++i) {
                     String pvName = names.get(i).getName();
-                    dlg.setNameAndDisplayName(i, new Pair(pvName, pvName));
+                    dlg.setNameAndDisplayName(i, pvName);
                 }
                 if (! dlg.showAndWait().orElse(false))
                     return;
