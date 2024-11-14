@@ -160,33 +160,28 @@ public class LogEntryDisplayController {
         }
     }
 
+    /**
+     * Sets/renders the {@link LogEntry} in the view unless already rendered or unedited.
+     * @param logEntry A non-null {@link LogEntry}
+     */
     public void setLogEntry(LogEntry logEntry) {
-        if(logEntry == null){
-            currentViewProperty.set(EMPTY);
-        }
-        else{
-            logEntryProperty.set(logEntry);
-            singleLogEntryDisplayController.setLogEntry(logEntry);
-            currentViewProperty.set(SINGLE);
-            showHideLogEntryGroupButton.selectedProperty().set(false);
-            hasLinkedEntriesProperty.set(logEntry.getProperties()
-                    .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));
+        if(logEntryProperty.get() == null ||
+                !logEntryProperty.get().getId().equals(logEntry.getId()) ||
+                (logEntry.getModifiedDate() != null &&
+                        !logEntry.getModifiedDate().equals(logEntryProperty.get().getModifiedDate()))) {
+            Platform.runLater(() -> {
+                logEntryProperty.set(logEntry);
+                singleLogEntryDisplayController.setLogEntry(logEntry);
+                currentViewProperty.set(SINGLE);
+                showHideLogEntryGroupButton.selectedProperty().set(false);
+                hasLinkedEntriesProperty.set(logEntry.getProperties()
+                        .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));;
+            });
         }
     }
 
     public LogEntry getLogEntry() {
         return logEntryProperty.get();
-    }
-
-    /**
-     * Updates the current {@link LogEntry} if it matches the passed argument.
-     * @param logEntry A log entry that has been updated by user and saved by service.
-     */
-    public void updateLogEntry(LogEntry logEntry){
-        // Log entry display may be "empty", i.e. logEntryProperty not set yet
-        if(!logEntryProperty.isNull().get() && logEntryProperty.get().getId().equals(logEntry.getId())){
-            setLogEntry(logEntry);
-        }
     }
 
     public void setLogEntryTableViewController(LogEntryTableViewController logEntryTableViewController){
