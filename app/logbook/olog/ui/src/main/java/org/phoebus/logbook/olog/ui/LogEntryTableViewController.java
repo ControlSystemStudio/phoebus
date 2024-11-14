@@ -14,8 +14,22 @@ import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Pagination;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -26,7 +40,12 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.logbook.*;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogService;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.LogbookPreferences;
+import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
@@ -58,35 +77,41 @@ import java.util.stream.Collectors;
 public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
+    @SuppressWarnings("unused")
     private ComboBox<OlogQuery> query;
 
     // elements associated with the various search
     @FXML
+    @SuppressWarnings("unused")
     private GridPane ViewSearchPane;
 
     // elements related to the table view of the log entries
     @FXML
+    @SuppressWarnings("unused")
     private TableView<TableViewListItem> tableView;
-    @FXML
-    private TableColumn<TableViewListItem, TableViewListItem> descriptionCol;
     @FXML
     @SuppressWarnings({"UnusedDeclaration"})
     private LogEntryDisplayController logEntryDisplayController;
     @FXML
+    @SuppressWarnings("unused")
     private ProgressIndicator progressIndicator;
     @FXML
     @SuppressWarnings({"UnusedDeclaration"})
     private AdvancedSearchViewController advancedSearchViewController;
 
     @FXML
+    @SuppressWarnings("unused")
     private Pagination pagination;
     @FXML
+    @SuppressWarnings("unused")
     private Node searchResultView;
 
     @FXML
+    @SuppressWarnings("unused")
     private TextField pageSizeTextField;
 
     @FXML
+    @SuppressWarnings("unused")
     private Label openAdvancedSearchLabel;
     // Model
     private SearchResult searchResult;
@@ -105,10 +130,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
      *
      * @param logClient Log client implementation
      */
-    public LogEntryTableViewController(LogClient logClient, OlogQueryManager ologQueryManager, SearchParameters searchParameters) {
+    public LogEntryTableViewController(LogClient logClient,
+                                       OlogQueryManager ologQueryManager,
+                                       SearchParameters searchParameters) {
         setClient(logClient);
         this.ologQueryManager = ologQueryManager;
         this.searchParameters = searchParameters;
+    }
+
+    protected void setGoBackAndGoForwardActions(LogEntryTable.GoBackAndGoForwardActions goBackAndGoForwardActions) {
+        this.goBackAndGoForwardActions = Optional.of(goBackAndGoForwardActions);
     }
 
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
@@ -121,6 +152,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private final SearchParameters searchParameters;
 
+    protected Optional<LogEntryTable.GoBackAndGoForwardActions> goBackAndGoForwardActions = Optional.empty();
 
     @FXML
     public void initialize() {
@@ -182,6 +214,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             // Update detailed view, but only if selection contains a single item.
             if (newValue != null && tableView.getSelectionModel().getSelectedItems().size() == 1) {
+                if (goBackAndGoForwardActions.isPresent() && !goBackAndGoForwardActions.get().getIsRecordingHistoryDisabled()) {
+                    goBackAndGoForwardActions.get().addGoBackAction();
+                    goBackAndGoForwardActions.get().goForwardActions.clear();
+                }
                 logEntryDisplayController.setLogEntry(newValue.getLogEntry());
             }
             List<LogEntry> logEntries = tableView.getSelectionModel().getSelectedItems()
@@ -192,7 +228,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getStylesheets().add(this.getClass().getResource("/search_result_view.css").toExternalForm());
         pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
 
-        descriptionCol = new TableColumn<>();
+        TableColumn<TableViewListItem, TableViewListItem> descriptionCol = new TableColumn<>();
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
         descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty<>(col.getValue()));
         descriptionCol.setCellFactory(col -> new TableCell<>() {
@@ -241,7 +277,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
         pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (DIGIT_PATTERN.matcher(newValue).matches()) {
-                if ("".equals(newValue)) {
+                if (newValue.isEmpty()) {
                     pageSizeProperty.set(LogbookUIPreferences.search_result_page_size);
                 } else if (newValue.length() > 3) {
                     pageSizeTextField.setText(oldValue);
@@ -392,7 +428,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
             for (TableViewListItem selectedItem : selectedLogEntries) {
                 for (TableViewListItem item : tableView.getItems()) {
                     if (item.getLogEntry().getId().equals(selectedItem.getLogEntry().getId())) {
-                        Platform.runLater(() -> tableView.getSelectionModel().select(item));
+                        Platform.runLater(() -> {
+                            if (goBackAndGoForwardActions.isPresent()) {
+                                goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(true); // Do not create a "Back" action for the automatic reload.
+                                tableView.getSelectionModel().select(item);
+                                goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(false);
+                            } else {
+                                tableView.getSelectionModel().select(item);
+                            }
+                        });
                     }
                 }
             }
@@ -514,6 +558,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         return showDetails.get();
     }
 
+    @SuppressWarnings("unused")
     public void showHelp() {
         new HelpViewer(LogbookUIPreferences.search_help).show();
     }
@@ -527,21 +572,30 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     public void logEntryChanged(LogEntry logEntry) {
         search();
-        logEntryDisplayController.updateLogEntry(logEntry);
+        setLogEntry(logEntry);
+    }
+
+    protected LogEntry getLogEntry() {
+        return logEntryDisplayController.getLogEntry();
+    }
+
+    protected void setLogEntry(LogEntry logEntry) {
+        logEntryDisplayController.setLogEntry(logEntry);
     }
 
     /**
      * Selects a log entry as a result of an action outside the {@link TreeView}, but selection happens on the
      * {@link TreeView} item, if it exists (match on log entry id). If it does not exist, selection is cleared
      * anyway to indicate that user selected log entry is not visible in {@link TreeView}.
+     *
      * @param logEntry User selected log entry.
      * @return <code>true</code> if user selected log entry is present in {@link TreeView}, otherwise
      * <code>false</code>.
      */
-    public boolean selectLogEntry(LogEntry logEntry){
+    public boolean selectLogEntry(LogEntry logEntry) {
         tableView.getSelectionModel().clearSelection();
         Optional<TableViewListItem> optional = tableView.getItems().stream().filter(i -> i.getLogEntry().getId().equals(logEntry.getId())).findFirst();
-        if(optional.isPresent()){
+        if (optional.isPresent()) {
             tableView.getSelectionModel().select(optional.get());
             return true;
         }

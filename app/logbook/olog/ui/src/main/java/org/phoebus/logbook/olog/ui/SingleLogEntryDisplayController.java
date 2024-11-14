@@ -17,19 +17,31 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.logbook.*;
+import org.phoebus.framework.workbench.Locations;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.Tag;
 import org.phoebus.olog.es.api.model.OlogAttachment;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.web.HyperLinkRedirectListener;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -51,6 +63,7 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     WebView webView;
 
     @FXML
+    @SuppressWarnings("unused")
     private Node updatedIndicator;
 
     private WebEngine webEngine;
@@ -61,25 +74,30 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     public AttachmentsViewController attachmentsViewController;
 
     @FXML
-    public TitledPane propertiesPane;
-    @FXML
     public VBox properties;
     @FXML
     public LogPropertiesController propertiesController;
     @FXML
+    @SuppressWarnings("unused")
     private ImageView logbookIcon;
     @FXML
+    @SuppressWarnings("unused")
     private Label logbooks;
     @FXML
+    @SuppressWarnings("unused")
     private ImageView tagIcon;
     @FXML
+    @SuppressWarnings("unused")
     private Label tags;
     @FXML
+    @SuppressWarnings("unused")
     private Label logEntryId;
     @FXML
+    @SuppressWarnings("unused")
     private Label level;
 
     @FXML
+    @SuppressWarnings("unused")
     private Button copyURLButton;
 
     private LogEntry logEntry;
@@ -87,9 +105,19 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
     private final SimpleBooleanProperty logEntryUpdated = new SimpleBooleanProperty();
 
+    private Optional<Consumer<Long>> selectLogEntryInUI = Optional.empty();
+
+    private Job fetchAttachmentsJob;
+
+    private final Logger logger = Logger.getLogger(SingleLogEntryDisplayController.class.getName());
+
     public SingleLogEntryDisplayController(LogClient logClient) {
         super(logClient.getServiceUrl());
         this.logClient = logClient;
+    }
+
+    public void setSelectLogEntryInUI(Consumer<Long> selectLogEntryInUI) {
+        this.selectLogEntryInUI = Optional.of(selectLogEntryInUI);
     }
 
     @FXML
@@ -101,9 +129,12 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
                 && !LogbookUIPreferences.web_client_root_URL.isEmpty());
 
-        webEngine = webView.getEngine();
-        // This will make links clicked in the WebView to open in default browser.
-        webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView));
+        {
+            Optional<String> webClientRoot = LogbookUIPreferences.web_client_root_URL == null || LogbookUIPreferences.web_client_root_URL.isEmpty() ? Optional.empty() : Optional.of(LogbookUIPreferences.web_client_root_URL);
+            webEngine = webView.getEngine();
+            // This will make links clicked in the WebView to open in default browser.
+            webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView, webClientRoot, selectLogEntryInUI));
+        }
 
         updatedIndicator.visibleProperty().bind(logEntryUpdated);
         updatedIndicator.setOnMouseEntered(me -> updatedIndicator.setCursor(Cursor.HAND));
@@ -116,8 +147,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
         // Set the log entry for the attachments view.
         attachmentsViewController.invalidateAttachmentList(logEntry);
-        // Download attachments from service
-        fetchAttachments();
+
+        fetchAndSetAttachments();
+
         // Always expand properties pane.
         attachmentsPane.setExpanded(true);
 
@@ -143,10 +175,10 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
             webEngine.loadContent(getFullHtml(entry.getDescription()));
         }
         ObservableList<String> logbookList = FXCollections.observableArrayList();
-        logbookList.addAll(entry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.toList()));
+        logbookList.addAll(entry.getLogbooks().stream().map(Logbook::getName).toList());
 
         ObservableList<String> tagList = FXCollections.observableArrayList();
-        tagList.addAll(entry.getTags().stream().map(Tag::getName).collect(Collectors.toList()));
+        tagList.addAll(entry.getTags().stream().map(Tag::getName).toList());
 
 
         if (!entry.getLogbooks().isEmpty()) {
@@ -173,6 +205,7 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
      * <a href="https://github.com/Olog/phoebus-olog-web-client">Phoebus Olog on Github</a>
      */
     @FXML
+    @SuppressWarnings("unused")
     public void copyURL() {
         final ClipboardContent content = new ClipboardContent();
         content.putString(LogbookUIPreferences.web_client_root_URL + "/" + logEntry.getId());
@@ -180,51 +213,100 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     }
 
     /**
-     * Retrieves the actual attachments from the remote service and copies them to temporary files. Attachments
-     * should be retrieved when user requests to see the details, not in connection to a log entry search.
+     * Retrieves attachments from the remote service and copies them to temporary files. Attachments
+     * should be retrieved when user selects a log entry from search result list. Note that this
+     * method also updates the attachments view once files have been downloaded.
      */
-    private void fetchAttachments() {
-        JobManager.schedule("Fetch attachment data", monitor -> {
-            Collection<Attachment> attachments = logEntry.getAttachments().stream()
-                    .filter((attachment) -> attachment.getName() != null && !attachment.getName().isEmpty())
-                    .map((attachment) -> {
-                        OlogAttachment fileAttachment = new OlogAttachment() {
-                            @Override
-                            protected void finalize() {
-                                if (getFile() != null && getFile().exists()) {
-                                    getFile().delete();
-                                }
-                            }
-                        };
-                        fileAttachment.setContentType(attachment.getContentType());
-                        fileAttachment.setThumbnail(false);
-                        fileAttachment.setFileName(attachment.getName());
-                        try {
-                            Path temp = Files.createTempFile("phoebus", attachment.getName());
-                            Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
-                            fileAttachment.setFile(temp.toFile());
-                            temp.toFile().deleteOnExit();
-                        } catch (LogbookException | IOException e) {
-                            Logger.getLogger(SingleLogEntryDisplayController.class.getName())
-                                    .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName(), e);
-                        }
-                        return fileAttachment;
-                    }).collect(Collectors.toList());
-            // Update UI
-            attachmentsViewController.setAttachments(FXCollections.observableArrayList(attachments));
+    private void fetchAndSetAttachments() {
+        // Cancel ongoing job, if any.
+        if (fetchAttachmentsJob != null) {
+            fetchAttachmentsJob.cancel();
+        }
+        // No attachments...
+        if (logEntry.getAttachments().isEmpty()) {
+            return;
+        }
+        File attachmentsDirectoryOptional;
+        try {
+            attachmentsDirectoryOptional = checkAttachmentsDirectory();
+        } catch (LogbookException e) {
+            ExceptionDetailsErrorDialog.openError(Messages.AttachmentsNoStorage, e);
+            return;
+        }
+        final File attachmentsDirectory = attachmentsDirectoryOptional;
+
+        fetchAttachmentsJob = JobManager.schedule("Fetch attachment data", monitor -> {
+            // Order attachments such that the list view looks the same in the list view if user returns to the log entry
+            List<Attachment> sorted = logEntry.getAttachments().stream().sorted(Comparator.comparing(Attachment::getName)).toList();
+            List<Attachment> attachmentList = new ArrayList<>();
+            for (Attachment attachment : sorted) {
+                if (monitor.isCanceled()) {
+                    break;
+                } else if (attachment.getName() == null || attachment.getName().isEmpty()) {
+                    continue;
+                }
+                OlogAttachment fileAttachment = new OlogAttachment();
+                fileAttachment.setContentType(attachment.getContentType());
+                fileAttachment.setThumbnail(false);
+                fileAttachment.setFileName(attachment.getName());
+                // Determine file extension, needed to support transition to Image Viewer app for image attachments
+                String fileExtension = "";
+                int indexOfLastDot = attachment.getName().lastIndexOf('.');
+                if (indexOfLastDot > -1) {
+                    fileExtension = attachment.getName().substring(indexOfLastDot);
+                }
+
+                // Attachment file may already exist on disk, e.g. user has already viewed the log entry.
+
+                File attachmentFile = new File(attachmentsDirectory, attachment.getId() + fileExtension);
+                if (!attachmentFile.exists()) {
+                    Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), attachmentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    attachmentFile.deleteOnExit();
+                }
+                fileAttachment.setFile(attachmentFile);
+                attachmentList.add(fileAttachment);
+            }
+            // If job is cancelled, skip setting the list of attachments
+            if (!monitor.isCanceled()) {
+                attachmentsViewController.addAttachments(attachmentList);
+            }
         });
     }
 
     private String getFullHtml(String commonmarkString) {
-        StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append("<html><body><div class='olog'>");
-        stringBuffer.append(toHtml(commonmarkString));
-        stringBuffer.append("</div></body></html>");
-
-        return stringBuffer.toString();
+        return "<html><body><div class='olog'>" +
+                toHtml(commonmarkString) +
+                "</div></body></html>";
     }
 
     private void handle(MouseEvent me) {
         new ArchivedLogEntriesManager(logClient).handle(webView, logEntry);
     }
+
+    /**
+     * Checks if attachments directory exists. If not, an attempt is made to create it. Corner case:
+     * a file named log-attachments exists.
+     * <p>
+     * User is presented with error dialog if the attachments directory cannot be created or determined.
+     * </p>
+     *
+     * @return A non-empty {@link Optional} if the directory exists or if created successfully.
+     * @throws LogbookException if directory could not be created, if it exists but is not a directory,
+     *                     or if it exists but is not writable.
+     */
+    private File checkAttachmentsDirectory() throws LogbookException {
+        File attachmentsDirectory = new File(Locations.user(), "log-attachments");
+        if (!attachmentsDirectory.exists()) {
+            logger.log(Level.INFO, "Attachments directory \"" + attachmentsDirectory.getAbsolutePath() + "\" does not exist, creating it");
+            if (!attachmentsDirectory.mkdir()) {
+                throw new LogbookException(MessageFormat.format(Messages.AttachmentsDirectoryFailedCreate, attachmentsDirectory.getAbsolutePath()));
+            }
+        } else if (!attachmentsDirectory.isDirectory()) {
+            throw new LogbookException(MessageFormat.format(Messages.AttachmentsFileNotDirectory, attachmentsDirectory.getAbsolutePath()));
+        } else if (!attachmentsDirectory.canWrite()) {
+            throw new LogbookException(MessageFormat.format(Messages.AttachmentsDirectoryNotWritable, attachmentsDirectory.getAbsolutePath()));
+        }
+        return attachmentsDirectory;
+    }
+
 }

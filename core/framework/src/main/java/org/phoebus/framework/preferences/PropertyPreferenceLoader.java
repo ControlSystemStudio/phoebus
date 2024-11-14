@@ -8,6 +8,7 @@
 package org.phoebus.framework.preferences;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
@@ -17,6 +18,8 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Properties;
 import java.util.prefs.Preferences;
+
+import org.phoebus.framework.workbench.Locations;
 
 /** Load preferences from a property file
  *  @author Kay Kasemir
@@ -46,7 +49,16 @@ public class PropertyPreferenceLoader
 
             final String pack = "/" + prop.substring(0, sep).replace('.', '/');
             final String name = prop.substring(sep+1);
-            final String value = props.getProperty(prop);
+            String value = props.getProperty(prop);
+
+            if (value.contains("$(phoebus.install)"))
+                value = value.replace("$(phoebus.install)", Locations.install().toString()).replace("\\", "/").replace(" ", "%20");
+            if (value.contains("$(phoebus.user)"))
+                value = value.replace("$(phoebus.user)", Locations.user().toString()).replace("\\", "/").replace(" ", "%20");
+            if (value.contains("$(user.home)"))
+                value = value.replace("$(user.home)", System.getProperty("user.home").toString()).replace("\\", "/").replace(" ", "%20");
+
+            
             final Preferences prefs = Preferences.userRoot().node(pack);
             prefs.put(name, value);
             // System.out.println(pack + "/" + name + "=" + value);
@@ -55,15 +67,26 @@ public class PropertyPreferenceLoader
 
     /**
      * Loads settings from file or remote URL.
-     * @param location Location speciifying a file name or a remote http(s) URL.
+     * @param location Location specifying a file name or a remote http(s) URL. If it identifies a file, it
+     *                 must be an absolute path, a file in current directory, or a file in user's home directory.
      * @throws Exception If settings cannot be loaded, e.g. file not found or invalid URL.
      */
-    public static void load(String location) throws Exception{
-        if(location.substring(0, 4).equalsIgnoreCase("http")){
+    public static void load(String location) throws Exception {
+        if (location.substring(0, 7).equalsIgnoreCase("http://") ||
+                location.substring(0, 8).equalsIgnoreCase("https://")) {
             loadFromRemoteURL(location);
-        }
-        else{
-            load(new FileInputStream(location));
+        } else {
+            // Assume location is absolute or a file is in current directory
+            if (new File(location).exists()) {
+                load(new FileInputStream(location));
+            }
+            // If not absolute or current directory, try user's home
+            else if(new File(new File(System.getProperty("user.home")), location).exists()){
+                load(new File(new File(System.getProperty("user.home")), location).getAbsolutePath());
+            }
+            else {
+                throw new RuntimeException("Unable to locate settings file: " + location);
+            }
         }
     }
 

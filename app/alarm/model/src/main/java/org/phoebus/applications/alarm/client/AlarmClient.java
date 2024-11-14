@@ -204,7 +204,7 @@ public class AlarmClient {
         try {
             final String json = new String(JsonModelWriter.commandToBytes(cmd));
             final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
-            producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
+            producer.send(record);
         } catch (final Exception ex) {
             logger.log(Level.WARNING, "Cannot set mode for " + root + " to " + cmd, ex);
             throw ex;
@@ -222,7 +222,7 @@ public class AlarmClient {
         try {
             final String json = new String(JsonModelWriter.commandToBytes(cmd));
             final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
-            producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
+            producer.send(record);
         } catch (final Exception ex) {
             logger.log(Level.WARNING, "Cannot set mode for " + root + " to " + cmd, ex);
             throw ex;
@@ -525,7 +525,7 @@ public class AlarmClient {
     public void sendItemConfigurationUpdate(final String path, final AlarmTreeItem<?> config) throws Exception {
         final String json = new String(JsonModelWriter.toJsonBytes(config));
         final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + path, json);
-        producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
+        producer.send(record);
     }
 
     /**
@@ -570,7 +570,7 @@ public class AlarmClient {
             final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
             final String json = new String(JsonModelWriter.commandToBytes(cmd));
             final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + item.getPathName(), json);
-            producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
+            producer.send(record);
         } catch (final Exception ex) {
             logger.log(Level.WARNING, "Cannot acknowledge component " + item, ex);
             throw ex;

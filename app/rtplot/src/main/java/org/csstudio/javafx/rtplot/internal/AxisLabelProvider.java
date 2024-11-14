@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -98,10 +98,11 @@ public class AxisLabelProvider<XTYPE extends Comparable<XTYPE>>
         }
         if (use_trace_names)
             for (TraceImpl<XTYPE> trace : axis.getTraces())
-            {
-                labels.add(trace.getLabel());
-                colors.add(trace.getColor());
-            }
+                if (trace.isVisible())
+                {   // Only show labels for visible traces)
+                    labels.add(trace.getLabel());
+                    colors.add(trace.getColor());
+                }
     }
 
     /** @return <code>true</code> if there is one more label */

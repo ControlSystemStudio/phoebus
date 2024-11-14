@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -600,26 +600,19 @@ public class ImagePlot extends PlotCanvasBase
 
         // Transform from full axis range into data range,
         // using the current 'zoom' state of each axis
-        final LinearScreenTransform t = new LinearScreenTransform();
+        final LinearScreenTransform zoom_trans_x = new LinearScreenTransform();
         AxisRange<Double> zoomed = x_axis.getValueRange();
-        t.config(min_x, max_x, 0, data_width);
+        zoom_trans_x.config(min_x, max_x, 0, data_width);
         // Round down .. up to always cover the image_area
-        final int src_x1 = Math.max(0,          (int) t.transform(zoomed.getLow()));
-        final int src_x2 = Math.min(data_width, (int)(t.transform(zoomed.getHigh()) + 1));
-
-        // Pixels of the image need to be aligned to their axis location,
-        // especially when zoomed way in and the pixels are huge.
-        // Turn pixel back into axis value, and then determine its destination on screen.
-        final int dst_x1 = x_axis.getScreenCoord(t.inverse(src_x1));
-        final int dst_x2 = x_axis.getScreenCoord(t.inverse(src_x2));
+        final int src_x1 = Math.max(0,          (int) zoom_trans_x.transform(zoomed.getLow()));
+        final int src_x2 = Math.min(data_width, (int)(zoom_trans_x.transform(zoomed.getHigh()) + 1));
 
         // For Y axis, min_y == bottom == data_height
+        final LinearScreenTransform zoom_trans_y = new LinearScreenTransform();
         zoomed = y_axis.getValueRange();
-        t.config(min_y, max_y, data_height, 0);
-        final int src_y1 = Math.max(0,           (int)  t.transform(zoomed.getHigh()));
-        final int src_y2 = Math.min(data_height, (int) (t.transform(zoomed.getLow() ) + 1));
-        final int dst_y1 = y_axis.getScreenCoord(t.inverse(src_y1));
-        final int dst_y2 = y_axis.getScreenCoord(t.inverse(src_y2));
+        zoom_trans_y.config(min_y, max_y, data_height, 0);
+        final int src_y1 = Math.max(0,           (int)  zoom_trans_y.transform(zoomed.getHigh()));
+        final int src_y2 = Math.min(data_height, (int) (zoom_trans_y.transform(zoomed.getLow() ) + 1));
 
         // Value range: Start with min..max from model
         double min_value = this.min, max_value = this.max;
@@ -656,12 +649,28 @@ public class ImagePlot extends PlotCanvasBase
             logger.log(Level.FINE, "Autoscale range {0} .. {1}", new Object[] { min_value, max_value });
         }
 
-        // If log, min needs to be > 0
-        if (colorbar_axis.isLogarithmic()  &&  min_value <= 0.0)
-            min_value = 0.001;  // arbitrary minimum
+        if (colorbar_axis.isLogarithmic())
+        {   // If log, min needs to be > 0
+            if (min_value <= 0.0)
+                min_value = 0.001;  // arbitrary minimum
+        }
+        else
+        {   // Linear axis needs non-empty value range
+            if (Math.abs(max_value - min_value) < 1e-100)
+                max_value = min_value + 1.0; // Range suitable for most histogram-type plots
+        }
         colorbar_axis.setValueRange(min_value, max_value);
         if (need_layout.getAndSet(false))
             computeLayout(gc, area_copy, min_value, max_value);
+
+        // After potential layout update, get destination x,y of image.
+        // Pixels of the image need to be aligned to their axis location,
+        // especially when zoomed way in and the pixels are huge.
+        // Turn pixel back into axis value, and then determine its destination on screen.
+        final int dst_x1 = x_axis.getScreenCoord(zoom_trans_x.inverse(src_x1));
+        final int dst_x2 = x_axis.getScreenCoord(zoom_trans_x.inverse(src_x2));
+        final int dst_y1 = y_axis.getScreenCoord(zoom_trans_y.inverse(src_y1));
+        final int dst_y2 = y_axis.getScreenCoord(zoom_trans_y.inverse(src_y2));
 
         // Fill with a 'background' color
         if (background.getAlpha() < 255)

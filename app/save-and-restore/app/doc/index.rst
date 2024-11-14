@@ -100,10 +100,20 @@ For a multi-selection of nodes the same restrictions apply as for a drag-n-drop 
 Logging
 -------
 
-If a logbook implementation is available in the application, the optional logging module can be used to launch a log entry
+If a logbook implementation is available, the optional logging module can be used to launch a log entry
 editor for the purpose of logging when a new snapshot has been saved or restored.
 Properties of the snapshot (name, date etc) are automatically set on the log entry rendered by the editor. If
 a restore action has failed to write one or multiple PVs, a list of these PVs is also added to the log entry.
+
+User may also launch the log entry editor from the context menu of the tree view:
+
+.. image:: images/create_log.png
+    :width: 30%
+
+In this case the log entry is empty save for a log entry property containing the name and path to
+the selected item in the tree. Note that this context menu entry is not available if a logbook implementation
+has not been configured. Moreover, the context menu entry is enabled only if a single node in the tree view
+is selected.
 
 Workflow
 --------
@@ -115,7 +125,7 @@ Folder
 
 Folder nodes can be created from the New Folder option of the folder node context menu:
 
-.. image:: images/context-menu-folder-new-folder.png
+.. image:: images/new-folder.png
     :width: 30%
 
 Folder names are case-sensitive and must be unique within the same parent folder.
@@ -125,7 +135,7 @@ Configuration View
 
 A new configuration is created from the context menu launched when right-clicking on a folder node in the tree view:
 
-.. image:: images/context-menu-folder-create-configuration.png
+.. image:: images/new-configuration.png
     :width: 30%
 
 This will launch the configuration editor:
@@ -144,7 +154,7 @@ PV entries in a configuration marked as read only will be omitted whe performing
 To add a very large number of PVs, user should consider the import feature available via the "Import Configuration file to this folder"
 option in the context menu of a folder node in the tree view:
 
-.. image:: images/context-menu-folder-import-configuration.png
+.. image:: images/import-configuration.png
    :width: 30%
 
 The file format for such a file is::
@@ -181,9 +191,9 @@ PVs removed from a configurations will remain in existing snapshots.
 Create Snapshot
 ---------------
 
-To create a new snapshot one selects the Create Snapshot option from the context menu of a configuration:
+To create a new snapshot one selects the New Snapshot option from the context menu of a configuration:
 
-.. image:: images/context-menu-configuration-create-snapshot.png
+.. image:: images/new-snapshot.png
 
 This will open the snapshot view:
 
@@ -216,7 +226,7 @@ referenced snapshots.
 To create a composite snapshot user must select the New Composite Snapshot context menu option of a folder node into
 which the composite snapshot will be saved:
 
-.. image:: images/context-menu-folder-new-composite-snapshot.png
+.. image:: images/new-composite-snapshot.png
    :width: 30%
 
 This launches the composite snapshot editor:
@@ -300,7 +310,7 @@ Comparing Snapshots
 To compare two (or more) snapshots, user must first open an existing snapshot (double click in tree view). Using the
 Compare Snapshots context menu item for a snapshot node user may choose a snapshot to load for comparison:
 
-.. image:: images/context-menu-snapshot-compare.png
+.. image:: images/compare-snapshot.png
 
 Once the additional snapshot has been loaded, the snapshot view will show stored values from both snapshots. In this view
 the :math:`{\Delta}` Base Snapshot column will show the difference to the reference snapshot values:
@@ -308,6 +318,22 @@ the :math:`{\Delta}` Base Snapshot column will show the difference to the refere
 .. image:: images/compare-snapshots-view.png
    :width: 80%
 
+Compare to archiver data
+------------------------
+
+In the context menu of a tab showing a snapshot user can chose to compare the snapshot to data retrieved from an
+archiver, if one is configured:
+
+.. image:: images/compare_to_archiver.png
+
+Selecting this item will trigger a date/time picker where user can specify the point in time for which to get
+archiver data:
+
+.. image:: images/date_time_picker.png
+
+Once data has been returned from the archiver service, it will be rendered as a snapshot in the comparison view.
+
+**NOTE:** If the archiver does not contain a PV, it will be rendered as DISCONNECTED in the view.
 
 Search And Filters
 ------------------
@@ -345,13 +371,13 @@ are expanded. To easily find *all* matching items user will need to use the sear
 Tagging
 -------
 
-Tagging of snapshots can be used to facilitate search and filtering. The Tags with comment context menu option of the
+Tagging of snapshots can be used to facilitate search and filtering. The Tags context menu option of the
 snapshot node is used to launch the tagging dialog:
 
-.. image:: images/context-menu-snapshot-add-tag.png
+.. image:: images/add-tag.png
 
-In the dialog user may specify a case sensitive tag name and optionally a comment. When typing in the Tag name field,
-a list of existing tag names that may match the typed text is shown. User may hence "reuse" existing tags:
+In the dialog user may specify a case sensitive tag name. When typing in the Tag name field,
+a list of existing tag names that may match the typed text is shown. User may hence reuse existing tags:
 
 .. image:: images/tag-hints.png
 
@@ -362,7 +388,7 @@ snapshots are rendered using a golden snapshot icon: |golden|
 
 User may delete a tag through the tagging sub-menu:
 
-.. image:: images/context-menu-delete-tag.png
+.. image:: images/delete-tag.png
 
 
 Tagging multiple snapshots
@@ -383,6 +409,12 @@ Tagging from search view
 The search result table of the Search And Filter view also supports a contect menu for the purpose of managing tags:
 
 .. image:: images/search-result-context-menu.png
+
+Invoke a restore operation from search result
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Snapshot and composite snapshot items in the search result table support an additional context menu item users can
+choose in order to perform a restore operation.
 
 Snapshot View Context Menu
 --------------------------
@@ -416,4 +448,36 @@ Authorization uses a role-based approach like so:
 
 Roles are defined and managed on the service. Role (group) membership is managed in Active Directory or LDAP.
 
+Integration with the Display Builder application
+------------------------------------------------
 
+It is possible to configure Display Builder actions to interact with the Save-And-Restore application. Such actions are available as either items
+in the context menu of a Display Builder widget, or actions associated with an Action Button widget, or both.
+
+When Save-And-Restore actions are executed, the application is launched or put in focus. The following action types
+are supported:
+
+* | Open a configuration, snapshot or composite snapshot node in the Save-And-Restore application.
+  | This can be used to quickly access a particular node in order to invoke a restore operation.
+* | Open a named filter in the Save-And-Restore application.
+  | This will open/show the search and filter view and automatically perform the search associated with the named filter.
+  | This feature can be used to quickly navigate from a Display Builder screen to a view containing a set of commonly used snapshots.
+
+Configuring actions
+^^^^^^^^^^^^^^^^^^^
+
+When configuring an action in the Display Builder editor, supported actions are available from a list:
+
+.. image:: images/select_action.png
+   :width: 70%
+
+For the open node action, user may either paste the unique id of a node into the input field, or launch a
+browser to select a node:
+
+.. image:: images/open_node.png
+   :width: 70%
+
+For the open filter action, user can select from a drop-down list showing existing named filters:
+
+.. image:: images/open_filter.png
+   :width: 70%

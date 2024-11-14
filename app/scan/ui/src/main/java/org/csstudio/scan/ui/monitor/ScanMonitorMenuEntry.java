@@ -45,4 +45,14 @@ public class ScanMonitorMenuEntry implements MenuEntry, ToolbarEntry
         ApplicationService.createInstance(ScanMonitorApplication.NAME);
         return null;
     }
+
+
+    /**
+     * DO NOT CHANGE RETURN VALUE!
+     * @return The unique id of this {@link ToolbarEntry}.
+     */
+    @Override
+    public String getId(){
+        return "Scan Monitor";
+    }
 }

@@ -31,6 +31,7 @@ import org.phoebus.ui.docking.DockPane;
 import java.net.URI;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,37 +39,33 @@ public class SaveAndRestoreInstance implements AppInstance {
 
     private final AppDescriptor appDescriptor;
     private final SaveAndRestoreController saveAndRestoreController;
+    private DockItem dockItem;
 
-    public SaveAndRestoreInstance(AppDescriptor appDescriptor, URI uri) {
+    public static SaveAndRestoreInstance INSTANCE;
+
+    public SaveAndRestoreInstance(AppDescriptor appDescriptor) {
         this.appDescriptor = appDescriptor;
 
-        DockItem tab = null;
+        dockItem = null;
 
         FXMLLoader loader = new FXMLLoader();
         try {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             loader.setResources(resourceBundle);
             loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUI.fxml"));
-            loader.setControllerFactory(clazz -> {
-                try {
-                    if (clazz.isAssignableFrom(SaveAndRestoreController.class)) {
-                        return clazz.getConstructor(URI.class).newInstance(uri);
-                    }
-                } catch (Exception e) {
-                    Logger.getLogger(SaveAndRestoreInstance.class.getName()).log(Level.WARNING, "Failed to load Save & Restore UI", e);
-                }
-                return null;
-            });
-            tab = new DockItem(this, loader.load());
+            dockItem = new DockItem(this, loader.load());
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);
         }
 
         saveAndRestoreController = loader.getController();
+        dockItem.addCloseCheck(() -> {
+            saveAndRestoreController.handleTabClosed();
+            INSTANCE = null;
+            return CompletableFuture.completedFuture(true);
+        });
 
-        tab.setOnCloseRequest(event -> saveAndRestoreController.handleTabClosed());
-
-        DockPane.getActiveDockPane().addTab(tab);
+        DockPane.getActiveDockPane().addTab(dockItem);
     }
 
     @Override
@@ -87,5 +84,9 @@ public class SaveAndRestoreInstance implements AppInstance {
 
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
         saveAndRestoreController.secureStoreChanged(validTokens);
+    }
+
+    public void raise(){
+        dockItem.select();
     }
 }

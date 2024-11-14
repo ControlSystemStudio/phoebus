@@ -14,6 +14,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -22,10 +23,16 @@ import java.util.stream.Collectors;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.stage.Window;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
-import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -36,13 +43,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
@@ -295,14 +295,15 @@ public class DockPane extends TabPane
     }
 
     /** @param dock_parent {@link BorderPane}, {@link SplitDock} or <code>null</code> */
-    void setDockParent(final Parent dock_parent)
+    public void setDockParent(final Parent dock_parent)
     {
         if (dock_parent == null ||
             dock_parent instanceof BorderPane  ||
-            dock_parent instanceof SplitDock)
+            dock_parent instanceof SplitDock   ||
+            dock_parent instanceof SplitPane) // "dock_parent instanceof SplitPane" is for the case of the ESS-specific Navigator application running
             this.dock_parent = dock_parent;
         else
-            throw new IllegalArgumentException("Expect BorderPane or SplitDock, got " + dock_parent);
+            throw new IllegalArgumentException("Expected BorderPane or SplitDock or SplitPane, got " + dock_parent);
     }
 
     /** @param name Name, may not be <code>null</code> */
@@ -625,7 +626,22 @@ public class DockPane extends TabPane
     public SplitDock split(final boolean horizontally)
     {
         final SplitDock split;
-        if (dock_parent instanceof BorderPane)
+
+        if (dock_parent instanceof SplitDock)
+        {
+            final SplitDock parent = (SplitDock) dock_parent;
+            // Remove this dock pane from parent
+            final boolean first = parent.removeItem(this);
+            // Place in split alongside a new dock pane
+            final DockPane new_pane = new DockPane();
+            dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
+            split = new SplitDock(parent, horizontally, this, new_pane);
+            setDockParent(split);
+            new_pane.setDockParent(split);
+            // Place that new split in the border pane
+            parent.addItem(first, split);
+        }
+        else if (dock_parent instanceof BorderPane)
         {
             final BorderPane parent = (BorderPane) dock_parent;
             // Remove this dock pane from BorderPane
@@ -639,11 +655,18 @@ public class DockPane extends TabPane
             // Place that new split in the border pane
             parent.setCenter(split);
         }
-        else if (dock_parent instanceof SplitDock)
+        else if (dock_parent instanceof SplitPane) // "dock_parent instanceof SplitPane" is for the case of the ESS-specific Navigator application running
         {
-            final SplitDock parent = (SplitDock) dock_parent;
-            // Remove this dock pane from parent
-            final boolean first = parent.removeItem(this);
+            final SplitPane parent = (SplitPane) dock_parent;
+            // Remove this dock pane from BorderPane
+            Optional<Double> dividerPosition;
+            if (parent.getDividerPositions().length > 1) {
+                dividerPosition = Optional.of(parent.getDividerPositions()[0]);
+            }
+            else {
+                dividerPosition = Optional.empty();
+            }
+            parent.getItems().remove(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
             dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
@@ -651,7 +674,10 @@ public class DockPane extends TabPane
             setDockParent(split);
             new_pane.setDockParent(split);
             // Place that new split in the border pane
-            parent.addItem(first, split);
+            parent.getItems().add(split);
+            if (dividerPosition.isPresent()) {
+                parent.setDividerPosition(0, dividerPosition.get());
+            }
         }
         else
             throw new IllegalStateException("Cannot split, dock_parent is " + dock_parent);

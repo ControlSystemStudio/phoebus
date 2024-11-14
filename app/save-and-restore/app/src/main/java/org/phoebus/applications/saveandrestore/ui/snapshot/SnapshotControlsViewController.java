@@ -1,20 +1,6 @@
 /*
  * Copyright (C) 2020 European Spallation Source ERIC.
  *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
  */
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
@@ -27,7 +13,18 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -36,10 +33,13 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.util.converter.DoubleStringConverter;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
+import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -47,11 +47,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+
 public class SnapshotControlsViewController extends SaveAndRestoreBaseController {
 
+    private static final Logger logger = Logger.getLogger(SnapshotControlsViewController.class.getName());
     private SnapshotController snapshotController;
 
     @FXML
@@ -63,50 +67,75 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     @FXML
     protected Button saveSnapshotButton;
 
-    @FXML
-    private Button saveSnapshotAndCreateLogEntryButton;
-
+    @SuppressWarnings("unused")
     @FXML
     private Label createdBy;
 
+    @SuppressWarnings("unused")
     @FXML
     private Label createdDate;
 
+    @SuppressWarnings("unused")
     @FXML
     private Label snapshotLastModifiedLabel;
 
+    @SuppressWarnings("unused")
     @FXML
     private Button takeSnapshotButton;
 
+    @SuppressWarnings("unused")
     @FXML
     private Button restoreButton;
 
-    @FXML
-    private Button restoreAndLogButton;
-
+    @SuppressWarnings("unused")
     @FXML
     private Spinner<Double> thresholdSpinner;
 
+    @SuppressWarnings("unused")
     @FXML
     private Spinner<Double> multiplierSpinner;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField filterTextField;
 
+    @SuppressWarnings("unused")
     @FXML
     private CheckBox preserveSelectionCheckBox;
 
     @FXML
     protected ToggleButton showLiveReadbackButton;
 
+    @SuppressWarnings("unused")
     @FXML
     private ToggleButton showDeltaPercentageButton;
 
     @FXML
     protected ToggleButton hideEqualItemsButton;
 
+    @SuppressWarnings("unused")
     @FXML
     private ToolBar filterToolbar;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private CheckBox logAction;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private RadioButton readPVs;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private RadioButton readFromArchiver;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private RadioButton restoreFromClient;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private RadioButton restoreFromService;
 
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
@@ -123,13 +152,19 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     private final SimpleBooleanProperty hideEqualItemsProperty = new SimpleBooleanProperty(false);
 
+    private final SimpleBooleanProperty logActionProperty = new SimpleBooleanProperty(false);
+
     /**
      * Property used to indicate if there is new snapshot data to save, or if snapshot metadata
      * has changed (e.g. user wants to rename the snapshot or update the comment).
      */
     protected final SimpleBooleanProperty snapshotDataDirty = new SimpleBooleanProperty(false);
 
-    private final SimpleObjectProperty<Node> snapshotNodeProperty = new SimpleObjectProperty();
+    private final SimpleObjectProperty<Node> snapshotNodeProperty = new SimpleObjectProperty<>();
+
+    private final SimpleObjectProperty<SnapshotMode> snapshotModeProperty = new SimpleObjectProperty<>(SnapshotMode.READ_PVS);
+
+    private final SimpleObjectProperty<RestoreMode> restoreModeProperty = new SimpleObjectProperty<>(RestoreMode.CLIENT_RESTORE);
 
     public void setSnapshotController(SnapshotController snapshotController) {
         this.snapshotController = snapshotController;
@@ -162,21 +197,12 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
                                 userIdentity.isNull().get(),
                 snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
 
-        saveSnapshotAndCreateLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (
-                        snapshotDataDirty.not().get()) ||
-                        snapshotNameProperty.isEmpty().get() ||
-                        snapshotCommentProperty.isEmpty().get() ||
-                        userIdentity.isNull().get(),
-                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
-
-        // Do not show the create log entry button if no event receivers have been registered
-        saveSnapshotAndCreateLogEntryButton.visibleProperty().set(ServiceLoader.load(SaveAndRestoreEventReceiver.class).iterator().hasNext());
+        // Do not show the create log checkbox if no event receivers have been registered
+        logAction.visibleProperty().set(ServiceLoader.load(SaveAndRestoreEventReceiver.class).iterator().hasNext());
 
         restoreButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                 snapshotRestorableProperty.not().get() ||
                         userIdentity.isNull().get(), snapshotRestorableProperty, userIdentity));
-        restoreAndLogButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                snapshotRestorableProperty.not().get() || userIdentity.isNull().get(), snapshotRestorableProperty, userIdentity));
 
         SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
         thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
@@ -274,7 +300,53 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
             }
         });
 
+        logAction.selectedProperty().bindBidirectional(logActionProperty);
 
+        readPVs.setUserData(SnapshotMode.READ_PVS);
+        readFromArchiver.setUserData(SnapshotMode.FROM_ARCHIVER);
+
+        String snapshotModeString = Preferences.default_snapshot_mode;
+        if (snapshotModeString == null || snapshotModeString.isEmpty()) {
+            snapshotModeProperty.set(SnapshotMode.READ_PVS);
+        } else {
+            try {
+                snapshotModeProperty.set(SnapshotMode.valueOf(snapshotModeString));
+            } catch (IllegalArgumentException e) {
+                logger.log(Level.WARNING, "Unknown snapshot mode \"" + snapshotModeString + "\", defaulting to " + SnapshotMode.READ_PVS);
+                snapshotModeProperty.set(SnapshotMode.READ_PVS);
+            }
+        }
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        toggleGroup.getToggles().addAll(readPVs, readFromArchiver);
+        toggleGroup.selectToggle(toggleGroup.getToggles().stream()
+                .filter(t -> t.getUserData().equals(snapshotModeProperty.get())).findFirst().get());
+        toggleGroup.selectedToggleProperty().addListener((obs, o, n) -> {
+            snapshotModeProperty.set((SnapshotMode) n.getUserData());
+        });
+
+        restoreFromClient.setUserData(RestoreMode.CLIENT_RESTORE);
+        restoreFromService.setUserData(RestoreMode.SERVICE_RESTORE);
+
+        String restoreModeString = Preferences.default_restore_mode;
+        if (restoreModeString == null || restoreModeString.isEmpty()) {
+            restoreModeProperty.set(RestoreMode.CLIENT_RESTORE);
+        } else {
+            try {
+                restoreModeProperty.set(RestoreMode.valueOf(restoreModeString));
+            } catch (IllegalArgumentException e) {
+                logger.log(Level.WARNING, "Unknown restore mode \"" + restoreModeString + "\", defaulting to " + RestoreMode.CLIENT_RESTORE);
+                restoreModeProperty.set(RestoreMode.CLIENT_RESTORE);
+            }
+        }
+
+        ToggleGroup restoreToggleGroup = new ToggleGroup();
+        restoreToggleGroup.getToggles().addAll(restoreFromClient, restoreFromService);
+        restoreToggleGroup.selectToggle(restoreToggleGroup.getToggles().stream()
+                .filter(t -> t.getUserData().equals(restoreModeProperty.get())).findFirst().get());
+        restoreToggleGroup.selectedToggleProperty().addListener((obs, o, n) -> {
+            restoreModeProperty.set((RestoreMode) n.getUserData());
+        });
     }
 
     public SimpleStringProperty getSnapshotNameProperty() {
@@ -285,6 +357,7 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         return snapshotCommentProperty;
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void takeSnapshot() {
         snapshotDataDirty.set(true);
@@ -292,6 +365,7 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         snapshotController.takeSnapshot();
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void saveSnapshot(ActionEvent event) {
         snapshotController.saveSnapshot(event);
@@ -334,5 +408,16 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     public void setSnapshotRestorableProperty(boolean restorable) {
         snapshotRestorableProperty.set(restorable);
+    }
+
+    public SnapshotMode getDefaultSnapshotMode() {
+        return snapshotModeProperty.get();
+    }
+    public RestoreMode getRestoreMode() {
+        return restoreModeProperty.get();
+    }
+
+    public boolean logAction() {
+        return logActionProperty.get();
     }
 }

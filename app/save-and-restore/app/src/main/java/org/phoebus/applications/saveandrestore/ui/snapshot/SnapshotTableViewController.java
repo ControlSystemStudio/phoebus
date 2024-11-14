@@ -1,20 +1,6 @@
 /*
  * Copyright (C) 2024 European Spallation Source ERIC.
  *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
  */
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
@@ -24,8 +10,10 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -44,27 +32,28 @@ import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.Threshold;
 import org.phoebus.applications.saveandrestore.ui.Utilities;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
-import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.time.DateTimePane;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -91,6 +80,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
 
     private final SimpleBooleanProperty compareViewEnabled = new SimpleBooleanProperty(false);
 
+    private SnapshotUtil snapshotUtil;
 
     @FXML
     public void initialize() {
@@ -155,6 +145,8 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         valueColumn.visibleProperty().bind(compareViewEnabled.not());
 
         compareViewEnabled.addListener((ob, o, n) -> snapshotTableView.layout());
+
+        snapshotUtil = new SnapshotUtil();
     }
 
     public void setSnapshotController(SnapshotController snapshotController) {
@@ -180,7 +172,50 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         }
     }
 
-    public void takeSnapshot(Consumer<Snapshot> consumer) {
+    public void takeSnapshot(SnapshotMode snapshotMode, Consumer<Optional<Snapshot>> consumer) {
+        switch (snapshotMode) {
+            case READ_PVS -> takeSnapshot(consumer);
+            case FROM_ARCHIVER -> takeSnapshotFromArchiver(consumer);
+            default -> throw new IllegalArgumentException("Snapshot mode " + snapshotMode + " not supported");
+        }
+    }
+
+    private void takeSnapshotFromArchiver(Consumer<Optional<Snapshot>> consumer) {
+        DateTimePane dateTimePane = new DateTimePane();
+        Dialog<Instant> timePickerDialog = new Dialog<>();
+        timePickerDialog.setTitle(Messages.dateTimePickerTitle);
+        timePickerDialog.getDialogPane().setContent(dateTimePane);
+        timePickerDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        timePickerDialog.setResultConverter(b -> {
+            if (b.equals(ButtonType.OK)) {
+                return dateTimePane.getInstant();
+            }
+            return null;
+        });
+        Optional<Instant> time = timePickerDialog.showAndWait();
+        if (time.isEmpty()) { // User cancels date/time picker dialog
+            consumer.accept(Optional.empty());
+            return;
+        }
+        JobManager.schedule("Add snapshot from archiver", monitor -> {
+            List<SnapshotItem> snapshotItems;
+            try {
+                snapshotItems = SaveAndRestoreService.getInstance().takeSnapshotFromArchiver(snapshotController.configurationNode.getUniqueId(), time.get());
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Failed to query archiver for data", e);
+                return;
+            }
+            Snapshot snapshot = new Snapshot();
+            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(Messages.archiver).created(new Date(time.get().toEpochMilli())).build());
+            SnapshotData snapshotData = new SnapshotData();
+            snapshotData.setUniqueId("anonymous");
+            snapshotData.setSnapshotItems(snapshotItems);
+            snapshot.setSnapshotData(snapshotData);
+            consumer.accept(Optional.of(snapshot));
+        });
+    }
+
+    private void takeSnapshot(Consumer<Optional<Snapshot>> consumer) {
         JobManager.schedule("Take snapshot", monitor -> {
             // Clear snapshots array
             snapshots.clear();
@@ -189,7 +224,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                 snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId());
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(snapshotTableView, Messages.errorGeneric, Messages.takeSnapshotFailed, e);
-                consumer.accept(null);
+                consumer.accept(Optional.empty());
                 return;
             }
             // Service can only return nulls for disconnected PVs, but UI expects VDisonnectedData
@@ -211,7 +246,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                 SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
                 snapshot.getSnapshotNode().setName(formatter.format(new Date()));
             }
-            consumer.accept(snapshot);
+            consumer.accept(Optional.of(snapshot));
         });
 
     }
@@ -330,13 +365,28 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         Platform.runLater(() -> updateTable(arrayList));
     }
 
+
+    /**
+     * Restore a snapshot either from the client or from the services
+     * @param restoreMode
+     * @param snapshot
+     * @param consumer
+     */
+    public void restoreSnapshot(RestoreMode restoreMode, Snapshot snapshot, Consumer<List<RestoreResult>> consumer) {
+        switch (restoreMode) {
+            case CLIENT_RESTORE -> restoreFromClient(snapshot, consumer);
+            case SERVICE_RESTORE -> restoreFromService(snapshot, consumer);
+            default -> throw new IllegalArgumentException("RestoreMode mode " + restoreMode + " not supported");
+        }
+    }
+
     /**
      * Restores a snapshot through a call to the remote service.
      *
      * @param snapshot   The {@link Snapshot} object subject to restore
      * @param completion A handler for the outcome of the restore operation
      */
-    public void restore(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
+    public void restoreFromService(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
         JobManager.schedule("Restore snapshot " + snapshot.getSnapshotNode().getName(), monitor -> {
             List<SnapshotItem> itemsToRestore = new ArrayList<>();
             List<RestoreResult> restoreResultList = null;
@@ -377,12 +427,11 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
      * @param completion A handler for the outcome of the restore operation
      */
     @SuppressWarnings("unused")
-    public void restoreFromClient(Snapshot snapshot, Consumer<List<String>> completion) {
+    public void restoreFromClient(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
         new Thread(() -> {
-            List<String> restoreFailedPVNames = new ArrayList<>();
-            CountDownLatch countDownLatch = new CountDownLatch(snapshot.getSnapshotData().getSnapshotItems().size());
-            snapshot.getSnapshotData().getSnapshotItems()
-                    .forEach(e -> pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly())).setCountDownLatch(countDownLatch));
+
+            List<SnapshotItem> itemsToRestore = new ArrayList<>();
+            List<RestoreResult> restoreResultList = new ArrayList<>();
 
             for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
@@ -393,38 +442,35 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                         !entry.getValue().equals(VNoData.INSTANCE);
 
                 if (restorable) {
-                    final SaveAndRestorePV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
-                    if (entry.getValue() != null) {
-                        try {
-                            pv.getPv().write(VTypeHelper.toObject(entry.getValue()));
-                        } catch (Exception writeException) {
-                            restoreFailedPVNames.add(entry.getConfigPv().getPvName());
-                        } finally {
-                            pv.countDown();
-                        }
-                    }
-                } else {
-                    countDownLatch.countDown();
+                    itemsToRestore.add(entry);
                 }
             }
 
             try {
-                countDownLatch.await(10, TimeUnit.MINUTES);
-            } catch (InterruptedException e) {
-                LOGGER.log(Level.INFO, "Encountered InterruptedException", e);
+                restoreResultList = snapshotUtil.restore(itemsToRestore);
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle(Messages.errorActionFailed);
+                    alert.setContentText(e.getMessage());
+                    alert.setHeaderText(Messages.restoreFailed);
+                    DialogHelper.positionDialog(alert, snapshotTableView, -150, -150);
+                    alert.showAndWait();
+                });
             }
-
-            if (restoreFailedPVNames.isEmpty()) {
+            // Legacy
+            if (restoreResultList.isEmpty()) {
                 LOGGER.log(Level.FINE, "Restored snapshot {0}", snapshot.getSnapshotNode().getName());
             } else {
-                Collections.sort(restoreFailedPVNames);
-                StringBuilder sb = new StringBuilder(restoreFailedPVNames.size() * 200);
-                restoreFailedPVNames.forEach(e -> sb.append(e).append('\n'));
+                String msg = restoreResultList.stream()
+                        .sorted(Comparator.comparing(o -> o.getSnapshotItem().getConfigPv().getPvName()))
+                        .map(r -> r.getSnapshotItem().getConfigPv().getPvName())
+                        .collect(Collectors.joining(System.lineSeparator()));
                 LOGGER.log(Level.WARNING,
                         "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
-                        new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), sb.toString()});
+                        new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), msg});
             }
-            completion.accept(restoreFailedPVNames);
+            completion.accept(restoreResultList);
         }).start();
     }
 

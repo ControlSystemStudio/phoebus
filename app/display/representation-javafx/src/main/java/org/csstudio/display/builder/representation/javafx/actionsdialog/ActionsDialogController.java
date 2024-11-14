@@ -20,13 +20,15 @@ package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
 import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
 import javafx.beans.binding.Bindings;
@@ -43,7 +45,6 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 
@@ -79,7 +80,7 @@ public class ActionsDialogController {
         this.widget = widget;
     }
 
-    /** ListView cell for ActionInfo, shows title if possible */
+    /** ListView cell for {@link ActionInfo}, shows title if possible */
     private static class ActionInfoCell extends ListCell<ActionsDialogActionItem>
     {
         @Override
@@ -96,7 +97,7 @@ public class ActionsDialogController {
                 else
                 {
                     setText(actionsDialogActionItem.getDescription());
-                    setGraphic(new ImageView(new Image(actionsDialogActionItem.getActionType().getIconURL().toExternalForm())));
+                    setGraphic(new ImageView(actionsDialogActionItem.getActionInfo().getImage()));
                 }
             }
             catch (Exception ex)
@@ -104,7 +105,7 @@ public class ActionsDialogController {
                 logger.log(Level.WARNING, "Error displaying " + actionsDialogActionItem, ex);
             }
         }
-    };
+    }
 
     /** Initialize */
     @FXML
@@ -115,22 +116,25 @@ public class ActionsDialogController {
         upButton.setGraphic(JFXUtil.getIcon("up.png"));
         downButton.setGraphic(JFXUtil.getIcon("down.png"));
 
-        for (ActionType type : ActionType.values())
-        {
-            final ImageView icon = new ImageView(new Image(type.getIconURL().toExternalForm()));
-            final MenuItem item = new MenuItem(type.toString(), icon);
-            item.setOnAction(event ->
-            {
-                final ActionInfo action = ActionInfo.createAction(type);
-                ActionsDialogActionItem actionsDialogActionItem =
-                        new ActionsDialogActionItem(widget, action);
-                actionList.add(actionsDialogActionItem);
-                actionsListView.setItems(actionList);
-                detailsPane.getChildren().add(actionsDialogActionItem.getActionInfoEditor());
-                actionsListView.getSelectionModel().select(actionsDialogActionItem);
-            });
-            addButton.getItems().add(item);
-        }
+        ServiceLoader<ActionInfo> actionInfos = ServiceLoader.load(ActionInfo.class);
+
+        actionInfos.stream()
+                .sorted(Comparator.comparing(actionInfo -> actionInfo.get().getPriority()))
+                .forEach(actionInfoProvider -> {
+                    ActionInfo actionInfo = actionInfoProvider.get();
+                    final ImageView icon = new ImageView(actionInfo.getImage());
+                    final MenuItem item = new MenuItem(actionInfo.toString(), icon);
+                    item.setOnAction(event ->
+                    {
+                        ActionsDialogActionItem actionsDialogActionItem =
+                                new ActionsDialogActionItem(widget, actionInfo);
+                        actionList.add(actionsDialogActionItem);
+                        actionsListView.setItems(actionList);
+                        detailsPane.getChildren().add(actionInfo.getEditor(widget));
+                        actionsListView.getSelectionModel().select(actionsDialogActionItem);
+                    });
+                    addButton.getItems().add(item);
+                });
 
         actionsListView.setCellFactory(view -> new ActionInfoCell());
 
@@ -162,18 +166,18 @@ public class ActionsDialogController {
     }
 
     /**
-     * Creates {@link ActionInfo} objects and one editor per item. The editors are added to the
+     * Creates {@link ActionInfos} objects and one editor per item. The editors are added to the
      * {@link StackPane} and the top most item in the action list is selected.
      * @param actionInfos ActionInfos
      */
-    public void setActionInfos(ActionInfos actionInfos){
+    public void setActionInfos(final ActionInfos actionInfos){
         if(actionInfos == null || actionInfos.getActions() == null || actionInfos.getActions().isEmpty()){
             return;
         }
         actionList.addAll(actionInfos.getActions()
                 .stream().map(ai -> {
                     ActionsDialogActionItem actionsDialogActionItem = new ActionsDialogActionItem(widget, ai);
-                    detailsPane.getChildren().add(actionsDialogActionItem.getActionInfoEditor());
+                    detailsPane.getChildren().add(ai.getEditor(widget));
                     return  actionsDialogActionItem;
                 }).collect(Collectors.toList()));
         actionsListView.setItems(actionList);
@@ -182,10 +186,15 @@ public class ActionsDialogController {
         executeAll.setValue(actionInfos.isExecutedAsOne());
     }
 
+
     /** @return ActionInfos */
     public ActionInfos getActionInfos(){
-        return new ActionInfos(actionList.stream().map(a -> a.getActionInfo()).collect(Collectors.toList()),
+        return new ActionInfos(actionList.stream().map(a -> a.getActionInfo().commit()).collect(Collectors.toList()),
                 executeAll.get());
+    }
+
+    public void revertEdits(){
+        actionList.stream().forEach(a -> a.getActionInfo().revert());
     }
 
     /** Remove action */
@@ -215,8 +224,8 @@ public class ActionsDialogController {
 
     private void setDetailsPaneVisibility(ActionsDialogActionItem visibleItem){
         actionList.stream().forEach(i -> {
-            if(i.getActionInfoEditor() != null){
-                i.getActionInfoEditor().setVisible(i == visibleItem);
+            if(i.getActionInfo().getEditor(widget) != null){
+                i.getActionInfo().getEditor(widget).setVisible(i == visibleItem);
             }
         });
     }

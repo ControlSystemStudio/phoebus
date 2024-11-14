@@ -1,0 +1,16 @@
+
+    <widget>
+        <actions>
+            <action type="open_display">
+                <file>/foo/bar</file>
+                <macros>
+                    <a>b</a>
+                    <c>d</c>
+                </macros>
+                <target>tab</target>
+                <name>main</name>
+                <description>Open Display</description>
+            </action>
+        </actions>
+    </widget>
+

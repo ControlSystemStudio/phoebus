@@ -18,13 +18,22 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.application.Platform;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.*;
-import javafx.scene.layout.*;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -159,6 +168,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         }
         // Tooltip with at least date and user id is set on all tree items
         setTooltip(new Tooltip(stringBuilder.toString()));
+
         switch (node.getNodeType()) {
             case SNAPSHOT:
                 if (node.hasTag(Tag.GOLDEN)) {
@@ -173,9 +183,6 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     tagImage.setPreserveRatio(true);
                     hBox.getChildren().add(tagImage);
                 }
-                if(saveAndRestoreController != null){
-                    setContextMenu(new ContextMenuSnapshot(saveAndRestoreController));
-                }
                 break;
             case COMPOSITE_SNAPSHOT:
                 hBox.getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
@@ -186,40 +193,20 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     tagImage.setPreserveRatio(true);
                     getChildren().add(tagImage);
                 }
-                if(saveAndRestoreController != null){
-                    setContextMenu(new ContextMenuCompositeSnapshot(saveAndRestoreController));
-                }
                 break;
             case CONFIGURATION:
                 hBox.getChildren().add(new ImageView(ImageRepository.CONFIGURATION));
                 hBox.getChildren().add(new Label(node.getName()));
-                if(saveAndRestoreController != null){
-                    setContextMenu(new ContextMenuConfiguration(saveAndRestoreController));
-                }
                 break;
             case FOLDER:
                 hBox.getChildren().add(new ImageView(ImageRepository.FOLDER));
                 hBox.getChildren().add(new Label(node.getName()));
                 if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     setTooltip(new Tooltip(SaveAndRestoreService.getInstance().getServiceIdentifier()));
-                    ContextMenu rootFolderContextMenu = new ContextMenu();
-                    MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
-                    newRootFolderMenuItem.setOnAction(ae -> saveAndRestoreController.createNewFolder());
-                    rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
-                    rootFolderContextMenu.setOnShowing(event -> {
-                        if (saveAndRestoreController.getUserIdentity().isNull().get()) {
-                            Platform.runLater(() -> rootFolderContextMenu.hide());
-                        }
-                    });
-                    if(saveAndRestoreController != null){
-                        setContextMenu(rootFolderContextMenu);
-                    }
-
-                } else if (saveAndRestoreController != null){
-                    setContextMenu(new ContextMenuFolder(saveAndRestoreController));
                 }
                 break;
         }
+
         setGraphic(hBox);
     }
 }

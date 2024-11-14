@@ -39,4 +39,13 @@ public class SendToLogBookToolbarEntry implements ToolbarEntry
     {
         return SendToLogBookApp.icon;
     }
+
+    /**
+     * DO NOT CHANGE RETURN VALUE!
+     * @return The unique id of this {@link ToolbarEntry}.
+     */
+    @Override
+    public String getId(){
+        return "Send To Log Book";
+    }
 }

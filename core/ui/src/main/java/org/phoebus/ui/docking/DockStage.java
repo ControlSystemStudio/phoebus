@@ -16,11 +16,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 import javafx.scene.input.MouseEvent;
 import org.phoebus.framework.jobs.JobManager;
@@ -323,6 +320,13 @@ public class DockStage
         final Parent layout = stage.getScene().getRoot();
         if (layout instanceof BorderPane)
             return (BorderPane) layout;
+        if (layout instanceof SplitPane) {
+            SplitPane splitPane = (SplitPane) layout;
+            var maybeBorderPane = splitPane.getItems().stream().filter(item -> item instanceof BorderPane).findFirst();
+            if (maybeBorderPane.isPresent()) {
+                return (BorderPane) maybeBorderPane.get();
+            }
+        }
         throw new IllegalStateException("Expect BorderPane, got " + layout);
     }
 
@@ -332,10 +336,22 @@ public class DockStage
      */
     public static Node getPaneOrSplit(final Stage stage)
     {
-        final Node container = getLayout(stage).getCenter();
-        if (container instanceof DockPane  ||
-            container instanceof SplitDock)
+        Node container = getLayout(stage).getCenter();
+        if (container instanceof DockPane || container instanceof SplitDock) {
+            // Note: the check for "instanceof SplitDock" must occur
+            //       before "instanceof SplitPane" (the next clause),
+            //       since the class SplitDock extends the class
+            //       SplitPane. (Otherwise, the wrong code is run
+            //       for instances of SplitDock.)
             return container;
+        }
+        else if (container instanceof SplitPane) {
+            SplitPane splitPane = (SplitPane) container;
+            var maybeDockPaneOrSplitDock = splitPane.getItems().stream().filter(item -> item instanceof DockPane || item instanceof SplitDock).findFirst();
+            if (maybeDockPaneOrSplitDock.isPresent()) {
+                return maybeDockPaneOrSplitDock.get();
+            }
+        }
         throw new IllegalStateException("Expect DockPane or SplitDock, got " + container);
     }
 

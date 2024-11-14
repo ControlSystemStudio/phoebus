@@ -37,8 +37,6 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
     public static final String NAME = "saveandrestore";
     public static final String DISPLAY_NAME = "Save And Restore";
 
-    private AppInstance instance;
-
     /**
      * Custom MIME type definition for the purpose of drag-n-drop in the
      */
@@ -60,31 +58,23 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
         return create(null);
     }
 
-
     @Override
     public AppInstance create(URI uri) {
+        if(SaveAndRestoreInstance.INSTANCE == null){
+            SaveAndRestoreInstance.INSTANCE = new SaveAndRestoreInstance(this);
+        }
+        else{
+            SaveAndRestoreInstance.INSTANCE.raise();
+        }
 
-		// Check if save & restore app is already running
-		for (Stage stage : DockStage.getDockStages()) {
-			for (DockPane pane : DockStage.getDockPanes(stage)) {
-				for (DockItem tab : pane.getDockItems()) {
-					if (tab.getApplication().getAppDescriptor().getName().equals(NAME)) {
-                        tab.select();
-                        if(uri != null){
-                            ((SaveAndRestoreInstance)tab.getApplication()).openResource(uri);
-                        }
-                        instance = tab.getApplication();
-                        return instance;
-					}
-				}
-			}
-		}
+        if(uri != null){
+            SaveAndRestoreInstance.INSTANCE.openResource(uri);
+        }
 
-        instance = new SaveAndRestoreInstance(this, uri);
-		return instance;
+        return SaveAndRestoreInstance.INSTANCE;
     }
 
     public AppInstance getInstance(){
-        return instance;
+        return SaveAndRestoreInstance.INSTANCE;
     }
 }

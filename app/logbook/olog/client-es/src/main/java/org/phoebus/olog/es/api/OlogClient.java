@@ -29,6 +29,7 @@ import org.phoebus.logbook.Tag;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
+import org.phoebus.olog.es.authentication.LoginCredentials;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -519,16 +520,15 @@ public class OlogClient implements LogClient {
     /**
      * Logs in to the Olog service.
      *
-     * @param username User name, must not be <code>null</code>.
+     * @param username Username, must not be <code>null</code>.
      * @param password Password, must not be <code>null</code>.
      * @throws Exception if the login fails, e.g. bad credentials or service off-line.
      */
     public void authenticate(String username, String password) throws Exception {
         try {
             ClientResponse clientResponse = service.path("login")
-                    .queryParam("username", username)
-                    .queryParam("password", password)
-                    .post(ClientResponse.class);
+                    .type(MediaType.APPLICATION_JSON)
+                    .post(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(new LoginCredentials(username, password)));
             if (clientResponse.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new Exception("Failed to login: user unauthorized");
             } else if (clientResponse.getStatus() != Status.OK.getStatusCode()) {

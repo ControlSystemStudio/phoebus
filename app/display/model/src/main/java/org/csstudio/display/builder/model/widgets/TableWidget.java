@@ -48,6 +48,7 @@ import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.epics.util.array.ListDouble;
+import org.epics.util.array.ListFloat;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
@@ -597,6 +598,8 @@ public class TableWidget extends VisibleWidget
                         row.add( Objects.toString(((List)col_data).get(r)) );
                     else if (col_data instanceof ListDouble)
                         row.add( Double.toString(((ListDouble)col_data).getDouble(r)) );
+                    else if (col_data instanceof ListFloat)
+                        row.add( Float.toString(((ListFloat)col_data).getFloat(r)) );
                     else if (col_data instanceof ListNumber)
                         row.add( Long.toString(((ListNumber)col_data).getLong(r)) );
                     else

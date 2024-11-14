@@ -20,7 +20,6 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.property.SimpleStringProperty;
-import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotControlsViewController;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -34,19 +33,18 @@ public abstract class SaveAndRestoreBaseController {
 
     protected final SimpleStringProperty userIdentity = new SimpleStringProperty();
 
-    public SaveAndRestoreBaseController(){
+    public SaveAndRestoreBaseController() {
         try {
             SecureStore secureStore = new SecureStore();
             ScopedAuthenticationToken token =
                     secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
             if (token != null) {
                 userIdentity.set(token.getUsername());
-            }
-            else{
+            } else {
                 userIdentity.set(null);
             }
         } catch (Exception e) {
-            Logger.getLogger(SnapshotControlsViewController.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
+            Logger.getLogger(SaveAndRestoreBaseController.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
                     AuthenticationScope.SAVE_AND_RESTORE.getName() + " scope", e);
         }
     }
@@ -62,7 +60,7 @@ public abstract class SaveAndRestoreBaseController {
         }
     }
 
-    public SimpleStringProperty getUserIdentity(){
+    public SimpleStringProperty getUserIdentity() {
         return userIdentity;
     }
 }

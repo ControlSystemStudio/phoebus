@@ -89,7 +89,7 @@ public class CSVExporter extends CSVCommon {
         }
     }
 
-    private static void exportSaveset() throws Exception {
+    private static void exportSaveset(){
         printStream.println(Comment(OPENING_TAG));
 
         printStream.println(Comment(HIERARCHY_TAG));
@@ -139,7 +139,9 @@ public class CSVExporter extends CSVCommon {
         printStream.println(Comment(TAGS_TAG));
         // If a node has not tags it may be null
         if(nodeToExport.getTags() != null){
-            nodeToExport.getTags().forEach(tag -> printStream.println(Comment(Record(WrapDoubleQuotation(tag.getName()), WrapDoubleQuotation(tag.getComment()), tag.getUserName(), TIMESTAMP_FORMATTER.get().format(tag.getCreated())))));
+            nodeToExport.getTags().forEach(tag -> printStream.println(Comment(Record(WrapDoubleQuotation(tag.getName()),
+                    WrapDoubleQuotation(tag.getComment()), tag.getUserName(),
+                    tag.getCreated() != null ? TIMESTAMP_FORMATTER.get().format(tag.getCreated()) : "<no date>"))));
         }
         printStream.println(Comment(ENDING_TAG));
 

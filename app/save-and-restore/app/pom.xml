@@ -9,6 +9,10 @@
 
 	<artifactId>save-and-restore</artifactId>
 
+	<properties>
+		<skipITs>true</skipITs>
+	</properties>
+
 	<dependencies>
 
 		<dependency>
@@ -17,26 +21,35 @@
 			<version>4.7.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>core-logbook</artifactId>
+			<version>4.7.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 		  <groupId>org.phoebus</groupId>
 		  <artifactId>save-and-restore-model</artifactId>
 		  <version>4.7.4-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>save-and-restore-util</artifactId>
+			<version>4.7.4-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>app-display-model</artifactId>
+			<version>4.7.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>app-trends-archive-datasource</artifactId>
+			<version>4.7.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
 			<version>${jgit.version}</version>
-		</dependency>
-
-
-		<dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-core</artifactId>
-			<version>1.19</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-client</artifactId>
-			<version>1.19</version>
 		</dependency>
 
 		<dependency>
@@ -66,6 +79,7 @@
 			<scope>test</scope>
 		</dependency>
 
+
 	</dependencies>
 	<build>
 		<resources>
@@ -79,5 +93,24 @@
 				</includes>
 			</resource>
 		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.5</version>
+			</plugin>
+			<!-- use self-contained integration tests - org.phoebus.olog.docker -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>3.2.5</version>
+				<configuration>
+					<skipITs>${skipITs}</skipITs>
+					<includes>
+						<include>**/*IT.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 </project>

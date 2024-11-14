@@ -36,18 +36,18 @@ public class TagProposalProvider implements ProposalProvider {
     private final List<String> tagNames = new ArrayList<>();
     private final SaveAndRestoreService saveAndRestoreService;
 
-    public TagProposalProvider(SaveAndRestoreService saveAndRestoreService){
+    public TagProposalProvider(SaveAndRestoreService saveAndRestoreService) {
         this.saveAndRestoreService = saveAndRestoreService;
     }
 
     @Override
-    public String getName(){
+    public String getName() {
         return "Save & Restore tags";
     }
 
     @Override
-    public List<Proposal> lookup(String text){
-        if(tagNames.isEmpty()){
+    public List<Proposal> lookup(String text) {
+        if (tagNames.isEmpty()) {
             List<Tag> allTags;
             try {
                 allTags = saveAndRestoreService.getAllTags();
@@ -57,14 +57,14 @@ public class TagProposalProvider implements ProposalProvider {
                 return Collections.emptyList();
             }
             allTags.forEach(tag -> {
-                if(!tagNames.contains(tag.getName()) && !tag.getName().equalsIgnoreCase(Tag.GOLDEN)){ // Add tags names only once. Omit "golden" tag.
+                if (!tagNames.contains(tag.getName()) && !tag.getName().equalsIgnoreCase(Tag.GOLDEN)) { // Add tags names only once. Omit "golden" tag.
                     tagNames.add(tag.getName());
                 }
             });
         }
         List<Proposal> proposals = new ArrayList<>();
         tagNames.forEach(tagName -> {
-            if(tagName.contains(text)){
+            if (tagName.contains(text)) {
                 proposals.add(new Proposal(tagName));
             }
         });

@@ -143,6 +143,7 @@ class CursorMarker implements Comparable<CursorMarker>
                     final String info = sample.getInfo();
                     if (info != null  &&  info.length() > 0)
                         label += " (" + info + ")";
+                    label += " — " + trace.getName();
                     markers.add(new CursorMarker(cursor_x, axis.getScreenCoord(value), GraphicsUtils.convert(trace.getColor()), label));
                 }
             }

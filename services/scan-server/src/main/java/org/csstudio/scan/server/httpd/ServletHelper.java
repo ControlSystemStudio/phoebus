@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,12 @@
  ******************************************************************************/
 package org.csstudio.scan.server.httpd;
 
+import static org.csstudio.scan.server.ScanServerInstance.logger;
+
 import java.time.Instant;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -68,8 +71,48 @@ public class ServletHelper
     public static void write(final XMLStreamWriter writer, final String name, final String text) throws Exception
     {
         writer.writeStartElement(name);
-        writer.writeCharacters(text);
+        writer.writeCharacters(sanitizeXML(text));
         writer.writeEndElement();
+    }
+
+    /** Sanitize XML text
+     * 
+     *  <p>XMLStreamWriter.writeCharacters handles '<', '>', ampersand and potentially double-quotes.
+     *  It will not, however, escape 'control' characters like character 7.
+     *  One could escape them as "ampersand hashmark 7 semicolon",
+     *  but their use is still not full supported in XML, see
+     *  https://en.wikipedia.org/wiki/Valid_characters_in_XML
+     *  https://stackoverflow.com/questions/404107/why-are-control-characters-illegal-in-xml-1-0
+     *  https://learn.microsoft.com/en-us/previous-versions/troubleshoot/msxml/error-when-xml-contains-low-order-ascii
+     *  
+     *  <p>For example, when viewing the XML in Safari,
+     *  that client will un-escape back into character 7
+     *  and then complain "invalid XML char value 7".
+     *  
+     *  <p>This sanitizer will replace such control characters with underscores and log a warning.
+     *  
+     *  @param text Text like "demo\0x7"
+     *  @return Text like "demo_"
+     */
+    private static String sanitizeXML(final String text)
+    {
+        final StringBuilder out = new StringBuilder();
+        for (int i=0; i<text.length(); ++i)
+        {
+            char c = text.charAt(i);
+            // https://en.wikipedia.org/wiki/Valid_characters_in_XML:
+            // U+0009, U+000A, U+000D: these are the only C0 controls accepted in XML 1.0;
+            if (c < ' ' && c != '\t' && c != '\r' && c != '\n')
+            {
+                logger.log(Level.WARNING,
+                           String.format("Sanitizing XML for '%s' at index %d (char 0x%X)",
+                                         text, i, (int) c));
+                out.append('_');
+            }
+            else
+                out.append(c);
+        }
+        return out.toString();
     }
 
     /** Create XML element for number

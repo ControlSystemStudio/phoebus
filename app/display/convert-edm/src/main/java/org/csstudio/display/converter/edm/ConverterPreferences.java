@@ -33,6 +33,7 @@ public class ConverterPreferences
     @Preference private static String edm_paths_config;
     @Preference public static String stp_path_patch_pattern;
     @Preference public static String stp_path_patch_replacement;
+    @Preference public static String strip_close_button;
 
     public static final List<String> paths = new ArrayList<>();
 

@@ -95,6 +95,12 @@ public class LogEntryEditorStage extends Stage {
             we.consume();
             handleCloseEditor(logEntryEditorController.isDirty(), fxmlLoader.getRoot());
         });
+        if (replyTo == null) {
+            setTitle(Messages.NewLogEntry);
+        }
+        else {
+            setTitle(Messages.ReplyToLogEntry);
+        }
     }
 
     /**

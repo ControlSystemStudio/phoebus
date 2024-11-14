@@ -4,7 +4,7 @@ Preference Settings
 When you run Phoebus, you may find that it cannot connect to your control system
 because for example the EPICS Channel Access address list is not configured.
 
-To locate available preferences, refer to the complete 
+To locate available preferences, refer to the complete
 :ref:`preference_settings`
 or check the source code for files named ``*preferences.properties``,
 for example in the ``core-pv`` sources::
@@ -15,11 +15,11 @@ for example in the ``core-pv`` sources::
 
    # Show a "Description" column that reads xxx.DESC?
    show_description=true
-   
+
    # -------------------------
    # Package org.phoebus.pv.ca
    # -------------------------
-   
+
    # Channel Access address list
    addr_list=
 
@@ -49,9 +49,19 @@ In addition, Java properties or environment variables can be used like this::
 
 Start Phoebus like this to import the settings from your file::
 
+  phoebus.sh -settings <location>
+
+Where <location> can be specified as either absolute path::
+
   phoebus.sh -settings /path/to/settings.ini
 
-Start Phoebus like this to import the settings from a remote URL::
+Or as a file name only::
+
+  phoebus.sh -settings settings.ini
+
+In this case the current directory is checked for presence of the file, then user's home directory.
+
+<location> may also point to a remote URL::
 
   phoebus.sh -settings http://mysite.com/settings.ini
 
@@ -114,7 +124,7 @@ In that file, list the available settings, with explanatory comments::
    # Explain what each setting means,
    # what values are allowed etc.
    my_setting=SomeValue
-   
+
    # Enable some feature, allowed values are true or false
    my_other_setting=true
 
@@ -149,12 +159,12 @@ If more elaborate settings need to be handled, ``AnnotatedPreferences.initialize
 returns a ``PreferencesReader``, or you could directly use that lower level API like this::
 
     package org.phoebus.applications.my_app
-    
+
     import org.phoebus.framework.preferences.PreferencesReader;
 
     # The class that you pass here determines the package name for your preferences
     final PreferencesReader prefs = new PreferencesReader(getClass(), "/my_app_preferences.properties");
-    
+
     String pref1 = prefs.get("my_setting");
     Boolean pref2 = prefs.getBoolean("my_other_setting");
     // .. use getInt, getDouble as needed.
@@ -163,5 +173,5 @@ returns a ``PreferencesReader``, or you could directly use that lower level API 
 
 The ``PreferencesReader`` loads defaults from the property file,
 then allows overrides via the ``java.util.prefs.Preferences`` API
-that is used when loading a ``settings.ini`` in the installation location 
+that is used when loading a ``settings.ini`` in the installation location
 and by the ``-settings ..`` provided on the command line.

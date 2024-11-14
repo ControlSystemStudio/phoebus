@@ -1,29 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (C) 2020 European Spallation Source ERIC.
-  ~
-  ~  This program is free software; you can redistribute it and/or
-  ~  modify it under the terms of the GNU General Public License
-  ~  as published by the Free Software Foundation; either version 2
-  ~  of the License, or (at your option) any later version.
-  ~
-  ~  This program is distributed in the hope that it will be useful,
-  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~  GNU General Public License for more details.
-  ~
-  ~  You should have received a copy of the GNU General Public License
-  ~  along with this program; if not, write to the Free Software
-  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-  ~
+  ~ Copyright (C) 2024 European Spallation Source ERIC.
   -->
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="1.7976931348623157E308" prefWidth="1188.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotControlsViewController">
+<VBox maxHeight="1.7976931348623157E308" prefWidth="1188.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotControlsViewController">
     <ToolBar prefHeight="40.0">
         <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false">
             <tooltip>
@@ -49,7 +48,7 @@
             <ColumnConstraints />
             <ColumnConstraints />
             <ColumnConstraints maxWidth="125.0" minWidth="120.0" prefWidth="125.0" />
-            <ColumnConstraints maxWidth="173.0" minWidth="154.0" prefWidth="173.0" />
+            <ColumnConstraints maxWidth="300.0" minWidth="154.0" prefWidth="300.0" />
 
         </columnConstraints>
         <rowConstraints>
@@ -123,23 +122,37 @@
                 <Insets bottom="5.0" left="5.0" right="3.0" top="5.0" />
             </GridPane.margin>
         </Button>
-        <Button fx:id="saveSnapshotAndCreateLogEntryButton" onAction="#saveSnapshot" prefWidth="120.0" text="%saveSnapshotAndCreateLogEntry" userData="true" GridPane.columnIndex="5" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+        <HBox GridPane.columnIndex="5" GridPane.rowIndex="0">
+            <RadioButton fx:id="readPVs" text="%readSnapshotFromPVs">
+            <HBox.margin>
+               <Insets right="5.0" />
+            </HBox.margin></RadioButton>
+            <RadioButton fx:id="readFromArchiver" text="%readSnapshotFromArchiver" />
             <GridPane.margin>
-                <Insets bottom="5.0" right="5.0" top="5.0" />
+                <Insets bottom="5.0" left="5.0" top="5.0" />
+            </GridPane.margin>
+        </HBox>
+        <CheckBox fx:id="logAction" text="%logAction" GridPane.columnIndex="4" GridPane.columnSpan="2" GridPane.rowIndex="3">
+            <GridPane.margin>
+               <Insets bottom="5.0" left="5.0" top="5.0" />
             </GridPane.margin>
             <tooltip>
-                <Tooltip text="%createLogEntryToolTip" />
+                <Tooltip text="%logActionTooltip" />
             </tooltip>
-        </Button>
-
-        <Button fx:id="restoreAndLogButton" onAction="#restore" prefWidth="120.0" text="%restoreAndLog" userData="true" GridPane.columnIndex="5" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-            <GridPane.margin>
-                <Insets bottom="5.0" right="5.0" top="5.0" />
-            </GridPane.margin>
-            <tooltip>
-                <Tooltip text="%createLogEntryToolTip" />
-            </tooltip>
-        </Button>
+        </CheckBox>
+      <HBox GridPane.columnIndex="5" GridPane.rowIndex="2">
+         <children>
+            <RadioButton fx:id="restoreFromClient" text="%restoreFromClient">
+               <HBox.margin>
+                  <Insets right="5.0" />
+               </HBox.margin>
+            </RadioButton>
+            <RadioButton fx:id="restoreFromService" text="%restoreFromService" />
+         </children>
+         <GridPane.margin>
+            <Insets bottom="5.0" left="5.0" top="5.0" />
+         </GridPane.margin>
+      </HBox>
 
     </GridPane>
     <ToolBar fx:id="filterToolbar" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="1188.0">

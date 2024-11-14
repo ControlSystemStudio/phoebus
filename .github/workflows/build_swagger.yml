@@ -1,0 +1,31 @@
+name: build Swagger documentation
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Maven and Java Action
+      uses: s4u/setup-maven-action@v1.13.0
+      with:
+        java-version: '17'
+        maven-version: '3.9.6'
+    - name: Get swagger.json
+      run: |
+        cd ./services/alarm-logger
+        mvn spring-boot:run &
+        export jobpid="$!"
+        sleep 30
+        curl http://localhost:8080/v3/api-docs --output ../../docs/swagger.json
+        kill "$jobpid"
+    - name: Archive swagger.json
+      uses: actions/upload-artifact@v4
+      with:
+        name: swagger.json
+        path: docs/swagger.json

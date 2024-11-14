@@ -85,6 +85,10 @@ public class PVItem extends ModelItem
      * the live buffer is too small to show all the data */
     private boolean automaticRefresh = Preferences.automatic_history_refresh;
 
+    /** Indicates whether the display name has been updated for the first time.
+     * once upon the first reception of a value from the PV*/
+    private boolean checkDisplayName = false;
+
     /** Initialize
      *  @param name PV name
      *  @param period Scan period in seconds, &le;0 to 'monitor'
@@ -368,6 +372,12 @@ public class PVItem extends ModelItem
         // Set units unless already defined
         if (getUnits() == null)
             updateUnits(value);
+        if (!checkDisplayName)
+        {
+            if (getDisplayName().equals(getName()))
+                updateDescription(value);
+            this.checkDisplayName = true;
+        }
         if (automaticRefresh && added &&
             model.isPresent() &&
             samples.isHistoryRefreshNeeded(model.get().getTimerange()))
@@ -386,6 +396,26 @@ public class PVItem extends ModelItem
     {
         final Display display = Display.displayOf(value);
         setUnits(display.getUnit());
+    }
+
+    /**
+     * Updates the value axis label based on the {@link Preferences#value_axis_label_policy} property.
+     * If the property is set to pv-desc, then DESC field is used if defined and non-empty (works with pva only).
+     * @param value Value of PV update.
+     */
+    public void updateDescription(final VType value)
+    {
+        switch(Preferences.value_axis_label_policy){
+            case "pv-name":
+            default:
+                return;
+            case "pv-desc":
+                final Display display = Display.displayOf(value);
+                if (display.getDescription() != null && !display.getDescription().isEmpty()){
+                    setDisplayName(display.getDescription());
+                }
+                break;
+        }
     }
 
     /** Scan, i.e. add 'current' value to live samples */

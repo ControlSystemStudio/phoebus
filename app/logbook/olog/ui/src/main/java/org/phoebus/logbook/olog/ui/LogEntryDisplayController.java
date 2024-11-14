@@ -23,16 +23,22 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
+import org.phoebus.ui.javafx.ImageCache;
 
 
 public class LogEntryDisplayController {
@@ -52,11 +58,22 @@ public class LogEntryDisplayController {
     @FXML
     private Button replyButton;
     @FXML
+    private Region spring;
+    @FXML
+    private Button goBackButton;
+    @FXML
+    private Button goForwardButton;
+    @FXML
     private BorderPane emptyPane;
     @FXML
     private Node singleLogEntryDisplay;
     @FXML
     private Node mergedLogEntryDisplay;
+
+    ImageView goBackButtonIcon = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/backward_nav.png");
+    ImageView goBackButtonIconDisabled = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/backward_disabled.png");
+    ImageView goForwardButtonIcon = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/forward_nav.png");
+    ImageView goForwardButtonIconDisabled = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/forward_disabled.png");
 
     private final SimpleObjectProperty<LogEntry> logEntryProperty =
             new SimpleObjectProperty<>();
@@ -82,6 +99,19 @@ public class LogEntryDisplayController {
                 .bind(Bindings.createBooleanBinding(() -> currentViewProperty.get() == SINGLE, currentViewProperty));
         mergedLogEntryDisplay.visibleProperty()
                 .bind(Bindings.createBooleanBinding(() -> currentViewProperty.get() == MERGED, currentViewProperty));
+        HBox.setHgrow(spring, Priority.ALWAYS); // Spring to make subsequent elements right-aligned in the toolbar.
+
+        {
+            ChangeListener<Boolean> goBackButtonDisabledPropertyChangeListener = (property, oldValue, newValue) -> goBackButton.setGraphic(newValue ? goBackButtonIconDisabled : goBackButtonIcon);
+            goBackButton.disableProperty().addListener(goBackButtonDisabledPropertyChangeListener);
+            goBackButtonDisabledPropertyChangeListener.changed(goBackButton.disableProperty(), false, true);
+        }
+
+        {
+            ChangeListener<Boolean> goForwardButtonDisabledPropertyChangeListener = (property, oldValue, newValue) -> goForwardButton.setGraphic(newValue ? goForwardButtonIconDisabled : goForwardButtonIcon);
+            goForwardButton.disableProperty().addListener(goForwardButtonDisabledPropertyChangeListener);
+            goForwardButtonDisabledPropertyChangeListener.changed(goForwardButton.disableProperty(), false, true);
+        }
     }
 
     @FXML
@@ -116,17 +146,37 @@ public class LogEntryDisplayController {
         new LogEntryEditorStage(new OlogLog(),  null, null).show();
     }
 
-    public void setLogEntry(LogEntry logEntry) {
-        if(logEntry == null){
-            currentViewProperty.set(EMPTY);
+    @FXML
+    public void goBack() {
+        if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
+            logEntryTableViewController.goBackAndGoForwardActions.get().goBack();
         }
-        else{
-            logEntryProperty.set(logEntry);
-            singleLogEntryDisplayController.setLogEntry(logEntry);
-            currentViewProperty.set(SINGLE);
-            showHideLogEntryGroupButton.selectedProperty().set(false);
-            hasLinkedEntriesProperty.set(logEntry.getProperties()
-                    .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));
+    }
+
+    @FXML
+    public void goForward() {
+        if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
+            logEntryTableViewController.goBackAndGoForwardActions.get().goForward();
+        }
+    }
+
+    /**
+     * Sets/renders the {@link LogEntry} in the view unless already rendered or unedited.
+     * @param logEntry A non-null {@link LogEntry}
+     */
+    public void setLogEntry(LogEntry logEntry) {
+        if(logEntryProperty.get() == null ||
+                !logEntryProperty.get().getId().equals(logEntry.getId()) ||
+                (logEntry.getModifiedDate() != null &&
+                        !logEntry.getModifiedDate().equals(logEntryProperty.get().getModifiedDate()))) {
+            Platform.runLater(() -> {
+                logEntryProperty.set(logEntry);
+                singleLogEntryDisplayController.setLogEntry(logEntry);
+                currentViewProperty.set(SINGLE);
+                showHideLogEntryGroupButton.selectedProperty().set(false);
+                hasLinkedEntriesProperty.set(logEntry.getProperties()
+                        .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));;
+            });
         }
     }
 
@@ -134,18 +184,11 @@ public class LogEntryDisplayController {
         return logEntryProperty.get();
     }
 
-    /**
-     * Updates the current {@link LogEntry} if it matches the passed argument.
-     * @param logEntry A log entry that has been updated by user and saved by service.
-     */
-    public void updateLogEntry(LogEntry logEntry){
-        // Log entry display may be "empty", i.e. logEntryProperty not set yet
-        if(!logEntryProperty.isNull().get() && logEntryProperty.get().getId().equals(logEntry.getId())){
-            setLogEntry(logEntry);
-        }
-    }
-
     public void setLogEntryTableViewController(LogEntryTableViewController logEntryTableViewController){
         this.logEntryTableViewController = logEntryTableViewController;
+        if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
+            goBackButton.disableProperty().bind(Bindings.isEmpty(logEntryTableViewController.goBackAndGoForwardActions.get().goBackActions));
+            goForwardButton.disableProperty().bind(Bindings.isEmpty(logEntryTableViewController.goBackAndGoForwardActions.get().goForwardActions));
+        }
     }
 }

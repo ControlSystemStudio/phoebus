@@ -25,4 +25,13 @@ public class FileBrowserToolbarEntry implements ToolbarEntry {
         ApplicationService.createInstance(FileBrowserApp.Name);
         return null;
     }
+
+    /**
+     * DO NOT CHANGE RETURN VALUE!
+     * @return The unique id of this {@link ToolbarEntry}.
+     */
+    @Override
+    public String getId(){
+        return "File Browser";
+    }
 }

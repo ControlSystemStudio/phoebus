@@ -27,7 +27,7 @@ public class LogEntryTableMenuEntry implements MenuEntry
     @Override
     public String getName()
     {
-        return LogEntryTableApp.DISPLAYNAME;
+        return LogEntryTableApp.DISPLAY_NAME;
     }
 
     @Override

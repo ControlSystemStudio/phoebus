@@ -23,6 +23,7 @@ public interface NodeChangedListener {
 
     /**
      * To be called when an existing node has been changed, e.g. renamed or a property has changed.
+     *
      * @param node The updated node.
      */
     void nodeChanged(Node node);

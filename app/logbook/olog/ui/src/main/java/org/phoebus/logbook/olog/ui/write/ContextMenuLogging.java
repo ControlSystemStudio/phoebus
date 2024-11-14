@@ -51,5 +51,4 @@ public class ContextMenuLogging implements ContextMenuEntry {
     public Class<?> getSupportedType() {
         return supportedType;
     }
-
 }
