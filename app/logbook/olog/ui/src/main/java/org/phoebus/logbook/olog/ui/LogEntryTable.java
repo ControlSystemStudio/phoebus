@@ -172,7 +172,7 @@ public class LogEntryTable implements AppInstance {
             }
         }
 
-        private void loadLogEntryWithID(Long id) {
+        protected void loadLogEntryWithID(Long id) {
             goForwardActions.clear();
             addGoBackAction();
 

@@ -27,6 +27,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.image.ImageView;
@@ -69,6 +70,8 @@ public class LogEntryDisplayController {
     private Node singleLogEntryDisplay;
     @FXML
     private Node mergedLogEntryDisplay;
+    @FXML
+    private TextField jumpToLogEntryTextField;
 
     ImageView goBackButtonIcon = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/backward_nav.png");
     ImageView goBackButtonIconDisabled = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/backward_disabled.png");
@@ -130,6 +133,22 @@ public class LogEntryDisplayController {
             });
         } else {
             currentViewProperty.set(SINGLE);
+        }
+    }
+
+    @FXML
+    public void jumpToLogEntry() {
+        String logEntryIDToJumpToString = jumpToLogEntryTextField.getText();
+        long logEntryIDToJumpTo;
+        try {
+            logEntryIDToJumpTo = Long.parseLong(logEntryIDToJumpToString);
+        }
+        catch (NumberFormatException numberFormatException) {
+            return;
+        }
+
+        if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
+            logEntryTableViewController.goBackAndGoForwardActions.get().loadLogEntryWithID(logEntryIDToJumpTo);
         }
     }
 
