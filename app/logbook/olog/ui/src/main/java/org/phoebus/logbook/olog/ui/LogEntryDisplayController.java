@@ -117,6 +117,17 @@ public class LogEntryDisplayController {
         }
 
         jumpToLogEntryTextField.setPromptText("Log Entry ID");
+        jumpToLogEntryTextField.focusedProperty().addListener((property, oldValue, newValue) -> {
+            if (oldValue && !newValue) {
+                // When clicking away without first pressing enter, restore the current value of jumpToLogEntryTextField:
+                if (logEntryProperty.get() != null) {
+                    jumpToLogEntryTextField.setText(logEntryProperty.get().getId().toString());
+                }
+                else {
+                    jumpToLogEntryTextField.setText("");
+                }
+            }
+        });
     }
 
     @FXML
