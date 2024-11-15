@@ -115,6 +115,8 @@ public class LogEntryDisplayController {
             goForwardButton.disableProperty().addListener(goForwardButtonDisabledPropertyChangeListener);
             goForwardButtonDisabledPropertyChangeListener.changed(goForwardButton.disableProperty(), false, true);
         }
+
+        jumpToLogEntryTextField.setPromptText("Log Entry ID");
     }
 
     @FXML
