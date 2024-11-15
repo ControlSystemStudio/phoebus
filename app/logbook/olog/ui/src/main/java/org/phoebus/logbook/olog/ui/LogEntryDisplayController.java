@@ -116,7 +116,7 @@ public class LogEntryDisplayController {
             goForwardButtonDisabledPropertyChangeListener.changed(goForwardButton.disableProperty(), false, true);
         }
 
-        jumpToLogEntryTextField.setPromptText("Log Entry ID");
+        jumpToLogEntryTextField.setPromptText(Messages.LogEntryID);
         jumpToLogEntryTextField.focusedProperty().addListener((property, oldValue, newValue) -> {
             if (oldValue && !newValue) {
                 // When clicking away without first pressing enter, restore the current value of jumpToLogEntryTextField:

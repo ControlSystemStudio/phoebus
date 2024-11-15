@@ -44,6 +44,7 @@ public class Messages
             LogbooksSearchFailTitle,
             LogbookServiceUnavailableTitle,
             LogbookServiceHasNoLogbooks,
+            LogEntryID,
             NewLogEntry,
             NoAttachments,
             NoClipboardContent,
