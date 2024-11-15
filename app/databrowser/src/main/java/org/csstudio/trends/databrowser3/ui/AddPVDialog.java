@@ -253,7 +253,7 @@ public class AddPVDialog extends Dialog<Boolean>
     {
         nameAndDisplayNames.get(i).getKey().setText(pvName);
         nameAndDisplayNames.get(i).getValue().setText("");
-        nameAndDisplayNames.get(i).getValue().setPromptText("Default");
+        nameAndDisplayNames.get(i).getValue().setPromptText(Messages.DefaultDisplayName);
     }
 
     /** @param i Index

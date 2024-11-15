@@ -65,6 +65,7 @@ public class Messages
                          CursorValueTT,
                          DataBrowser,
                          DataBrowserMenuPath,
+                         DefaultDisplayName,
                          DeleteAxis,
                          DeleteAxisWarningFmt,
                          DeleteItem,
