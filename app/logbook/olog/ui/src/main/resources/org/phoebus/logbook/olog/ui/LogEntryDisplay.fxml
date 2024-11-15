@@ -33,7 +33,7 @@
                 <ToggleButton fx:id="showHideLogEntryGroupButton" contentDisplay="RIGHT" mnemonicParsing="false"
                               text="%ShowHideLogEntryGroup" disable="true" onAction="#showHideLogEntryGroup"/>
                 <Region fx:id="spring" /> <!-- Spring to make the next elements right-aligned. -->
-                <Label text="Jump to log-entry: " />
+                <Label text="%JumpToLogEntry" />
                 <TextField fx:id="jumpToLogEntryTextField" onAction="#jumpToLogEntry" alignment="CENTER" prefWidth="100"/>
                 <Button fx:id="goBackButton" mnemonicParsing="false"
                         onAction="#goBack" text="%Back" disable="true" />

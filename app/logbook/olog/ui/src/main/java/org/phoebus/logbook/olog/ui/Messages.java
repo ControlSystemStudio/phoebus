@@ -38,6 +38,7 @@ public class Messages
             Forward,
             GroupingFailed,
             GroupSelectedEntries,
+            JumpToLogEntry,
             Level,
             Logbook,
             LogbookNotSupported,
