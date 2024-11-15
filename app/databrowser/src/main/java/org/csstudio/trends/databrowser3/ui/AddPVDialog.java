@@ -169,6 +169,15 @@ public class AddPVDialog extends Dialog<Boolean>
             useTheSameAxisForAllPVs = true;
             radioButton_useTheSame.setSelected(true);
             row += 1;
+
+            if (Preferences.assign_pvs_from_clipboard_to_the_same_axis_by_default) {
+                radioButton_useTheSame.setSelected(true);
+                radioButton_useTheSame.getOnAction().handle(null);
+            }
+            else {
+                radioButton_useDifferent.setSelected(true);
+                radioButton_useDifferent.getOnAction().handle(null);
+            }
         }
 
         for (int i=0; i<count; ++i)
@@ -232,7 +241,7 @@ public class AddPVDialog extends Dialog<Boolean>
         }
         ScrollPane scrollPane = new ScrollPane(gridPane);
         scrollPane.setFitToWidth(true);
-        axes.forEach(axis -> axis.setDisable(true)); // By default, the "yes" radio button is selected, and individual axes for each PV are disabled.
+        axes.forEach(axis -> axis.setDisable(useTheSameAxisForAllPVs)); // When the "use the same axis for all PVs" radio button is selected, then individual axes for each PV are disabled. Otherwise, they are enabled.
         return scrollPane;
     }
 
