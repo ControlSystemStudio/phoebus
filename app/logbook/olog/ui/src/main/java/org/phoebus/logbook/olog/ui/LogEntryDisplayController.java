@@ -194,7 +194,8 @@ public class LogEntryDisplayController {
                 currentViewProperty.set(SINGLE);
                 showHideLogEntryGroupButton.selectedProperty().set(false);
                 hasLinkedEntriesProperty.set(logEntry.getProperties()
-                        .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));;
+                        .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));
+                jumpToLogEntryTextField.setText(logEntryProperty.get().getId().toString());
             });
         }
     }
