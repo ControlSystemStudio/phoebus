@@ -24,7 +24,7 @@ import javafx.scene.layout.BorderPane;
  */
 public class MultiLineInputDialog extends Dialog<String>
 {
-    private final TextArea text;
+    protected final TextArea text;
 
     /** @param initial_text Initial text */
     public MultiLineInputDialog(final String initial_text)
