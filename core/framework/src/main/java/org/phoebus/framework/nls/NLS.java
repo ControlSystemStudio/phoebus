@@ -7,15 +7,22 @@
  ******************************************************************************/
 package org.phoebus.framework.nls;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -141,4 +148,112 @@ public class NLS
 
         return bundle;
     }
+
+
+    /**
+     * Use for unit test only
+     * Check if the existing messages_{LOCALE}.properties are synchronized on default messages.propertiesresource
+     * 
+     * @param clazz Class relative to which message resources are located
+     * @return the list of difference between the default ressources , null or empty if it is synchronized
+     */
+    public static List<String> checkMessageFilesDifferences(Class<?> clazz) {
+
+        List<String> differences = new ArrayList<>();
+        if (clazz != null) {
+            try {
+                String MESSAGE = "messages";
+                URL resource = clazz.getResource(MESSAGE + ".properties");
+                String filePath = resource.getFile();
+                if (filePath != null) {
+                    File defaultFile = new File(filePath);
+                    Properties defaultBundle = new Properties();
+                    defaultBundle.load(new FileInputStream(defaultFile));
+                    File parent = defaultFile.getParentFile();
+                    FilenameFilter fileNameFilter = new FilenameFilter() {
+
+                        @Override
+                        public boolean accept(File dir, String name) {
+                            return name.startsWith(MESSAGE) && name.endsWith(".properties");
+                        }
+                    };
+
+                    File[] listFiles = parent.listFiles(fileNameFilter);
+                    if (listFiles != null && listFiles.length > 0) {
+                        System.out.println("Number of languages found  =" + listFiles.length);
+                        String fileName = null;
+                        String countryCode = null;
+                        String countryName = null;
+                        Properties compareBundle = null;
+                        Object key = null;
+                        Locale locale = null;
+                        Enumeration<Object> compareKeys = null;
+                        Enumeration<Object> defaultKeys = null;
+                        for (File tmpFile : listFiles) {
+                            fileName = tmpFile.getName();
+                            // Do not compare to itself
+                            if (!fileName.equalsIgnoreCase(defaultFile.getName())) {
+                                // Extract the country code
+                                countryCode = fileName.replaceFirst(MESSAGE + "_", "");
+                                countryCode = countryCode.replace(".properties", "");
+                                locale = getLocaleFromCountryCode(countryCode);
+                                if (locale != null) {
+                                    countryName = locale.getDisplayCountry();
+                                    compareBundle = new Properties();
+                                    compareBundle.load(new FileInputStream(tmpFile));
+                                    // Check if the key exist in the LOCAL file
+                                    System.out.println("Compare " + tmpFile.getName() +" to "+ defaultFile.getName());
+                                    defaultKeys = defaultBundle.keys();
+                                    while (defaultKeys.hasMoreElements()) {
+                                        key = defaultKeys.nextElement();
+                                        if (!compareBundle.containsKey(key)) {
+                                            differences.add("Missing " + key + " in " + countryName + " resource "
+                                                    + fileName);
+                                        }
+                                    }
+
+                                    // Check if there are some key to remove in LOCAL file
+                                    compareKeys = compareBundle.keys();
+                                    while (compareKeys.hasMoreElements()) {
+                                        key = compareKeys.nextElement();
+                                        if (!defaultBundle.containsKey(key)) {
+                                            differences.add("Remove " + key + " in " + countryName + " resource "
+                                                    + fileName);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return differences;
+
+    }
+    
+    /**
+     * To get Locale from a countryCode
+     * 
+     * @param countryCode (fr , en ..."
+     * @return Locale
+     */
+    private static Locale getLocaleFromCountryCode(String countryCode) {
+        Locale localFound = null;
+        if (countryCode != null && !countryCode.isEmpty()) {
+            Locale[] availableLocales = Locale.getAvailableLocales();
+            for (Locale locale : availableLocales) {
+                if (locale.getCountry().toLowerCase().equals(countryCode.toLowerCase())) {
+                    localFound = locale;
+                    break;
+                }
+            }
+        }
+        return localFound;
+    }
+
 }

@@ -89,6 +89,21 @@ public class NLSMessagesTest
         System.out.println("Message missing from all localizations: " + MissingMessage);
         assertThat(MissingMessage, equalTo("<MissingMessage>"));
     }
+    
+    /** Check if all the messages file are synchronized with the default one */
+    @Test
+    public void testUpdateMessages() {
+        System.out.println("**compare messages.properties files***");
+        java.util.List<String> difference = NLS.checkMessageFilesDifferences(NLSMessagesTest.class);
+        System.out.println("**There is " + (difference != null ? difference.size() : 0) + " difference(s) found**");
+        if(difference != null && !difference.isEmpty()) {
+            for(String dif : difference) {
+                System.out.println(dif);
+            }
+        }
+        assertThat("Differences between properties", difference.size() == 3);
+    }
+     
 
     @AfterAll
     public static void restoreLocale()
