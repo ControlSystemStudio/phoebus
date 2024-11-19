@@ -41,8 +41,13 @@ import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.javafx.ImageCache;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 public class LogEntryDisplayController {
+
+    static Logger log = Logger.getLogger(LogEntryDisplayController.class.getName());
 
     @FXML
     @SuppressWarnings("unused")
@@ -160,8 +165,13 @@ public class LogEntryDisplayController {
             return;
         }
 
-        if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
-            logEntryTableViewController.goBackAndGoForwardActions.get().loadLogEntryWithID(logEntryIDToJumpTo);
+        if (logEntryIDToJumpTo > 0) {
+            if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
+                boolean success = logEntryTableViewController.goBackAndGoForwardActions.get().loadLogEntryWithID(logEntryIDToJumpTo);
+                if (!success) {
+                    log.log(Level.WARNING, "Error loading entry with log entry ID: " + logEntryIDToJumpTo + ".");
+                }
+            }
         }
     }
 

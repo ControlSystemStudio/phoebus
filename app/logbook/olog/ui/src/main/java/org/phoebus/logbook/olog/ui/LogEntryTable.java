@@ -172,12 +172,18 @@ public class LogEntryTable implements AppInstance {
             }
         }
 
-        protected void loadLogEntryWithID(Long id) {
+        protected boolean loadLogEntryWithID(Long id) {
             goForwardActions.clear();
             addGoBackAction();
 
-            LogEntry logEntry = controller.client.getLog(id);
-            gotoLogEntry(logEntry);
+            try {
+                LogEntry logEntry = controller.client.getLog(id);
+                gotoLogEntry(logEntry);
+                return true;
+            }
+            catch (RuntimeException runtimeException) {
+                return false;
+            }
         }
 
         protected void goBack() {
