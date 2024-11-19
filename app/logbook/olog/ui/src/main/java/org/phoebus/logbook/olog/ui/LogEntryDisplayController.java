@@ -173,6 +173,7 @@ public class LogEntryDisplayController {
                 }
             }
         }
+        Platform.runLater(() -> jumpToLogEntryTextField.end());
     }
 
     @FXML
