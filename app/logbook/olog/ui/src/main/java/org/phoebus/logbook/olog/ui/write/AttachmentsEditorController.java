@@ -23,6 +23,7 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.ListChangeListener;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -50,20 +51,26 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class AttachmentsEditorController {
 
     @FXML
+    @SuppressWarnings("unused")
     private Button removeButton;
 
     @FXML
+    @SuppressWarnings("unused")
     private Button embedSelectedButton;
 
     @FXML
+    @SuppressWarnings("unused")
     private VBox root;
 
     private TextArea textArea;
@@ -84,9 +91,11 @@ public class AttachmentsEditorController {
     private final LogEntry logEntry;
 
     @FXML
+    @SuppressWarnings("unused")
     private Label sizeLimitsLabel;
 
     @FXML
+    @SuppressWarnings("unused")
     private Label sizesErrorLabel;
 
     private final SimpleStringProperty sizesErrorMessage = new SimpleStringProperty();
@@ -127,12 +136,12 @@ public class AttachmentsEditorController {
 
         attachmentsViewController.setAttachments(logEntry.getAttachments());
 
-        filesToDeleteAfterSubmit.addAll(logEntry.getAttachments().stream().map(Attachment::getFile).collect(Collectors.toList()));
+        filesToDeleteAfterSubmit.addAll(logEntry.getAttachments().stream().map(Attachment::getFile).toList());
 
         removeButton.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         removeButton.disableProperty().bind(Bindings.isEmpty(attachmentsViewController.getSelectedAttachments()));
 
-        attachmentsViewController.addListSelectionChangeListener(change -> {
+        attachmentsViewController.getSelectedAttachments().addListener((ListChangeListener<Attachment>) change -> {
             // Enable "Embed Selected" button only if exactly one image attachment is selected.
             imageAttachmentSelected.set(attachmentsViewController.getSelectedAttachments().size() == 1 &&
                     attachmentsViewController.getSelectedAttachments().get(0).getContentType().toLowerCase().startsWith("image"));
@@ -148,6 +157,7 @@ public class AttachmentsEditorController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void addFiles() {
         Platform.runLater(() -> sizesErrorMessage.set(null));
         final FileChooser addFilesDialog = new FileChooser();
@@ -160,12 +170,14 @@ public class AttachmentsEditorController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void addCssWindow() {
         Image image = Screenshot.imageFromNode(DockPane.getActiveDockPane());
         addImage(image);
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void addClipboardContent() {
         Platform.runLater(() -> sizesErrorMessage.set(null));
         Clipboard clipboard = Clipboard.getSystemClipboard();
@@ -183,6 +195,7 @@ public class AttachmentsEditorController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void removeFiles() {
         List<Attachment> attachmentsToRemove =
                 new ArrayList<>(attachmentsViewController.getSelectedAttachments());
@@ -195,10 +208,11 @@ public class AttachmentsEditorController {
                 }
             }
         });
-        attachmentsViewController.removeAttachments(attachmentsToRemove);
+        attachmentsViewController.getAttachments().removeAll(attachmentsToRemove);
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void embedImage() {
         EmbedImageDialog embedImageDialog = new EmbedImageDialog();
         Optional<EmbedImageDescriptor> descriptor = embedImageDialog.showAndWait();
@@ -210,6 +224,7 @@ public class AttachmentsEditorController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void embedSelected() {
         // Just in case... launch dialog only if the first item in the selection is an image
         if (attachmentsViewController.getSelectedAttachments().get(0).getContentType().toLowerCase().startsWith("image")) {
@@ -285,7 +300,7 @@ public class AttachmentsEditorController {
             } else {
                 ologAttachment.setContentType("file");
             }
-            attachmentsViewController.addAttachment(ologAttachment);
+            attachmentsViewController.addAttachments(List.of(ologAttachment));
         }
     }
 
@@ -312,7 +327,7 @@ public class AttachmentsEditorController {
             ologAttachment.setContentType("image");
             ologAttachment.setFile(imageFile);
             ologAttachment.setFileName(imageFile.getName());
-            attachmentsViewController.addAttachment(ologAttachment);
+            attachmentsViewController.addAttachments(List.of(ologAttachment));
             filesToDeleteAfterSubmit.add(ologAttachment.getFile());
         } catch (IOException e) {
             Logger.getLogger(AttachmentsEditorController.class.getName())
