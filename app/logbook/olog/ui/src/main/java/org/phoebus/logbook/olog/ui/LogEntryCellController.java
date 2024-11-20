@@ -105,7 +105,6 @@ public class LogEntryCellController {
         this.decorations = decorations;
     }
 
-    @FXML
     public void refresh() {
 
         decorationNodes.getChildren().clear();
