@@ -6,8 +6,6 @@ import org.phoebus.logbook.LogEntry;
 import java.util.List;
 
 public interface Decoration {
-    public Node getDecorationInputNode();
-
     public void setLogEntries(List<LogEntry> logEntries);
 
     public void setRefreshLogEntryTableView(Runnable refreshLogEntryTableView);

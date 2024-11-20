@@ -66,7 +66,7 @@ public class LogEntryTable implements AppInstance {
                             logEntryTableViewController.setDecorations(decorations);
                             return logEntryTableViewController;
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
-                            return clazz.getConstructor(LogClient.class, SearchParameters.class, List.class).newInstance(app.getClient(), searchParameters, decorations.stream().map(decoration -> decoration.getDecorationInputNode()).toList());
+                            return clazz.getConstructor(LogClient.class, SearchParameters.class).newInstance(app.getClient(), searchParameters);
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                             SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                             singleLogEntryDisplayController.setSelectLogEntryInUI(id -> goBackAndGoForwardActions.loadLogEntryWithID(id));

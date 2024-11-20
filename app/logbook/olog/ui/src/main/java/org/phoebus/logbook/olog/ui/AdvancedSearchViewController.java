@@ -65,9 +65,6 @@ public class AdvancedSearchViewController {
     static final Logger logger = Logger.getLogger(AdvancedSearchViewController.class.getName());
 
     @FXML
-    public VBox decorationInputNodesVBox;
-
-    @FXML
     Label levelLabel;
 
     @FXML
@@ -116,18 +113,14 @@ public class AdvancedSearchViewController {
     private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty requireAttachments = new SimpleBooleanProperty(false);
 
-    private List<Node> decorationInputNodes;
-
     private Runnable searchCallback = () -> {
         throw new IllegalStateException("Search callback is not set on AdvancedSearchViewController!");
     };
 
     public AdvancedSearchViewController(LogClient logClient,
-                                        SearchParameters searchParameters,
-                                        List<Node> decorationInputNodes) {
+                                        SearchParameters searchParameters) {
         this.logClient = logClient;
         this.searchParameters = searchParameters;
-        this.decorationInputNodes = decorationInputNodes;
     }
 
     public void setSearchCallback(Runnable searchCallback) {
@@ -305,10 +298,6 @@ public class AdvancedSearchViewController {
         sortDescRadioButton.setOnAction(ae -> sortAscending.set(false));
 
         sortAscRadioButton.setOnAction(ae -> sortAscending.set(true));
-
-        if (decorationInputNodes != null) {
-            decorationInputNodesVBox.getChildren().addAll(decorationInputNodes);
-        }
     }
 
     public AnchorPane getPane() {

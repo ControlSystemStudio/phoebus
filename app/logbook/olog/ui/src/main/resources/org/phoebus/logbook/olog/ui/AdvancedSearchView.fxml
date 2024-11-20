@@ -120,8 +120,7 @@
                             <Insets />
                         </GridPane.margin>
                     </Label>
-                    <TextField fx:id="attachmentTypes" GridPane.columnSpan="2" GridPane.rowIndex="18"/>
-                    <VBox fx:id="decorationInputNodesVBox" GridPane.columnSpan="2" GridPane.rowIndex="19" />
+                    <TextField fx:id="attachmentTypes" GridPane.columnSpan="2" GridPane.rowIndex="18" />
                 </children>
             </GridPane>
         </children>
