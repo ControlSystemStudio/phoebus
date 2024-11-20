@@ -178,6 +178,7 @@ public class LogPropertiesEditorController {
             return;
         }
         selectedProperties.addAll(properties);
+        availableProperties.removeAll(properties);
     }
 
     /**

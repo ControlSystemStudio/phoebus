@@ -49,8 +49,8 @@
                  <HBox fx:id="templateControls" alignment="CENTER_RIGHT" spacing="5.0">
                     <children>
                         <Label prefWidth="80" text="%Templates" />
-                        <ComboBox fx:id="templateSelector" prefWidth="200"/>
-                        <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS"/>
+                        <ComboBox fx:id="templateSelector" prefWidth="200" visibleRowCount="10" />
+                        <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS" />
                     </children>
                 </HBox>
                 <HBox alignment="CENTER_RIGHT" spacing="5.0">

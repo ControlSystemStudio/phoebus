@@ -66,7 +66,6 @@ import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
-import org.phoebus.logbook.olog.ui.menu.SendToLogBookApp;
 import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
@@ -99,16 +98,22 @@ public class LogEntryEditorController {
     private final Logger logger = Logger.getLogger(LogEntryEditorController.class.getName());
 
     @FXML
+    @SuppressWarnings("unused")
     private VBox editorPane;
     @FXML
+    @SuppressWarnings("unused")
     private VBox errorPane;
     @FXML
+    @SuppressWarnings("unused")
     private Button submitButton;
     @FXML
+    @SuppressWarnings("unused")
     private Button cancelButton;
     @FXML
+    @SuppressWarnings("unused")
     private ProgressIndicator progressIndicator;
     @FXML
+    @SuppressWarnings("unused")
     private Label completionMessageLabel;
 
     @SuppressWarnings("unused")
@@ -119,42 +124,61 @@ public class LogEntryEditorController {
     private LogPropertiesEditorController logPropertiesEditorController;
 
     @FXML
+    @SuppressWarnings("unused")
     private Label userFieldLabel;
     @FXML
+    @SuppressWarnings("unused")
     private Label passwordFieldLabel;
     @FXML
+    @SuppressWarnings("unused")
     private TextField userField;
     @FXML
+    @SuppressWarnings("unused")
     private TextField dateField;
     @FXML
+    @SuppressWarnings("unused")
     private PasswordField passwordField;
     @FXML
+    @SuppressWarnings("unused")
     private Label levelLabel;
     @FXML
+    @SuppressWarnings("unused")
     private ComboBox<String> levelSelector;
     @FXML
+    @SuppressWarnings("unused")
     private Label titleLabel;
     @FXML
+    @SuppressWarnings("unused")
     private TextField titleField;
     @FXML
+    @SuppressWarnings("unused")
     private TextArea textArea;
     @FXML
+    @SuppressWarnings("unused")
     private Button addLogbooks;
     @FXML
+    @SuppressWarnings("unused")
     private Button addTags;
     @FXML
+    @SuppressWarnings("unused")
     private ToggleButton logbooksDropdownButton;
     @FXML
+    @SuppressWarnings("unused")
     private ToggleButton tagsDropdownButton;
     @FXML
+    @SuppressWarnings("unused")
     private Label logbooksLabel;
     @FXML
+    @SuppressWarnings("unused")
     private TextField logbooksSelection;
     @FXML
+    @SuppressWarnings("unused")
     private TextField tagsSelection;
     @FXML
+    @SuppressWarnings("unused")
     private HBox templateControls;
     @FXML
+    @SuppressWarnings("unused")
     private ComboBox<LogTemplate> templateSelector;
 
     private final ContextMenu logbookDropDown = new ContextMenu();
@@ -202,10 +226,6 @@ public class LogEntryEditorController {
      */
     private String originalTitle = "";
 
-    /**
-     * Version of remote service
-     */
-    private String serverVersion;
 
     public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, LogEntryCompletionHandler logEntryCompletionHandler) {
         this.replyTo = inReplyTo;
@@ -313,12 +333,12 @@ public class LogEntryEditorController {
         titleField.textProperty().bindBidirectional(titleProperty);
         titleProperty.addListener((changeListener, oldVal, newVal) ->
         {
-            if (newVal.trim().isEmpty()) {
+            if (newVal == null || newVal.trim().isEmpty()) {
                 titleLabel.setTextFill(Color.RED);
             } else {
                 titleLabel.setTextFill(Color.BLACK);
             }
-            if (!newVal.equals(originalTitle)) {
+            if (newVal != null && !newVal.equals(originalTitle)) {
                 isDirty = true;
             }
         });
@@ -403,7 +423,7 @@ public class LogEntryEditorController {
         );
 
         selectedTags.addListener((ListChangeListener<String>) change -> {
-            if(change.getList() == null){
+            if (change.getList() == null) {
                 return;
             }
             List<String> newSelection = new ArrayList<>(change.getList());
@@ -413,7 +433,7 @@ public class LogEntryEditorController {
         });
 
         selectedLogbooks.addListener((ListChangeListener<String>) change -> {
-            if(change.getList() == null){
+            if (change.getList() == null) {
                 return;
             }
             List<String> newSelection = new ArrayList<>(change.getList());
@@ -487,6 +507,7 @@ public class LogEntryEditorController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void showHelp() {
         new HelpViewer(LogbookUIPreferences.markup_help).show();
     }
@@ -495,12 +516,14 @@ public class LogEntryEditorController {
      * Handler for HTML preview button
      */
     @FXML
+    @SuppressWarnings("unused")
     public void showHtmlPreview() {
         new PreviewViewer(getDescription(), attachmentsEditorController.getAttachments()).show();
     }
 
 
     @FXML
+    @SuppressWarnings("unused")
     public void submit() {
 
         submissionInProgress.set(true);
@@ -563,6 +586,7 @@ public class LogEntryEditorController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void setLevel() {
         selectedLevelProperty.set(levelSelector.getSelectionModel().getSelectedItem());
     }
@@ -576,6 +600,7 @@ public class LogEntryEditorController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void addLogbooks() {
         logbooksPopOver.show(addLogbooks);
     }
@@ -597,15 +622,16 @@ public class LogEntryEditorController {
     private void setSelected(List<String> proposed, List<String> existing, Consumer<String> addFunction, Consumer<String> removeFunction) {
         List<String> addedTags = proposed.stream()
                 .filter(tag -> !existing.contains(tag))
-                .collect(Collectors.toList());
+                .toList();
         List<String> removedTags = existing.stream()
                 .filter(tag -> !proposed.contains(tag))
-                .collect(Collectors.toList());
+                .toList();
         addedTags.forEach(addFunction);
         removedTags.forEach(removeFunction);
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void selectLogbooks() {
         if (logbooksDropdownButton.isSelected()) {
             logbookDropDown.show(logbooksSelection, Side.BOTTOM, 0, 0);
@@ -615,6 +641,7 @@ public class LogEntryEditorController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void addTags() {
         tagsPopOver.show(addTags);
     }
@@ -634,6 +661,7 @@ public class LogEntryEditorController {
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void selectTags() {
         if (tagsDropdownButton.isSelected()) {
             tagDropDown.show(tagsSelection, Side.BOTTOM, 0, 0);
@@ -666,7 +694,7 @@ public class LogEntryEditorController {
             Collections.sort(availableLogbooksAsStringList);
 
             List<String> preSelectedLogbooks =
-                    logEntry.getLogbooks().stream().map(Logbook::getName).collect(Collectors.toList());
+                    logEntry.getLogbooks().stream().map(Logbook::getName).toList();
             List<String> defaultLogbooks = Arrays.asList(LogbookUIPreferences.default_logbooks);
             availableLogbooksAsStringList.forEach(logbook -> {
                 CheckBox checkBox = new CheckBox(logbook);
@@ -697,7 +725,7 @@ public class LogEntryEditorController {
             Collections.sort(availableLogbooksAsStringList);
 
             List<String> preSelectedTags =
-                    logEntry.getTags().stream().map(Tag::getName).collect(Collectors.toList());
+                    logEntry.getTags().stream().map(Tag::getName).toList();
             availableTagsAsStringList.forEach(tag -> {
                 CheckBox checkBox = new CheckBox(tag);
                 CustomMenuItem newTag = new CustomMenuItem(checkBox);
@@ -727,7 +755,6 @@ public class LogEntryEditorController {
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 JsonNode jsonNode = objectMapper.readTree(serverInfo);
-                serverVersion = jsonNode.get("version").asText();
                 attachmentsEditorController.setSizeLimits(jsonNode.get("serverConfig").get("maxFileSize").asText(),
                         jsonNode.get("serverConfig").get("maxRequestSize").asText());
             } catch (Exception e) {
@@ -797,12 +824,18 @@ public class LogEntryEditorController {
         }
     }
 
-    private void loadTemplate(LogTemplate logTemplate){
+    /**
+     * Loads template to configure UI elements.
+     * @param logTemplate A {@link LogTemplate} selected by user.
+     */
+    private void loadTemplate(LogTemplate logTemplate) {
         titleProperty.set(logTemplate.title());
         descriptionProperty.set(logTemplate.source());
         logPropertiesEditorController.setProperties(logTemplate.properties());
         selectedTags.setAll(logTemplate.tags().stream().map(Tag::getName).toList());
         selectedLogbooks.setAll(logTemplate.logbooks().stream().map(Logbook::getName).toList());
         levelSelector.getSelectionModel().select(logTemplate.level());
+        selectedTags.forEach(t -> updateDropDown(tagDropDown, t, true));
+        selectedLogbooks.forEach(l -> updateDropDown(logbookDropDown, l, true));
     }
 }
