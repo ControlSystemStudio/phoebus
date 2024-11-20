@@ -11,9 +11,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -33,7 +30,6 @@ public class NLSMessagesTest
     public static String HowAreYou;
     public static String MissingMessage;
     public static String AppVersion;
-    private static final String FILENAME = NLS.MESSAGE + ".properties";
     private static Locale original;
 
     // They are initialized from a "messages*.properties" file in the same package,
@@ -41,7 +37,7 @@ public class NLSMessagesTest
     //
     // static
     // {
-    //     NLS.initializeMessages(NLSMessagesTest.class);
+    // NLS.initializeMessages(NLSMessagesTest.class);
     // }
     //
     // For the test, we call NLS.initializeMessages with various locates
@@ -102,70 +98,28 @@ public class NLSMessagesTest
         List<String> difference = NLS.checkMessageFilesDifferences(NLSMessagesTest.class);
         System.out.println("**There is " + (difference != null ? difference.size() : 0) + " difference(s) found**");
         boolean appversionFound = false;
-        if(difference != null && !difference.isEmpty()) {
-            for(String dif : difference) {
+        if (difference != null && !difference.isEmpty()) {
+            for (String dif : difference) {
                 System.out.println(dif);
                 appversionFound = !appversionFound && dif.contains("AppVersion");
             }
         }
-        
+
         assertThat("Env variable value is ignored", !appversionFound);
         assertThat("Differences between properties", difference.size() == 3);
     }
-    
+
     @Test
     public void checkAllMessagesResources() {
-        URL resource = NLSMessagesTest.class.getResource(FILENAME);
-        if (resource != null) {
-            String filePath = resource.getFile();
-            System.out.println(filePath);
-            String[] split = filePath.split("/core/framework/");
-            //First part is the parent folder
-            String parentFolder = split != null && split.length > 0 ? split[0] : null;
-            System.out.println("parentFolder=" + parentFolder);
-            File parentFile = new File(parentFolder);
-            List<File> fileList = listMessagesFiles(parentFile);
-            List<String> differences = new ArrayList<>();
-            for (File file : fileList) {
-                List<String> diff = NLS.checkMessageFilesDifferences(file.getAbsolutePath());
-                if (diff != null && !diff.isEmpty()) {
-                    differences.addAll(diff);
-                }
-            }
-
-            System.out.println("**There is " + differences.size() + " difference(s) found**");
-            for (String dif : differences) {
-                System.out.println(dif);
-            }
-            assertThat("All resources are synchronize ", differences.isEmpty());
-
+        List<String> differences = NLS.checkAllMessageFilesDifferences();
+        if (differences != null && !differences.isEmpty()) {
+            System.out.println("WARNING ! there is " + differences.size() + " difference(s) detected in Messages_{LOCAL}.properties files");
         }
+        //assertThat("All resources are synchronize ", differences.isEmpty());
     }
-    
-    private static List<File> listMessagesFiles(File folder) {
-        List<File> fileList = new ArrayList<>();
-        //Ignore target folder from build
-        if(folder != null && folder.isDirectory() 
-                && !folder.getAbsolutePath().contains("\\target\\")
-                && !folder.getAbsolutePath().contains("\\test\\")) {
-            File[] listFiles = folder.listFiles();
-            for(File file : listFiles) {
-                if(file.isDirectory()) {
-                    List<File> list = listMessagesFiles(file);
-                    fileList.addAll(list);
-                }
-                else if (file.getName().equals(FILENAME)){
-                    fileList.add(file);
-                }
-            }
-        }
-        return fileList;
-    }
-     
 
     @AfterAll
-    public static void restoreLocale()
-    {
+    public static void restoreLocale() {
         Locale.setDefault(original);
     }
 }

@@ -158,12 +158,51 @@ public class NLS
     
     /**
      * Use for unit test only
+     * Check if all the existing messages_{LOCALE}.properties are synchronized on default messages.propertiesresource in the project
+     * 
+     * @return the list of difference between the default resources , null or empty if it is synchronized
+     */
+    public static List<String> checkAllMessageFilesDifferences(){
+        List<String> differences = new ArrayList<>();
+        URL resource = NLS.class.getResource("CheckMessagesFiles.txt");
+        if (resource != null) {
+            String filePath = resource.getFile();
+            System.out.println(filePath);
+            String[] split = filePath.split("/core/framework/");
+            //First part is the parent folder
+            String parentFolder = split != null && split.length > 0 ? split[0] : null;
+            System.out.println("parentFolder=" + parentFolder);
+            File parentFile = new File(parentFolder);
+            List<File> fileList = listMessagesFiles(parentFile);
+           
+            for (File file : fileList) {
+                List<String> diff = NLS.checkMessageFilesDifferences(file.getAbsolutePath());
+                if (diff != null && !diff.isEmpty()) {
+                    differences.addAll(diff);
+                }
+            }
+
+            if(differences.isEmpty()) {
+                System.out.println("All the "+ MESSAGE+ "_{LOCALE}.properties files are syncronized ");
+            }
+            else {
+                System.out.println("**There is " + differences.size() + " difference(s) found**");
+                for (String dif : differences) {
+                    System.out.println(dif);
+                }
+            }
+        }
+        return differences;
+    }
+    
+    /**
+     * Use for unit test only
      * Check if the existing messages_{LOCALE}.properties are synchronized on default messages.propertiesresource
      * 
      * @param clazz Class relative to which message resources are located
      * @return the list of difference between the default ressources , null or empty if it is synchronized
      */
-    public static List<String> checkMessageFilesDifferences(String resourceFile) {
+    private static List<String> checkMessageFilesDifferences(String resourceFile) {
         List<String> differences = new ArrayList<>();
         if (resourceFile != null) {
             try {
@@ -238,6 +277,28 @@ public class NLS
         }
         return differences;
     }
+    
+    private static List<File> listMessagesFiles(File folder) {
+        String filename = MESSAGE + ".properties";
+        List<File> fileList = new ArrayList<>();
+        //Ignore target folder from build
+        if(folder != null && folder.isDirectory() 
+                && !folder.getAbsolutePath().contains("\\target\\")
+                && !folder.getAbsolutePath().contains("\\test\\")) {
+            File[] listFiles = folder.listFiles();
+            for(File file : listFiles) {
+                if(file.isDirectory()) {
+                    List<File> list = listMessagesFiles(file);
+                    fileList.addAll(list);
+                }
+                else if (file.getName().equals(filename)){
+                    fileList.add(file);
+                }
+            }
+        }
+        return fileList;
+    }
+     
     
     /**
      * To get Locale from a countryCode
