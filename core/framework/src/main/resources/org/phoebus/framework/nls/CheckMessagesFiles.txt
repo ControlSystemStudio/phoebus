@@ -1,1 +1,0 @@
-This file is used by  org.phoebus.framework.nls.NLS.java class to check the synchronization between messages_{LOCALE}.properties and messages.properties in the Phoebus project 
