@@ -8,7 +8,9 @@
 package org.csstudio.trends.databrowser3.ui.search;
 
 import java.util.List;
+import java.util.Optional;
 
+import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -47,17 +49,20 @@ class AddToPlotAction extends MenuItem
 
             final AddPVDialog dlg = new AddPVDialog(channels.size(), model, false);
             DialogHelper.positionDialog(dlg, node, 200, -200);
-            for (int i=0; i<channels.size(); ++i)
-                dlg.setName(i, channels.get(i).getName());
+            for (int i=0; i<channels.size(); ++i) {
+                String channelName = channels.get(i).getName();
+                dlg.setNameAndDisplayName(i, channelName);
+            }
             if (! dlg.showAndWait().orElse(false))
                 return;
 
             for (int i=0; i<channels.size(); ++i)
             {
                 final ChannelInfo channel = channels.get(i);
-                final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
+                final AxisConfig axis = dlg.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
                 AddModelItemCommand.forPV(undo, model,
                         channel.getName(),
+                        Optional.empty(),
                         0.0,
                         axis,
                         channel.getArchiveDataSource());

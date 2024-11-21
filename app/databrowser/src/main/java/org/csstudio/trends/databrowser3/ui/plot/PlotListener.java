@@ -11,6 +11,7 @@ import java.io.File;
 import java.time.Instant;
 import java.util.List;
 
+import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.model.AnnotationInfo;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.phoebus.core.types.ProcessVariable;

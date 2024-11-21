@@ -102,6 +102,10 @@ public class Preferences
     @Preference public static boolean config_dialog_supported;
 
     @Preference
+    public static boolean assign_pvs_from_clipboard_to_the_same_axis_by_default;
+
+
+    @Preference
     public static String value_axis_label_policy;
 
 
