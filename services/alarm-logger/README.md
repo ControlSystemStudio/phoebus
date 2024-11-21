@@ -1,6 +1,7 @@
-# Alarm Logging
+# Alarm Logging Service
 
-Logging alarm state and other messages to an elastic back end.
+The alarm logging service (aka alarm-logger) records all alarm messages to create an archive of all alarm state changes and the associated actions.
+This is an elasticsearch back end.
 
 ## Dependencies ##
 1. Elasticsearch version 8.x OS specific release can be found here:  
@@ -47,6 +48,11 @@ mvn spring-boot:run
 
 Run with `-help` to see command line options,
 including those used to create daily, weekly or monthly indices.
+
+#### Standalone mode
+
+With the `-standalone true` option on the command line or in `application.properties`, you can run the alarm logging service independently of an alarm server.
+It may be useful to troubleshoot the system independently from production alarm services using the alarm log service backup for the long alarm log history.
 
 #### Configuration
 
