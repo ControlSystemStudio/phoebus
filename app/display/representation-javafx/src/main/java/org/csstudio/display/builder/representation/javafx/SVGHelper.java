@@ -60,7 +60,7 @@ public class SVGHelper {
             svg_rendering_resolution_factor = Preferences.svg_rendering_resolution_factor;
         }
         else {
-            logger.log(Level.WARNING, "The option 'org.csstudio.display.builder.representation/svg_rendering_resolution_factor' is set to an invalid value. Setting svg_rendering_resolution_factor to 1.");
+            logger.log(Level.WARNING, "The option 'org.csstudio.display.builder.representation/svg_rendering_resolution_factor' is set to an invalid value. Setting svg_rendering_resolution_factor to 1.0");
             svg_rendering_resolution_factor = 1.0;
         }
         return ImageCache.cache(cachedSVGFileName, () ->
