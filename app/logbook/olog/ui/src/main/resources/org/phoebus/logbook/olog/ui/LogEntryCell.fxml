@@ -15,6 +15,9 @@ summary of the log entry and its metadata.
     <HBox>
         <HBox fx:id="decorationNodes" fillHeight="true" />
         <VBox fx:id="logEntryCell">
+            <padding>
+                <Insets bottom="3.0" left="3.0" right="3.0" top="3.0"/>
+            </padding>
             <HBox.hgrow><Priority fx:value="ALWAYS"/></HBox.hgrow>
             <GridPane>
                 <columnConstraints>
