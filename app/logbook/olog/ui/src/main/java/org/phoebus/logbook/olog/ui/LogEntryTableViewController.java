@@ -48,6 +48,7 @@ import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
+import org.phoebus.logbook.olog.ui.spi.Decoration;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.logbook.olog.ui.write.LogEntryUpdateStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
@@ -232,6 +233,10 @@ public class LogEntryTableViewController extends LogbookSearchController {
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
         descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty<>(col.getValue()));
         descriptionCol.setCellFactory(col -> new TableCell<>() {
+            {
+                setStyle("-fx-padding: -1px");
+            }
+
             private final Node graphic;
             private final PseudoClass childlessTopLevel =
                     PseudoClass.getPseudoClass("grouped");
@@ -242,6 +247,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("LogEntryCell.fxml"));
                     graphic = loader.load();
                     controller = loader.getController();
+                    controller.setDecorations(decorations);
                 } catch (IOException exc) {
                     throw new RuntimeException(exc);
                 }
@@ -399,8 +405,20 @@ public class LogEntryTableViewController extends LogbookSearchController {
         throw new RuntimeException(new UnsupportedOperationException());
     }
 
+    private List<Decoration> decorations;
+    protected void setDecorations(List<Decoration> decorations) {
+        this.decorations = decorations;
+        for (Decoration decoration : decorations) {
+            decoration.setRefreshLogEntryTableView(() -> refresh());
+        }
+    }
+
     private void setSearchResult(SearchResult searchResult) {
         this.searchResult = searchResult;
+
+        List<LogEntry> logEntries = searchResult.getLogs();
+        decorations.forEach(decoration -> decoration.setLogEntries(logEntries));
+
         Platform.runLater(() -> {
             hitCountProperty.set(searchResult.getHitCount());
             pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
@@ -417,12 +435,19 @@ public class LogEntryTableViewController extends LogbookSearchController {
         return query.getValue().getQuery();
     }
 
-    private void refresh() {
+    private synchronized void refresh() {
         if (this.searchResult != null) {
             List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
-            ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList();
-            logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le, showDetails.get())).toList());
+
+            List<LogEntry> logEntries = searchResult.getLogs();
+            logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
+
+            boolean showDetailsBoolean = showDetails.get();
+            var logs = logEntries.stream().map(le -> new TableViewListItem(le, showDetailsBoolean)).toList();
+
+            ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList(logs);
             tableView.setItems(logsList);
+
             // This will ensure that selected entries stay selected after the list has been
             // updated from the search result.
             for (TableViewListItem selectedItem : selectedLogEntries) {

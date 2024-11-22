@@ -6,6 +6,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.commonmark.Extension;
@@ -16,9 +17,11 @@ import org.commonmark.renderer.text.TextContentRenderer;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.olog.ui.LogEntryTableViewController.TableViewListItem;
+import org.phoebus.logbook.olog.ui.spi.Decoration;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,9 +44,14 @@ public class LogEntryCellController {
     VBox root;
 
     @FXML
+    VBox logEntryCell;
+
+    @FXML
     Label time;
     @FXML
     Label owner;
+    @FXML
+    HBox decorationNodes;
     @FXML
     Label title;
     @FXML
@@ -74,7 +82,6 @@ public class LogEntryCellController {
 
     private SimpleBooleanProperty expanded = new SimpleBooleanProperty(true);
 
-
     public LogEntryCellController() {
 
         List<Extension> extensions = Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
@@ -92,8 +99,20 @@ public class LogEntryCellController {
         conversationIcon.setImage(conversation);
     }
 
-    @FXML
+    private List<Decoration> decorations = new LinkedList<>();
+
+    public void setDecorations(List<Decoration> decorations) {
+        this.decorations = decorations;
+    }
+
     public void refresh() {
+
+        decorationNodes.getChildren().clear();
+        for (Decoration decoration : decorations) {
+            Node decorationNode = decoration.createDecorationForLogEntryCell(logEntry.getLogEntry());
+            decorationNodes.getChildren().add(decorationNode);
+        }
+
         if (logEntry != null) {
 
             time.setText(SECONDS_FORMAT.format(logEntry.getLogEntry().getCreatedDate()));
@@ -126,8 +145,8 @@ public class LogEntryCellController {
 
             logEntryId.setText(logEntry.getLogEntry().getId() != null ? logEntry.getLogEntry().getId().toString() : "");
             level.setText(logEntry.getLogEntry().getLevel());
-
         }
+
     }
 
     public void setLogEntry(TableViewListItem logEntry) {
