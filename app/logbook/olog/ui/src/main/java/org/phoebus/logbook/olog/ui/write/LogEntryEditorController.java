@@ -31,6 +31,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -83,6 +84,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -92,8 +94,6 @@ import java.util.stream.Collectors;
  * Controller for the {@link LogEntryEditorStage}.
  */
 public class LogEntryEditorController {
-
-    private final LogEntryCompletionHandler completionHandler;
 
     private final Logger logger = Logger.getLogger(LogEntryEditorController.class.getName());
 
@@ -181,6 +181,10 @@ public class LogEntryEditorController {
     @SuppressWarnings("unused")
     private ComboBox<LogTemplate> templateSelector;
 
+    @FXML
+    @SuppressWarnings("unused")
+    private Node attachmentsPane;
+
     private final ContextMenu logbookDropDown = new ContextMenu();
     private final ContextMenu tagDropDown = new ContextMenu();
 
@@ -226,11 +230,15 @@ public class LogEntryEditorController {
      */
     private String originalTitle = "";
 
+    private EditMode editMode;
 
-    public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, LogEntryCompletionHandler logEntryCompletionHandler) {
+    private Optional<LogEntry> logEntryResult = Optional.empty();
+
+
+    public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, EditMode editMode) {
         this.replyTo = inReplyTo;
-        this.completionHandler = logEntryCompletionHandler;
         this.logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
+        this.editMode = editMode;
         updateCredentialsProperty = updateCredentials;
 
         // This is the reply case:
@@ -251,19 +259,23 @@ public class LogEntryEditorController {
     @FXML
     public void initialize() {
 
-        templateControls.managedProperty().bind(templateControls.visibleProperty());
-
-        // This could be configured in the fxml, but then these UI components would not be visible
-        // in Scene Builder.
-        completionMessageLabel.textProperty().set("");
-        progressIndicator.visibleProperty().bind(submissionInProgress);
-
         // Remote log service not reachable, so show error pane.
         if (!checkConnectivity()) {
             errorPane.visibleProperty().set(true);
             editorPane.disableProperty().set(true);
             return;
         }
+
+        templateControls.managedProperty().bind(templateControls.visibleProperty());
+        templateControls.visibleProperty().setValue(editMode.equals(EditMode.NEW_LOG_ENTRY));
+
+        attachmentsPane.managedProperty().bind(attachmentsPane.visibleProperty());
+        attachmentsPane.visibleProperty().setValue(editMode.equals(EditMode.NEW_LOG_ENTRY));
+
+        // This could be configured in the fxml, but then these UI components would not be visible
+        // in Scene Builder.
+        completionMessageLabel.textProperty().set("");
+        progressIndicator.visibleProperty().bind(submissionInProgress);
 
         submitButton.managedProperty().bind(submitButton.visibleProperty());
         submitButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
@@ -540,19 +552,15 @@ public class LogEntryEditorController {
 
             LogClient logClient =
                     logFactory.getLogClient(new SimpleAuthenticationToken(usernameProperty.get(), passwordProperty.get()));
-            LogEntry result;
             try {
                 if (replyTo == null) {
-                    result = logClient.set(ologLog);
+                    logEntryResult = Optional.of(logClient.set(ologLog));
                 } else {
-                    result = logClient.reply(ologLog, replyTo);
+                    logEntryResult = Optional.of(logClient.reply(ologLog, replyTo));
                 }
-                // Not dirty any more...
+                // Not dirty anymore...
                 isDirty = false;
-                if (result != null) {
-                    if (completionHandler != null) {
-                        completionHandler.handleResult(result);
-                    }
+                if (logEntryResult.isPresent()) {
                     // Set username and password in secure store if submission of log entry completes successfully
                     if (Preferences.save_credentials) {
                         // Get the SecureStore. Store username and password.
@@ -824,8 +832,13 @@ public class LogEntryEditorController {
         }
     }
 
+    public Optional<LogEntry> getLogEntryResult(){
+        return logEntryResult;
+    }
+
     /**
      * Loads template to configure UI elements.
+     *
      * @param logTemplate A {@link LogTemplate} selected by user.
      */
     private void loadTemplate(LogTemplate logTemplate) {

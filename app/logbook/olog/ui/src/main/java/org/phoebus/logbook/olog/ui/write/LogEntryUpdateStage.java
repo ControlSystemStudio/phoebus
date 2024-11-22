@@ -39,25 +39,18 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ *
+ */
 public class LogEntryUpdateStage extends Stage {
     private LogEntryUpdateController logEntryUpdateController;
-
-    /**
-     * A stand-alone window containing components needed to create a logbook entry.
-     *
-     * @param logEntry Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
-     */
-    public LogEntryUpdateStage(LogEntry logEntry) {
-        this(logEntry, null);
-    }
-
     /**
      * A stand-alone window containing components needed to create a logbook entry.
      *
      * @param logEntry          Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
      * @param completionHandler A completion handler called when service call completes.
      */
-    public LogEntryUpdateStage(LogEntry logEntry, LogEntryCompletionHandler completionHandler) {
+    public LogEntryUpdateStage(LogEntry logEntry) {
 
         initModality(Modality.WINDOW_MODAL);
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
@@ -65,8 +58,8 @@ public class LogEntryUpdateStage extends Stage {
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if (clazz.isAssignableFrom(LogEntryUpdateController.class)) {
-                    logEntryUpdateController = (LogEntryUpdateController) clazz.getConstructor(LogEntry.class, LogEntryCompletionHandler.class)
-                            .newInstance(logEntry, completionHandler);
+                    logEntryUpdateController = (LogEntryUpdateController) clazz.getConstructor(LogEntry.class)
+                            .newInstance(logEntry);
                     return logEntryUpdateController;
                 } else if (clazz.isAssignableFrom(AttachmentsEditorController.class)) {
                     return clazz.getConstructor(LogEntry.class).newInstance(logEntry);

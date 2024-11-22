@@ -84,8 +84,6 @@ public class AttachmentsEditorController {
     private final Logger logger = Logger.getLogger(AttachmentsEditorController.class.getName());
 
     private final SimpleBooleanProperty imageAttachmentSelected = new SimpleBooleanProperty(false);
-    private final ObservableList<Attachment> attachmentList = FXCollections.observableArrayList();
-
 
     /**
      * List of (temporary) attachment {@link File}s deleted when log entry has been successfully persisted.
@@ -121,26 +119,31 @@ public class AttachmentsEditorController {
     private final SimpleStringProperty sizeLimitsText = new SimpleStringProperty();
 
     /**
-     * @param logEntry The log entry template potentially holding a set of attachments. Note
+     * @param logEntry The log entry potentially holding a set of attachments. Note
      *                 that files associated with these attachments are considered temporary and
      *                 are subject to removal when the log entry has been committed.
      */
     public AttachmentsEditorController(LogEntry logEntry) {
         this.logEntry = logEntry;
-        // If the log entry has an attachment - e.g. log entry created from display or data browser -
-        // then add the file size to the total attachments size
-        Collection<Attachment> attachments = logEntry.getAttachments();
-        if (attachments != null && !attachments.isEmpty()) {
-            attachments.forEach(a -> attachedFilesSize += getFileSize(a.getFile()));
-        }
     }
 
     @FXML
     public void initialize() {
 
-        attachmentsViewController.setAttachments(logEntry.getAttachments());
+        // If the log entry has an attachment - e.g. log entry created from display or data browser -
+        // then add the file size to the total attachments size.
+        Collection<Attachment> attachments = logEntry.getAttachments();
+        if (attachments != null && !attachments.isEmpty()) {
+            attachments.forEach(a -> {
+                if(a.getFile() != null){
+                    attachedFilesSize += getFileSize(a.getFile());
+                }
+            });
+        }
 
-        filesToDeleteAfterSubmit.addAll(logEntry.getAttachments().stream().map(Attachment::getFile).toList());
+        attachmentsViewController.setAttachments(attachments);
+
+        filesToDeleteAfterSubmit.addAll(attachments.stream().map(Attachment::getFile).toList());
 
         removeButton.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         removeButton.disableProperty().bind(Bindings.isEmpty(attachmentsViewController.getSelectedAttachments()));

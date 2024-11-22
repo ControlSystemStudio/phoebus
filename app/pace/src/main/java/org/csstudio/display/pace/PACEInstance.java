@@ -14,6 +14,7 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 
 import org.csstudio.display.pace.gui.GUI;
@@ -103,36 +104,31 @@ public class PACEInstance implements AppInstance
 
         LogEntryModel logEntryModel = new LogEntryModel(entry);
 
-        new LogEntryEditorStage(gui, logEntryModel, logEntry -> {
-            if (logEntry != null)
-            {
-                final String user = logEntryModel.getUsername();
-                try
-                {   // Change PVs
-                    model.saveUserValues(user);
 
-                    // On success, clear user values
-                    model.clearUserValues();
+        LogEntryEditorStage logEntryEditorStage = new LogEntryEditorStage(gui, logEntryModel);
+        logEntryEditorStage.showAndWait();
+        Optional<LogEntry> logEntryResult = logEntryEditorStage.getLogEntryResult();
+        if (logEntryResult.isPresent()) {
+            final String user = logEntryModel.getUsername();
+            try {   // Change PVs
+                model.saveUserValues(user);
+
+                // On success, clear user values
+                model.clearUserValues();
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Save failed", ex);
+                // At least some saves failed, to revert
+                try {
+                    model.revertOriginalValues();
+                } catch (Exception ex2) {
+                    // Since saving didn't work, restoral will also fail.
+                    // Hopefully those initial PVs that did get updated will
+                    // also be restored...
+                    logger.log(Level.WARNING, "Restore failed", ex2);
                 }
-                catch (Exception ex)
-                {
-                    logger.log(Level.WARNING, "Save failed", ex);
-                    // At least some saves failed, to revert
-                    try
-                    {
-                        model.revertOriginalValues();
-                    }
-                    catch (Exception ex2)
-                    {
-                        // Since saving didn't work, restoral will also fail.
-                        // Hopefully those initial PVs that did get updated will
-                        // also be restored...
-                        logger.log(Level.WARNING, "Restore failed", ex2);
-                    }
-                    ExceptionDetailsErrorDialog.openError(gui, Messages.SaveError, Messages.PVWriteError, ex);
-                }
+                ExceptionDetailsErrorDialog.openError(gui, Messages.SaveError, Messages.PVWriteError, ex);
             }
-        }).show();
+        }
     }
 
     /** Create the 'body', the main text of the ELog entry which

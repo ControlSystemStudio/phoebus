@@ -35,29 +35,36 @@ import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * {@link Stage} subclass rendering a UI for the purpose of editing/submitting a {@link LogEntry}.
+ * Callers that need to handle the outcome (i.e. when the {@link Stage} is closed) should
+ * call first call {@link #showAndWait()} and then get a potential result using {@link #getLogEntryResult()}.
+ */
 public class LogEntryEditorStage extends Stage {
     private LogEntryEditorController logEntryEditorController;
 
     /**
      * A stand-alone window containing components needed to create a logbook entry.
      *
-     * @param logEntry Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
+     * @param logEntry Pre-populated data for the log entry, e.g. date and (optionally) screenshot.
      */
     public LogEntryEditorStage(LogEntry logEntry) {
-        this(logEntry, null, null);
+        this(logEntry, null, EditMode.NEW_LOG_ENTRY);
     }
 
     /**
      * A stand-alone window containing components needed to create a logbook entry.
      *
-     * @param logEntry          Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
-     * @param completionHandler A completion handler called when service call completes.
+     * @param logEntry          Pre-populated data for the log entry, e.g. date and (optionally) screenshot.
+     * @param replyTo Existing {@link LogEntry} for which the new {@link LogEntry} is a reply. If <code>null</code>,
+     *                then it is assumed this is invoked to not crate a reply.
      */
-    public LogEntryEditorStage(LogEntry logEntry, LogEntry replyTo, LogEntryCompletionHandler completionHandler) {
+    public LogEntryEditorStage(LogEntry logEntry, LogEntry replyTo, EditMode editMode) {
 
         initModality(Modality.WINDOW_MODAL);
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
@@ -66,8 +73,8 @@ public class LogEntryEditorStage extends Stage {
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if (clazz.isAssignableFrom(LogEntryEditorController.class)) {
-                    logEntryEditorController = (LogEntryEditorController) clazz.getConstructor(LogEntry.class, LogEntry.class, LogEntryCompletionHandler.class)
-                            .newInstance(logEntry, replyTo, completionHandler);
+                    logEntryEditorController = (LogEntryEditorController) clazz.getConstructor(LogEntry.class, LogEntry.class, EditMode.class)
+                            .newInstance(logEntry, replyTo, editMode);
                     return logEntryEditorController;
                 } else if (clazz.isAssignableFrom(AttachmentsEditorController.class)) {
                     return clazz.getConstructor(LogEntry.class).newInstance(logEntry);
@@ -125,5 +132,14 @@ public class LogEntryEditorStage extends Stage {
         } else {
             close();
         }
+    }
+
+    /**
+     *
+     * @return A potentially empty result of {@link LogEntry} submission.
+     */
+    @SuppressWarnings("unused")
+    public Optional<LogEntry> getLogEntryResult(){
+        return logEntryEditorController.getLogEntryResult();
     }
 }

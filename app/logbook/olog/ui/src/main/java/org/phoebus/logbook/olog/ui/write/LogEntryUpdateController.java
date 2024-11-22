@@ -67,8 +67,6 @@ import java.util.stream.Collectors;
  */
 public class LogEntryUpdateController {
 
-    private final LogEntryCompletionHandler completionHandler;
-
     private final Logger logger = Logger.getLogger(LogEntryUpdateController.class.getName());
 
     @FXML
@@ -172,9 +170,8 @@ public class LogEntryUpdateController {
     private String originalTitle = "";
 
 
-    public LogEntryUpdateController(LogEntry logEntry, LogEntryCompletionHandler logEntryCompletionHandler) {
+    public LogEntryUpdateController(LogEntry logEntry) {
         this.logId = logEntry.getId();
-        this.completionHandler = logEntryCompletionHandler;
         this.logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
         updateCredentialsProperty = updateCredentials;
         this.logEntry = logEntry;
@@ -425,9 +422,6 @@ public class LogEntryUpdateController {
                 // Not dirty any more...
                 isDirty = false;
                 if (result != null) {
-                    if (completionHandler != null) {
-                        completionHandler.handleResult(result);
-                    }
                     // Set username and password in secure store if submission of log entry completes successfully
                     if (Preferences.save_credentials) {
                         // Get the SecureStore. Store username and password.
