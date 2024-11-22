@@ -22,6 +22,9 @@ public class Preferences
                       update_accumulation_time, update_delay, plot_update_delay, image_update_delay,
                       tooltip_length, embedded_timeout;
 
+    @Preference
+    public static double svg_rendering_resolution_factor;
+
     static
     {
     	AnnotatedPreferences.initialize(Preferences.class, "/display_representation_preferences.properties");

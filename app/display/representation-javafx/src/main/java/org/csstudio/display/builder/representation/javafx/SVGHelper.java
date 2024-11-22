@@ -21,6 +21,7 @@ package org.csstudio.display.builder.representation.javafx;
 
 import javafx.scene.image.Image;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
+import org.csstudio.display.builder.representation.Preferences;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.svg.SVGTranscoder;
 
@@ -53,11 +54,20 @@ public class SVGHelper {
      */
     public static Image loadSVG(String imageFileName, double width, double height) {
         String cachedSVGFileName = imageFileName + "_" + width + "_" + height;
+
+        double svg_rendering_resolution_factor;
+        if (!Double.isNaN(Preferences.svg_rendering_resolution_factor) && Preferences.svg_rendering_resolution_factor > 0) {
+            svg_rendering_resolution_factor = Preferences.svg_rendering_resolution_factor;
+        }
+        else {
+            logger.log(Level.WARNING, "The option 'org.csstudio.display.builder.representation/svg_rendering_resolution_factor' is set to an invalid value. Setting svg_rendering_resolution_factor to 1.");
+            svg_rendering_resolution_factor = 1.0;
+        }
         return ImageCache.cache(cachedSVGFileName, () ->
         {
             // Open the image from the stream created from the resource file.
             try (InputStream inputStream = ModelResourceUtil.openResourceStream(imageFileName)) {
-                return SVGTranscoder.loadSVG(inputStream, width, height);
+                return SVGTranscoder.loadSVG(inputStream, width*svg_rendering_resolution_factor, height*svg_rendering_resolution_factor);
             } catch (Exception ex) {
                 logger.log(Level.WARNING, String.format("Failure loading image: %s", imageFileName), ex);
             }
