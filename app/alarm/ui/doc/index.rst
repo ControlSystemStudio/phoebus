@@ -247,6 +247,7 @@ parent components of the alarm hierarchy.
    A slightly longer text with the content of the guidance, for example a list of
    telephone numbers, or description of things to try for handling the alarm.
 
+
 Displays
 --------
 
@@ -409,5 +410,29 @@ Where the include component is identified in the inclusion file with a DID decla
       </component>
   </config>
 
+Configuration Editor
+-------------------
 
+In the Alarm Tree and the Alarm Table views user may right click on an alarm item to launch the configuration
+editor dialog:
+
+.. image:: images/context_menu.png
+    :width: 20%
+
+In this view user may update all settings defined in the alarm configuration XML file:
+
+.. image:: images/configuration_editor.png
+    :width: 50%
+
+**NOTE 1:** Any changes performed in the editor will be overwritten when the associated alarm configuration XML file is
+imported again.
+
+**NOTE 2:** An alarm configured as enabled cannot be disabled using the checkbox in the editor dialog. Instead, user needs to
+specify a date/time when the alarm item is put back automatically into enabled state. At the specified date/time the alarm will be enabled,
+even if configured to be *disabled* by default in the alarm configuration XML file. Further, an alarm configured
+to be *enabled* by default in the alarm configuration XML file will be enabled when the file is imported, even if
+the alarm has been disabled in the editor by setting a date/time in the future.
+
+.. image:: images/disable_alarm.png
+    :width: 50%
 
