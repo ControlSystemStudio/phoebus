@@ -428,10 +428,10 @@ In this view user may update all settings defined in the alarm configuration XML
 imported again.
 
 **NOTE 2:** An alarm configured as enabled cannot be disabled using the checkbox in the editor dialog. Instead, user needs to
-specify a date/time when the alarm item is put back automatically into enabled state. At the specified date/time the alarm will be enabled,
+specify a disable-until date/time. At the specified date/time the alarm will be enabled automatically,
 even if configured to be *disabled* by default in the alarm configuration XML file. Further, an alarm configured
 to be *enabled* by default in the alarm configuration XML file will be enabled when the file is imported, even if
-the alarm has been disabled in the editor by setting a date/time in the future.
+a disable-until date/time in the future has been set.
 
 .. image:: images/disable_alarm.png
     :width: 50%
