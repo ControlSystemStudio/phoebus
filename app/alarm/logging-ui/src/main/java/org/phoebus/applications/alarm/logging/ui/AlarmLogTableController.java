@@ -1,6 +1,7 @@
 package org.phoebus.applications.alarm.logging.ui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sun.jersey.api.client.WebResource;
@@ -40,6 +41,7 @@ import javafx.util.Duration;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.selection.SelectionService;
@@ -249,7 +251,17 @@ public class AlarmLogTableController {
                         if (!en) {
                             return new SimpleStringProperty("Disabled");
                         } else {
-                            return new SimpleStringProperty("Enabled");
+                            try {
+                                final JsonNode jsonNode = (JsonNode) JsonModelReader.parseJsonText(alarmMessage.getValue().getConfig_msg());
+                                if (jsonNode == null) {
+                                    logger.log(Level.WARNING, "There is no JasonNode");
+                                    return null;
+                                }
+                                final boolean latching = jsonNode.get("latching").asBoolean();
+                                return new SimpleStringProperty(latching ? "Enabled:Latched" : "Enabled:Unlatch");
+                            } catch (Exception e) {
+                                logger.log(Level.SEVERE, "Unexpected error in alarmMessage" + e);
+                            }
                         }
                     }
                     return null;

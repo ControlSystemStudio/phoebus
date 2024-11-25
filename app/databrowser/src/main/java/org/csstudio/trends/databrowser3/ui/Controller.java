@@ -20,6 +20,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJob;
@@ -240,23 +241,7 @@ public class Controller
         @Override
         public void droppedNames(final List<String> names)
         {
-            // Offer potential PV name in dialog so user can edit/cancel
-            // sim://sine sim://ramp sim://noise
-            final AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
-            DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
-            for (int i=0; i<names.size(); ++i)
-                dlg.setName(i, names.get(i));
-            if (! dlg.showAndWait().orElse(false))
-                return;
-
-            final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
-            for (int i=0; i<names.size(); ++i)
-            {
-                final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
-                AddModelItemCommand.forPV(undo,
-                        model, dlg.getName(i), dlg.getScanPeriod(i),
-                        axis, null);
-            }
+            Activator.addPVsToPlotDialog(names, plot.getPlot().getUndoableActionManager(), model, plot.getPlot());
         }
 
         @Override
@@ -292,18 +277,20 @@ public class Controller
 
                 final AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
                 DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
-                for (int i=0; i<names.size(); ++i)
-                    dlg.setName(i, names.get(i).getName());
+                for (int i=0; i<names.size(); ++i) {
+                    String pvName = names.get(i).getName();
+                    dlg.setNameAndDisplayName(i, pvName);
+                }
                 if (! dlg.showAndWait().orElse(false))
                     return;
 
                 for (int i=0; i<names.size(); ++i)
                 {
-                    final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
+                    final AxisConfig axis = dlg.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
                     final ArchiveDataSource archive =
                             (archives == null || i>=archives.size()) ? null : archives.get(i);
                     AddModelItemCommand.forPV(undo,
-                            model, dlg.getName(i), dlg.getScanPeriod(i),
+                            model, dlg.getName(i), dlg.getDisplayName(i), dlg.getScanPeriod(i),
                             axis, archive);
                 }
 //                return;

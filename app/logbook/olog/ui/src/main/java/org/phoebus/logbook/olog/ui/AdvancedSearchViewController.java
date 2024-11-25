@@ -24,6 +24,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -113,10 +114,11 @@ public class AdvancedSearchViewController {
     private final SimpleBooleanProperty requireAttachments = new SimpleBooleanProperty(false);
 
     private Runnable searchCallback = () -> {
-        throw new IllegalStateException("Search callback is not set on AdvancedSearchViewConroller!");
+        throw new IllegalStateException("Search callback is not set on AdvancedSearchViewController!");
     };
 
-    public AdvancedSearchViewController(LogClient logClient, SearchParameters searchParameters) {
+    public AdvancedSearchViewController(LogClient logClient,
+                                        SearchParameters searchParameters) {
         this.logClient = logClient;
         this.searchParameters = searchParameters;
     }

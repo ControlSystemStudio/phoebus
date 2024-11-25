@@ -27,6 +27,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.image.ImageView;
@@ -41,8 +42,13 @@ import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.javafx.ImageCache;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 public class LogEntryDisplayController {
+
+    static Logger log = Logger.getLogger(LogEntryDisplayController.class.getName());
 
     @FXML
     @SuppressWarnings("unused")
@@ -70,6 +76,8 @@ public class LogEntryDisplayController {
     private Node singleLogEntryDisplay;
     @FXML
     private Node mergedLogEntryDisplay;
+    @FXML
+    private TextField jumpToLogEntryTextField;
 
     ImageView goBackButtonIcon = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/backward_nav.png");
     ImageView goBackButtonIconDisabled = ImageCache.getImageView(LogEntryDisplayController.class, "/icons/backward_disabled.png");
@@ -113,6 +121,19 @@ public class LogEntryDisplayController {
             goForwardButton.disableProperty().addListener(goForwardButtonDisabledPropertyChangeListener);
             goForwardButtonDisabledPropertyChangeListener.changed(goForwardButton.disableProperty(), false, true);
         }
+
+        jumpToLogEntryTextField.setPromptText(Messages.LogEntryID);
+        jumpToLogEntryTextField.focusedProperty().addListener((property, oldValue, newValue) -> {
+            if (oldValue && !newValue) {
+                // When clicking away without first pressing enter, restore the current value of jumpToLogEntryTextField:
+                if (logEntryProperty.get() != null) {
+                    jumpToLogEntryTextField.setText(logEntryProperty.get().getId().toString());
+                }
+                else {
+                    jumpToLogEntryTextField.setText("");
+                }
+            }
+        });
     }
 
     @FXML
@@ -132,6 +153,28 @@ public class LogEntryDisplayController {
         } else {
             currentViewProperty.set(SINGLE);
         }
+    }
+
+    @FXML
+    public void jumpToLogEntry() {
+        String logEntryIDToJumpToString = jumpToLogEntryTextField.getText();
+        long logEntryIDToJumpTo;
+        try {
+            logEntryIDToJumpTo = Long.parseLong(logEntryIDToJumpToString);
+        }
+        catch (NumberFormatException numberFormatException) {
+            return;
+        }
+
+        if (logEntryIDToJumpTo > 0) {
+            if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
+                boolean success = logEntryTableViewController.goBackAndGoForwardActions.get().loadLogEntryWithID(logEntryIDToJumpTo);
+                if (!success) {
+                    log.log(Level.WARNING, "Error loading entry with log entry ID: " + logEntryIDToJumpTo + ".");
+                }
+            }
+        }
+        Platform.runLater(() -> jumpToLogEntryTextField.end());
     }
 
     @FXML
@@ -176,7 +219,8 @@ public class LogEntryDisplayController {
                 currentViewProperty.set(SINGLE);
                 showHideLogEntryGroupButton.selectedProperty().set(false);
                 hasLinkedEntriesProperty.set(logEntry.getProperties()
-                        .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));;
+                        .stream().anyMatch(p -> p.getName().equals(LogGroupProperty.NAME)));
+                jumpToLogEntryTextField.setText(logEntryProperty.get().getId().toString());
             });
         }
     }

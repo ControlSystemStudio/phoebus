@@ -11,6 +11,7 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
+import org.phoebus.logbook.olog.ui.spi.Decoration;
 import org.phoebus.logbook.olog.ui.write.AttachmentsEditorController;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
@@ -18,8 +19,11 @@ import org.phoebus.ui.docking.DockPane;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,10 +36,18 @@ public class LogEntryTable implements AppInstance {
     private LogEntryTableViewController controller;
 
     public GoBackAndGoForwardActions goBackAndGoForwardActions;
-
     public LogEntryTable(final LogEntryTableApp app) {
         this.app = app;
         goBackAndGoForwardActions = new GoBackAndGoForwardActions();
+
+        List<Decoration> decorations = new LinkedList<>();
+        {
+            ServiceLoader<Decoration> decorationClasses = ServiceLoader.load(Decoration.class);
+            for (Decoration decoration : decorationClasses) {
+                decorations.add(decoration);
+            }
+        }
+
         try {
             OlogQueryManager ologQueryManager = OlogQueryManager.getInstance();
             SearchParameters searchParameters = new SearchParameters();
@@ -51,10 +63,10 @@ public class LogEntryTable implements AppInstance {
                         if (clazz.isAssignableFrom(LogEntryTableViewController.class)) {
                             LogEntryTableViewController logEntryTableViewController = (LogEntryTableViewController) clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class).newInstance(app.getClient(), ologQueryManager, searchParameters);
                             logEntryTableViewController.setGoBackAndGoForwardActions(goBackAndGoForwardActions);
+                            logEntryTableViewController.setDecorations(decorations);
                             return logEntryTableViewController;
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
-                            return clazz.getConstructor(LogClient.class, SearchParameters.class)
-                                    .newInstance(app.getClient(), searchParameters);
+                            return clazz.getConstructor(LogClient.class, SearchParameters.class).newInstance(app.getClient(), searchParameters);
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                             SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
                             singleLogEntryDisplayController.setSelectLogEntryInUI(id -> goBackAndGoForwardActions.loadLogEntryWithID(id));
@@ -172,12 +184,17 @@ public class LogEntryTable implements AppInstance {
             }
         }
 
-        private void loadLogEntryWithID(Long id) {
-            goForwardActions.clear();
-            addGoBackAction();
-
-            LogEntry logEntry = controller.client.getLog(id);
-            gotoLogEntry(logEntry);
+        protected boolean loadLogEntryWithID(Long id) {
+            try {
+                LogEntry logEntry = controller.client.getLog(id);
+                goForwardActions.clear();
+                addGoBackAction();
+                gotoLogEntry(logEntry);
+                return true;
+            }
+            catch (RuntimeException runtimeException) {
+                return false;
+            }
         }
 
         protected void goBack() {

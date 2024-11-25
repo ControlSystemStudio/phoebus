@@ -7,18 +7,33 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.scene.Node;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.ScrollPane;
+import javafx.stage.Window;
+import javafx.util.Pair;
+import org.csstudio.trends.databrowser3.model.AxisConfig;
+import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.ui.AddModelItemCommand;
+import org.csstudio.trends.databrowser3.ui.AddPVDialog;
 import org.phoebus.framework.jobs.NamedThreadFactory;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 /** Global Data Browser helper
  *  @author Kay Kasemir
@@ -69,6 +84,53 @@ public class Activator
     public static ImageView getIcon(final String base_name)
     {
         return new ImageView(getImage(base_name));
+    }
+
+    public static void addPVsToPlotDialog(List<String> pvNames,
+                                          UndoableActionManager undoableActionManager,
+                                          Model model,
+                                          Node nodeToPositionDialogOver)
+    {
+        // Offer potential PV name in dialog so user can edit/cancel
+        // sim://sine sim://ramp sim://noise
+        AddPVDialog addPVDialog = new AddPVDialog(pvNames.size(), model, false);
+
+        { // Set layout of addPVDialog:
+            int addPVDialogWidth = 750;
+            int addPVDialogHeight = 600;
+
+            Window addPVDialowWindow = addPVDialog.getDialogPane().getScene().getWindow();
+            addPVDialowWindow.setWidth(addPVDialogWidth);
+            addPVDialowWindow.setHeight(addPVDialogHeight);
+            addPVDialog.setResizable(false);
+
+            DialogPane dialogPane = addPVDialog.getDialogPane();
+            dialogPane.setPrefWidth(addPVDialogWidth);
+            dialogPane.setPrefHeight(addPVDialogHeight);
+            dialogPane.setMaxWidth(Double.MAX_VALUE);
+            dialogPane.setMaxHeight(Double.MAX_VALUE);
+
+            DialogHelper.positionDialog(addPVDialog, nodeToPositionDialogOver, (int) -addPVDialowWindow.getWidth()/2, (int) -addPVDialowWindow.getHeight()/2);
+        }
+
+        for (int i=0; i<pvNames.size(); ++i) {
+            addPVDialog.setNameAndDisplayName(i, pvNames.get(i));
+        }
+
+        if (!addPVDialog.showAndWait().orElse(false)) {
+            return;
+        }
+
+        for (int i=0; i<pvNames.size(); ++i) {
+            AxisConfig axis = addPVDialog.getOrCreateAxis(model, undoableActionManager, addPVDialog.getAxisIndex(i));
+            AddModelItemCommand.forPV(undoableActionManager,
+                                      model,
+                                      addPVDialog.getName(i),
+                                      addPVDialog.getDisplayName(i),
+                                      addPVDialog.getScanPeriod(i),
+                                      axis,
+                                      null);
+        }
     }
 
     /*
