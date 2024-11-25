@@ -48,6 +48,7 @@ public class MultiLineInputDialog extends Dialog<String>
     {
         text = new TextArea(initial_text);
         text.setEditable(editable);
+        text.setWrapText(true);
 
         getDialogPane().setContent(new BorderPane(text));
         if (editable)
