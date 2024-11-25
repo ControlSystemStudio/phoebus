@@ -230,10 +230,12 @@ public class LogEntryEditorController {
      */
     private String originalTitle = "";
 
-    private EditMode editMode;
+    private final EditMode editMode;
 
+    /**
+     * Result of a submission, caller may use this to take further action once a {@link LogEntry} has been created.
+     */
     private Optional<LogEntry> logEntryResult = Optional.empty();
-
 
     public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, EditMode editMode) {
         this.replyTo = inReplyTo;
@@ -496,12 +498,6 @@ public class LogEntryEditorController {
                     }
                 });
 
-        JobManager.schedule("Get templates", monitor -> {
-            LogClient logClient = logFactory.getLogClient();
-            Collection<LogTemplate> templates = logClient.getTemplates();
-            Platform.runLater(() -> templateSelector.getItems().addAll(templates));
-        });
-
         // Note: logbooks and tags are retrieved asynchronously from service
         getServerSideStaticData();
     }
@@ -547,7 +543,9 @@ public class LogEntryEditorController {
             ologLog.setLevel(selectedLevelProperty.get());
             ologLog.setLogbooks(getSelectedLogbooks());
             ologLog.setTags(getSelectedTags());
-            ologLog.setAttachments(attachmentsEditorController.getAttachments());
+            if(editMode.equals(EditMode.NEW_LOG_ENTRY)){
+                ologLog.setAttachments(attachmentsEditorController.getAttachments());
+            }
             ologLog.setProperties(logPropertiesEditorController.getProperties());
 
             LogClient logClient =
@@ -560,23 +558,23 @@ public class LogEntryEditorController {
                 }
                 // Not dirty anymore...
                 isDirty = false;
-                if (logEntryResult.isPresent()) {
-                    // Set username and password in secure store if submission of log entry completes successfully
-                    if (Preferences.save_credentials) {
-                        // Get the SecureStore. Store username and password.
-                        try {
-                            SecureStore store = new SecureStore();
-                            ScopedAuthenticationToken scopedAuthenticationToken =
-                                    new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, usernameProperty.get(), passwordProperty.get());
-                            store.setScopedAuthentication(scopedAuthenticationToken);
-                        } catch (Exception ex) {
-                            logger.log(Level.WARNING, "Secure Store file not found.", ex);
-                        }
+
+                // Set username and password in secure store if submission of log entry completes successfully
+                if (Preferences.save_credentials) {
+                    // Get the SecureStore. Store username and password.
+                    try {
+                        SecureStore store = new SecureStore();
+                        ScopedAuthenticationToken scopedAuthenticationToken =
+                                new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, usernameProperty.get(), passwordProperty.get());
+                        store.setScopedAuthentication(scopedAuthenticationToken);
+                    } catch (Exception ex) {
+                        logger.log(Level.WARNING, "Secure Store file not found.", ex);
                     }
-                    attachmentsEditorController.deleteTemporaryFiles();
-                    // This will close the editor
-                    Platform.runLater(this::cancel);
                 }
+                attachmentsEditorController.deleteTemporaryFiles();
+                // This will close the editor
+                Platform.runLater(this::cancel);
+
             } catch (LogbookException e) {
                 logger.log(Level.WARNING, "Unable to submit log entry", e);
                 Platform.runLater(() -> {
@@ -768,6 +766,9 @@ public class LogEntryEditorController {
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to get or parse response from server info request", e);
             }
+
+            Collection<LogTemplate> templates = logClient.getTemplates();
+            Platform.runLater(() -> templateSelector.getItems().addAll(templates));
         });
     }
 
@@ -832,7 +833,7 @@ public class LogEntryEditorController {
         }
     }
 
-    public Optional<LogEntry> getLogEntryResult(){
+    public Optional<LogEntry> getLogEntryResult() {
         return logEntryResult;
     }
 
