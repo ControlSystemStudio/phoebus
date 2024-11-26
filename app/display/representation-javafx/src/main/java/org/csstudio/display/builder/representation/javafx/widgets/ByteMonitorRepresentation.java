@@ -428,7 +428,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 for (int i = 0; i < N; i++)
                 {
                     leds[i].setFill(save_values[i]);
-                    if (save_labels[i] != null)
+                    if (save_labels[i] != null && square_led)
                     {
                         // Compare brightness of LED with text.
                         final double brightness = Brightness.of(save_values[i]);
