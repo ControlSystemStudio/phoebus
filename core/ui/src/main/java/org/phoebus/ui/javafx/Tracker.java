@@ -57,6 +57,9 @@ public class Tracker extends Group
     /** Enable changes? */
     protected boolean enable_changes = true;
 
+    protected int bigDeltaX = 10;
+    protected int bigDeltaY = 10;
+
     /** Create tracker */
     public Tracker()
     {
@@ -342,38 +345,41 @@ public class Tracker extends Group
         final KeyCode code = event.getCode();
         boolean notify = false;
 
-        int delta = 1;
-        if (event.isShortcutDown())
-            delta = 10;
+        int delta_x = 1;
+        int delta_y = 1;
+        if (event.isShortcutDown()) {
+            delta_x = this.bigDeltaX;
+            delta_y = this.bigDeltaY;
+        }
 
         switch (code)
         {
         case UP:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() - delta);
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() - delta_y);
             else
-                setPosition(tracker.getX(), tracker.getY() - delta, tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY() - delta_y, tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case DOWN:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() + delta);
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() + delta_y);
             else
-                setPosition(tracker.getX(), tracker.getY() + delta, tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY() + delta_y, tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case LEFT:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() - delta, tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() - delta_x, tracker.getHeight());
             else
-                setPosition(tracker.getX() - delta, tracker.getY(), tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX() - delta_x, tracker.getY(), tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case RIGHT:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() + delta, tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() + delta_x, tracker.getHeight());
             else
-                setPosition(tracker.getX() + delta, tracker.getY(), tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX() + delta_x, tracker.getY(), tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case ESCAPE:
