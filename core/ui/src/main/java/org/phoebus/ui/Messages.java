@@ -34,6 +34,7 @@ public class Messages
     public static String DefaultNewColumnName;
     /**DoNotShow */
     public static String DoNotShow;
+
     /**Format_Binary */
     public static String Format_Binary;
     /**Format_Compact */
@@ -68,6 +69,7 @@ public class Messages
     public static String MoveRowDown;
     /**MoveRowUp */
     public static String MoveRowUp;
+    public static String NoExceptionAvailable;
     /**NumberInputHdr */
     public static String NumberInputHdr;
     /**Num_Selected */
