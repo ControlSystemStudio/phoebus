@@ -23,8 +23,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -53,6 +55,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import org.phoebus.framework.autocomplete.Proposal;
+import org.phoebus.framework.autocomplete.ProposalProvider;
+import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.logbook.LogClient;
@@ -66,6 +71,7 @@ import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
+import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
 import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.olog.es.api.model.OlogLog;
@@ -74,6 +80,7 @@ import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 import org.phoebus.ui.Preferences;
+import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
@@ -236,6 +243,10 @@ public class LogEntryEditorController {
      * Result of a submission, caller may use this to take further action once a {@link LogEntry} has been created.
      */
     private Optional<LogEntry> logEntryResult = Optional.empty();
+
+    private final ObjectProperty<ObservableList<LogTemplate>> templatesProperty =
+            new SimpleObjectProperty<>(FXCollections.observableArrayList());
+    //private ObservableList<? extends LogTemplate> templates = FXCollections.observableArrayList();
 
     public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, EditMode editMode) {
         this.replyTo = inReplyTo;
@@ -456,6 +467,26 @@ public class LogEntryEditorController {
             newSelection.forEach(l -> updateDropDown(logbookDropDown, l, true));
         });
 
+        AutocompleteMenu autocompleteMenu = new AutocompleteMenu(new ProposalService(new ProposalProvider() {
+            @Override
+            public String getName() {
+                return Messages.AvailableTemplates;
+            }
+
+            @Override
+            public List<Proposal> lookup(String text) {
+                List<Proposal> proposals = new ArrayList<>();
+                templatesProperty.get().forEach(template -> {
+                    if (template.name().contains(text)) {
+                        proposals.add(new Proposal(template.name()));
+                    }
+                });
+                return proposals;
+            }
+        }));
+
+        autocompleteMenu.attachField(templateSelector.getEditor());
+
         templateSelector.setCellFactory(new Callback<>() {
             @Override
             public ListCell<LogTemplate> call(ListView<LogTemplate> logTemplateListView) {
@@ -475,28 +506,53 @@ public class LogEntryEditorController {
 
         templateSelector.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
+                templateSelector.getEditor().textProperty().set(newValue.name());
                 if (!newValue.equals(oldValue)) {
                     loadTemplate(newValue);
                 }
             }
+            else{
+                // E.g. if user specifies an invalid template name
+                loadTemplate(null);
+            }
+        });
+
+        // Hide autocomplete menu when user clicks drop-down button
+        templateSelector.showingProperty().addListener((obs, wasShowing, isNowShowing) -> autocompleteMenu.hide());
+
+        templateSelector.getEditor().textProperty().addListener((obs, o, n) -> {
+           if(n != null && !n.isEmpty()){
+               Optional<LogTemplate> logTemplate =
+                       templatesProperty.get().stream().filter(t -> t.name().equals(n)).findFirst();
+               logTemplate.ifPresent(template -> templateSelector.valueProperty().setValue(template));
+           }
         });
 
         templateSelector.setConverter(
-                new StringConverter<>() {
-                    @Override
-                    public String toString(LogTemplate template) {
-                        if (template == null) {
-                            return "";
-                        } else {
-                            return template.name();
-                        }
-                    }
-
-                    @Override
-                    public LogTemplate fromString(String s) {
+            new StringConverter<>() {
+                @Override
+                public String toString(LogTemplate template) {
+                    if (template == null) {
                         return null;
+                    } else {
+                        return template.name();
                     }
-                });
+                }
+
+                /**
+                 * Converts the user specified string to a {@link LogTemplate}
+                 * @param name The name of an (existing) template
+                 * @return A {@link LogTemplate} if <code>name</code> matches an existing one, otherwise <code>null</code>
+                 */
+                @Override
+                public LogTemplate fromString(String name) {
+                    Optional<LogTemplate> logTemplate =
+                            templatesProperty.get().stream().filter(t -> t.name().equals(name)).findFirst();
+                    return logTemplate.orElse(null);
+                }
+            });
+
+        templateSelector.itemsProperty().bind(templatesProperty);
 
         // Note: logbooks and tags are retrieved asynchronously from service
         getServerSideStaticData();
@@ -767,8 +823,7 @@ public class LogEntryEditorController {
                 logger.log(Level.WARNING, "Failed to get or parse response from server info request", e);
             }
 
-            Collection<LogTemplate> templates = logClient.getTemplates();
-            Platform.runLater(() -> templateSelector.getItems().addAll(templates));
+            templatesProperty.get().setAll(logClient.getTemplates().stream().toList());
         });
     }
 
@@ -840,16 +895,30 @@ public class LogEntryEditorController {
     /**
      * Loads template to configure UI elements.
      *
-     * @param logTemplate A {@link LogTemplate} selected by user.
+     * @param logTemplate A {@link LogTemplate} selected by user. If <code>null</code>, all log entry elements
+     *                    will be cleared, except the Level selector, which will be set to the top-most item.
      */
     private void loadTemplate(LogTemplate logTemplate) {
-        titleProperty.set(logTemplate.title());
-        descriptionProperty.set(logTemplate.source());
-        logPropertiesEditorController.setProperties(logTemplate.properties());
-        selectedTags.setAll(logTemplate.tags().stream().map(Tag::getName).toList());
-        selectedLogbooks.setAll(logTemplate.logbooks().stream().map(Logbook::getName).toList());
-        levelSelector.getSelectionModel().select(logTemplate.level());
-        selectedTags.forEach(t -> updateDropDown(tagDropDown, t, true));
-        selectedLogbooks.forEach(l -> updateDropDown(logbookDropDown, l, true));
+        if(logTemplate != null){
+            titleProperty.set(logTemplate.title());
+            descriptionProperty.set(logTemplate.source());
+            logPropertiesEditorController.setProperties(logTemplate.properties());
+            selectedTags.setAll(logTemplate.tags().stream().map(Tag::getName).toList());
+            selectedLogbooks.setAll(logTemplate.logbooks().stream().map(Logbook::getName).toList());
+            levelSelector.getSelectionModel().select(logTemplate.level());
+            selectedTags.forEach(t -> updateDropDown(tagDropDown, t, true));
+            selectedLogbooks.forEach(l -> updateDropDown(logbookDropDown, l, true));
+        }
+        else{
+            titleProperty.set(null);
+            descriptionProperty.set(null);
+            logPropertiesEditorController.clearSelectedProperties();
+            attachmentsEditorController.clearAttachments();
+            selectedTags.setAll(Collections.emptyList());
+            selectedLogbooks.setAll(Collections.emptyList());
+            levelSelector.getSelectionModel().select(0);
+            selectedTags.forEach(t -> updateDropDown(tagDropDown, t, false));
+            selectedLogbooks.forEach(l -> updateDropDown(logbookDropDown, l, false));
+        }
     }
 }

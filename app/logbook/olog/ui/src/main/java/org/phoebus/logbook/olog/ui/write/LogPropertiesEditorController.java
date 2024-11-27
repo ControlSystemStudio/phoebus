@@ -173,12 +173,22 @@ public class LogPropertiesEditorController {
         return selectedProperties;
     }
 
+    /**
+     * @param properties {@link Collection} of {@link Property}s to set in the editor.
+     */
     public void setProperties(Collection<Property> properties){
-        if(properties == null){
-            return;
+        if(properties != null){
+            selectedProperties.addAll(properties);
+            availableProperties.removeAll(properties);
         }
-        selectedProperties.addAll(properties);
-        availableProperties.removeAll(properties);
+    }
+
+    /**
+     * Moves all selected {@link Property}s back to list of available.
+     */
+    public void clearSelectedProperties(){
+        availableProperties.addAll(selectedProperties);
+        selectedProperties.clear();
     }
 
     /**

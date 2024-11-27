@@ -32,4 +32,9 @@ public record LogTemplate(String id,
                           Collection<Logbook> logbooks,
                           Collection<Tag> tags,
                           Collection<Property> properties){
+
+    @Override
+    public String toString(){
+        return name;
+    }
 }

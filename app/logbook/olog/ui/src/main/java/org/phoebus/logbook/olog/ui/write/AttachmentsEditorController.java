@@ -342,10 +342,19 @@ public class AttachmentsEditorController {
         }
     }
 
+    /**
+     *
+     * @return The {@link ObservableList} of {@link Attachment}s managed in the {@link AttachmentsViewController}.
+     */
     public ObservableList<Attachment> getAttachments() {
         return attachmentsViewController.getAttachments();
     }
 
+    /**
+     * Sets the file upload constraints information in the editor.
+     * @param maxFileSize Maximum size for a single file.
+     * @param maxRequestSize Maximum total size of all attachments.
+     */
     public void setSizeLimits(String maxFileSize, String maxRequestSize) {
         this.maxFileSize = Double.parseDouble(maxFileSize);
         this.maxRequestSize = Double.parseDouble(maxRequestSize);
@@ -386,5 +395,12 @@ public class AttachmentsEditorController {
 
     private void showTotalSizeExceedsLimit() {
         Platform.runLater(() -> sizesErrorMessage.set(Messages.RequestTooLarge));
+    }
+
+    /**
+     * Clears list of {@link Attachment}s.
+     */
+    public void clearAttachments(){
+        getAttachments().clear();
     }
 }
