@@ -492,6 +492,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         }
 
         widget_parent.getTransforms().setAll(new Scale(zoom, zoom));
+        widget_pane.getTransforms().setAll(new Scale(zoom, zoom));
         // Appears similar to using this API:
         //     widget_parent.setScaleX(zoom);
         //     widget_parent.setScaleY(zoom);
@@ -511,7 +512,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     /** @return Zoom factor, 1.0 for 1:1 */
     public double getZoom()
     {
-        final List<Transform> transforms = widget_parent.getTransforms();
+        final List<Transform> transforms = widget_pane.getTransforms();
         if (transforms.isEmpty()  ||
             transforms.size() > 1 ||
             ! (transforms.get(0) instanceof Scale))
@@ -595,7 +596,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         int width = model.propWidth().getValue();
         int height = model.propHeight().getValue();
 
-        final ObservableList<Transform> transforms = widget_parent.getTransforms();
+        final ObservableList<Transform> transforms = widget_pane.getTransforms();
         if (transforms.size() > 0  &&  transforms.get(0) instanceof Scale)
         {
             final Scale scale = (Scale) transforms.get(0);
