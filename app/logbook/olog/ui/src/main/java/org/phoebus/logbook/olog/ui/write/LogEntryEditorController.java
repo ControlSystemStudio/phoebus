@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -244,9 +243,8 @@ public class LogEntryEditorController {
      */
     private Optional<LogEntry> logEntryResult = Optional.empty();
 
-    private final ObjectProperty<ObservableList<LogTemplate>> templatesProperty =
-            new SimpleObjectProperty<>(FXCollections.observableArrayList());
-    //private ObservableList<? extends LogTemplate> templates = FXCollections.observableArrayList();
+    private final ObservableList<LogTemplate> templatesProperty =
+            FXCollections.observableArrayList();
 
     public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, EditMode editMode) {
         this.replyTo = inReplyTo;
@@ -476,7 +474,7 @@ public class LogEntryEditorController {
             @Override
             public List<Proposal> lookup(String text) {
                 List<Proposal> proposals = new ArrayList<>();
-                templatesProperty.get().forEach(template -> {
+                templatesProperty.forEach(template -> {
                     if (template.name().contains(text)) {
                         proposals.add(new Proposal(template.name()));
                     }
@@ -510,8 +508,7 @@ public class LogEntryEditorController {
                 if (!newValue.equals(oldValue)) {
                     loadTemplate(newValue);
                 }
-            }
-            else{
+            } else {
                 // E.g. if user specifies an invalid template name
                 loadTemplate(null);
             }
@@ -521,38 +518,38 @@ public class LogEntryEditorController {
         templateSelector.showingProperty().addListener((obs, wasShowing, isNowShowing) -> autocompleteMenu.hide());
 
         templateSelector.getEditor().textProperty().addListener((obs, o, n) -> {
-           if(n != null && !n.isEmpty()){
-               Optional<LogTemplate> logTemplate =
-                       templatesProperty.get().stream().filter(t -> t.name().equals(n)).findFirst();
-               logTemplate.ifPresent(template -> templateSelector.valueProperty().setValue(template));
-           }
+            if (n != null && !n.isEmpty()) {
+                Optional<LogTemplate> logTemplate =
+                        templatesProperty.stream().filter(t -> t.name().equals(n)).findFirst();
+                logTemplate.ifPresent(template -> templateSelector.valueProperty().setValue(template));
+            }
         });
 
         templateSelector.setConverter(
-            new StringConverter<>() {
-                @Override
-                public String toString(LogTemplate template) {
-                    if (template == null) {
-                        return null;
-                    } else {
-                        return template.name();
+                new StringConverter<>() {
+                    @Override
+                    public String toString(LogTemplate template) {
+                        if (template == null) {
+                            return null;
+                        } else {
+                            return template.name();
+                        }
                     }
-                }
 
-                /**
-                 * Converts the user specified string to a {@link LogTemplate}
-                 * @param name The name of an (existing) template
-                 * @return A {@link LogTemplate} if <code>name</code> matches an existing one, otherwise <code>null</code>
-                 */
-                @Override
-                public LogTemplate fromString(String name) {
-                    Optional<LogTemplate> logTemplate =
-                            templatesProperty.get().stream().filter(t -> t.name().equals(name)).findFirst();
-                    return logTemplate.orElse(null);
-                }
-            });
+                    /**
+                     * Converts the user specified string to a {@link LogTemplate}
+                     * @param name The name of an (existing) template
+                     * @return A {@link LogTemplate} if <code>name</code> matches an existing one, otherwise <code>null</code>
+                     */
+                    @Override
+                    public LogTemplate fromString(String name) {
+                        Optional<LogTemplate> logTemplate =
+                                templatesProperty.stream().filter(t -> t.name().equals(name)).findFirst();
+                        return logTemplate.orElse(null);
+                    }
+                });
 
-        templateSelector.itemsProperty().bind(templatesProperty);
+        templateSelector.itemsProperty().bind(new SimpleObjectProperty<>(templatesProperty));
 
         // Note: logbooks and tags are retrieved asynchronously from service
         getServerSideStaticData();
@@ -599,7 +596,7 @@ public class LogEntryEditorController {
             ologLog.setLevel(selectedLevelProperty.get());
             ologLog.setLogbooks(getSelectedLogbooks());
             ologLog.setTags(getSelectedTags());
-            if(editMode.equals(EditMode.NEW_LOG_ENTRY)){
+            if (editMode.equals(EditMode.NEW_LOG_ENTRY)) {
                 ologLog.setAttachments(attachmentsEditorController.getAttachments());
             }
             ologLog.setProperties(logPropertiesEditorController.getProperties());
@@ -823,7 +820,7 @@ public class LogEntryEditorController {
                 logger.log(Level.WARNING, "Failed to get or parse response from server info request", e);
             }
 
-            templatesProperty.get().setAll(logClient.getTemplates().stream().toList());
+            templatesProperty.setAll(logClient.getTemplates().stream().toList());
         });
     }
 
@@ -899,7 +896,7 @@ public class LogEntryEditorController {
      *                    will be cleared, except the Level selector, which will be set to the top-most item.
      */
     private void loadTemplate(LogTemplate logTemplate) {
-        if(logTemplate != null){
+        if (logTemplate != null) {
             titleProperty.set(logTemplate.title());
             descriptionProperty.set(logTemplate.source());
             logPropertiesEditorController.setProperties(logTemplate.properties());
@@ -908,8 +905,7 @@ public class LogEntryEditorController {
             levelSelector.getSelectionModel().select(logTemplate.level());
             selectedTags.forEach(t -> updateDropDown(tagDropDown, t, true));
             selectedLogbooks.forEach(l -> updateDropDown(logbookDropDown, l, true));
-        }
-        else{
+        } else {
             titleProperty.set(null);
             descriptionProperty.set(null);
             logPropertiesEditorController.clearSelectedProperties();
