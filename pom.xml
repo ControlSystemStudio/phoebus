@@ -163,7 +163,8 @@
         <artifactId>maven-jar-plugin</artifactId>
         <!-- Use a version > 3.2.0 by default for reproducible builds.
           See: https://maven.apache.org/guides/mini/guide-reproducible-builds.html -->
-        <version>3.3.0</version>
+          <!-- upgrade maven to 3.6.3 https://jitpack.io/com/github/ControlSystemStudio/phoebus/-v4.7.3-g9c0f55d-959/build.log -->
+        <version>3.6.3</version>
       </plugin>
       <!-- Include the git properties to ensure reproducible builds -->
       <plugin>
