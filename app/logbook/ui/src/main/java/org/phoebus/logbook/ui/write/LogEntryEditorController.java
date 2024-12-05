@@ -31,6 +31,7 @@ import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.ui.Messages;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -47,7 +48,6 @@ public class LogEntryEditorController {
 
     private Node parent;
     private LogEntryModel model;
-    private LogEntryCompletionHandler completionHandler;
 
     private Logger logger = Logger.getLogger(LogEntryEditorController.class.getName());
 
@@ -66,16 +66,17 @@ public class LogEntryEditorController {
     @FXML
     private AttachmentsViewController attachmentsViewController;
 
+    private Optional<LogEntry> logEntryResult = Optional.empty();
+
     private ExecutorService executorService;
 
     private SimpleBooleanProperty progressIndicatorVisibility =
             new SimpleBooleanProperty(false);
 
 
-    public LogEntryEditorController(Node parent, LogEntryModel model, LogEntryCompletionHandler logEntryCompletionHandler){
+    public LogEntryEditorController(Node parent, LogEntryModel model){
         this.parent = parent;
         this.model = model;
-        this.completionHandler = logEntryCompletionHandler;
         this.executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
@@ -108,9 +109,7 @@ public class LogEntryEditorController {
             Future<LogEntry> future = executorService.submit(() -> model.submitEntry());
             LogEntry result = future.get();
             if(result != null){
-                if(completionHandler != null){
-                    completionHandler.handleResult(result);
-                }
+                logEntryResult = Optional.of(result);
                 cancel();
             }
         } catch (InterruptedException e) {
@@ -138,5 +137,12 @@ public class LogEntryEditorController {
         submit.setTooltip(new Tooltip(Messages.SubmitTooltip));
         cancel.setText(Messages.Cancel);
         cancel.setTooltip(new Tooltip(Messages.CancelTooltip));
+    }
+
+    /**
+     * @return The result of the log entry submission, potentially empty (e.g. user cancels edit)
+     */
+    public Optional<LogEntry> getLogEntryResult(){
+        return logEntryResult;
     }
 }

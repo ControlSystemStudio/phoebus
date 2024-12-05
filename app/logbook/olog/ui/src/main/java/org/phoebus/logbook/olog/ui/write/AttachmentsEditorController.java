@@ -23,6 +23,8 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ListChangeListener;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -117,26 +119,31 @@ public class AttachmentsEditorController {
     private final SimpleStringProperty sizeLimitsText = new SimpleStringProperty();
 
     /**
-     * @param logEntry The log entry template potentially holding a set of attachments. Note
+     * @param logEntry The log entry potentially holding a set of attachments. Note
      *                 that files associated with these attachments are considered temporary and
      *                 are subject to removal when the log entry has been committed.
      */
     public AttachmentsEditorController(LogEntry logEntry) {
         this.logEntry = logEntry;
-        // If the log entry has an attachment - e.g. log entry created from display or data browser -
-        // then add the file size to the total attachments size
-        Collection<Attachment> attachments = logEntry.getAttachments();
-        if (attachments != null && !attachments.isEmpty()) {
-            attachments.forEach(a -> attachedFilesSize += getFileSize(a.getFile()));
-        }
     }
 
     @FXML
     public void initialize() {
 
-        attachmentsViewController.setAttachments(logEntry.getAttachments());
+        // If the log entry has an attachment - e.g. log entry created from display or data browser -
+        // then add the file size to the total attachments size.
+        Collection<Attachment> attachments = logEntry.getAttachments();
+        if (attachments != null && !attachments.isEmpty()) {
+            attachments.forEach(a -> {
+                if(a.getFile() != null){
+                    attachedFilesSize += getFileSize(a.getFile());
+                }
+            });
+        }
 
-        filesToDeleteAfterSubmit.addAll(logEntry.getAttachments().stream().map(Attachment::getFile).toList());
+        attachmentsViewController.setAttachments(attachments);
+
+        filesToDeleteAfterSubmit.addAll(attachments.stream().map(Attachment::getFile).toList());
 
         removeButton.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         removeButton.disableProperty().bind(Bindings.isEmpty(attachmentsViewController.getSelectedAttachments()));
@@ -335,10 +342,19 @@ public class AttachmentsEditorController {
         }
     }
 
-    public List<Attachment> getAttachments() {
+    /**
+     *
+     * @return The {@link ObservableList} of {@link Attachment}s managed in the {@link AttachmentsViewController}.
+     */
+    public ObservableList<Attachment> getAttachments() {
         return attachmentsViewController.getAttachments();
     }
 
+    /**
+     * Sets the file upload constraints information in the editor.
+     * @param maxFileSize Maximum size for a single file.
+     * @param maxRequestSize Maximum total size of all attachments.
+     */
     public void setSizeLimits(String maxFileSize, String maxRequestSize) {
         this.maxFileSize = Double.parseDouble(maxFileSize);
         this.maxRequestSize = Double.parseDouble(maxRequestSize);
@@ -379,5 +395,12 @@ public class AttachmentsEditorController {
 
     private void showTotalSizeExceedsLimit() {
         Platform.runLater(() -> sizesErrorMessage.set(Messages.RequestTooLarge));
+    }
+
+    /**
+     * Clears list of {@link Attachment}s.
+     */
+    public void clearAttachments(){
+        getAttachments().clear();
     }
 }

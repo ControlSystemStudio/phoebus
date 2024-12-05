@@ -108,7 +108,7 @@ public class SendLogbookAction extends MenuItem
 
         final LogEntryModel model = new LogEntryModel(logEntryBuilder.createdDate(Instant.now()).build());
 
-        new LogEntryEditorStage(parent, model, null).show();
+        new LogEntryEditorStage(parent, model).show();
 
     }
 }

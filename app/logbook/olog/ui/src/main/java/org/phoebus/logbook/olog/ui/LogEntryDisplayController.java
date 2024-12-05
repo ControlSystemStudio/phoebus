@@ -36,6 +36,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.olog.ui.write.EditMode;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
@@ -180,13 +181,13 @@ public class LogEntryDisplayController {
     public void reply() {
         // Show a new editor dialog. When user selects to save the reply entry, update the original log entry
         // to ensure that it contains the log group property.
-        new LogEntryEditorStage(new OlogLog(),  logEntryProperty.get(), null).show();
+        new LogEntryEditorStage(new OlogLog(),  logEntryProperty.get(), EditMode.NEW_LOG_ENTRY).show();
     }
 
     @FXML
     public void newLogEntry(){
         // Show a new editor dialog.
-        new LogEntryEditorStage(new OlogLog(),  null, null).show();
+        new LogEntryEditorStage(new OlogLog(),  null, EditMode.NEW_LOG_ENTRY).show();
     }
 
     @FXML

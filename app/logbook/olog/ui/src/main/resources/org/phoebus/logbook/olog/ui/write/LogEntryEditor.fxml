@@ -23,7 +23,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane prefHeight="1000" prefWidth="800" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.LogEntryEditorController">
+<StackPane prefHeight="1000" prefWidth="800" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.LogEntryEditorController">
     <children>
 
         <VBox fx:id="editorPane">
@@ -44,6 +44,13 @@
                             </HBox.margin>
                         </Label>
                         <PasswordField fx:id="passwordField" prefWidth="0.0" HBox.hgrow="ALWAYS" />
+                    </children>
+                </HBox>
+                 <HBox fx:id="templateControls" alignment="CENTER_RIGHT" spacing="5.0">
+                    <children>
+                        <Label prefWidth="80" text="%Templates" />
+                        <ComboBox fx:id="templateSelector" editable="true" prefWidth="310.0" visibleRowCount="10" />
+                        <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS" />
                     </children>
                 </HBox>
                 <HBox alignment="CENTER_RIGHT" spacing="5.0">
@@ -156,7 +163,7 @@
 
             <Accordion maxHeight="1.7976931348623157E308">
                 <panes>
-                    <TitledPane animated="false" maxHeight="1.7976931348623157E308" text="%Attachments">
+                    <TitledPane fx:id="attachmentsPane" animated="false" maxHeight="1.7976931348623157E308" text="%Attachments">
                         <fx:include fx:id="attachmentsEditor" maxHeight="1.7976931348623157E308" source="AttachmentsEditor.fxml" />
                     </TitledPane>
                     <TitledPane animated="false" text="%Properties">
@@ -219,8 +226,7 @@
                      <GridPane.margin>
                         <Insets bottom="5.0" />
                      </GridPane.margin></Label>
-                        <Button fx:id="errorCloseButton" mnemonicParsing="false"
-                                onAction="#cancel" text="%Close" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP">
+                        <Button fx:id="errorCloseButton" mnemonicParsing="false" onAction="#cancel" text="%Close" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP">
                      <GridPane.margin>
                         <Insets top="5.0" />
                      </GridPane.margin></Button>
