@@ -174,6 +174,24 @@ public class LogPropertiesEditorController {
     }
 
     /**
+     * @param properties {@link Collection} of {@link Property}s to set in the editor.
+     */
+    public void setProperties(Collection<Property> properties){
+        if(properties != null){
+            selectedProperties.addAll(properties);
+            availableProperties.removeAll(properties);
+        }
+    }
+
+    /**
+     * Moves all selected {@link Property}s back to list of available.
+     */
+    public void clearSelectedProperties(){
+        availableProperties.addAll(selectedProperties);
+        selectedProperties.clear();
+    }
+
+    /**
      * Move the user selected available properties from the available list to the selected properties tree view
      */
     @FXML

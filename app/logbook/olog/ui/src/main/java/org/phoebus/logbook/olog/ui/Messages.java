@@ -23,6 +23,7 @@ public class Messages
             AttachmentsDirectoryNotWritable,
             AttachmentsFileNotDirectory,
             AttachmentsNoStorage,
+            AvailableTemplates,
             Back,
             CloseRequestHeader,
             CloseRequestButtonContinue,

@@ -513,4 +513,20 @@ public interface LogClient {
     default SearchResult getArchivedEntries(long id){
         return null;
     }
+
+    /**
+     * @return All potentially empty {@link Collection} of {@link LogTemplate} saved in remote service.
+     */
+    default Collection<LogTemplate> getTemplates(){
+        return Collections.emptyList();
+    }
+
+    /**
+     * Saves a new {@link LogTemplate}
+     * @param logTemplate Data
+     * @return The persisted {@link LogTemplate}
+     */
+    default LogTemplate saveTemplate(LogTemplate logTemplate) throws LogbookException{
+        return null;
+    }
 }

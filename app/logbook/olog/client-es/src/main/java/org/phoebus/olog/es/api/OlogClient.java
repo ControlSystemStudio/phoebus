@@ -20,6 +20,7 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryChangeHandler;
+import org.phoebus.logbook.LogTemplate;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Messages;
@@ -43,6 +44,7 @@ import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.http.HttpHeaders;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -561,5 +563,37 @@ public class OlogClient implements LogClient {
             logger.log(Level.WARNING, "failed to retrieve archived log entries", e);
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Collection<LogTemplate> getTemplates(){
+        try {
+            return OlogObjectMappers.logEntryDeserializer.readValue(
+                    service.path("templates").accept(MediaType.APPLICATION_JSON).get(String.class),
+                    new TypeReference<List<LogTemplate>>() {
+                    });
+        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            logger.log(Level.WARNING, "Unable to get templates from service", e);
+            return Collections.emptySet();
+        }
+    }
+
+    @Override
+    public LogTemplate saveTemplate(LogTemplate template) throws LogbookException{
+        ClientResponse clientResponse = service.path("templates").accept(MediaType.APPLICATION_JSON_TYPE)
+                .header("Content-Type", MediaType.APPLICATION_JSON_TYPE)
+                .put(ClientResponse.class, template);
+        if (clientResponse.getStatus() > 300) {
+            logger.log(Level.SEVERE, "Failed to create template: " + clientResponse);
+            throw new LogbookException(clientResponse.toString());
+        }
+
+        try {
+            return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), LogTemplate.class);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to submit template, got client exception", e);
+            throw new LogbookException(e);
+        }
+
     }
 }

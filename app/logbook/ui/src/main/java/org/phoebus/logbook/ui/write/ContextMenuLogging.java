@@ -45,7 +45,7 @@ public class ContextMenuLogging implements ContextMenuEntry {
             });
         });
         final LogEntryModel model = new LogEntryModel(adaptedSelections.get(0));
-        new LogEntryEditorStage(parent, model, null).show();
+        new LogEntryEditorStage(parent, model).show();
     }
 
     @Override

@@ -320,4 +320,11 @@ public class AutocompleteMenu
         }
         menu.hide();
     }
+
+    /**
+     * Explicitly hides the menu.
+     */
+    public void hide(){
+        menu.hide();
+    }
 }

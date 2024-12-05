@@ -24,31 +24,39 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.phoebus.logbook.LogEntry;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * {@link Stage} subclass rendering a UI for the purpose of editing/submitting a {@link LogEntry}.
+ * Callers that need to handle the outcome (i.e. when the {@link Stage} is closed) should
+ * call first call {@link #showAndWait()} and then get a potential result using {@link #getLogEntryResult()}.
+ */
 public class LogEntryEditorStage extends Stage
 {
 
-    /**
+    private LogEntryEditorController logEntryEditorController;
+      /**
      * A stand-alone window containing components needed to create a logbook entry.
      * @param parent The {@link Node} from which the user - through context menu or application menu - requests a new
      *               logbook entry.
-     * @param logEntryModel Pre-populated data for the log entry, e.g. date and (optionally) screen shot.
-     * @param completionHandler If non-null, called when the submission to the logbook service has completed.
+     * @param logEntryModel Pre-populated data for the log entry, e.g. date and (optionally) screenshot.
      */
-    public LogEntryEditorStage(Node parent, LogEntryModel logEntryModel, LogEntryCompletionHandler completionHandler)
+    public LogEntryEditorStage(Node parent, LogEntryModel logEntryModel)
     {
         initModality(Modality.APPLICATION_MODAL);
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("LogEntryEditor.fxml"));
         fxmlLoader.setControllerFactory(clazz -> {
             try {
                 if(clazz.isAssignableFrom(LogEntryEditorController.class)){
-                    return clazz.getConstructor(Node.class, LogEntryModel.class, LogEntryCompletionHandler.class)
-                            .newInstance(parent, logEntryModel, completionHandler);
+                    logEntryEditorController = (LogEntryEditorController) clazz.getConstructor(Node.class, LogEntryModel.class)
+                            .newInstance(parent, logEntryModel);
+                    return logEntryEditorController;
                 }
                 else if(clazz.isAssignableFrom(FieldsViewController.class)){
                     return clazz.getConstructor(LogEntryModel.class)
@@ -73,5 +81,13 @@ public class LogEntryEditorStage extends Stage
 
         Scene scene = new Scene(fxmlLoader.getRoot());
         setScene(scene);
+    }
+
+    /**
+     *
+     * @return A potentially empty result of {@link LogEntry} submission.
+     */
+    public Optional<LogEntry> getLogEntryResult(){
+        return logEntryEditorController.getLogEntryResult();
     }
 }
