@@ -166,6 +166,8 @@
         <version>3.3.0</version>
       </plugin>
       <!-- Include the git properties to ensure reproducible builds -->
+      <!-- Maven 3.6.1 error build compatibility-->
+       <!--
       <plugin>
         <groupId>io.github.git-commit-id</groupId>
         <artifactId>git-commit-id-maven-plugin</artifactId>
@@ -191,7 +193,7 @@
             <excludeProperty>^git.local.branch.*$</excludeProperty>
           </excludeProperties>
         </configuration>
-      </plugin>
+      </plugin>-->
     </plugins>
   </build>
 
