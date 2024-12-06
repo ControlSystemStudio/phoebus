@@ -599,16 +599,25 @@ public class LogEntryEditorController {
             if (editMode.equals(EditMode.NEW_LOG_ENTRY)) {
                 ologLog.setAttachments(attachmentsEditorController.getAttachments());
             }
+            else{
+                ologLog.setId(logEntry.getId());
+            }
             ologLog.setProperties(logPropertiesEditorController.getProperties());
 
             LogClient logClient =
                     logFactory.getLogClient(new SimpleAuthenticationToken(usernameProperty.get(), passwordProperty.get()));
             try {
-                if (replyTo == null) {
-                    logEntryResult = Optional.of(logClient.set(ologLog));
-                } else {
-                    logEntryResult = Optional.of(logClient.reply(ologLog, replyTo));
+                if(editMode.equals(EditMode.NEW_LOG_ENTRY)){
+                    if (replyTo == null) {
+                        logEntryResult = Optional.of(logClient.set(ologLog));
+                    } else {
+                        logEntryResult = Optional.of(logClient.reply(ologLog, replyTo));
+                    }
                 }
+                else{
+                    logEntryResult = Optional.of(logClient.update(ologLog));
+                }
+
                 // Not dirty anymore...
                 isDirty = false;
 
