@@ -13,8 +13,15 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -75,6 +82,16 @@ public class ElasticConfig {
     @Value("${elasticsearch.http.port:9200}")
     private int port;
 
+    @Value("${elasticsearch.authorization.header:}")
+    private String authorizationHeader;
+
+    @Value("${elasticsearch.authorization.username:}")
+    private String username;
+
+    @Value("${elasticsearch.authorization.password}")
+    private String password;
+
+
     private ElasticsearchClient client;
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
 
@@ -95,8 +112,20 @@ public class ElasticConfig {
     public ElasticsearchClient getClient() {
         if (client == null) {
             // Create the low-level client
-            RestClient httpClient = RestClient.builder(new HttpHost(host, port)).build();
+            RestClientBuilder clientBuilder = RestClient.builder(new HttpHost(host, port));
 
+            // Configure authentication
+            if (!authorizationHeader.isEmpty()) {
+                clientBuilder.setDefaultHeaders(new Header[] {new BasicHeader("Authorization", authorizationHeader)});
+                if (!username.isEmpty() || !password.isEmpty()) {
+                    logger.warning("elasticsearch.authorization_header is set, ignoring elasticsearch.username and elasticsearch.password.");
+                }
+            } else if (!username.isEmpty() || !password.isEmpty()) {
+                final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+                clientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            }
+            RestClient httpClient = clientBuilder.build();
             JacksonJsonpMapper jacksonJsonpMapper = new JacksonJsonpMapper();
             SimpleModule module = new SimpleModule();
             module.addSerializer(VType.class, new VTypeSerializer());
