@@ -1,7 +1,7 @@
 package org.phoebus.applications.uxanalytics.monitor.backend.database;
 
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.phoebus.applications.uxanalytics.monitor.backend.image.ImageClient;
 import org.phoebus.applications.uxanalytics.monitor.util.ResourceOpenSources;

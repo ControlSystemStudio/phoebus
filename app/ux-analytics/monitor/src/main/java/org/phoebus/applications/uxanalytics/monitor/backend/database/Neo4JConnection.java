@@ -1,10 +1,12 @@
 package org.phoebus.applications.uxanalytics.monitor.backend.database;
 
 import javafx.application.Platform;
+import org.csstudio.display.actions.OpenDisplayAction;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
-import org.csstudio.display.builder.model.properties.WritePVActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfoBase;
+import org.csstudio.display.builder.model.spi.ActionInfo;
+import org.csstudio.display.actions.OpenDisplayAction;
+import org.csstudio.display.actions.WritePVAction;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.neo4j.driver.*;
@@ -18,6 +20,9 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.csstudio.display.actions.OpenDisplayAction.OPEN_DISPLAY;
+import static org.csstudio.display.actions.WritePVAction.WRITE_PV;
 
 public class Neo4JConnection implements BackendConnection {
 
@@ -167,14 +172,14 @@ public class Neo4JConnection implements BackendConnection {
     //this operation involves calculating a hash and posting an update to the Neo4J database
     //so it should not be done on the JavaFX thread
     //This is separate from the rest because it requires additional validation to ensure the target is real.
-    public void handleDisplayOpenViaActionButton(ActiveTab who, Widget widget, ActionInfo actionInfo) {
+    public void handleDisplayOpenViaActionButton(ActiveTab who, Widget widget, OpenDisplayAction openDisplayAction) {
         Platform.runLater(() -> {
             DisplayInfo currentDisplayInfo = who.getDisplayInfo();
             String sourcePath = FileUtils.getAnalyticsPathFor(currentDisplayInfo.getPath());
             String targetPath = FileUtils.getAnalyticsPathFor(
                     ModelResourceUtil.resolveResource(
                             currentDisplayInfo.getPath(),
-                            ((OpenDisplayActionInfo)actionInfo).getFile())
+                            openDisplayAction.getFile())
             );
             try {
                 fileOpenConnection(targetPath,sourcePath,TYPE_DISPLAY,ACTION_OPENED);
@@ -187,13 +192,13 @@ public class Neo4JConnection implements BackendConnection {
 
     @Override
     public void handleAction(ActiveTab who, Widget widget, ActionInfo info) {
-        ActionInfo.ActionType actionType = info.getType();
+        String actionType = info.getType();
         switch (actionType) {
             case WRITE_PV:
-                handlePVWrite(who, widget, ((WritePVActionInfo) info).getPV(), ((WritePVActionInfo) info).getValue());
+                handlePVWrite(who, widget, ((WritePVAction) info).getPV(), ((WritePVAction) info).getValue());
                 break;
             case OPEN_DISPLAY:
-                handleDisplayOpenViaActionButton(who, widget, info);
+                handleDisplayOpenViaActionButton(who, widget, (OpenDisplayAction)info );
                 break;
             default:
                 //keep it simple for now, just PVs and file opens

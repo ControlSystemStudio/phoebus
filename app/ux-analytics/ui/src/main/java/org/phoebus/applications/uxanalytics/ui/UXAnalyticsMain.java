@@ -8,6 +8,7 @@ import org.phoebus.applications.uxanalytics.monitor.*;
 import org.phoebus.applications.uxanalytics.monitor.backend.database.BackendConnection;
 import org.phoebus.applications.uxanalytics.monitor.backend.database.SQLConnection;
 import org.phoebus.applications.uxanalytics.monitor.backend.database.Neo4JConnection;
+import org.phoebus.applications.uxanalytics.monitor.backend.database.ServiceLayerConnection;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 
@@ -19,8 +20,8 @@ public class UXAnalyticsMain implements AppResourceDescriptor {
     public static final Logger logger = Logger.getLogger(UXAnalyticsMain.class.getPackageName());
     public static final String NAME = "uxanalyticsconfig";
     public static final String DISPLAY_NAME = "UX Analytics Config";
-    private BackendConnection phoebusConnection = Neo4JConnection.getInstance();
-    private BackendConnection jfxConnection = SQLConnection.getInstance();
+    private BackendConnection phoebusConnection = ServiceLayerConnection.getInstance();
+    private BackendConnection jfxConnection = ServiceLayerConnection.getInstance();
     private final UXAMonitor monitor = UXAMonitor.getInstance();
     @Override
     public AppInstance create(URI resource) {

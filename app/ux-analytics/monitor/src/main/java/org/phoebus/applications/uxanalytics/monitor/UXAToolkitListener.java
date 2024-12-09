@@ -1,7 +1,8 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.spi.ActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfoBase;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
@@ -17,6 +18,7 @@ public class UXAToolkitListener implements ToolkitListener {
 
     public static final HashMap<String, ResourceOpenSources> openSources = new HashMap<>(
             Map.of(
+                    "org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance.loadDisplayFile",ResourceOpenSources.ACTION_BUTTON,
                     "org.csstudio.display.builder.runtime.ActionUtil.openDisplay", ResourceOpenSources.ACTION_BUTTON,
                     "org.phoebus.ui.application.PhoebusApplication.fileOpen", ResourceOpenSources.FILE_BROWSER,
                     "org.csstudio.display.builder.runtime.app.NavigationAction.navigate", ResourceOpenSources.NAVIGATION_BUTTON,
@@ -95,6 +97,9 @@ public class UXAToolkitListener implements ToolkitListener {
                         case RESTORED:
                         case TOP_RESOURCES:
                         case UNKNOWN:
+                            for(StackTraceElement element: stackTrace){
+                                System.out.println(element.toString());
+                            }
                             monitor.getPhoebusConnection().handleDisplayOpen(dst_src.get(0), null, source);
                     }
                 }

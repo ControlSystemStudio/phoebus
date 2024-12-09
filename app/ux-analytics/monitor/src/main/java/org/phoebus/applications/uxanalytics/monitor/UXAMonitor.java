@@ -10,6 +10,7 @@ import org.phoebus.applications.uxanalytics.monitor.backend.database.BackendConn
 import org.phoebus.applications.uxanalytics.monitor.backend.database.MongoDBConnection;
 import org.phoebus.applications.uxanalytics.monitor.backend.database.Neo4JConnection;
 import org.phoebus.applications.uxanalytics.monitor.representation.ActiveWindowsService;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 
 /**
  * Singleton Class to capture UI events (clicks, PV Writes, Display open/close)
@@ -26,7 +27,7 @@ public class UXAMonitor{
     private BackendConnection phoebusConnection;
     private BackendConnection jfxConnection;
 
-    private UXAMonitor() {
+    private UXAMonitor(){
     }
 
     public BackendConnection getJfxConnection() {return jfxConnection;}
@@ -38,11 +39,8 @@ public class UXAMonitor{
     }
 
     public void notifyConnectionChange(BackendConnection connection){
-        if(connection instanceof MongoDBConnection){
-            jfxConnection = connection;
-        } else if(connection instanceof Neo4JConnection){
-            phoebusConnection = connection;
-        }
+        jfxConnection = connection;
+        phoebusConnection = connection;
     }
 
     public void setPhoebusConnection(BackendConnection phoebusConnection) {

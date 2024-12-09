@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.util.prefs.Preferences;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
@@ -28,8 +29,14 @@ public class FileUtils {
         if(webContentRoot != null){
             return webContentRoot;
         }
+        Preferences prefs = PhoebusPreferenceService.userNodeForClass(FileUtils.class);
+        String path = prefs.absolutePath();
         //check if preference is set in phoebus.properties
-        return PhoebusPreferenceService.userNodeForClass(FileUtils.class).get(WEB_CONTENT_ROOT_SETTING_NAME, null);
+        String root = PhoebusPreferenceService.userNodeForClass(FileUtils.class).get(WEB_CONTENT_ROOT_SETTING_NAME, null);
+        if(!root.endsWith("/")){
+            root = root + "/";
+        }
+        return root;
     }
 
     private static boolean isGitRepo(File fileObject){
