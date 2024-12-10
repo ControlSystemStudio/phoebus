@@ -133,6 +133,12 @@
             <version>2.1.1</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>app-filebrowser</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

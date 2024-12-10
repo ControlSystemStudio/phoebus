@@ -18,13 +18,13 @@ public class UXAToolkitListener implements ToolkitListener {
 
     public static final HashMap<String, ResourceOpenSources> openSources = new HashMap<>(
             Map.of(
-                    "org.csstudio.display.builder.runtime.app.actionhandlers.OpenDisplayActionHandler.handleAction", ResourceOpenSources.ACTION_BUTTON,
-                    "org.phoebus.applications.filebrowser.FileBrowserController.openResource", ResourceOpenSources.FILE_BROWSER,
-                    "org.phoebus.ui.application.PhoebusApplication.fileOpen", ResourceOpenSources.FILE_BROWSER,
-                    "org.csstudio.display.builder.runtime.app.NavigationAction.navigate", ResourceOpenSources.NAVIGATION_BUTTON,
-                    "org.phoebus.ui.internal.MementoHelper.restoreDockItem", ResourceOpenSources.RESTORED,
-                    "org.phoebus.ui.application.PhoebusApplication.createTopResourcesMenu", ResourceOpenSources.TOP_RESOURCES,
-                    "org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance.reload", ResourceOpenSources.RELOAD
+                    org.csstudio.display.builder.runtime.app.actionhandlers.OpenDisplayActionHandler.class.getName()+".handleAction", ResourceOpenSources.ACTION_BUTTON,
+                    org.phoebus.applications.filebrowser.FileBrowserController.class.getName()+".openResource", ResourceOpenSources.FILE_BROWSER,
+                    org.phoebus.ui.application.PhoebusApplication.class.getName()+".fileOpen", ResourceOpenSources.FILE_BROWSER,
+                    org.csstudio.display.builder.runtime.app.NavigationAction.class.getName()+".navigate", ResourceOpenSources.NAVIGATION_BUTTON,
+                    org.phoebus.ui.internal.MementoHelper.class.getName()+".restoreDockItem", ResourceOpenSources.RESTORED,
+                    org.phoebus.ui.application.PhoebusApplication.class.getName()+".createTopResourcesMenu", ResourceOpenSources.TOP_RESOURCES,
+                    org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance.class.getName()+".reload", ResourceOpenSources.RELOAD
             )
     );
 
@@ -51,6 +51,7 @@ public class UXAToolkitListener implements ToolkitListener {
 
     //Traverse down a given call stack to find out what caused the display to open
     private static ResourceOpenSources getSourceOfOpen(StackTraceElement[] stackTrace){
+
         for(StackTraceElement e: stackTrace){
             String methodName =  unmangleLambda(e.getMethodName());
             String fullName = e.getClassName()+"."+methodName;
