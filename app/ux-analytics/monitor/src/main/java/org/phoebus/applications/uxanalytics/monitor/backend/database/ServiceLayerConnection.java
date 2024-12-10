@@ -46,6 +46,7 @@ public class ServiceLayerConnection implements BackendConnection{
     public static final String ACTION_WROTE = "wrote_to";
     public static final String ACTION_OPENED = "opened";
     public static final String ACTION_NAVIGATED = "navigation_button";
+    public static final String ACTION_RELOADED = "reloaded";
 
     Logger logger = Logger.getLogger(ServiceLayerConnection.class.getName());
 
@@ -227,7 +228,13 @@ public class ServiceLayerConnection implements BackendConnection{
                     if (src != null) {
                         sourcePath = FileUtils.getAnalyticsPathFor(src.getPath());
                         sourceType = TYPE_DISPLAY;
-                        action = ACTION_NAVIGATED;
+                        assert sourcePath != null;
+                        if(sourcePath.equals(targetPath)){
+                            action=ACTION_RELOADED;
+                        }
+                        else{
+                            action = ACTION_NAVIGATED;
+                        }
                     }
                     break;
                 case FILE_BROWSER:

@@ -18,8 +18,8 @@ public class UXAToolkitListener implements ToolkitListener {
 
     public static final HashMap<String, ResourceOpenSources> openSources = new HashMap<>(
             Map.of(
-                    "org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance.loadDisplayFile",ResourceOpenSources.ACTION_BUTTON,
-                    "org.csstudio.display.builder.runtime.ActionUtil.openDisplay", ResourceOpenSources.ACTION_BUTTON,
+                    "org.csstudio.display.builder.runtime.app.actionhandlers.OpenDisplayActionHandler.handleAction", ResourceOpenSources.ACTION_BUTTON,
+                    "org.phoebus.applications.filebrowser.FileBrowserController.openResource", ResourceOpenSources.FILE_BROWSER,
                     "org.phoebus.ui.application.PhoebusApplication.fileOpen", ResourceOpenSources.FILE_BROWSER,
                     "org.csstudio.display.builder.runtime.app.NavigationAction.navigate", ResourceOpenSources.NAVIGATION_BUTTON,
                     "org.phoebus.ui.internal.MementoHelper.restoreDockItem", ResourceOpenSources.RESTORED,
@@ -97,9 +97,6 @@ public class UXAToolkitListener implements ToolkitListener {
                         case RESTORED:
                         case TOP_RESOURCES:
                         case UNKNOWN:
-                            for(StackTraceElement element: stackTrace){
-                                System.out.println(element.toString());
-                            }
                             monitor.getPhoebusConnection().handleDisplayOpen(dst_src.get(0), null, source);
                     }
                 }
