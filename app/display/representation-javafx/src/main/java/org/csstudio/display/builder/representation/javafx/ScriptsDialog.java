@@ -26,8 +26,8 @@ import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.dialog.CodeDialog;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.EditCell;
 import org.phoebus.ui.javafx.LineNumberTableCellFactory;
 import org.phoebus.ui.javafx.TableHelper;
@@ -617,7 +617,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
             {
                 Platform.runLater(() ->
                 {
-                    final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
+                    final CodeDialog dlg = new CodeDialog(scripts_table, selected_script_item.text);
                     dlg.showAndWait().ifPresent(result -> selected_script_item.text = result);
                 });
             }
@@ -751,7 +751,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         }
         else
         {
-            final MultiLineInputDialog dlg = new MultiLineInputDialog(scripts_table, selected_script_item.text);
+            final CodeDialog dlg = new CodeDialog(scripts_table, selected_script_item.text);
             dlg.showAndWait().ifPresent(result -> selected_script_item.text = result);
         }
     }
