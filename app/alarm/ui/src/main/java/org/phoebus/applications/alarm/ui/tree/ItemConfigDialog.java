@@ -8,11 +8,21 @@
 package org.phoebus.applications.alarm.ui.tree;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -29,6 +39,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeParser;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAmount;
 
@@ -50,13 +61,14 @@ class ItemConfigDialog extends Dialog<Boolean> {
     private final TitleDetailTable guidance, displays, commands;
     private final TitleDetailDelayTable actions;
 
+    private final SimpleBooleanProperty itemEnabled = new SimpleBooleanProperty();
+
     public ItemConfigDialog(final AlarmClient model, final AlarmTreeItem<?> item) {
         // Allow multiple instances
         initModality(Modality.NONE);
         setTitle("Configure " + item.getName());
 
         final GridPane layout = new GridPane();
-        // layout.setGridLinesVisible(true); // Debug layout
         layout.setHgap(5);
         layout.setVgap(5);
 
@@ -76,8 +88,8 @@ class ItemConfigDialog extends Dialog<Boolean> {
         path.setEditable(false);
         layout.add(path, 1, row++);
 
-        if (item instanceof AlarmClientLeaf) {
-            final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
+        if (item instanceof AlarmClientLeaf leaf) {
+            itemEnabled.setValue(((AlarmClientLeaf) item).isEnabled());
 
             layout.add(new Label("Description:"), 0, row);
             description = new TextField(leaf.getDescription());
@@ -89,22 +101,35 @@ class ItemConfigDialog extends Dialog<Boolean> {
             enabled = new CheckBox("Enabled");
             enabled.setTooltip(new Tooltip("Enable alarms? See also 'Enabling Filter'"));
             enabled.setSelected(leaf.isEnabled());
-            enabled.setOnAction((event) ->
-            {
-                relative_date.getSelectionModel().clearSelection();
-                relative_date.setValue(null);
-                enabled_date_picker.getEditor().clear();
-                enabled_date_picker.setValue(null);
-                enabled.setSelected(true);
+
+            itemEnabled.addListener((obs, o, n) -> {
+                ((AlarmClientLeaf) item).setEnabled(n);
             });
+
+            enabled.setOnAction(e -> {
+                itemEnabled.setValue(enabled.isSelected());
+                if (enabled.isSelected()) {
+                    relative_date.getSelectionModel().clearSelection();
+                    relative_date.setValue(null);
+                    enabled_date_picker.getEditor().clear();
+                    enabled_date_picker.setValue(null);
+                }
+                // User has unchecked checkbox to disable alarm -> disable indefinitely.
+                if (!enabled.isSelected()) {
+                    ((AlarmClientLeaf) item).setEnabled(false);
+                }
+            });
+
 
             latching = new CheckBox("Latch");
             latching.setTooltip(new Tooltip("Latch alarm until acknowledged?"));
             latching.setSelected(leaf.isLatching());
+            latching.disableProperty().bind(itemEnabled.not());
 
             annunciating = new CheckBox("Annunciate");
             annunciating.setTooltip(new Tooltip("Request audible alarm annunciation (using the description)?"));
             annunciating.setSelected(leaf.isAnnunciating());
+            annunciating.disableProperty().bind(itemEnabled.not());
 
             layout.add(new HBox(10, enabled, latching, annunciating), 1, row++);
 
@@ -113,11 +138,15 @@ class ItemConfigDialog extends Dialog<Boolean> {
             enabled_date_picker.setTooltip(new Tooltip("Select a date until which the alarm should be disabled"));
             enabled_date_picker.setDateTimeValue(leaf.getEnabledDate());
             enabled_date_picker.setPrefSize(280, 25);
+            enabled_date_picker.setDisable(!leaf.isEnabled());
+            enabled_date_picker.disableProperty().bind(itemEnabled.not());
 
             relative_date = new ComboBox<>();
             relative_date.setTooltip(new Tooltip("Select a predefined duration for disabling the alarm"));
             relative_date.getItems().addAll(AlarmSystem.shelving_options);
             relative_date.setPrefSize(200, 25);
+            relative_date.setDisable(!leaf.isEnabled());
+            relative_date.disableProperty().bind(itemEnabled.not());
 
             final EventHandler<ActionEvent> relative_event_handler = (ActionEvent e) ->
             {
@@ -164,6 +193,7 @@ class ItemConfigDialog extends Dialog<Boolean> {
             delay.setTooltip(delay_tt);
             delay.setEditable(true);
             delay.setPrefWidth(80);
+            delay.disableProperty().bind(itemEnabled.not());
             layout.add(delay, 1, row++);
 
             layout.add(new Label("Alarm Count [within delay]:"), 0, row);
@@ -171,25 +201,14 @@ class ItemConfigDialog extends Dialog<Boolean> {
             count.setTooltip(new Tooltip("Alarms are indicated when they occur this often within the delay"));
             count.setEditable(true);
             count.setPrefWidth(80);
+            count.disableProperty().bind(itemEnabled.not());
             layout.add(count, 1, row++);
 
             layout.add(new Label("Enabling Filter:"), 0, row);
             filter = new TextField(leaf.getFilter());
             filter.setTooltip(new Tooltip("Optional expression for enabling the alarm"));
+            filter.disableProperty().bind(itemEnabled.not());
             layout.add(filter, 1, row++);
-
-            // Disable most of the detail when PV not enabled
-            final ChangeListener<? super Boolean> enablement = (p, old, enable) ->
-            {
-                latching.setDisable(!enable);
-                annunciating.setDisable(!enable);
-                delay.setDisable(!enable);
-                count.setDisable(!enable);
-                filter.setDisable(!enable);
-            };
-            enabled.selectedProperty().addListener(enablement);
-            enablement.changed(null, null, leaf.isEnabled());
-
 
             // Initial focus on description
             Platform.runLater(() -> description.requestFocus());
@@ -245,6 +264,15 @@ class ItemConfigDialog extends Dialog<Boolean> {
                 validateAndStore(model, item, event));
 
         setResultConverter(button -> button == ButtonType.OK);
+
+        // Configure date picker to disable selection of all dates in the past.
+        enabled_date_picker.setDayCellFactory(picker -> new DateCell() {
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                LocalDate today = LocalDate.now();
+                setDisable(empty || date.isBefore(today));
+            }
+        });
     }
 
     /**
@@ -272,17 +300,16 @@ class ItemConfigDialog extends Dialog<Boolean> {
             final LocalDateTime selected_enable_date = enabled_date_picker.getDateTimeValue();
             final String relative_enable_date = relative_date.getValue();
 
-            if ((selected_enable_date != null) && selected_enable_date.isAfter(LocalDateTime.now()))
+            if ((selected_enable_date != null)) {
                 pv.setEnabledDate(selected_enable_date);
-            else
-                pv.setEnabled(true);
-
-            if (relative_enable_date != null) {
+            } else if (relative_enable_date != null) {
                 final TemporalAmount amount = TimeParser.parseTemporalAmount(relative_enable_date);
                 final LocalDateTime update_date = LocalDateTime.now().plus(amount);
                 pv.setEnabledDate(update_date);
+            } else {
+                pv.setEnabled(itemEnabled.get());
             }
-            ;
+
             config = pv;
         } else
             config = new AlarmClientNode(null, item.getName());
