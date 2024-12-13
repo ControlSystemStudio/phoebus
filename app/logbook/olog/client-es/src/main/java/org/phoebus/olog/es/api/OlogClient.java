@@ -44,7 +44,6 @@ import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.http.HttpHeaders;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -89,13 +88,9 @@ public class OlogClient implements LogClient {
         private final String protocol;
         private String username = null;
         private String password = null;
-        private String connectTimeoutAsString = null;
-        private Boolean permissiveHostnameVerifier;
-
-        private final OlogProperties properties = new OlogProperties();
 
         private OlogClientBuilder() {
-            this.ologURI = URI.create(this.properties.getPreferenceValue("olog_url"));
+            this.ologURI = URI.create(Preferences.olog_url);
             this.protocol = this.ologURI.getScheme();
         }
 
@@ -157,29 +152,21 @@ public class OlogClient implements LogClient {
                     this.clientConfig = new DefaultClientConfig();
                 }
             }
-            if(this.username == null || this.password == null){
+            if (this.username == null || this.password == null) {
                 ScopedAuthenticationToken scopedAuthenticationToken = getCredentialsFromSecureStore();
-                if(scopedAuthenticationToken != null){
+                if (scopedAuthenticationToken != null) {
                     this.username = scopedAuthenticationToken.getUsername();
                     this.password = scopedAuthenticationToken.getPassword();
-                }
-                else{
-                    this.username = ifNullReturnPreferenceValue(this.username, "username");
-                    this.password = ifNullReturnPreferenceValue(this.password, "password");
+                } else {
+                    this.username = Preferences.username != null ? Preferences.username : this.username;
+                    this.password = Preferences.password != null ? Preferences.password : this.password;
                 }
             }
-            this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
-            int connectTimeout = 0;
-            try {
-                connectTimeout = Integer.parseInt(connectTimeoutAsString);
-            } catch (NumberFormatException e) {
-                Logger.getLogger(OlogClientBuilder.class.getPackageName())
-                        .warning("connectTimeout preference not set or invalid, using 0 (=infinite)");
-            }
+
+            int connectTimeout = Preferences.connectTimeout;
             this.clientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);
 
-            this.permissiveHostnameVerifier = Boolean.parseBoolean(this.properties.getPreferenceValue("permissive_hostname_verifier"));
-            if (this.permissiveHostnameVerifier) {
+            if (Preferences.permissive_hostname_verifier) {
                 HostnameVerifier allHostsValid = (hostname, session) -> true;
                 HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
             }
@@ -187,15 +174,7 @@ public class OlogClient implements LogClient {
             return new OlogClient(this.ologURI, this.clientConfig, this.withHTTPAuthentication, this.username, this.password);
         }
 
-        private String ifNullReturnPreferenceValue(String value, String key) {
-            if (value == null) {
-                return this.properties.getPreferenceValue(key);
-            } else {
-                return value;
-            }
-        }
-
-        private ScopedAuthenticationToken getCredentialsFromSecureStore(){
+        private ScopedAuthenticationToken getCredentialsFromSecureStore() {
             try {
                 SecureStore secureStore = new SecureStore();
                 return secureStore.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
@@ -405,24 +384,9 @@ public class OlogClient implements LogClient {
         return new ArrayList<>();
     }
 
-    /**
-     * List of level values as defined in the properties file.
-     */
-    private List<String> levels;
-
-    /**
-     * Service URL as configured by properties.
-     */
-    private String serviceUrl;
-
     @Override
     public Collection<String> listLevels() {
-        if (levels == null) {
-            OlogProperties ologProperties = new OlogProperties();
-            String[] levelList = ologProperties.getPreferenceValue("levels").split(",");
-            levels = Arrays.asList(levelList);
-        }
-        return levels;
+        return Arrays.stream(Preferences.levels).toList();
     }
 
     @Override
@@ -466,11 +430,7 @@ public class OlogClient implements LogClient {
 
     @Override
     public String getServiceUrl() {
-        if (serviceUrl == null) {
-            OlogProperties ologProperties = new OlogProperties();
-            serviceUrl = ologProperties.getPreferenceValue("olog_url");
-        }
-        return serviceUrl;
+        return Preferences.olog_url;
     }
 
     @Override
@@ -549,7 +509,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public SearchResult getArchivedEntries(long id){
+    public SearchResult getArchivedEntries(long id) {
         try {
             final OlogSearchResult ologSearchResult = OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("logs/archived/" + id)
@@ -566,7 +526,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public Collection<LogTemplate> getTemplates(){
+    public Collection<LogTemplate> getTemplates() {
         try {
             return OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("templates").accept(MediaType.APPLICATION_JSON).get(String.class),
@@ -579,7 +539,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogTemplate saveTemplate(LogTemplate template) throws LogbookException{
+    public LogTemplate saveTemplate(LogTemplate template) throws LogbookException {
         ClientResponse clientResponse = service.path("templates").accept(MediaType.APPLICATION_JSON_TYPE)
                 .header("Content-Type", MediaType.APPLICATION_JSON_TYPE)
                 .put(ClientResponse.class, template);
