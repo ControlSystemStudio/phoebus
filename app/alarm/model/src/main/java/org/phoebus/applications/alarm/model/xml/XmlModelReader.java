@@ -283,7 +283,7 @@ public class XmlModelReader
         }
 
 
-        pv.setLatching(XMLUtil.getChildBoolean(node, TAG_LATCHING).orElse(false));
+        pv.setLatching(XMLUtil.getChildBoolean(node, TAG_LATCHING).orElse(true));
         pv.setAnnunciating(XMLUtil.getChildBoolean(node, TAG_ANNUNCIATING).orElse(false));
 
         XMLUtil.getChildString(node, TAG_DESCRIPTION).ifPresent(pv::setDescription);
