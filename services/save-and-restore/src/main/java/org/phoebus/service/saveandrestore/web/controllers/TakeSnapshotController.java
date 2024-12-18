@@ -74,7 +74,7 @@ public class TakeSnapshotController extends BaseController {
      * @return A {@link Snapshot} representing the new snapshot node.
      */
     @SuppressWarnings("unused")
-    @PutMapping(value = "/take-snapshot/{nodeId}", produces = JSON)
+    @PutMapping(value = "/take-snapshot/{configNodeId}", produces = JSON)
     public Snapshot takeSnapshotAndSave(@PathVariable String configNodeId,
                                         @RequestParam(name = "name", required = false) String snapshotName,
                                         @RequestParam(name = "comment", required = false) String comment) {
