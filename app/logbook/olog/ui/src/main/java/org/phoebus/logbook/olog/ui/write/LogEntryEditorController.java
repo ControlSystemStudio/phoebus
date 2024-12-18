@@ -368,7 +368,9 @@ public class LogEntryEditorController {
         titleProperty.set(logEntry.getTitle());
 
         textArea.textProperty().bindBidirectional(descriptionProperty);
-        descriptionProperty.set(logEntry.getDescription() != null ? logEntry.getDescription() : "");
+        // When editing an existing entry, set the description to the source of the entry.
+        descriptionProperty.set(editMode.equals(EditMode.UPDATE_LOG_ENTRY) ?  logEntry.getSource() :
+                (logEntry.getDescription() != null ? logEntry.getDescription() : ""));
         descriptionProperty.addListener((observable, oldValue, newValue) -> isDirty = true);
 
         Image tagIcon = ImageCache.getImage(LogEntryEditorController.class, "/icons/add_tag.png");
