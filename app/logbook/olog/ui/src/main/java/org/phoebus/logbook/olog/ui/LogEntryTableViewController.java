@@ -435,7 +435,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         return query.getValue().getQuery();
     }
 
-    private synchronized void refresh() {
+    private void refresh() {
         Runnable refreshRunnable = () -> {
             if (this.searchResult != null) {
                 List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
