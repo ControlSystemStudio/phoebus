@@ -436,24 +436,24 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private synchronized void refresh() {
-        if (this.searchResult != null) {
-            List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
+        Runnable refreshRunnable = () -> {
+            if (this.searchResult != null) {
+                List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
 
-            List<LogEntry> logEntries = searchResult.getLogs();
-            logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
+                List<LogEntry> logEntries = searchResult.getLogs();
+                logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
 
-            boolean showDetailsBoolean = showDetails.get();
-            var logs = logEntries.stream().map(le -> new TableViewListItem(le, showDetailsBoolean)).toList();
+                boolean showDetailsBoolean = showDetails.get();
+                var logs = logEntries.stream().map(le -> new TableViewListItem(le, showDetailsBoolean)).toList();
 
-            ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList(logs);
-            tableView.setItems(logsList);
+                ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList(logs);
+                tableView.setItems(logsList);
 
-            // This will ensure that selected entries stay selected after the list has been
-            // updated from the search result.
-            for (TableViewListItem selectedItem : selectedLogEntries) {
-                for (TableViewListItem item : tableView.getItems()) {
-                    if (item.getLogEntry().getId().equals(selectedItem.getLogEntry().getId())) {
-                        Platform.runLater(() -> {
+                // This will ensure that selected entries stay selected after the list has been
+                // updated from the search result.
+                for (TableViewListItem selectedItem : selectedLogEntries) {
+                    for (TableViewListItem item : tableView.getItems()) {
+                        if (item.getLogEntry().getId().equals(selectedItem.getLogEntry().getId())) {
                             if (goBackAndGoForwardActions.isPresent()) {
                                 goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(true); // Do not create a "Back" action for the automatic reload.
                                 tableView.getSelectionModel().select(item);
@@ -461,10 +461,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             } else {
                                 tableView.getSelectionModel().select(item);
                             }
-                        });
+                        }
                     }
                 }
             }
+        };
+
+        if (Platform.isFxApplicationThread()) {
+            refreshRunnable.run();
+        } else {
+            Platform.runLater(refreshRunnable);
         }
     }
 
