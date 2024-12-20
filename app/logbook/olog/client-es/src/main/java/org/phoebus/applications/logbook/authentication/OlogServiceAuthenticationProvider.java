@@ -18,8 +18,7 @@
 
 package org.phoebus.applications.logbook.authentication;
 
-import org.phoebus.olog.es.api.OlogClient;
-import org.phoebus.olog.es.api.OlogClient.OlogClientBuilder;
+import org.phoebus.olog.es.api.OlogHttpClient;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
 
@@ -30,12 +29,11 @@ public class OlogServiceAuthenticationProvider implements ServiceAuthenticationP
 
     @Override
     public void authenticate(String username, String password){
-        OlogClient ologClient = OlogClientBuilder.serviceURL().create();
         try {
-            ologClient.authenticate(username, password);
+            OlogHttpClient.builder().build().authenticate(username, password);
         } catch (Exception e) {
             Logger.getLogger(OlogServiceAuthenticationProvider.class.getName())
-                    .log(Level.WARNING, "Failed to authenticate user " + username + " against Olog service", e);
+                    .log(Level.WARNING, "Failed to authenticate user " + username + " with logbook service", e);
             throw new RuntimeException(e);
         }
     }
