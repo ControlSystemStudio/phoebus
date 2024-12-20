@@ -18,15 +18,6 @@ public class Preferences {
     @Preference
     public static boolean permissive_hostname_verifier;
 
-    @Preference
-    public static String username;
-
-    @Preference
-    public static String password;
-
-    @Preference
-    public static boolean debug;
-
     @Preference public static String[] levels;
 
     static

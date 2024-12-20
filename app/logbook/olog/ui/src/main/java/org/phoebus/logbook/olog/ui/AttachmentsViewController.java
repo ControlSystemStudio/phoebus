@@ -54,7 +54,6 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javax.imageio.ImageIO;
-import javax.ws.rs.core.UriBuilder;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -214,7 +213,7 @@ public class AttachmentsViewController {
      */
     private void showImageAttachment() {
         URI uri = selectedAttachment.get().getFile().toURI();
-        URI withWatermark = UriBuilder.fromUri(uri).queryParam("watermark", "true").build();
+        URI withWatermark = URI.create(uri + "?watermark=true");
         ApplicationLauncherService.openResource(withWatermark,
                 false, null);
     }
