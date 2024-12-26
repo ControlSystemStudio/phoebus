@@ -10,22 +10,10 @@
     <artifactId>app-logbook-olog-client-es</artifactId>
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/com.sun.jersey/jersey-core -->
         <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
-            <version>1.19</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>1.19</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-multipart -->
-        <dependency>
-            <groupId>com.sun.jersey.contribs</groupId>
-            <artifactId>jersey-multipart</artifactId>
-            <version>1.19</version>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>4.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>

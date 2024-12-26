@@ -48,8 +48,8 @@ import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
-import org.phoebus.logbook.olog.ui.write.EditMode;
 import org.phoebus.logbook.olog.ui.spi.Decoration;
+import org.phoebus.logbook.olog.ui.write.EditMode;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
@@ -406,6 +406,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private List<Decoration> decorations;
+
     protected void setDecorations(List<Decoration> decorations) {
         this.decorations = decorations;
         for (Decoration decoration : decorations) {
