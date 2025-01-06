@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,13 +19,13 @@ import org.epics.pva.data.PVAFloatArray;
 import org.epics.pva.data.PVAInt;
 import org.epics.pva.data.PVAIntArray;
 import org.epics.pva.data.PVALongArray;
+import org.epics.pva.data.PVANumber;
 import org.epics.pva.data.PVAShortArray;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.PVAStructureArray;
 import org.epics.pva.data.PVAUnion;
 import org.epics.pva.data.PVAny;
-import org.epics.pvdata.pv.PVInt;
 import org.epics.util.array.ArrayByte;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
@@ -104,14 +104,14 @@ public class ImageDecoder
             offsets = new int[n_dims];
             reversed = new boolean[n_dims];
             for (int i = 0; i < n_dims; ++i)
-            {
+            {   // 'size' is mandatory, 'offset' and 'reverse' are optional
                 final PVAStructure d = dim.get()[i];
                 PVAInt el = d.get("size");
                 dimensions[i] = el.get();
                 el = d.get("offset");
-                offsets[i] = el.get();
+                offsets[i] = el == null ? 0 : el.get();
                 final PVABool b = d.get("reverse");
-                reversed[i] = b.get();
+                reversed[i] = b == null ? false : b.get();
             }
         }
 
@@ -127,9 +127,9 @@ public class ImageDecoder
                 {
                     final PVAny color_mode_field = attribute.get("value");
                     final PVAData cm = color_mode_field.get();
-                    if (cm instanceof PVInt)
+                    if (cm instanceof PVANumber n)
                     {
-                        colorMode = ((PVInt) cm).get();
+                        colorMode = n.getNumber().intValue();
                         break;
                     }
                     // else: log warning, or throw exception?
@@ -192,8 +192,16 @@ public class ImageDecoder
         }
 
         // Fetch pixel data
-        final PVAUnion value_field = struct.get("value");
-        PVAData value = value_field.get();
+        // NTNDArray is defined with 'union value',
+        // but PVXS 'group' demo generates 'any value'
+        final PVAData value_field = struct.get("value");
+        PVAData value;
+        if (value_field instanceof PVAUnion vf)
+            value = vf.get();
+        else if (value_field instanceof PVAny vf)
+            value = vf.get();
+        else
+            throw new Exception("NDArray expected with value of type 'union' or 'any', got '" + value_field.getType() + "'");
 
         // Value might be compressed, which means that a PVAByteArray
         // needs to be de-compressed and then converted into the
