@@ -240,7 +240,7 @@ public class OlogHttpClient implements LogClient {
     private SearchResult findLogs(MultivaluedMap<String, String> searchParams) throws RuntimeException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(Preferences.olog_url +
-                        "/logs/search?" + mapToQueryParams(searchParams)))
+                        "/logs/search?" + QueryParamsHelper.mapToQueryParams(searchParams)))
                 .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
                 .header("Content-Type", CONTENT_TYPE_JSON)
                 .GET()
@@ -465,21 +465,6 @@ public class OlogHttpClient implements LogClient {
             LOGGER.log(Level.WARNING, "failed to obtain attachment", e);
             return null;
         }
-    }
-
-
-    private String mapToQueryParams(MultivaluedMap<String, String> map) {
-        StringBuilder stringBuilder = new StringBuilder();
-        map.keySet().forEach(k -> {
-            List<String> value = map.get(k);
-            if (value != null && !value.isEmpty()) {
-                stringBuilder.append(k).append("=");
-                stringBuilder.append(String.join(",",
-                        value.stream().map(v -> URLEncoder.encode(v, StandardCharsets.UTF_8)).toList()));
-                stringBuilder.append("&");
-            }
-        });
-        return stringBuilder.toString();
     }
 
     /**
