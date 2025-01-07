@@ -1,17 +1,20 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.jersey.api.client.WebResource;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobRunnableWithCancel;
+import org.phoebus.util.http.QueryParamsHelper;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -23,7 +26,7 @@ import java.util.function.Consumer;
  * @author Kunal Shroff
  */
 public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
-    private final WebResource client;
+    private final HttpClient httpClient;
     private final String pattern;
 
     private final Consumer<AlarmLogTableItem> alarmMessageHandler;
@@ -31,20 +34,20 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
 
     private final ObjectMapper objectMapper;
 
-    public static Job submit(WebResource client,
+    public static Job submit(HttpClient httpClient,
                              final String pattern,
                              final Consumer<AlarmLogTableItem> alarmMessageHandler,
                              final BiConsumer<String, Exception> errorHandler) {
         return JobManager.schedule("searching alarm log messages for : " + pattern,
-                new AlarmLogConfigSearchJob(client, pattern, alarmMessageHandler, errorHandler));
+                new AlarmLogConfigSearchJob(httpClient, pattern, alarmMessageHandler, errorHandler));
     }
 
-    private AlarmLogConfigSearchJob(WebResource client,
+    private AlarmLogConfigSearchJob(HttpClient httpClient,
                                     String pattern,
                                     Consumer<AlarmLogTableItem> alarmMessageHandler,
                                     BiConsumer<String, Exception> errorHandler) {
         super();
-        this.client = client;
+        this.httpClient = httpClient;
         this.pattern = pattern;
         this.alarmMessageHandler = alarmMessageHandler;
         this.errorHandler = errorHandler;
@@ -66,8 +69,17 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
             try {
                 MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
                 map.put("config", Arrays.asList(pattern));
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Preferences.service_uri + "/search/alarm/config?" + QueryParamsHelper.mapToQueryParams(map)))
+                        .header("Content-Type", MediaType.APPLICATION_JSON)
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
                 List<AlarmLogTableItem> result = objectMapper
-                        .readValue(client.path("/search/alarm/config").queryParams(map).accept(MediaType.APPLICATION_JSON).get(String.class),
+                        .readValue(response.body(),
                                 new TypeReference<List<AlarmLogTableItem>>() {
                                 });
                 if (result.size() >= 1) {
@@ -75,7 +87,7 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
                 } else {
                     alarmMessageHandler.accept(null);
                 }
-            } catch (JsonProcessingException e) {
+            } catch (Exception e) {
                 errorHandler.accept("Failed to search for alarm logs ", e);
             }
         };

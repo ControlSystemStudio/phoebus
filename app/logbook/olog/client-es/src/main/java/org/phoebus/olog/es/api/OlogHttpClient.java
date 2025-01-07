@@ -9,8 +9,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -30,7 +28,10 @@ import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.HttpRequestMultipartBody;
+import org.phoebus.util.http.QueryParamsHelper;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.InputStream;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -158,7 +159,7 @@ public class OlogHttpClient implements LogClient {
      */
     private LogEntry save(LogEntry log, LogEntry inReplyTo) throws LogbookException {
         try {
-            MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+            javax.ws.rs.core.MultivaluedMap<String, String> queryParams = new javax.ws.rs.core.MultivaluedHashMap<>();
             queryParams.putSingle("markup", "commonmark");
             if (inReplyTo != null) {
                 queryParams.putSingle("inReplyTo", Long.toString(inReplyTo.getId()));
@@ -172,7 +173,7 @@ public class OlogHttpClient implements LogClient {
             }
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.olog_url + "/logs/multipart?" + mapToQueryParams(queryParams)))
+                    .uri(URI.create(Preferences.olog_url + "/logs/multipart?" + QueryParamsHelper.mapToQueryParams(queryParams)))
                     .header("Content-Type", httpRequestMultipartBody.getContentType())
                     .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
                     .header("Authorization", basicAuthenticationHeader)
