@@ -27,6 +27,15 @@
       </includes>
     </fileSet>
     <fileSet>
+      <directory>${project.parent.basedir}/docs/build/html</directory>
+      <outputDirectory>/doc</outputDirectory>
+      <excludes>
+        <exclude>.doctrees/**</exclude>
+        <exclude>.buildinfo</exclude>
+        <exclude>objects.inv</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
       <directory>${project.build.directory}/lib</directory>
       <outputDirectory>/lib</outputDirectory>
       <includes>

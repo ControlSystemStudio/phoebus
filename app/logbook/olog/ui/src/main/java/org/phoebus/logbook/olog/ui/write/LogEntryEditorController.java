@@ -72,7 +72,6 @@ import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
-import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
@@ -343,8 +342,7 @@ public class LogEntryEditorController {
 
         levelLabel.setText(LogbookUIPreferences.level_field_name);
         // Sites may wish to define a different meaning and name for the "level" field.
-        OlogProperties ologProperties = new OlogProperties();
-        String[] levelList = ologProperties.getPreferenceValue("levels").split(",");
+        String[] levelList = org.phoebus.olog.es.api.Preferences.levels;
         availableLevels.addAll(Arrays.asList(levelList));
         levelSelector.setItems(availableLevels);
         selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : availableLevels.get(0));
@@ -368,7 +366,9 @@ public class LogEntryEditorController {
         titleProperty.set(logEntry.getTitle());
 
         textArea.textProperty().bindBidirectional(descriptionProperty);
-        descriptionProperty.set(logEntry.getDescription() != null ? logEntry.getDescription() : "");
+        // When editing an existing entry, set the description to the source of the entry.
+        descriptionProperty.set(editMode.equals(EditMode.UPDATE_LOG_ENTRY) ?  logEntry.getSource() :
+                (logEntry.getDescription() != null ? logEntry.getDescription() : ""));
         descriptionProperty.addListener((observable, oldValue, newValue) -> isDirty = true);
 
         Image tagIcon = ImageCache.getImage(LogEntryEditorController.class, "/icons/add_tag.png");

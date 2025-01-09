@@ -24,7 +24,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -39,6 +38,7 @@ import javafx.scene.layout.VBox;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
+import org.phoebus.olog.es.api.Preferences;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
@@ -51,7 +51,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.phoebus.logbook.olog.ui.LogbookQueryUtil.Keys;
@@ -61,8 +60,6 @@ import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_N
  * Controller for the advanced search UI in the log applications, i.e. log table view and log calendar view.
  */
 public class AdvancedSearchViewController {
-
-    static final Logger logger = Logger.getLogger(AdvancedSearchViewController.class.getName());
 
     @FXML
     Label levelLabel;
@@ -108,7 +105,7 @@ public class AdvancedSearchViewController {
     @FXML
     private TextField attachmentTypes;
 
-    private SearchParameters searchParameters;
+    private final SearchParameters searchParameters;
 
     private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty requireAttachments = new SimpleBooleanProperty(false);
@@ -254,7 +251,7 @@ public class AdvancedSearchViewController {
             if (tagSearchPopover.isShowing()) {
                 tagSearchPopover.hide();
             } else {
-                List<String> selectedTags = Arrays.stream( searchParameters.tagsProperty().getValueSafe().split(","))
+                List<String> selectedTags = Arrays.stream(searchParameters.tagsProperty().getValueSafe().split(","))
                         .map(String::trim)
                         .filter(it -> !it.isEmpty())
                         .collect(Collectors.toList());
@@ -272,7 +269,7 @@ public class AdvancedSearchViewController {
             if (logbookSearchPopover.isShowing()) {
                 logbookSearchPopover.hide();
             } else {
-                List<String> selectedLogbooks = Arrays.stream( searchParameters.logbooksProperty().getValueSafe().split(","))
+                List<String> selectedLogbooks = Arrays.stream(searchParameters.logbooksProperty().getValueSafe().split(","))
                         .map(String::trim)
                         .filter(it -> !it.isEmpty())
                         .collect(Collectors.toList());
@@ -286,7 +283,7 @@ public class AdvancedSearchViewController {
             }
         });
 
-        List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
+        List<String> levelList = Arrays.stream(Preferences.levels).toList();
         levelSelector.getItems().add("");
         levelSelector.getItems().addAll(levelList);
 
@@ -307,7 +304,7 @@ public class AdvancedSearchViewController {
     /**
      * Updates non-text field controls so that search parameter values are correctly rendered.
      *
-     * @param queryString
+     * @param queryString Query string containing search terms and values
      */
     private void updateControls(String queryString) {
         Map<String, String> queryStringParameters = LogbookQueryUtil.parseHumanReadableQueryString(queryString);
@@ -315,7 +312,7 @@ public class AdvancedSearchViewController {
             Keys keys = Keys.findKey(entry.getKey());
             if (keys != null) {
                 if (keys.equals(Keys.LEVEL)) {
-                    List<String> levels = logClient.listLevels().stream().collect(Collectors.toList());
+                    List<String> levels = Arrays.stream(Preferences.levels).toList();
                     if (levels.contains(entry.getValue())) {
                         searchParameters.levelProperty().setValue(entry.getValue());
                     } else {
@@ -371,7 +368,7 @@ public class AdvancedSearchViewController {
         return validatedLogbookNames;
     }
 
-    public SimpleBooleanProperty getSortAscending(){
+    public SimpleBooleanProperty getSortAscending() {
         return sortAscending;
     }
 

@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -163,9 +165,16 @@ public class LogPropertiesController {
                                         break;
                                     case "resource":
                                         final String resourceURL = propertyItem.getValue();
-                                        final URI resource = URI.create(resourceURL);
+                                        URI _resource;
+                                        try {
+                                            _resource = URI.create(resourceURL);
+                                        } catch (IllegalArgumentException e) { // E.g. if string contains space char
+                                            logger.log(Level.WARNING, "Encountered invalid URL: \"" + resourceURL + "\", will be URL encoded.");
+                                            _resource = URI.create(URLEncoder.encode(resourceURL, StandardCharsets.UTF_8));
+                                        }
                                         final Hyperlink resourceLink = new Hyperlink(resourceURL);
                                         setGraphic(resourceLink);
+                                        final URI resource = _resource;
                                         resourceLink.setOnAction((e) -> {
                                             final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
                                             // If resource URI contains valid app name, use it

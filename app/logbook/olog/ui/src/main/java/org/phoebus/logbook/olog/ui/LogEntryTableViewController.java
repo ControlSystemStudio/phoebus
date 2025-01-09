@@ -48,8 +48,8 @@ import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
-import org.phoebus.logbook.olog.ui.write.EditMode;
 import org.phoebus.logbook.olog.ui.spi.Decoration;
+import org.phoebus.logbook.olog.ui.write.EditMode;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
@@ -406,6 +406,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     }
 
     private List<Decoration> decorations;
+
     protected void setDecorations(List<Decoration> decorations) {
         this.decorations = decorations;
         for (Decoration decoration : decorations) {
@@ -435,25 +436,25 @@ public class LogEntryTableViewController extends LogbookSearchController {
         return query.getValue().getQuery();
     }
 
-    private synchronized void refresh() {
-        if (this.searchResult != null) {
-            List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
+    private void refresh() {
+        Runnable refreshRunnable = () -> {
+            if (this.searchResult != null) {
+                List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
 
-            List<LogEntry> logEntries = searchResult.getLogs();
-            logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
+                List<LogEntry> logEntries = searchResult.getLogs();
+                logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
 
-            boolean showDetailsBoolean = showDetails.get();
-            var logs = logEntries.stream().map(le -> new TableViewListItem(le, showDetailsBoolean)).toList();
+                boolean showDetailsBoolean = showDetails.get();
+                var logs = logEntries.stream().map(le -> new TableViewListItem(le, showDetailsBoolean)).toList();
 
-            ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList(logs);
-            tableView.setItems(logsList);
+                ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList(logs);
+                tableView.setItems(logsList);
 
-            // This will ensure that selected entries stay selected after the list has been
-            // updated from the search result.
-            for (TableViewListItem selectedItem : selectedLogEntries) {
-                for (TableViewListItem item : tableView.getItems()) {
-                    if (item.getLogEntry().getId().equals(selectedItem.getLogEntry().getId())) {
-                        Platform.runLater(() -> {
+                // This will ensure that selected entries stay selected after the list has been
+                // updated from the search result.
+                for (TableViewListItem selectedItem : selectedLogEntries) {
+                    for (TableViewListItem item : tableView.getItems()) {
+                        if (item.getLogEntry().getId().equals(selectedItem.getLogEntry().getId())) {
                             if (goBackAndGoForwardActions.isPresent()) {
                                 goBackAndGoForwardActions.get().setIsRecordingHistoryDisabled(true); // Do not create a "Back" action for the automatic reload.
                                 tableView.getSelectionModel().select(item);
@@ -461,10 +462,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
                             } else {
                                 tableView.getSelectionModel().select(item);
                             }
-                        });
+                        }
                     }
                 }
             }
+        };
+
+        if (Platform.isFxApplicationThread()) {
+            refreshRunnable.run();
+        } else {
+            Platform.runLater(refreshRunnable);
         }
     }
 

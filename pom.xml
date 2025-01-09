@@ -68,7 +68,7 @@
     <epics.version>7.0.10</epics.version>
     <epics.util.version>1.0.7</epics.util.version>
     <vtype.version>1.0.7</vtype.version>
-    <openjfx.version>22.0.2</openjfx.version>
+    <openjfx.version>21.0.3</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
