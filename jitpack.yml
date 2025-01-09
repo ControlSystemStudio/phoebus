@@ -1,20 +1,5 @@
-name: Phoebus build
-
-on: 
-  push:
-    branches-ignore:
-      - 'master'
-  pull_request:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup Maven and Java Action
-      uses: s4u/setup-maven-action@v1.13.0
-      with:
-        java-version: '17'
-        maven-version: '3.9.6'
-    - name: Build
-      run: mvn --batch-mode install -DskipTests
+before_install:
+  # update maven version 3.9.9
+  - sdk install maven 3.9.9
+install:
+   - mvn install -DskipTests
