@@ -29,7 +29,7 @@ public class ToolbarEntryService {
             if (suppress)
                 desired = desired.substring(1);
             // Skip entries handled in PhoebusApplication
-            if (desired.equals("Home") ||  desired.equals("Top Resources")  ||  desired.equals("Layouts"))
+            if (desired.equals("Home") ||  desired.equals("Top Resources")  ||  desired.equals("Layouts") || desired.equals("Add Layouts"))
                 continue;
             // Add specific 'desired' entry
             ToolbarEntry found = null;
