@@ -1,6 +1,5 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import com.sun.jersey.api.client.WebResource;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
@@ -21,6 +20,7 @@ import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.net.http.HttpClient;
 import java.util.logging.Logger;
 
 import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
@@ -57,7 +57,8 @@ public class AdvancedSearchViewController {
 
     PopOver timeSearchPopover;
 
-    private WebResource searchClient;
+    //private WebResource searchClient;
+    private HttpClient httpClient;
 
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
@@ -65,8 +66,8 @@ public class AdvancedSearchViewController {
     @FXML
     private AnchorPane advancedSearchPane;
 
-    public AdvancedSearchViewController(WebResource client){
-        this.searchClient = client;
+    public AdvancedSearchViewController(HttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
     @FXML
@@ -169,7 +170,7 @@ public class AdvancedSearchViewController {
         });
     }
 
-    public void setSearchParameters(ObservableMap<Keys, String> params){
+    public void setSearchParameters(ObservableMap<Keys, String> params) {
         searchParameters = params;
         searchParameters.addListener((MapChangeListener<Keys, String>) change -> {
             searchPV.setText(searchParameters.get(Keys.PV));
@@ -194,7 +195,7 @@ public class AdvancedSearchViewController {
         searchCommand.setText(searchParameters.get(Keys.COMMAND));
     }
 
-    public AnchorPane getPane(){
+    public AnchorPane getPane() {
         return advancedSearchPane;
     }
 }

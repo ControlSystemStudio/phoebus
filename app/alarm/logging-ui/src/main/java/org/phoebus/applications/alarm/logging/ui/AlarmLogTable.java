@@ -2,13 +2,13 @@ package org.phoebus.applications.alarm.logging.ui;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import com.sun.jersey.api.client.WebResource;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -34,12 +34,12 @@ public class AlarmLogTable implements AppInstance {
             loader.setControllerFactory(clazz -> {
                 try {
                     if(clazz.isAssignableFrom(AlarmLogTableController.class)){
-                        return clazz.getConstructor(WebResource.class)
-                                .newInstance(app.getClient());
+                        return clazz.getConstructor(HttpClient.class)
+                                .newInstance(app.httpClient());
                     }
                     else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
-                        return clazz.getConstructor(WebResource.class)
-                                .newInstance(app.getClient());
+                        return clazz.getConstructor(HttpClient.class)
+                                .newInstance(app.httpClient());
                     }
                 } catch (Exception e) {
                     Logger.getLogger(AlarmLogTable.class.getName()).log(Level.SEVERE, "Failed to construct controller for Alarm Log Table View", e);
