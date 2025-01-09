@@ -203,7 +203,7 @@ public class PhoebusApplication extends Application {
     /**
      * Menu to add a layout to the current layout
      */
-    private final Menu add_layout = new Menu(Messages.AddLayout, ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
+    private final Menu add_layout = new Menu(Messages.AddLayout, ImageCache.getImageView(ImageCache.class, "/icons/add_layout.png"));
     
     /**
      * List of memento names
