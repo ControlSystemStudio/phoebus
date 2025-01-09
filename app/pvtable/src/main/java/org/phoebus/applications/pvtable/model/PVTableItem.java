@@ -52,6 +52,7 @@ public class PVTableItem
 
     /** Value of the PV's description */
     private volatile String desc_value = "";
+    private volatile String desc_name = "";
 
     /** Saved (snapshot) value */
     private volatile Optional<SavedValue> saved = Optional.empty();
@@ -77,6 +78,9 @@ public class PVTableItem
 
     /** Listener to description PV */
     private volatile Disposable desc_flow;
+    
+    private static final String DESC_FIELD = "DESC";
+    private static final String DOT = ".";
 
     /** Initialize
      *
@@ -148,12 +152,23 @@ public class PVTableItem
                name.startsWith("loc:")))
         {
             // Determine DESC field.
-            // If name already includes a field,
-            // replace it with DESC field.
-            final int sep = name.lastIndexOf('.');
-            final String desc_name = sep >= 0
-                    ? name.substring(0, sep) + ".DESC"
-                    : name + ".DESC";
+            //Bug when a pv name contains a . caracters
+            desc_name = name + DOT + DESC_FIELD;
+            if(!name.endsWith(DOT + DESC_FIELD) && name.contains(DOT)) {
+                // If name already includes a field
+                // It can be a EPICS fields such as .VAL .EGU ... 
+                // EPICS fields are always in Upper Case
+                // EPICS fields are 4 characters length max
+                final int sep = name.lastIndexOf('.');
+                String fieldVal = name.substring(sep + 1);
+                //System.out.println("fieldVal=" + fieldVal);
+                //Test if it in uppercase and max length 4
+                boolean isEpicsField = fieldVal.toUpperCase().equals(fieldVal) && fieldVal.length() < 5;
+                if(isEpicsField) {
+                    desc_name = name.replace(fieldVal, DESC_FIELD);
+                }
+            }
+            
             try
             {
                 final PV new_desc_pv = PVPool.getPV(desc_name);
@@ -243,6 +258,11 @@ public class PVTableItem
     public String getDescription()
     {
         return desc_value;
+    }
+    
+    /** @return description pv name **/
+    public String getDescriptionName() {
+        return desc_name;
     }
 
     /** @return Enum options for current value, <code>null</code> if not enumerated */

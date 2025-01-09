@@ -83,8 +83,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
 
-import static org.phoebus.ui.application.PhoebusApplication.logger;
-
 
 /** PV Table and its toolbar
  *  @author Kay Kasemir
@@ -161,6 +159,24 @@ public class PVTable extends VBox
 
                 BooleanProperty cell_property = (BooleanProperty) getTableColumn().getCellObservableValue(row);
                 checkbox.setOnAction(event -> cell_property.set(checkbox.isSelected()));
+            }
+        }
+    }
+    
+    private static class DescriptionTableCell extends TableCell<TableItemProxy, String>
+    {
+        @Override
+        protected void updateItem(final String item, final boolean empty)
+        {
+            super.updateItem(item, empty);
+            setText(item);
+            final int row = getIndex();
+            final List<TableItemProxy> items = getTableView().getItems();
+            if (! empty  &&  row >= 0  &&  row < items.size()) {
+                final TableItemProxy itemCell = items.get(row);
+                if(itemCell != null && itemCell.getItem() != null) {
+                    setTooltip(new Tooltip(itemCell.getItem().getDescriptionName()));
+                }
             }
         }
     }
@@ -784,6 +800,7 @@ public class PVTable extends VBox
         {
             col = new TableColumn<>(Messages.Description);
             col.setCellValueFactory(cell -> cell.getValue().desc_value);
+            col.setCellFactory(column -> new DescriptionTableCell());
             table.getColumns().add(col);
         }
 
