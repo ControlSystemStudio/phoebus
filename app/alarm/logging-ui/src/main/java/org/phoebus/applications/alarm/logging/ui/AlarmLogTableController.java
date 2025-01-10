@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.sun.jersey.api.client.WebResource;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -55,6 +54,7 @@ import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -133,7 +133,7 @@ public class AlarmLogTableController {
     private List<AlarmLogTableItem> alarmMessages;
 
     private Job alarmLogSearchJob;
-    private WebResource searchClient;
+    private HttpClient httpClient;
 
     @FXML
     private ProgressIndicator progressIndicator;
@@ -144,7 +144,7 @@ public class AlarmLogTableController {
 
     private final ContextMenu configsContextMenu = new ContextMenu();
 
-    public AlarmLogTableController(WebResource client) {
+    public AlarmLogTableController(HttpClient client) {
         setClient(client);
     }
 
@@ -364,7 +364,7 @@ public class AlarmLogTableController {
                 sortTableCol = tableView.getSortOrder().get(0);
                 sortColType = sortTableCol.getSortType();
             }
-            alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString, isNodeTable, searchParameters,
+            alarmLogSearchJob = AlarmLogSearchJob.submit(httpClient, searchString, isNodeTable, searchParameters,
                     result -> Platform.runLater(() -> {
                         setAlarmMessages(result);
                         searchInProgress.set(false);
@@ -411,8 +411,8 @@ public class AlarmLogTableController {
         }
     }
 
-    public void setClient(WebResource client) {
-        this.searchClient = client;
+    public void setClient(HttpClient client) {
+        this.httpClient = client;
     }
 
     /**
@@ -541,7 +541,7 @@ public class AlarmLogTableController {
                     })
                     .collect(Collectors.toList());
             // TODO place holder method for showing additional alarm info
-            AlarmLogConfigSearchJob.submit(searchClient,
+            AlarmLogConfigSearchJob.submit(httpClient,
                     configs.get(0),
                     result -> Platform.runLater(() -> {
                         Alert alarmInfo = new Alert(Alert.AlertType.INFORMATION);

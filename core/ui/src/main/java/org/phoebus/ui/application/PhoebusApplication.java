@@ -203,7 +203,7 @@ public class PhoebusApplication extends Application {
     /**
      * Menu to add a layout to the current layout
      */
-    private final Menu add_layout = new Menu(Messages.AddLayout, ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
+    private final Menu add_layout = new Menu(Messages.AddLayout, ImageCache.getImageView(ImageCache.class, "/icons/add_layout.png"));
     
     /**
      * List of memento names
@@ -228,6 +228,11 @@ public class PhoebusApplication extends Application {
      * Toolbar button for past layouts
      */
     private MenuButton layout_menu_button;
+
+    /**
+     * Toolbar button for adding past layouts
+     */
+    private MenuButton add_layout_menu_button;
 
     /**
      * Last file used by 'File, Open' menu
@@ -759,6 +764,7 @@ public class PhoebusApplication extends Application {
             final List<MenuItem> menuItemList = new ArrayList<>();
             final List<MenuItem> toolbarMenuItemList = new ArrayList<>();
             final List<MenuItem> addLayoutMenuItemList = new ArrayList<>();
+            final List<MenuItem> toolbarAddLayoutMenuItemList = new ArrayList<>();
 
             final Map<String, File> layoutFiles = new HashMap<String, File>();
 
@@ -822,6 +828,12 @@ public class PhoebusApplication extends Application {
                                 addLayoutMenuItem.setMnemonicParsing(false);
                                 addLayoutMenuItem.setOnAction(event -> startAddingLayout(file));
                                 addLayoutMenuItemList.add(addLayoutMenuItem);
+
+                                // Repeat for the same menu in the toolbar. They can't share menu items.
+                                final MenuItem toolbarAddLayoutMenuItem = new MenuItem(filename);
+                                toolbarAddLayoutMenuItem.setMnemonicParsing(false);
+                                toolbarAddLayoutMenuItem.setOnAction(event -> startAddingLayout(file));
+                                toolbarAddLayoutMenuItemList.add(toolbarAddLayoutMenuItem);
                             }
                         });
             }
@@ -832,6 +844,7 @@ public class PhoebusApplication extends Application {
                 load_layout.getItems().setAll(menuItemList);
                 add_layout.getItems().setAll(addLayoutMenuItemList);
                 layout_menu_button.getItems().setAll(toolbarMenuItemList);
+                add_layout_menu_button.getItems().setAll(toolbarAddLayoutMenuItemList);
                 delete_layouts.setDisable(memento_files.isEmpty());
             });
         });
@@ -964,6 +977,12 @@ public class PhoebusApplication extends Application {
         layout_menu_button.setTooltip(new Tooltip(Messages.LayoutTT));
         if (! Preferences.toolbar_entries.contains("!Layouts"))
             toolBar.getItems().add(layout_menu_button);
+
+        add_layout_menu_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/add_layout.png"));
+        add_layout_menu_button.setTooltip(new Tooltip(Messages.AddLayout));
+        if (Preferences.toolbar_entries.contains("Add Layouts") && !Preferences.toolbar_entries.contains("!Add Layouts")) {
+            toolBar.getItems().add(add_layout_menu_button);
+        }
 
         // Contributed Entries
         ToolbarEntryService.getInstance().listToolbarEntries().forEach((entry) -> {

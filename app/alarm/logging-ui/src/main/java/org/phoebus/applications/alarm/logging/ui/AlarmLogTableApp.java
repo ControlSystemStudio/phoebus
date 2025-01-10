@@ -1,24 +1,22 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
-import org.phoebus.framework.preferences.PreferencesReader;
+import javafx.scene.image.Image;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
+import java.net.Socket;
 import java.net.URI;
-import java.security.NoSuchAlgorithmException;
+import java.net.http.HttpClient;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javafx.scene.image.Image;
 
 public class AlarmLogTableApp implements AppResourceDescriptor {
 
@@ -30,8 +28,7 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
 
     public static final Image icon = ImageCache.getImage(AlarmLogTableApp.class, "/icons/alarmtable.png");
 
-    private PreferencesReader prefs;
-    private WebResource alarmResource;
+    private HttpClient httpClient;
 
     @Override
     public String getName() {
@@ -61,42 +58,51 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
 
     @Override
     public void start() {
-        prefs = new PreferencesReader(AlarmLogTableApp.class, "/alarm_logging_preferences.properties");
-        String serviceUri = prefs.get("service_uri");
-        String protocol = URI.create(serviceUri).getAuthority().toLowerCase().equals("https") ? "https" : "http";
-        ClientConfig clientConfig = new DefaultClientConfig();
+
         try {
-            logger.info("Creating a alarm logging rest client to : " + serviceUri);
-            if (protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
-                if (clientConfig == null) {
-                    SSLContext sslContext = null;
-                    try {
-                        sslContext = SSLContext.getInstance("SSL"); //$NON-NLS-1$
-                        //sslContext.init(null, this.trustManager, null);
-                    } catch (NoSuchAlgorithmException e) {
-                        logger.log(Level.SEVERE, "failed to create the alarm logging rest client : " + e.getMessage(), e);
+            String protocol = URI.create(Preferences.service_uri).getAuthority().toLowerCase().equals("https") ? "https" : "http";
+            if ("https".equals(protocol)) {
+                TrustManager PROMISCUOUS_TRUST_MANAGER = new X509ExtendedTrustManager() {
+                    @Override
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return new java.security.cert.X509Certificate[0];
                     }
-                    clientConfig.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-                            new HTTPSProperties(new HostnameVerifier() {
 
-                                @Override
-                                public boolean verify(String hostname, SSLSession session) {
-                                    return true;
-                                }
-                            }, sslContext));
-                }
-            }
-            Client client = Client.create(clientConfig);
-            client.setFollowRedirects(true);
-            alarmResource = client.resource(serviceUri.toString());
+                    @Override
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                    }
 
-            // TODO add a preference to add logging
-            if (prefs.getBoolean("rawFiltering")) {
-                //client.addFilter(new RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) throws CertificateException {
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) throws CertificateException {
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                    }
+                };
+
+                SSLContext sslContext = SSLContext.getInstance("SSL"); // OR TLS
+                sslContext.init(null, new TrustManager[]{PROMISCUOUS_TRUST_MANAGER}, new SecureRandom());
+                httpClient = HttpClient.newBuilder().sslContext(sslContext).build();
+            } else {
+                httpClient = HttpClient.newBuilder().build();
             }
+
         } catch (Exception e) {
             logger.log(Level.WARNING,
-                    "Failed to properly create the elastic rest client to: " + prefs.get("service_uri")
+                    "Failed to properly create the elastic rest client to: " + Preferences.service_uri
                     , e);
         }
     }
@@ -106,7 +112,7 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
 
     }
 
-    public WebResource getClient() {
-        return this.alarmResource;
+    public HttpClient httpClient() {
+        return httpClient;
     }
 }
