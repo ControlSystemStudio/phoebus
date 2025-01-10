@@ -69,7 +69,9 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.TextFieldTableCell;
@@ -93,6 +95,7 @@ public class PVTable extends VBox
     private static final String comment_style = "-fx-text-fill: blue;";
     private static final String new_item_style = "-fx-text-fill: gray;";
     private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
+    private static final String SPLIT_PV = "[ \\t\\n\\r,]+";
 
     /** When sorting, keep the 'NEW_ITEM' row at the bottom **/
     private static final Comparator<TableItemProxy> SORT_NEW_ITEM_LAST = (a, b) ->
@@ -184,8 +187,9 @@ public class PVTable extends VBox
     /** Table cell for 'name' column, colors comments */
     private static class PVNameTableCell extends TextFieldTableCell<TableItemProxy, String>
     {
-        private TextField textField;
-
+        private TextInputControl textField;
+        private static ContextMenu contextMenu;
+        
         public PVNameTableCell()
         {
             super(new DefaultStringConverter());
@@ -195,11 +199,26 @@ public class PVTable extends VBox
         public void startEdit()
         {
             super.startEdit();
-            textField = new TextField();
-            textField.setOnAction(event -> commitEdit(textField.getText()));
+            final int index = getIndex();
+            boolean newPv = index == getTableView().getItems().size() - 1;
+            if(newPv) {
+                textField = new TextArea();
+                textField.setMaxHeight(100);
+                if(contextMenu == null) {
+                    MenuItem addPVMenu = new MenuItem(Messages.AddPVList);
+                    addPVMenu.setOnAction(event -> commitEdit(textField.getText()));
+                    contextMenu = new ContextMenu(addPVMenu);
+                }
+                textField.setContextMenu(contextMenu);
+            }
+            else {
+                textField = new TextField();
+                ((TextField)textField).setOnAction(event -> commitEdit(textField.getText()));
+            }
             PVAutocompleteMenu.INSTANCE.attachField(textField);
             showCurrentValue();
         }
+      
 
         private void showCurrentValue()
         {
@@ -775,8 +794,14 @@ public class PVTable extends VBox
             final TableItemProxy proxy = event.getRowValue();
             if (proxy == TableItemProxy.NEW_ITEM)
             {
-                if (!new_name.isEmpty())
-                    model.addItem(new_name);
+                if (!new_name.isEmpty()) {
+                    //Can be a list of pv
+                    final String[] pvs = new_name.split(SPLIT_PV);
+                    //Add a list
+                    for(String pv : pvs) {
+                         model.addItem(pv);
+                    }
+                }
                 // else: No name entered, do nothing
             }
             else
@@ -976,7 +1001,7 @@ public class PVTable extends VBox
 
     private void addPVsFromString(final PVTableItem existing, final String pv_text)
     {
-        final String[] pvs = pv_text.split("[ \\t\\n\\r,]+");
+        final String[] pvs = pv_text.split(SPLIT_PV);
         for (String pv : pvs)
             if (! pv.isEmpty())
                 model.addItemAbove(existing, pv);

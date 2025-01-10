@@ -18,6 +18,8 @@ import java.util.logging.Level;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.DisplayProvider;
 import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VEnum;
@@ -30,6 +32,7 @@ import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
+import org.phoebus.pv.PVPool.TypedName;
 
 import io.reactivex.rxjava3.disposables.Disposable;
 
@@ -51,7 +54,7 @@ public class PVTableItem
     private volatile VType value;
 
     /** Value of the PV's description */
-    private volatile String desc_value = "";
+    private volatile String desc_value = null;
     private volatile String desc_name = "";
 
     /** Saved (snapshot) value */
@@ -126,16 +129,24 @@ public class PVTableItem
             updateValue(null);
             return;
         }
+        PV new_pv = null;
         try
         {
             updateValue(VString.of("", Alarm.disconnected(), Time.now()));
-            final PV new_pv = PVPool.getPV(name);
+            new_pv = PVPool.getPV(name);
             value_flow = new_pv.onValueEvent()
                                .throttleLatest(Settings.max_update_period_ms, TimeUnit.MILLISECONDS)
                                .subscribe(this::updateValue);
             permission_flow = new_pv.onAccessRightsEvent()
                                     .subscribe(writable -> listener.tableItemChanged(PVTableItem.this));
             pv.set(new_pv);
+            // read the value for getting description
+            if (new_pv != null) {
+                    VType newVal = new_pv.read();
+                    if(newVal != null){
+                        updateValue(newVal);
+                    }
+            }
         }
         catch (Exception ex)
         {
@@ -145,28 +156,23 @@ public class PVTableItem
                                    Time.now()));
         }
 
-        // For CA PVs, check the .DESC field
-        // Hardcoded knowledge to avoid non-record PVs.
-        if (Settings.show_description &&
-            ! (name.startsWith("sim:") ||
-               name.startsWith("loc:")))
-        {
-            // Determine DESC field.
-            //Bug when a pv name contains a . caracters
-            desc_name = name + DOT + DESC_FIELD;
-            if(!name.endsWith(DOT + DESC_FIELD) && name.contains(DOT)) {
-                // If name already includes a field
-                // It can be a EPICS fields such as .VAL .EGU ... 
-                // EPICS fields are always in Upper Case
-                // EPICS fields are 4 characters length max
+        // First try to get description from value or pv
+        updateDescription();
+        // If still no description found and channel access source
+        final TypedName type_name = TypedName.analyze(name);
+        String dataType = type_name != null ? type_name.type : null;
+        boolean channelAccess = dataType.equals("ca");
+        if (Settings.show_description && desc_value == null && channelAccess) {
+            // For CA PVs, check the .DESC field
+            // Hardcoded knowledge to avoid non-record PVs.
+            // First get default datasource
+            desc_name = name + DOT + DESC_FIELD; // by default add .DESC
+            if (!name.endsWith(DOT + DESC_FIELD) && name.contains(DOT)) {
                 final int sep = name.lastIndexOf('.');
                 String fieldVal = name.substring(sep + 1);
-                //System.out.println("fieldVal=" + fieldVal);
-                //Test if it in uppercase and max length 4
-                boolean isEpicsField = fieldVal.toUpperCase().equals(fieldVal) && fieldVal.length() < 5;
-                if(isEpicsField) {
-                    desc_name = name.replace(fieldVal, DESC_FIELD);
-                }
+                // then replace by .DESC
+                // Determine DESC field include dot in case of variable name such as variableEGUName
+                desc_name = name.replace(DOT + fieldVal, DOT + DESC_FIELD);
             }
             
             try
@@ -187,6 +193,24 @@ public class PVTableItem
             catch (Exception ex)
             {
                 logger.log(Level.WARNING, "Skipping " + desc_name);
+            }
+        }
+    }
+    
+    private void updateDescription() {
+        if(desc_value == null) {
+            //update description from value or pv
+            VType currentValue = getValue();
+            if(currentValue != null) {
+                PV thePV = pv.get();
+                Display display =  thePV instanceof DisplayProvider ? ((DisplayProvider) thePV).getDisplay() : null;
+                display = display == null && currentValue instanceof DisplayProvider ? ((DisplayProvider) currentValue).getDisplay(): display;
+                if (display != null) {
+                    String description = display.getDescription();
+                    desc_value = description != null ? description : null;
+                    desc_name = desc_value != null ? "Description of " + name + " PV" : "no description";
+                    desc_flow = value_flow;
+                }
             }
         }
     }
@@ -255,9 +279,8 @@ public class PVTableItem
     }
 
     /** @return Description */
-    public String getDescription()
-    {
-        return desc_value;
+    public String getDescription() {
+        return desc_value == null ? "" : desc_value;
     }
     
     /** @return description pv name **/
@@ -305,14 +328,17 @@ public class PVTableItem
                 throw new Exception("Not connected");
 
             final VType pv_type = the_pv.read();
-            if (pv_type instanceof VNumber)
-            {
-                if (Settings.show_units)
-                {   // Strip units so that only the number gets written
-                    final String units = ((VNumber)pv_type).getDisplay().getUnit();
-                    if (units.length() > 0  &&  new_value.endsWith(units))
+            Display display = the_pv instanceof DisplayProvider ? ((DisplayProvider) the_pv).getDisplay() : null;
+            display = display == null && pv_type instanceof DisplayProvider ? ((DisplayProvider) pv_type).getDisplay():null;
+
+            if (display != null && Settings.show_units) {
+                // Strip units so that only the number gets written
+                    final String units = display.getUnit();
+                    if (units.length() > 0 && new_value.endsWith(units))
                         new_value = new_value.substring(0, new_value.length() - units.length()).trim();
                 }
+            if (pv_type instanceof VNumber)
+            {
                 the_pv.write(Double.parseDouble(new_value));
             }
             else if (pv_type instanceof VEnum)
