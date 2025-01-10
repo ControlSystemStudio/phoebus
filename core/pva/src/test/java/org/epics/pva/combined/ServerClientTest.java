@@ -79,7 +79,12 @@ public class ServerClientTest {
 
     private static PVAServer testServer() {
         if (!PVASettings.EPICS_PVA_ENABLE_IPV6)
-            PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0";
+        {
+            // Details vary with network setup,
+            // but forcing use of IPv4 localhost is quite likely to "work"
+            PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "127.0.0.1";
+            PVASettings.EPICS_PVA_ADDR_LIST = "127.0.0.1";    
+        }
         try {
             return new PVAServer();
         } catch (Exception e) {
