@@ -73,8 +73,6 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     private static final String resourceProperties = "resources/properties";
     private static final String resourceTags = "resources/tags";
 
-
-    private static CFProperties properties = new CFProperties();
     private static final Logger log = Logger.getLogger(ChannelFinderClient.class.getName());
     /**
      * A Builder class to help create the client to the Channelfinder Service
@@ -105,7 +103,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         private CFCBuilder()
         {
-            this.uri = URI.create(properties.getPreferenceValue("serviceURL"));
+            this.uri = URI.create(org.phoebus.channelfinder.Preferences.serviceURL);
             this.protocol = this.uri.getScheme();
         }
 
@@ -259,9 +257,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 }
             }
             if (this.withHTTPAuthentication) {
-                this.httpBasicAuthFilter = new HTTPBasicAuthFilter(
-                        properties.getPreferenceValue("username"),
-                        properties.getPreferenceValue("password"));
+                this.httpBasicAuthFilter = new HTTPBasicAuthFilter(org.phoebus.channelfinder.Preferences.username,
+                        org.phoebus.channelfinder.Preferences.password);
             }
 
             return new ChannelFinderClientImpl(this.uri, this.clientConfig, this.httpBasicAuthFilter, this.executor);
@@ -278,7 +275,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
             cfAuthenticatedResource.addFilter(httpBasicAuthFilter);
         }
         // TODO add a preference to add logging
-        if(Boolean.parseBoolean(properties.getPreferenceValue("rawFiltering"))) {
+        if(org.phoebus.channelfinder.Preferences.rawFiltering) {
             client.addFilter(new RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
         }
         this.executor = executor;
