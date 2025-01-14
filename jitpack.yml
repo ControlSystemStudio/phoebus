@@ -1,0 +1,5 @@
+before_install:
+  # update maven version 3.9.9
+  - sdk install maven 3.9.9
+install:
+   - mvn install -DskipTests
