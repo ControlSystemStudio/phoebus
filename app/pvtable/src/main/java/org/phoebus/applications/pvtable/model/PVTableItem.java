@@ -203,6 +203,9 @@ public class PVTableItem
             VType currentValue = getValue();
             if(currentValue != null) {
                 PV thePV = pv.get();
+             // DisplayProvider is an optional interface for VType values,
+             // not PVs, but the custum datasource as Muscade happens to implement
+             // DisplayProvider for enum and bool PVs, so check for that here 
                 Display display =  thePV instanceof DisplayProvider ? ((DisplayProvider) thePV).getDisplay() : null;
                 display = display == null && currentValue instanceof DisplayProvider ? ((DisplayProvider) currentValue).getDisplay(): display;
                 if (display != null) {
