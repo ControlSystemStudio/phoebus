@@ -466,6 +466,7 @@ public class DockPane extends TabPane
                                 f.accept((Scene) newValue);
                             }
                             sceneProperty().removeListener(this);
+                            changeListenerAdded = false;
                         }
                     }
                 };
