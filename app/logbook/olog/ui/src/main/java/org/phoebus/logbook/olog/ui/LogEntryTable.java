@@ -57,18 +57,21 @@ public class LogEntryTable implements AppInstance {
             loader.setResources(resourceBundle);
             loader.setLocation(this.getClass().getResource("LogEntryTableView.fxml"));
 
+            LogClient logClient = app.getClient();
+
             loader.setControllerFactory(clazz -> {
                 try {
-                    if (app.getClient() != null) {
+                    if (logClient != null) {
                         if (clazz.isAssignableFrom(LogEntryTableViewController.class)) {
-                            LogEntryTableViewController logEntryTableViewController = (LogEntryTableViewController) clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class).newInstance(app.getClient(), ologQueryManager, searchParameters);
+                            LogEntryTableViewController logEntryTableViewController = (LogEntryTableViewController) clazz.getConstructor(LogClient.class, OlogQueryManager.class, SearchParameters.class)
+                                    .newInstance(logClient, ologQueryManager, searchParameters);
                             logEntryTableViewController.setGoBackAndGoForwardActions(goBackAndGoForwardActions);
                             logEntryTableViewController.setDecorations(decorations);
                             return logEntryTableViewController;
                         } else if (clazz.isAssignableFrom(AdvancedSearchViewController.class)) {
-                            return clazz.getConstructor(LogClient.class, SearchParameters.class).newInstance(app.getClient(), searchParameters);
+                            return clazz.getConstructor(LogClient.class, SearchParameters.class).newInstance(logClient, searchParameters);
                         } else if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
-                            SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(app.getClient());
+                            SingleLogEntryDisplayController singleLogEntryDisplayController = (SingleLogEntryDisplayController) clazz.getConstructor(LogClient.class).newInstance(logClient);
                             singleLogEntryDisplayController.setSelectLogEntryInUI(id -> goBackAndGoForwardActions.loadLogEntryWithID(id));
                             return singleLogEntryDisplayController;
                         } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
@@ -80,7 +83,7 @@ public class LogEntryTable implements AppInstance {
                         } else if (clazz.isAssignableFrom(AttachmentsEditorController.class)) {
                             return clazz.getConstructor().newInstance();
                         } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
-                            return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
+                            return clazz.getConstructor(LogClient.class).newInstance(logClient);
                         }
                     } else {
                         // no logbook client available
