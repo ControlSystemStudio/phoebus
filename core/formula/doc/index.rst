@@ -164,6 +164,12 @@ Enum
 
 **indexOf(Enum e)** - Return the index of the enum value.
 
+Time
+----
+
+**timestamp(VType value)** - returns the timestamp of the provided value formatted using the millisecond format.
+
+**timestamp(VType value, String format)** - returns the timestamp of the provided value formatted using the user defined format.
 
 Alarm
 -----
