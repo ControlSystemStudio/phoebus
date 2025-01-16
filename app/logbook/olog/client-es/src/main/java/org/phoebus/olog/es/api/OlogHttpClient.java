@@ -126,13 +126,19 @@ public class OlogHttpClient implements LogClient {
      * Disallow instantiation.
      */
     private OlogHttpClient(String userName, String password) {
-        httpClient = HttpClient.newBuilder()
-                .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
-                .followRedirects(HttpClient.Redirect.ALWAYS)
-                // HttpClient rejects Duration.ZERO for the connect timeout value.
-                // To support infinite timeout (preference value == 0), use Long.MAX_VALUE
-                .connectTimeout(Duration.ofMillis(Preferences.connectTimeout <= 0 ? Long.MAX_VALUE : Preferences.connectTimeout))
-                .build();
+        if(Preferences.connectTimeout > 0){
+            httpClient = HttpClient.newBuilder()
+                    .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
+                    .followRedirects(HttpClient.Redirect.ALWAYS)
+                    .connectTimeout(Duration.ofMillis(Preferences.connectTimeout))
+                    .build();
+        }
+        else{
+            httpClient = HttpClient.newBuilder()
+                    .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
+                    .followRedirects(HttpClient.Redirect.ALWAYS)
+                    .build();
+        }
 
         if (userName != null && password != null) {
             this.basicAuthenticationHeader = "Basic " + Base64.getEncoder().encodeToString((userName + ":" + password).getBytes());
@@ -456,7 +462,8 @@ public class OlogHttpClient implements LogClient {
     public InputStream getAttachment(Long logId, String attachmentName) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.olog_url + "/logs/attachments/" + logId + "/" + URLEncoder.encode(attachmentName, StandardCharsets.UTF_8)))
+                    .uri(URI.create(Preferences.olog_url + "/logs/attachments/" + logId + "/" +
+                            URLEncoder.encode(attachmentName, StandardCharsets.UTF_8).replace("+", "%20"))) // + char does not work in path element!
                     .GET()
                     .build();
             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
