@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * @author shroffk
  */
-public interface ChannelFinderClient {
+public interface ChannelFinderClient extends AutoCloseable {
 
     /**
      * Get a list of all the properties currently present on the
