@@ -74,3 +74,5 @@ org.csstudio.apputil.formula.alarm.MinorAlarmFunction
 org.csstudio.apputil.formula.enums.IndexOfFunction
 org.csstudio.apputil.formula.enums.EnumOfFunction
 
+# Time
+org.csstudio.apputil.formula.time.TimestampFunction
