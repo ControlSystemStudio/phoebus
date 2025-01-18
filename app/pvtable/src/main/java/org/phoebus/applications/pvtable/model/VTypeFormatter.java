@@ -14,6 +14,7 @@ import org.epics.util.array.IteratorNumber;
 import org.epics.util.array.ListByte;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -79,6 +80,12 @@ public class VTypeFormatter
                 return ev.getIndex() + " = ?";
             }
         }
+        if(value instanceof VBoolean) {
+            //Add Boolean type to get true or false instead of VBoolean.toString()
+            //TODO Manage ONAM ZNAM for CA
+            return String.valueOf(((VBoolean)value).getValue());
+        }
+                
         if (value instanceof VString)
             return ((VString) value).getValue();
         if (value instanceof VByteArray && Settings.treat_byte_array_as_string)
