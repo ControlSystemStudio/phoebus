@@ -82,10 +82,6 @@
     <classpathentry exported="true" kind="lib" path="target/lib/jboss-rmi-api_1.0_spec-1.0.6.Final.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jca-2.4.9.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jeromq-0.5.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jersey-client-1.19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jersey-core-1.19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jersey-multipart-1.19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jersey-server-1.19.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jetty-http-9.4.30.v20200611.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jetty-io-9.4.30.v20200611.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jetty-security-9.4.30.v20200611.jar"/>

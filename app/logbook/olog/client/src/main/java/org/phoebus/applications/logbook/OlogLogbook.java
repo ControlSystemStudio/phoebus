@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogFactory;
+import org.phoebus.olog.api.OlogClient;
 import org.phoebus.olog.api.OlogClient.OlogClientBuilder;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
@@ -23,7 +24,7 @@ public class OlogLogbook implements LogFactory {
     public LogClient getLogClient() {
         if (oLogClient == null) {
             try {
-                oLogClient = OlogClientBuilder.serviceURL().create();
+                oLogClient = OlogClient.builder().build();
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to create olog client", e);
             }
@@ -36,11 +37,10 @@ public class OlogLogbook implements LogFactory {
         try {
             if (authToken instanceof SimpleAuthenticationToken) {
                 SimpleAuthenticationToken token = (SimpleAuthenticationToken) authToken;
-                return OlogClientBuilder.serviceURL().withHTTPAuthentication(true).username(token.getUsername()).password(token.getPassword())
-                        .create();
+                return OlogClient.builder().username(token.getUsername()).password(token.getPassword())
+                        .build();
             } else if (oLogClient == null) {
-                oLogClient = OlogClientBuilder.serviceURL().create();
-
+                oLogClient = OlogClient.builder().build();
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to create olog client", e);
