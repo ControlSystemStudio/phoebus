@@ -24,14 +24,35 @@ import java.util.Objects;
  * Class encapsulating data to describe a PV subject to a save operation. A read-back PV name
  * is optionally associated with the PV name. A PV record is uniquely identified by both the PV name
  * and the read-back PV name (if it has been specified).
+ * <p>
+ *     If a read-back PV name has been specified, a {@link Comparison} can be specified to
+ *     indicate if and how the stored read-back value is compared to the live read-back value
+ *     if a client requests it.
+ * </p>
  * @author georgweiss
  * Created 1 Oct 2018
  */
 public class ConfigPv implements Comparable<ConfigPv>{
 
+	/**
+	 * Set-point PV name.
+	 */
 	private String pvName;
+
+	/**
+	 * Optional read-back PV name
+	 */
 	private String readbackPvName;
+
+	/**
+	 * Flag indicating if set-point PV value should be restored or not.
+	 */
 	private boolean readOnly = false;
+
+	/**
+	 * Optional comparison data for the read-back PV.
+	 */
+	private Comparison comparison;
 
 	public String getPvName() {
 		return pvName;
@@ -55,6 +76,14 @@ public class ConfigPv implements Comparable<ConfigPv>{
 
 	public void setReadOnly(boolean readOnly) {
 		this.readOnly = readOnly;
+	}
+
+	public Comparison getComparison() {
+		return comparison;
+	}
+
+	public void setComparison(Comparison comparison) {
+		this.comparison = comparison;
 	}
 
 	@Override
@@ -115,6 +144,11 @@ public class ConfigPv implements Comparable<ConfigPv>{
 
 		public Builder readOnly(boolean readOnly){
 			configPv.setReadOnly(readOnly);
+			return this;
+		}
+
+		public Builder comparison(Comparison comparison){
+			configPv.setComparison(comparison);
 			return this;
 		}
 
