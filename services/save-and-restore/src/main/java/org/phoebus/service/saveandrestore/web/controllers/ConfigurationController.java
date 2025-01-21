@@ -17,6 +17,7 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -58,6 +59,12 @@ public class ConfigurationController extends BaseController {
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
                                              @RequestBody Configuration configuration,
                                              Principal principal) {
+        // Validation: a ConfigPV cannot specify non-null Comparison unless read-back PV is set.
+        for(ConfigPv configPv : configuration.getConfigurationData().getPvList()){
+            if((configPv.getReadbackPvName() == null || configPv.getReadbackPvName().isEmpty()) && configPv.getComparison() != null){
+                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies non-null comparison, but read-back PV is not set");
+            }
+        }
         configuration.getConfigurationNode().setUserName(principal.getName());
         return nodeDAO.createConfiguration(parentNodeId, configuration);
     }
