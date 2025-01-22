@@ -20,7 +20,9 @@ import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.DisplayProvider;
+import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
@@ -29,6 +31,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.Settings;
+import org.phoebus.core.vtypes.DescriptionProvider;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -81,6 +84,8 @@ public class PVTableItem
 
     /** Listener to description PV */
     private volatile Disposable desc_flow;
+    
+    private volatile String[] valueOptions = null;
     
     private static final String DESC_FIELD = "DESC";
     private static final String DOT = ".";
@@ -202,18 +207,20 @@ public class PVTableItem
             //update description from value or pv
             VType currentValue = getValue();
             if(currentValue != null) {
-                PV thePV = pv.get();
-             // DisplayProvider is an optional interface for VType values,
-             // not PVs, but the custum datasource as Muscade happens to implement
-             // DisplayProvider for enum and bool PVs, so check for that here 
-                Display display =  thePV instanceof DisplayProvider ? ((DisplayProvider) thePV).getDisplay() : null;
-                display = display == null && currentValue instanceof DisplayProvider ? ((DisplayProvider) currentValue).getDisplay(): display;
+                String description = null;
+                //First test DisplayProvider
+                Display display = currentValue instanceof DisplayProvider ? ((DisplayProvider) currentValue).getDisplay(): null;
                 if (display != null) {
-                    String description = display.getDescription();
-                    desc_value = description != null ? description : null;
-                    desc_name = desc_value != null ? "Description of " + name + " PV" : "no description";
-                    desc_flow = value_flow;
+                    description = display.getDescription();
                 }
+                else if(currentValue instanceof DescriptionProvider) {
+                    //Test new interface DescriptionProvider from core.Vtype Phoebus
+                    //see https://github.com/epics-base/epicsCoreJava/issues/141 to manage description for VBoolean and VEnum type
+                    description = ((DescriptionProvider) currentValue).getDescription();
+                }
+                desc_value = description != null ? description : null;
+                desc_name = desc_value != null ? "Description of " + name + " PV" : "no description";
+                desc_flow = value_flow;
             }
         }
     }
@@ -283,6 +290,7 @@ public class PVTableItem
 
     /** @return Description */
     public String getDescription() {
+        updateDescription();
         return desc_value == null ? "" : desc_value;
     }
     
@@ -294,11 +302,36 @@ public class PVTableItem
     /** @return Enum options for current value, <code>null</code> if not enumerated */
     public String[] getValueOptions()
     {
+        if(valueOptions == null) {//To avoid to get choices each times
+            final VType copy = value;
+            EnumDisplay enumDisplay = null;
+          
+            if (copy instanceof VEnum) {
+                enumDisplay = ((VEnum) copy).getDisplay();
+                if(enumDisplay != null) {
+                    final List<String> options = enumDisplay.getChoices();
+                    valueOptions = options.toArray(new String[options.size()]);
+                }
+            }
+            else if(copy instanceof VBoolean) {
+                //TODO manage ["ZNAM", "ONAM"] for VBoolean 
+                valueOptions = new String[]{"false","true"};
+            }
+        }
+        return valueOptions;
+    }
+    
+    /** @return index in case of Enum value */
+    public int getIndex() {
+        int index = - 1;
         final VType copy = value;
-        if (!(copy instanceof VEnum))
-            return null;
-        final List<String> options = ((VEnum) copy).getDisplay().getChoices();
-        return options.toArray(new String[options.size()]);
+        if (copy instanceof VEnum) {
+            index = ((VEnum) copy).getIndex();
+        }
+        else if(copy instanceof VBoolean) {//To manage index for ZNAM & ONAM value
+            index =  ((VBoolean)copy).getValue() ? 1 : 0;
+        }
+        return index;
     }
 
     /** @return <code>true</code> when PV is writable */
@@ -343,6 +376,9 @@ public class PVTableItem
             if (pv_type instanceof VNumber)
             {
                 the_pv.write(Double.parseDouble(new_value));
+            }
+            else if (pv_type instanceof VBoolean) {
+                the_pv.write(new_value);
             }
             else if (pv_type instanceof VEnum)
             { // Value is displayed as "6 =

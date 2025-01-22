@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.epics.vtype.VEnum;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.Settings;
@@ -335,21 +335,44 @@ public class PVTable extends VBox
             setText(null);
 
             final TableItemProxy proxy = getTableView().getItems().get(getIndex());
-            final VType value = proxy.getItem().getValue();
-            if (value instanceof VEnum)
+            
+            String[] valueOptions = proxy.getItem().getValueOptions();
+            
+            boolean isBoolean = proxy.getItem().getValue() instanceof VBoolean;
+            int index = -1;
+            if(isBoolean) {
+                if (valueOptions == null || valueOptions.length == 0 ) {
+                    //Use a Combo box to write boolean value without ONAM or ZNAM
+                    valueOptions = new String[] {"false", "true"};
+                }
+                index = ((VBoolean)proxy.getItem().getValue()).getValue() ? 1 : 0;
+            }
+        
+            if (valueOptions != null && valueOptions.length > 0)
             {
-                // Use combo for Enum-valued data
-                final VEnum enumerated = (VEnum) value;
                 final ComboBox<String> combo = new ComboBox<>();
-                combo.getItems().addAll(enumerated.getDisplay().getChoices());
-                combo.getSelectionModel().select(enumerated.getIndex());
+                combo.getItems().addAll(valueOptions);
+                index = !isBoolean ? proxy.getItem().getIndex() : index;
+                if(index >=0) {
+                    combo.getSelectionModel().select(index);
+                }
 
-                combo.setOnAction(event ->
-                {
-                    // Need to write String, using the enum index
-                    commitEdit(Integer.toString(combo.getSelectionModel().getSelectedIndex()));
-                    event.consume();
-                });
+                if(isBoolean) {
+                    combo.setOnAction(event ->
+                    {
+                        // Need to write boolean, using the enum index
+                        commitEdit(Boolean.toString(combo.getSelectionModel().getSelectedIndex() == 1));
+                        event.consume();
+                    });
+                }
+                else {
+                    combo.setOnAction(event ->
+                    {
+                        // Need to write String, using the enum index
+                        commitEdit(Integer.toString(combo.getSelectionModel().getSelectedIndex()));
+                        event.consume();
+                    });
+                }
                 combo.setOnKeyReleased(event ->
                 {
                     if (event.getCode() == KeyCode.ESCAPE)
@@ -362,6 +385,7 @@ public class PVTable extends VBox
                 Platform.runLater(() -> combo.requestFocus());
                 Platform.runLater(() -> combo.show());
             }
+            
             else
             {
                 final TextField text_field = new TextField(getItem());
