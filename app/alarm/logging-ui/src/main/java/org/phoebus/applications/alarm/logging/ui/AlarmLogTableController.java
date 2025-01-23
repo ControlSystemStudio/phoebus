@@ -148,31 +148,31 @@ public class AlarmLogTableController {
         setClient(client);
     }
 
-	private final String replaceKey(final String source) {
-		String result = source;
-		if(source == Keys.SEVERITY.getName())
-			result = "alarm_severity";
-		else if(source == Keys.MESSAGE.getName())
-			result = "alarm_message";
-		else if(source == Keys.CURRENTSEVERITY.getName())
-			result = "pv_severity";
-		else if(source == Keys.CURRENTMESSAGE.getName())
-			result = "pv_message";
+	private final String replaceKey(final String key) {
+		String repKey = key;
+		if(key == Keys.SEVERITY.getName())
+			repKey = "alarm_severity";
+		else if(key == Keys.MESSAGE.getName())
+			repKey = "alarm_message";
+		else if(key == Keys.CURRENTSEVERITY.getName())
+			repKey = "pv_severity";
+		else if(key == Keys.CURRENTMESSAGE.getName())
+			repKey = "pv_message";
 
-		return result;
+		return repKey;
 	}
 
-	private String recoverKey(String source) {
-		if(source.contains("alarm_severity")) 
-			source = "severity";
-		else if(source.contains("alarm_message")) 
-			source = "message";
-		else if(source.contains("pv_severity")) 
-			source = "current_severity";
-		else if(source.contains("pv_message")) 
-			source = "current_message";
+	private String recoverKey(String key) {
+		if(key.contains("alarm_severity")) 
+			key = "severity";
+		else if(key.contains("alarm_message")) 
+			key = "message";
+		else if(key.contains("pv_severity")) 
+			key = "current_severity";
+		else if(key.contains("pv_message")) 
+			key = "current_message";
 
-		return source;
+		return key;
 	}
 
     @FXML
