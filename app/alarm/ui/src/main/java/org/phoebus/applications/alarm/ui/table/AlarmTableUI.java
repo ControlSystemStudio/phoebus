@@ -442,7 +442,7 @@ public class AlarmTableUI extends BorderPane
         sevcol.setCellFactory(c -> new SeverityLevelCell());
         cols.add(sevcol);
 
-        col = new TableColumn<>("Alarm Status");
+        col = new TableColumn<>("Alarm Message");
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().status);
@@ -470,7 +470,7 @@ public class AlarmTableUI extends BorderPane
         sevcol.setCellFactory(c -> new SeverityLevelCell());
         cols.add(sevcol);
 
-        col = new TableColumn<>("PV Status");
+        col = new TableColumn<>("PV Message");
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().pv_status);
