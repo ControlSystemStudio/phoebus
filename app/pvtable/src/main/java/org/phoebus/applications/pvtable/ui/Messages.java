@@ -48,6 +48,7 @@ public class Messages
                          RestoreSelection_TT,
                          Saved,
                          Saved_Value_TimeStamp,
+                         SearchPV,
                          Selected,
                          Snapshot,
                          Snapshot_TT,

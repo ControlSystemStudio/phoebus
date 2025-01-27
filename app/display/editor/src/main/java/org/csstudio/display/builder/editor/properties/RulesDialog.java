@@ -33,7 +33,7 @@ import org.csstudio.display.builder.representation.javafx.PVTableItem.AutoComple
 import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.dialog.MultiLineInputDialog;
+import org.phoebus.ui.dialog.CodeDialog;
 import org.phoebus.ui.javafx.EditCell;
 import org.phoebus.ui.javafx.LineNumberTableCellFactory;
 import org.phoebus.ui.javafx.TableHelper;
@@ -769,7 +769,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             if (sel >= 0)
             {
                 final String content = rule_items.get(sel).getRuleInfo().getTextPy(attached_widget);
-                final MultiLineInputDialog dialog = new MultiLineInputDialog(btn_show_script, content);
+                final CodeDialog dialog = new CodeDialog(btn_show_script, content);
                 DialogHelper.positionDialog(dialog, btn_show_script, -200, -300);
                 dialog.setTextHeight(600);
                 dialog.show();

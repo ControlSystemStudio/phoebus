@@ -12,10 +12,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javafx.collections.transformation.FilteredList;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
@@ -115,10 +117,11 @@ public class PVTable extends VBox
      *  properties of the item (== column values) change
      */
     private final ObservableList<TableItemProxy> rows = FXCollections.observableArrayList(TableItemProxy.CHANGING_PROPERTIES);
-    /** Sorted view of the rows.
+    /** Sorted and filtered views of the rows.
      *  Order of 'rows' is preserved, but comparator of this list changes to sort.
      */
-    private final SortedList<TableItemProxy> sorted = rows.sorted();
+    private final FilteredList<TableItemProxy> filtered = new FilteredList<>(rows.sorted());
+    private final SortedList<TableItemProxy> sorted = new SortedList<>(filtered);
     private final TableView<TableItemProxy> table = new TableView<>(sorted);
 
     private TableColumn<TableItemProxy, String>  saved_value_col;
@@ -585,9 +588,29 @@ public class PVTable extends VBox
         model.fireModelChange();
     }
 
+    private TextField createSearchbar() {
+        TextField searchBar = new TextField();
+        searchBar.setPromptText(Messages.SearchPV);
+        searchBar.textProperty().addListener((obs, old, value) -> {
+            final Predicate<String> predicate = s -> s.toLowerCase().contains(value.toLowerCase());
+
+            if (value.isBlank()) {
+                filtered.setPredicate(null);
+            }
+            else {
+                filtered.setPredicate(
+                        row -> predicate.test(row.name.get()) || predicate.test(row.desc_value.get())
+                );
+            }
+        });
+        searchBar.setPrefWidth(500);
+        return searchBar;
+    }
+
     private ToolBar createToolbar()
     {
         return new ToolBar(
+            createSearchbar(),
             ToolbarHelper.createSpring(),
             createButton("checked.gif", Messages.CheckAll_TT, event ->
             {

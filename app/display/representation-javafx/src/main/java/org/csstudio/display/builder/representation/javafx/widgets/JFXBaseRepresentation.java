@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 
+import javafx.scene.input.*;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -31,10 +32,8 @@ import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
+import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.ui.dnd.DataFormats;
 
 /** Base class for all JavaFX widget representations
  *  @param <JFX> JFX Widget
@@ -184,7 +183,8 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
             // this prevents selecting content within a text field
             // via a mouse drag.
             // Ctrl-drag is thus required to start dragging a PV name.
-            if (! event.isControlDown())
+            final Optional<WidgetProperty<Boolean>> writable = model_widget.checkProperty(CommonWidgetProperties.runtimePropPVWritable);
+            if (writable.isPresent() && !event.isControlDown())
                 return;
 
             final String pv = pv_name.get().getValue();
