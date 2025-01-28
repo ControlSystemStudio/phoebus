@@ -267,6 +267,7 @@ public class Messages
                          WidgetProperties_ReadbackPVName,
                          WidgetProperties_ReadbackPVValue,
                          WidgetProperties_ResizeBehavior,
+                         WidgetProperties_SVGRenderingResolutionFactor,
                          WidgetProperties_RingColor,
                          WidgetProperties_RingWidth,
                          WidgetProperties_Rotation,

@@ -103,6 +103,10 @@ public class PictureWidget extends MacroWidget
     public static final WidgetPropertyDescriptor<Boolean> propStretch =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "stretch_image", Messages.WidgetProperties_StretchToFit);
 
+    /** 'svg_rendering_resolution_factor': */
+    public static final WidgetPropertyDescriptor<Double> propSVGRenderingResolutionFactor =
+            newDoublePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "svg_rendering_resolution_factor", Messages.WidgetProperties_SVGRenderingResolutionFactor);
+
     /**
      * An opacity property. Controlling it from a rule or script works as a
      * way to do a simple animation.
@@ -114,6 +118,7 @@ public class PictureWidget extends MacroWidget
     private volatile WidgetProperty<Boolean> stretch_image;
     private volatile WidgetProperty<Double> rotation;
     private volatile WidgetProperty<Double> opacity;
+    private volatile WidgetProperty<Double> svgRenderingResolutionFactor;
 
     /** Constructor */
     public PictureWidget()
@@ -129,7 +134,7 @@ public class PictureWidget extends MacroWidget
         properties.add(stretch_image = propStretch.createProperty(this, false));
         properties.add(rotation = propRotation.createProperty(this, 0.0));
         properties.add(opacity = propOpacity.createProperty(this, 1.0));
-
+        properties.add(svgRenderingResolutionFactor = propSVGRenderingResolutionFactor.createProperty(this, 1.0));
     }
 
     /** @return 'rotation' property */
@@ -154,6 +159,11 @@ public class PictureWidget extends MacroWidget
     public WidgetProperty<Double> propOpacity()
     {
         return opacity;
+    }
+
+    /** @return 'svgRenderingResolutionFactor' property */
+    public WidgetProperty<Double> propSVGRenderingResolutionFactor() {
+        return svgRenderingResolutionFactor;
     }
 
     @Override
