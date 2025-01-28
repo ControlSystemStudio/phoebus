@@ -262,10 +262,23 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
      * @param height
      * @return An {@link Image} or <code>null</code>.
      */
-    private void loadSVG(String fileName, double width, double height){
-
+    private void loadSVG(String fileName, double width, double height) {
         String imageFileName = resolveImageFile(fileName);
-        img_loaded = SVGHelper.loadSVG(imageFileName, width, height);
+
+        double svg_rendering_resolution_factor = model_widget.propSVGRenderingResolutionFactor().getValue();
+
+        double renderingWidth;
+        double renderingHeight;
+        if (!Double.isNaN(svg_rendering_resolution_factor) && svg_rendering_resolution_factor > 0) {
+            renderingWidth = svg_rendering_resolution_factor * width;
+            renderingHeight = svg_rendering_resolution_factor * height;
+        } else {
+            logger.log(Level.WARNING, "The SVG Rendering Factor is not set to a value greater than 0.0! Setting it to 1.0.");
+            renderingWidth = width;
+            renderingHeight = height;
+        }
+
+        img_loaded = SVGHelper.loadSVG(imageFileName, renderingWidth, renderingHeight);
         if(img_loaded == null){
             loadDefaultImage();
         }
