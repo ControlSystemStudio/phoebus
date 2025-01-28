@@ -7,10 +7,12 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
+import static org.csstudio.trends.databrowser3.Activator.logger;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 import org.csstudio.javafx.rtplot.data.TimeDataSearch;
 import org.epics.vtype.VType;
@@ -131,6 +133,49 @@ public class HistoricSamples extends PlotSamples
         return samples[i];
     }
 
+    /** @param samples Samples to check
+     *  @return Are sample times monotonic?
+     */
+    private static boolean isMonotonic(final PlotSample[] samples)
+    {
+    	if (samples.length < 1)
+    		return true;
+    	Instant last = samples[0].getPosition();
+    	for (int i=1; i<samples.length; ++i)
+    	{
+    		final Instant time = samples[i].getPosition();
+    		if (time.isBefore(last))
+    			return false;
+    		last = time;
+    	}
+    	return true;
+    }
+
+    /** @param info Info to log on error
+     *  @param samples Samples to check
+     *  @return Are sample times monotonic?
+     */
+    private static boolean logMonotonicError(final String info, final PlotSample[] samples)
+    {
+    	if (isMonotonic(samples))
+    		return true;
+    	
+    	logger.log(Level.WARNING, info);    	
+    	Instant last = samples[0].getPosition();
+		logger.log(Level.WARNING, samples[0].toString());
+    	for (int i=1; i<samples.length; ++i)
+    	{
+    		final Instant time = samples[i].getPosition();
+    		if (time.isBefore(last))
+        		logger.log(Level.WARNING, samples[i].toString() + " <======== !!");
+    		else
+    			logger.log(Level.WARNING, samples[i].toString());
+    		last = time;
+    	}
+
+    	return false;
+    }
+    
     /** Merge newly received archive data into historic samples
      *  @param source Info about data source
      *  @param result Samples to add/merge
@@ -144,10 +189,16 @@ public class HistoricSamples extends PlotSamples
         final PlotSample new_samples[] = new PlotSample[result.size()];
         for (int i=0; i<new_samples.length; ++i)
             new_samples[i] = new PlotSample(waveform_index, source, result.get(i));
+        
+    	logMonotonicError("Before merge, samples are not monotonic", samples);
+    	logMonotonicError("Samples to merge are not monotonic", new_samples);
         // Merge with existing samples
         final PlotSample merged[] = PlotSampleMerger.merge(samples, new_samples);
         if (merged == samples)
             return;
+        
+        logMonotonicError("Merged samples are not monitonic", merged);
+        
         samples = merged;
         have_new_samples.set(true);
         computeVisibleSize();
