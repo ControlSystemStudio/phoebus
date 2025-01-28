@@ -45,6 +45,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
     /** Change the image size, rotation or preserve_ratio */
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final UntypedWidgetPropertyListener styleChangedListener = this::styleChanged;
+    private final UntypedWidgetPropertyListener svgRenderingResolutionFactorChangedListener = this::svgRenderingResolutionFactorChanged;
     private final WidgetPropertyListener<String> contentChangedListener = this::contentChanged;
 
     private volatile Image img_loaded;
@@ -96,6 +97,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         model_widget.propStretch().addUntypedPropertyListener(styleChangedListener);
         model_widget.propRotation().addUntypedPropertyListener(styleChangedListener);
         model_widget.propOpacity().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propSVGRenderingResolutionFactor().addUntypedPropertyListener(svgRenderingResolutionFactorChangedListener);
 //      styleChanged() will be called by contentChanged()
 
         model_widget.propFile().addPropertyListener(contentChangedListener);
@@ -117,6 +119,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         model_widget.propRotation().removePropertyListener(styleChangedListener);
         model_widget.propOpacity().removePropertyListener(styleChangedListener);
         model_widget.propFile().removePropertyListener(contentChangedListener);
+        model_widget.propSVGRenderingResolutionFactor().removePropertyListener(svgRenderingResolutionFactorChangedListener);
         super.unregisterListeners();
     }
 
@@ -125,6 +128,12 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         dirty_style.mark();
         toolkit.scheduleUpdate(this);
     }
+
+    private void svgRenderingResolutionFactorChanged(final WidgetProperty<?> property, final Object oldValue, Object newValue) {
+        // Update the rendered SVG:
+        contentChanged(model_widget.propFile(), model_widget.propFile().getValue(), model_widget.propFile().getValue());
+    }
+
 
     private void contentChanged(final WidgetProperty<String> property, final String old_value, final String new_value)
     {
