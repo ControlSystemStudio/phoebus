@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javafx.collections.transformation.FilteredList;
-import org.epics.vtype.VEnum;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.Settings;
@@ -338,21 +338,31 @@ public class PVTable extends VBox
             setText(null);
 
             final TableItemProxy proxy = getTableView().getItems().get(getIndex());
-            final VType value = proxy.getItem().getValue();
-            if (value instanceof VEnum)
+            String[] valueOptions = proxy.getItem().getValueOptions();
+            if (valueOptions != null && valueOptions.length > 0)
             {
-                // Use combo for Enum-valued data
-                final VEnum enumerated = (VEnum) value;
                 final ComboBox<String> combo = new ComboBox<>();
-                combo.getItems().addAll(enumerated.getDisplay().getChoices());
-                combo.getSelectionModel().select(enumerated.getIndex());
-
-                combo.setOnAction(event ->
-                {
-                    // Need to write String, using the enum index
-                    commitEdit(Integer.toString(combo.getSelectionModel().getSelectedIndex()));
-                    event.consume();
-                });
+                combo.getItems().addAll(valueOptions);
+                int index = proxy.getItem().getIndex();
+                if(index >=0 && index < valueOptions.length) {
+                    combo.getSelectionModel().select(index);
+                }
+                if(proxy.getItem().getValue() instanceof VBoolean) {
+                    combo.setOnAction(event ->
+                    {
+                        // Need to write boolean, using the enum index
+                        commitEdit(Boolean.toString(combo.getSelectionModel().getSelectedIndex() == 1));
+                        event.consume();
+                    });
+                }
+                else {
+                    combo.setOnAction(event ->
+                    {
+                        // Need to write String, using the enum index
+                        commitEdit(Integer.toString(combo.getSelectionModel().getSelectedIndex()));
+                        event.consume();
+                    });
+                }
                 combo.setOnKeyReleased(event ->
                 {
                     if (event.getCode() == KeyCode.ESCAPE)
