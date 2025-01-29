@@ -59,11 +59,23 @@ public class ConfigurationController extends BaseController {
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
                                              @RequestBody Configuration configuration,
                                              Principal principal) {
-        // Validation: a ConfigPV cannot specify non-null Comparison unless read-back PV is set.
+        // Validation: a ConfigPV cannot specify non-null  unless read-back PV is set.
+        // Comparison must also be validated.
         for(ConfigPv configPv : configuration.getConfigurationData().getPvList()){
-            if((configPv.getReadbackPvName() == null || configPv.getReadbackPvName().isEmpty()) && configPv.getComparison() != null){
-                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies non-null comparison, but read-back PV is not set");
+            if((configPv.getReadbackPvName() == null || configPv.getReadbackPvName().isEmpty()) && configPv.getPvCompareMode() != null){
+                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies comparison mode, but read-back PV is not set");
             }
+            // Tolerance is set...
+            else if(configPv.getTolerance() != null){
+                //...but not compare mode
+                if(configPv.getPvCompareMode() == null){
+                    throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies tolerance but no comparison mode");
+                }
+                //...but is zero, which does not make sense.
+                else if(configPv.getTolerance() == 0){
+                    throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies zero tolerance");
+                }
+             }
         }
         configuration.getConfigurationNode().setUserName(principal.getName());
         return nodeDAO.createConfiguration(parentNodeId, configuration);

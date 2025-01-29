@@ -4,8 +4,10 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
+/**
+ * Specifies how comparison between PV values should be performed.
+ */
 public enum PvCompareMode {
-    NONE,
     RELATIVE,
     ABSOLUTE;
 }

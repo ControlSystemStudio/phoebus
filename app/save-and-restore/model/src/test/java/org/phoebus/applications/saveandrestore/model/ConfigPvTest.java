@@ -33,89 +33,90 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class ConfigPvTest {
 
-	@Test
-	public void testConfigPv() {
-		assertNull(ConfigPv.builder().pvName("a").build().getReadbackPvName());
-		assertFalse(ConfigPv.builder().pvName("a").build().isReadOnly());
-		
-		ConfigPv configPV = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		
-		assertEquals("b", configPV.getReadbackPvName());
-		assertTrue(configPV.isReadOnly());
-		assertNull(configPV.getComparison());
+    @Test
+    public void testConfigPv() {
+        assertNull(ConfigPv.builder().pvName("a").build().getReadbackPvName());
+        assertFalse(ConfigPv.builder().pvName("a").build().isReadOnly());
 
-		configPV = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).comparison(new Comparison(PvCompareMode.ABSOLUTE, 1.0)).build();
-		assertEquals(PvCompareMode.ABSOLUTE, configPV.getComparison().pvCompareMode());
-		assertEquals(1.0, configPV.getComparison().tolerance());
-	}
-	
-	@Test
-	public void testEquals() {
-	
-		
-		ConfigPv configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		assertNotEquals(configPV1, new Object());
-		assertNotEquals(null, configPV1);
-		ConfigPv configPV2 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		ConfigPv configPV3 = ConfigPv.builder().pvName("a").readbackPvName("c").readOnly(true).build();
-		
-		assertEquals(configPV1, configPV2);
-		assertNotEquals(configPV1, configPV3);
-		
-		configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		configPV2 = ConfigPv.builder().pvName("b").readbackPvName("b").readOnly(true).build();
-		
-		assertNotEquals(configPV1, configPV2);
-		
-		configPV1 = ConfigPv.builder().pvName("a").readOnly(true).build();
-		configPV2 = ConfigPv.builder().pvName("b").readOnly(true).build();
-		
-		assertNotEquals(configPV1, configPV2);
-		
-		configPV1 = ConfigPv.builder().pvName("a").readOnly(true).build();
-		configPV2 = ConfigPv.builder().pvName("a").readOnly(true).build();
-		
-		assertEquals(configPV1, configPV2);
-	}
-	
-	@Test
-	public void testHashCode() {
-		ConfigPv configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		ConfigPv configPV2 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		
-		assertEquals(configPV1.hashCode(), configPV2.hashCode());
-		
-		configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		configPV2 = ConfigPv.builder().pvName("b").readbackPvName("b").readOnly(true).build();
-		
-		assertNotEquals(configPV1.hashCode(), configPV2.hashCode());
-		
-		configPV1 = ConfigPv.builder().pvName("a").readOnly(true).build();
-		configPV2 = ConfigPv.builder().pvName("b").readOnly(true).build();
-		
-		assertNotEquals(configPV1.hashCode(), configPV2.hashCode());
-		
-		configPV1 = ConfigPv.builder().pvName("a").readOnly(true).build();
-		configPV2 = ConfigPv.builder().pvName("a").readOnly(true).build();
-		
-		assertEquals(configPV1.hashCode(), configPV2.hashCode());
-	}
-	
-	@Test
-	public void testToString() {
-		assertNotNull(ConfigPv.builder().build().toString());
-		assertNotNull(ConfigPv.builder().readbackPvName("a").build().toString());
-		assertNotNull(ConfigPv.builder().readbackPvName("").build().toString());
-	}
-	
-	@Test
-	public void testCompareTo(){
-		ConfigPv configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		ConfigPv configPV2 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
-		ConfigPv configPV3 = ConfigPv.builder().pvName("b").readbackPvName("b").readOnly(true).build();
+        ConfigPv configPV = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
 
-		assertEquals(0, configPV1.compareTo(configPV2));
-		assertTrue(configPV1.compareTo(configPV3) < 0);
-		assertTrue(configPV3.compareTo(configPV1) > 0);
-	}
+        assertEquals("b", configPV.getReadbackPvName());
+        assertTrue(configPV.isReadOnly());
+        assertNull(configPV.getPvCompareMode());
+        assertNull(configPV.getTolerance());
+
+        configPV = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).pvCompareMode(PvCompareMode.ABSOLUTE).tolerance(1.0).build();
+        assertEquals(PvCompareMode.ABSOLUTE, configPV.getPvCompareMode());
+        assertEquals(1.0, configPV.getTolerance());
+    }
+
+    @Test
+    public void testEquals() {
+
+
+        ConfigPv configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
+        assertNotEquals(configPV1, new Object());
+        assertNotEquals(null, configPV1);
+        ConfigPv configPV2 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
+        ConfigPv configPV3 = ConfigPv.builder().pvName("a").readbackPvName("c").readOnly(true).build();
+
+        assertEquals(configPV1, configPV2);
+        assertNotEquals(configPV1, configPV3);
+
+        configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
+        configPV2 = ConfigPv.builder().pvName("b").readbackPvName("b").readOnly(true).build();
+
+        assertNotEquals(configPV1, configPV2);
+
+        configPV1 = ConfigPv.builder().pvName("a").readOnly(true).build();
+        configPV2 = ConfigPv.builder().pvName("b").readOnly(true).build();
+
+        assertNotEquals(configPV1, configPV2);
+
+        configPV1 = ConfigPv.builder().pvName("a").readOnly(true).build();
+        configPV2 = ConfigPv.builder().pvName("a").readOnly(true).build();
+
+        assertEquals(configPV1, configPV2);
+    }
+
+    @Test
+    public void testHashCode() {
+        ConfigPv configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
+        ConfigPv configPV2 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
+
+        assertEquals(configPV1.hashCode(), configPV2.hashCode());
+
+        configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
+        configPV2 = ConfigPv.builder().pvName("b").readbackPvName("b").readOnly(true).build();
+
+        assertNotEquals(configPV1.hashCode(), configPV2.hashCode());
+
+        configPV1 = ConfigPv.builder().pvName("a").readOnly(true).build();
+        configPV2 = ConfigPv.builder().pvName("b").readOnly(true).build();
+
+        assertNotEquals(configPV1.hashCode(), configPV2.hashCode());
+
+        configPV1 = ConfigPv.builder().pvName("a").readOnly(true).build();
+        configPV2 = ConfigPv.builder().pvName("a").readOnly(true).build();
+
+        assertEquals(configPV1.hashCode(), configPV2.hashCode());
+    }
+
+    @Test
+    public void testToString() {
+        assertNotNull(ConfigPv.builder().build().toString());
+        assertNotNull(ConfigPv.builder().readbackPvName("a").build().toString());
+        assertNotNull(ConfigPv.builder().readbackPvName("").build().toString());
+    }
+
+    @Test
+    public void testCompareTo() {
+        ConfigPv configPV1 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
+        ConfigPv configPV2 = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).build();
+        ConfigPv configPV3 = ConfigPv.builder().pvName("b").readbackPvName("b").readOnly(true).build();
+
+        assertEquals(0, configPV1.compareTo(configPV2));
+        assertTrue(configPV1.compareTo(configPV3) < 0);
+        assertTrue(configPV3.compareTo(configPV1) > 0);
+    }
 }

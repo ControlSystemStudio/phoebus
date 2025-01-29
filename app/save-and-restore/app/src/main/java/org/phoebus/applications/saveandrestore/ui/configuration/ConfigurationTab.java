@@ -95,7 +95,7 @@ public class ConfigurationTab extends SaveAndRestoreTab {
     @Override
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
-            textProperty().set(node.getName());
+            Platform.runLater(() -> textProperty().set(node.getName()));
         }
     }
 
@@ -104,15 +104,21 @@ public class ConfigurationTab extends SaveAndRestoreTab {
      *
      * @param tabTitle The wanted tab title.
      */
-    public void updateTabTitle(String tabTitle) {
+    private void updateTabTitle(String tabTitle) {
         Platform.runLater(() -> textProperty().set(tabTitle));
     }
 
+    /**
+     * Updates the tab to indicate if the data is dirty and needs to be saved.
+     * @param dirty If <code>true</code>, an asterisk is prepended, otherwise
+     *              only the name {@link org.phoebus.applications.saveandrestore.model.Configuration}
+     *              is rendered.
+     */
     public void annotateDirty(boolean dirty) {
         String tabTitle = textProperty().get();
-        if (dirty && !tabTitle.contains("*")) {
+        if (dirty && !tabTitle.startsWith("*")) {
             updateTabTitle("* " + tabTitle);
-        } else if (!dirty) {
+        } else if (!dirty && tabTitle.startsWith("*")) {
             updateTabTitle(tabTitle.substring(2));
         }
     }

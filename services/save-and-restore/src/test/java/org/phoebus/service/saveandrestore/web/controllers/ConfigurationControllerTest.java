@@ -22,7 +22,6 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.phoebus.applications.saveandrestore.model.Comparison;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
@@ -83,6 +82,10 @@ public class ConfigurationControllerTest {
 
         Configuration configuration = new Configuration();
         configuration.setConfigurationNode(Node.builder().build());
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("foo").readbackPvName("bar").build()));
+
+        configuration.setConfigurationData(configurationData);
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
@@ -173,8 +176,31 @@ public class ConfigurationControllerTest {
         ConfigurationData configurationData = new ConfigurationData();
         configuration.setConfigurationData(configurationData);
         configurationData.setPvList(List.of(ConfigPv.builder().pvName("foo").build(),
-                ConfigPv.builder().pvName("fooo").comparison(new Comparison(PvCompareMode.ABSOLUTE, 1.0)).build()));
+                ConfigPv.builder().pvName("fooo").pvCompareMode(PvCompareMode.ABSOLUTE).tolerance(1.0).build()));
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        configurationData.setPvList(List.of(
+                ConfigPv.builder().pvName("fooo").readbackPvName("bar").tolerance(1.0).build()));
+
+        configuration.setConfigurationData(configurationData);
+
+        request = put("/config?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        configurationData.setPvList(List.of(
+                ConfigPv.builder().pvName("fooo").readbackPvName("bar").pvCompareMode(PvCompareMode.RELATIVE)
+                        .tolerance(0.0).build()));
+
+        configuration.setConfigurationData(configurationData);
+
+        request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
 
