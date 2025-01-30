@@ -309,7 +309,13 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             @Override
             public Double fromString(String string) {
                 try {
-                    return Double.parseDouble(string);
+                    Double value = Double.parseDouble(string);
+                    if(value < 0){
+                        // Tolerance must be >= 0.
+                        // Tolerance must be >= 0.
+                        return null;
+                    }
+                    return value;
                 } catch (Exception e) {
                     // No logging needed: user has entered text that cannot be parsed as double.
                     return null;

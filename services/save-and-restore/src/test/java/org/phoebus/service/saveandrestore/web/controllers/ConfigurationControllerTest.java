@@ -196,7 +196,7 @@ public class ConfigurationControllerTest {
 
         configurationData.setPvList(List.of(
                 ConfigPv.builder().pvName("fooo").readbackPvName("bar").pvCompareMode(PvCompareMode.RELATIVE)
-                        .tolerance(0.0).build()));
+                        .tolerance(-0.1).build()));
 
         configuration.setConfigurationData(configurationData);
 

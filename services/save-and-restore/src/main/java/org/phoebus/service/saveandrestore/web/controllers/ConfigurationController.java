@@ -71,8 +71,8 @@ public class ConfigurationController extends BaseController {
                 if(configPv.getPvCompareMode() == null){
                     throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies tolerance but no comparison mode");
                 }
-                //...but is zero, which does not make sense.
-                else if(configPv.getTolerance() == 0){
+                //...but is less than zero, which does not make sense as comparison considers tolerance as upper and lower limit.
+                else if(configPv.getTolerance() < 0 ){
                     throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies zero tolerance");
                 }
              }
