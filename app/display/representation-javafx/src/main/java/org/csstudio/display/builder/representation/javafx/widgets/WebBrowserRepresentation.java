@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
+import org.csstudio.display.builder.representation.javafx.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.util.IOUtils;
 import org.phoebus.ui.javafx.ImageCache;
@@ -102,7 +103,22 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPan
             // still defaulting to "http://".
             else if (url.indexOf("://") < 0)
                 url = "http://" + url;
-            webEngine.load(url);
+            
+            //Try to open page to test if we can open page
+            try {
+                InputStream openURL = ModelResourceUtil.openURL(url, 0);
+                openURL.close();
+                webEngine.load(url);
+            }
+            catch (Exception e) {
+                //if there is an error display a error page in engine
+                StringBuilder errorMessage = new StringBuilder();
+                errorMessage.append("<u style=\"color:red;\">"+Messages.WebPageErrorLoading+" :</u><BR>");
+                errorMessage.append("<a href=" + url + " target=\"_blank\">"+url+"</a><BR>");
+                errorMessage.append("<u>"+Messages.WebPageErrorMessage+" :</u> " + e.getMessage() + "<BR>");
+                errorMessage.append("<u>"+Messages.WebPageErrorDetails+" :</u> " + e.toString());
+                webEngine.loadContent(errorMessage.toString()); 
+            }
         }
 
         private void download(final String url, final String file)

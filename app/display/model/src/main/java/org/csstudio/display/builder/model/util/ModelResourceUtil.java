@@ -258,6 +258,7 @@ public class ModelResourceUtil
         }
         catch (UnsupportedEncodingException ex)
         {
+            logger.log(Level.SEVERE, "Impossible to decode {0} because {1}", new Object[] { text, ex.getMessage() });
             return text;
         }
     }
@@ -299,6 +300,7 @@ public class ModelResourceUtil
         }
 
         // Give up
+        logger.log(Level.WARNING, " {0} is not resolved ", new Object[] { resource_name});
         return null;
     }
 
@@ -319,12 +321,15 @@ public class ModelResourceUtil
             }
             catch (Exception ex)
             {
+                logger.log(Level.SEVERE, "Impossible to open stream on {0} because of {1}", new Object[] { resource_name, ex.getMessage() });
                 return false;
             }
         }
 
-        if (! isURL(resource_name))
+        if (! isURL(resource_name)) {
+            logger.log(Level.WARNING, "URL {0} is not a URL", new Object[] { resource_name });
             return false;
+        }
         // This implementation is expensive:
         // On success, caller will soon open the URL again.
         // In practice, not too bad because second time around
@@ -344,12 +349,17 @@ public class ModelResourceUtil
 
         try
         {
-            final InputStream stream = openURL(resource_name);
-            stream.close();
+//            final InputStream stream = openURL(resource_name);
+//            stream.close();
+            //Test only if the page exist and not read the content
+            final String escaped = resource_name.replace(" ", "%20");
+            URL resource = new URL(escaped);
+            resource.openConnection();
             return true;
         }
         catch (Exception ex)
         {
+            logger.log(Level.SEVERE, "Impossible to open connection on URL {0} because of {1}", new Object[] { resource_name, ex.getMessage() });
             return false;
         }
     }
@@ -397,7 +407,7 @@ public class ModelResourceUtil
                 // .. but once examples are inside the jar,
                 // we can only read them as a stream.
                 // There is no File access.
-                logger.log(Level.WARNING, "Cannot get `File` for " + url);
+                logger.log(Level.WARNING, "Cannot get `File` for " + url + " " + ex.getMessage());
                 return null;
             }
         }
@@ -488,7 +498,6 @@ public class ModelResourceUtil
 
     private static final byte[] readUrl(final String url) throws Exception
     {
-        // System.out.println("Actually reading " + url + ", not cached");
         final InputStream in = openURL(url, timeout_ms);
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         IOUtils.copy(in, buf);

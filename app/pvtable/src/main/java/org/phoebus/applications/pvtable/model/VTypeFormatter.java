@@ -8,12 +8,15 @@
 package org.phoebus.applications.pvtable.model;
 
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.epics.util.array.IteratorNumber;
 import org.epics.util.array.ListByte;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -69,16 +72,34 @@ public class VTypeFormatter
         }
         if (value instanceof VEnum)
         {
-            final VEnum ev = (VEnum) value;
-            try
-            {
-                return ev.getIndex() + " = " + ev.getValue();
+            String strValue = null;
+            EnumDisplay enumDisplay = null;
+            int index = -1;
+            strValue =  ((VEnum) value).getValue();
+            enumDisplay = ((VEnum) value).getDisplay();
+            try {
+                index = ((VEnum) value).getIndex();
             }
-            catch (ArrayIndexOutOfBoundsException ex)
-            {
-                return ev.getIndex() + " = ?";
+            catch (ArrayIndexOutOfBoundsException e) {
+                index = -1;
             }
+            
+            if(enumDisplay!= null && strValue == null) {
+                List<String> choices = enumDisplay.getChoices();
+                if(choices != null && index > -1 && index < choices.size()) {
+                    strValue = choices.get(index);
+                }
+            }
+            strValue =  strValue == null ? "?":strValue;
+            String strIndex = index >= 0 ? String.valueOf(index): "?";
+            return strIndex + " = " +strValue;
         }
+        if(value instanceof VBoolean) {
+            //Add Boolean type to get true or false instead of VBoolean.toString()
+            //TODO Manage ONAM ZNAM for CA
+            return String.valueOf(((VBoolean)value).getValue());
+        }
+                
         if (value instanceof VString)
             return ((VString) value).getValue();
         if (value instanceof VByteArray && Settings.treat_byte_array_as_string)
