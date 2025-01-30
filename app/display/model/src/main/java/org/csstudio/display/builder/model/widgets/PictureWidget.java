@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.csstudio.display.builder.model.Messages;
+import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
@@ -134,7 +135,10 @@ public class PictureWidget extends MacroWidget
         properties.add(stretch_image = propStretch.createProperty(this, false));
         properties.add(rotation = propRotation.createProperty(this, 0.0));
         properties.add(opacity = propOpacity.createProperty(this, 1.0));
-        properties.add(svgRenderingResolutionFactor = propSVGRenderingResolutionFactor.createProperty(this, 1.0));
+        svgRenderingResolutionFactor = propSVGRenderingResolutionFactor.createProperty(this, 1.0);
+        if (Preferences.enable_svg_rendering_resolution_factor) {
+            properties.add(svgRenderingResolutionFactor);
+        }
     }
 
     /** @return 'rotation' property */

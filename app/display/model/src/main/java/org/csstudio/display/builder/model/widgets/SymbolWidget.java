@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.Messages;
+import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
@@ -252,7 +253,12 @@ public class SymbolWidget extends PVWidget {
         properties.add(enabled        = propEnabled.createProperty(this, true));
         properties.add(preserve_ratio = propPreserveRatio.createProperty(this, true));
         properties.add(fallbackSymbol = propFallbackSymbol.createProperty(this, DEFAULT_SYMBOL));
-        properties.add(svgRenderingResolutionFactor = propSVGRenderingResolutionFactor.createProperty(this, 1.0));
+
+        svgRenderingResolutionFactor = propSVGRenderingResolutionFactor.createProperty(this, 1.0);
+        if (Preferences.enable_svg_rendering_resolution_factor) {
+            properties.add(svgRenderingResolutionFactor);
+        }
+
         WidgetColor alarmInvalidColor =
                 WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID);
         WidgetColor defaultDisconnectedOverlayColor =
