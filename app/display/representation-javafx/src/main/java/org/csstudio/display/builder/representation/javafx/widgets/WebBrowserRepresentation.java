@@ -106,7 +106,6 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPan
             
             //Try to open page to test if we can open page
             try {
-                //System.out.println("goToURL " + url);
                 InputStream openURL = ModelResourceUtil.openURL(url, 0);
                 openURL.close();
                 webEngine.load(url);

@@ -258,6 +258,7 @@ public class ModelResourceUtil
         }
         catch (UnsupportedEncodingException ex)
         {
+            logger.log(Level.SEVERE, "Impossible to decode {0} because {1}", new Object[] { text, ex.getMessage() });
             return text;
         }
     }
@@ -497,7 +498,6 @@ public class ModelResourceUtil
 
     private static final byte[] readUrl(final String url) throws Exception
     {
-        // System.out.println("Actually reading " + url + ", not cached");
         final InputStream in = openURL(url, timeout_ms);
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         IOUtils.copy(in, buf);
