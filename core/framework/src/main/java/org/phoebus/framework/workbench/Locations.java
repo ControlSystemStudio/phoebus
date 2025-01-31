@@ -40,12 +40,20 @@ public class Locations
 
     private static void initInstall() throws Exception
     {
+        //First force logging level to CONFIG and memorize user level
+        Level userLoggingLevel = logger.getLevel();
+        logger.setLevel(Level.CONFIG);
+        
         // Check for location of installation,
         // i.e. the directory that should contain the lib/
         // and doc/ folders.
         String phoebus_install = System.getProperty(PHOEBUS_INSTALL);
+        String foundFrom = "$("+ PHOEBUS_INSTALL +") system property";
         if (phoebus_install == null)
         {
+            //If the environment variable is not set
+            //Read from the workbench preferences before
+            foundFrom = "from the framework*.jar archive";
             // Determine location of this class
             // During development in the IDE, it's /some/path/phoebus/core/framework/target/classes
             // In the product, it's /some/path/lib/framework*.jar
@@ -63,21 +71,58 @@ public class Locations
             phoebus_install = path.getAbsolutePath();
             System.setProperty(PHOEBUS_INSTALL, phoebus_install);
         }
+        if(phoebus_install != null) {
+            logger.log(Level.CONFIG, "phoebus_install is set to {0} found from {1}", new Object[] {phoebus_install , foundFrom});
+        }
+        //Put back user logging level
+        logger.setLevel(userLoggingLevel);
     }
 
     private static void initUser()
     {
-        String phoebus_user = System.getProperty(PHOEBUS_USER);
+        //First force logging level to CONFIG and memorize user level
+        Level userLoggingLevel = logger.getLevel();
+        logger.setLevel(Level.CONFIG);
+        
         String folder_name_preference = System.getProperty(FOLDER_NAME_PREFERENCE);
-        if (phoebus_user == null)
+        String foundFrom = "$("+ FOLDER_NAME_PREFERENCE +") system property";
+        if (folder_name_preference == null) 
         {
-            if (folder_name_preference == null) 
-            {
-            folder_name_preference = ".phoebus";
+            //Test preference folder_name_preference before
+            folder_name_preference = WorkbenchPreferences.phoebus_folder_name;
+            foundFrom = "org.phoebus.framework.workbench/phoebus_folder_name preference in settings.ini file";
+            if(folder_name_preference == null || folder_name_preference.contains("$(")) {//If it is still null
+                foundFrom = " default value";
+                folder_name_preference = ".phoebus";
             }
-            phoebus_user = new File(System.getProperty("user.home"), folder_name_preference).getAbsolutePath();
-            System.setProperty(PHOEBUS_USER, phoebus_user);
         }
+        
+        logger.log(Level.CONFIG, "folder_name_preference is set to {0} found from {1}", new Object[] {folder_name_preference , foundFrom});
+        
+        String userHome = System.getProperty(PHOEBUS_USER);
+        foundFrom = "$("+ PHOEBUS_USER +") system property";
+        if (userHome == null)
+        {
+           //Test preference phoebus_user before
+            File userFile = WorkbenchPreferences.phoebus_user;
+            if(userFile != null && userFile.exists()) {
+                foundFrom = "org.phoebus.framework.workbench/phoebus_user preference in settings.ini file";
+                userHome = userFile.getAbsolutePath();
+            }
+            else {
+                foundFrom = "$(user.home) system property";
+                userHome = System.getProperty("user.home");
+            }
+        }
+        
+        logger.log(Level.CONFIG, "user home is set to {0} found from {1}", new Object[] {userHome , foundFrom});
+       
+        String phoebus_user = new File(userHome, folder_name_preference).getAbsolutePath();
+        logger.log(Level.CONFIG, "phoebus_user folder is set to " + phoebus_user);
+        System.setProperty(PHOEBUS_USER, phoebus_user);
+        
+        //Put back user logging level
+        logger.setLevel(userLoggingLevel);
     }
 
     /** 'Install' location contains the lib/ and doc/ directories.
@@ -89,6 +134,10 @@ public class Locations
      */
     public static File install()
     {
+        String install = System.getProperty(PHOEBUS_INSTALL);
+        if(install == null) {
+            initialize();
+        }
         return new File(System.getProperty(PHOEBUS_INSTALL));
     }
 
@@ -102,6 +151,10 @@ public class Locations
      */
     public static File user()
     {
+        String user = System.getProperty(PHOEBUS_USER);
+        if(user == null) {
+            initialize();
+        }
         return new File(System.getProperty(PHOEBUS_USER));
     }
 }
