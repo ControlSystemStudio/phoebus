@@ -34,7 +34,7 @@ import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventRe
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
-import org.phoebus.applications.saveandrestore.ui.VNoData;
+import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
