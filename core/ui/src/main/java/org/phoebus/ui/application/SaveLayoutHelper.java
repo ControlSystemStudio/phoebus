@@ -22,6 +22,7 @@ import org.phoebus.framework.autocomplete.ProposalProvider;
 import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItem;
@@ -156,7 +157,23 @@ public class SaveLayoutHelper
     private static boolean saveState(List<Stage> stagesToSave, final String layout)
     {
         final String memento_filename = layout + ".memento";
-        final File memento_file = new File(Locations.user(), memento_filename);
+        //Take in account layout dir and add Layout folder in the path
+        String layout_dir = Preferences.layout_dir;
+        File user = Locations.user();
+        File parentFolder = null;
+        if(layout_dir != null && !layout_dir.isEmpty() && !layout_dir.contains("$(")) {
+            parentFolder = new File(user , layout_dir);
+            if(!parentFolder.exists()) {
+                parentFolder.mkdir();
+            }
+        }
+        
+        if(parentFolder == null) {
+            parentFolder = user;
+        }
+        
+        final File memento_file = new File(parentFolder, memento_filename);
+        
         // File.exists() is blocking in nature.
         // To combat this the phoebus application maintains a list of *.memento files that are in the default directory.
         // Check if the file name is in the list, and confirm a file overwrite with the user.

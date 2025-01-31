@@ -325,8 +325,7 @@ public class PhoebusApplication extends Application {
             String errorMessage = errorTitleAndErrorMessage.getValue();
 
             logger.log(Level.SEVERE, errorMessage);
-
-            Dialog errorDialog = new Alert(AlertType.ERROR);
+            Alert errorDialog = new Alert(AlertType.ERROR);
             errorDialog.setTitle(errorTitle);
             errorDialog.setHeaderText(errorTitle);
             errorDialog.setContentText(errorMessage + "\n\n" + Messages.PhoebusWillQuit);
@@ -348,7 +347,7 @@ public class PhoebusApplication extends Application {
                     ObservableList<File> iniFilesInDirectory_ObservableList = FXCollections.observableArrayList(iniFilesInDirectory_List);
 
                     if (iniFilesInDirectory_List.size() > 0) {
-                        Dialog<File> iniFileSelectionDialog = new Dialog();
+                        Dialog<File> iniFileSelectionDialog = new Dialog<>();
                         iniFileSelectionDialog.setTitle(Messages.SelectPhoebusConfiguration);
                         iniFileSelectionDialog.setHeaderText(Messages.SelectPhoebusConfiguration);
                         iniFileSelectionDialog.setGraphic(null);
@@ -357,7 +356,7 @@ public class PhoebusApplication extends Application {
                         iniFileSelectionDialog.setHeight(400);
                         iniFileSelectionDialog.setResizable(false);
 
-                        ListView listView = new ListView(iniFilesInDirectory_ObservableList);
+                        ListView<File> listView = new ListView<>(iniFilesInDirectory_ObservableList);
                         listView.getSelectionModel().select(0);
 
                         Runnable setReturnValueAndCloseDialog = () -> {
@@ -419,20 +418,20 @@ public class PhoebusApplication extends Application {
                                         PropertyPreferenceLoader.load(selectedFile_FileInputStream);
                                     }
                                 } catch (Exception exception) {
-                                    displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage()));
+                                    displayErrorMessageAndQuit.accept(new Pair<>(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage()));
                                 }
                             } catch (FileNotFoundException e) {
-                                displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + Messages.FileDoesNotExist));
+                                displayErrorMessageAndQuit.accept(new Pair<>(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + Messages.FileDoesNotExist));
                             }
                         } else {
                             // Selecting a configuration was cancelled either by pressing the "X"-button or by pressing the ESC-key.
                             stop();
                         }
                     } else {
-                        displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheDirectoryDoesNotContainConfigurationFiles, iniFilesLocation_String)));
+                        displayErrorMessageAndQuit.accept(new Pair<>(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheDirectoryDoesNotContainConfigurationFiles, iniFilesLocation_String)));
                     }
                 } else {
-                    displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheArgumentIsNotADirectory, iniFilesLocation_String)));
+                    displayErrorMessageAndQuit.accept(new Pair<>(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheArgumentIsNotADirectory, iniFilesLocation_String)));
                 }
             }
         }
@@ -561,7 +560,28 @@ public class PhoebusApplication extends Application {
                     Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
 
         closeAllTabsMenuItem.acceleratorProperty().setValue(closeAllTabsKeyCombination);
-
+        
+        //Load a custom layout at start if layout_default is defined in preferences
+        String layoutFileName = Preferences.layout_default;
+        if(layoutFileName != null && !layoutFileName.isBlank()) {
+            layoutFileName = !layoutFileName.endsWith(".memento")? layoutFileName + ".memento" :layoutFileName;
+            String layout_dir = Preferences.layout_dir;
+            File parentFolder = null;
+            File user = Locations.user();
+            if(layout_dir != null && !layout_dir.isBlank() && !layout_dir.contains("$(")) {
+                parentFolder = new File(user, layout_dir);
+            }
+            if(parentFolder == null) {
+                parentFolder = user;
+            }
+            File layoutFile = new File(parentFolder,layoutFileName );
+            if(layoutFile.exists()) {
+                startLayoutReplacement(layoutFile);
+            }
+            else {
+                logger.log(Level.WARNING, "Layout file " + layoutFileName + " is not found");
+            }
+        }
     }
 
     /**
@@ -778,8 +798,9 @@ public class PhoebusApplication extends Application {
             }
 
             // Get every momento file from the configured layout
-            if (Preferences.layout_dir != null && !Preferences.layout_dir.isBlank()) {
-                final File layoutDir = new File(Preferences.layout_dir);
+            String layout_dir = Preferences.layout_dir;
+            if (layout_dir != null && !layout_dir.isBlank() && !layout_dir.contains("$(")) {
+                final File layoutDir = new File(Locations.user(), layout_dir);
                 if (layoutDir.exists()) {
                     final File[] systemLayoutFiles = layoutDir.listFiles();
                     if (systemLayoutFiles != null) {
