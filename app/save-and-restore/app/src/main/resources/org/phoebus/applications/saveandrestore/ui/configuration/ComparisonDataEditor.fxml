@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ComparisonDataEditorController">
+   <children>
+      <Label text="%comparisonMode" />
+      <ComboBox fx:id="comparisonModeComboBox" prefWidth="150.0" GridPane.columnIndex="1" />
+      <Label text="%comparisonTolerance" GridPane.rowIndex="1"/>
+      <TextField fx:id="toleranceTextField" prefWidth="150.0" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+   </children>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints/>
+   </rowConstraints>
+</GridPane>

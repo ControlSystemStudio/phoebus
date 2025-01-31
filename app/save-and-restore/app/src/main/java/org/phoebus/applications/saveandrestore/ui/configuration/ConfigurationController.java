@@ -29,11 +29,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -62,6 +64,7 @@ import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -69,12 +72,15 @@ import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
+import javax.naming.Context;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -210,9 +216,15 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 pvTable.getSelectionModel().getSelectedItems(), userIdentity));
 
         ContextMenu contextMenu = new ContextMenu();
+        MenuItem setComparisonData = new MenuItem("Add comparison on selection");
+        setComparisonData.setOnAction(e -> {
+            List<ConfigPvEntry> selectedItems = pvTable.getSelectionModel().getSelectedItems();
+            launchComparisonEditor();
+        });
+        contextMenu.getItems().add(setComparisonData);
         pvTable.setOnContextMenuRequested(event -> {
             contextMenu.getItems().clear();
-            contextMenu.getItems().addAll(deleteMenuItem);
+            contextMenu.getItems().addAll(deleteMenuItem, setComparisonData);
             contextMenu.getItems().add(new SeparatorMenuItem());
             ObservableList<ConfigPvEntry> selectedPVs = pvTable.getSelectionModel().getSelectedItems();
             if (!selectedPVs.isEmpty()) {
@@ -223,6 +235,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(pvTable), contextMenu);
             }
         });
+
         pvTable.setContextMenu(contextMenu);
 
         pvNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -311,7 +324,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 try {
                     Double value = Double.parseDouble(string);
                     if(value < 0){
-                        // Tolerance must be >= 0.
                         // Tolerance must be >= 0.
                         return null;
                     }
@@ -542,5 +554,28 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     private void setDirty(boolean dirty) {
         this.dirty.set(dirty && !loadInProgress.get());
+    }
+
+    private ComparisonData launchComparisonEditor(){
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setHeaderText(null);
+        alert.setGraphic(null);
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+        FXMLLoader loader = new FXMLLoader();
+        loader.setResources(resourceBundle);
+        loader.setLocation(this.getClass().getResource("ComparisonDataEditor.fxml"));
+        try {
+            javafx.scene.Node content = loader.load();
+            alert.getDialogPane().setContent(content);
+            alert.showAndWait();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return null;
+    }
+
+    public record ComparisonData(PvCompareMode pvCompareMode, Double tolerance){
+
     }
 }
