@@ -21,7 +21,7 @@ public class MessageRequest implements RequestEncoder
 	private final PVAStatus.Type type;
 	private final String message;
 	
-	/** @param request_id Server's request ID
+	/** @param request_id ID of client request to which this message applies
 	 *  @param type Message type
 	 *  @param message Message text
 	 */
