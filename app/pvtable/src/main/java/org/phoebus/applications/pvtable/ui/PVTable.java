@@ -122,7 +122,6 @@ public class PVTable extends VBox
      */
     private final FilteredList<TableItemProxy> filtered = new FilteredList<>(rows.sorted(SORT_NEW_ITEM_LAST));
     private final SortedList<TableItemProxy> sorted = new SortedList<>(filtered);
-    //private final SortedList<TableItemProxy> sorted = rows.sorted();
     private final TableView<TableItemProxy> table = new TableView<>(sorted);
 
     private TableColumn<TableItemProxy, String>  saved_value_col;
