@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2020-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.TCPHandler;
 import org.epics.pva.data.PVADoubleArray;
 import org.epics.pva.data.PVAIntArray;
 import org.epics.pva.data.PVAStringArray;
@@ -52,7 +53,7 @@ public class TableDemo
             // Create PVs
             final ServerPV pv1 = server.createPV("demo", data, new WriteEventHandler() {
                 @Override
-                public void handleWrite(ServerPV pv, BitSet changes, PVAStructure written) throws Exception {
+                public void handleWrite(TCPHandler tcp, ServerPV pv, BitSet changes, PVAStructure written) throws Exception {
                     System.out.println();
                 }
             });
