@@ -97,7 +97,7 @@ public class PVTable extends VBox
     private static final String comment_style = "-fx-text-fill: blue;";
     private static final String new_item_style = "-fx-text-fill: gray;";
     private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
-    private static final String SPLIT_PV = "[ \\t\\n\\r,]+";
+    private static final String SPLIT_PV = "[\\n\\r]+";
 
     /** When sorting, keep the 'NEW_ITEM' row at the bottom **/
     private static final Comparator<TableItemProxy> SORT_NEW_ITEM_LAST = (a, b) ->
@@ -120,7 +120,7 @@ public class PVTable extends VBox
     /** Sorted and filtered views of the rows.
      *  Order of 'rows' is preserved, but comparator of this list changes to sort.
      */
-    private final FilteredList<TableItemProxy> filtered = new FilteredList<>(rows.sorted());
+    private final FilteredList<TableItemProxy> filtered = new FilteredList<>(rows.sorted(SORT_NEW_ITEM_LAST));
     private final SortedList<TableItemProxy> sorted = new SortedList<>(filtered);
     private final TableView<TableItemProxy> table = new TableView<>(sorted);
 
@@ -502,6 +502,8 @@ public class PVTable extends VBox
             else
                 sorted.setComparator(SORT_NEW_ITEM_LAST.thenComparing(column_comparator));
         };
+        
+      
 
         // The InvalidationListener is called when sort order is set up, down or null.
         // Iffy: A ChangeListener was only called when sort order is set up or null,
