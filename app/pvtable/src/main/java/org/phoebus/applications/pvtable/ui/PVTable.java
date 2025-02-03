@@ -191,7 +191,6 @@ public class PVTable extends VBox
     private static class PVNameTableCell extends TextFieldTableCell<TableItemProxy, String>
     {
         private TextInputControl textField;
-        private static ContextMenu contextMenu;
         
         public PVNameTableCell()
         {
@@ -204,15 +203,20 @@ public class PVTable extends VBox
             super.startEdit();
             final int index = getIndex();
             boolean newPv = index == getTableView().getItems().size() - 1;
-            if(newPv) {
+            //Display a textarea if textarea_editor is enable
+            if(newPv && Settings.textarea_editor) {
                 textField = new TextArea();
                 textField.setMaxHeight(100);
-                if(contextMenu == null) {
-                    MenuItem addPVMenu = new MenuItem(Messages.AddPVList);
-                    addPVMenu.setOnAction(event -> commitEdit(textField.getText()));
-                    contextMenu = new ContextMenu(addPVMenu);
-                }
-                textField.setContextMenu(contextMenu);
+                textField.setOnKeyPressed(event -> {
+                    if (event.getCode() == KeyCode.ENTER) {
+                        event.consume(); // otherwise a new line will be added to the textArea after the commit call
+                        if (event.isShiftDown()) {
+                            textField.appendText(System.getProperty("line.separator"));
+                        } else {
+                            commitEdit(textField.getText());
+                        }
+                    }
+                });
             }
             else {
                 textField = new TextField();

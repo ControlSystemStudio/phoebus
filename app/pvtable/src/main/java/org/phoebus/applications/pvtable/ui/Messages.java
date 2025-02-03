@@ -14,7 +14,6 @@ public class Messages
 {
     /** Externalized strings */
     public static String Alarm,
-                         AddPVList,
                          Description,
                          CheckAll,
                          CheckAll_TT,
