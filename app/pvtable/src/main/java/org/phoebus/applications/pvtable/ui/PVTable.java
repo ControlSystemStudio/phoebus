@@ -97,7 +97,7 @@ public class PVTable extends VBox
     private static final String comment_style = "-fx-text-fill: blue;";
     private static final String new_item_style = "-fx-text-fill: gray;";
     private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
-    private static final String SPLIT_PV = "[ \\t\\n\\r,]+";
+    private static final String SPLIT_PV = "[\\n\\r]+";
 
     /** When sorting, keep the 'NEW_ITEM' row at the bottom **/
     private static final Comparator<TableItemProxy> SORT_NEW_ITEM_LAST = (a, b) ->
