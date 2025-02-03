@@ -120,8 +120,9 @@ public class PVTable extends VBox
     /** Sorted and filtered views of the rows.
      *  Order of 'rows' is preserved, but comparator of this list changes to sort.
      */
-    private final FilteredList<TableItemProxy> filtered = new FilteredList<>(rows.sorted());
+    private final FilteredList<TableItemProxy> filtered = new FilteredList<>(rows.sorted(SORT_NEW_ITEM_LAST));
     private final SortedList<TableItemProxy> sorted = new SortedList<>(filtered);
+    //private final SortedList<TableItemProxy> sorted = rows.sorted();
     private final TableView<TableItemProxy> table = new TableView<>(sorted);
 
     private TableColumn<TableItemProxy, String>  saved_value_col;
@@ -502,6 +503,8 @@ public class PVTable extends VBox
             else
                 sorted.setComparator(SORT_NEW_ITEM_LAST.thenComparing(column_comparator));
         };
+        
+      
 
         // The InvalidationListener is called when sort order is set up, down or null.
         // Iffy: A ChangeListener was only called when sort order is set up or null,
