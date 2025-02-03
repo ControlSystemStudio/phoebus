@@ -409,6 +409,39 @@
         </plugins>
       </build>
     </profile>
+
+    <!-- Assuming that the documentation has been built and put into the file doc.tar.gz,
+         the following profile attaches the doc.tar.gz file as an attached artifact. -->
+    <profile>
+      <id>attach-documentation</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.6.0</version>
+            <executions>
+              <execution>
+                <id>attach-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot> <!-- Only run in the parent project -->
+                  <artifacts>
+                    <artifact>
+                      <file>${project.basedir}/doc.tar.gz</file>
+                      <type>tar.gz</type>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <repositories>
