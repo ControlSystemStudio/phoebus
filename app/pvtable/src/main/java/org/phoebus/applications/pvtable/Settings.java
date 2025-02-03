@@ -25,6 +25,8 @@ public class Settings
     /** Preference setting */
     @Preference public static double tolerance;
     /** Preference setting */
+    @Preference public static boolean textarea_editor;
+    /** Preference setting */
     public static int update_item_threshold = 50;
     /** Preference setting */
     @Preference(name="max_update_period") public static long max_update_period_ms;

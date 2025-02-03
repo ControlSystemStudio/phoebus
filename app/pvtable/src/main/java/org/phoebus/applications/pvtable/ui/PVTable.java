@@ -204,7 +204,8 @@ public class PVTable extends VBox
             super.startEdit();
             final int index = getIndex();
             boolean newPv = index == getTableView().getItems().size() - 1;
-            if(newPv) {
+            //Display a textarea if textarea_editor is enable
+            if(newPv && Settings.textarea_editor) {
                 textField = new TextArea();
                 textField.setMaxHeight(100);
                 if(contextMenu == null) {
