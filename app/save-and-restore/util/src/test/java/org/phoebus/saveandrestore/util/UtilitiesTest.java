@@ -2,7 +2,7 @@
  * Copyright (C) 2024 European Spallation Source ERIC.
  */
 
-package util;
+package org.phoebus.saveandrestore.util;
 
 import org.epics.pva.data.*;
 import org.epics.util.array.*;

@@ -746,7 +746,7 @@ Body:
     ]
 
 Server Restore Endpoints
-----------------------------
+------------------------
 
 Restore from snapshot items
 """""""""""""""""""""""""""
@@ -756,7 +756,7 @@ Restore from snapshot items
 Method: POST
 
 This endpoint allows you to send a list of ``SnapshotItem`` and the save-and-restore server
-will set the values of the PVs in your system to the values supplied. 
+will set the values of the PVs in your system to the values supplied.
 This allows restoring from clients which do not support EPICS access, for example web clients.
 
 Body:
@@ -840,6 +840,80 @@ Method: POST
 
 This is the same as the endpoint to restore from snapshot items, however it uses snapshot items
 from an existing node rather than providing them explicitly. It returns the same result.
+
+Compare Endpoint
+----------------
+
+**.../compare/{uniqueId}[?tolerance=<tolerance_value>]**
+
+Method: GET
+
+The path variable ``{uniqueId}`` must identify an existing snapshot or composite snapshot. The ``tolerance`` query parameter is
+optional and defaults to zero. If specified it must be >= 0.
+
+This endpoint can be used to compare stored snapshot values to live values for each set-point PV in the snapshot.
+Comparisons are performed in the same manner as in the client UI, i.e.:
+
+* Scalar PVs are compared using the the optional relative tolerance, or compared using zero tolerance.
+* Array PVs are compared element wise, always using zero tolerance. Arrays must be of equal length.
+* Table PVs are compared element wise, always using zero tolerance. Tables must be of same dimensions, and data types must match between columns.
+* Enum PVs are compared using zero tolerance.
+
+Return value: a list of comparison results, one for each PV in the snapshot, e.g.:
+
+.. code-block:: JSON
+
+    {
+        "equal" : "false",
+        "pvCompareMode": "RELATIVE",
+        "tolerance" : 0,
+        "storedValue": {
+          "type": {
+            "name": "VInt",
+            "version": 1
+          },
+          "value": 18,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1653903750,
+            "nanoSec": 532912758
+          },
+          "display": {
+            "units": ""
+          }
+        },
+        "liveValue": {
+          "type": {
+            "name": "VInt",
+            "version": 1
+          },
+          "value": 14,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NO_ALARM"
+          },
+          "time": {
+            "unixSec": 1734688284,
+            "nanoSec": 605970324,
+            "userTag": 0
+          },
+          "display": {
+            "lowDisplay": 0.0,
+            "highDisplay": 255.0,
+            "units": "",
+            "description": "Mapping for Pulser 0"
+          }
+        },
+        "delta": "+4"
+    }
+
+Note that if the comparison evaluates to "equal", then ``storedValue`` and ``liveValue`` are set to ``null``.
+The ``delta`` field value is formatted in the same manner as the delta column in the client UI.
 
 Authentication and Authorization
 ================================
