@@ -10,9 +10,11 @@ package org.phoebus.framework.nls;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -115,7 +117,7 @@ public class NLSMessagesTest
         }
 
         assertThat("Env variable value is ignored", !appversionFound);
-        assertThat("Differences between properties", difference.size() == 3);
+        assertThat("Differences between properties", difference.size() == 4);
     }
 
     @Test
@@ -130,6 +132,36 @@ public class NLSMessagesTest
     @AfterAll
     public static void restoreLocale() {
         Locale.setDefault(original);
+    }
+    
+    @Test
+    public void showAccentsInFile() {
+        URL resource = NLSMessagesTest.class.getResource(MESSAGE + ".properties");
+        if (resource != null) {
+            String filePath = resource.getFile();
+            System.out.println(filePath);
+            String[] split = filePath.split("/core/framework/");
+            //First part is the parent folder
+            String parentFolder = split != null && split.length > 0 ? split[0] : null;
+            System.out.println("parentFolder=" + parentFolder);
+            File parentFile = new File(parentFolder);
+            String suffix = "_fr.properties";
+            List<File> fileList = listMessagesFiles(parentFile, suffix);
+           
+            for (File file : fileList) {
+                List<String> replaceUnicodeInFile = replaceUnicodeInFile(file.getAbsolutePath());
+                if(replaceUnicodeInFile != null && !replaceUnicodeInFile.isEmpty()) {
+                    System.out.println("");
+                    System.out.println("--- " + replaceUnicodeInFile.size() + " MODIFICATION(S) SUGGESTION in " + file.getAbsolutePath() + " ---");
+                    for(String newLine : replaceUnicodeInFile) {
+                        System.out.println(newLine);
+                    }
+                    System.out.println("");
+                    System.out.println("------ END OF MODIFICATION(S) ------");
+                }
+            }
+        }
+        //assertThat("All resources are synchronize ", differences.isEmpty());
     }
    
     
@@ -256,7 +288,11 @@ public class NLSMessagesTest
     }
     
     private static List<File> listMessagesFiles(File folder) {
-        String filename = MESSAGE + ".properties";
+        String suffix = MESSAGE + ".properties";
+        return listMessagesFiles(folder, suffix);
+    }
+    
+    private static List<File> listMessagesFiles(File folder, String suffix) {
         List<File> fileList = new ArrayList<>();
         //Ignore target folder from build
         if(folder != null && folder.isDirectory() 
@@ -265,10 +301,10 @@ public class NLSMessagesTest
             File[] listFiles = folder.listFiles();
             for(File file : listFiles) {
                 if(file.isDirectory()) {
-                    List<File> list = listMessagesFiles(file);
+                    List<File> list = listMessagesFiles(file,suffix);
                     fileList.addAll(list);
                 }
-                else if (file.getName().equals(filename)){
+                else if (file.getName().toLowerCase().endsWith(suffix.toLowerCase())){
                     fileList.add(file);
                 }
             }
@@ -296,5 +332,50 @@ public class NLSMessagesTest
         }
         return localFound;
     }
+    
+    /**
+     * Check to accents contains in a file and show the string replacement to apply
+     * @param file path
+     * @return new line if there is accent
+     */
+    private static List<String> replaceUnicodeInFile(String file) {
+        List<String> newLines = new ArrayList<>();
+        final char[] charList = {'é','è','ë','ê','É','à','â','À','ï','î','ô','ö', 'ù','°','µ','€', 'ç', 'œ', '$', '’', '\''};
+        String defaultFile = NLSMessagesTest.class.getResource("messages_fr.properties").getFile();
+        String filePath = file != null && !file.isEmpty() ? file : defaultFile;
+        File parseFile = new File(filePath);
+        try (FileInputStream inps = new FileInputStream(parseFile);
+             InputStreamReader isr = new InputStreamReader(inps);
+             BufferedReader br = new BufferedReader(isr);) {
+
+            String line = null;
+            String newLine = null;
+            String replace = null;
+            String toReplace = null;
+            int lineNumber = 1;
+            while ((line = br.readLine()) != null) {
+                newLine = line;
+                for(char car : charList) {
+                    toReplace = String.valueOf(car);
+                    if(newLine.contains(toReplace) && !newLine.contains("${")) {
+                        replace =  String.format("%04x", (int) car);
+                        newLine = newLine.replaceAll(toReplace, "\\\\u" +replace);
+                    }
+                }
+                if(newLine.length() != line.length()) {
+                    newLines.add("line[" +lineNumber+ "]=" + newLine);
+                }
+                lineNumber++;
+            }
+        }
+        catch (Exception e) {
+        // TODO: handle exception
+        }
+        
+        //If no change return empty list
+        return newLines;
+    }
+    
+    
 
 }
