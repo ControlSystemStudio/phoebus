@@ -417,11 +417,22 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     /** The main splitter */
     private final SplitPane content;
 
-    /** turn this rule's property into the long string form used in the combo box **/
-    private String getPropLongString(RuleItem rule)
+    /** turn this rule's property into the short string form used in the combo box **/
+    private String getPropShortString(RuleItem rule)
     {
         final PropInfo pi = new PropInfo(rule.attached_widget, rule.prop_id.get());
-        return pi.toString();
+        return getPropShortString(pi);
+    }
+    
+    /** turn this property into the short string form used in the combo box **/
+    private String getPropShortString(PropInfo pi) {
+        // Property _value_ can be long, ex. points of a polyline
+        // Truncate the value that's shown in the combo box
+        // to prevent combo from using all screen width.
+        String prop_opt = pi.toString();
+        if (prop_opt.length() > MAX_PROP_LENGTH)
+            prop_opt = prop_opt.substring(0, MAX_PROP_LENGTH) + "...";
+        return prop_opt;
     }
 
     /** @param undo Undo support
@@ -513,7 +524,9 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
                 btn_move_rule_down.setDisable(model.getSelectedIndex() == rule_items.size() - 1);
                 btn_show_script.setDisable(false);
                 propComboBox.setDisable(false);
-                propComboBox.getSelectionModel().select(getPropLongString(selected));
+                //should truncate as it done to display the option
+                String propString = getPropShortString(selected);
+                propComboBox.getSelectionModel().select(propString);
                 valExpBox.setDisable(false);
                 valExpBox.selectedProperty().set(selected.prop_as_expr.get());
                 pv_items.setAll(selected.pvs);
@@ -584,9 +597,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         {   // Property _value_ can be long, ex. points of a polyline
             // Truncate the value that's shown in the combo box
             // to prevent combo from using all screen width.
-            String prop_opt = pi.toString();
-            if (prop_opt.length() > MAX_PROP_LENGTH)
-                prop_opt = prop_opt.substring(0, MAX_PROP_LENGTH) + "...";
+            String prop_opt = getPropShortString(pi);
             prop_id_opts.add(prop_opt);
         }
         propComboBox = new ComboBox<>(prop_id_opts);
