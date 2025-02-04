@@ -459,10 +459,12 @@ public class PVTable extends VBox
             final int row = model.getItems().indexOf(item);
 
             // System.out.println(item + " changed in row " + row + " on " + Thread.currentThread().getName());
-            final TableItemProxy proxy = rows.get(row);
-            if (proxy.getItem() != item)
-                throw new IllegalStateException("*** Looking for " + item.getName() + " but found " + proxy.name.get());
-            proxy.update(item);
+            if(row > -1  && row  < rows.size()) {
+                final TableItemProxy proxy = rows.get(row);
+                if (proxy.getItem() != item)
+                    throw new IllegalStateException("*** Looking for " + item.getName() + " but found " + proxy.name.get());
+                proxy.update(item);
+            }
         }
 
         @Override
