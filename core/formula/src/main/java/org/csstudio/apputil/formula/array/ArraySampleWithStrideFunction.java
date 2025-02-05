@@ -49,7 +49,7 @@ public class ArraySampleWithStrideFunction extends BaseArrayFunction {
 
     @Override
     public List<String> getArguments() {
-        return List.of("array", "stride", "offset(optional)");
+        return List.of("array", "stride", "offset");
     }
 
 

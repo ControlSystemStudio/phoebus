@@ -10,38 +10,43 @@ import org.phoebus.core.vtypes.VTypeHelper;
 import java.util.Arrays;
 import java.util.List;
 
-/** A formula function for fetching the horizontal profile from image data.
- *  @author Kunal Shroff
+/**
+ * A formula function for fetching the horizontal profile from image data.
+ * This function extracts the horizontal profile along a given y position.
+ *
+ * @author Kunal Shroff
  */
-public class ImageDataHorizontalProfileFunction implements FormulaFunction
-{
+public class ImageDataHorizontalProfileFunction implements FormulaFunction {
 
     @Override
-    public String getCategory()
-    {
+    public String getCategory() {
         return "areaDetector";
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "imageDataHorizontalProfile";
     }
 
     @Override
-    public String getDescription()
-    {
+    public String getDescription() {
         return "Fetch the horizontal profile data for the given Image data at a specific y position.";
     }
 
     @Override
-    public List<String> getArguments()
-    {
+    public List<String> getArguments() {
         return List.of("image", "image width", "y position");
     }
 
-    protected VType getHorizontalProfile(final VNumberArray imageData, final int imageWidth, final int yPosition)
-    {
+    /**
+     * Computes the horizontal profile of the given image data at the specified y position.
+     *
+     * @param imageData  The image data.
+     * @param imageWidth The width of the image.
+     * @param yPosition  The y position in the image data from which to extract the horizontal profile.
+     * @return A VNumberArray representing the extracted horizontal profile.
+     */
+    protected VType getHorizontalProfile(final VNumberArray imageData, final int imageWidth, final int yPosition) {
         int start = yPosition * imageWidth;
         int end = start + imageWidth;
         return VNumberArray.of(imageData.getData().subList(start, end),
@@ -50,9 +55,18 @@ public class ImageDataHorizontalProfileFunction implements FormulaFunction
                 Display.none());
     }
 
+    /**
+     * Computes the horizontal profile based on the provided arguments.
+     *
+     * @param args The arguments, where:
+     *             - args[0] must be a numeric array
+     *             - args[1] must be the image width
+     *             - args[2] must be the y position
+     * @return The computed horizontal profile as a VType.
+     * @throws Exception If invalid arguments are provided.
+     */
     @Override
-    public VType compute(final VType... args) throws Exception
-    {
+    public VType compute(final VType... args) throws Exception {
         if (args.length != 3) {
             throw new Exception("Function " + getName() +
                     " requires 3 arguments but received " + Arrays.toString(args));

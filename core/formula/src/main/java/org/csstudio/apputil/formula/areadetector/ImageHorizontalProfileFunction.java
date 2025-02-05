@@ -48,6 +48,15 @@ public class ImageHorizontalProfileFunction implements FormulaFunction
         return VNumberArray.of(image.getData().subList(start, end), Alarm.none(), image.getTime(), Display.none());
     }
 
+    /**
+     * Computes the horizontal profile based on the provided arguments.
+     *
+     * @param args The arguments, where:
+     *             - args[0] must be a VImage
+     *             - args[1] must be the y position
+     * @return The computed horizontal profile as a VType.
+     * @throws Exception If invalid arguments are provided.
+     */
     @Override
     public VType compute(final VType... args) throws Exception
     {

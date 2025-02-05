@@ -50,8 +50,9 @@ public class ImageDataVerticalProfileFunction implements FormulaFunction
     /**
      * Computes the vertical profile of the given VImage at the specified x position.
      *
-     * @param imageData The imageData.
-     * @param xPosition The x position in the imageData from which to extract the vertical profile.
+     * @param imageData The image data.
+     * @param width     The width of the image.
+     * @param xPosition The x position in the image data from which to extract the vertical profile.
      * @return A VNumberArray representing the extracted vertical profile.
      */
     protected VType getVerticalProfile(final VNumberArray imageData, final int width, final int xPosition) {
@@ -83,8 +84,9 @@ public class ImageDataVerticalProfileFunction implements FormulaFunction
      * Computes the vertical profile based on the provided arguments.
      *
      * @param args The arguments, where:
-     *             - args[0] must be a VImage
-     *             - args[1] must be the x position
+     *             - args[0] must be a numeric array representing the image data
+     *             - args[1] must be the image width
+     *             - args[2] must be the x position
      * @return The computed vertical profile as a VType.
      * @throws Exception If invalid arguments are provided.
      */
