@@ -32,9 +32,10 @@ public class CompareResult{
     private VType liveValue;
     private String delta;
 
-    public CompareResult(){
-
-    }
+    /**
+     * Needed by unit tests. Do not remove.
+     */
+    public CompareResult(){}
 
     public CompareResult(String pvName,
         boolean equal,
@@ -57,16 +58,8 @@ public class CompareResult{
         return equal;
     }
 
-    public void setEqual(boolean equal) {
-        this.equal = equal;
-    }
-
     public PvCompareMode getPvCompareMode() {
         return pvCompareMode;
-    }
-
-    public void setPvCompareMode(PvCompareMode pvCompareMode) {
-        this.pvCompareMode = pvCompareMode;
     }
 
     public double getTolerance() {
@@ -77,12 +70,16 @@ public class CompareResult{
         this.tolerance = tolerance;
     }
 
+    /**
+     *
+     * @return <code>null</code> indicates failure to connect to PV.
+     */
     public VType getStoredValue() {
         return storedValue;
     }
 
-    public void setStoredValue(VType storedValue) {
-        this.storedValue = storedValue;
+    public String getDelta() {
+        return delta;
     }
 
     /**
@@ -93,23 +90,7 @@ public class CompareResult{
         return liveValue;
     }
 
-    public void setLiveValue(VType liveValue) {
-        this.liveValue = liveValue;
-    }
-
-    public String getDelta() {
-        return delta;
-    }
-
-    public void setDelta(String delta) {
-        this.delta = delta;
-    }
-
     public String getPvName() {
         return pvName;
-    }
-
-    public void setPvName(String pvName) {
-        this.pvName = pvName;
     }
 }

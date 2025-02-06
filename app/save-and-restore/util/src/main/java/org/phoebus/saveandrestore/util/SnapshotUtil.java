@@ -114,7 +114,7 @@ public class SnapshotUtil {
      * @param configPvs List of {@link ConfigPv}s defining a {@link Configuration}.
      * @return A list of {@link SnapshotItem}s holding the values read from IOCs.
      */
-    public List<SnapshotItem> takeSnapshot(List<ConfigPv> configPvs) {
+    public List<SnapshotItem> takeSnapshot(final List<ConfigPv> configPvs) {
         List<SnapshotItem> snapshotItems = new ArrayList<>();
         List<Callable<Void>> callables = new ArrayList<>();
         Map<String, VType> pvValues = Collections.synchronizedMap(new HashMap<>());
@@ -196,20 +196,22 @@ public class SnapshotUtil {
 
         // Merge data into SnapshotItems
         for (String pvName : pvValues.keySet()) {
-            SnapshotItem snapshotItem = new SnapshotItem();
-            for (ConfigPv configPv : configPvs) {
-                if (configPv.getPvName().equals(pvName)) {
-                    snapshotItem.setConfigPv(configPv);
-                    break;
+            synchronized (pvValues) {
+                SnapshotItem snapshotItem = new SnapshotItem();
+                for (ConfigPv configPv : configPvs) {
+                    if (configPv.getPvName().equals(pvName)) {
+                        snapshotItem.setConfigPv(configPv);
+                        break;
+                    }
                 }
+                VType value = pvValues.get(pvName);
+                snapshotItem.setValue(value);
+                if (snapshotItem.getConfigPv().getReadbackPvName() != null) {
+                    VType readbackValue = readbackPvValues.get(snapshotItem.getConfigPv().getReadbackPvName());
+                    snapshotItem.setReadbackValue(readbackValue);
+                }
+                snapshotItems.add(snapshotItem);
             }
-            VType value = pvValues.get(pvName);
-            snapshotItem.setValue(value);
-            if (snapshotItem.getConfigPv().getReadbackPvName() != null) {
-                VType readbackValue = readbackPvValues.get(snapshotItem.getConfigPv().getReadbackPvName());
-                snapshotItem.setReadbackValue(readbackValue);
-            }
-            snapshotItems.add(snapshotItem);
         }
 
         return snapshotItems;
