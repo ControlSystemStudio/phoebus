@@ -29,7 +29,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.MouseButton;
-import org.phoebus.applications.saveandrestore.ui.VNoData;
+import org.phoebus.saveandrestore.util.VNoData;
 
 /**
  * <code>SelectionTableColumn</code> is the table column for the first column in the table, which displays

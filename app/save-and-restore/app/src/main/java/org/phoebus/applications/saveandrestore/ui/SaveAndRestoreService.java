@@ -39,6 +39,7 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
+import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.util.time.TimestampFormats;
 
 import javax.ws.rs.core.MultivaluedMap;

@@ -84,7 +84,7 @@ public class SnapshotItem {
 	@Override
 	public String toString() {
 		return new StringBuffer()
-				.append(", config pv=").append(configPv.toString())
+				.append("Config pv=").append(configPv.toString())
 				.append("value=").append(value != null ? value.toString() : "null")
 				.append(readbackValue != null ? (", readback pv=" + readbackValue) : (", readback pv=null"))
 				.toString();

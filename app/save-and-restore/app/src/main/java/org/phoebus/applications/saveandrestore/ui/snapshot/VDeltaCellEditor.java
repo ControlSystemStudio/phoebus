@@ -22,8 +22,8 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import org.phoebus.applications.saveandrestore.ui.Utilities;
-import org.phoebus.applications.saveandrestore.ui.VNoData;
+import org.phoebus.saveandrestore.util.Utilities;
+import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
 

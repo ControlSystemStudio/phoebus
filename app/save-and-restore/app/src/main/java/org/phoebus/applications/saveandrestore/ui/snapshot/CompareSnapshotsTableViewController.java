@@ -22,7 +22,7 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
-import org.phoebus.applications.saveandrestore.ui.Utilities;
+import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 
 import java.util.List;

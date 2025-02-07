@@ -29,9 +29,9 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
-import org.phoebus.applications.saveandrestore.ui.Threshold;
-import org.phoebus.applications.saveandrestore.ui.Utilities;
-import org.phoebus.applications.saveandrestore.ui.VNoData;
+import org.phoebus.saveandrestore.util.Threshold;
+import org.phoebus.saveandrestore.util.Utilities;
+import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
 

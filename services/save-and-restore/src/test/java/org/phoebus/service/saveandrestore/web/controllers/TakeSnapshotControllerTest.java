@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
@@ -38,8 +40,7 @@ public class TakeSnapshotControllerTest {
     @Autowired
     private NodeDAO nodeDAO;
 
-    @Autowired
-    private SnapshotUtil snapshotUtil;
+    private SnapshotUtil snapshotUtil = Mockito.mock(SnapshotUtil.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -50,11 +51,11 @@ public class TakeSnapshotControllerTest {
     @Test
     public void testTakeSnapshot() throws Exception {
         ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("pvName").build()));
 
         when(nodeDAO.getNode("uniqueId")).thenReturn(Node.builder().name("name").uniqueId("uniqueId").build());
         when(nodeDAO.getConfigurationData("uniqueId")).thenReturn(configurationData);
-        when(snapshotUtil.takeSnapshot(configurationData))
-                .thenReturn(Collections.emptyList());
+        when(snapshotUtil.takeSnapshot(configurationData)).thenReturn(Collections.emptyList());
 
         MockHttpServletRequestBuilder request = get("/take-snapshot/uniqueId");
 
