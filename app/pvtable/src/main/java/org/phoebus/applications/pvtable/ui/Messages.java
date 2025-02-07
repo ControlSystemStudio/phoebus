@@ -14,7 +14,6 @@ public class Messages
 {
     /** Externalized strings */
     public static String Alarm,
-                         AddPVList,
                          Description,
                          CheckAll,
                          CheckAll_TT,
@@ -48,6 +47,7 @@ public class Messages
                          RestoreSelection_TT,
                          Saved,
                          Saved_Value_TimeStamp,
+                         SearchPV,
                          Selected,
                          Snapshot,
                          Snapshot_TT,

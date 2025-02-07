@@ -28,8 +28,12 @@ org.csstudio.apputil.formula.math.Pow
 # Other functions
 org.csstudio.apputil.formula.demo.Factorial
 org.csstudio.apputil.formula.areadetector.ADDataTypeMappingFunction
+org.csstudio.apputil.formula.areadetector.ImageDataHorizontalProfileFunction
+org.csstudio.apputil.formula.areadetector.ImageDataVerticalProfileFunction
 org.csstudio.apputil.formula.areadetector.ImageHeightFunction
+org.csstudio.apputil.formula.areadetector.ImageHorizontalProfileFunction
 org.csstudio.apputil.formula.areadetector.ImageValueFunction
+org.csstudio.apputil.formula.areadetector.ImageVerticalProfileFunction
 org.csstudio.apputil.formula.areadetector.ImageWidthFunction
 org.csstudio.apputil.formula.areadetector.ImageXOffsetFunction
 org.csstudio.apputil.formula.areadetector.ImageXReversedFunction
@@ -53,6 +57,7 @@ org.csstudio.apputil.formula.array.ArrayScalarDivisionFunction
 org.csstudio.apputil.formula.array.ArrayInverseScalarDivisionFunction
 org.csstudio.apputil.formula.array.ArrayOfFunction
 org.csstudio.apputil.formula.array.ArrayRangeOfFunction
+org.csstudio.apputil.formula.array.ArraySampleWithStrideFunction
 org.csstudio.apputil.formula.array.ArrayStatsFunction
 org.csstudio.apputil.formula.array.ArrayMaxFunction
 org.csstudio.apputil.formula.array.ArrayMinFunction
@@ -74,3 +79,5 @@ org.csstudio.apputil.formula.alarm.MinorAlarmFunction
 org.csstudio.apputil.formula.enums.IndexOfFunction
 org.csstudio.apputil.formula.enums.EnumOfFunction
 
+# Time
+org.csstudio.apputil.formula.time.TimestampFunction

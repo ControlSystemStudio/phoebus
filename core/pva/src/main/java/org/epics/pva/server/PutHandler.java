@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -110,7 +110,7 @@ class PutHandler implements CommandHandler<ServerTCPHandler>
             // Notify PV
             try
             {
-                pv.wrote(written, data);
+                pv.wrote(tcp, written, data);
             }
             catch (Exception ex)
             {

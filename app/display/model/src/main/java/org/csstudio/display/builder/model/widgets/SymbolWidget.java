@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.Messages;
+import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
@@ -87,6 +88,9 @@ public class SymbolWidget extends PVWidget {
     /** Property */
     public static final WidgetPropertyDescriptor<String>                        propFallbackSymbol = newFilenamePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "fallback_symbol", Messages.WidgetProperties_FallbackSymbol);
     public static final WidgetPropertyDescriptor<Boolean>                       propRunActionsOnMouseClick = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "run_actions_on_mouse_click", Messages.WidgetProperties_RunActionsOnMouseClick);
+    /** 'svg_rendering_resolution_factor': */
+    public static final WidgetPropertyDescriptor<Double> propSVGRenderingResolutionFactor = newDoublePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "svg_rendering_resolution_factor", Messages.WidgetProperties_SVGRenderingResolutionFactor);
+
 
     /** 'items' property: list of items (string properties) for combo box */
     public static final ArrayWidgetProperty.Descriptor<WidgetProperty<String> > propSymbols       = new ArrayWidgetProperty.Descriptor< >(
@@ -121,6 +125,7 @@ public class SymbolWidget extends PVWidget {
     private volatile WidgetProperty<String>                      fallbackSymbol;
     private volatile WidgetProperty<WidgetColor>                 disconnectOverlayColor;
     private volatile WidgetProperty<Boolean>                     run_actions_on_mouse_click;
+    private volatile WidgetProperty<Double>                      svgRenderingResolutionFactor;
 
     /** Returns 'symbol' property: element for list of 'symbols' property */
     private static WidgetPropertyDescriptor<String> propSymbol( int index ) {
@@ -225,6 +230,11 @@ public class SymbolWidget extends PVWidget {
         return run_actions_on_mouse_click;
     }
 
+    /** @return 'svgRenderingResolutionFactor' property */
+    public WidgetProperty<Double> propSVGRenderingResolutionFactor() {
+        return svgRenderingResolutionFactor;
+    }
+
     @Override
     protected void defineProperties ( final List<WidgetProperty<?>> properties ) {
 
@@ -243,6 +253,12 @@ public class SymbolWidget extends PVWidget {
         properties.add(enabled        = propEnabled.createProperty(this, true));
         properties.add(preserve_ratio = propPreserveRatio.createProperty(this, true));
         properties.add(fallbackSymbol = propFallbackSymbol.createProperty(this, DEFAULT_SYMBOL));
+
+        svgRenderingResolutionFactor = propSVGRenderingResolutionFactor.createProperty(this, 1.0);
+        if (Preferences.enable_svg_rendering_resolution_factor) {
+            properties.add(svgRenderingResolutionFactor);
+        }
+
         WidgetColor alarmInvalidColor =
                 WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID);
         WidgetColor defaultDisconnectedOverlayColor =

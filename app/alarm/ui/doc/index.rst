@@ -247,6 +247,7 @@ parent components of the alarm hierarchy.
    A slightly longer text with the content of the guidance, for example a list of
    telephone numbers, or description of things to try for handling the alarm.
 
+
 Displays
 --------
 
@@ -409,5 +410,34 @@ Where the include component is identified in the inclusion file with a DID decla
       </component>
   </config>
 
+Context Menu
+------------
 
+In the Alarm Tree and the Alarm Table views user may right click on an alarm item to launch a context menu:
+
+.. image:: images/context_menu.png
+    :width: 20%
+
+The top item ("Guidance" in the screenshot) will launch a dialog showing the guidance text for the alarm item.
+
+With the Disable Alarms menu item (Alarm Tree only) user may disable an alarm item, or all alarms in the sub-tree of a
+node. The alarm(s) will stay disabled until explicitly enabled by the user. See also notes below for
+more information on how disabled alarms are handled upon import of the alarm configuration XML file.
+
+Configuration Editor
+--------------------
+
+In the Alarm Tree and the Alarm Table views user may right click on an alarm item to launch the configuration
+editor dialog:
+
+.. image:: images/context_menu_config.png
+    :width: 20%
+
+In this view user may update all settings defined in the alarm configuration XML file:
+
+.. image:: images/configuration_editor.png
+    :width: 50%
+
+**NOTE:** Any changes performed in the editor will be overwritten when the associated alarm configuration XML file is
+imported again.
 

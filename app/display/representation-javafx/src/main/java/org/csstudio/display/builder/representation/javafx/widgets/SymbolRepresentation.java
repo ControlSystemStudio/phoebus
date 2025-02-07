@@ -100,6 +100,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private final UntypedWidgetPropertyListener contentListener = this::contentChanged;
     private final UntypedWidgetPropertyListener geometryListener = this::geometryChanged;
     private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
+    private final UntypedWidgetPropertyListener svgRenderingResolutionFactorChangedListener = this::svgRenderingResolutionFactorChanged;
     private final WidgetPropertyListener<VType> valueListener = this::valueChanged;
     private final WidgetPropertyListener<List<WidgetProperty<String>>> symbolsListener = this::symbolsChanged;
     private final WidgetPropertyListener<Integer> indexListener = this::initialIndexChanged;
@@ -610,6 +611,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         model_widget.propEnabled().addUntypedPropertyListener(styleListener);
         model_widget.propShowIndex().addUntypedPropertyListener(styleListener);
         model_widget.propTransparent().addUntypedPropertyListener(styleListener);
+        model_widget.propSVGRenderingResolutionFactor().addUntypedPropertyListener(svgRenderingResolutionFactorChangedListener);
 
         if (!toolkit.isEditMode())
             model_widget.runtimePropValue().addPropertyListener(valueListener);
@@ -639,6 +641,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         model_widget.propEnabled().removePropertyListener(styleListener);
         model_widget.propShowIndex().removePropertyListener(styleListener);
         model_widget.propTransparent().removePropertyListener(styleListener);
+        model_widget.propSVGRenderingResolutionFactor().removePropertyListener(svgRenderingResolutionFactorChangedListener);
 
         if (!toolkit.isEditMode())
             model_widget.runtimePropValue().removePropertyListener(valueListener);
@@ -786,6 +789,11 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                 symbol.resize(width, height, preserveRatio);
             }
         }
+    }
+
+    private void svgRenderingResolutionFactorChanged(final WidgetProperty<?> property, final Object oldValue, Object newValue) {
+        // Update the rendered SVG:
+        symbolChanged(null, null, null);
     }
 
     private void styleChanged ( final WidgetProperty<?> property, final Object oldValue, final Object newValue ) {
@@ -1027,7 +1035,20 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
          * @return An {@link Image} or <code>null</code>.
          */
         Image loadSVG(final String imageFileName, double width, double height){
-            return SVGHelper.loadSVG(imageFileName, width, height);
+            double svg_rendering_resolution_factor = model_widget.propSVGRenderingResolutionFactor().getValue();
+
+            double renderingWidth;
+            double renderingHeight;
+            if (!Double.isNaN(svg_rendering_resolution_factor) && svg_rendering_resolution_factor > 0) {
+                renderingWidth = svg_rendering_resolution_factor * width;
+                renderingHeight = svg_rendering_resolution_factor * height;
+            } else {
+                logger.log(Level.WARNING, "The SVG Rendering Factor is not set to a value greater than 0.0! Setting it to 1.0.");
+                renderingWidth = width;
+                renderingHeight = height;
+            }
+
+            return SVGHelper.loadSVG(imageFileName, renderingWidth, renderingHeight);
         }
     }
 }

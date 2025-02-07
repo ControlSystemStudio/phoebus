@@ -12,11 +12,13 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.epics.vtype.VEnum;
+import javafx.collections.transformation.FilteredList;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.Settings;
@@ -95,7 +97,7 @@ public class PVTable extends VBox
     private static final String comment_style = "-fx-text-fill: blue;";
     private static final String new_item_style = "-fx-text-fill: gray;";
     private static final String changed_style = "-fx-background-color: -fx-table-cell-border-color, cyan;-fx-background-insets: 0, 0 0 1 0;";
-    private static final String SPLIT_PV = "[ \\t\\n\\r,]+";
+    private static final String SPLIT_PV = "[\\n\\r]+";
 
     /** When sorting, keep the 'NEW_ITEM' row at the bottom **/
     private static final Comparator<TableItemProxy> SORT_NEW_ITEM_LAST = (a, b) ->
@@ -115,10 +117,11 @@ public class PVTable extends VBox
      *  properties of the item (== column values) change
      */
     private final ObservableList<TableItemProxy> rows = FXCollections.observableArrayList(TableItemProxy.CHANGING_PROPERTIES);
-    /** Sorted view of the rows.
+    /** Sorted and filtered views of the rows.
      *  Order of 'rows' is preserved, but comparator of this list changes to sort.
      */
-    private final SortedList<TableItemProxy> sorted = rows.sorted();
+    private final FilteredList<TableItemProxy> filtered = new FilteredList<>(rows.sorted(SORT_NEW_ITEM_LAST));
+    private final SortedList<TableItemProxy> sorted = new SortedList<>(filtered);
     private final TableView<TableItemProxy> table = new TableView<>(sorted);
 
     private TableColumn<TableItemProxy, String>  saved_value_col;
@@ -188,7 +191,6 @@ public class PVTable extends VBox
     private static class PVNameTableCell extends TextFieldTableCell<TableItemProxy, String>
     {
         private TextInputControl textField;
-        private static ContextMenu contextMenu;
         
         public PVNameTableCell()
         {
@@ -201,15 +203,20 @@ public class PVTable extends VBox
             super.startEdit();
             final int index = getIndex();
             boolean newPv = index == getTableView().getItems().size() - 1;
-            if(newPv) {
+            //Display a textarea if textarea_editor is enable
+            if(newPv && Settings.textarea_editor) {
                 textField = new TextArea();
                 textField.setMaxHeight(100);
-                if(contextMenu == null) {
-                    MenuItem addPVMenu = new MenuItem(Messages.AddPVList);
-                    addPVMenu.setOnAction(event -> commitEdit(textField.getText()));
-                    contextMenu = new ContextMenu(addPVMenu);
-                }
-                textField.setContextMenu(contextMenu);
+                textField.setOnKeyPressed(event -> {
+                    if (event.getCode() == KeyCode.ENTER) {
+                        event.consume(); // otherwise a new line will be added to the textArea after the commit call
+                        if (event.isShiftDown()) {
+                            textField.appendText(System.getProperty("line.separator"));
+                        } else {
+                            commitEdit(textField.getText());
+                        }
+                    }
+                });
             }
             else {
                 textField = new TextField();
@@ -335,21 +342,31 @@ public class PVTable extends VBox
             setText(null);
 
             final TableItemProxy proxy = getTableView().getItems().get(getIndex());
-            final VType value = proxy.getItem().getValue();
-            if (value instanceof VEnum)
+            String[] valueOptions = proxy.getItem().getValueOptions();
+            if (valueOptions != null && valueOptions.length > 0)
             {
-                // Use combo for Enum-valued data
-                final VEnum enumerated = (VEnum) value;
                 final ComboBox<String> combo = new ComboBox<>();
-                combo.getItems().addAll(enumerated.getDisplay().getChoices());
-                combo.getSelectionModel().select(enumerated.getIndex());
-
-                combo.setOnAction(event ->
-                {
-                    // Need to write String, using the enum index
-                    commitEdit(Integer.toString(combo.getSelectionModel().getSelectedIndex()));
-                    event.consume();
-                });
+                combo.getItems().addAll(valueOptions);
+                int index = proxy.getItem().getIndex();
+                if(index >=0 && index < valueOptions.length) {
+                    combo.getSelectionModel().select(index);
+                }
+                if(proxy.getItem().getValue() instanceof VBoolean) {
+                    combo.setOnAction(event ->
+                    {
+                        // Need to write boolean, using the enum index
+                        commitEdit(Boolean.toString(combo.getSelectionModel().getSelectedIndex() == 1));
+                        event.consume();
+                    });
+                }
+                else {
+                    combo.setOnAction(event ->
+                    {
+                        // Need to write String, using the enum index
+                        commitEdit(Integer.toString(combo.getSelectionModel().getSelectedIndex()));
+                        event.consume();
+                    });
+                }
                 combo.setOnKeyReleased(event ->
                 {
                     if (event.getCode() == KeyCode.ESCAPE)
@@ -442,10 +459,12 @@ public class PVTable extends VBox
             final int row = model.getItems().indexOf(item);
 
             // System.out.println(item + " changed in row " + row + " on " + Thread.currentThread().getName());
-            final TableItemProxy proxy = rows.get(row);
-            if (proxy.getItem() != item)
-                throw new IllegalStateException("*** Looking for " + item.getName() + " but found " + proxy.name.get());
-            proxy.update(item);
+            if(row > -1  && row  < rows.size()) {
+                final TableItemProxy proxy = rows.get(row);
+                if (proxy.getItem() != item)
+                    throw new IllegalStateException("*** Looking for " + item.getName() + " but found " + proxy.name.get());
+                proxy.update(item);
+            }
         }
 
         @Override
@@ -485,6 +504,8 @@ public class PVTable extends VBox
             else
                 sorted.setComparator(SORT_NEW_ITEM_LAST.thenComparing(column_comparator));
         };
+        
+      
 
         // The InvalidationListener is called when sort order is set up, down or null.
         // Iffy: A ChangeListener was only called when sort order is set up or null,
@@ -585,9 +606,29 @@ public class PVTable extends VBox
         model.fireModelChange();
     }
 
+    private TextField createSearchbar() {
+        TextField searchBar = new TextField();
+        searchBar.setPromptText(Messages.SearchPV);
+        searchBar.textProperty().addListener((obs, old, value) -> {
+            final Predicate<String> predicate = s -> s.toLowerCase().contains(value.toLowerCase());
+
+            if (value.isBlank()) {
+                filtered.setPredicate(null);
+            }
+            else {
+                filtered.setPredicate(
+                        row -> predicate.test(row.name.get()) || predicate.test(row.desc_value.get())
+                );
+            }
+        });
+        searchBar.setPrefWidth(500);
+        return searchBar;
+    }
+
     private ToolBar createToolbar()
     {
         return new ToolBar(
+            createSearchbar(),
             ToolbarHelper.createSpring(),
             createButton("checked.gif", Messages.CheckAll_TT, event ->
             {

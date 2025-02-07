@@ -23,17 +23,12 @@ public class ChannelFinderException extends RuntimeException {
         super(message);
     }
 
-    public ChannelFinderException(int httpStatus, String message) {
-        super(message);
-        this.setStatus(httpStatus);
+    public ChannelFinderException(Throwable t) {
+        super(t);
     }
 
-    /**
-     * Set the associated HTTP status code which caused this exception.
-     *
-     * @param status the status to set
-     */
-    public void setStatus(int httpStatus) {
+    public ChannelFinderException(int httpStatus, String message) {
+        super(message);
         this.httpStatus = httpStatus;
     }
 

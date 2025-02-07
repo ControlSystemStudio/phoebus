@@ -37,6 +37,9 @@ public class Preferences
     @Preference(name="macros") private static String macro_spec;
     /** Preference setting */
     @Preference public static boolean enable_saved_on_comments;
+    /** Preference setting */
+    @Preference public static boolean enable_svg_rendering_resolution_factor;
+
     private static Macros macros;
 
     static

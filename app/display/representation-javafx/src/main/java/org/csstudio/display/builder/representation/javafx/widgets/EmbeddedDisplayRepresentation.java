@@ -29,6 +29,7 @@ import org.phoebus.framework.jobs.JobMonitor;
 
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.Background;
@@ -89,12 +90,16 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
     private volatile double zoom_factor_y = 1.0;
 
 
-    /** Inner pane that holds child widgets
+    /** Inner pane & group that holds child widgets
+     *  We need the group, since the Pane does NOT account for child widget transforms
+     *  when computing prefWidth / prefHeight, making embedded displays larger than
+     *  they actually are, when containing a tall (interpreted as wide) rotated child widget.
      *
      *  <p>Set to null when representation is disposed,
      *  which is used as indicator to pending display updates.
      */
     private volatile Pane inner;
+    private volatile Group inner_parent;
     private volatile Background inner_background = Background.EMPTY;
 
     /** Zoom for 'inner' pane */
@@ -103,7 +108,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
     /** Optional scroll pane between 'jfx_node' Pane and 'inner'.
      *
      *  To allow scrolling, the scene graph is
-     *      jfx_node -> scroll -> inner.
+     *      jfx_node -> scroll -> inner -> inner_parent.
      *
      *  If no scrolling is desired, the scrollbars can be hidden via
      *  scroll.setHbarPolicy(ScrollBarPolicy.NEVER),
@@ -113,7 +118,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
      *
      *  The easiest way to remove the scroll bars and any of its impact on
      *  event handling is to simply remove the scrollpane from the scene graph:
-     *      jfx_node-> inner.
+     *      jfx_node-> inner -> inner_parent.
      */
     private ScrollPane scroll;
 
@@ -137,12 +142,20 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
     @Override
     public Pane createJFXNode() throws Exception
     {
+        // rotated child widgets break the prefWidth / prefHeight of a Pane as its own prefWidth / prefHeight uses
+        // the non-transformed dimensions of its children. So the child widget parent must be a Group instead
+        // See https://forums.oracle.com/ords/apexds/post/java-fx-strange-behaviour-when-trying-to-write-a-label-vert-3164
+        // This is easily reproducible, by creating an embedded display with sufficient width and height,
+        // and placing a very tall rotated label inside of it. The resulting embedded display will get a horizontal
+        // scrollbar, as the pane containing it would be wider than it is shown to be.
+        inner_parent = new Group();
+
         // inner.setScaleX() and setScaleY() zoom from the center
         // and not the top-left edge, requiring adjustments to
         // inner.setTranslateX() and ..Y() to compensate.
         // Using a separate Scale transformation does not have that problem.
         // See http://stackoverflow.com/questions/10707880/javafx-scale-and-translate-operation-results-in-anomaly
-        inner = new Pane();
+        inner = new Pane(inner_parent);
         inner.getTransforms().add(zoom = new Scale());
 
         scroll = new NonCachingScrollPane(inner);
@@ -165,7 +178,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
     @Override
     protected Parent getChildParent(final Parent parent)
     {
-        return inner;
+        return inner_parent;
     }
 
     @Override
@@ -343,7 +356,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
             zoom.setX(zoom_factor_x);
             zoom.setY(zoom_factor_y);
 
-            toolkit.representModel(inner, content_model);
+            toolkit.representModel(inner_parent, content_model);
             backgroundChanged(null, null, null);
         }
         catch (final Exception ex)
@@ -426,7 +439,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
             else
             {   // Don't use a scroll pane
                 scroll.setContent(null);
-                jfx_node.getChildren().setAll(inner);
+                jfx_node.getChildren().setAll(inner_parent);
 
                 // During runtime or if the resize property is set to Crop we clip inner
                 // but allow 'overdrawing' in edit mode so the out-of-region widgets are visible to the user
@@ -450,7 +463,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
                             rect.setManaged(false);
                             rect.resizeRelocate(0, scaled_height, inner.getWidth(), inner.getHeight() - scaled_height);
                             rect.setBackground(EDIT_OVERDRAWN_BACKGROUND);
-                            inner.getChildren().addAll(rect);
+                            inner_parent.getChildren().addAll(rect);
                         }
 
                         // Check if wider than allowed
@@ -460,7 +473,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
                             rect.setManaged(false);
                             rect.resizeRelocate(scaled_width, 0, inner.getWidth() - scaled_width, inner.getHeight());
                             rect.setBackground(EDIT_OVERDRAWN_BACKGROUND);
-                            inner.getChildren().addAll(rect);
+                            inner_parent.getChildren().addAll(rect);
                         }
                     }
                 }

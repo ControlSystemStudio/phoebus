@@ -156,7 +156,12 @@ public class DisplayRuntimeInstance implements AppInstance
         dock_pane.addTab(dock_item);
 
         representation.getModelParent().getProperties().put(MODEL_PARENT_DISPLAY_RUNTIME, this);
-        representation.getModelParent().setOnContextMenuRequested(event ->
+
+        // since the model parent is now a Group, which takes on the bounds of its children,
+        // we need to add the context menu interaction to the Root, and not the parent
+        // I guess to be completely compliant to the 'old version', we'd need to get the
+        // widget_pane, but this seems more appropriate and generic
+        representation.getModelRoot().setOnContextMenuRequested(event ->
         {
             final DisplayModel model = active_model;
             if (model != null)

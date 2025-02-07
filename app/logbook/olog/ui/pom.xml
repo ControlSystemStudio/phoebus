@@ -32,17 +32,12 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
-            <artifactId>app-logbook-olog-client-es</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.phoebus</groupId>
             <artifactId>core-security</artifactId>
             <version>4.7.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
-            <artifactId>core-ui</artifactId>
+            <artifactId>app-logbook-olog-client-es</artifactId>
             <version>4.7.4-SNAPSHOT</version>
         </dependency>
         <dependency>

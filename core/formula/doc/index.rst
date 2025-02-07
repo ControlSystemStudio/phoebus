@@ -150,6 +150,7 @@ This includes the average, min, max, and element count
 
 **arrayMin(VNumberArray array)** - Returns a VDouble with the smallest value of the given array
 
+**arraySampleWithStride(VNumberArray array, VNumber stride, VNumber offset)** - Returns a VNumberArray where each element is defined as array\[x \* stride + offset\].
 
 String
 ------
@@ -164,6 +165,12 @@ Enum
 
 **indexOf(Enum e)** - Return the index of the enum value.
 
+Time
+----
+
+**timestamp(VType value)** - returns the timestamp of the provided value formatted using the millisecond format.
+
+**timestamp(VType value, String format)** - returns the timestamp of the provided value formatted using the user defined format.
 
 Alarm
 -----
@@ -207,3 +214,11 @@ i.e. [Int8, UInt8, Int16, UInt16, Int32, UInt32, Float32, Float64].
 **imageYOffset(VImage image)** - Fetch vertical offset of image.
 
 **imageYReversed(VImage image)** - Fetch vertical reversal of image.
+
+**imageDataHorizontalProfile(VNumberArray image, VNumber imageWidth, VNumber yPosition)** - Fetch the horizontal profile data for the given Image data at a specific y position.
+
+**imageDataVerticalProfile(VNumberArray image, VNumber imageWidth, VNumber xPosition)** - Fetch the vertical profile data for the given Image data at a specific x position.
+
+**imageHorizontalProfile(VImage image, VNumber yPosition)** - Fetch the horizontal profile of the given Image at a specific y position.
+
+**imageVerticalProfile(VImage image, VNumber xPosition)** - Fetch the vertical profile of the given Image at a specific x position.
