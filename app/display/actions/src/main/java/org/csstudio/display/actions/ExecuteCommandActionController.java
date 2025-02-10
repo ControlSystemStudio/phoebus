@@ -21,10 +21,9 @@ import java.util.logging.Logger;
  */
 public class ExecuteCommandActionController extends ActionControllerBase {
 
-    private final ExecuteCommandAction executeCommandActionInfo;
-
     private final Widget widget;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField command;
 
@@ -33,14 +32,10 @@ public class ExecuteCommandActionController extends ActionControllerBase {
     private static final Logger logger =
             Logger.getLogger(ExecuteCommandActionController.class.getName());
 
-    /**
-     * @param widget     Widget
-     * @param actionInfo {@link ActionInfo}
-     */
-    public ExecuteCommandActionController(Widget widget, ActionInfo actionInfo) {
+    public ExecuteCommandActionController(Widget widget, ExecuteCommandAction executeCommandActionInfo){
         this.widget = widget;
-        this.executeCommandActionInfo = (ExecuteCommandAction) actionInfo;
-        this.descriptionProperty.set(actionInfo.getDescription());
+        descriptionProperty.set(executeCommandActionInfo.getDescription());
+        commandProperty.set(executeCommandActionInfo.getCommand());
     }
 
     /**
@@ -49,13 +44,13 @@ public class ExecuteCommandActionController extends ActionControllerBase {
     @FXML
     public void initialize() {
         super.initialize();
-        commandProperty.set(executeCommandActionInfo.getCommand());
         command.textProperty().bindBidirectional(commandProperty);
     }
 
     /**
      * Prompt for command to execute
      */
+    @SuppressWarnings("unused")
     @FXML
     public void selectCommand() {
         try {
@@ -68,11 +63,7 @@ public class ExecuteCommandActionController extends ActionControllerBase {
         }
     }
 
-    public String getCommand(){
-        return commandProperty.get();
-    }
-
-    public void setCommand(String command){
-        commandProperty.set(command);
+    public ActionInfo getActionInfo(){
+        return new ExecuteCommandAction(descriptionProperty.get(), commandProperty.get());
     }
 }

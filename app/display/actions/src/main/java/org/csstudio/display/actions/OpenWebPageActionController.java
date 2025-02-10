@@ -16,19 +16,18 @@ import org.csstudio.display.builder.model.spi.ActionInfo;
  */
 public class OpenWebPageActionController extends ActionControllerBase {
 
-    private final OpenWebPageAction openWebpageActionInfo;
-
+    @SuppressWarnings("unused")
     @FXML
     private TextField url;
 
     private final StringProperty urlProperty = new SimpleStringProperty();
 
     /**
-     * @param actionInfo {@link ActionInfo}
+     * @param openWebPageAction {@link ActionInfo}
      */
-    public OpenWebPageActionController(ActionInfo actionInfo) {
-        this.openWebpageActionInfo = (OpenWebPageAction) actionInfo;
-        descriptionProperty.set(openWebpageActionInfo.getDescription());
+    public OpenWebPageActionController(OpenWebPageAction openWebPageAction) {
+        descriptionProperty.set(openWebPageAction.getDescription());
+        urlProperty.setValue(openWebPageAction.getURL());
     }
 
     /**
@@ -37,16 +36,10 @@ public class OpenWebPageActionController extends ActionControllerBase {
     @FXML
     public void initialize() {
         super.initialize();
-
-        urlProperty.setValue(openWebpageActionInfo.getURL());
         url.textProperty().bindBidirectional(urlProperty);
     }
 
-    public String getUrl(){
-        return urlProperty.get();
-    }
-
-    public void setUrl(String url){
-        urlProperty.set(url);
+    public ActionInfo getActionInfo(){
+        return new OpenWebPageAction(descriptionProperty.get(), urlProperty.get());
     }
 }

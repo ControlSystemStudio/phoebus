@@ -18,7 +18,10 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
+import javafx.scene.image.Image;
+import org.csstudio.display.builder.model.ActionEditorFactory;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.spi.ActionEditor;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 
 /**
@@ -28,9 +31,8 @@ import org.csstudio.display.builder.model.spi.ActionInfo;
 public class ActionsDialogActionItem {
 
     private final String description;
-    private final ActionInfo actionInfo;
-    private final Widget widget;
-
+    private final ActionEditor actionEditor;
+    private final Image image;
     /**
      * Constructor.
      * <p>
@@ -42,10 +44,9 @@ public class ActionsDialogActionItem {
      */
     public ActionsDialogActionItem(Widget widget, ActionInfo actionInfo) {
         this.description = actionInfo.getDescription();
-        this.actionInfo = actionInfo;
-        this.widget = widget;
+        this.image = actionInfo.getImage();
+        this.actionEditor = ActionEditorFactory.getActionEditor(widget, actionInfo);
     }
-
     /**
      * @return Description
      */
@@ -53,7 +54,26 @@ public class ActionsDialogActionItem {
         return description;
     }
 
+    /**
+     * @return A potentially edited {@link ActionInfo} object retrieved from the associated {@link ActionEditor}.
+     */
     public ActionInfo getActionInfo() {
-        return actionInfo;
+        return actionEditor.getActionInfo();
+    }
+
+    /**
+     *
+     * @return The {@link Image} for this action, copied from {@link ActionInfo}.
+     */
+    public Image getImage(){
+        return image;
+    }
+
+    /**
+     *
+     * @return The associated {@link ActionEditor}.
+     */
+    public ActionEditor getActionEditor(){
+        return actionEditor;
     }
 }

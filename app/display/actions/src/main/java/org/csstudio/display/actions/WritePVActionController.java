@@ -17,22 +17,21 @@ import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
  */
 public class WritePVActionController extends ActionControllerBase {
 
-    private final WritePVAction writePVActionInfo;
-
+    @SuppressWarnings("unused")
     @FXML
     private TextField pvName;
+
+    @SuppressWarnings("unused")
     @FXML
     private TextField pvValue;
 
     private final StringProperty pvNameProperty = new SimpleStringProperty();
     private final StringProperty pvValueProperty = new SimpleStringProperty();
 
-    /**
-     * @param actionInfo {@link ActionInfo}
-     */
-    public WritePVActionController(ActionInfo actionInfo) {
-        this.writePVActionInfo = (WritePVAction) actionInfo;
-        descriptionProperty.set(actionInfo.getDescription());
+    public WritePVActionController(WritePVAction writePVAction){
+        descriptionProperty.set(writePVAction.getDescription());
+        pvNameProperty.setValue(writePVAction.getPV());
+        pvValueProperty.setValue(writePVAction.getValue());
     }
 
     /**
@@ -41,17 +40,9 @@ public class WritePVActionController extends ActionControllerBase {
     @FXML
     public void initialize() {
         super.initialize();
-
-        pvNameProperty.setValue(writePVActionInfo.getPV());
-        pvValueProperty.setValue(writePVActionInfo.getValue());
         pvName.textProperty().bindBidirectional(pvNameProperty);
         pvValue.textProperty().bindBidirectional(pvValueProperty);
-
         PVAutocompleteMenu.INSTANCE.attachField(pvName);
-    }
-
-    public String getPvName(){
-        return pvNameProperty.get();
     }
 
     public String getValue(){
@@ -62,7 +53,7 @@ public class WritePVActionController extends ActionControllerBase {
         pvValueProperty.set(value);
     }
 
-    public void setPvName(String pvName){
-        pvNameProperty.set(pvName);
+    public ActionInfo getActionInfo(){
+        return new WritePVAction(descriptionProperty.get(), pvNameProperty.get(), pvValueProperty.get());
     }
 }
