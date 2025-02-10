@@ -8,15 +8,15 @@ import javafx.scene.Node;
 import org.csstudio.display.builder.model.Widget;
 
 /**
- * Implementations manage editing of information required to describe an {@link ActionInfo} subclass.
- * Subclasses shall have only the default constructor as they are discovered over SPI.
- * To configure the underlying UI, clients must call {@link #configure(Widget, ActionInfo)} in order to
- * be able to make use of the {@link ActionEditor} implementation.
+ * Interface for an {@link ActionInfo} subclass editor.
+ * Implementations shall have only the default constructor as they are discovered over SPI.
+ * To configure the underlying UI, clients <i>must</i> call {@link #configure(Widget, ActionInfo)} in order to
+ * be able to make use of the {@link ActionEditor}.
  */
 public interface ActionEditor {
 
     /**
-     * @param type Non-null string describing an action
+     * @param type String uniquely identifying an action
      * @return <code>true</code> if the implementation supports the action type.
      */
     boolean matchesAction(String type);
@@ -29,7 +29,7 @@ public interface ActionEditor {
 
     /**
      *
-     * @return Parent {@link Node} of the editor UI.
+     * @return Parent {@link Node} of the editor UI. Will be rendered by the actions dialog.
      */
     Node getEditorUi();
 

@@ -16,6 +16,9 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Editor for {@link OpenWebPageAction}.
+ */
 public class OpenWebPageActionEditor implements ActionEditor {
 
     private OpenWebPageActionController openWebPageActionController;

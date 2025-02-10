@@ -16,6 +16,9 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Editor for {@link OpenFileAction}.
+ */
 public class OpenFileActionEditor implements ActionEditor {
 
     private OpenFileActionController openFileActionController;

@@ -16,6 +16,9 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Editor for {@link WritePVAction}.
+ */
 public class WritePVActionEditor implements ActionEditor {
 
     private WritePVActionController writePVActionController;

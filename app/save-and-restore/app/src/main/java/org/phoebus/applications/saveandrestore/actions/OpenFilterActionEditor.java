@@ -17,6 +17,9 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Editor for {@link OpenFilterAction}.
+ */
 public class OpenFilterActionEditor implements ActionEditor {
 
     private OpenFilterActionController openFilterActionController;

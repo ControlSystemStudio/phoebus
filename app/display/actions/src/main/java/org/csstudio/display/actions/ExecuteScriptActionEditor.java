@@ -16,6 +16,9 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Editor for {@link ExecuteScriptAction}.
+ */
 public class ExecuteScriptActionEditor implements ActionEditor {
 
     private ExecuteScriptActionController executeScriptActionController;

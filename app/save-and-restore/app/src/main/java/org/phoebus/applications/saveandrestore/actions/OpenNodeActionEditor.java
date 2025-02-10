@@ -17,6 +17,9 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Editor for {@link OpenNodeAction}.
+ */
 public class OpenNodeActionEditor implements ActionEditor {
 
     private OpenNodeActionController openNodeActionController;
