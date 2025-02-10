@@ -142,7 +142,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.11.2</version>
         <configuration>
           <!-- Only document 'public' code -->
           <show>public</show>
@@ -273,7 +273,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>3.11.2</version>
           <executions>
             <execution>
               <id>attach-javadocs</id>
@@ -283,7 +283,7 @@
               <configuration>
                 <!-- add this to disable checking -->
                 <doclint>none</doclint>
-                <source>11</source>
+                <source>17</source>
               </configuration>
             </execution>
           </executions>
