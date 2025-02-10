@@ -29,7 +29,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -52,7 +51,6 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -65,6 +63,8 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
@@ -82,6 +82,7 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
@@ -465,18 +466,25 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         addTagMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
         tagMenuItem.getItems().add(addTagMenuItem);
 
-        MenuItem restoreMenuItem = new MenuItem(Messages.restore);
-        restoreMenuItem.setOnAction(e -> doRestore(resultTableView.getSelectionModel().getSelectedItem().getUniqueId()));
+        Menu restoreMenu = new Menu(Messages.restore);
+
+        MenuItem restoreFromClientMenuItem = new MenuItem(Messages.restoreFromClient);
+        restoreFromClientMenuItem.setOnAction(e -> doRestoreFromClient(resultTableView.getSelectionModel().getSelectedItem().getUniqueId()));
+        restoreMenu.getItems().add(restoreFromClientMenuItem);
+
+        MenuItem restoreFromServiceMenuItem = new MenuItem(Messages.restoreFromService);
+        restoreFromServiceMenuItem.setOnAction(e -> doRestore(resultTableView.getSelectionModel().getSelectedItem().getUniqueId()));
+        restoreMenu.getItems().add(restoreFromServiceMenuItem);
 
         contextMenu.setOnShowing(event -> {
             selectedItemsProperty.setAll(resultTableView.getSelectionModel().getSelectedItems());
             // Empty result table -> hide menu and return
-            if(selectedItemsProperty.isEmpty()){
+            if (selectedItemsProperty.isEmpty()) {
                 Platform.runLater(() -> contextMenu.hide());
                 return;
             }
             tagMenuItem.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
-            restoreMenuItem.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
+            restoreMenu.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
             NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();
             if (selectedItemType.equals(NodeType.SNAPSHOT)) {
                 TagUtil.tag(tagMenuItem,
@@ -491,15 +499,15 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
             if (!selectedItemType.equals(NodeType.SNAPSHOT) && !selectedItemType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
                 tagMenuItem.setVisible(false);
-                restoreMenuItem.setVisible(false);
+                restoreMenu.setVisible(false);
             } else {
                 tagMenuItem.setVisible(true);
-                restoreMenuItem.setVisible(true);
+                restoreMenu.setVisible(true);
             }
         });
 
 
-        contextMenu.getItems().addAll(loginMenuItem, tagGoldenMenuItem, tagMenuItem, restoreMenuItem);
+        contextMenu.getItems().addAll(loginMenuItem, tagGoldenMenuItem, tagMenuItem, restoreMenu);
 
         resultTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         resultTableView.setContextMenu(contextMenu);
@@ -944,5 +952,46 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                 disableUi.set(false);
             }
         });
+    }
+
+    private void doRestoreFromClient(String snapshotId) {
+        disableUi.set(true);
+        JobManager.schedule("Restore Snapshot", monitor -> {
+            try {
+                Node node = saveAndRestoreService.getNode(snapshotId);
+                switch (node.getNodeType()) {
+                    case SNAPSHOT -> {
+                        SnapshotData snapshotData = saveAndRestoreService.getSnapshot(node.getUniqueId());
+                        restoreSnapshotItems(snapshotData.getSnapshotItems());
+                    }
+                    case COMPOSITE_SNAPSHOT -> {
+                        List<SnapshotItem> snapshotItems = saveAndRestoreService.getCompositeSnapshotItems(node.getUniqueId());
+                        restoreSnapshotItems(snapshotItems);
+                    }
+                    default -> LOGGER.log(Level.WARNING, "Restore from client invoked on non-snapshot node. Should not happen...");
+                }
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(Messages.restoreFailed, "", e);
+            } finally {
+                disableUi.set(false);
+            }
+        });
+    }
+
+    private void restoreSnapshotItems(List<SnapshotItem> snapshotItems) {
+        SnapshotUtil snapshotUtil = new SnapshotUtil();
+        List<RestoreResult> restoreResultList = snapshotUtil.restore(snapshotItems);
+        if (restoreResultList != null && !restoreResultList.isEmpty()) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(Messages.restoreFailedPVs).append(System.lineSeparator());
+            stringBuilder.append(restoreResultList.stream()
+                    .map(r -> r.getSnapshotItem().getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle(Messages.restoreFailed);
+                alert.setContentText(stringBuilder.toString());
+                alert.show();
+            });
+        }
     }
 }
