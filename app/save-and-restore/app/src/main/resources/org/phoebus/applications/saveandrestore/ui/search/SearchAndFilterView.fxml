@@ -158,7 +158,7 @@
                             </GridPane.margin>
                         </Label>
 
-                        <Label text="%StartTime" GridPane.rowIndex="16">
+                        <Label text="%StartTime" GridPane.rowIndex="17">
                             <GridPane.margin>
                                 <Insets/>
                             </GridPane.margin>

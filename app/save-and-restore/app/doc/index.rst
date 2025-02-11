@@ -12,7 +12,7 @@ HTTP(s). The URL of the service is specified in the save-and-restore.properties 
 pointed to on the command line.
 
 Actions that create, modify or delete data are protected by the service. User must sign in through the
-Crendentials Manager application. See also below.
+Credentials Manager application. See also below.
 
 Nodes and node types
 --------------------
@@ -20,7 +20,7 @@ Nodes and node types
 Save-and-restore data managed by the service is arranged in a tree structure and hence presented in the client UI using
 a tree view UI component. In the following objects in the tree are referred to as "nodes".
 
-The root of the tree structure is a folder that may only contain folder nodes. Folders may contain sub-folders and configurationsh.
+The root of the tree structure is a folder that may only contain folder nodes. Folders may contain sub-folders, configurations and composite snapshots.
 The child nodes of a configuration are snapshots associated with that configuration.
 
 Additionally a composite snapshot node may reference an arbitrary number of snapshot or composite snapshot nodes.
@@ -303,6 +303,13 @@ Prior to restore user has the option to:
    :width: 80%
 
 Restoring from a composite snapshot works in the same manner as the restore operation from a single-snapshot.
+
+Restore from context menu
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+User may invoke a restore operation (from client or from service) from context menu items in the tree
+view or in the search-and-filer view. In this case user will not have the possibility to unselect specific PVs.
+However, PV items configured as read-only will not be restored.
 
 Comparing Snapshots
 -------------------
