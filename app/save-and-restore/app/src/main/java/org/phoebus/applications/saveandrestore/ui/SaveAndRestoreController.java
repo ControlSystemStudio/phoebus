@@ -42,7 +42,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
@@ -65,6 +64,7 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.RestoreUtil;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.actions.OpenFilterAction;
 import org.phoebus.applications.saveandrestore.actions.OpenNodeAction;
@@ -93,6 +93,8 @@ import org.phoebus.applications.saveandrestore.ui.contextmenu.NewConfigurationMe
 import org.phoebus.applications.saveandrestore.ui.contextmenu.NewFolderMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.PasteMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RenameFolderMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromServiceMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.TagGoldenMenuItem;
 import org.phoebus.applications.saveandrestore.ui.search.SearchAndFilterTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
@@ -153,7 +155,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     @SuppressWarnings("unused")
     @FXML
-    private ProgressIndicator progressIndicator;
+    private VBox progressIndicator;
 
     @SuppressWarnings("unused")
     @FXML
@@ -166,6 +168,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @SuppressWarnings("unused")
     @FXML
     private CheckBox enableFilterCheckBox;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private VBox treeViewPane;
 
     protected SaveAndRestoreService saveAndRestoreService;
 
@@ -200,13 +206,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
 
     private final CountDownLatch treeInitializationCountDownLatch = new CountDownLatch(1);
+    private final ObservableList<Node> selectedItemsProperty = FXCollections.observableArrayList();
 
     private final ContextMenu contextMenu = new ContextMenu();
     private final Menu tagWithComment = new Menu(Messages.contextMenuTags, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-add_tag.png")));
 
     private final SimpleBooleanProperty snapshotOrCompositeSnapshotOnlySelection = new SimpleBooleanProperty();
 
-    private final ObservableList<Node> selectedItemsProperty = FXCollections.observableArrayList();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -248,9 +254,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         saveAndRestoreService.addFilterChangeListener(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(this));
-
+        treeViewPane.disableProperty().bind(disabledUi);
         progressIndicator.visibleProperty().bind(disabledUi);
-        disabledUi.addListener((observable, oldValue, newValue) -> treeView.setDisable(newValue));
 
         filtersComboBox.setCellFactory(new Callback<>() {
             @Override
@@ -308,13 +313,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             treeView.getRoot().setValue(Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).name(name).build());
         });
 
-        //JobManager.schedule("Configure context menu", monitor -> {
         MenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
         addTagMenuItem.setOnAction(action -> addTagToSnapshots());
         tagWithComment.getItems().addAll(addTagMenuItem);
-        //configureContextMenuItems();
+
         treeView.setContextMenu(contextMenu);
-        //});
 
         loadTreeData();
     }
@@ -1432,6 +1435,16 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     () -> openConfigurationForSnapshot()),
             new NewCompositeSnapshotMenuItem(this, selectedItemsProperty,
                     () -> createNewCompositeSnapshot()),
+            new RestoreFromClientMenuItem(this, selectedItemsProperty,
+                    () -> {
+                        disabledUi.set(true);
+                        RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disabledUi.set(false));
+                    }),
+            new RestoreFromServiceMenuItem(this, selectedItemsProperty,
+                    () -> {
+                        disabledUi.set(true);
+                        RestoreUtil.restore(RestoreMode.SERVICE_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disabledUi.set(false));
+                    }),
             new SeparatorMenuItem(),
             new EditCompositeMenuItem(this, selectedItemsProperty, () -> editCompositeSnapshot()),
             new RenameFolderMenuItem(this, selectedItemsProperty, () -> renameNode()),
@@ -1494,8 +1507,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
                         !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
         configureTagContextMenu(tagWithComment);
-
-
     }
 
     /**

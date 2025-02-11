@@ -5,14 +5,14 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
+<BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
     <center>
         <SplitPane fx:id="splitPane" dividerPositions="0.3">
             <StackPane maxWidth="550.0" minWidth="350.0">
-                <VBox alignment="CENTER">
-                    <ProgressIndicator fx:id="progressIndicator" />
+                <VBox fx:id="progressIndicator" alignment="CENTER" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                    <ProgressIndicator maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
                 </VBox>
-                <VBox>
+                <VBox fx:id="treeViewPane">
                     <HBox HBox.hgrow="ALWAYS">
 
                         <CheckBox fx:id="enableFilterCheckBox" text="%filter">

@@ -59,6 +59,7 @@ import javafx.scene.layout.VBox;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
+import org.phoebus.applications.saveandrestore.RestoreUtil;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -73,10 +74,13 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
+import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromServiceMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.TagGoldenMenuItem;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
@@ -466,15 +470,17 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         addTagMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
         tagMenuItem.getItems().add(addTagMenuItem);
 
-        Menu restoreMenu = new Menu(Messages.restore);
+        RestoreFromClientMenuItem restoreFromClientMenuItem = new RestoreFromClientMenuItem(saveAndRestoreController, selectedItemsProperty,
+                () -> {
+                        disableUi.set(true);
+                        RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disableUi.set(false));
+                });
 
-        MenuItem restoreFromClientMenuItem = new MenuItem(Messages.restoreFromClient);
-        restoreFromClientMenuItem.setOnAction(e -> doRestoreFromClient(resultTableView.getSelectionModel().getSelectedItem().getUniqueId()));
-        restoreMenu.getItems().add(restoreFromClientMenuItem);
-
-        MenuItem restoreFromServiceMenuItem = new MenuItem(Messages.restoreFromService);
-        restoreFromServiceMenuItem.setOnAction(e -> doRestore(resultTableView.getSelectionModel().getSelectedItem().getUniqueId()));
-        restoreMenu.getItems().add(restoreFromServiceMenuItem);
+        RestoreFromServiceMenuItem restoreFromServiceMenuItem = new RestoreFromServiceMenuItem(saveAndRestoreController, selectedItemsProperty,
+                () -> {
+                    disableUi.set(true);
+                    RestoreUtil.restore(RestoreMode.SERVICE_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disableUi.set(false));
+                });
 
         contextMenu.setOnShowing(event -> {
             selectedItemsProperty.setAll(resultTableView.getSelectionModel().getSelectedItems());
@@ -484,7 +490,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                 return;
             }
             tagMenuItem.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
-            restoreMenu.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
             NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();
             if (selectedItemType.equals(NodeType.SNAPSHOT)) {
                 TagUtil.tag(tagMenuItem,
@@ -499,15 +504,15 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
             if (!selectedItemType.equals(NodeType.SNAPSHOT) && !selectedItemType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
                 tagMenuItem.setVisible(false);
-                restoreMenu.setVisible(false);
             } else {
                 tagMenuItem.setVisible(true);
-                restoreMenu.setVisible(true);
             }
+            restoreFromClientMenuItem.configure();
+            restoreFromServiceMenuItem.configure();
         });
 
 
-        contextMenu.getItems().addAll(loginMenuItem, tagGoldenMenuItem, tagMenuItem, restoreMenu);
+        contextMenu.getItems().addAll(loginMenuItem, tagGoldenMenuItem, tagMenuItem, restoreFromClientMenuItem, restoreFromServiceMenuItem);
 
         resultTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         resultTableView.setContextMenu(contextMenu);
