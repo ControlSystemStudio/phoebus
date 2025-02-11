@@ -21,9 +21,9 @@ import java.util.logging.Logger;
  */
 public class OpenFileActionController extends ActionControllerBase {
 
-    private final OpenFileAction openFileActionInfo;
     private final Widget widget;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField filePath;
 
@@ -34,12 +34,12 @@ public class OpenFileActionController extends ActionControllerBase {
 
     /**
      * @param widget     Widget
-     * @param actionInfo {@link ActionInfo}
+     * @param openFileAction {@link ActionInfo}
      */
-    public OpenFileActionController(Widget widget, ActionInfo actionInfo) {
+    public OpenFileActionController(Widget widget, OpenFileAction openFileAction) {
         this.widget = widget;
-        this.openFileActionInfo = (OpenFileAction) actionInfo;
-        descriptionProperty.set(actionInfo.getDescription());
+        descriptionProperty.set(openFileAction.getDescription());
+        filePathProperty.set(openFileAction.getFile());
     }
 
     /**
@@ -48,13 +48,13 @@ public class OpenFileActionController extends ActionControllerBase {
     @FXML
     public void initialize() {
         super.initialize();
-        filePathProperty.set(openFileActionInfo.getFile());
         filePath.textProperty().bindBidirectional(filePathProperty);
     }
 
     /**
      * Prompt for file
      */
+    @SuppressWarnings("unused")
     @FXML
     public void selectFile() {
         try {
@@ -67,11 +67,7 @@ public class OpenFileActionController extends ActionControllerBase {
         }
     }
 
-    public String getFilePath(){
-        return filePathProperty.get();
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePathProperty.set(filePath);
+    public ActionInfo getActionInfo(){
+        return new OpenFileAction(descriptionProperty.get(), filePathProperty.get());
     }
 }

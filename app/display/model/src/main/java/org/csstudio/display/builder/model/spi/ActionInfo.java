@@ -19,7 +19,6 @@
 
 package org.csstudio.display.builder.model.spi;
 
-import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
@@ -115,25 +114,6 @@ public interface ActionInfo extends Comparable<ActionInfo> {
     default List<MenuItem> getContextMenuItems(ExecutorService executorService, Widget widget) {
         return null;
     }
-
-
-    /**
-     * @param widget The {@link Widget} associated with the action(s).
-     * @return The editor UI particular for the {@link ActionInfo} implementation
-     */
-    Node getEditor(Widget widget);
-
-    /**
-     * Reverts edits made by user in the action editor UI when CANCEL is clicked.
-     */
-    void revert();
-
-    /**
-     * Commits edits in the action editor UI to the {@link ActionInfo} object.
-     *
-     * @return The {@link ActionInfo} object with committed values.
-     */
-    ActionInfo commit();
 
     /**
      * Comparator for the sake of sorting {@link ActionInfo}s. Uses {@link ActionInfo#getDescription()}.

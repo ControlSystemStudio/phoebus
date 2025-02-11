@@ -4,33 +4,23 @@
 
 package org.csstudio.display.actions;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.image.Image;
-import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.ActionInfoBase;
-import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
-import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.w3c.dom.Element;
 
 import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ExecuteCommandAction extends ActionInfoBase {
 
     public static final String EXECUTE_COMMAND = "command";
     private static final Integer PRIORITY = 40;
     private String command;
-    private ExecuteCommandActionController executeCommandActionController;
 
     @SuppressWarnings("unused")
     /**
@@ -108,46 +98,5 @@ public class ExecuteCommandAction extends ActionInfoBase {
 
     public String getCommand() {
         return command;
-    }
-
-    @Override
-    public Node getEditor(Widget widget) {
-        if (editorUi != null) {
-            return editorUi;
-        }
-        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-
-        FXMLLoader fxmlLoader = new FXMLLoader();
-        fxmlLoader.setResources(resourceBundle);
-        fxmlLoader.setLocation(this.getClass().getResource("ExecuteCommandAction.fxml"));
-        fxmlLoader.setControllerFactory(clazz -> {
-            try {
-                return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, this);
-            } catch (Exception e) {
-                Logger.getLogger(ExecuteCommandAction.class.getName()).log(Level.SEVERE, "Failed to construct ExecuteCommandActionDetailsController", e);
-            }
-            return null;
-        });
-
-        try {
-            editorUi = fxmlLoader.load();
-            executeCommandActionController = fxmlLoader.getController();
-            return editorUi;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void revert() {
-        executeCommandActionController.setDescription(this.description);
-        executeCommandActionController.setCommand(command);
-    }
-
-    @Override
-    public ActionInfo commit() {
-        description = executeCommandActionController.getDescription();
-        command = executeCommandActionController.getCommand();
-        return this;
     }
 }

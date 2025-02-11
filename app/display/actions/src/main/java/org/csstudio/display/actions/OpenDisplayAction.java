@@ -4,8 +4,6 @@
 
 package org.csstudio.display.actions;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
@@ -16,25 +14,18 @@ import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.ActionInfoBase;
 import org.csstudio.display.builder.model.spi.ActionHandler;
-import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
 import org.phoebus.framework.macros.Macros;
-import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.w3c.dom.Element;
 
 import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.ServiceLoader;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class OpenDisplayAction extends ActionInfoBase {
 
@@ -52,10 +43,6 @@ public class OpenDisplayAction extends ActionInfoBase {
     public static final String OPEN_DISPLAY = "open_display";
 
     private static final Integer PRIORITY = 10;
-
-    private OpenDisplayActionController openDisplayActionController;
-
-    private static final Logger logger = Logger.getLogger(OpenDisplayAction.class.getName());
 
     public enum Target {
         /**
@@ -102,24 +89,24 @@ public class OpenDisplayAction extends ActionInfoBase {
         this.type = OPEN_DISPLAY;
     }
 
-    /** @param description Action description
-     *  @param file Path to the display
-     *  @param macros Macros
-     *  @param target Where to show the display
+    /**
+     * @param description Action description
+     * @param file        Path to the display
+     * @param macros      Macros
+     * @param target      Where to show the display
      */
-    public OpenDisplayAction(final String description, final String file, final Macros macros, final OpenDisplayAction.Target target)
-    {
+    public OpenDisplayAction(final String description, final String file, final Macros macros, final OpenDisplayAction.Target target) {
         this(description, file, macros, target, "");
     }
 
-    /** @param description Action description
-     *  @param file Path to the display
-     *  @param macros Macros
-     *  @param target Where to show the display
-     *  @param pane Pane in which to open (for target==TAB)
+    /**
+     * @param description Action description
+     * @param file        Path to the display
+     * @param macros      Macros
+     * @param target      Where to show the display
+     * @param pane        Pane in which to open (for target==TAB)
      */
-    public OpenDisplayAction(final String description, final String file, final Macros macros, final OpenDisplayAction.Target target, final String pane)
-    {
+    public OpenDisplayAction(final String description, final String file, final Macros macros, final OpenDisplayAction.Target target, final String pane) {
         this.description = description;
         this.file = Objects.requireNonNull(file);
         this.macros = macros;
@@ -272,51 +259,5 @@ public class OpenDisplayAction extends ActionInfoBase {
     @Override
     public Integer getPriority() {
         return PRIORITY;
-    }
-
-    @Override
-    public Node getEditor(Widget widget) {
-        if (editorUi != null) {
-            return editorUi;
-        }
-        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-        FXMLLoader fxmlLoader = new FXMLLoader();
-        fxmlLoader.setResources(resourceBundle);
-        fxmlLoader.setLocation(this.getClass().getResource("/org/csstudio/display/actions/OpenDisplayAction.fxml"));
-        fxmlLoader.setControllerFactory(clazz -> {
-            try {
-                return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, this);
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Failed to construct OpenDisplayActionController", e);
-            }
-            return null;
-        });
-
-        try {
-            editorUi = fxmlLoader.load();
-            openDisplayActionController = fxmlLoader.getController();
-            return editorUi;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void revert(){
-        openDisplayActionController.setDisplayPath(file);
-        openDisplayActionController.setPane(pane);
-        openDisplayActionController.setDescription(description);
-        openDisplayActionController.setTarget(target);
-        openDisplayActionController.setMacros(macros);
-    }
-
-    @Override
-    public ActionInfo commit(){
-        description = openDisplayActionController.getDescription();
-        file = openDisplayActionController.getDisplayPath();
-        pane = openDisplayActionController.getPane();
-        macros = openDisplayActionController.getMacros();
-        target = openDisplayActionController.getTarget();
-        return this;
     }
 }

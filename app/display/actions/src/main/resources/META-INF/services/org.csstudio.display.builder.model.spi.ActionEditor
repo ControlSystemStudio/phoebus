@@ -1,0 +1,6 @@
+org.csstudio.display.actions.WritePVActionEditor
+org.csstudio.display.actions.ExecuteCommandActionEditor
+org.csstudio.display.actions.ExecuteScriptActionEditor
+org.csstudio.display.actions.OpenDisplayActionEditor
+org.csstudio.display.actions.OpenFileActionEditor
+org.csstudio.display.actions.OpenWebPageActionEditor
