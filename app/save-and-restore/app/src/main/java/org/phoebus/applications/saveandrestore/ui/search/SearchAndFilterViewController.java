@@ -51,6 +51,7 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -63,9 +64,6 @@ import org.phoebus.applications.saveandrestore.RestoreUtil;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.RestoreResult;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
@@ -86,7 +84,6 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
@@ -463,7 +460,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                 new LoginMenuItem(saveAndRestoreController, selectedItemsProperty, () -> ApplicationService.createInstance("credentials_management"));
         MenuItem tagGoldenMenuItem = new TagGoldenMenuItem(saveAndRestoreController, selectedItemsProperty);
 
-        ImageView snapshotTagsIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG);
+        ImageView snapshotTagsIconImage = new ImageView(new Image(SearchAndFilterViewController.class.getResource("/icons/save-and-restore/snapshot-add_tag.png").toExternalForm()));
         Menu tagMenuItem = new Menu(Messages.contextMenuTags, snapshotTagsIconImage);
 
         MenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
@@ -472,8 +469,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
         RestoreFromClientMenuItem restoreFromClientMenuItem = new RestoreFromClientMenuItem(saveAndRestoreController, selectedItemsProperty,
                 () -> {
-                        disableUi.set(true);
-                        RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disableUi.set(false));
+                    disableUi.set(true);
+                    RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disableUi.set(false));
                 });
 
         RestoreFromServiceMenuItem restoreFromServiceMenuItem = new RestoreFromServiceMenuItem(saveAndRestoreController, selectedItemsProperty,
@@ -486,27 +483,22 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             selectedItemsProperty.setAll(resultTableView.getSelectionModel().getSelectedItems());
             // Empty result table -> hide menu and return
             if (selectedItemsProperty.isEmpty()) {
-                Platform.runLater(() -> contextMenu.hide());
+                Platform.runLater(contextMenu::hide);
                 return;
             }
-            tagMenuItem.disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
+            tagMenuItem.disableProperty().set(userIdentity.isNull().get() ||
+                    selectedItemsProperty.size() != 1 ||
+                    (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
+                            !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
             NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();
-            if (selectedItemType.equals(NodeType.SNAPSHOT)) {
+            if (selectedItemType.equals(NodeType.SNAPSHOT) || selectedItemType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
                 TagUtil.tag(tagMenuItem,
                         resultTableView.getSelectionModel().getSelectedItems(),
                         updatedNodes -> { // Callback, any extra handling added here
                         });
                 TagUtil.configureGoldenItem(resultTableView.getSelectionModel().getSelectedItems(), tagGoldenMenuItem);
-                tagGoldenMenuItem.setVisible(true);
-            } else {
-                tagGoldenMenuItem.setVisible(false);
             }
 
-            if (!selectedItemType.equals(NodeType.SNAPSHOT) && !selectedItemType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
-                tagMenuItem.setVisible(false);
-            } else {
-                tagMenuItem.setVisible(true);
-            }
             restoreFromClientMenuItem.configure();
             restoreFromServiceMenuItem.configure();
         });
@@ -575,7 +567,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             }
         });
 
-        resultTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         resultTableView.setOnDragDetected(e -> {
             List<Node> selectedNodes = resultTableView.getSelectionModel().getSelectedItems();
             if (selectedNodes.stream().anyMatch(n ->
@@ -926,77 +917,5 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     public void handleSaveAndFilterTabClosed() {
         saveAndRestoreService.removeFilterChangeListener(this);
-    }
-
-    /**
-     * Performs a restore operation, optionally showing an error message if there are errors.
-     *
-     * @param snapshotId Unique id of a {@link Node} of type {@link NodeType#SNAPSHOT} or
-     *                   {@link NodeType#COMPOSITE_SNAPSHOT}.
-     */
-    private void doRestore(String snapshotId) {
-        disableUi.set(true);
-        JobManager.schedule("Restore Snapshot", monitor -> {
-            try {
-                List<RestoreResult> restoreResultList = saveAndRestoreService.restore(snapshotId);
-                if (restoreResultList != null && !restoreResultList.isEmpty()) {
-                    StringBuilder stringBuilder = new StringBuilder();
-                    stringBuilder.append(Messages.restoreFailedPVs).append(System.lineSeparator());
-                    stringBuilder.append(restoreResultList.stream()
-                            .map(r -> r.getSnapshotItem().getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
-                    Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle(Messages.restoreFailed);
-                        alert.setContentText(stringBuilder.toString());
-                        alert.show();
-                    });
-                }
-            } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError(Messages.restoreFailed, "", e);
-            } finally {
-                disableUi.set(false);
-            }
-        });
-    }
-
-    private void doRestoreFromClient(String snapshotId) {
-        disableUi.set(true);
-        JobManager.schedule("Restore Snapshot", monitor -> {
-            try {
-                Node node = saveAndRestoreService.getNode(snapshotId);
-                switch (node.getNodeType()) {
-                    case SNAPSHOT -> {
-                        SnapshotData snapshotData = saveAndRestoreService.getSnapshot(node.getUniqueId());
-                        restoreSnapshotItems(snapshotData.getSnapshotItems());
-                    }
-                    case COMPOSITE_SNAPSHOT -> {
-                        List<SnapshotItem> snapshotItems = saveAndRestoreService.getCompositeSnapshotItems(node.getUniqueId());
-                        restoreSnapshotItems(snapshotItems);
-                    }
-                    default -> LOGGER.log(Level.WARNING, "Restore from client invoked on non-snapshot node. Should not happen...");
-                }
-            } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError(Messages.restoreFailed, "", e);
-            } finally {
-                disableUi.set(false);
-            }
-        });
-    }
-
-    private void restoreSnapshotItems(List<SnapshotItem> snapshotItems) {
-        SnapshotUtil snapshotUtil = new SnapshotUtil();
-        List<RestoreResult> restoreResultList = snapshotUtil.restore(snapshotItems);
-        if (restoreResultList != null && !restoreResultList.isEmpty()) {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(Messages.restoreFailedPVs).append(System.lineSeparator());
-            stringBuilder.append(restoreResultList.stream()
-                    .map(r -> r.getSnapshotItem().getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle(Messages.restoreFailed);
-                alert.setContentText(stringBuilder.toString());
-                alert.show();
-            });
-        }
     }
 }
