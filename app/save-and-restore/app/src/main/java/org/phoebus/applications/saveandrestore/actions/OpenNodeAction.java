@@ -45,7 +45,7 @@ public class OpenNodeAction extends ActionInfoBase {
 
     @Override
     public Image getImage() {
-        return ImageCache.getImage(OpenNodeAction.class, "/icons/bookcase.png");
+        return ImageCache.getImage(OpenNodeAction.class, "/icons/save-and-restore.png");
     }
 
     @Override
