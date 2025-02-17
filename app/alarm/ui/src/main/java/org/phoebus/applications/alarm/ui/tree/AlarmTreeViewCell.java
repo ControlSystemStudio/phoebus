@@ -7,22 +7,27 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
-import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 
+import javafx.scene.shape.Circle;
+import javafx.util.Pair;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+
+import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 /** TreeCell for AlarmTreeItem
  *  @author Kay Kasemir
@@ -40,7 +45,9 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
     // So we add our own "graphics" to hold an icon and text
     private final Label label = new Label();
     private final ImageView image = new ImageView();
-    private final HBox content = new HBox(image, label);
+    private final Circle disabledIndicator = new Circle(0.0, Color.GRAY);
+    private final Label disabledTimerIndicator = new Label("");
+    private final HBox content = new HBox(image, disabledIndicator, label, disabledTimerIndicator);
 
     // TreeCell optimizes redraws by suppressing updates
     // when old and new values match.
@@ -61,6 +68,11 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
         return true;
     }
 
+    public AlarmTreeViewCell() {
+        content.setAlignment(Pos.CENTER_LEFT);
+        disabledTimerIndicator.setTextFill(Color.GRAY);
+    }
+
     @Override
     protected void updateItem(final AlarmTreeItem<?> item, final boolean empty)
     {
@@ -76,10 +88,12 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
                 final ClientState state = leaf.getState();
 
+                disabledIndicator.setRadius(0.0);
+
                 final StringBuilder text = new StringBuilder();
                 text.append("PV: ").append(leaf.getName());
 
-                if (leaf.isEnabled()  &&  !state.isDynamicallyDisabled())
+                if (!isLeafDisabled(leaf))
                 {   // Add alarm info
                     if (state.severity != SeverityLevel.OK)
                     {
@@ -97,7 +111,20 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 }
                 else
                 {
-                    text.append(" (disabled)");
+                    if (leaf.getEnabled().enabled_date != null) {
+                        LocalDateTime enabledDate = leaf.getEnabled().enabled_date;
+                        String stringToAppend = padWithLeadingZero(enabledDate.getHour()) + ":" + padWithLeadingZero(enabledDate.getMinute()) + ":" + padWithLeadingZero(enabledDate.getSecond());
+
+                        LocalDateTime now = LocalDateTime.now();
+                        if (!(now.getDayOfMonth() == enabledDate.getDayOfMonth() &&
+                              now.getMonthValue() == enabledDate.getMonthValue() &&
+                              now.getYear() == enabledDate.getYear())) {
+                              String paddedMonthNumber = padWithLeadingZero(enabledDate.getMonthValue());
+                              String paddedDayNumber = padWithLeadingZero(enabledDate.getDayOfMonth());
+                            stringToAppend = enabledDate.getYear() + "-" + paddedMonthNumber + "-" + paddedDayNumber + "T" + stringToAppend;
+                        }
+                        text.append(" (until: " + stringToAppend + ")");
+                    }
                     label.setTextFill(Color.GRAY);
                     label.setBackground(Background.EMPTY);
                     image.setImage(AlarmUI.disabled_icon);
@@ -107,10 +134,33 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             else
             {
                 final AlarmClientNode node = (AlarmClientNode) item;
+
+                Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatusBooleanPair = leavesDisabledStatus(node);
+                if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled) ||
+                        leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.SomeEnabledSomeDisabled)) {
+                    disabledIndicator.setRadius(4.0);
+                    if (leavesDisabledStatusBooleanPair.getValue()) {
+                        disabledTimerIndicator.setText("(Timer)");
+                    }
+                    else {
+                        disabledTimerIndicator.setText("");
+                    }
+                }
+                else {
+                    disabledIndicator.setRadius(0.0);
+                    disabledTimerIndicator.setText("");
+                }
+
+                String labelText = item.getName();
                 label.setText(item.getName());
 
                 severity = node.getState().severity;
-                label.setTextFill(AlarmUI.getColor(severity));
+                if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled)) {
+                    label.setTextFill(Color.GRAY);
+                }
+                else {
+                    label.setTextFill(AlarmUI.getColor(severity));
+                }
                 label.setBackground(AlarmUI.getBackground(severity));
                 image.setImage(AlarmUI.getIcon(severity));
             }
@@ -118,5 +168,70 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             if (getGraphic() != content)
                 setGraphic(content);
         }
+    }
+
+    private String padWithLeadingZero(int n) {
+        if (n < 0) {
+            throw new RuntimeException("Argument must greater or equal to zero.");
+        }
+        else if (n <= 9) {
+            return "0" + n;
+        }
+        else if (n <= 99) {
+            return Integer.toString(n);
+        }
+        else {
+            throw new RuntimeException("Argument must be less than 100");
+        }
+    }
+
+    private boolean isLeafDisabled(AlarmClientLeaf alarmClientLeaf) {
+        return !alarmClientLeaf.isEnabled() || alarmClientLeaf.getState().isDynamicallyDisabled();
+    }
+
+    private enum LeavesDisabledStatus {
+        AllEnabled,
+        SomeEnabledSomeDisabled,
+        AllDisabled,
+    }
+
+    // leavesDisabledStatus() returns a pair. The first component describes
+    // whether all leaves are disabled, all leaves are enabled, or whether
+    // some leaves are enabled and some are disabled. The second component
+    // indicates whether one or more disabled leaves have a timer associated
+    // with them ('true'), at the end of which they will automatically become
+    // enabled again. When the second component is 'false' there is no
+    // associated timer.
+    private Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatus(AlarmClientNode alarmClientNode) {
+        List<Pair<LeavesDisabledStatus, Boolean>> leavesDisabledStatusList = new LinkedList<>();
+        for (var child : alarmClientNode.getChildren()) {
+            if (child instanceof AlarmClientLeaf alarmClientLeaf) {
+
+                if (isLeafDisabled(alarmClientLeaf)) {
+                    boolean timer = alarmClientLeaf.getEnabled().enabled_date != null;
+                    leavesDisabledStatusList.add(new Pair<>(LeavesDisabledStatus.AllDisabled, timer));
+                }
+                else {
+                    leavesDisabledStatusList.add(new Pair<>(LeavesDisabledStatus.AllEnabled, false));
+                }
+            }
+            else if (child instanceof AlarmClientNode alarmClientNode1) {
+                leavesDisabledStatusList.add(leavesDisabledStatus(alarmClientNode1));
+            }
+            else {
+                throw new RuntimeException("Missing case: " + child.getClass().getName());
+            }
+        }
+
+        Optional<Pair<LeavesDisabledStatus, Boolean>> leavesDisabledStatus = leavesDisabledStatusList.stream().reduce((status1, status2) -> {
+            if (status1.getKey().equals(status2.getKey())) {
+                return new Pair<>(status1.getKey(), status1.getValue() || status2.getValue());
+            }
+            else {
+                return new Pair<>(LeavesDisabledStatus.SomeEnabledSomeDisabled, status1.getValue() || status2.getValue());
+            }
+        });
+
+        return leavesDisabledStatus.orElse(new Pair<>(LeavesDisabledStatus.AllEnabled, false));
     }
 }
