@@ -229,31 +229,7 @@
                             <Insets left="5.0"/>
                         </GridPane.margin>
                     </Button>
-                    <TableView fx:id="resultTableView" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="6"
-                               GridPane.rowIndex="1">
-                        <columns>
-                            <TableColumn fx:id="typeColumn" editable="false" maxWidth="40.0" minWidth="40.0"
-                                         prefWidth="40.0" style="-fx-alignment: TOP-CENTER;"
-                                         text="%searchTableEntryTypeColumn"/>
-                            <TableColumn fx:id="nameColumn" editable="false" prefWidth="200.0"
-                                         style="-fx-alignment: TOP-LEFT;" text="%searchTableNameColumn"/>
-                            <TableColumn fx:id="commentColumn" editable="false" prefWidth="250.0"
-                                         text="%searchTableCommentColumn"/>
-                            <TableColumn fx:id="tagsColumn" editable="false" prefWidth="60.0"
-                                         text="%searchTableTagsColumn"/>
-                            <TableColumn fx:id="createdColumn" editable="false" prefWidth="160.0"
-                                         style="-fx-alignment: TOP-LEFT;" styleClass="timestamp-column"
-                                         text="%searchCreatedColumn"/>
-                            <TableColumn fx:id="lastUpdatedColumn" editable="false" prefWidth="160.0"
-                                         style="-fx-alignment: TOP-LEFT;" styleClass="timestamp-column"
-                                         text="%searchLastUpdatedColumn"/>
-                            <TableColumn fx:id="userColumn" editable="false" prefWidth="100.0"
-                                         style="-fx-alignment: TOP-LEFT;" text="%searchUserColumn"/>
-                        </columns>
-                        <columnResizePolicy>
-                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                        </columnResizePolicy>
-                    </TableView>
+                    <fx:include fx:id="searchResultTableView" source="SearchResultTableView.fxml" GridPane.columnSpan="6" GridPane.rowIndex="1" />
                     <HBox GridPane.columnSpan="3" GridPane.rowIndex="2">
                         <Label text="%hitsPerPage">
                             <HBox.margin>

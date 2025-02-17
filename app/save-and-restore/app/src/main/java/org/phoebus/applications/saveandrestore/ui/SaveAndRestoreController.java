@@ -1097,7 +1097,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      *     <li>Launch the search/filter view to show a filter search result.</li>
      * </ul>
      *
-     * @param uri An {@link URI} on the form file:/unique-id?action=[open-node|open-filter]&app=saveandrestore, where unique-id is the
+     * @param uri An {@link URI} on the form file:/unique-id?action=[open_sar_node|open_sar_filter]&app=saveandrestore, where unique-id is the
      *            unique id of a {@link Node} or the unique id (name) of a {@link Filter}. If action is not sepcified,
      *            it defaults to open-node.
      */

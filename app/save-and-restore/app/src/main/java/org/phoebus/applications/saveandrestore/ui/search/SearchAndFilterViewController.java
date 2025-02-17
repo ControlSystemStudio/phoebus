@@ -21,15 +21,12 @@ package org.phoebus.applications.saveandrestore.ui.search;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -39,29 +36,18 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Pagination;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
-import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
-import org.phoebus.applications.saveandrestore.RestoreUtil;
-import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -71,19 +57,10 @@ import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
-import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
-import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
-import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromServiceMenuItem;
-import org.phoebus.applications.saveandrestore.ui.contextmenu.TagGoldenMenuItem;
-import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
-import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
@@ -96,13 +73,13 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -115,34 +92,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     @SuppressWarnings("unused")
     @FXML
     private javafx.scene.Node mainUi;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private TableColumn<Node, ImageView> typeColumn;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private TableColumn<Node, String> nameColumn;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private TableColumn<Node, String> commentColumn;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private TableColumn<Node, String> tagsColumn;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private TableColumn<Node, String> lastUpdatedColumn;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private TableColumn<Node, String> createdColumn;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private TableColumn<Node, String> userColumn;
 
     @SuppressWarnings("unused")
     @FXML
@@ -210,10 +159,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     @SuppressWarnings("unused")
     @FXML
-    private TableView<Node> resultTableView;
-
-    @SuppressWarnings("unused")
-    @FXML
     private TableView<Filter> filterTableView;
 
     @SuppressWarnings("unused")
@@ -257,8 +202,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     private final SimpleStringProperty pvNamesProperty = new SimpleStringProperty();
 
-    private final ObservableList<Node> tableEntries = FXCollections.observableArrayList();
-
     private ListSelectionPopOver tagSearchPopover;
 
     private boolean searchDisabled = false;
@@ -285,7 +228,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     private final SimpleBooleanProperty disableUi = new SimpleBooleanProperty();
 
-    private final ObservableList<Node> selectedItemsProperty = FXCollections.observableArrayList();
+    @SuppressWarnings("unused")
+    @FXML
+    private SearchResultTableViewController searchResultTableViewController;
 
     public SearchAndFilterViewController(SaveAndRestoreController saveAndRestoreController) {
         this.saveAndRestoreController = saveAndRestoreController;
@@ -295,9 +240,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     @FXML
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        resultTableView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
         pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
-        resultTableView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
         nodeNameTextField.textProperty().bindBidirectional(nodeNameProperty);
         nodeNameTextField.setOnKeyPressed(e -> {
@@ -434,107 +377,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                                 saveAndRestoreController.getUserIdentity().isNull().get(),
                 filterNameProperty, saveAndRestoreController.getUserIdentity()));
 
-        resultTableView.setRowFactory(tableView -> new TableRow<>() {
-            @Override
-            protected void updateItem(Node node, boolean empty) {
-                super.updateItem(node, empty);
-                if (node == null || empty) {
-                    setTooltip(null);
-                    setOnMouseClicked(null);
-                } else {
-                    setTooltip(new Tooltip(Messages.searchEntryToolTip));
-
-                    setOnMouseClicked(action -> {
-                        if (action.getClickCount() == 2) {
-                            Stack<Node> copiedStack = new Stack<>();
-                            DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
-                            locateNode(copiedStack);
-                        }
-                    });
-                }
-            }
-        });
-
-        ContextMenu contextMenu = new ContextMenu();
-        MenuItem loginMenuItem =
-                new LoginMenuItem(saveAndRestoreController, selectedItemsProperty, () -> ApplicationService.createInstance("credentials_management"));
-        MenuItem tagGoldenMenuItem = new TagGoldenMenuItem(saveAndRestoreController, selectedItemsProperty);
-
-        ImageView snapshotTagsIconImage = new ImageView(new Image(SearchAndFilterViewController.class.getResource("/icons/save-and-restore/snapshot-add_tag.png").toExternalForm()));
-        Menu tagMenuItem = new Menu(Messages.contextMenuTags, snapshotTagsIconImage);
-
-        MenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
-        addTagMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
-        tagMenuItem.getItems().add(addTagMenuItem);
-
-        RestoreFromClientMenuItem restoreFromClientMenuItem = new RestoreFromClientMenuItem(saveAndRestoreController, selectedItemsProperty,
-                () -> {
-                    disableUi.set(true);
-                    RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disableUi.set(false));
-                });
-
-        RestoreFromServiceMenuItem restoreFromServiceMenuItem = new RestoreFromServiceMenuItem(saveAndRestoreController, selectedItemsProperty,
-                () -> {
-                    disableUi.set(true);
-                    RestoreUtil.restore(RestoreMode.SERVICE_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disableUi.set(false));
-                });
-
-        contextMenu.setOnShowing(event -> {
-            selectedItemsProperty.setAll(resultTableView.getSelectionModel().getSelectedItems());
-            // Empty result table -> hide menu and return
-            if (selectedItemsProperty.isEmpty()) {
-                Platform.runLater(contextMenu::hide);
-                return;
-            }
-            tagMenuItem.disableProperty().set(userIdentity.isNull().get() ||
-                    selectedItemsProperty.size() != 1 ||
-                    (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
-                            !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
-            NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();
-            if (selectedItemType.equals(NodeType.SNAPSHOT) || selectedItemType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
-                TagUtil.tag(tagMenuItem,
-                        resultTableView.getSelectionModel().getSelectedItems(),
-                        updatedNodes -> { // Callback, any extra handling added here
-                        });
-                TagUtil.configureGoldenItem(resultTableView.getSelectionModel().getSelectedItems(), tagGoldenMenuItem);
-            }
-
-            restoreFromClientMenuItem.configure();
-            restoreFromServiceMenuItem.configure();
-        });
-
-
-        contextMenu.getItems().addAll(loginMenuItem, tagGoldenMenuItem, tagMenuItem, restoreFromClientMenuItem, restoreFromServiceMenuItem);
-
-        resultTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        resultTableView.setContextMenu(contextMenu);
-
-        // Bind search result table to tableEntries observable
-        Property<ObservableList<Node>> authorListProperty = new SimpleObjectProperty<>(tableEntries);
-        resultTableView.itemsProperty().bind(authorListProperty);
-
         pageCountProperty.bind(Bindings.createIntegerBinding(() -> 1 + (hitCountProperty.get() / pageSizeProperty.get()),
                 hitCountProperty, pageCountProperty));
-
-        typeColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(getImageView(cell.getValue())));
-        nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
-        nameColumn.getStyleClass().add("leftAlignedTableColumnHeader");
-
-        commentColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getDescription()));
-        commentColumn.getStyleClass().add("leftAlignedTableColumnHeader");
-        createdColumn.setCellValueFactory(cell ->
-                new ReadOnlyObjectWrapper<>(TimestampFormats.SECONDS_FORMAT.format(cell.getValue().getCreated().toInstant())));
-        createdColumn.getStyleClass().add("leftAlignedTableColumnHeader");
-        lastUpdatedColumn.setCellValueFactory(cell ->
-                new ReadOnlyObjectWrapper<>(TimestampFormats.SECONDS_FORMAT.format(cell.getValue().getLastModified().toInstant())));
-        lastUpdatedColumn.getStyleClass().add("leftAlignedTableColumnHeader");
-        userColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUserName()));
-        userColumn.getStyleClass().add("leftAlignedTableColumnHeader");
-
-        tagsColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getTags() == null ?
-                "" :
-                cell.getValue().getTags().stream().map(Tag::getName).filter(name -> !name.equals(Tag.GOLDEN)).collect(Collectors.joining(System.lineSeparator()))));
-        tagsColumn.getStyleClass().add("leftAlignedTableColumnHeader");
 
         pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
         Pattern DIGIT_PATTERN = Pattern.compile("\\d*");
@@ -567,20 +411,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             }
         });
 
-        resultTableView.setOnDragDetected(e -> {
-            List<Node> selectedNodes = resultTableView.getSelectionModel().getSelectedItems();
-            if (selectedNodes.stream().anyMatch(n ->
-                    !n.getNodeType().equals(NodeType.SNAPSHOT) &&
-                            !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT))) {
-                return;
-            }
-            final ClipboardContent content = new ClipboardContent();
-            final List<Node> nodes = new ArrayList<>(resultTableView.getSelectionModel().getSelectedItems());
-            content.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, nodes);
-            resultTableView.startDragAndDrop(TransferMode.LINK).setContent(content);
-            e.consume();
-        });
-
         loadFilters();
 
         saveAndRestoreService.addFilterChangeListener(this);
@@ -594,10 +424,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         filterNameProperty.set(filter.getName());
         filterTableView.getSelectionModel().select(filter);
         updatedQueryEditor();
-    }
-
-    public void locateNode(Stack<Node> stack) {
-        saveAndRestoreController.locateNode(stack);
     }
 
     @SuppressWarnings("unused")
@@ -650,7 +476,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
      */
     private void clearSearch() {
         hitCountProperty.set(0);
-        tableEntries.clear();
+        searchResultTableViewController.setTableEntries(Collections.emptyList());
         updatedQueryEditor();
     }
 
@@ -674,20 +500,20 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                 SearchResult searchResult = saveAndRestoreService.search(map);
                 if (searchResult.getHitCount() > 0) {
                     Platform.runLater(() -> {
-                        tableEntries.setAll(searchResult.getNodes());
+                        //tableEntries.setAll(searchResult.getNodes());
+                        searchResultTableViewController.setTableEntries(searchResult.getNodes());
                         hitCountProperty.set(searchResult.getHitCount());
                     });
                 } else {
-                    Platform.runLater(tableEntries::clear);
+                    Platform.runLater(() -> searchResultTableViewController.setTableEntries(Collections.emptyList()));
                 }
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(
-                        resultTableView,
                         Messages.errorGeneric,
                         Messages.searchErrorBody,
                         e
                 );
-                tableEntries.clear();
+                searchResultTableViewController.setTableEntries(Collections.emptyList());
             }
         });
     }
@@ -828,24 +654,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         }
     }
 
-    private ImageView getImageView(Node node) {
-        switch (node.getNodeType()) {
-            case SNAPSHOT:
-                if (node.hasTag(Tag.GOLDEN)) {
-                    return new ImageView(ImageRepository.GOLDEN_SNAPSHOT);
-                } else {
-                    return new ImageView(ImageRepository.SNAPSHOT);
-                }
-            case COMPOSITE_SNAPSHOT:
-                return new ImageView(ImageRepository.COMPOSITE_SNAPSHOT);
-            case FOLDER:
-                return new ImageView(ImageRepository.FOLDER);
-            case CONFIGURATION:
-                return new ImageView(ImageRepository.CONFIGURATION);
-        }
-        return null;
-    }
-
     /**
      * Updates the query editor UI components based on the current query string
      */
@@ -896,13 +704,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         searchDisabled = false;
     }
 
+
     public void nodeChanged(Node updatedNode) {
-        for (Node node : resultTableView.getItems()) {
-            if (node.getUniqueId().equals(updatedNode.getUniqueId())) {
-                node.setTags(updatedNode.getTags());
-                resultTableView.refresh();
-            }
-        }
+        searchResultTableViewController.nodeChanged(updatedNode);
     }
 
     @Override

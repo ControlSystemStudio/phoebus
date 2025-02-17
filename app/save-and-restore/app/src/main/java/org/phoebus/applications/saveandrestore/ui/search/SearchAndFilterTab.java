@@ -67,6 +67,10 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
                     return clazz.getConstructor(SaveAndRestoreController.class)
                             .newInstance(saveAndRestoreController);
                 }
+                else if(clazz.isAssignableFrom(SearchResultTableViewController.class)){
+                    return clazz.getConstructor(SaveAndRestoreController.class)
+                            .newInstance(saveAndRestoreController);
+                }
             } catch (Exception e) {
                 Logger.getLogger(SearchAndFilterTab.class.getName()).log(Level.SEVERE, "Failed to instantiate SearchAndFilterViewController", e);
             }
