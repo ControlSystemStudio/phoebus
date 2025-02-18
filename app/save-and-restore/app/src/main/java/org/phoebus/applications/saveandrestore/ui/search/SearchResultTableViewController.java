@@ -37,6 +37,7 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
@@ -63,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -348,5 +350,17 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 tableEntries.setAll(Collections.emptyList());
             }
         });
+    }
+
+    public void loadFilter(String filterId){
+        try {
+            List<Filter> filters = saveAndRestoreService.getAllFilters();
+            Optional<Filter> filter = filters.stream().filter(f -> f.getName().equals(filterId)).findFirst();
+            if(filter.isPresent()){
+                search(filter.get().getQueryString());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

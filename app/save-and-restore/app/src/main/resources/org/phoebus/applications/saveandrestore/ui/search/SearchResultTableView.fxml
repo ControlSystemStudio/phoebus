@@ -1,15 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright (C) 2025 European Spallation Source ERIC.
 -->
-
-<?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <StackPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchResultTableViewController">
-    <VBox fx:id="tableUi" >
+    <VBox fx:id="tableUi">
         <TableView fx:id="resultTableView" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="typeColumn" editable="false" maxWidth="40.0" minWidth="40.0" prefWidth="40.0" style="-fx-alignment: TOP-CENTER;" text="%searchTableEntryTypeColumn" />
@@ -42,11 +42,11 @@
 
             <Pagination fx:id="pagination" style="-fx-page-information-alignment: right;" />
             <padding>
-                <Insets left="2.0" right="2.0" top="2.0" />
+                <Insets bottom="5.0" left="2.0" right="2.0" top="2.0" />
             </padding>
         </HBox>
     </VBox>
-    <VBox alignment="CENTER" fx:id="progressIndicator">
+    <VBox fx:id="progressIndicator" alignment="CENTER">
         <ProgressIndicator />
     </VBox>
 </StackPane>

@@ -1125,9 +1125,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             case OpenNodeAction.OPEN_SAR_NODE:
                 openNode(uri.getPath().substring(1));
                 break;
-            case OpenFilterAction.OPEN_SAR_FILTER:
-                openSearchWindowForFilter(URLDecoder.decode(uri.getPath().substring(1), StandardCharsets.UTF_8));
-                break;
             default:
                 logger.log(Level.WARNING, "Action '" + action + "' not supported");
         }
