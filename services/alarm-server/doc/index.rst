@@ -8,6 +8,6 @@ to investigate. They can open guidance information or related displays,
 and once the alarm PV recovers, the alarm clears.
 
 For details on the original design based on JMS and an RDB, see
-http://accelconf.web.cern.ch/AccelConf/icalepcs2009/papers/tua001.pdf
+https://accelconf.web.cern.ch/icalepcs2009/papers/tua001.pdf
  
 For details on setting up Kafka, see app/alarm/Readme.md 
