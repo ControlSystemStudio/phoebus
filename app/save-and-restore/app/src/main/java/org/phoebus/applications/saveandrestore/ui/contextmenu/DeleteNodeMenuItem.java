@@ -11,8 +11,6 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.ui.javafx.ImageCache;
 
-import java.util.function.Consumer;
-
 public class DeleteNodeMenuItem extends SaveAndRestoreMenuItem {
 
     public DeleteNodeMenuItem(SaveAndRestoreBaseController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
@@ -25,6 +23,6 @@ public class DeleteNodeMenuItem extends SaveAndRestoreMenuItem {
     public void configure() {
         disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get() ||
                 selectedItemsProperty.stream().anyMatch(n -> n.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) ||
-                !((SaveAndRestoreController)saveAndRestoreController).hasSameParent());
+                !((SaveAndRestoreController) saveAndRestoreController).hasSameParent());
     }
 }
