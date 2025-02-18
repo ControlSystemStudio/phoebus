@@ -8,6 +8,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.MenuItem;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 
 import java.util.function.Consumer;
@@ -18,7 +19,7 @@ import java.util.function.Consumer;
  */
 public abstract class SaveAndRestoreMenuItem extends MenuItem {
 
-    protected SaveAndRestoreController saveAndRestoreController;
+    protected SaveAndRestoreBaseController saveAndRestoreController;
     protected ObservableList<Node> selectedItemsProperty;
     protected Consumer<Void> onAction;
 
@@ -30,7 +31,7 @@ public abstract class SaveAndRestoreMenuItem extends MenuItem {
      *                              a change is detected, the {@link #configure()} is called.
      * @param onAction Client provided {@link Runnable} defining the action of the {@link MenuItem}.
      */
-    public SaveAndRestoreMenuItem(SaveAndRestoreController saveAndRestoreController,
+    public SaveAndRestoreMenuItem(SaveAndRestoreBaseController saveAndRestoreController,
                                   ObservableList<Node> selectedItemsProperty,
                                   Runnable onAction) {
         this.saveAndRestoreController = saveAndRestoreController;

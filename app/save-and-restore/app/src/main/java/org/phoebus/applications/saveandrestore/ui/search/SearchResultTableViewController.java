@@ -5,12 +5,13 @@
 package org.phoebus.applications.saveandrestore.ui.search;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -18,24 +19,29 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.VBox;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.RestoreUtil;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.RestoreMode;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
@@ -43,21 +49,28 @@ import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromService
 import org.phoebus.applications.saveandrestore.ui.contextmenu.TagGoldenMenuItem;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.TimestampFormats;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * Controller for the search result table.
  */
-public class SearchResultTableViewController implements Initializable {
+public class SearchResultTableViewController extends SaveAndRestoreBaseController implements Initializable {
 
     @SuppressWarnings("unused")
     @FXML
@@ -91,24 +104,42 @@ public class SearchResultTableViewController implements Initializable {
     @FXML
     private TableView<Node> resultTableView;
 
+    @SuppressWarnings("unused")
+    @FXML
+    private Pagination pagination;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private TextField pageSizeTextField;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private VBox tableUi;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private VBox progressIndicator;
+
     private final ObservableList<Node> selectedItemsProperty = FXCollections.observableArrayList();
     private final SimpleBooleanProperty disableUi = new SimpleBooleanProperty();
-    protected final SimpleStringProperty userIdentity = new SimpleStringProperty();
     private final ObservableList<Node> tableEntries = FXCollections.observableArrayList();
+    private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
+    private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
+    private final SimpleIntegerProperty pageSizeProperty =
+            new SimpleIntegerProperty(Preferences.search_result_page_size);
+    private String queryString;
 
     private SaveAndRestoreService saveAndRestoreService;
-    private SaveAndRestoreController saveAndRestoreController;
-
-
-    public SearchResultTableViewController(SaveAndRestoreController saveAndRestoreController) {
-        this.saveAndRestoreController = saveAndRestoreController;
-    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
+        tableUi.disableProperty().bind(disableUi);
+        progressIndicator.visibleProperty().bind(disableUi);
+
+        pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
         resultTableView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
@@ -119,7 +150,6 @@ public class SearchResultTableViewController implements Initializable {
                     setTooltip(null);
                     setOnMouseClicked(null);
                 } else {
-                    setTooltip(new Tooltip(Messages.searchEntryToolTip));
                     setOnMouseClicked(action -> {
                         if (action.getClickCount() == 2) {
                             try {
@@ -155,8 +185,8 @@ public class SearchResultTableViewController implements Initializable {
 
         ContextMenu contextMenu = new ContextMenu();
         MenuItem loginMenuItem =
-                new LoginMenuItem(saveAndRestoreController, selectedItemsProperty, () -> ApplicationService.createInstance("credentials_management"));
-        MenuItem tagGoldenMenuItem = new TagGoldenMenuItem(saveAndRestoreController, selectedItemsProperty);
+                new LoginMenuItem(this, selectedItemsProperty, () -> ApplicationService.createInstance("credentials_management"));
+        MenuItem tagGoldenMenuItem = new TagGoldenMenuItem(this, selectedItemsProperty);
 
         ImageView snapshotTagsIconImage = new ImageView(new Image(SearchAndFilterViewController.class.getResource("/icons/save-and-restore/snapshot-add_tag.png").toExternalForm()));
         Menu tagMenuItem = new Menu(Messages.contextMenuTags, snapshotTagsIconImage);
@@ -165,13 +195,13 @@ public class SearchResultTableViewController implements Initializable {
         addTagMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
         tagMenuItem.getItems().add(addTagMenuItem);
 
-        RestoreFromClientMenuItem restoreFromClientMenuItem = new RestoreFromClientMenuItem(saveAndRestoreController, selectedItemsProperty,
+        RestoreFromClientMenuItem restoreFromClientMenuItem = new RestoreFromClientMenuItem(this, selectedItemsProperty,
                 () -> {
                     disableUi.set(true);
                     RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disableUi.set(false));
                 });
 
-        RestoreFromServiceMenuItem restoreFromServiceMenuItem = new RestoreFromServiceMenuItem(saveAndRestoreController, selectedItemsProperty,
+        RestoreFromServiceMenuItem restoreFromServiceMenuItem = new RestoreFromServiceMenuItem(this, selectedItemsProperty,
                 () -> {
                     disableUi.set(true);
                     RestoreUtil.restore(RestoreMode.SERVICE_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disableUi.set(false));
@@ -199,9 +229,6 @@ public class SearchResultTableViewController implements Initializable {
 
             restoreFromClientMenuItem.configure();
             restoreFromServiceMenuItem.configure();
-
-            resultTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-            resultTableView.setContextMenu(contextMenu);
         });
 
         contextMenu.getItems().addAll(loginMenuItem, tagGoldenMenuItem, tagMenuItem, restoreFromClientMenuItem, restoreFromServiceMenuItem);
@@ -225,6 +252,32 @@ public class SearchResultTableViewController implements Initializable {
             content.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, nodes);
             resultTableView.startDragAndDrop(TransferMode.LINK).setContent(content);
             e.consume();
+        });
+
+        pagination.currentPageIndexProperty().addListener((a, b, c) -> search());
+        // Hide the pagination widget if hit count == 0 or page count < 2
+        pagination.visibleProperty().bind(Bindings.createBooleanBinding(() -> hitCountProperty.get() > 0 && pagination.pageCountProperty().get() > 1,
+                hitCountProperty, pagination.pageCountProperty()));
+        pagination.pageCountProperty().bind(pageCountProperty);
+
+        pageCountProperty.bind(Bindings.createIntegerBinding(() -> 1 + (hitCountProperty.get() / pageSizeProperty.get()),
+                hitCountProperty, pageSizeProperty));
+
+        pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
+        Pattern DIGIT_PATTERN = Pattern.compile("\\d*");
+        // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
+        pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (DIGIT_PATTERN.matcher(newValue).matches()) {
+                if (newValue.isEmpty()) {
+                    pageSizeProperty.set(Preferences.search_result_page_size);
+                } else if (newValue.length() > 3) {
+                    pageSizeTextField.setText(oldValue);
+                } else {
+                    pageSizeProperty.set(Integer.parseInt(newValue));
+                }
+            } else {
+                pageSizeTextField.setText(oldValue);
+            }
         });
     }
 
@@ -255,7 +308,45 @@ public class SearchResultTableViewController implements Initializable {
         }
     }
 
-    public void setTableEntries(List<Node> entries) {
-        tableEntries.setAll(entries);
+    public void clearTable() {
+        tableEntries.clear();
+        hitCountProperty.set(0);
+    }
+
+    @FXML
+    public void search() {
+        search(queryString);
+    }
+
+    public void search(final String query) {
+        queryString = query;
+        Map<String, String> searchParams =
+                SearchQueryUtil.parseHumanReadableQueryString(queryString);
+
+        searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
+        searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
+
+        JobManager.schedule("Save-and-restore Search", monitor -> {
+            MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+            searchParams.forEach(map::add);
+            try {
+                SearchResult searchResult = saveAndRestoreService.search(map);
+                if (searchResult.getHitCount() > 0) {
+                    Platform.runLater(() -> {
+                        tableEntries.setAll(searchResult.getNodes());
+                        hitCountProperty.set(searchResult.getHitCount());
+                    });
+                } else {
+                    Platform.runLater(() -> tableEntries.setAll(Collections.emptyList()));
+                }
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(
+                        Messages.errorGeneric,
+                        Messages.searchErrorBody,
+                        e
+                );
+                tableEntries.setAll(Collections.emptyList());
+            }
+        });
     }
 }

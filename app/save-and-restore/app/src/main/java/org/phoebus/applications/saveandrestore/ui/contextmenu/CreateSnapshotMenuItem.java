@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -16,7 +17,7 @@ import java.util.function.Consumer;
 
 public class CreateSnapshotMenuItem extends SaveAndRestoreMenuItem {
 
-    public CreateSnapshotMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
+    public CreateSnapshotMenuItem(SaveAndRestoreBaseController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.contextMenuCreateSnapshot);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/snapshot.png"));

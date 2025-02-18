@@ -8,6 +8,7 @@ import javafx.collections.ObservableList;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -15,7 +16,7 @@ import java.util.function.Consumer;
 
 public class CopyMenuItem extends SaveAndRestoreMenuItem {
 
-    public CopyMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
+    public CopyMenuItem(SaveAndRestoreBaseController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.copy);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
@@ -25,7 +26,7 @@ public class CopyMenuItem extends SaveAndRestoreMenuItem {
     public void configure() {
         disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get() ||
                 allFoldersOrRootFolder(selectedItemsProperty) ||
-                !saveAndRestoreController.mayCopy());
+                !((SaveAndRestoreController)saveAndRestoreController).mayCopy());
     }
 
     private boolean allFoldersOrRootFolder(ObservableList<Node> selectedItemsProperty) {

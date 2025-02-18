@@ -24,7 +24,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.Event;
@@ -37,7 +36,6 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Pagination;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -47,33 +45,29 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
-import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +76,6 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SearchAndFilterViewController extends SaveAndRestoreBaseController implements Initializable, FilterChangeListener {
@@ -92,10 +85,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     @SuppressWarnings("unused")
     @FXML
     private javafx.scene.Node mainUi;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private TextField pageSizeTextField;
 
     @SuppressWarnings("unused")
     @FXML
@@ -155,10 +144,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     @SuppressWarnings("unused")
     @FXML
-    private Pagination pagination;
-
-    @SuppressWarnings("unused")
-    @FXML
     private TableView<Filter> filterTableView;
 
     @SuppressWarnings("unused")
@@ -195,11 +180,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     private final SimpleStringProperty query = new SimpleStringProperty();
 
-    private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
-    private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
-    private final SimpleIntegerProperty pageSizeProperty =
-            new SimpleIntegerProperty(Preferences.search_result_page_size);
-
     private final SimpleStringProperty pvNamesProperty = new SimpleStringProperty();
 
     private ListSelectionPopOver tagSearchPopover;
@@ -215,7 +195,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     private final SimpleBooleanProperty nodeTypeCompositeSnapshotProperty = new SimpleBooleanProperty();
 
     private final SimpleStringProperty tagsProperty = new SimpleStringProperty();
-    private final SimpleStringProperty userProperty = new SimpleStringProperty();
+    private final SimpleStringProperty userNameProperty = new SimpleStringProperty();
 
     private final SimpleStringProperty startTimeProperty = new SimpleStringProperty();
     private final SimpleStringProperty endTimeProperty = new SimpleStringProperty();
@@ -239,8 +219,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     @FXML
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
-        pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
 
         nodeNameTextField.textProperty().bindBidirectional(nodeNameProperty);
         nodeNameTextField.setOnKeyPressed(e -> {
@@ -286,7 +264,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                 updateParametersAndSearch();
             }
         });
-        userTextField.textProperty().bindBidirectional(userProperty);
+        userTextField.textProperty().bindBidirectional(userNameProperty);
         userTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 updateParametersAndSearch();
@@ -377,37 +355,11 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                                 saveAndRestoreController.getUserIdentity().isNull().get(),
                 filterNameProperty, saveAndRestoreController.getUserIdentity()));
 
-        pageCountProperty.bind(Bindings.createIntegerBinding(() -> 1 + (hitCountProperty.get() / pageSizeProperty.get()),
-                hitCountProperty, pageCountProperty));
-
-        pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
-        Pattern DIGIT_PATTERN = Pattern.compile("\\d*");
-        // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
-        pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (DIGIT_PATTERN.matcher(newValue).matches()) {
-                if (newValue.isEmpty()) {
-                    pageSizeProperty.set(Preferences.search_result_page_size);
-                } else if (newValue.length() > 3) {
-                    pageSizeTextField.setText(oldValue);
-                } else {
-                    pageSizeProperty.set(Integer.parseInt(newValue));
-                }
-            } else {
-                pageSizeTextField.setText(oldValue);
-            }
-        });
-
-        pagination.currentPageIndexProperty().addListener((a, b, c) -> search());
-        // Hide the pagination widget if hit count == 0 or page count < 2
-        pagination.visibleProperty().bind(Bindings.createBooleanBinding(() -> hitCountProperty.get() > 0 && pagination.pageCountProperty().get() > 1,
-                hitCountProperty, pagination.pageCountProperty()));
-        pagination.pageCountProperty().bind(pageCountProperty);
-
         query.addListener((observable, oldValue, newValue) -> {
             if (newValue == null || newValue.isEmpty()) {
                 clearSearch();
             } else {
-                search();
+                searchResultTableViewController.search(query.get());
             }
         });
 
@@ -475,47 +427,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
      * search parameters evaluate to an empty query string.
      */
     private void clearSearch() {
-        hitCountProperty.set(0);
-        searchResultTableViewController.setTableEntries(Collections.emptyList());
+        searchResultTableViewController.clearTable();
         updatedQueryEditor();
-    }
-
-    @FXML
-    private void search() {
-
-        if (searchDisabled) {
-            return;
-        }
-
-        Map<String, String> params =
-                SearchQueryUtil.parseHumanReadableQueryString(query.get());
-
-        params.put(Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
-        params.put(Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
-
-        JobManager.schedule("Save-and-restore Search", monitor -> {
-            MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
-            params.forEach(map::add);
-            try {
-                SearchResult searchResult = saveAndRestoreService.search(map);
-                if (searchResult.getHitCount() > 0) {
-                    Platform.runLater(() -> {
-                        //tableEntries.setAll(searchResult.getNodes());
-                        searchResultTableViewController.setTableEntries(searchResult.getNodes());
-                        hitCountProperty.set(searchResult.getHitCount());
-                    });
-                } else {
-                    Platform.runLater(() -> searchResultTableViewController.setTableEntries(Collections.emptyList()));
-                }
-            } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError(
-                        Messages.errorGeneric,
-                        Messages.searchErrorBody,
-                        e
-                );
-                searchResultTableViewController.setTableEntries(Collections.emptyList());
-            }
-        });
     }
 
     @SuppressWarnings("unused")
@@ -566,8 +479,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         if (nodeNameProperty.get() != null && !nodeNameProperty.get().isEmpty()) {
             map.put(Keys.NAME.getName(), nodeNameProperty.get());
         }
-        if (userProperty.get() != null && !userProperty.get().isEmpty()) {
-            map.put(Keys.USER.getName(), userProperty.get());
+        if (userNameProperty.get() != null && !userNameProperty.get().isEmpty()) {
+            map.put(Keys.USER.getName(), userNameProperty.get());
         }
         if (descProperty.get() != null && !descProperty.get().isEmpty()) {
             map.put(Keys.DESC.getName(), descProperty.get());
@@ -663,7 +576,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
         Map<String, String> searchParams = SearchQueryUtil.parseHumanReadableQueryString(query.get());
         nodeNameProperty.set(searchParams.get(Keys.NAME.getName()));
-        userProperty.set(searchParams.get(Keys.USER.getName()));
+        userNameProperty.set(searchParams.get(Keys.USER.getName()));
         descProperty.set(searchParams.get(Keys.DESC.getName()));
         // Add tags, but exclude "golden"
         String tagsString = searchParams.get(Keys.TAGS.getName());
@@ -721,5 +634,11 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     public void handleSaveAndFilterTabClosed() {
         saveAndRestoreService.removeFilterChangeListener(this);
+    }
+
+    @Override
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+        super.secureStoreChanged(validTokens);
+        searchResultTableViewController.secureStoreChanged(validTokens);
     }
 }

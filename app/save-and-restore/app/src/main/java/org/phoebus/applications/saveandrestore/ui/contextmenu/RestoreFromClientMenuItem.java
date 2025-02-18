@@ -8,12 +8,13 @@ import javafx.collections.ObservableList;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.ui.javafx.ImageCache;
 
 public class RestoreFromClientMenuItem extends SaveAndRestoreMenuItem {
 
-    public RestoreFromClientMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
+    public RestoreFromClientMenuItem(SaveAndRestoreBaseController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
         setText(Messages.restoreFromClient);
         setGraphic(ImageCache.getImageView(RestoreFromServiceMenuItem.class, "/icons/save-and-restore/restore.png"));

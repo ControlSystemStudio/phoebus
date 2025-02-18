@@ -8,6 +8,7 @@ import javafx.collections.ObservableList;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -16,7 +17,7 @@ import java.util.function.Consumer;
 
 public class NewFolderMenuItem extends SaveAndRestoreMenuItem {
 
-    public NewFolderMenuItem(SaveAndRestoreController saveAndRestoreController, ObservableList<Node> selectedItems, Runnable onAction) {
+    public NewFolderMenuItem(SaveAndRestoreBaseController saveAndRestoreController, ObservableList<Node> selectedItems, Runnable onAction) {
         super(saveAndRestoreController, selectedItems, onAction);
         setText(Messages.contextMenuNewFolder);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/folder.png"));

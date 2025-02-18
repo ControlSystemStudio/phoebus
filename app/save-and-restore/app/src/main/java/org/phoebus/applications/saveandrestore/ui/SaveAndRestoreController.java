@@ -73,7 +73,6 @@ import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
@@ -1383,6 +1382,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 !selectedItem.getValue().getUniqueId().equals(configAndSnapshotNode[1].getUniqueId());
     }
 
+
     @Override
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         super.secureStoreChanged(validTokens);
@@ -1480,7 +1480,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         contextMenu.getItems().addAll(menuItems);
 
         // If logbook has been configured, add the Create Log menu item
-        if(LogbookPreferences.is_supported){
+        if (LogbookPreferences.is_supported) {
             contextMenu.getItems().add(new SeparatorMenuItem());
             SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME,
                     selectedItemsProperty.size() == 1 ? List.of(selectedItemsProperty.get(0)) : Collections.emptyList());
@@ -1507,37 +1507,5 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
                         !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
         configureTagContextMenu(tagWithComment);
-    }
-
-    /**
-     * Adds a tag to the {@link Node}s contained in <code>tagData</code>
-     *
-     * @param tagData Data object consumed by service
-     */
-    public void addTag(TagData tagData) {
-        try {
-            SaveAndRestoreService.getInstance().addTag(tagData);
-        } catch (Exception e) {
-            ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                    Messages.errorAddTagFailed,
-                    e);
-            Logger.getLogger(SaveAndRestoreController.class.getName()).log(Level.SEVERE, "Failed to add tag");
-        }
-    }
-
-    /**
-     * Removes a tag from the {@link Node}s contained in <code>tagData</code>
-     *
-     * @param tagData Data object consumed by service
-     */
-    public void deleteTag(TagData tagData) {
-        try {
-            SaveAndRestoreService.getInstance().deleteTag(tagData);
-        } catch (Exception e) {
-            ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                    Messages.errorDeleteTagFailed,
-                    e);
-            logger.log(Level.SEVERE, "Failed to delete tag");
-        }
     }
 }
