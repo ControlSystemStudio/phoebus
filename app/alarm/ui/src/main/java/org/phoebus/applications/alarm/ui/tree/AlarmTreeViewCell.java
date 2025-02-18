@@ -23,6 +23,7 @@ import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.Messages;
 
 import java.time.LocalDateTime;
 import java.util.LinkedList;
@@ -123,7 +124,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                               String paddedDayNumber = padWithLeadingZero(enabledDate.getDayOfMonth());
                             stringToAppend = enabledDate.getYear() + "-" + paddedMonthNumber + "-" + paddedDayNumber + "T" + stringToAppend;
                         }
-                        text.append(" (until: " + stringToAppend + ")");
+                        text.append(" (" + Messages.until + ": " + stringToAppend + ")");
                     }
                     label.setTextFill(Color.GRAY);
                     label.setBackground(Background.EMPTY);
@@ -140,7 +141,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                         leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.SomeEnabledSomeDisabled)) {
                     disabledIndicator.setRadius(4.0);
                     if (leavesDisabledStatusBooleanPair.getValue()) {
-                        disabledTimerIndicator.setText("(Timer)");
+                        disabledTimerIndicator.setText("(" + Messages.timer + ")");
                     }
                     else {
                         disabledTimerIndicator.setText("");
