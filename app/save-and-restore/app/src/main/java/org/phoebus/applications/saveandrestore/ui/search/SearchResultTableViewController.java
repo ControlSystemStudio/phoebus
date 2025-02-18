@@ -16,6 +16,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -52,6 +53,7 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -60,6 +62,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -352,6 +355,11 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         });
     }
 
+    /**
+     * Retrieves a filter from the service and loads then performs a search for matching {@link Node}s. If
+     * the filter does not exist, or if retrieval fails, an error dialog is shown.
+     * @param filterId Unique id of an existing {@link Filter}.
+     */
     public void loadFilter(String filterId){
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
@@ -359,8 +367,15 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
             if(filter.isPresent()){
                 search(filter.get().getQueryString());
             }
+            else{
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle(Messages.errorGeneric);
+                alert.setHeaderText(MessageFormat.format(Messages.failedGetSpecificFilter, filterId));
+                DialogHelper.positionDialog(alert, resultTableView, -100, -100);
+                alert.show();
+            }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            ExceptionDetailsErrorDialog.openError(resultTableView, Messages.errorGeneric, MessageFormat.format(Messages.failedGetSpecificFilter, filterId), e);
         }
     }
 }
