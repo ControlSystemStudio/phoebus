@@ -4,9 +4,7 @@ The save-and-restore service implements the MASAR (MAchine Save And Restore) ser
 of REST endpoints. These can be used by clients to manage save sets (aka configurations) and
 snapshots, to compare snapshots and to restore settings from snapshots.
 
-The service depends on the app-save-and-restore-model module. 
-
-Data is persisted by a relational database engine. The service has been verified on Postgresql and Mysql.
+Data is persisted in Elasticsearch.
 
 # Build
 
@@ -16,6 +14,13 @@ hence not be deployed to an external web application server.
 
 To convert the build artifact to a war file for
 deployment to an application server, see https://spring.io/guides/gs/convert-jar-to-war/
+
+# Elasticsearch
+
+The service connects to Elasticsearch (version >=8.x recommended) upon startup. By default Elasticsearch uses authentication, 
+this can be disabled in the elasticsearch.yml config file by adding the line:
+
+xpack.security.enabled: false
 
 # Run
 
@@ -52,38 +57,3 @@ $ curl --fail-with-body http://localhost:8080/save-restore
 ```
 
 The response will have information about the service version, the root node id, the status of the connection with the elastic backend.
-
-# Features
-
-* The service defines a set of data objects - nodes - arranged in a tree structure. Nodes in the tree are
-folders, configurations (aka save sets) and snapshots.
-
-* There is always a top level root node of type folder. This cannot be modified in any manner.
-
-* Child nodes of folder nodes are folder or configuration nodes. Child nodes
-of configuration nodes are only snapshot nodes. Snapshot nodes will not contain
-child nodes as this would not serve any use case.
-
-* Snapshot nodes are associated with snapshot data items (stored PV values) 
-and that are not part of the tree structure.
-
-* Each node can be associated with an arbitrary number of named tags, e.g.
-a "golden" tag can be set on snapshot nodes.
-
-* Each node has a created date and a last updated date, as well as a username
-attribute. This should identify the user creating or updating a node.
-
-* Nodes in the tree can be renamed or deleted. When a folder or configuration
-node is deleted, its entire subtree is deleted unconditionally.
-
-* A folder or configuration node can be moved to another parent node. All
-child nodes of the moved node remain child nodes of the moved node.
-
-* Snapshot nodes cannot be moved as they are associated with the configuration
-defining the list of PVs in the snapshot.
-
-* The service is built upon Spring Boot and depends on Elasticsearch for data persistence.
-
-Missing features:
-
-* Security in terms of authentication and authorization.
