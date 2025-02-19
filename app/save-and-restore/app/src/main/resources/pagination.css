@@ -2,6 +2,6 @@
     -fx-page-information-alignment: right;
 }
 .pagination > .pagination-control > .control-box {
-    -fx-alignment: bottom-right;
-    -fx-padding: 0.416em 2.5em 0 0;
+    -fx-alignment: center;
+    -fx-padding: 0 2.5em 0 0;
 }

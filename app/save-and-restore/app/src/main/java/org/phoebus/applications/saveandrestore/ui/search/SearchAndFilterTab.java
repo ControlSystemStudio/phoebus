@@ -67,6 +67,10 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
                     return clazz.getConstructor(SaveAndRestoreController.class)
                             .newInstance(saveAndRestoreController);
                 }
+                else if(clazz.isAssignableFrom(SearchResultTableViewController.class)){
+                    return clazz.getConstructor()
+                            .newInstance();
+                }
             } catch (Exception e) {
                 Logger.getLogger(SearchAndFilterTab.class.getName()).log(Level.SEVERE, "Failed to instantiate SearchAndFilterViewController", e);
             }
@@ -107,13 +111,11 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
      */
     public void showFilter(String filterId) {
         JobManager.schedule("Show Filter", monitor -> {
-            List<Filter> allFilters = null;
+            List<Filter> allFilters;
             try {
                 allFilters = saveAndRestoreService.getAllFilters();
             } catch (Exception e) {
-                Platform.runLater(() -> {
-                    ExceptionDetailsErrorDialog.openError(Messages.failedGetFilters, e);
-                });
+                Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.failedGetFilters, e));
                 return;
             }
             Optional<Filter> filterOptional = allFilters.stream().filter(f -> f.getName().equalsIgnoreCase(filterId)).findFirst();
@@ -125,9 +127,8 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
                 });
             } else {
                 Filter filter = filterOptional.get();
-                Platform.runLater(() -> {
-                    searchAndFilterViewController.setFilter(filter);
-                });
+                Platform.runLater(() ->
+                    searchAndFilterViewController.setFilter(filter));
             }
         });
     }

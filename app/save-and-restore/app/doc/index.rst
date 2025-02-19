@@ -470,8 +470,8 @@ are supported:
 
 * | Open a configuration, snapshot or composite snapshot node in the Save-And-Restore application.
   | This can be used to quickly access a particular node in order to invoke a restore operation.
-* | Open a named filter in the Save-And-Restore application.
-  | This will open/show the search and filter view and automatically perform the search associated with the named filter.
+* | Open a named filter in the Save-And-Restore Filter View application.
+  | This will open/show the Filter View application and automatically perform the search associated with the named filter.
   | This feature can be used to quickly navigate from a Display Builder screen to a view containing a set of commonly used snapshots.
 
 Configuring actions

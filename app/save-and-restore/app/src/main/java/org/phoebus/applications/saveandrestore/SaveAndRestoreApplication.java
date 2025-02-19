@@ -20,12 +20,8 @@
 package org.phoebus.applications.saveandrestore;
 
 import javafx.scene.input.DataFormat;
-import javafx.stage.Stage;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.ui.docking.DockItem;
-import org.phoebus.ui.docking.DockPane;
-import org.phoebus.ui.docking.DockStage;
 
 import java.net.URI;
 
@@ -74,7 +70,7 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
         return SaveAndRestoreInstance.INSTANCE;
     }
 
-    public AppInstance getInstance(){
+    public SaveAndRestoreInstance getInstance(){
         return SaveAndRestoreInstance.INSTANCE;
     }
 }

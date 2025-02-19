@@ -8,7 +8,7 @@ import javafx.application.Platform;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.spi.ActionHandler;
 import org.csstudio.display.builder.model.spi.ActionInfo;
-import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.applications.saveandrestore.FilterViewApplication;
 import org.phoebus.framework.workbench.ApplicationService;
 
 import java.net.URI;
@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * {@link ActionHandler} implementation for opening a save-and-restore {@link org.phoebus.applications.saveandrestore.model.search.Filter}
- * in the save-and-restore app.
+ * in the {@link FilterViewApplication} app.
  */
 public class OpenFilterActionHandler implements ActionHandler {
 
@@ -27,9 +27,10 @@ public class OpenFilterActionHandler implements ActionHandler {
 
         Platform.runLater(() -> {
             try {
-                ApplicationService.createInstance(SaveAndRestoreApplication.NAME, URI.create("file:/" +
-                        URLEncoder.encode(openFilterAction.getFilterId(), StandardCharsets.UTF_8) + "?app=saveandrestore&action=" + OpenFilterAction.OPEN_SAR_FILTER));
+                ApplicationService.createInstance(FilterViewApplication.NAME, URI.create("file:/" +
+                        URLEncoder.encode(openFilterAction.getFilterId(), StandardCharsets.UTF_8)));
             } catch (Exception e) {
+
                 throw new RuntimeException(e);
             }
         });

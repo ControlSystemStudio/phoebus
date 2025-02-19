@@ -94,6 +94,7 @@ public class Messages {
     public static String exportSnapshotFailed;
     public static String failedDeleteFilter;
     public static String failedGetFilters;
+    public static String failedGetSpecificFilter;
     public static String failedSaveFilter;
     public static String failedToPasteObjects;
     public static String filterNotFound;

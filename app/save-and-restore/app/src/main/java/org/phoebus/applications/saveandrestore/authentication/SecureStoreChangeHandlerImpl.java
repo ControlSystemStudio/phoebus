@@ -19,6 +19,8 @@
 
 package org.phoebus.applications.saveandrestore.authentication;
 
+import org.phoebus.applications.saveandrestore.FilterViewApplication;
+import org.phoebus.applications.saveandrestore.FilterViewInstance;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreInstance;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -38,15 +40,24 @@ public class SecureStoreChangeHandlerImpl implements SecureStoreChangeHandler {
      */
     @Override
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
-        AppDescriptor appDescriptor = ApplicationService.findApplication(SaveAndRestoreApplication.NAME);
-        if (appDescriptor != null && appDescriptor instanceof SaveAndRestoreApplication) {
-            SaveAndRestoreApplication saveAndRestoreApplication = (SaveAndRestoreApplication) appDescriptor;
-            SaveAndRestoreInstance saveAndRestoreInstance = (SaveAndRestoreInstance) saveAndRestoreApplication.getInstance();
+        AppDescriptor saveAndRestoreAppDescriptor = ApplicationService.findApplication(SaveAndRestoreApplication.NAME);
+        if (saveAndRestoreAppDescriptor instanceof SaveAndRestoreApplication saveAndRestoreApplication) {
+            SaveAndRestoreInstance saveAndRestoreInstance = saveAndRestoreApplication.getInstance();
             // Save&restore app may not be launched (yet)
             if(saveAndRestoreInstance == null){
                 return;
             }
             saveAndRestoreInstance.secureStoreChanged(validTokens);
+        }
+
+        AppDescriptor filterViewAppDescriptor = ApplicationService.findApplication(FilterViewApplication.NAME);
+        if (filterViewAppDescriptor instanceof FilterViewApplication filterViewApplication) {
+            FilterViewInstance filterViewInstance = filterViewApplication.getInstance();
+            // Save&restore filter view app may not be launched (yet)
+            if(filterViewInstance == null){
+                return;
+            }
+            filterViewInstance.secureStoreChanged(validTokens);
         }
     }
 }
