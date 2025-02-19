@@ -13,15 +13,15 @@ import org.phoebus.ui.javafx.ImageCache;
 
 public class RestoreFromServiceMenuItem extends SaveAndRestoreMenuItem {
 
-    public RestoreFromServiceMenuItem(SaveAndRestoreBaseController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
-        super(saveAndRestoreController, selectedItemsProperty, onAction);
+    public RestoreFromServiceMenuItem(SaveAndRestoreBaseController saveAndRestoreBaseController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
+        super(saveAndRestoreBaseController, selectedItemsProperty, onAction);
         setText(Messages.restoreFromService);
         setGraphic(ImageCache.getImageView(RestoreFromServiceMenuItem.class, "/icons/save-and-restore/restore.png"));
     }
 
     @Override
     public void configure() {
-        disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get() ||
+        disableProperty().set(saveAndRestoreBaseController.getUserIdentity().isNull().get() ||
                 selectedItemsProperty.size() != 1 ||
                 (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
                         !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));

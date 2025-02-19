@@ -35,7 +35,7 @@ public class TagGoldenMenuItem extends SaveAndRestoreMenuItem {
 
     @Override
     public void configure() {
-        disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get() ||
+        disableProperty().set(saveAndRestoreBaseController.getUserIdentity().isNull().get() ||
                 selectedItemsProperty.stream().anyMatch(n -> !n.getNodeType().equals(NodeType.SNAPSHOT)) ||
                 !snapshotsTaggedEqual());
         if (selectedItemsProperty.get(0).hasTag(Tag.GOLDEN)) {

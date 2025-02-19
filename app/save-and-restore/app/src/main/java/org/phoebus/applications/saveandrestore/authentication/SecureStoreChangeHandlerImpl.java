@@ -41,9 +41,8 @@ public class SecureStoreChangeHandlerImpl implements SecureStoreChangeHandler {
     @Override
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         AppDescriptor saveAndRestoreAppDescriptor = ApplicationService.findApplication(SaveAndRestoreApplication.NAME);
-        if (saveAndRestoreAppDescriptor != null && saveAndRestoreAppDescriptor instanceof SaveAndRestoreApplication) {
-            SaveAndRestoreApplication saveAndRestoreApplication = (SaveAndRestoreApplication) saveAndRestoreAppDescriptor;
-            SaveAndRestoreInstance saveAndRestoreInstance = (SaveAndRestoreInstance) saveAndRestoreApplication.getInstance();
+        if (saveAndRestoreAppDescriptor instanceof SaveAndRestoreApplication saveAndRestoreApplication) {
+            SaveAndRestoreInstance saveAndRestoreInstance = saveAndRestoreApplication.getInstance();
             // Save&restore app may not be launched (yet)
             if(saveAndRestoreInstance == null){
                 return;
@@ -52,9 +51,8 @@ public class SecureStoreChangeHandlerImpl implements SecureStoreChangeHandler {
         }
 
         AppDescriptor filterViewAppDescriptor = ApplicationService.findApplication(FilterViewApplication.NAME);
-        if (filterViewAppDescriptor != null && filterViewAppDescriptor instanceof FilterViewApplication) {
-            FilterViewApplication filterViewApplication = (FilterViewApplication) filterViewAppDescriptor;
-            FilterViewInstance filterViewInstance = (FilterViewInstance) filterViewApplication.getInstance();
+        if (filterViewAppDescriptor instanceof FilterViewApplication filterViewApplication) {
+            FilterViewInstance filterViewInstance = filterViewApplication.getInstance();
             // Save&restore filter view app may not be launched (yet)
             if(filterViewInstance == null){
                 return;

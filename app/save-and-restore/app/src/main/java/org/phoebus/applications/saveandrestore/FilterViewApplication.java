@@ -49,7 +49,7 @@ public class FilterViewApplication implements AppResourceDescriptor {
         return FilterViewInstance.INSTANCE;
     }
 
-    public AppInstance getInstance(){
+    public FilterViewInstance getInstance(){
         return FilterViewInstance.INSTANCE;
     }
 }

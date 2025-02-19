@@ -12,14 +12,14 @@ import org.phoebus.ui.javafx.ImageCache;
 
 public class LoginMenuItem extends SaveAndRestoreMenuItem {
 
-    public LoginMenuItem(SaveAndRestoreBaseController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
-        super(saveAndRestoreController, selectedItemsProperty, onAction);
+    public LoginMenuItem(SaveAndRestoreBaseController saveAndRestoreBaseController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
+        super(saveAndRestoreBaseController, selectedItemsProperty, onAction);
         setText(Messages.login);
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/credentials.png"));
     }
 
     @Override
     public void configure() {
-        visibleProperty().set(saveAndRestoreController.getUserIdentity().isNull().get());
+        visibleProperty().set(saveAndRestoreBaseController.getUserIdentity().isNull().get());
     }
 }

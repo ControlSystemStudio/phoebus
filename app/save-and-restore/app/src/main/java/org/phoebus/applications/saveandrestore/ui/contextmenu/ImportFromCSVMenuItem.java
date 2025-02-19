@@ -24,7 +24,7 @@ public class ImportFromCSVMenuItem extends SaveAndRestoreMenuItem {
 
     @Override
     public void configure() {
-        disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get() ||
+        disableProperty().set(saveAndRestoreBaseController.getUserIdentity().isNull().get() ||
                 selectedItemsProperty.size() != 1 ||
                 selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) ||
                 selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT) ||

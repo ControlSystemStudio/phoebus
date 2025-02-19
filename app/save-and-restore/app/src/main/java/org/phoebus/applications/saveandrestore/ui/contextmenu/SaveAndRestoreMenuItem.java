@@ -19,22 +19,22 @@ import java.util.function.Consumer;
  */
 public abstract class SaveAndRestoreMenuItem extends MenuItem {
 
-    protected SaveAndRestoreBaseController saveAndRestoreController;
+    protected SaveAndRestoreBaseController saveAndRestoreBaseController;
     protected ObservableList<Node> selectedItemsProperty;
     protected Consumer<Void> onAction;
 
     /**
      * Constructor
-     * @param saveAndRestoreController Reference to the {@link SaveAndRestoreController} as it provides functionality
+     * @param saveAndRestoreBaseController Reference to the {@link SaveAndRestoreController} as it provides functionality
      *                                 needed to determine if and how to render this {@link MenuItem}.
      * @param selectedItemsProperty An {@link ObservableList} property objects of this class will listen on. When
      *                              a change is detected, the {@link #configure()} is called.
      * @param onAction Client provided {@link Runnable} defining the action of the {@link MenuItem}.
      */
-    public SaveAndRestoreMenuItem(SaveAndRestoreBaseController saveAndRestoreController,
+    public SaveAndRestoreMenuItem(SaveAndRestoreBaseController saveAndRestoreBaseController,
                                   ObservableList<Node> selectedItemsProperty,
                                   Runnable onAction) {
-        this.saveAndRestoreController = saveAndRestoreController;
+        this.saveAndRestoreBaseController = saveAndRestoreBaseController;
         this.selectedItemsProperty = selectedItemsProperty;
         ListChangeListener<Node> l = change -> configure();
         this.selectedItemsProperty.addListener(l);

@@ -66,7 +66,6 @@ import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.RestoreUtil;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
-import org.phoebus.applications.saveandrestore.actions.OpenFilterAction;
 import org.phoebus.applications.saveandrestore.actions.OpenNodeAction;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
@@ -78,11 +77,8 @@ import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
-import org.phoebus.applications.saveandrestore.ui.contextmenu.CompareSnapshotsMenuItem;
-import org.phoebus.applications.saveandrestore.ui.contextmenu.CopyMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.CopyUniqueIdToClipboardMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.CreateSnapshotMenuItem;
-import org.phoebus.applications.saveandrestore.ui.contextmenu.DeleteNodeMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.EditCompositeMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.ExportToCSVMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.ImportFromCSVMenuItem;
@@ -90,7 +86,6 @@ import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.NewCompositeSnapshotMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.NewConfigurationMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.NewFolderMenuItem;
-import org.phoebus.applications.saveandrestore.ui.contextmenu.PasteMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RenameFolderMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromServiceMenuItem;
@@ -118,8 +113,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -209,8 +202,50 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private final ContextMenu contextMenu = new ContextMenu();
     private final Menu tagWithComment = new Menu(Messages.contextMenuTags, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-add_tag.png")));
+    private MenuItem copyMenuItem = new MenuItem(Messages.copy, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
+    private MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/compare.png"));
+    private MenuItem deleteNodeMenuItem = new MenuItem(Messages.contextMenuDelete, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
+    private MenuItem pasteMenuItem = new MenuItem(Messages.paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
 
-    private final SimpleBooleanProperty snapshotOrCompositeSnapshotOnlySelection = new SimpleBooleanProperty();
+
+    List<MenuItem> menuItems = Arrays.asList(
+            new LoginMenuItem(this, selectedItemsProperty,
+                    () -> ApplicationService.createInstance("credentials_management")),
+            new NewFolderMenuItem(this, selectedItemsProperty,
+                    () -> createNewFolder()),
+            new NewConfigurationMenuItem(this, selectedItemsProperty,
+                    () -> createNewConfiguration()),
+            new CreateSnapshotMenuItem(this, selectedItemsProperty,
+                    () -> openConfigurationForSnapshot()),
+            new NewCompositeSnapshotMenuItem(this, selectedItemsProperty,
+                    () -> createNewCompositeSnapshot()),
+            new RestoreFromClientMenuItem(this, selectedItemsProperty,
+                    () -> {
+                        disabledUi.set(true);
+                        RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disabledUi.set(false));
+                    }),
+            new RestoreFromServiceMenuItem(this, selectedItemsProperty,
+                    () -> {
+                        disabledUi.set(true);
+                        RestoreUtil.restore(RestoreMode.SERVICE_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disabledUi.set(false));
+                    }),
+            new SeparatorMenuItem(),
+            new EditCompositeMenuItem(this, selectedItemsProperty, () -> editCompositeSnapshot()),
+            new RenameFolderMenuItem(this, selectedItemsProperty, () -> renameNode()),
+            copyMenuItem,
+            pasteMenuItem,
+            deleteNodeMenuItem,
+            new SeparatorMenuItem(),
+            compareSnapshotsMenuItem,
+            new TagGoldenMenuItem(this, selectedItemsProperty),
+            tagWithComment,
+            new SeparatorMenuItem(),
+            new CopyUniqueIdToClipboardMenuItem(this, selectedItemsProperty,
+                    () -> copyUniqueNodeIdToClipboard()),
+            new SeparatorMenuItem(),
+            new ImportFromCSVMenuItem(this, selectedItemsProperty, () -> importFromCSV()),
+            new ExportToCSVMenuItem(this, selectedItemsProperty, () -> exportToCSV())
+    );
 
 
     @Override
@@ -315,6 +350,14 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         MenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
         addTagMenuItem.setOnAction(action -> addTagToSnapshots());
         tagWithComment.getItems().addAll(addTagMenuItem);
+
+        copyMenuItem.setOnAction(ae -> copySelectionToClipboard());
+        compareSnapshotsMenuItem.setOnAction(ae -> compareSnapshot());
+        deleteNodeMenuItem.setOnAction(ae -> deleteNodes());
+        pasteMenuItem.setOnAction(ae -> pasteFromClipboard());
+
+        contextMenu.getItems().addAll(menuItems);
+
 
         treeView.setContextMenu(contextMenu);
 
@@ -1269,12 +1312,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (userIdentity.isNull().get()) {
             return false;
         }
-        List<Node> selectedNodes = browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).toList();
-        if (selectedNodes.size() == 1) {
-            return true;
+        if (selectedItemsProperty.stream().anyMatch(n -> n.getNodeType().equals(NodeType.FOLDER))) {
+            return false;
         }
-        NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
-        if (selectedNodes.stream().anyMatch(n -> !n.getNodeType().equals(nodeTypeOfFirst))) {
+        NodeType nodeTypeOfFirst = selectedItemsProperty.get(0).getNodeType();
+        if (selectedItemsProperty.stream().anyMatch(n -> !n.getNodeType().equals(nodeTypeOfFirst))) {
             return false;
         }
         TreeItem<Node> parentOfFirst = browserSelectionModel.getSelectedItems().get(0).getParent();
@@ -1300,6 +1342,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (clipBoardContent == null || browserSelectionModel.getSelectedItems().size() != 1) {
             return false;
         }
+        if(selectedItemsProperty.size() != 1 ||
+                selectedItemsProperty.get(0).getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) ||
+                (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.FOLDER) &&
+                        !selectedItemsProperty.get(0).getNodeType().equals(NodeType.CONFIGURATION))){
+            return false;
+        }
         // Check is made if target node is of supported type for the clipboard content.
         List<Node> selectedNodes = (List<Node>) clipBoardContent;
         NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
@@ -1307,7 +1355,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if ((nodeTypeOfFirst.equals(NodeType.COMPOSITE_SNAPSHOT) ||
                 nodeTypeOfFirst.equals(NodeType.CONFIGURATION)) && !nodeTypeOfTarget.equals(NodeType.FOLDER)) {
             return false;
-        } else return !nodeTypeOfFirst.equals(NodeType.SNAPSHOT) || nodeTypeOfTarget.equals(NodeType.CONFIGURATION);
+        } else {
+            return !nodeTypeOfFirst.equals(NodeType.SNAPSHOT) || nodeTypeOfTarget.equals(NodeType.CONFIGURATION);
+        }
     }
 
     private void pasteFromClipboard() {
@@ -1368,6 +1418,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * @return <code>true</code> if selection can be added to snapshot view for comparison.
      */
     public boolean compareSnapshotsPossible() {
+        if (selectedItemsProperty.size() != 1 ||
+                !selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT)) {
+            return false;
+        }
         Node[] configAndSnapshotNode = getConfigAndSnapshotForActiveSnapshotTab();
         if (configAndSnapshotNode == null) {
             return false;
@@ -1421,44 +1475,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         });
     }
 
-    List<MenuItem> menuItems = Arrays.asList(
-            new LoginMenuItem(this, selectedItemsProperty,
-                    () -> ApplicationService.createInstance("credentials_management")),
-            new NewFolderMenuItem(this, selectedItemsProperty,
-                    () -> createNewFolder()),
-            new NewConfigurationMenuItem(this, selectedItemsProperty,
-                    () -> createNewConfiguration()),
-            new CreateSnapshotMenuItem(this, selectedItemsProperty,
-                    () -> openConfigurationForSnapshot()),
-            new NewCompositeSnapshotMenuItem(this, selectedItemsProperty,
-                    () -> createNewCompositeSnapshot()),
-            new RestoreFromClientMenuItem(this, selectedItemsProperty,
-                    () -> {
-                        disabledUi.set(true);
-                        RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disabledUi.set(false));
-                    }),
-            new RestoreFromServiceMenuItem(this, selectedItemsProperty,
-                    () -> {
-                        disabledUi.set(true);
-                        RestoreUtil.restore(RestoreMode.SERVICE_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disabledUi.set(false));
-                    }),
-            new SeparatorMenuItem(),
-            new EditCompositeMenuItem(this, selectedItemsProperty, () -> editCompositeSnapshot()),
-            new RenameFolderMenuItem(this, selectedItemsProperty, () -> renameNode()),
-            new CopyMenuItem(this, selectedItemsProperty, () -> copySelectionToClipboard()),
-            new PasteMenuItem(this, selectedItemsProperty, () -> pasteFromClipboard()),
-            new DeleteNodeMenuItem(this, selectedItemsProperty, () -> deleteNodes()),
-            new SeparatorMenuItem(),
-            new CompareSnapshotsMenuItem(this, selectedItemsProperty, () -> compareSnapshot()),
-            new TagGoldenMenuItem(this, selectedItemsProperty),
-            tagWithComment,
-            new SeparatorMenuItem(),
-            new CopyUniqueIdToClipboardMenuItem(this, selectedItemsProperty,
-                    () -> copyUniqueNodeIdToClipboard()),
-            new SeparatorMenuItem(),
-            new ImportFromCSVMenuItem(this, selectedItemsProperty, () -> importFromCSV()),
-            new ExportToCSVMenuItem(this, selectedItemsProperty, () -> exportToCSV())
-    );
 
     /**
      * Called when user requests context menu. Updates the {@link #selectedItemsProperty}, and since
@@ -1473,36 +1489,49 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         ObservableList<? extends TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         selectedItemsProperty.setAll(selectedItems.stream().map(TreeItem::getValue).toList());
 
-        contextMenu.getItems().clear();
-        contextMenu.getItems().addAll(menuItems);
-
-        // If logbook has been configured, add the Create Log menu item
-        if (LogbookPreferences.is_supported) {
-            contextMenu.getItems().add(new SeparatorMenuItem());
-            SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME,
-                    selectedItemsProperty.size() == 1 ? List.of(selectedItemsProperty.get(0)) : Collections.emptyList());
-            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
-
-            supported.forEach(action -> {
-                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
-                menuItem.setOnAction((ee) -> {
-                    try {
-                        action.call(null, SelectionService.getInstance().getSelection());
-                    } catch (Exception ex) {
-                        logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from save&restore", ex);
-                    }
-                });
-                contextMenu.getItems().add(menuItem);
-            });
-        }
-
-        snapshotOrCompositeSnapshotOnlySelection.set(selectedItems.stream().filter(t ->
-                !t.getValue().getNodeType().equals(NodeType.SNAPSHOT) &&
-                        !t.getValue().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty());
         tagWithComment.disableProperty().set(userIdentity.isNull().get() ||
                 selectedItemsProperty.size() != 1 ||
                 (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
                         !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
         configureTagContextMenu(tagWithComment);
+
+        addOptionalLoggingMenuItem();
+
+        copyMenuItem.disableProperty().set(!mayCopy());
+        compareSnapshotsMenuItem.disableProperty().set(!compareSnapshotsPossible());
+        deleteNodeMenuItem.disableProperty().set(getUserIdentity().isNull().get() ||
+                selectedItemsProperty.stream().anyMatch(n -> n.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) ||
+                !hasSameParent());
+        pasteMenuItem.disableProperty().set(!mayPaste());
+    }
+
+    /**
+     * Adds a crate log menu item based on current selection and logbook client availability
+     */
+    private void addOptionalLoggingMenuItem() {
+        // If logbook has been configured, add the Create Log menu item
+        if (LogbookPreferences.is_supported) {
+            SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME,
+                    selectedItemsProperty.size() == 1 ? List.of(selectedItemsProperty.get(0)) : Collections.emptyList());
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+
+            supported.forEach(action -> {
+                // Check if the menu item is already present
+                Optional<MenuItem> menuItemOptional = contextMenu.getItems().stream()
+                        .filter(mi -> mi.getText() != null && mi.getText().equals(action.getName())).findFirst();
+                if (menuItemOptional.isEmpty()) {
+                    contextMenu.getItems().add(new SeparatorMenuItem());
+                    MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                    menuItem.setOnAction((ee) -> {
+                        try {
+                            action.call(null, SelectionService.getInstance().getSelection());
+                        } catch (Exception ex) {
+                            logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from save&restore", ex);
+                        }
+                    });
+                    contextMenu.getItems().add(menuItem);
+                }
+            });
+        }
     }
 }
