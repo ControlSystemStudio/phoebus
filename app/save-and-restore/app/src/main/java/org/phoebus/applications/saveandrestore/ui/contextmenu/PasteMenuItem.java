@@ -12,8 +12,6 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.ui.javafx.ImageCache;
 
-import java.util.function.Consumer;
-
 public class PasteMenuItem extends SaveAndRestoreMenuItem {
 
     public PasteMenuItem(SaveAndRestoreBaseController saveAndRestoreController,
@@ -30,7 +28,7 @@ public class PasteMenuItem extends SaveAndRestoreMenuItem {
                 selectedItemsProperty.size() != 1 ||
                 selectedItemsProperty.get(0).getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) ||
                 (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.FOLDER) &&
-                !selectedItemsProperty.get(0).getNodeType().equals(NodeType.CONFIGURATION)) ||
-                !((SaveAndRestoreController)saveAndRestoreController).mayPaste());
+                        !selectedItemsProperty.get(0).getNodeType().equals(NodeType.CONFIGURATION)) ||
+                !((SaveAndRestoreController) saveAndRestoreController).mayPaste());
     }
 }

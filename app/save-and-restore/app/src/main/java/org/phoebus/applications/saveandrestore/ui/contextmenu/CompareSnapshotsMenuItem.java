@@ -12,8 +12,6 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.ui.javafx.ImageCache;
 
-import java.util.function.Consumer;
-
 public class CompareSnapshotsMenuItem extends SaveAndRestoreMenuItem {
 
     public CompareSnapshotsMenuItem(SaveAndRestoreBaseController saveAndRestoreController, ObservableList<Node> selectedItemsProperty, Runnable onAction) {
@@ -26,6 +24,6 @@ public class CompareSnapshotsMenuItem extends SaveAndRestoreMenuItem {
     public void configure() {
         disableProperty().set(selectedItemsProperty.size() != 1 ||
                 !selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) ||
-                !((SaveAndRestoreController)saveAndRestoreController).compareSnapshotsPossible());
+                !((SaveAndRestoreController) saveAndRestoreController).compareSnapshotsPossible());
     }
 }
