@@ -46,7 +46,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
     // So we add our own "graphics" to hold an icon and text
     private final Label label = new Label();
     private final ImageView image = new ImageView();
-    private final Circle disabledIndicator = new Circle(0.0, Color.GRAY);
+    private final Circle disabledIndicator = new Circle(4.0, Color.TRANSPARENT);
     private final Label disabledTimerIndicator = new Label("");
     private final HBox content = new HBox(image, disabledIndicator, label, disabledTimerIndicator);
 
@@ -89,7 +89,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
                 final ClientState state = leaf.getState();
 
-                disabledIndicator.setRadius(0.0);
+                disabledIndicator.setFill(Color.TRANSPARENT);
 
                 final StringBuilder text = new StringBuilder();
                 text.append("PV: ").append(leaf.getName());
@@ -139,7 +139,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatusBooleanPair = leavesDisabledStatus(node);
                 if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled) ||
                         leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.SomeEnabledSomeDisabled)) {
-                    disabledIndicator.setRadius(4.0);
+                    disabledIndicator.setFill(Color.GRAY);
                     if (leavesDisabledStatusBooleanPair.getValue()) {
                         disabledTimerIndicator.setText("(" + Messages.timer + ")");
                     }
@@ -148,7 +148,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                     }
                 }
                 else {
-                    disabledIndicator.setRadius(0.0);
+                    disabledIndicator.setFill(Color.TRANSPARENT);
                     disabledTimerIndicator.setText("");
                 }
 
