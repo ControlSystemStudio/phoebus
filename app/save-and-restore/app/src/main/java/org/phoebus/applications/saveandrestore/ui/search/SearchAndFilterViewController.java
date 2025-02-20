@@ -559,13 +559,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
                 hitCountProperty, pagination.pageCountProperty()));
         pagination.pageCountProperty().bind(pageCountProperty);
 
-        query.addListener((observable, oldValue, newValue) -> {
-            if (newValue == null || newValue.isEmpty()) {
-                clearSearch();
-            } else {
-                search();
-            }
-        });
 
         resultTableView.setOnDragDetected(e -> {
             List<Node> selectedNodes = resultTableView.getSelectionModel().getSelectedItems();
@@ -728,6 +721,12 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             return;
         }
         query.set(buildQueryString());
+        if(query.get().isEmpty()){
+            clearSearch();
+        }
+        else{
+            search();
+        }
     }
 
     /**
