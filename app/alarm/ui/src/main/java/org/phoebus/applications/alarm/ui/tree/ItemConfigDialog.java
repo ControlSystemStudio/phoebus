@@ -195,6 +195,15 @@ class ItemConfigDialog extends Dialog<Boolean> {
                 }
             });
 
+            // Configure date picker to disable selection of all dates in the past.
+            enabled_date_picker.setDayCellFactory(picker -> new DateCell() {
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    LocalDate today = LocalDate.now();
+                    setDisable(empty || date.isBefore(today));
+                }
+            });
+
             final HBox until_box = new HBox(10, enabled_date_picker, relative_date);
             until_box.setAlignment(Pos.CENTER);
             HBox.setHgrow(relative_date, Priority.ALWAYS);
@@ -290,15 +299,6 @@ class ItemConfigDialog extends Dialog<Boolean> {
                 validateAndStore(model, item, event));
 
         setResultConverter(button -> button == ButtonType.OK);
-
-        // Configure date picker to disable selection of all dates in the past.
-        enabled_date_picker.setDayCellFactory(picker -> new DateCell() {
-            public void updateItem(LocalDate date, boolean empty) {
-                super.updateItem(date, empty);
-                LocalDate today = LocalDate.now();
-                setDisable(empty || date.isBefore(today));
-            }
-        });
     }
 
     /**
