@@ -12,6 +12,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -312,28 +313,42 @@ class ItemConfigDialog extends Dialog<Boolean> {
 
         if (item instanceof AlarmClientLeaf) {
             final AlarmClientLeaf pv = new AlarmClientLeaf(null, item.getName());
+
+            boolean validEnableDate;
+            {
+                final LocalDateTime selected_enable_date = enabled_date_picker.getDateTimeValue();
+                final String relative_enable_date = relative_date.getValue();
+
+                if ((selected_enable_date != null)) {
+                    validEnableDate = pv.setEnabledDate(selected_enable_date);
+                } else if (relative_enable_date != null) {
+                    final TemporalAmount amount = TimeParser.parseTemporalAmount(relative_enable_date);
+                    final LocalDateTime update_date = LocalDateTime.now().plus(amount);
+                    validEnableDate = pv.setEnabledDate(update_date);
+                } else {
+                    pv.setEnabled(itemEnabled.get());
+                    validEnableDate = true;
+                }
+            }
+
+            if (!validEnableDate) {
+                Alert prompt = new Alert(Alert.AlertType.INFORMATION);
+                prompt.setTitle("'Disable until' is set to a point in time in the past");
+                prompt.setHeaderText("'Disable until' is set to a point in time in the past");
+                prompt.setContentText("The option 'disable until' must be set to a point in time in the future.");
+                prompt.showAndWait();
+
+                event.consume();
+                return;
+            }
+
             pv.setDescription(description.getText().trim());
-            pv.setEnabled(enabled.isSelected());
             pv.setLatching(latching.isSelected());
             pv.setAnnunciating(annunciating.isSelected());
             pv.setDelay(delay.getValue());
             pv.setCount(count.getValue());
             // TODO Check filter expression
             pv.setFilter(filter.getText().trim());
-
-
-            final LocalDateTime selected_enable_date = enabled_date_picker.getDateTimeValue();
-            final String relative_enable_date = relative_date.getValue();
-
-            if ((selected_enable_date != null)) {
-                pv.setEnabledDate(selected_enable_date);
-            } else if (relative_enable_date != null) {
-                final TemporalAmount amount = TimeParser.parseTemporalAmount(relative_enable_date);
-                final LocalDateTime update_date = LocalDateTime.now().plus(amount);
-                pv.setEnabledDate(update_date);
-            } else {
-                pv.setEnabled(itemEnabled.get());
-            }
 
             config = pv;
         } else
