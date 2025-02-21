@@ -649,12 +649,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 return;
 
             final AlarmTreeItem<?> item = tree_view.getSelectionModel().getSelectedItems().get(0).getValue();
-            if (item instanceof AlarmClientLeaf alarmClientLeaf) {
-                final ItemConfigDialog dialog = new ItemConfigDialog(model, alarmClientLeaf);
-                DialogHelper.positionDialog(dialog, tree_view, -150, -300);
-                // Show dialog, not waiting for it to close with OK or Cancel
-                dialog.show();
-            }
+            final ItemConfigDialog dialog = new ItemConfigDialog(model, item);
+            DialogHelper.positionDialog(dialog, tree_view, -150, -300);
+            // Show dialog, not waiting for it to close with OK or Cancel
+            dialog.show();
         });
     }
 
