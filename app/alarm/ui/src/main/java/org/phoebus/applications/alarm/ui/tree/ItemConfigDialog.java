@@ -22,13 +22,17 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.stage.Modality;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -41,6 +45,7 @@ import org.phoebus.util.time.TimeParser;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAmount;
 
 
@@ -120,7 +125,6 @@ class ItemConfigDialog extends Dialog<Boolean> {
                 }
             });
 
-
             latching = new CheckBox("Latch");
             latching.setTooltip(new Tooltip("Latch alarm until acknowledged?"));
             latching.setSelected(leaf.isLatching());
@@ -140,6 +144,27 @@ class ItemConfigDialog extends Dialog<Boolean> {
             enabled_date_picker.setPrefSize(280, 25);
             enabled_date_picker.setDisable(!leaf.isEnabled());
             enabled_date_picker.disableProperty().bind(itemEnabled.not());
+
+
+            enabled_date_picker.addEventHandler(KeyEvent.KEY_PRESSED, keyEvent -> {
+                if (keyEvent.getCode() == KeyCode.ENTER) {
+                    try {
+                        // Test that the input is well-formed (if the input
+                        // isn't well-formed, valueConverter.fromString()
+                        // throws a DateTimeParseException):
+                        TextFormatter<?> textFormatter = enabled_date_picker.getEditor().getTextFormatter();
+                        StringConverter valueConverter = textFormatter.getValueConverter();
+                        LocalDate dateTime = (LocalDate) valueConverter.fromString(enabled_date_picker.getEditor().getText());
+
+                        enabled_date_picker.getEditor().commitValue();
+                    }
+                    catch (DateTimeParseException dateTimeParseException) {
+                        // The input was not well-formed. Prevent further
+                        // processing by consuming the key-event:
+                        keyEvent.consume();
+                    }
+                }
+            });
 
             relative_date = new ComboBox<>();
             relative_date.setTooltip(new Tooltip("Select a predefined duration for disabling the alarm"));
