@@ -202,10 +202,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private final ContextMenu contextMenu = new ContextMenu();
     private final Menu tagWithComment = new Menu(Messages.contextMenuTags, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-add_tag.png")));
-    private MenuItem copyMenuItem = new MenuItem(Messages.copy, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
-    private MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/compare.png"));
-    private MenuItem deleteNodeMenuItem = new MenuItem(Messages.contextMenuDelete, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
-    private MenuItem pasteMenuItem = new MenuItem(Messages.paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
+    private final MenuItem copyMenuItem = new MenuItem(Messages.copy, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
+    private final MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/compare.png"));
+    private final MenuItem deleteNodeMenuItem = new MenuItem(Messages.contextMenuDelete, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
+    private final MenuItem pasteMenuItem = new MenuItem(Messages.paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
 
 
     List<MenuItem> menuItems = Arrays.asList(
@@ -554,6 +554,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         tabPane.getSelectionModel().select(tab);
     }
 
+    @SuppressWarnings("unused")
+    @FXML
     public SearchAndFilterTab openSearchWindow() {
         Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId() != null &&
                 t.getId().equals(SearchAndFilterTab.SEARCH_AND_FILTER_TAB_ID)).findFirst();
@@ -567,20 +569,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             return searchAndFilterTab;
         }
     }
-
-    /**
-     * Requests {@link SearchAndFilterTab} to open/select search and filter view to show the specified filter.
-     *
-     * @param filterId Unique, case-sensitive id of a save filter.
-     */
-    private void openSearchWindowForFilter(String filterId) {
-        Platform.runLater(() -> {
-            SearchAndFilterTab searchAndFilterTab = openSearchWindow();
-            searchAndFilterTab.showFilter(filterId);
-            tabPane.getSelectionModel().select(searchAndFilterTab);
-        });
-    }
-
     /**
      * Creates a new folder {@link Node}.
      */
@@ -1412,7 +1400,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      *     <li>The active tab must be a {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
      *     <li>The active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab} must not show an unsaved snapshot.</li>
      *     <li>The snapshot selected from the tree view must have same parent as the one shown in the active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
-     *     <li>The snapshot selected from the tree view must not be the same as as the one shown in the active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
+     *     <li>The snapshot selected from the tree view must not be the same as the one shown in the active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
      * </ul>
      *
      * @return <code>true</code> if selection can be added to snapshot view for comparison.
