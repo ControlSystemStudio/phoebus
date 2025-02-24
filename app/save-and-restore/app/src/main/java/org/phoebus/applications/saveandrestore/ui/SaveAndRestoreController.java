@@ -1506,7 +1506,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Adds a crate log menu item based on current selection and logbook client availability
+     * Adds a create log menu item based on current selection and logbook client availability
      */
     private void addOptionalLoggingMenuItem() {
         // If logbook has been configured, add the Create Log menu item
