@@ -40,6 +40,7 @@ import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.tree.datetimepicker.DateTimePicker;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeParser;
@@ -336,6 +337,7 @@ class ItemConfigDialog extends Dialog<Boolean> {
                 prompt.setTitle("'Disable until' is set to a point in time in the past");
                 prompt.setHeaderText("'Disable until' is set to a point in time in the past");
                 prompt.setContentText("The option 'disable until' must be set to a point in time in the future.");
+                DialogHelper.positionDialog(prompt, enabled_date_picker, 0, 0);
                 prompt.showAndWait();
 
                 event.consume();
