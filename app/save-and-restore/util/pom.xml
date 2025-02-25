@@ -25,22 +25,7 @@
 
         <dependency>
             <groupId>org.phoebus</groupId>
-            <artifactId>core-pva</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.phoebus</groupId>
             <artifactId>core-pv</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.phoebus</groupId>
-            <artifactId>core-pv-pva</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.phoebus</groupId>
-            <artifactId>core-pv-ca</artifactId>
             <version>4.7.4-SNAPSHOT</version>
         </dependency>
         <dependency>
