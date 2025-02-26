@@ -3,6 +3,7 @@ name: Save-And-Restore Docker Image CI
 on:
   push:
     branches: [ "master" ]
+    paths: services/save-and-restore/**
     tags:
       - '**'
 
