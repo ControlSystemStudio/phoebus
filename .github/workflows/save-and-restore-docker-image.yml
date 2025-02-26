@@ -45,7 +45,7 @@ jobs:
         context: services/save-and-restore
         push: true
         platforms: linux/amd64
-        tags: ${{ steps.meta.output.tags }}
-        labels: ${{ steps.meta.aoutput.labels }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
