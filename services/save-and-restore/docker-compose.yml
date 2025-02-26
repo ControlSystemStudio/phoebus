@@ -1,7 +1,6 @@
 services:
   saveandrestore:
-    build: .
-    image: phoebus-save-and-restore
+    image: ghcr.io/controlsystemstudio/phoebus/service-save-and-restore:master
     hostname: saveandrestore
     networks:
       - saveandrestore-net
