@@ -43,7 +43,7 @@ public class Preferences
     @Preference public static String default_save_path;
     /** layout_dir */
     @Preference public static String layout_dir;
-    /** layout_default */
+    /** layout_default absolute path*/
     @Preference public static String layout_default;
     /** print_landscape */
     @Preference public static boolean print_landscape;

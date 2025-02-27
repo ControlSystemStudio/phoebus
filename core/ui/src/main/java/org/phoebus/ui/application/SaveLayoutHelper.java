@@ -157,23 +157,19 @@ public class SaveLayoutHelper
     private static boolean saveState(List<Stage> stagesToSave, final String layout)
     {
         final String memento_filename = layout + ".memento";
-        //Take in account layout dir and add Layout folder in the path
+        //Always Save in user location for backward compatibilty
+        final File memento_file = new File(Locations.user(), memento_filename);
+        //Save also in layout_dir as absolute path instead of user relative location 
         String layout_dir = Preferences.layout_dir;
-        File user = Locations.user();
-        File parentFolder = null;
-        if(layout_dir != null && !layout_dir.isEmpty() && !layout_dir.contains("$(")) {
-            parentFolder = new File(user , layout_dir);
-            if(!parentFolder.exists()) {
-                parentFolder.mkdir();
+        File layoutDir = null;
+        if(layout_dir != null && !layout_dir.isBlank() && !layout_dir.contains("$(")) {
+            layoutDir = new File(layout_dir);
+            if(!layoutDir.exists()) {
+                layoutDir.mkdir();
             }
         }
         
-        if(parentFolder == null) {
-            parentFolder = user;
-        }
-        
-        final File memento_file = new File(parentFolder, memento_filename);
-        
+        final File memento_custom = layoutDir != null ? new File(layoutDir, memento_filename):null;
         // File.exists() is blocking in nature.
         // To combat this the phoebus application maintains a list of *.memento files that are in the default directory.
         // Check if the file name is in the list, and confirm a file overwrite with the user.
@@ -189,8 +185,13 @@ public class SaveLayoutHelper
         // Save in background thread
         JobManager.schedule("Save " + memento_filename, monitor ->
         {
-            MementoHelper.saveState(stagesToSave, memento_file, null, null, PhoebusApplication.INSTANCE.isMenuVisible(), PhoebusApplication.INSTANCE.isToolbarVisible(), PhoebusApplication.INSTANCE.isStatusbarVisible());
-
+            boolean menuVisible = PhoebusApplication.INSTANCE.isMenuVisible();
+            boolean toolbarVisible = PhoebusApplication.INSTANCE.isToolbarVisible();
+            boolean statusBarVisible = PhoebusApplication.INSTANCE.isStatusbarVisible();
+            MementoHelper.saveState(stagesToSave, memento_file, null, null,menuVisible, toolbarVisible, statusBarVisible);
+            if(memento_custom != null){
+                MementoHelper.saveState(stagesToSave, memento_custom, null, null,menuVisible, toolbarVisible, statusBarVisible);
+            }
             // After the layout has been saved,
             // update menu to include the newly saved layout
             PhoebusApplication.INSTANCE.createLoadLayoutsMenu();
