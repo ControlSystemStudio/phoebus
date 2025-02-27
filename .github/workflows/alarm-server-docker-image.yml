@@ -43,7 +43,7 @@ jobs:
     - name: Build and publish the Docker image
       uses: docker/build-push-action@v5
       with: 
-        context: services/save-and-restore
+        context: services/alarm-server
         push: true
         platforms: linux/amd64
         tags: ${{ steps.meta.outputs.tags }}
