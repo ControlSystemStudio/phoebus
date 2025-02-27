@@ -45,6 +45,8 @@ public class Preferences
     @Preference public static String layout_dir;
     /** layout_default absolute path*/
     @Preference public static String layout_default;
+    /** layout_default absolute path*/
+    @Preference public static boolean save_layout_in_layout_dir;
     /** print_landscape */
     @Preference public static boolean print_landscape;
     /** ok_severity_text_color */
