@@ -1,4 +1,4 @@
-name: Save-And-Restore Docker Image CI
+name: Alarm Server Docker Image CI
 
 on:
   push:
