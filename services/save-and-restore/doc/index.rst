@@ -127,6 +127,20 @@ A special case is the root node as it has a fixed unique id:
 
 **.../node/44bef5de-e8e6-4014-af37-b8f6c8a939a2**
 
+Retrieve multiple nodes
+"""""""""""""""""""""""
+Method: GET
+
+Body:
+
+.. code-block:: JSON
+
+   ["nodeId-1", "nodeId-2",..., "nodeId-N"]
+
+Return:
+Details of the nodes listed as unique node ids in the request body.
+
+
 Create a new node
 """""""""""""""""
 
