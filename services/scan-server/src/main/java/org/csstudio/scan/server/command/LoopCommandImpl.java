@@ -204,9 +204,11 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         else
             condition = null;
 
-        double start = getLoopStart();
         double step  = getLoopStep();
+        // step is < 0 means we are stepping down
+        double start = step < 0 ? getLoopEnd() : getLoopStart();
         int num_steps = getNumSteps();
+
         for (int i = 0; i < num_steps; i++)
             executeStep(context, device, condition, readback, start + i * step);
     }
