@@ -4,13 +4,13 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.7.4-SNAPSHOT</version>
+    <version>${revision}</version>
   </parent>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>${revision}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
