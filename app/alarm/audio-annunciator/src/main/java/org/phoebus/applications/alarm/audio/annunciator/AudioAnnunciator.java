@@ -89,7 +89,7 @@ public class AudioAnnunciator implements Annunciator {
             return;
         }
         if (message.severity == null) {
-            logger.log(Level.WARNING, "Received AnnunciatorMessage with null severity. Playing default alarm sound");
+            logger.log(Level.WARNING, "Received AnnunciatorMessage with null severity: " + message + ". Playing default alarm sound");
             speakAlone(alarmSound); // Play the default alarm sound
             return;
         }
