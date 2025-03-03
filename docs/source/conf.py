@@ -12,11 +12,10 @@
 # serve to show the default.
 
 import sys, os
+from pathlib import Path
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+# Add the _ext/ directory to the path to find our custom Sphinx extensions.
+sys.path.append(str(Path('_ext').resolve()))
 
 # -- General configuration -----------------------------------------------------
 
@@ -25,7 +24,9 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = []
+extensions = [
+    "preferences_listing",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -249,8 +250,6 @@ highlight_language = 'none'
 # by listing links to all app/**/index.rst
 
 from os import walk, path
-import subprocess, shutil
-import sys, traceback
 from distutils.dir_util import copy_tree
 
 def createDocListing(rst_file, header, roots):
@@ -291,85 +290,6 @@ def createDocListing(rst_file, header, roots):
                                 os.mkdir(dst)
                             copy_tree(src, dst)
 
-# Given a *_preferences.properties file,
-# look for "# Package xxx" to get the package name.
-# Fall back to the file name.
-def get_package(file):
-    with open(file) as f:
-        for line in f:
-            if line.startswith("# Package "):
-                pack = line[10:].strip()
-                # Simplify a little to avoid long names in Table of Contents
-                pack = pack.replace("org.csstudio.", "")
-                pack = pack.replace("org.phoebus.applications.", "")
-                pack = pack.replace("org.phoebus.app.", "")
-                pack = pack.replace("org.phoebus.", "")
-                return pack
-    return os.path.basename(file)
-
-# Create preference_properties.rst by listing
-# content of all **/*preferences.properties files.
-def createPreferenceAppendix(root):
-    # Locate all files
-    pref_files = dict()
-    for (dirpath, dirnames, filenames) in walk(root):
-        for filename in filenames:
-            if filename.endswith("preferences.properties"):
-                pref_file = path.join(dirpath, filename)
-                # Use only files from sources, not those copied to target/classes
-                if "target/classes" in pref_file:
-                    continue
-                pack = get_package(pref_file)
-                pref_files[pack] = pref_file
-
-    with open('preference_properties.rst', 'w') as out:
-        out.write(""":orphan:
-
-.. _preference_settings:
-
-Preferences Listing
-===================
-
-The following preference settings are available for the various application features.
-To use them in your settings file, remember to prefix each setting with the package name.
-
-eg. for the 'drop_failed_archives' preference in the 'trends.databrowser3' section
-(package name 'org.csstudio.trends.databrowser3') add a line like: ::
-
-    org.csstudio.trends.databrowser3/drop_failed_archives=true
-
-""")
-        for pack in sorted(pref_files.keys()):
-            pkgname = None
-            pref_file = pref_files[pack]
-            out.write("\n")
-            out.write(pack + "\n")
-            out.write(("-" * len(pack)) + "\n")
-            out.write("\n")
-            out.write("File " + pref_file + "::\n\n")
-            print('processing', pref_file)
-            with open(pref_file) as prefs:
-                for line in prefs:
-                    # expect lines like:
-                    # 1) Special comment with package id.
-                    #   '# Package org.phoebus.applications.alarm\n'
-                    # 2) ignore...
-                    #   '--------------\n'
-                    #   '# ... ignore ...\n'
-                    #   '  \n'
-                    # 4) preference
-                    #   'key = value'
-                    line = line.strip()
-                    if line.startswith('# Package'):
-                        pkgname = line.split(' ')[2]
-                    elif line[:1] not in ('', '#', '-'):
-                        assert pkgname is not None, pref_file # preference file missing "# Package ..." name line
-                        line = '%s/%s'%(pkgname, line)
-                    out.write("   " + line + "\n")
-            out.write("\n")
-
-        out.write("\n")
-
 root = '../..'
 
 createDocListing('applications.rst', """Applications
@@ -385,6 +305,3 @@ createDocListing('services.rst', """Services
 The following sections describe available services.
 
 """, [ path.join(root, "services") ])
-
-createPreferenceAppendix(root)
-
