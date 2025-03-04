@@ -84,7 +84,7 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
     @Override
     public long getWorkUnits()
     {
-        final long iterations = 1 + Math.round(Math.abs((command.getEnd() - command.getStart()) / command.getStepSize()));
+        final long iterations = getNumSteps();
         long body_units = 0;
         for (ScanCommandImpl<?> command : implementation)
             body_units += command.getWorkUnits();
@@ -129,7 +129,7 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
     }
 
     public int getNumSteps() {
-        return (int)Math.ceil(Math.abs(((getLoopEnd() - getLoopStart()) / getLoopStep()))) + 1;
+        return (int)Math.ceil(Math.abs(((command.getEnd() - command.getStart()) / command.getStepSize()))) + 1;
     }
 
     /** {@inheritDoc} */
