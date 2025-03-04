@@ -1331,10 +1331,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             return false;
         }
         if(selectedItemsProperty.size() != 1 ||
-                selectedItemsProperty.get(0).getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) ||
-                (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.FOLDER) &&
-                        !selectedItemsProperty.get(0).getNodeType().equals(NodeType.CONFIGURATION))){
-            return false;
+           selectedItemsProperty.get(0).getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) ||
+           (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.FOLDER) && !selectedItemsProperty.get(0).getNodeType().equals(NodeType.CONFIGURATION))){
+           return false;
         }
         // Check is made if target node is of supported type for the clipboard content.
         List<Node> selectedNodes = (List<Node>) clipBoardContent;
