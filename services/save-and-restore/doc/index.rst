@@ -26,6 +26,8 @@ gateways - if any - must be set as a system environment named ``EPICS_CA_ADDR_LI
 For pva (pv access) the service must be started with the ``-DdefaultProtocol=pva`` Java option, and the list of
 gateways - if any - must be set as a system environment named ``EPICS_PVA_ADDR_LIST``.
 
+Details on the endpoints invoking IOC communication are found below.
+
 Elasticsearch setup
 -------------------
 
@@ -759,8 +761,66 @@ Body:
       }
     ]
 
-Server Restore Endpoints
-------------------------
+Server Endpoints interacting with EPICS IOCs
+--------------------------------------------
+
+Endpoints described in the following are related to operations where IOC interaction is performed
+by the service rather than by the client.
+
+Take snapshot
+"""""""""""""
+
+**.../take-snapshot/{configNodeId}**
+
+Method: GET
+
+Here ``configNodeId`` identifies an existing configuration node. The response body is
+an array of ``SnapshotItem``, one for each PV item in the configuration.
+
+If the service fails to read a PV value, the value field of that ``SnapshotItem`` is set
+to ``null``. The standard EPICS timeout of 5 seconds is applied when the service connects to PVs
+to perform a read operation.
+
+Example response:
+
+.. code-block:: JSON
+
+     [
+        {
+            "configPv": {
+                "pvName":"COUNTER10",
+                "readOnly":false
+            },
+            "value":{
+                "type":{
+                    "name":"VDouble",
+                    "version":1
+                },
+                "value":11941.0,
+                "alarm":{
+                    "severity":"NONE",
+                    "status":"NONE",
+                    "name":"NO_ALARM"
+                },
+                "time":{
+                    "unixSec":1664550284,
+                    "nanoSec":870687555
+                },
+                "display":{
+                    "lowDisplay":0.0,
+                    "highDisplay":0.0,
+                    "units":""
+                }
+            }
+        },
+        {
+            "configPv":{
+                "pvName":"TEMP10",
+                "readOnly":false
+            },
+            "value": null
+        }
+     ]
 
 Restore from snapshot items
 """""""""""""""""""""""""""
