@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -34,8 +33,6 @@ import org.phoebus.pv.PV;
 @SuppressWarnings("nls")
 public class MQTT_PVConn implements MqttCallback
 {
-    private final AtomicBoolean connected = new AtomicBoolean();
-
     MqttClient myClient;
     MqttConnectOptions connOpt;
 
@@ -158,16 +155,15 @@ public class MQTT_PVConn implements MqttCallback
         }
     }
 
-    private void disconnect()
+    private synchronized void disconnect()
     {
-        if (! connected.compareAndSet(true, false))
-            return; // Already disconnected
+        if (!myClient.isConnected())
+        {
+            return;
+        }
 
         try
         {
-            if (! myClient.isConnected())
-                throw new Exception("Already disconnected");
-
             // wait to ensure subscribed messages are delivered
             Thread.sleep(100);
             myClient.disconnect();
@@ -178,10 +174,12 @@ public class MQTT_PVConn implements MqttCallback
         }
     }
 
-    private boolean connect()
+    private synchronized boolean connect()
     {
-        if (! connected.compareAndSet(false, true))
-            return true; // Already connected
+        if (myClient != null && myClient.isConnected())
+        {
+            return true;
+        }
 
         generateClientID();
         setOptions();
@@ -196,10 +194,9 @@ public class MQTT_PVConn implements MqttCallback
         catch (MqttException ex)
         {
             PV.logger.log(Level.SEVERE, "Could not connect to MQTT broker " + brokerURL, ex);
-            connected.set(false);
         }
 
-        return connected.get();
+        return myClient.isConnected();
     }
 
     private void generateClientID()
