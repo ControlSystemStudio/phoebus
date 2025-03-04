@@ -43,7 +43,7 @@ public class OpenFilterAction extends ActionInfoBase {
 
     @Override
     public Image getImage() {
-        return ImageCache.getImage(OpenFilterAction.class, "/icons/bookcase.png");
+        return ImageCache.getImage(OpenFilterAction.class, "/icons/save-and-restore.png");
     }
 
     @Override

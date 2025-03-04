@@ -1,12 +1,11 @@
 # Save and restore service
 
-The save-and-restore service implements the MASAR (MAchine Save And Restore) service as a collection
-of REST endpoints. These can be used by clients to manage save sets (aka configurations) and
-snapshots, to compare snapshots and to restore settings from snapshots.
+The save-and-restore service implements service as a collection
+of REST endpoints. These can be used by clients to manage configurations (aka save sets) and
+snapshots, to compare snapshots and to restore PV values from snapshots.
 
-The service depends on the app-save-and-restore-model module. 
-
-Data is persisted by a relational database engine. The service has been verified on Postgresql and Mysql.
+The service is packaged as a self-contained Spring Boot jar file. External dependencies are limited to a JVM (Java 17+)
+and a running instance of Elasticsearch (8.x).
 
 # Build
 
@@ -53,37 +52,12 @@ $ curl --fail-with-body http://localhost:8080/save-restore
 
 The response will have information about the service version, the root node id, the status of the connection with the elastic backend.
 
-# Features
+# Documentation
 
-* The service defines a set of data objects - nodes - arranged in a tree structure. Nodes in the tree are
-folders, configurations (aka save sets) and snapshots.
+Details about the REST API is found in the Phoebus bundled help content, which is pulled from the doc/index.rst file.
 
-* There is always a top level root node of type folder. This cannot be modified in any manner.
+# Docker
 
-* Child nodes of folder nodes are folder or configuration nodes. Child nodes
-of configuration nodes are only snapshot nodes. Snapshot nodes will not contain
-child nodes as this would not serve any use case.
+The latest version of the service is available as a Docker image (ghcr.io/controlsystemstudio/phoebus/service-save-and-restore:master). Any pushes to the master branch into this directory will trigger a new build of the image.
 
-* Snapshot nodes are associated with snapshot data items (stored PV values) 
-and that are not part of the tree structure.
-
-* Each node can be associated with an arbitrary number of named tags, e.g.
-a "golden" tag can be set on snapshot nodes.
-
-* Each node has a created date and a last updated date, as well as a username
-attribute. This should identify the user creating or updating a node.
-
-* Nodes in the tree can be renamed or deleted. When a folder or configuration
-node is deleted, its entire subtree is deleted unconditionally.
-
-* A folder or configuration node can be moved to another parent node. All
-child nodes of the moved node remain child nodes of the moved node.
-
-* Snapshot nodes cannot be moved as they are associated with the configuration
-defining the list of PVs in the snapshot.
-
-* The service is built upon Spring Boot and depends on Elasticsearch for data persistence.
-
-Missing features:
-
-* Security in terms of authentication and authorization.
+To run the service and its dependency (Elasticsearch), use docker-compose.yml.
