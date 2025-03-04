@@ -129,7 +129,7 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
     }
 
     public int getNumSteps() {
-        return (int)Math.ceil(Math.abs(((getLoopEnd() - getLoopStart()) / getLoopStep())));
+        return (int)Math.ceil(Math.abs(((getLoopEnd() - getLoopStart()) / getLoopStep()))) + 1;
     }
 
     /** {@inheritDoc} */
