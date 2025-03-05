@@ -137,21 +137,25 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             {
                 final AlarmClientNode node = (AlarmClientNode) item;
 
-                Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatusBooleanPair = leavesDisabledStatus(node);
-                if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled)) {
-                    if (leavesDisabledStatusBooleanPair.getValue()) {
-                        disabledTimerIndicator.setText("(" + Messages.disabled + "; " + Messages.timer + ")");
+                Optional<Pair<LeavesDisabledStatus, Boolean>> maybeLeavesDisabledStatusBooleanPair = leavesDisabledStatus(node);
+                if (maybeLeavesDisabledStatusBooleanPair.isPresent() && !maybeLeavesDisabledStatusBooleanPair.get().getKey().equals(LeavesDisabledStatus.AllEnabled)) {
+                    Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatusBooleanPair = maybeLeavesDisabledStatusBooleanPair.get();
+
+                    if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled)) {
+                        if (leavesDisabledStatusBooleanPair.getValue()) {
+                            disabledTimerIndicator.setText("(" + Messages.disabled + "; " + Messages.timer + ")");
+                        }
+                        else {
+                            disabledTimerIndicator.setText("(" + Messages.disabled + ")");
+                        }
                     }
-                    else {
-                        disabledTimerIndicator.setText("(" + Messages.disabled + ")");
-                    }
-                }
-                else if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.SomeEnabledSomeDisabled)) {
-                    if (leavesDisabledStatusBooleanPair.getValue()) {
-                        disabledTimerIndicator.setText("(" + Messages.partlyDisabled + "; " + Messages.timer + ")");
-                    }
-                    else {
-                        disabledTimerIndicator.setText("(" + Messages.partlyDisabled + ")");
+                    else if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.SomeEnabledSomeDisabled)) {
+                        if (leavesDisabledStatusBooleanPair.getValue()) {
+                            disabledTimerIndicator.setText("(" + Messages.partlyDisabled + "; " + Messages.timer + ")");
+                        }
+                        else {
+                            disabledTimerIndicator.setText("(" + Messages.partlyDisabled + ")");
+                        }
                     }
                 }
                 else {
@@ -162,7 +166,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 label.setText(labelText);
 
                 severity = node.getState().severity;
-                if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled)) {
+                if (maybeLeavesDisabledStatusBooleanPair.isPresent() && maybeLeavesDisabledStatusBooleanPair.get().getKey().equals(LeavesDisabledStatus.AllDisabled)) {
                     label.setTextFill(Color.GRAY);
                 }
                 else {
@@ -209,7 +213,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
     // with them ('true'), at the end of which they will automatically become
     // enabled again. When the second component is 'false' there is no
     // associated timer.
-    private Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatus(AlarmClientNode alarmClientNode) {
+    private Optional<Pair<LeavesDisabledStatus, Boolean>> leavesDisabledStatus(AlarmClientNode alarmClientNode) {
         List<Pair<LeavesDisabledStatus, Boolean>> leavesDisabledStatusList = new LinkedList<>();
         for (var child : alarmClientNode.getChildren()) {
             if (child instanceof AlarmClientLeaf alarmClientLeaf) {
@@ -222,8 +226,14 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                     leavesDisabledStatusList.add(new Pair<>(LeavesDisabledStatus.AllEnabled, false));
                 }
             }
-            else if (child instanceof AlarmClientNode alarmClientNode1) {
-                leavesDisabledStatusList.add(leavesDisabledStatus(alarmClientNode1));
+            else if (child instanceof AlarmClientNode alarmClientNode1 && !alarmClientNode1.getChildren().isEmpty()) {
+                if (leavesDisabledStatus(alarmClientNode1).isPresent()) {
+                    leavesDisabledStatusList.add(leavesDisabledStatus(alarmClientNode1).get());
+                }
+                // If leavesDisabledStatus(alarmClientNode1).isPresent() evaluates to false, there are no leaves and therefore no result.
+            }
+            else if (child instanceof AlarmClientNode alarmClientNode1 && alarmClientNode1.getChildren().isEmpty()) {
+                // Don't add any LeavesDisabledStatus, since there are no leaves
             }
             else {
                 throw new RuntimeException("Missing case: " + child.getClass().getName());
@@ -239,6 +249,6 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             }
         });
 
-        return leavesDisabledStatus.orElse(new Pair<>(LeavesDisabledStatus.AllEnabled, false));
+        return leavesDisabledStatus;
     }
 }
