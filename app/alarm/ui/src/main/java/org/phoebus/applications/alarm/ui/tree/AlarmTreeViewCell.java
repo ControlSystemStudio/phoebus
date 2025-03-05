@@ -46,9 +46,8 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
     // So we add our own "graphics" to hold an icon and text
     private final Label label = new Label();
     private final ImageView image = new ImageView();
-    private final Circle disabledIndicator = new Circle(4.0, Color.TRANSPARENT);
     private final Label disabledTimerIndicator = new Label("");
-    private final HBox content = new HBox(image, disabledIndicator, label, disabledTimerIndicator);
+    private final HBox content = new HBox(image, label, disabledTimerIndicator);
 
     // TreeCell optimizes redraws by suppressing updates
     // when old and new values match.
@@ -89,8 +88,6 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
                 final ClientState state = leaf.getState();
 
-                disabledIndicator.setFill(Color.TRANSPARENT);
-
                 final StringBuilder text = new StringBuilder();
                 text.append("PV: ").append(leaf.getName());
 
@@ -110,10 +107,8 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                     label.setBackground(AlarmUI.getBackground(state.severity));
                     image.setImage(AlarmUI.getIcon(state.severity));
 
-                    disabledIndicator.setFill(Color.TRANSPARENT);
                     disabledTimerIndicator.setText("");
                 } else {
-                    disabledIndicator.setFill(Color.TRANSPARENT); // The disabled indicator is not shown on leaves
                     if (leaf.getEnabled().enabled_date != null) {
                         LocalDateTime enabledDate = leaf.getEnabled().enabled_date;
                         String stringToAppend = padWithLeadingZero(enabledDate.getHour()) + ":" + padWithLeadingZero(enabledDate.getMinute()) + ":" + padWithLeadingZero(enabledDate.getSecond());
@@ -145,7 +140,6 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
 
                 Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatusBooleanPair = leavesDisabledStatus(node);
                 if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled)) {
-                    disabledIndicator.setFill(Color.GRAY);
                     if (leavesDisabledStatusBooleanPair.getValue()) {
                         disabledTimerIndicator.setText("(Disabled; " + Messages.timer + ")");
                     }
@@ -154,7 +148,6 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                     }
                 }
                 else if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.SomeEnabledSomeDisabled)) {
-                    disabledIndicator.setFill(Color.GRAY);
                     if (leavesDisabledStatusBooleanPair.getValue()) {
                         disabledTimerIndicator.setText("(Partly disabled; " + Messages.timer + ")");
                     }
@@ -163,7 +156,6 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                     }
                 }
                 else {
-                    disabledIndicator.setFill(Color.TRANSPARENT);
                     disabledTimerIndicator.setText("");
                 }
 
