@@ -25,6 +25,7 @@ import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.Messages;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -110,18 +111,18 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 } else {
                     if (leaf.getEnabled().enabled_date != null) {
                         LocalDateTime enabledDate = leaf.getEnabled().enabled_date;
-                        String stringToAppend = padWithLeadingZero(enabledDate.getHour()) + ":" + padWithLeadingZero(enabledDate.getMinute()) + ":" + padWithLeadingZero(enabledDate.getSecond());
+                        String enabledDateString;
 
                         LocalDateTime now = LocalDateTime.now();
                         if (!(now.getDayOfMonth() == enabledDate.getDayOfMonth() &&
                                 now.getMonthValue() == enabledDate.getMonthValue() &&
                                 now.getYear() == enabledDate.getYear())) {
-                            String paddedMonthNumber = padWithLeadingZero(enabledDate.getMonthValue());
-                            String paddedDayNumber = padWithLeadingZero(enabledDate.getDayOfMonth());
-                            stringToAppend = enabledDate.getYear() + "-" + paddedMonthNumber + "-" + paddedDayNumber + "T" + stringToAppend;
+                            enabledDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(enabledDate);
                         }
-
-                        disabledTimerIndicator.setText("(" + Messages.disabledUntil + " " + stringToAppend + ")");
+                        else {
+                            enabledDateString = DateTimeFormatter.ISO_LOCAL_TIME.format(enabledDate);
+                        }
+                        disabledTimerIndicator.setText("(" + Messages.disabledUntil + " " + enabledDateString + ")");
                     } else {
                         disabledTimerIndicator.setText("(" + Messages.disabled + ")");
                     }
@@ -178,21 +179,6 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             // Profiler showed small advantage when skipping redundant 'setGraphic' call
             if (getGraphic() != content)
                 setGraphic(content);
-        }
-    }
-
-    private String padWithLeadingZero(int n) {
-        if (n < 0) {
-            throw new RuntimeException("Argument must be greater or equal to zero.");
-        }
-        else if (n <= 9) {
-            return "0" + n;
-        }
-        else if (n <= 99) {
-            return Integer.toString(n);
-        }
-        else {
-            throw new RuntimeException("Argument must be less than 100");
         }
     }
 
