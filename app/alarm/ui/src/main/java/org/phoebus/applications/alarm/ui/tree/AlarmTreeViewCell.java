@@ -121,9 +121,9 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                             stringToAppend = enabledDate.getYear() + "-" + paddedMonthNumber + "-" + paddedDayNumber + "T" + stringToAppend;
                         }
 
-                        disabledTimerIndicator.setText("(Disabled until " + stringToAppend + ")");
+                        disabledTimerIndicator.setText("(" + Messages.disabledUntil + " " + stringToAppend + ")");
                     } else {
-                        disabledTimerIndicator.setText("(Disabled)");
+                        disabledTimerIndicator.setText("(" + Messages.disabled + ")");
                     }
 
                     label.setTextFill(Color.GRAY);
@@ -140,18 +140,18 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatusBooleanPair = leavesDisabledStatus(node);
                 if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled)) {
                     if (leavesDisabledStatusBooleanPair.getValue()) {
-                        disabledTimerIndicator.setText("(Disabled; " + Messages.timer + ")");
+                        disabledTimerIndicator.setText("(" + Messages.disabled + "; " + Messages.timer + ")");
                     }
                     else {
-                        disabledTimerIndicator.setText("(Disabled)");
+                        disabledTimerIndicator.setText("(" + Messages.disabled + ")");
                     }
                 }
                 else if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.SomeEnabledSomeDisabled)) {
                     if (leavesDisabledStatusBooleanPair.getValue()) {
-                        disabledTimerIndicator.setText("(Partly disabled; " + Messages.timer + ")");
+                        disabledTimerIndicator.setText("(" + Messages.partlyDisabled + "; " + Messages.timer + ")");
                     }
                     else {
-                        disabledTimerIndicator.setText("(Partly disabled)");
+                        disabledTimerIndicator.setText("(" + Messages.partlyDisabled + ")");
                     }
                 }
                 else {
