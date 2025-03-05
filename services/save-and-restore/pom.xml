@@ -71,6 +71,17 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>core-pv-pva</artifactId>
+			<version>4.7.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>core-pv-ca</artifactId>
+			<version>4.7.4-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
