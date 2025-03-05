@@ -180,7 +180,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
 
     private String padWithLeadingZero(int n) {
         if (n < 0) {
-            throw new RuntimeException("Argument must greater or equal to zero.");
+            throw new RuntimeException("Argument must be greater or equal to zero.");
         }
         else if (n <= 9) {
             return "0" + n;
