@@ -206,9 +206,14 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
         AllDisabled,
     }
 
-    // leavesDisabledStatus() returns a pair. The first component describes
+    // leavesDisabledStatus() optionally returns a pair.
+    //
+    // If a pair is _not_ returned, it means that there exist no leaves
+    // in 'alarmClientNode', and the disabled status is undefined.
+    //
+    // When a pair _is_ returned, the first component describes
     // whether all leaves are disabled, all leaves are enabled, or whether
-    // some leaves are enabled and some are disabled. The second component
+    // some leaves are enabled and some are disabled, and the second component
     // indicates whether one or more disabled leaves have a timer associated
     // with them ('true'), at the end of which they will automatically become
     // enabled again. When the second component is 'false' there is no
