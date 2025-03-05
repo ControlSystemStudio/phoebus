@@ -45,4 +45,4 @@ services:
       - /home:/home
     command: >
       /bin/bash -c "
-      java -jar /alarmserver/service-alarm-server-*.jar -server ${HOSTNAME}:9092"
+      java -jar /alarmserver/service-alarm-server-*.jar -import ${CONFIG_FILE} -server ${HOSTNAME}:9092"

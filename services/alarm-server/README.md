@@ -47,3 +47,64 @@ some useful startup arguments include
 -import   config.xml        - Import alarm configruation from file
 -logging logging.properties - Load log settings
 ```
+
+## Docker
+
+Docker compose files are provided for convenience.
+
+### Launch only Kafka
+
+``docker-compose-kafka.yml`` 
+
+This is used to start the Kafka message broker (in Zookeeper mode). Typical use case: launch alarm
+server manually.
+
+Usage:
+
+```
+>docker compose -f docker-compose-kafka.yml --env-file /path/to/environment/file
+```
+
+where ``/path/to/environment/file`` is a file defining a ``HOSTNAME`` variable, e.g.
+```
+HOSTNAME=foo.bar.com
+```
+When launching the alarm server, the ``-server`` argument must match the value of ``HOSTNAME``.
+
+### Launch Kafka and alarm server for import
+
+``docker-compose-alarm-server-for-import.yml``
+
+This is used to start the full stack for the purpose of importing an alarm configuration file.
+
+Usage:
+
+```
+>docker compose -f docker-compose-alarm-server-for-import.yml --env-file /path/to/environment/file
+```
+
+Here the ``/path/to/environment/file`` file *must* list:
+```
+HOSTNAME=foo.bar.com
+CONFIG_FILE=/path/to/Accelerator.xml
+```
+In other words, this imports an alarm configuration for the default topic ``Accelerator``.
+
+### Launch Kafka and alarm server
+
+``docker-compose-alarm-server-for-import.yml``
+
+This is used to start the full stack for running the alarm server and listen to EPICS alarms.
+
+Usage:
+
+```
+>docker compose -f docker-compose-alarm-server.yml --env-file /path/to/environment/file
+```
+
+Here the ``/path/to/environment/file`` file *must* list:
+```
+HOSTNAME=foo.bar.com
+```
+
+Note that in all cases ``HOSTNAME`` *can not* be set to ``localhost``.
