@@ -160,7 +160,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 }
 
                 String labelText = item.getName();
-                label.setText(item.getName());
+                label.setText(labelText);
 
                 severity = node.getState().severity;
                 if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled)) {
