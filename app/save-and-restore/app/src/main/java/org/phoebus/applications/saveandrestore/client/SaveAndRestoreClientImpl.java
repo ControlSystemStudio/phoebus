@@ -29,15 +29,18 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
+import org.phoebus.util.http.QueryParamsHelper;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
@@ -461,7 +464,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     public SearchResult search(MultivaluedMap<String, String> searchParams) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.jmasarServiceUrl + "/search?" + mapToQueryParams(searchParams)))
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/search?" + QueryParamsHelper.mapToQueryParams(searchParams)))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .GET()
                     .build();
@@ -696,18 +699,5 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private String mapToQueryParams(MultivaluedMap<String, String> map) {
-        StringBuilder stringBuilder = new StringBuilder();
-        map.keySet().forEach(k -> {
-            List<String> value = map.get(k);
-            if (value != null && !value.isEmpty()) {
-                stringBuilder.append(k).append("=");
-                stringBuilder.append(String.join(",", value));
-                stringBuilder.append("&");
-            }
-        });
-        return stringBuilder.toString();
     }
 }

@@ -1,0 +1,42 @@
+services:
+  saveandrestore:
+    image: ghcr.io/controlsystemstudio/phoebus/service-save-and-restore:master
+    hostname: saveandrestore
+    networks:
+      - saveandrestore-net
+    ports:
+      - "8080:8080"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_NETWORK_HOST=elasticsearch-sar
+    command: >
+      /bin/bash -c "
+        until curl --silent --fail http://elasticsearch-sar:9200/_cluster/health; do
+          echo 'Waiting for Elasticsearch'
+          sleep 1
+        done
+        java -DdefaultProtocol=${defaultProtocol} -Dauthorization.permitall=false -Dauth.impl=demo -jar /saveandrestore/service-save-and-restore-*.jar"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.2
+    hostname: elasticsearch-sar
+    networks:
+      - saveandrestore-net
+    ports:
+      - "9200:9200"
+    environment:
+      cluster.name: channelfinder
+      discovery.type: single-node
+      bootstrap.memory_lock: "true"
+      xpack.security.enabled: "false"
+      EPICS_PVAS_INTF_ADDR_LIST: "0.0.0.0"
+    volumes:
+      - saveandrestore-es-data:/usr/share/elasticsearch/data
+volumes:
+  saveandrestore-es-data:
+    driver: local
+
+networks:
+  saveandrestore-net:
+    driver: bridge

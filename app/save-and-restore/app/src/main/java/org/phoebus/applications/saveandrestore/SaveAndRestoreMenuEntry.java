@@ -45,7 +45,7 @@ public class SaveAndRestoreMenuEntry implements MenuEntry {
 
 	@Override
 	public Image getIcon() {
-		return ImageCache.getImage(SaveAndRestoreMenuEntry.class, "/icons/bookcase.png");
+		return ImageCache.getImage(SaveAndRestoreMenuEntry.class, "/icons/save-and-restore.png");
 	}
 
 }

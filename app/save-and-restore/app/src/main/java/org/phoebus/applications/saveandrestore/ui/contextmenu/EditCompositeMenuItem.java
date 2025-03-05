@@ -8,14 +8,12 @@ import javafx.collections.ObservableList;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.ui.javafx.ImageCache;
-
-import java.util.function.Consumer;
 
 public class EditCompositeMenuItem extends SaveAndRestoreMenuItem {
 
-    public EditCompositeMenuItem(SaveAndRestoreController saveAndRestoreController,
+    public EditCompositeMenuItem(SaveAndRestoreBaseController saveAndRestoreController,
                                  ObservableList<Node> selectedItemsProperty,
                                  Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
@@ -25,7 +23,7 @@ public class EditCompositeMenuItem extends SaveAndRestoreMenuItem {
 
     @Override
     public void configure() {
-        disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get() ||
+        disableProperty().set(saveAndRestoreBaseController.getUserIdentity().isNull().get() ||
                 selectedItemsProperty.size() != 1 ||
                 !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT));
     }

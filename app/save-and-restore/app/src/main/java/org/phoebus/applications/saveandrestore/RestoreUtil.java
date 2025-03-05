@@ -94,7 +94,7 @@ public class RestoreUtil {
                     .map(r -> r.getSnapshotItem().getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle(Messages.restoreFailedPVs);
+                alert.setHeaderText(Messages.restoreFailedPVs);
                 alert.setContentText(stringBuilder.toString());
                 alert.show();
             });
