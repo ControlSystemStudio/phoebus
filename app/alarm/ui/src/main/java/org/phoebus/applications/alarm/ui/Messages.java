@@ -25,7 +25,6 @@ public class Messages
     public static String renameItemFailed;
     public static String timer;
     public static String unacknowledgeFailed;
-    public static String until;
 
     static
     {
