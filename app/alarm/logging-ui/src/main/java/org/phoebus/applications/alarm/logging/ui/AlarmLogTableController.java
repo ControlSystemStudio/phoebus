@@ -273,10 +273,11 @@ public class AlarmLogTableController {
                     if (action != null) {
                         return new SimpleStringProperty(action);
                     }
-                    boolean en = alarmMessage.getValue().isEnabled();
+                    // TODO better representation for disable until
+                    String en = alarmMessage.getValue().isEnabled();
                     if (alarmMessage.getValue().getUser() != null && alarmMessage.getValue().getHost() != null) {
-                        if (!en) {
-                            return new SimpleStringProperty("Disabled");
+                        if (en != null && !en.equals("true")) {
+                            return new SimpleStringProperty(en.equalsIgnoreCase("false") ? "Disabled" : "Disabled until " + en);
                         } else {
                             try {
                                 final JsonNode jsonNode = (JsonNode) JsonModelReader.parseJsonText(alarmMessage.getValue().getConfig_msg());

@@ -30,7 +30,7 @@ public class AlarmLogTableItem {
     private String user;
     private String host;
     private String command;
-    private boolean enabled;
+    private String enabled;
 
     public String getConfig() {
         return config;
@@ -144,11 +144,11 @@ public class AlarmLogTableItem {
         this.command = command;
     }
 
-    public boolean isEnabled() {
+    public String isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(String enabled) {
         this.enabled = enabled;
     }
 
