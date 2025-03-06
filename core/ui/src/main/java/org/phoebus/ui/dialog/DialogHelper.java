@@ -9,15 +9,19 @@ package org.phoebus.ui.dialog;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Dialog;
@@ -101,6 +105,48 @@ public class DialogHelper
                 forceToFront(dialog);
             }
         });
+    }
+
+    /**
+     * Clamp a rectangle to the closest rectangle in a list of screens. This is used to prevent a dialog from going
+     * off screen completely, and losing any control over the entire application.
+     *
+     *  @param rect The rectangle to be clamped.
+     *  @param screens A list of screen regions to clamp to.
+     * */
+    static private Rectangle2D clampToClosest(final Rectangle2D rect, final List<Rectangle2D> screens) {
+        Point2D center = new Point2D(
+                rect.getMinX() + rect.getWidth() / 2,
+                rect.getMinY() + rect.getHeight() / 2
+        );
+
+        Optional<Rectangle2D> closestOpt = screens.stream().min(
+                Comparator.comparingDouble(screen -> {
+                    // if the dialog center is inside of a screen, it will always be the closest
+                    if (screen.contains(center))
+                        return -1;
+
+                    // get distance to closest edge
+                    double dx = Math.max(0, Math.max(screen.getMinX() - center.getX(), center.getX() - screen.getMaxX()));
+                    double dy = Math.max(0, Math.max(screen.getMinY() - center.getY(), center.getY() - screen.getMaxY()));
+
+                    return dx * dx + dy * dy;
+                })
+        );
+
+        if (closestOpt.isEmpty()) {
+            // no available screens (unlikely)
+            return rect;
+        }
+
+        // clamp position to screen, note that this will move the rectangle into the screen in its entirety,
+        // with a preference for the top left corner
+        Rectangle2D closest = closestOpt.get();
+        double newMinX = Math.max(closest.getMinX(), Math.min(rect.getMinX(), closest.getMaxX() - rect.getWidth()));
+        double newMinY = Math.max(closest.getMinY(), Math.min(rect.getMinY(), closest.getMaxY() - rect.getHeight()));
+        return new Rectangle2D(
+                newMinX, newMinY, rect.getWidth(), rect.getHeight()
+        );
     }
 
     /** Position the given {@code dialog} initially relative to {@code owner},
@@ -233,9 +279,19 @@ public class DialogHelper
         if (owner != null) {
             // Position relative to owner
             final Bounds pos = owner.localToScreen(owner.getBoundsInLocal());
+            final Rectangle2D prefPos = new Rectangle2D(
+                    pos.getMinX() - prefWidth,
+                    pos.getMinY() - prefHeight/3,
+                    prefWidth,
+                    prefHeight
+            );
+            List<Screen> screens = Screen.getScreens();
+            Rectangle2D clampedPos = clampToClosest(
+                    prefPos, screens.stream().map(Screen::getVisualBounds).collect(Collectors.toList())
+            );
 
-            dialog.setX(pos.getMinX() - prefWidth);
-            dialog.setY(pos.getMinY() - prefHeight/3);
+            dialog.setX(clampedPos.getMinX());
+            dialog.setY(clampedPos.getMinY());
         }
 
         if (!Double.isNaN(prefWidth) && !Double.isNaN(prefHeight))
