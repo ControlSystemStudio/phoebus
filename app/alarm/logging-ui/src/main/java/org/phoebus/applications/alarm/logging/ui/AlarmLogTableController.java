@@ -276,7 +276,7 @@ public class AlarmLogTableController {
                     // TODO better representation for disable until
                     String en = alarmMessage.getValue().isEnabled();
                     if (alarmMessage.getValue().getUser() != null && alarmMessage.getValue().getHost() != null) {
-                        if (en != null && !en.equals("true")) {
+                        if (en != null && !en.equalsIgnoreCase("true")) {
                             return new SimpleStringProperty(en.equalsIgnoreCase("false") ? "Disabled" : "Disabled until " + en);
                         } else {
                             try {
