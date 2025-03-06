@@ -111,17 +111,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 } else {
                     if (leaf.getEnabled().enabled_date != null) {
                         LocalDateTime enabledDate = leaf.getEnabled().enabled_date;
-                        String enabledDateString;
-
-                        LocalDateTime now = LocalDateTime.now();
-                        if (!(now.getDayOfMonth() == enabledDate.getDayOfMonth() &&
-                                now.getMonthValue() == enabledDate.getMonthValue() &&
-                                now.getYear() == enabledDate.getYear())) {
-                            enabledDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(enabledDate);
-                        }
-                        else {
-                            enabledDateString = DateTimeFormatter.ISO_LOCAL_TIME.format(enabledDate);
-                        }
+                        String enabledDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(enabledDate);
                         disabledTimerIndicator.setText("(" + Messages.disabledUntil + " " + enabledDateString + ")");
                     } else {
                         disabledTimerIndicator.setText("(" + Messages.disabled + ")");
