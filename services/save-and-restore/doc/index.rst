@@ -20,7 +20,7 @@ Server-side IOC communication
 The service exposes endpoints for reading and writing PVs, i.e. to create or restore snapshots. Depending on the
 setup this server-side IOC communication may need some configuration:
 
-For ca (channel access) the service must be started with the ``-Dca.use_env=true`` Java option, and the list of
+For ca (channel access) the service must be started with the ``-Djca.use_env=true`` Java option, and the list of
 gateways - if any - must be set as a system environment named ``EPICS_CA_ADDR_LIST``.
 
 For pva (pv access) the service must be started with the ``-DdefaultProtocol=pva`` Java option, and the list of
