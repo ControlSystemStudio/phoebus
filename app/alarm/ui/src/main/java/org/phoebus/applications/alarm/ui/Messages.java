@@ -16,10 +16,14 @@ public class Messages
     public static String acknowledgeFailed;
     public static String addComponentFailed;
     public static String disableAlarmFailed;
+    public static String disabled;
+    public static String disabledUntil;
     public static String enableAlarmFailed;
     public static String moveItemFailed;
+    public static String partlyDisabled;
     public static String removeComponentFailed;
     public static String renameItemFailed;
+    public static String timer;
     public static String unacknowledgeFailed;
 
     static
