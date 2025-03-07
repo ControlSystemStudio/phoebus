@@ -1,0 +1,14 @@
+services:
+  alarmserver:
+    image: ghcr.io/controlsystemstudio/phoebus/service-alarm-server:CSSTUDIO-2989
+    networks:
+      - middleware-net
+    volumes:
+      - /home:/home
+    command: >
+      /bin/bash -c "
+      java -jar /alarmserver/service-alarm-server-*.jar -server kafka:9092"
+
+networks:
+  middleware-net:
+    driver: bridge

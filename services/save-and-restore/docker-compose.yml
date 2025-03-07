@@ -1,7 +1,7 @@
 services:
   saveandrestore:
     image: ghcr.io/controlsystemstudio/phoebus/service-save-and-restore:master
-    hostname: saveandrestore
+    #hostname: saveandrestore
     networks:
       - saveandrestore-net
     ports:
@@ -9,14 +9,18 @@ services:
     depends_on:
       - elasticsearch
     environment:
-      - ELASTICSEARCH_NETWORK_HOST=elasticsearch-sar
+      ELASTICSEARCH_NETWORK_HOST: elasticsearch-sar
+      EPICS_PVA_ADDR_LIST: "192.168.1.255"
+      EPICS_CA_ADDR_LIST: "172.18.156.66"
+      EPICS_PVA_AUTO_ADDR_LIST: "NO"
+      EPICS_PVA_BROADCAST_PORT: 5076
     command: >
       /bin/bash -c "
         until curl --silent --fail http://elasticsearch-sar:9200/_cluster/health; do
           echo 'Waiting for Elasticsearch'
           sleep 1
         done
-        java -DdefaultProtocol=${defaultProtocol} -Dauthorization.permitall=false -Dauth.impl=demo -jar /saveandrestore/service-save-and-restore-*.jar"
+        java -DEPICS_PVA_ADDR_LIST=192.168.1.255 -DEPICS_PVA_AUTO_ADDR_LIST=NO -DEPICS_PVA_BROADCAST_PORT=5076 -DdefaultProtocol=pva -Dauthorization.permitall=false -Dauth.impl=demo -jar /saveandrestore/service-save-and-restore-*.jar"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.2
@@ -26,13 +30,13 @@ services:
     ports:
       - "9200:9200"
     environment:
-      cluster.name: channelfinder
       discovery.type: single-node
       bootstrap.memory_lock: "true"
       xpack.security.enabled: "false"
-      EPICS_PVAS_INTF_ADDR_LIST: "0.0.0.0"
     volumes:
       - saveandrestore-es-data:/usr/share/elasticsearch/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 volumes:
   saveandrestore-es-data:
     driver: local
