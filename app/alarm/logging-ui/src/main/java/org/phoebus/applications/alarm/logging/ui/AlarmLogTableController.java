@@ -148,6 +148,33 @@ public class AlarmLogTableController {
         setClient(client);
     }
 
+	private final String replaceKey(final String key) {
+		String repKey = key;
+		if(key == Keys.SEVERITY.getName())
+			repKey = "alarm_severity";
+		else if(key == Keys.MESSAGE.getName())
+			repKey = "alarm_message";
+		else if(key == Keys.CURRENTSEVERITY.getName())
+			repKey = "pv_severity";
+		else if(key == Keys.CURRENTMESSAGE.getName())
+			repKey = "pv_message";
+
+		return repKey;
+	}
+
+	private String recoverKey(String key) {
+		if(key.contains("alarm_severity"))
+			key = "severity";
+		else if(key.contains("alarm_message"))
+			key = "message";
+		else if(key.contains("pv_severity"))
+			key = "current_severity";
+		else if(key.contains("pv_message"))
+			key = "current_message";
+
+		return key;
+	}
+
     @FXML
     public void initialize() {
         resize.setText("<");
@@ -294,7 +321,7 @@ public class AlarmLogTableController {
                 searchParameters.entrySet().stream()
                         .filter(e -> !e.getKey().getName().equals(Keys.ROOT.getName())) // Exclude alarm config (root) as selection is managed in drop-down
                         .sorted(Map.Entry.comparingByKey())
-                        .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+                        .map((e) -> replaceKey(e.getKey().getName().trim()) + "=" + e.getValue().trim())
                         .collect(Collectors.joining("&")));
 
         searchParameters.addListener(
@@ -303,7 +330,7 @@ public class AlarmLogTableController {
                                 .sorted(Entry.comparingByKey())
                                 .filter(e -> !e.getKey().getName().equals(Keys.ROOT.getName())) // Exclude alarm config (root) as selection is managed in drop-down
                                 .filter(e -> !e.getValue().equals(""))
-                                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+                                .map((e) -> replaceKey(e.getKey().getName().trim()) + "=" + e.getValue().trim())
                                 .collect(Collectors.joining("&"))));
 
         query.setOnKeyPressed(keyEvent -> {
@@ -398,7 +425,7 @@ public class AlarmLogTableController {
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofDays(7)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
 
-        query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim()).collect(Collectors.joining("&")));
+        query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> replaceKey(e.getKey().getName().trim()) + "=" + e.getValue().trim()).collect(Collectors.joining("&")));
     }
 
     public void setAlarmMessages(List<AlarmLogTableItem> alarmMessages) {
@@ -488,7 +515,7 @@ public class AlarmLogTableController {
         searchTerms.forEach(s -> {
             String[] splitString = s.split("=");
             if (splitString.length > 1) {
-                String key = splitString[0];
+                String key = recoverKey(splitString[0]);
                 searchKeywords.add(key);
                 String value = splitString[1];
                 if (lookup.containsKey(key)) {

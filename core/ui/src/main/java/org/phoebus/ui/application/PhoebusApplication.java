@@ -560,28 +560,7 @@ public class PhoebusApplication extends Application {
                     Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
 
         closeAllTabsMenuItem.acceleratorProperty().setValue(closeAllTabsKeyCombination);
-        
-        //Load a custom layout at start if layout_default is defined in preferences
-        String layoutFileName = Preferences.layout_default;
-        if(layoutFileName != null && !layoutFileName.isBlank()) {
-            layoutFileName = !layoutFileName.endsWith(".memento")? layoutFileName + ".memento" :layoutFileName;
-            String layout_dir = Preferences.layout_dir;
-            File parentFolder = null;
-            File user = Locations.user();
-            if(layout_dir != null && !layout_dir.isBlank() && !layout_dir.contains("$(")) {
-                parentFolder = new File(user, layout_dir);
-            }
-            if(parentFolder == null) {
-                parentFolder = user;
-            }
-            File layoutFile = new File(parentFolder,layoutFileName );
-            if(layoutFile.exists()) {
-                startLayoutReplacement(layoutFile);
-            }
-            else {
-                logger.log(Level.WARNING, "Layout file " + layoutFileName + " is not found");
-            }
-        }
+
     }
 
     /**
@@ -798,9 +777,8 @@ public class PhoebusApplication extends Application {
             }
 
             // Get every momento file from the configured layout
-            String layout_dir = Preferences.layout_dir;
-            if (layout_dir != null && !layout_dir.isBlank() && !layout_dir.contains("$(")) {
-                final File layoutDir = new File(Locations.user(), layout_dir);
+            if (Preferences.layout_dir != null && !Preferences.layout_dir.isBlank()) {
+                final File layoutDir = new File(Preferences.layout_dir);
                 if (layoutDir.exists()) {
                     final File[] systemLayoutFiles = layoutDir.listFiles();
                     if (systemLayoutFiles != null) {
@@ -1317,9 +1295,10 @@ public class PhoebusApplication extends Application {
      */
     private MementoTree loadDefaultMemento(final List<String> parameters, final JobMonitor monitor) {
         monitor.beginTask(Messages.MonitorTaskPers, 1);
-        File memfile = XMLMementoTree.getDefaultFile();
+        MementoTree memTree = null;
+        File memfile = null;
         try {
-            for (int i = 0; i < parameters.size(); ++i)
+            for (int i = 0; i < parameters.size(); ++i) {
                 if ("-layout".equals(parameters.get(i))) {
                     if (i >= parameters.size() - 1)
                         throw new Exception("Missing /path/to/Example.memento for -layout option");
@@ -1331,9 +1310,24 @@ public class PhoebusApplication extends Application {
                     parameters.remove(i);
                     break;
                 }
+            }
+            if(memfile == null) {//if no layout found in argument check preferences
+                //Load a custom layout at start if layout_default is defined in preferences
+                String layoutFileName = Preferences.layout_default;
+                if(layoutFileName != null && !layoutFileName.isBlank()) {
+                    //layout is in absolute path and not based on layout_dir
+                    layoutFileName = !layoutFileName.endsWith(".memento")? layoutFileName + ".memento" :layoutFileName;
+                    memfile = new File(layoutFileName);
+                }
+            }
+            
+            if(memfile == null) {// if still null get default one
+                memfile = XMLMementoTree.getDefaultFile();
+            }
+            
             if (memfile.canRead()) {
                 logger.log(Level.INFO, "Loading state from " + memfile);
-                return loadMemento(memfile);
+                memTree = loadMemento(memfile);
             } else
                 logger.log(Level.WARNING, "Cannot load state from " + memfile + ", no such file");
         } catch (Exception ex) {
@@ -1341,7 +1335,7 @@ public class PhoebusApplication extends Application {
         } finally {
             monitor.done();
         }
-        return null;
+        return memTree;
     }
 
     /**
