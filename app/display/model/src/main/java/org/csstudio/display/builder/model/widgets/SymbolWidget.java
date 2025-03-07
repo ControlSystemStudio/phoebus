@@ -88,6 +88,10 @@ public class SymbolWidget extends PVWidget {
     /** Property */
     public static final WidgetPropertyDescriptor<String>                        propFallbackSymbol = newFilenamePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "fallback_symbol", Messages.WidgetProperties_FallbackSymbol);
     public static final WidgetPropertyDescriptor<Boolean>                       propRunActionsOnMouseClick = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "run_actions_on_mouse_click", Messages.WidgetProperties_RunActionsOnMouseClick);
+
+    /** 'pick_on_bounds' */
+    public static final WidgetPropertyDescriptor<Boolean>                       propPickOnBounds = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "pick_on_bounds", Messages.WidgetProperties_PickOnBounds);
+
     /** 'svg_rendering_resolution_factor': */
     public static final WidgetPropertyDescriptor<Double> propSVGRenderingResolutionFactor = newDoublePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "svg_rendering_resolution_factor", Messages.WidgetProperties_SVGRenderingResolutionFactor);
 
@@ -125,6 +129,7 @@ public class SymbolWidget extends PVWidget {
     private volatile WidgetProperty<String>                      fallbackSymbol;
     private volatile WidgetProperty<WidgetColor>                 disconnectOverlayColor;
     private volatile WidgetProperty<Boolean>                     run_actions_on_mouse_click;
+    private volatile WidgetProperty<Boolean>                     pick_on_bounds;
     private volatile WidgetProperty<Double>                      svgRenderingResolutionFactor;
 
     /** Returns 'symbol' property: element for list of 'symbols' property */
@@ -230,6 +235,11 @@ public class SymbolWidget extends PVWidget {
         return run_actions_on_mouse_click;
     }
 
+    /** @return property */
+    public WidgetProperty<Boolean> propPickOnBounds() {
+        return pick_on_bounds;
+    }
+
     /** @return 'svgRenderingResolutionFactor' property */
     public WidgetProperty<Double> propSVGRenderingResolutionFactor() {
         return svgRenderingResolutionFactor;
@@ -268,6 +278,7 @@ public class SymbolWidget extends PVWidget {
             int indexOfPropActions = properties.indexOf(propActions());
             run_actions_on_mouse_click = propRunActionsOnMouseClick.createProperty(this, false);
             properties.add(indexOfPropActions + 1, run_actions_on_mouse_click);
+            properties.add(indexOfPropActions + 2, pick_on_bounds = propPickOnBounds.createProperty(this, false));
         }
 
     }

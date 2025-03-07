@@ -273,6 +273,7 @@ public class Messages
                          WidgetProperties_Rotation,
                          WidgetProperties_Rules,
                          WidgetProperties_RunActionsOnMouseClick,
+                         WidgetProperties_PickOnBounds,
                          WidgetProperties_Running,
                          WidgetProperties_ScaleFactor,
                          WidgetProperties_ScaleFormat,
