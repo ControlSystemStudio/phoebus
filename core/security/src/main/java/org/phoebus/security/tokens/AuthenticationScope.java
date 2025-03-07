@@ -32,7 +32,13 @@ import java.util.Arrays;
 public enum AuthenticationScope {
 
     LOGBOOK("logbook"),
-    SAVE_AND_RESTORE("save-and-restore");
+    SAVE_AND_RESTORE("save-and-restore"),
+    NEO4J("graph-database"),
+    S3("aws-image-bucket"),
+    MONGODB("mongodb-ux"),
+    MARIADB("mariadb-ux");
+
+
 
     private String name = null;
 
