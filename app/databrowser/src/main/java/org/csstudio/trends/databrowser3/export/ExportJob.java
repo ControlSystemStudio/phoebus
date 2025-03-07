@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -87,7 +87,7 @@ abstract public class ExportJob implements JobRunnable
         }
     }
 
-    /** @param comment Comment prefix ('#' for most ASCII, '%' for Matlab, ...)
+    /** @param comment Comment prefix ('#\t' for most ASCII, '%' for Matlab, ...)
      *  @param model Model with data
      *  @param start Start time
      *  @param end End time
