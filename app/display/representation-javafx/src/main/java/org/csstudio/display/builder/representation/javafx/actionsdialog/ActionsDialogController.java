@@ -191,24 +191,22 @@ public class ActionsDialogController {
         actionList.addAll(actionInfos.getActions()
                 .stream().map(ai -> {
                     ActionsDialogActionItem actionsDialogActionItem = new ActionsDialogActionItem(widget, ai);
-                    detailsPane.getChildren().add(actionsDialogActionItem.getActionEditor().getEditorUi());
                     return actionsDialogActionItem;
                 }).collect(Collectors.toList()));
         actionsListView.setItems(actionList);
         actionsListView.getSelectionModel().select(0);
-        detailsPane.getChildren().clear();
-        detailsPane.getChildren().add(actionsListView.getSelectionModel().getSelectedItem().getActionEditor().getEditorUi());
         executeAll.setValue(actionInfos.isExecutedAsOne());
     }
 
 
     /**
-     * @return ActionInfos
+     * @return ActionInfos containing list of {@link ActionInfo} data as edited by user.
      */
     public ActionInfos getActionInfos() {
         return new ActionInfos(actionList.stream().map(a -> a.getActionInfo()).collect(Collectors.toList()),
                 executeAll.get());
     }
+
     /**
      * Remove action
      */
@@ -216,7 +214,7 @@ public class ActionsDialogController {
     @FXML
     public void removeAction() {
         int index = selectionIndex.get();
-        detailsPane.getChildren().remove(index);
+        detailsPane.getChildren().remove(0);
         actionsListView.getItems().remove(index);
     }
 
@@ -237,9 +235,9 @@ public class ActionsDialogController {
     @SuppressWarnings("unused")
     @FXML
     public void moveDown() {
-        int tragetIndex = selectionIndex.get() + 1;
+        int targetIndex = selectionIndex.get() + 1;
         final ActionsDialogActionItem item = actionList.remove(selectionIndex.get());
-        actionList.add(tragetIndex, item);
+        actionList.add(targetIndex, item);
         actionsListView.getSelectionModel().select(item);
     }
 }
