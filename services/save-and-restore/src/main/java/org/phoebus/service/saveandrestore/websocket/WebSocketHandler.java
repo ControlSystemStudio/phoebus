@@ -129,7 +129,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     protected void handlePongMessage(@NonNull WebSocketSession session, @NonNull PongMessage message) {
-        logger.log(Level.FINER, "Got pong");
+        logger.log(Level.INFO, "Got pong");
         // Find the WebSocket instance associated with this WebSocketSession
         Optional<WebSocket> webSocketOptional =
                 sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
