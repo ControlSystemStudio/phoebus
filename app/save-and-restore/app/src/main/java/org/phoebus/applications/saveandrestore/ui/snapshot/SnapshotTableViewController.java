@@ -247,8 +247,14 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             snapshot.setSnapshotData(snapshotData);
             showSnapshotInTable(snapshot);
             if (!Preferences.default_snapshot_name_date_format.isEmpty()) {
-                SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
-                snapshot.getSnapshotNode().setName(formatter.format(new Date()));
+                try {
+                    //The format could be not correct
+                    SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
+                    snapshot.getSnapshotNode().setName(formatter.format(new Date()));
+                }
+                catch (Exception e) {
+                    // Do not manage date format
+                }
             }
             consumer.accept(Optional.of(snapshot));
         });
