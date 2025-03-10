@@ -247,13 +247,14 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             snapshot.setSnapshotData(snapshotData);
             showSnapshotInTable(snapshot);
             if (!Preferences.default_snapshot_name_date_format.isEmpty()) {
+                String dateFormat = Preferences.default_snapshot_name_date_format;
                 try {
                     //The format could be not correct
-                    SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
+                    SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
                     snapshot.getSnapshotNode().setName(formatter.format(new Date()));
                 }
                 catch (Exception e) {
-                    // Do not manage date format
+                    LOGGER.log(Level.WARNING, dateFormat + " is not a valid date format please check 'default_snapshot_name_date_format' preference ", e);
                 }
             }
             consumer.accept(Optional.of(snapshot));
