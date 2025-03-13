@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>4.7.4-SNAPSHOT</version>
+  <version>${revision}</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
   <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>
@@ -64,6 +64,7 @@
   </distributionManagement>
 
   <properties>
+    <revision>4.7.4-SNAPSHOT</revision>
     <project.build.outputTimestamp>2024-01-10T19:23:58Z</project.build.outputTimestamp>
     <epics.version>7.0.10</epics.version>
     <epics.util.version>1.0.7</epics.util.version>
