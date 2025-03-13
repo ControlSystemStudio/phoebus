@@ -740,6 +740,9 @@ public class PVTable extends VBox
             menu.getItems().clear();
             menu.getItems().addAll(info, new SeparatorMenuItem());
 
+            if (ContextMenuHelper.addColumnVisibilityEntries(table, menu))
+                menu.getItems().add(new SeparatorMenuItem());
+
             if (model.isSaveRestoreEnabled())
                 menu.getItems().addAll(save, restore, new SeparatorMenuItem());
 

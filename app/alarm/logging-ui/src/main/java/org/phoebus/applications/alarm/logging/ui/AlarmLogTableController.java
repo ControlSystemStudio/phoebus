@@ -607,6 +607,9 @@ public class AlarmLogTableController {
         // search for other context menu actions registered for AlarmLogTableType
         SelectionService.getInstance().setSelection("AlarmLogTable", tableView.getSelectionModel().getSelectedItems());
 
+        if (ContextMenuHelper.addColumnVisibilityEntries(tableView, contextMenu))
+            contextMenu.getItems().add(new SeparatorMenuItem());
+
         ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(tableView), contextMenu);
 
         tableView.setContextMenu(contextMenu);

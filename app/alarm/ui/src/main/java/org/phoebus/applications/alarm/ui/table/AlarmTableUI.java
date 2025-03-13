@@ -36,6 +36,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -268,6 +269,13 @@ public class AlarmTableUI extends BorderPane
         // When user sorts column, apply the same to the 'other' table
         active.getSortOrder().addListener(new LinkedColumnSorter(active, acknowledged));
         acknowledged.getSortOrder().addListener(new LinkedColumnSorter(acknowledged, active));
+
+        // Bind visibility properties of columns between the tables
+        for (int i = 0; i < active.getColumns().size(); i++) {
+            active.getColumns().get(i).visibleProperty().bindBidirectional(
+                    acknowledged.getColumns().get(i).visibleProperty()
+            );
+        }
 
         // Insets make ack. count appear similar to the active count,
         // which is laid out based on the ack/unack/search buttons in the toolbar
@@ -532,13 +540,16 @@ public class AlarmTableUI extends BorderPane
             final ObservableList<MenuItem> menu_items = menu.getItems();
             menu_items.clear();
 
+            if (ContextMenuHelper.addColumnVisibilityEntries(table, menu)) {
+                menu_items.add(new SeparatorMenuItem());
+            }
+
             final List<AlarmTreeItem<?>> selection = new ArrayList<>();
             for (AlarmInfoRow row : table.getSelectionModel().getSelectedItems())
                 selection.add(row.item);
 
             // Add guidance etc.
-            new AlarmContextMenuHelper().addSupportedEntries(table, client, menu, selection);
-            if (menu_items.size() > 0)
+            if (new AlarmContextMenuHelper().addSupportedEntries(table, client, menu, selection))
                 menu_items.add(new SeparatorMenuItem());
 
             if (AlarmUI.mayConfigure(client)  &&   selection.size() == 1)

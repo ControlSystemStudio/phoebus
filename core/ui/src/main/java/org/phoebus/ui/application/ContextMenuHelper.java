@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 
+import javafx.scene.control.*;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
@@ -22,8 +23,6 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
@@ -81,4 +80,19 @@ public class ContextMenuHelper
 
         return true;
     }
+
+    /** Add context menu entries for showing / hiding columns
+     *
+     * */
+    public static boolean addColumnVisibilityEntries(final TableView<?> table, final ContextMenu menu) {
+        for (TableColumn<?, ?> col : table.getColumns()) {
+            if (col.getText().isEmpty()) continue;
+            CheckMenuItem item = new CheckMenuItem("Show " + col.getText());
+//            col.visibleProperty().bindBidirectional(item.selectedProperty());
+            item.selectedProperty().bindBidirectional(col.visibleProperty());
+            menu.getItems().add(item);
+        }
+        return !table.getColumns().isEmpty();
+    }
+
 }
