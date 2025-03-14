@@ -126,6 +126,8 @@ element is defined as pow(array[x], exponent).
 **arraySum(VNumberArray array, VNumber offset)** - Returns a VNumberArray where each
 element is defined as array[x] + offset. To subtract, use negative offset.
 
+**arrayTotal(VNumberArray array)** - Returns the sum of all elements in the input array.
+
 **elementAt([VNumberArray | VStringArray] array , VNumber index)** - Returns a VNumber
 or VString at the specified index of the input array. If the index is invalid, a NaN or
 empty string is returned.

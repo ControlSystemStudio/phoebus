@@ -51,6 +51,7 @@ org.csstudio.apputil.formula.array.SubArrayFunction
 org.csstudio.apputil.formula.array.ElementAtNumberFunction
 org.csstudio.apputil.formula.array.HistogramOfFunction
 org.csstudio.apputil.formula.array.ArraySumFunction
+org.csstudio.apputil.formula.array.ArrayTotalFunction
 org.csstudio.apputil.formula.array.ArrayPowFunction
 org.csstudio.apputil.formula.array.ArrayMultiplicationFunction
 org.csstudio.apputil.formula.array.ArrayDivisionFunction
