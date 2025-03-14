@@ -80,19 +80,4 @@ public class ContextMenuHelper
 
         return true;
     }
-
-    /** Add context menu entries for showing / hiding columns
-     *
-     * */
-    public static boolean addColumnVisibilityEntries(final TableView<?> table, final ContextMenu menu) {
-        for (TableColumn<?, ?> col : table.getColumns()) {
-            if (col.getText().isEmpty()) continue;
-            CheckMenuItem item = new CheckMenuItem("Show " + col.getText());
-//            col.visibleProperty().bindBidirectional(item.selectedProperty());
-            item.selectedProperty().bindBidirectional(col.visibleProperty());
-            menu.getItems().add(item);
-        }
-        return !table.getColumns().isEmpty();
-    }
-
 }

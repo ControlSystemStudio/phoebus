@@ -39,6 +39,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.application.TableHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.Brightness;
 import org.phoebus.ui.javafx.ClearingTextField;
@@ -540,7 +541,7 @@ public class AlarmTableUI extends BorderPane
             final ObservableList<MenuItem> menu_items = menu.getItems();
             menu_items.clear();
 
-            if (ContextMenuHelper.addColumnVisibilityEntries(table, menu)) {
+            if (TableHelper.addContextMenuColumnVisibilityEntries(table, menu)) {
                 menu_items.add(new SeparatorMenuItem());
             }
 
@@ -610,6 +611,9 @@ public class AlarmTableUI extends BorderPane
         for (TableColumn<AlarmInfoRow, ?> col : active.getColumns())
             memento.getNumber("COL" + i++).ifPresent(wid -> col.setPrefWidth(wid.doubleValue()));
 
+        // visibility is linked to other table, no need to also save/restore other table
+        TableHelper.restoreColumnVisibilities(active, memento, (col, idx) -> "COL" + idx + "vis");
+
         i = memento.getNumber("SORT").orElse(-1).intValue();
         if (i >= 0)
         {
@@ -626,6 +630,9 @@ public class AlarmTableUI extends BorderPane
         int i = 0;
         for (TableColumn<AlarmInfoRow, ?> col : active.getColumns())
             memento.setNumber("COL" + i++, col.getWidth());
+
+        // visibility is linked to other table, no need to also save/restore other table
+        TableHelper.saveColumnVisibilities(active, memento, (col, idx) -> "COL" + idx + "vis");
 
         final List<TableColumn<AlarmInfoRow, ?>> sorted = active.getSortOrder();
         if (sorted.size() == 1)
