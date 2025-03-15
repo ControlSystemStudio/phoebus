@@ -23,6 +23,7 @@ import org.phoebus.applications.pvtable.persistence.PVTablePersistence;
 import org.phoebus.applications.pvtable.ui.PVTable;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.util.ResourceParser;
@@ -41,13 +42,14 @@ public class PVTableInstance implements AppInstance
     final private AppDescriptor app;
     final private DockItemWithInput dock_item;
 
-    private PVTableModel model = new PVTableModel();
+    private final PVTableModel model = new PVTableModel();
+    private final PVTable table;
 
     PVTableInstance(final AppDescriptor app)
     {
         this.app = app;
 
-        final PVTable table = new PVTable(model);
+        table = new PVTable(model);
 
         dock_item = new DockItemWithInput(this, table, null, PVTableApplication.file_extensions, this::doSave);
         DockPane.getActiveDockPane().addTab(dock_item);
@@ -146,5 +148,17 @@ public class PVTableInstance implements AppInstance
     {
         logger.log(Level.INFO, "Stopping PV Table...");
         model.dispose();
+    }
+
+    @Override
+    public void restore(final Memento memento)
+    {
+        table.restore(memento);
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        table.save(memento);
     }
 }

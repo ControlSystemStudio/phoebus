@@ -58,12 +58,13 @@ public class AlarmContextMenuHelper
      *  @param menu Menu to extend
      *  @param selection Selected alarm tree items
      */
-    public void addSupportedEntries(final Node node,
+    public boolean addSupportedEntries(final Node node,
                                     final AlarmClient model,
                                     final ContextMenu menu,
                                     final List<AlarmTreeItem<?>> selection)
     {
         final List<MenuItem> menu_items = menu.getItems();
+        final int itemsBefore = menu_items.size();
         final List<AlarmTreeItem<?>> active = new ArrayList<>();
         final List<AlarmTreeItem<?>> acked = new ArrayList<>();
         final List<ProcessVariable> pvnames = new ArrayList<>();
@@ -140,6 +141,7 @@ public class AlarmContextMenuHelper
             SelectionService.getInstance().setSelection("AlarmUI", selection);
             ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(node), menu);
         }
+        return itemsBefore != menu_items.size();
     }
 
     private static MenuItem createSkippedEntriesHint(final Node node, final String type)

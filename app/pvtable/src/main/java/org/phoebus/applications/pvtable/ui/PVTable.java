@@ -27,12 +27,14 @@ import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.application.TableHelper;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
@@ -740,6 +742,9 @@ public class PVTable extends VBox
             menu.getItems().clear();
             menu.getItems().addAll(info, new SeparatorMenuItem());
 
+            if (TableHelper.addContextMenuColumnVisibilityEntries(table, menu))
+                menu.getItems().add(new SeparatorMenuItem());
+
             if (model.isSaveRestoreEnabled())
                 menu.getItems().addAll(save, restore, new SeparatorMenuItem());
 
@@ -1046,5 +1051,13 @@ public class PVTable extends VBox
         for (String pv : pvs)
             if (! pv.isEmpty())
                 model.addItemAbove(existing, pv);
+    }
+
+    public void save(final Memento memento) {
+        TableHelper.saveColumnVisibilities(table, memento, (col, idx) -> "COL" + idx + "vis");
+    }
+
+    public void restore(final Memento memento) {
+        TableHelper.restoreColumnVisibilities(table, memento, (col, idx) -> "COL" + idx + "vis");
     }
 }

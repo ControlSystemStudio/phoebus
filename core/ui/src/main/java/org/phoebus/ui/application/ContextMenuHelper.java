@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 
+import javafx.scene.control.*;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
@@ -22,8 +23,6 @@ import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
