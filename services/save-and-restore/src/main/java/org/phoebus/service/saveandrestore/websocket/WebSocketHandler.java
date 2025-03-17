@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -31,6 +32,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import javax.annotation.PreDestroy;
 import java.io.EOFException;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -85,7 +88,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
-        sockets.add(new WebSocket(objectMapper, session));
+        WebSocket webSocket = new WebSocket(objectMapper, session);
+        sockets.add(webSocket);
     }
 
     /**
@@ -137,6 +141,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
             return; // Should only happen in case of timing issues?
         }
         webSocketOptional.get().trackClientUpdate();
+
     }
 
     /**
