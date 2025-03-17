@@ -25,6 +25,7 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -37,6 +38,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -194,6 +196,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @FXML
     private VBox errorPane;
 
+    @FXML
+    private Label webSocketTrackerLabel;
+
     private final ObservableList<Node> searchResultNodes = FXCollections.observableArrayList();
 
     private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
@@ -248,6 +253,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             new ExportToCSVMenuItem(this, selectedItemsProperty, () -> exportToCSV())
     );
 
+    private final SimpleStringProperty webSocketTrackerText = new SimpleStringProperty();
+
+    WebSocketClient webSocketClient = new WebSocketClient();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -362,9 +370,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         treeView.setContextMenu(contextMenu);
 
-        loadTreeData();
-
-        WebSocketClient webSocketClient = WebSocketClient.getInstance();
+        //loadTreeData();
     }
 
 
