@@ -94,15 +94,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Stack;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -155,6 +147,10 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     @SuppressWarnings("unused")
     @FXML
     private Button saveFilterButton;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private TextField uniqueIdTextField;
 
     @SuppressWarnings("unused")
     @FXML
@@ -263,6 +259,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     private boolean searchDisabled = false;
 
+    private final SimpleStringProperty uniqueIdProperty = new SimpleStringProperty();
     private final SimpleStringProperty nodeNameProperty = new SimpleStringProperty();
 
     private final SimpleBooleanProperty nodeTypeFolderProperty = new SimpleBooleanProperty();
@@ -299,6 +296,17 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
         resultTableView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
+        uniqueIdTextField.textProperty().bindBidirectional(uniqueIdProperty);
+        uniqueIdTextField.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                // updateParametersAndSearch();
+                LOGGER.log(Level.INFO, "Hello uniqueIdTextField");
+                LOGGER.log(Level.INFO, "uniqueIdTextField: " + uniqueIdTextField.textProperty().getValue());
+                LOGGER.log(Level.INFO, "uniqueIdProperty: " + uniqueIdProperty.getValueSafe());
+
+                uniqueIdSearch();
+            }
+        });
         nodeNameTextField.textProperty().bindBidirectional(nodeNameProperty);
         nodeNameTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
@@ -429,10 +437,11 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         filterNameTextField.textProperty().bindBidirectional(filterNameProperty);
         filterNameTextField.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
         saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                        filterNameProperty.get() == null ||
-                                filterNameProperty.get().isEmpty() ||
-                                saveAndRestoreController.getUserIdentity().isNull().get(),
-                filterNameProperty, saveAndRestoreController.getUserIdentity()));
+            filterNameProperty.get() == null ||
+                filterNameProperty.get().isEmpty() ||
+                saveAndRestoreController.getUserIdentity().isNull().get() ||
+                uniqueIdProperty.isNotEmpty().get(),
+            filterNameProperty, saveAndRestoreController.getUserIdentity(), uniqueIdProperty));
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
             @Override
@@ -713,6 +722,59 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             tagSearchPopover.setAvailable(availableTags, selectedTags);
             tagSearchPopover.setSelected(selectedTags);
             tagSearchPopover.show(tagsTextField);
+        }
+    }
+
+    /**
+     * Search with a unique ID
+     * Results will be 0 or 1 entries
+     * Fill results table
+     */
+    private void uniqueIdSearch() {
+        LOGGER.log(Level.INFO, "Hello uniqueIdSearch");
+        LOGGER.log(Level.INFO, "uniqueIdProperty: " + uniqueIdProperty);
+        LOGGER.log(Level.INFO, "uniqueIdProperty.getValueSafe(): " + uniqueIdProperty.getValueSafe());
+
+        if (uniqueIdProperty.get() == null) {
+            LOGGER.log(Level.INFO, "uniqueIdProperty: is null");
+        } else {
+            LOGGER.log(Level.INFO, "uniqueIdProperty: is not null");
+        }
+        if (uniqueIdProperty.isEmpty().get()) {
+            LOGGER.log(Level.INFO, "uniqueIdProperty: is empty");
+        } else {
+            LOGGER.log(Level.INFO, "uniqueIdProperty: is not empty");
+        }
+
+        try {
+            /* Search with the uniqueID */
+            Node uniqueIdNode = SaveAndRestoreService.getInstance().getNode(uniqueIdProperty.getValueSafe());
+            LOGGER.log(Level.INFO, "uniqueIDNode: " + uniqueIdNode);
+
+            /* Check that there are results, fill table - should be at most one result */
+            if (uniqueIdNode != null) {
+                LOGGER.log(Level.INFO, "uniqueID: " + uniqueIdNode.getUniqueId());
+                LOGGER.log(Level.INFO, "name: " + uniqueIdNode.getName());
+
+                Platform.runLater(() -> {
+                    tableEntries.setAll(List.of(uniqueIdNode));
+                    hitCountProperty.set(1);
+                });
+            /* Clear the results table if no record returned */
+            } else {
+                Platform.runLater(tableEntries::clear);
+                hitCountProperty.set(0);
+            }
+        } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(
+                    resultTableView,
+                    Messages.errorGeneric,
+                    Messages.searchErrorBody,
+                    e
+            );
+            /* Clear the results table if there's an error*/
+            tableEntries.clear();
+            hitCountProperty.set(0);
         }
     }
 
