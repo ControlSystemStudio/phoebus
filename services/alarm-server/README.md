@@ -59,4 +59,3 @@ Docker compose files are provided for convenience to cover two use cases:
     purpose of importing a configuration. Environment variables must be se as in case 1.
     Additionally, the environment variable ```CONFIG_FILE``` must identify an alarm
     configuration file in the current user's home directory.
-

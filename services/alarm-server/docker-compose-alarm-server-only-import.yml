@@ -1,6 +1,6 @@
 services:
   alarmserver:
-    image: ghcr.io/controlsystemstudio/phoebus/service-alarm-server:csstudio-2989
+    image: ghcr.io/controlsystemstudio/phoebus/service-alarm-server:master
     volumes:
       - /home:/home
     command: >
