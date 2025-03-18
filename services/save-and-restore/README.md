@@ -36,7 +36,7 @@ or you can use a `.properties file`
 To check that the server is running correctly.
 
 ```
-$ curl --fail-with-body http://localhost:8080/save-restore
+$ curl --fail-with-body http://localhost:8080/save-restore/
 {
   "name" : "service-save-and-restore",
   "version" : "4.7.4-SNAPSHOT",
@@ -58,6 +58,16 @@ Details about the REST API is found in the Phoebus bundled help content, which i
 
 # Docker
 
-The latest version of the service is available as a Docker image (ghcr.io/controlsystemstudio/phoebus/service-save-and-restore:master). Any pushes to the master branch into this directory will trigger a new build of the image.
+The latest version of the service is available as a Docker image (ghcr.io/controlsystemstudio/phoebus/service-save-and-restore:master). Pushes to the master branch into this directory will trigger a new build of the image.
 
-To run the service and its dependency (Elasticsearch), use docker-compose.yml.
+Docker compose files are provided. These depend on the environment variables as described below.
+
+1. ```docker-compose.yml```. Use this to launch both Elasticsearch and the service. The environment variable ```HOST_EXTERNAL_IP_ADDRESS``` 
+    should be set to the host's external IP address (i.e. **not** 127.0.0.1 or localhost).
+2. ```docker-compose-save-and-restore.yml```. Use this to launch save-and-restore service only. The environment variable ```HOST_EXTERNAL_IP_ADDRESS```
+   should be set to the host's external IP address (i.e. **not** 127.0.0.1 or localhost), while the environment variable ```ELASTIC_HOST``` should
+   be set to the IP address of the Elasticsearch host. If Elasticsearch is running on  localhost, please specify the host's
+   external IP address. 
+
+**NOTE:** Accessing IOCs over pva (default mode in the Docker compose files) works **only** if IOC is running on the
+same host as the Docker container. Moreover, this has been verified to work only on Linux.

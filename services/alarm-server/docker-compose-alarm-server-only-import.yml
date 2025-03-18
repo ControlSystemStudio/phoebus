@@ -5,5 +5,5 @@ services:
       - /home:/home
     command: >
       /bin/bash -c "
-      java -jar /alarmserver/service-alarm-server-*.jar -config ${CONFIG} -server ${KAFKA_HOST}:9092 -noshell"
+      java -jar /alarmserver/service-alarm-server-*.jar -config ${CONFIG} -import ${CONFIG_FILE} -server ${KAFKA_HOST}:9092"
   
