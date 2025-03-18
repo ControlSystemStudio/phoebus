@@ -84,7 +84,7 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
     @Override
     public long getWorkUnits()
     {
-        final long iterations = 1 + Math.round(Math.abs((command.getEnd() - command.getStart()) / command.getStepSize()));
+        final long iterations = getNumSteps();
         long body_units = 0;
         for (ScanCommandImpl<?> command : implementation)
             body_units += command.getWorkUnits();
@@ -128,21 +128,22 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         return step;
     }
 
+    public int getNumSteps() {
+        return (int)Math.ceil(Math.abs(((command.getEnd() - command.getStart()) / command.getStepSize()))) + 1;
+    }
+
     /** {@inheritDoc} */
     @Override
     public void simulate(final SimulationContext context) throws Exception
     {
         final SimulatedDevice device = context.getDevice(context.getMacros().resolveMacros(command.getDeviceName()));
 
-        final double start = getLoopStart();
-        final double end   = getLoopEnd();
         final double step  = getLoopStep();
-        if (step > 0)
-            for (double value = start; value <= end; value += step)
-                simulateStep(context, device, value);
-        else // step is < 0, so stepping down
-            for (double value = end; value >= start; value += step)
-                simulateStep(context, device, value);
+        // step is < 0 means we are stepping down
+        double start = step < 0 ? getLoopEnd() : getLoopStart();
+        int num_steps = getNumSteps();
+        for (int i = 0; i < num_steps; i++)
+            simulateStep(context, device, start + i * step);
     }
 
     /** Simulate one step in the loop iteration
@@ -204,25 +205,13 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         else
             condition = null;
 
-        double start = getLoopStart();
-        double end   = getLoopEnd();
         double step  = getLoopStep();
-        if (step > 0)
-            for (double value = start; value <= end; value += step)
-            {
-                executeStep(context, device, condition, readback, value);
-                // Permit changed step and end, but keep the direction
-                end = getLoopEnd();
-                step = Math.abs(command.getStepSize());
-            }
-        else // step is < 0, so stepping down
-            for (double value = end; value >= start; value += step)
-            {
-                executeStep(context, device, condition, readback, value);
-                // Permit changed step and start, but keep the direction
-                start = getLoopStart();
-                step = - Math.abs(command.getStepSize());
-            }
+        // step is < 0 means we are stepping down
+        double start = step < 0 ? getLoopEnd() : getLoopStart();
+        int num_steps = getNumSteps();
+
+        for (int i = 0; i < num_steps; i++)
+            executeStep(context, device, condition, readback, start + i * step);
     }
 
     /** Execute one step of the loop

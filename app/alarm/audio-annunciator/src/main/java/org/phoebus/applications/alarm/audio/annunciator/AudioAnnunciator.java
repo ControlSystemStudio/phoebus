@@ -15,6 +15,8 @@ import org.phoebus.applications.alarm.ui.annunciator.Annunciator;
 import org.phoebus.applications.alarm.ui.annunciator.AnnunciatorMessage;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Annunciator class. Uses Audio files to annunciate passed messages.
@@ -23,6 +25,7 @@ import java.util.List;
  */
 @SuppressWarnings("nls")
 public class AudioAnnunciator implements Annunciator {
+    private static final Logger logger = Logger.getLogger(AudioAnnunciator.class.getName());
     private final MediaPlayer alarmSound;
     private final MediaPlayer minorAlarmSound;
     private final MediaPlayer majorAlarmSound;
@@ -33,17 +36,45 @@ public class AudioAnnunciator implements Annunciator {
      * Constructor
      */
     public AudioAnnunciator() {
-        alarmSound = new MediaPlayer(new Media(Preferences.alarm_sound_url));
-        minorAlarmSound = new MediaPlayer(new Media(Preferences.minor_alarm_sound_url));
-        majorAlarmSound = new MediaPlayer(new Media(Preferences.major_alarm_sound_url));
-        invalidAlarmSound = new MediaPlayer(new Media(Preferences.invalid_alarm_sound_url));
-        undefinedAlarmSound = new MediaPlayer(new Media(Preferences.undefined_alarm_sound_url));
+        alarmSound = createMediaPlayer(Preferences.alarm_sound_url);
+        minorAlarmSound = createMediaPlayer(Preferences.minor_alarm_sound_url);
+        majorAlarmSound = createMediaPlayer(Preferences.major_alarm_sound_url);
+        invalidAlarmSound = createMediaPlayer(Preferences.invalid_alarm_sound_url);
+        undefinedAlarmSound = createMediaPlayer(Preferences.undefined_alarm_sound_url);
         // configure the media players for the different alarm sounds
         List.of(alarmSound, minorAlarmSound, majorAlarmSound, invalidAlarmSound, undefinedAlarmSound)
                 .forEach(sound -> {
-                    sound.setStopTime(Duration.seconds(Preferences.max_alarm_duration));
-                    sound.setVolume(Preferences.volume);
+                    if (sound != null) {
+                        sound.setStopTime(Duration.seconds(Preferences.max_alarm_duration));
+                        sound.setVolume(Preferences.volume);
+                    }
                 });
+    }
+
+    /**
+     * Create a MediaPlayer for the given URL
+     *
+     * @param url URL of the audio file
+     * @return MediaPlayer
+     */
+    private MediaPlayer createMediaPlayer(String url) {
+        try {
+            MediaPlayer player = new MediaPlayer(new Media(url));
+            if (player.getError() == null) {
+                player.setOnError(() -> logger.log(Level.SEVERE, "Error playing alarm sound: " + url, player.getError()));
+                player.setOnPlaying(() -> logger.log(Level.FINE, "Playing alarm sound: " + url));
+                player.setOnStopped(() -> logger.log(Level.FINE, "Alarm sound stopped: " + url));
+                player.setOnEndOfMedia(() -> logger.log(Level.FINE, "Alarm sound finished: " + url));
+                return player;
+            }
+            else {
+                logger.log(Level.SEVERE, "Error creating MediaPlayer for URL: " + url, player.getError());
+                return null;
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to create MediaPlayer for URL: " + url, e);
+            return null;
+        }
     }
 
     /**
@@ -53,6 +84,15 @@ public class AudioAnnunciator implements Annunciator {
      */
     @Override
     public void speak(final AnnunciatorMessage message) {
+        if (message == null) {
+            logger.log(Level.WARNING, "Received null AnnunciatorMessage");
+            return;
+        }
+        if (message.severity == null) {
+            logger.log(Level.WARNING, "Received AnnunciatorMessage with null severity: " + message + ". Playing default alarm sound");
+            speakAlone(alarmSound); // Play the default alarm sound
+            return;
+        }
         switch (message.severity) {
             case MINOR -> speakAlone(minorAlarmSound);
             case MAJOR -> speakAlone(majorAlarmSound);
@@ -62,12 +102,27 @@ public class AudioAnnunciator implements Annunciator {
         }
     }
 
+    /**
+     * Play the alarm sound alone by first stopping any alarm sounds.
+     *
+     * @param alarm Alarm sound
+     */
     synchronized private void speakAlone(MediaPlayer alarm) {
+        if (alarm == null) {
+            logger.log(Level.WARNING, "Alarm sound is null, cannot play sound");
+            return;
+        }
         List.of(alarmSound, minorAlarmSound, majorAlarmSound, invalidAlarmSound, undefinedAlarmSound)
                 .forEach(sound -> {
-                    sound.stop();
+                    if (sound != null) {
+                        sound.stop();
+                    }
                 });
-        alarm.play();
+        try {
+            alarm.play();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to play alarm sound", e);
+        }
     }
 
     /**
@@ -77,8 +132,14 @@ public class AudioAnnunciator implements Annunciator {
     public void shutdown() {
         List.of(alarmSound, minorAlarmSound, majorAlarmSound, invalidAlarmSound, undefinedAlarmSound)
                 .forEach(sound -> {
-                    sound.stop();
-                    sound.dispose();
+                    if (sound != null) {
+                        try {
+                            sound.stop();
+                            sound.dispose();
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Failed to stop and dispose alarm sound" , e);
+                        }
+                    }
                 });
     }
 }

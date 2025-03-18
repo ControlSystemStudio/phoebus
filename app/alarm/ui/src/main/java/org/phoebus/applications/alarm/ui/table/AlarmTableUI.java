@@ -16,8 +16,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
+import javafx.scene.control.TableColumnBase;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
@@ -442,7 +444,7 @@ public class AlarmTableUI extends BorderPane
         sevcol.setCellFactory(c -> new SeverityLevelCell());
         cols.add(sevcol);
 
-        col = new TableColumn<>("Alarm Status");
+        col = new TableColumn<>("Alarm Message");
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().status);
@@ -470,7 +472,7 @@ public class AlarmTableUI extends BorderPane
         sevcol.setCellFactory(c -> new SeverityLevelCell());
         cols.add(sevcol);
 
-        col = new TableColumn<>("PV Status");
+        col = new TableColumn<>("PV Message");
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().pv_status);
@@ -493,7 +495,8 @@ public class AlarmTableUI extends BorderPane
             if (to_add.isPresent())
                 table.getColumns().add(to_add.get());
             else
-                logger.log(Level.WARNING, "Unknown Alarm Table column '" + header + "'");
+                logger.log(Level.SEVERE, "Unknown Alarm Table column '" + header + "' " +
+                        " Supported columns are: " + cols.stream().map(TableColumnBase::getText).collect(Collectors.joining(", ")));
         }
 
         // Initially, sort on PV name
