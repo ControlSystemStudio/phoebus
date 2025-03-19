@@ -51,6 +51,8 @@
                             <RowConstraints/>
                             <RowConstraints/>
                             <RowConstraints/>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
                         </rowConstraints>
                         <BorderPane.margin>
                             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
@@ -133,7 +135,7 @@
                                 <Tooltip text="%golden"/>
                             </tooltip>
                         </CheckBox>
-                        <Label text="%pvNames" GridPane.rowIndex="11"/>
+                        <Label text="%pvNames" GridPane.columnSpan="2" GridPane.rowIndex="11"/>
                         <TextField fx:id="pvsTextField" GridPane.columnSpan="2" GridPane.rowIndex="12"/>
                         <Label text="%filterEditorUser" GridPane.columnSpan="2" GridPane.rowIndex="13"/>
                         <TextField fx:id="userTextField" GridPane.columnSpan="2" GridPane.rowIndex="14"/>
@@ -142,7 +144,6 @@
                                 <Insets top="5.0"/>
                             </GridPane.margin>
                         </Label>
-
                         <Label text="%StartTime" GridPane.rowIndex="17">
                             <GridPane.margin>
                                 <Insets/>
@@ -160,8 +161,8 @@
                                 <Insets bottom="3.0" left="3.0" top="3.0"/>
                             </GridPane.margin>
                         </TextField>
-
-
+                        <Label text="%UniqueId" GridPane.rowIndex="19"/>
+                        <TextField fx:id="uniqueIdTextField" GridPane.columnSpan="2" GridPane.rowIndex="20"/>
                     </GridPane>
                 </center>
             </BorderPane>

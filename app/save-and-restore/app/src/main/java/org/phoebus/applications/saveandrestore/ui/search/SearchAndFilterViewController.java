@@ -96,6 +96,10 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     @SuppressWarnings("unused")
     @FXML
+    private TextField uniqueIdTextField;
+
+    @SuppressWarnings("unused")
+    @FXML
     private TextField nodeNameTextField;
 
     @SuppressWarnings("unused")
@@ -186,6 +190,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     private boolean searchDisabled = false;
 
+    private final SimpleStringProperty uniqueIdProperty = new SimpleStringProperty();
     private final SimpleStringProperty nodeNameProperty = new SimpleStringProperty();
 
     private final SimpleBooleanProperty nodeTypeFolderProperty = new SimpleBooleanProperty();
@@ -220,6 +225,18 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     @FXML
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
+        uniqueIdTextField.textProperty().bindBidirectional(uniqueIdProperty);
+        uniqueIdTextField.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                LOGGER.log(Level.INFO, "ENTER has been pressed in uniqueIdTextField");
+                LOGGER.log(Level.INFO, "uniqueIdProperty: " + uniqueIdProperty.getValueSafe());
+                if (uniqueIdProperty.isEmpty().get()) {
+                    LOGGER.log(Level.INFO, "uniqueIdString: is empty");
+                } else {
+                    searchResultTableViewController.uniqueIdSearch(uniqueIdProperty.getValueSafe());
+                }
+            }
+        });
         nodeNameTextField.textProperty().bindBidirectional(nodeNameProperty);
         nodeNameTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
@@ -350,10 +367,10 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         filterNameTextField.textProperty().bindBidirectional(filterNameProperty);
         filterNameTextField.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
         saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                        filterNameProperty.get() == null ||
-                                filterNameProperty.get().isEmpty() ||
-                                saveAndRestoreController.getUserIdentity().isNull().get(),
-                filterNameProperty, saveAndRestoreController.getUserIdentity()));
+            filterNameProperty.isEmpty().get() ||
+                saveAndRestoreController.getUserIdentity().isNull().get() ||
+                uniqueIdProperty.isNotEmpty().get(),
+            filterNameProperty, saveAndRestoreController.getUserIdentity(), uniqueIdProperty));
 
         query.addListener((observable, oldValue, newValue) -> {
             if (newValue == null || newValue.isEmpty()) {
