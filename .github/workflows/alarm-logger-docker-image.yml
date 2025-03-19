@@ -2,7 +2,7 @@ name: Alarm Logger Docker Image CI
 
 on:
   push:
-    branches: [ "CSSTUDIO-2989" ]
+    branches: [ "master" ]
     paths: services/alarm-logger/**
     tags:
       - '**'

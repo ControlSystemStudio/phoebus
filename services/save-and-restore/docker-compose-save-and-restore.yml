@@ -14,7 +14,3 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-volumes:
-  saveandrestore-es-data:
-    driver: local
-

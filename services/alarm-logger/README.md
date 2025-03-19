@@ -135,3 +135,18 @@ A full list of checks is documented [here](https://maven.apache.org/maven-releas
 `mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`  
 Checkout the release tag, build, sign and push the build binaries to sonatype. The `docs` profile is needed in order
 to create required javadocs jars.
+
+# Docker
+
+The latest version of the service is available as a Docker image (ghcr.io/controlsystemstudio/phoebus/service-alarm-logger:master). 
+Pushes to the master branch into this directory will trigger a new build of the image.
+
+Docker compose file is provided. It requires the following environment variable to be set:
+
+```KAFKA_HOST_IP_ADDRESS=1.2.3.4```
+```ELASTIC_HOST_IP_ADDRESS=1.2.3.4```  
+```ALARM_TOPICS```: comma-separated list of alarm topics subscribed to by the service
+
+This may be preferable compared to setting environment variables on command line, e.g.
+
+```>export KAFKA_HOST_IP_ADDRESS=1.2.3.4```.
