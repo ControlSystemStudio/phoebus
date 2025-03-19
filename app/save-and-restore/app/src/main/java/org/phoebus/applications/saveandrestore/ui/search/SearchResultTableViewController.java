@@ -69,6 +69,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -133,6 +135,7 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
     private final SimpleIntegerProperty pageSizeProperty =
             new SimpleIntegerProperty(Preferences.search_result_page_size);
     private String queryString;
+    private static final Logger LOGGER = Logger.getLogger(SearchResultTableViewController.class.getName());
 
     private SaveAndRestoreService saveAndRestoreService;
 
@@ -353,6 +356,43 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 tableEntries.setAll(Collections.emptyList());
             }
         });
+    }
+
+    /**
+     * Search with a unique ID
+     * Results will be 0 or 1 entry
+     * Fill results table
+     */
+    void uniqueIdSearch(final String uniqueIdString) {
+        LOGGER.log(Level.INFO, "uniqueIdSearch() called with: uniqueIdString = " + uniqueIdString);
+        try {
+            /* Search with the uniqueID */
+            Node uniqueIdNode = SaveAndRestoreService.getInstance().getNode(uniqueIdString);
+            LOGGER.log(Level.INFO, "uniqueIDNode: " + uniqueIdNode);
+
+            /* Check that there are results, then fill table - should be at most one result */
+            if (uniqueIdNode != null) {
+                LOGGER.log(Level.INFO, "uniqueIdNode.getName(): " + uniqueIdNode.getName());
+                Platform.runLater(() -> {
+                    tableEntries.setAll(List.of(uniqueIdNode));
+                    hitCountProperty.set(1);
+                });
+            /* Clear the results table if no record returned */
+            } else {
+                Platform.runLater(tableEntries::clear);
+                hitCountProperty.set(0);
+            }
+        } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(
+                    resultTableView,
+                    Messages.errorGeneric,
+                    Messages.searchErrorBody,
+                    e
+            );
+            /* Clear the results table if there's an error */
+            tableEntries.clear();
+            hitCountProperty.set(0);
+        }
     }
 
     /**

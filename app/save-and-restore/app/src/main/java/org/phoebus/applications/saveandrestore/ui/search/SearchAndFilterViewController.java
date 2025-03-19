@@ -228,12 +228,13 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         uniqueIdTextField.textProperty().bindBidirectional(uniqueIdProperty);
         uniqueIdTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
-                // updateParametersAndSearch();
-                LOGGER.log(Level.INFO, "Hello uniqueIdTextField");
-                LOGGER.log(Level.INFO, "uniqueIdTextField: " + uniqueIdTextField.textProperty().getValue());
+                LOGGER.log(Level.INFO, "ENTER has been pressed in uniqueIdTextField");
                 LOGGER.log(Level.INFO, "uniqueIdProperty: " + uniqueIdProperty.getValueSafe());
-
-                uniqueIdSearch();
+                if (uniqueIdProperty.isEmpty().get()) {
+                    LOGGER.log(Level.INFO, "uniqueIdString: is empty");
+                } else {
+                    searchResultTableViewController.uniqueIdSearch(uniqueIdProperty.getValueSafe());
+                }
             }
         });
         nodeNameTextField.textProperty().bindBidirectional(nodeNameProperty);
@@ -366,8 +367,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         filterNameTextField.textProperty().bindBidirectional(filterNameProperty);
         filterNameTextField.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
         saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-            filterNameProperty.get() == null ||
-                filterNameProperty.get().isEmpty() ||
+            filterNameProperty.isEmpty().get() ||
                 saveAndRestoreController.getUserIdentity().isNull().get() ||
                 uniqueIdProperty.isNotEmpty().get(),
             filterNameProperty, saveAndRestoreController.getUserIdentity(), uniqueIdProperty));
@@ -476,59 +476,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             tagSearchPopover.setAvailable(availableTags, selectedTags);
             tagSearchPopover.setSelected(selectedTags);
             tagSearchPopover.show(tagsTextField);
-        }
-    }
-
-    /**
-     * Search with a unique ID
-     * Results will be 0 or 1 entries
-     * Fill results table
-     */
-    private void uniqueIdSearch() {
-        LOGGER.log(Level.INFO, "Hello uniqueIdSearch");
-        LOGGER.log(Level.INFO, "uniqueIdProperty: " + uniqueIdProperty);
-        LOGGER.log(Level.INFO, "uniqueIdProperty.getValueSafe(): " + uniqueIdProperty.getValueSafe());
-
-        if (uniqueIdProperty.get() == null) {
-            LOGGER.log(Level.INFO, "uniqueIdProperty: is null");
-        } else {
-            LOGGER.log(Level.INFO, "uniqueIdProperty: is not null");
-        }
-        if (uniqueIdProperty.isEmpty().get()) {
-            LOGGER.log(Level.INFO, "uniqueIdProperty: is empty");
-        } else {
-            LOGGER.log(Level.INFO, "uniqueIdProperty: is not empty");
-        }
-
-        try {
-            /* Search with the uniqueID */
-            Node uniqueIdNode = SaveAndRestoreService.getInstance().getNode(uniqueIdProperty.getValueSafe());
-            LOGGER.log(Level.INFO, "uniqueIDNode: " + uniqueIdNode);
-
-            /* Check that there are results, fill table - should be at most one result */
-            if (uniqueIdNode != null) {
-                LOGGER.log(Level.INFO, "uniqueID: " + uniqueIdNode.getUniqueId());
-                LOGGER.log(Level.INFO, "name: " + uniqueIdNode.getName());
-
-                Platform.runLater(() -> {
-                    tableEntries.setAll(List.of(uniqueIdNode));
-                    hitCountProperty.set(1);
-                });
-            /* Clear the results table if no record returned */
-            } else {
-                Platform.runLater(tableEntries::clear);
-                hitCountProperty.set(0);
-            }
-        } catch (Exception e) {
-            ExceptionDetailsErrorDialog.openError(
-                    resultTableView,
-                    Messages.errorGeneric,
-                    Messages.searchErrorBody,
-                    e
-            );
-            /* Clear the results table if there's an error*/
-            tableEntries.clear();
-            hitCountProperty.set(0);
         }
     }
 
