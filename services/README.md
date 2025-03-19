@@ -28,3 +28,14 @@ services in this repository depend:
 The Docker compose file depends on the environment variable ```HOST_IP_ADDRESS```, which must be set
 to the IP address of the host running the Docker container. Kafka clients must use this as the
 ```bootstrap-server``` IP address.
+
+Docker supports environment variables to be set in a file (default ```.env``` in current directory) like so:
+
+```HOST_IP_ADDRESS=1.2.3.4```
+.  
+.  
+.
+
+This may be preferable compared to setting environment variables on command line, e.g.
+
+```>export HOST_IP_ADDRESS=1.2.3.4```.

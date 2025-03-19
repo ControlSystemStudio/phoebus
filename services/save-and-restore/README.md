@@ -62,12 +62,24 @@ The latest version of the service is available as a Docker image (ghcr.io/contro
 
 Docker compose files are provided. These depend on the environment variables as described below.
 
-1. ```docker-compose.yml```. Use this to launch both Elasticsearch and the service. The environment variable ```HOST_EXTERNAL_IP_ADDRESS``` 
+1. ```docker-compose.yml```. Use this to launch both Elasticsearch and the service. The environment variable ```HOST_IP_ADDRESS``` 
     should be set to the host's external IP address (i.e. **not** 127.0.0.1 or localhost).
-2. ```docker-compose-save-and-restore.yml```. Use this to launch save-and-restore service only. The environment variable ```HOST_EXTERNAL_IP_ADDRESS```
+2. ```docker-compose-save-and-restore.yml```. Use this to launch save-and-restore service only. The environment variable ```HOST_IP_ADDRESS```
    should be set to the host's external IP address (i.e. **not** 127.0.0.1 or localhost), while the environment variable ```ELASTIC_HOST``` should
    be set to the IP address of the Elasticsearch host. If Elasticsearch is running on  localhost, please specify the host's
-   external IP address. 
+   external IP address.
+
+Docker supports environment variables to be set in a file (default ```.env``` in current directory) like so:
+
+```HOST_IP_ADDRESS=1.2.3.4```  
+```ELASTIC_HOST=1.2.3.4```  
+.  
+.  
+.
+
+This may be preferable compared to setting environment variables on command line, e.g.
+
+```>export HOST_IP_ADDRESS=1.2.3.4```.
 
 **NOTE:** Accessing IOCs over pva (default mode in the Docker compose files) works **only** if IOC is running on the
 same host as the Docker container. Moreover, this has been verified to work only on Linux.
