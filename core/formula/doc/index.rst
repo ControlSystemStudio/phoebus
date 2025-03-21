@@ -132,6 +132,9 @@ element is defined as array[x] + offset. To subtract, use negative offset.
 or VString at the specified index of the input array. If the index is invalid, a NaN or
 empty string is returned.
 
+**arrayIndex([VNumberArray | VStringArray] array, [VNumber | VString] value)** - Returns the index of the first
+occurrence of the specified value in the input array. If the value is not found, -1 is returned.
+
 **histogramOf(VNumberArray array [, VNumber binCount])** - Computes a histogram for the input array. The binCount
 argument is optional and defaults to 100.
 
