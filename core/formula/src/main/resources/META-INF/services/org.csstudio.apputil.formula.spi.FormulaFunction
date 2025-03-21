@@ -63,6 +63,7 @@ org.csstudio.apputil.formula.array.ArraySampleWithStrideFunction
 org.csstudio.apputil.formula.array.ArrayStatsFunction
 org.csstudio.apputil.formula.array.ArrayMaxFunction
 org.csstudio.apputil.formula.array.ArrayMinFunction
+org.csstudio.apputil.formula.array.ArrayCumSumFunction
 
 # Bitwise Operation
 org.csstudio.apputil.formula.bitwise.BitAND
