@@ -11,12 +11,16 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 public class AlarmLogMessage {
+    private static final Logger logger = Logger.getLogger(AlarmLogMessage.class.getName());
 
     private String severity;
     private String message;
@@ -34,6 +38,7 @@ public class AlarmLogMessage {
     private String user;
     private String host;
     private String command;
+    @JsonDeserialize(using = EnabledFieldDeserializer.class)
     private boolean enabled;
 
     public String getConfig() {
@@ -166,6 +171,27 @@ public class AlarmLogMessage {
         @Override
         public Instant deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
             return Instant.from(formatter.parse(p.getText()));
+        }
+    }
+
+    public static class EnabledFieldDeserializer extends JsonDeserializer<Boolean> {
+
+        private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+        @Override
+        public Boolean deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            String text = p.getText();
+            try {
+                return Boolean.parseBoolean(text);
+            } catch (Exception e) {
+                try {
+                    LocalDateTime.parse(text, formatter);
+                    return false; // A date string means the alarm is disabled
+                } catch (Exception ex) {
+                    logger.log(Level.SEVERE, "Failed to parse enabled field: " + text, ex);
+                    return null;
+                }
+            }
         }
     }
 }

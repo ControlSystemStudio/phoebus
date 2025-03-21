@@ -47,3 +47,32 @@ some useful startup arguments include
 -import   config.xml        - Import alarm configruation from file
 -logging logging.properties - Load log settings
 ```
+
+## Docker
+
+Docker compose files are provided for convenience to cover two use cases:
+
+1. ```docker-compose-alarm-server-only.yml``` will run the alarm server. Required environment variables:
+    * ```KAFKA_HOST_IP_ADDRESS``` must be set to identify the Kafka server external IP address.
+    * ```CONFIG``` identifies the configuration (topic) name. 
+    * ```ALARM_SERVICE_SETTINGS_FILE``` file in user's home directory specifying EPICS related settings, e.g.
+      ```org.phoebus.pv/default=pva```.
+2. ```docker-compose-alarm-server-only-import.yml``` will run the alarm server for the
+    purpose of importing a configuration. Environment variables must be se as in case 1.
+    Additionally, the environment variable ```CONFIG_FILE``` must identify an alarm
+    configuration file in the current user's home directory.
+
+Docker supports environment variables to be set in a file (default ```.env``` in current directory) like so:
+
+```KAFKA_HOST_IP_ADDRESS=1.2.3.4```  
+```CONFIG=Accelerator```  
+.  
+.  
+.  
+
+This may be preferable compared to setting environment variables on command line, e.g. 
+
+```>export KAFKA_HOST_IP_ADDRESS=1.2.3.4```.
+
+**NOTE:** Accessing IOCs over pva (default mode in the Docker compose files) works **only** if IOC is running on the
+same host as the Docker container. Moreover, this has been verified to work only on Linux.

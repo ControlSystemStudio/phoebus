@@ -157,6 +157,8 @@ This includes the average, min, max, and element count
 
 **arraySampleWithStride(VNumberArray array, VNumber stride, VNumber offset)** - Returns a VNumberArray where each element is defined as array\[x \* stride + offset\].
 
+**arrayCumSum(VNumberArray array)** - Returns a VNumberArray where each element is defined as the cumulative sum of the input array.
+
 String
 ------
 **concat(String s...)** - Concatenate a list of strings of a string array.
