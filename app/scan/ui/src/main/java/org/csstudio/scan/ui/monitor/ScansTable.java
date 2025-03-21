@@ -21,6 +21,9 @@ import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.ui.ScanUIPreferences;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
+import org.phoebus.framework.persistence.Memento;
+import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.TableHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
@@ -298,6 +301,8 @@ public class ScansTable extends VBox
             // Start with benign, "read only" commands, then end with commands that
             // do something like re-submit, abort, remove
             menu.getItems().setAll(server_info, new SeparatorMenuItem());
+            if (TableHelper.addContextMenuColumnVisibilityEntries(scan_table, menu))
+                menu.getItems().add(new SeparatorMenuItem());
 
             final List<ScanInfo> selection = scan_table.getSelectionModel().getSelectedItems().stream().map(proxy -> proxy.info).collect(Collectors.toList());
             if (selection.size() == 1)
@@ -472,5 +477,25 @@ public class ScansTable extends VBox
     private boolean isStatusbarVisible()
     {
         return getChildren().size() > 1;
+    }
+
+    void save(final Memento memento) {
+        int i = 0;
+        for (TableColumn<?,?> col : getTableColumns())
+            memento.setNumber("COL" + i++, col.getWidth());
+        TableHelper.saveColumnVisibilities(scan_table, memento, (col, idx) -> "COL" + idx + "vis");
+    }
+
+    void restore(final Memento memento) {
+        final List<TableColumn<ScanInfoProxy, ?>> columns = getTableColumns();
+        // Don't restore width of the last column, the "Error",
+        // because its pref.width is bound to a computation from table width
+        // and sum of other columns
+        for (int i=0; i<columns.size()-1; ++i)
+        {
+            final TableColumn<?, ?> col = columns.get(i);
+            memento.getNumber("COL" + i).ifPresent(wid -> col.setPrefWidth(wid.doubleValue()));
+        }
+        TableHelper.restoreColumnVisibilities(scan_table, memento, (col, idx) -> "COL" + idx + "vis");
     }
 }

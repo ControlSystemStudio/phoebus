@@ -36,8 +36,10 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.application.TableHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.Brightness;
 import org.phoebus.ui.javafx.ClearingTextField;
@@ -268,6 +270,13 @@ public class AlarmTableUI extends BorderPane
         // When user sorts column, apply the same to the 'other' table
         active.getSortOrder().addListener(new LinkedColumnSorter(active, acknowledged));
         acknowledged.getSortOrder().addListener(new LinkedColumnSorter(acknowledged, active));
+
+        // Bind visibility properties of columns between the tables
+        for (int i = 0; i < active.getColumns().size(); i++) {
+            active.getColumns().get(i).visibleProperty().bindBidirectional(
+                    acknowledged.getColumns().get(i).visibleProperty()
+            );
+        }
 
         // Insets make ack. count appear similar to the active count,
         // which is laid out based on the ack/unack/search buttons in the toolbar
@@ -532,13 +541,16 @@ public class AlarmTableUI extends BorderPane
             final ObservableList<MenuItem> menu_items = menu.getItems();
             menu_items.clear();
 
+            if (TableHelper.addContextMenuColumnVisibilityEntries(table, menu)) {
+                menu_items.add(new SeparatorMenuItem());
+            }
+
             final List<AlarmTreeItem<?>> selection = new ArrayList<>();
             for (AlarmInfoRow row : table.getSelectionModel().getSelectedItems())
                 selection.add(row.item);
 
             // Add guidance etc.
-            new AlarmContextMenuHelper().addSupportedEntries(table, client, menu, selection);
-            if (menu_items.size() > 0)
+            if (new AlarmContextMenuHelper().addSupportedEntries(table, client, menu, selection))
                 menu_items.add(new SeparatorMenuItem());
 
             if (AlarmUI.mayConfigure(client)  &&   selection.size() == 1)
@@ -599,6 +611,9 @@ public class AlarmTableUI extends BorderPane
         for (TableColumn<AlarmInfoRow, ?> col : active.getColumns())
             memento.getNumber("COL" + i++).ifPresent(wid -> col.setPrefWidth(wid.doubleValue()));
 
+        // visibility is linked to other table, no need to also save/restore other table
+        TableHelper.restoreColumnVisibilities(active, memento, (col, idx) -> "COL" + idx + "vis");
+
         i = memento.getNumber("SORT").orElse(-1).intValue();
         if (i >= 0)
         {
@@ -615,6 +630,9 @@ public class AlarmTableUI extends BorderPane
         int i = 0;
         for (TableColumn<AlarmInfoRow, ?> col : active.getColumns())
             memento.setNumber("COL" + i++, col.getWidth());
+
+        // visibility is linked to other table, no need to also save/restore other table
+        TableHelper.saveColumnVisibilities(active, memento, (col, idx) -> "COL" + idx + "vis");
 
         final List<TableColumn<AlarmInfoRow, ?>> sorted = active.getSortOrder();
         if (sorted.size() == 1)
