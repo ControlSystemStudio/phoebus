@@ -92,7 +92,7 @@ To debug connection issues on Linux, it can be helpful to disable the firewall:
 
 To enable access to the first PVA server on a Linux host and list resulting settings:
 
-	# Depending on Linux release, similar to this..
+    # Depending on Linux release, similar to this..
     sudo firewall-cmd --add-port=5075/tcp
     sudo firewall-cmd --add-port=5076/udp
     
