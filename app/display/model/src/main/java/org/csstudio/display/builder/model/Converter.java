@@ -175,7 +175,6 @@ public class Converter {
 				final ModelReader reader = new ModelReader(new FileInputStream(infile));
 				DisplayModel model = reader.readModel();
 				writer.writeModel(model);
-				writer.close();
 			} catch (Exception e) {
 				throw e;
 			}
