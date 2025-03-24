@@ -1,10 +1,17 @@
-Secure Socket Support
-=====================
+Secure PV Access
+================
 
 By default, the PV Access server and client will use plain TCP sockets to communicate.
-Secure PV Access uses encrypted Transport Layer Security (TLD) sockets.
+Secure PV Access uses Transport Layer Security (TLS) sockets.
+TLS sockets, also known as secure sockets, are encrypted.
 Clients will only communicate with trusted servers, and servers can
 determine the identity of their clients in a trusted way.
+
+Secure PV Access is under development for PVXS, the current C++ implementation
+of PV Access. This java implementation aims to be compatible with recent versions of PVXS.
+Secure PV Access is not supported in the original C++ (pvAccessCpp) and Java (pvAccessJava) implementations,
+but PVXS and this java library can still communicate with the original implementations
+using plain TCP sockets.
 
 TLS relies on private and public encryption key pairs, where public keys are
 exchanged in the form of certificates.
@@ -16,18 +23,20 @@ validity.
 PV Access Certificate Management Service (pvacms)
 =================================================
 
-An EPICS administrator needs to deploy pvacms as a service and maintain
-certificates for servers (IOCs) and clients (users running CS-Studio).
+An EPICS administrator needs to deploy `pvacms` as a service and maintain
+certificates for servers (IOCs) and clients (users running CS-Studio
+as well as IOCs reading from other IOCs).
 This is an example recipe for getting started.
 
-1) Build EPICS base and pvxs as described on
+1) Build EPICS base and PVXS as described on
    https://george-mcintyre.github.io/pvxs/spvaqstart.html
 
 2) Start `pvacms -v`. It will create several files, including
 
  * `~/.config/pva/1.3/admin.p12`: Certificate for the `admin` user
  
-3) Request a server (IOC) certificate, note its "Certificate identifier":
+3) For an IOC, request a hybrid server and client certificate.
+   Note its "Certificate identifier":
 
    ```
    $ authnstd --name ioc --cert-usage hybrid
@@ -43,7 +52,7 @@ This is an example recipe for getting started.
    Approve ==> CERT:STATUS:e53ed409:15273288300286014953 ==> Completed Successfully
    ```
 
- * `~/.config/pva/1.3/server.p12`: Our server (IOC) certificate
+ * `~/.config/pva/1.3/server.p12`: Our server certificate (hybrid, for IOC) 
 
 4) Request a client certificate, note its identifier:
 
@@ -64,8 +73,8 @@ This is an example recipe for getting started.
  * `~/.config/pva/1.3/client.p12`: Our client (user) certificate
 
 
-You now have a server and client certificate.
-To check the status:
+You now have a server and a client certificate.
+Example for checking the status:
 
 ```
 $ pvxcert -f ~/.config/pva/1.3/client.p12
@@ -80,15 +89,16 @@ Status         : VALID
 ```
 
 To list certificate details:
+
 ```
 keytool -list -v -keystore ~/.config/pva/1.3/client.p12 -storepass ""
 ```
 
-
 For a test setup, all the above can be executed by a single user on one host.
-In a production setup, however, human user clients should only have a client.p12 file.
-Pseudo-users running IOCs would have a server.p12 file,
-and only an admin user on a designated host would have the remaining pvacms files.
+In a production setup, however, each human user should only have access to their own `client.p12` file.
+Pseudo-users running IOCs would have a `server.p12` file.
+Only an admin user on a designated host would have access to the remaining `pvacms` files,
+including the `admin.p12` file that permits accepting and revoking certificates.
 
 
 Secure IOC
@@ -123,6 +133,8 @@ $ phoebus.sh
 ```
 
 
+For more, refer to the PVXS documentation.
+
 
 --------------------------------------------------------
 
@@ -131,7 +143,7 @@ Manually creating certificates
 ==============================
 
 In this section we describe an earlier approach to creating certificates.
-It is left for reference, the preferred method is now pvacms.
+It is left for reference, the suggested approach is now based on `pvacms`.
 
 We start with a minimal setup for initial tests.
 
