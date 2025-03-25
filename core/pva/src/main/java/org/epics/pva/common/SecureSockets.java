@@ -16,6 +16,8 @@ import java.net.Socket;
 import java.security.KeyStore;
 import java.util.logging.Level;
 
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
@@ -173,18 +175,16 @@ public class SecureSockets
     /** Get name from local principal
      *
      *  @param socket {@link SSLSocket} that may have local principal
-     *  @return Name (without "CN=..") or <code>null</code> if socket has certificate to authenticate
+     *  @return Name (without "CN=..") if socket has certificate to authenticate or <code>null</code>
      */
     public static String getLocalPrincipalName(final SSLSocket socket)
     {
         try
         {
-            String name = socket.getSession().getLocalPrincipal().getName();
-            if (name.startsWith("CN="))
-                name = name.substring(3);
-            else
-                logger.log(Level.WARNING, "Client has principal '" + name + "', expected 'CN=...'");
-            return name;
+            final LdapName ldn = new LdapName(socket.getSession().getLocalPrincipal().getName());
+            for (Rdn rdn : ldn.getRdns())
+                if (rdn.getType().equals("CN"))
+                    return (String) rdn.getValue();
         }
         catch (Exception ex)
         {   // May not have certificate with name
