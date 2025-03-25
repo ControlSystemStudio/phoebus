@@ -29,9 +29,12 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
+import org.phoebus.service.saveandrestore.web.config.WebSocketConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
@@ -41,13 +44,18 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -72,6 +80,9 @@ public class NodeControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private WebSocketHandler webSocketHandler;
 
     private static Node folderFromClient;
 
@@ -327,6 +338,8 @@ public class NodeControllerTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+        when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
+        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
 
         request =
                 delete("/node")
@@ -334,62 +347,119 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+    }
+
+    @Test
+    public void testDeleteForbiddenAccess() throws Exception {
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName("notDemoUser").build());
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
 
-        request =
+    @Test
+    public void testDeleteForbiddenAccess2() throws Exception {
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+        when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
+        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
+
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
-        request =
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+
+    }
+
+    @Test
+    public void testDeleteFolder2() throws Exception {
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+        when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
+        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
+
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+    }
+
+    @Test
+    public void testDeleteFolder3() throws Exception {
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
+        when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
+        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testDeleteForbidden3() throws Exception{
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testDeleteForbidden4() throws Exception{
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+    }
+
+    @Test
+    public void testDeleteFolder5() throws Exception{
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, adminAuthorization);

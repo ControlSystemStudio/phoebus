@@ -51,6 +51,7 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
+import org.phoebus.applications.saveandrestore.ui.DataChangeListener;
 import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
@@ -78,7 +79,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class SearchAndFilterViewController extends SaveAndRestoreBaseController implements Initializable, FilterChangeListener {
+public class SearchAndFilterViewController extends SaveAndRestoreBaseController implements Initializable, DataChangeListener {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -365,7 +366,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
         loadFilters();
 
-        saveAndRestoreService.addFilterChangeListener(this);
+        saveAndRestoreService.addDataChangeListener(this);
 
         progressIndicator.visibleProperty().bind(disableUi);
         disableUi.addListener((observable, oldValue, newValue) -> mainUi.setDisable(newValue));
@@ -633,7 +634,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     }
 
     public void handleSaveAndFilterTabClosed() {
-        saveAndRestoreService.removeFilterChangeListener(this);
+        saveAndRestoreService.removeDataChangeListener(this);
     }
 
     @Override

@@ -35,6 +35,7 @@ import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
+import org.phoebus.service.saveandrestore.web.config.WebSocketConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +44,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.socket.client.WebSocketClient;
+import org.springframework.web.socket.client.WebSocketConnectionManager;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -56,7 +60,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @SpringBootTest
-@ContextConfiguration(classes = ElasticConfig.class)
+@ContextConfiguration(classes = {ElasticConfig.class, WebSocketConfig.class})
 @TestPropertySource(locations = "classpath:test_application.properties")
 @Profile("IT")
 @SuppressWarnings("unused")
@@ -67,6 +71,9 @@ public class DAOTestIT {
 
     @Autowired
     private ConfigurationDataRepository configurationDataRepository;
+
+    @Autowired
+    private WebSocketConfig.TestWebSocketHandler testWebSocketHandler;
 
     @Autowired
     private ElasticsearchClient client;

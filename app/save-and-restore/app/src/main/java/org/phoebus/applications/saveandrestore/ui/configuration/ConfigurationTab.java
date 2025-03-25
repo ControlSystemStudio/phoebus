@@ -23,6 +23,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.ui.DataChangeListener;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
@@ -32,7 +33,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConfigurationTab extends SaveAndRestoreTab {
+public class ConfigurationTab extends SaveAndRestoreTab implements DataChangeListener {
 
     public ConfigurationTab() {
         configure();
@@ -69,11 +70,11 @@ public class ConfigurationTab extends SaveAndRestoreTab {
             if (!((ConfigurationController) controller).handleConfigurationTabClosed()) {
                 event.consume();
             } else {
-                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
+                SaveAndRestoreService.getInstance().removeDataChangeListener(this);
             }
         });
 
-        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
+        SaveAndRestoreService.getInstance().addDataChangeListener(this);
     }
 
     /**

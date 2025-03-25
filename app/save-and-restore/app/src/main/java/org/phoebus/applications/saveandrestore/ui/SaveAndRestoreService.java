@@ -18,9 +18,17 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.client.Preferences;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClientImpl;
+import org.phoebus.applications.saveandrestore.client.WebSocketClient;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
@@ -36,6 +44,8 @@ import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.WebMessageDeserializer;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -43,6 +53,7 @@ import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.util.time.TimestampFormats;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,20 +71,33 @@ public class SaveAndRestoreService {
 
     private final ExecutorService executor;
 
-    private final List<NodeChangedListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList<>());
-    private final List<NodeAddedListener> nodeAddedListeners = Collections.synchronizedList(new ArrayList<>());
-
-    private final List<FilterChangeListener> filterChangeListeners = Collections.synchronizedList(new ArrayList<>());
-
+    private final List<DataChangeListener> dataChangeListeners = Collections.synchronizedList(new ArrayList<>());
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private static SaveAndRestoreService instance;
 
     private final SaveAndRestoreClient saveAndRestoreClient;
+    private final ObjectMapper objectMapper;
+
+    private final WebSocketClient webSocketClient;
 
     private SaveAndRestoreService() {
         saveAndRestoreClient = new SaveAndRestoreClientImpl();
+        String baseUrl = Preferences.jmasarServiceUrl;
+        String schema = baseUrl.startsWith("https") ? "wss" : "ws";
+        String webSocketUrl = schema + baseUrl.substring(baseUrl.indexOf("://", 0)) + "/web-socket";
+        URI webSocketUri = URI.create(webSocketUrl);
+        webSocketClient  = new WebSocketClient(webSocketUri, this::handleWebSocketDisconnect, this::handleWebSocketMessage);
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(SaveAndRestoreWebSocketMessage.class,
+                new WebMessageDeserializer(SaveAndRestoreWebSocketMessage.class));
+        objectMapper.registerModule(module);
+
     }
 
     public static SaveAndRestoreService getInstance() {
@@ -120,14 +144,12 @@ public class SaveAndRestoreService {
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) throws Exception {
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.updateNode(nodeToUpdate, customTimeForMigration));
         Node node = future.get();
-        notifyNodeChangeListeners(node);
+        dataChangeListeners.forEach(l -> l.nodeChanged(node));
         return node;
     }
 
     public Node createNode(String parentNodeId, Node newTreeNode) throws Exception {
-        Future<Node> future = executor.submit(() -> saveAndRestoreClient.createNewNode(parentNodeId, newTreeNode));
-        notifyNodeAddedListeners(getNode(parentNodeId), Collections.singletonList(newTreeNode));
-        return future.get();
+        return executor.submit(() -> saveAndRestoreClient.createNewNode(parentNodeId, newTreeNode)).get();
     }
 
     public void deleteNodes(List<String> nodeIds) throws Exception {
@@ -146,7 +168,7 @@ public class SaveAndRestoreService {
     public Configuration createConfiguration(final Node parentNode, final Configuration configuration) throws Exception {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.createConfiguration(parentNode.getUniqueId(), configuration));
         Configuration newConfiguration = future.get();
-        notifyNodeChangeListeners(parentNode);
+        dataChangeListeners.forEach(l -> l.nodeAddedOrRemoved(parentNode.getUniqueId()));
         return newConfiguration;
     }
 
@@ -154,7 +176,7 @@ public class SaveAndRestoreService {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.updateConfiguration(configuration));
         Configuration updatedConfiguration = future.get();
         // Associated configuration Node may have a new name
-        notifyNodeChangeListeners(updatedConfiguration.getConfigurationNode());
+        dataChangeListeners.forEach(l -> l.nodeChanged(updatedConfiguration.getConfigurationNode()));
         return updatedConfiguration;
     }
 
@@ -163,28 +185,12 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
-    public void addNodeChangeListener(NodeChangedListener nodeChangeListener) {
-        nodeChangeListeners.add(nodeChangeListener);
+    public void addDataChangeListener(DataChangeListener dataChangeListener){
+        dataChangeListeners.add(dataChangeListener);
     }
 
-    public void removeNodeChangeListener(NodeChangedListener nodeChangeListener) {
-        nodeChangeListeners.remove(nodeChangeListener);
-    }
-
-    private void notifyNodeChangeListeners(Node changedNode) {
-        nodeChangeListeners.forEach(listener -> listener.nodeChanged(changedNode));
-    }
-
-    public void addNodeAddedListener(NodeAddedListener nodeAddedListener) {
-        nodeAddedListeners.add(nodeAddedListener);
-    }
-
-    public void removeNodeAddedListener(NodeAddedListener nodeAddedListener) {
-        nodeAddedListeners.remove(nodeAddedListener);
-    }
-
-    private void notifyNodeAddedListeners(Node parentNode, List<Node> newNodes) {
-        nodeAddedListeners.forEach(listener -> listener.nodesAdded(parentNode, newNodes));
+    public void removeDataChangeListener(DataChangeListener dataChangeListener){
+        dataChangeListeners.remove(dataChangeListener);
     }
 
     /**
@@ -253,7 +259,7 @@ public class SaveAndRestoreService {
         });
         Snapshot updatedSnapshot = future.get();
         // Notify listeners as the configuration node has a new child node.
-        notifyNodeChangeListeners(configurationNode);
+        dataChangeListeners.forEach(l -> l.nodeChanged(configurationNode));
         return updatedSnapshot;
     }
 
@@ -273,7 +279,7 @@ public class SaveAndRestoreService {
         Future<CompositeSnapshot> future =
                 executor.submit(() -> saveAndRestoreClient.createCompositeSnapshot(parentNode.getUniqueId(), compositeSnapshot));
         CompositeSnapshot newCompositeSnapshot = future.get();
-        notifyNodeChangeListeners(parentNode);
+        dataChangeListeners.forEach(l -> l.nodeAddedOrRemoved(parentNode.getUniqueId()));
         return newCompositeSnapshot;
     }
 
@@ -281,7 +287,7 @@ public class SaveAndRestoreService {
         Future<CompositeSnapshot> future = executor.submit(() -> saveAndRestoreClient.updateCompositeSnapshot(compositeSnapshot));
         CompositeSnapshot updatedCompositeSnapshot = future.get();
         // Associated composite snapshot Node may have a new name
-        notifyNodeChangeListeners(updatedCompositeSnapshot.getCompositeSnapshotNode());
+        dataChangeListeners.forEach(l -> l.nodeChanged(updatedCompositeSnapshot.getCompositeSnapshotNode()));
         return updatedCompositeSnapshot;
     }
 
@@ -319,7 +325,7 @@ public class SaveAndRestoreService {
         Future<Filter> future =
                 executor.submit(() -> saveAndRestoreClient.saveFilter(filter));
         Filter addedOrUpdatedFilter = future.get();
-        notifyFilterAddedOrUpdated(addedOrUpdatedFilter);
+        dataChangeListeners.forEach(l -> l.filterAddedOrUpdated(filter));
         return addedOrUpdatedFilter;
     }
 
@@ -339,7 +345,7 @@ public class SaveAndRestoreService {
      */
     public void deleteFilter(final Filter filter) throws Exception {
         executor.submit(() -> saveAndRestoreClient.deleteFilter(filter.getName())).get();
-        notifyFilterDeleted(filter);
+        dataChangeListeners.forEach(l -> l.filterRemoved(filter));
     }
 
     /**
@@ -353,7 +359,7 @@ public class SaveAndRestoreService {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.addTag(tagData));
         List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(this::notifyNodeChangeListeners);
+        updatedNodes.forEach(n -> dataChangeListeners.forEach(l -> l.nodeChanged(n)));
         return updatedNodes;
     }
 
@@ -368,24 +374,8 @@ public class SaveAndRestoreService {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.deleteTag(tagData));
         List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(this::notifyNodeChangeListeners);
+        updatedNodes.forEach(n -> dataChangeListeners.forEach(l -> l.nodeChanged(n)));
         return updatedNodes;
-    }
-
-    public void addFilterChangeListener(FilterChangeListener filterChangeListener) {
-        filterChangeListeners.add(filterChangeListener);
-    }
-
-    public void removeFilterChangeListener(FilterChangeListener filterChangeListener) {
-        filterChangeListeners.remove(filterChangeListener);
-    }
-
-    private void notifyFilterAddedOrUpdated(Filter filter) {
-        filterChangeListeners.forEach(l -> l.filterAddedOrUpdated(filter));
-    }
-
-    private void notifyFilterDeleted(Filter filter) {
-        filterChangeListeners.forEach(l -> l.filterRemoved(filter));
     }
 
     /**
@@ -490,6 +480,25 @@ public class SaveAndRestoreService {
             return pvValue == null ? VDisconnectedData.INSTANCE : pvValue;
         } catch (Exception e) {
             return VDisconnectedData.INSTANCE;
+        }
+    }
+
+    private void handleWebSocketDisconnect(){
+        System.out.println("Web socket disconnected");
+    }
+
+    private void handleWebSocketMessage(CharSequence charSequence){
+        try {
+            SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage =
+                    objectMapper.readValue(charSequence.toString(), SaveAndRestoreWebSocketMessage.class);
+            switch (saveAndRestoreWebSocketMessage.messageType()){
+                case NODE_ADDED, NODE_REMOVED -> dataChangeListeners.forEach(l -> l.nodeAddedOrRemoved((String)saveAndRestoreWebSocketMessage.payload()));
+                case NODE_UPDATED -> dataChangeListeners.forEach(l -> l.nodeChanged((Node)saveAndRestoreWebSocketMessage.payload()));
+                case FILTER_ADDED_OR_UPDATED -> dataChangeListeners.forEach(l -> l.filterAddedOrUpdated((Filter)saveAndRestoreWebSocketMessage.payload()));
+                case FILTER_REMOVED -> dataChangeListeners.forEach(l -> l.filterRemoved((Filter)saveAndRestoreWebSocketMessage.payload()));
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 }

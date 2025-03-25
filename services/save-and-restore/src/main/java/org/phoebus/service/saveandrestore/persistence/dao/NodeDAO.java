@@ -32,7 +32,10 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author georgweiss Created 11 Mar 2019
@@ -73,8 +76,10 @@ public interface NodeDAO {
      * Checks that each of the node ids passed to this method exist, and that none of them
      * is the root node. If check passes all nodes are deleted.
      * @param nodeIds List of (existing) node ids.
+     * @return The collection of unique node id representing the parent {@link Node}s of the deleted
+     * {@link Node}s. Client may use this to trigger a refresh of the UI.
      */
-    void deleteNodes(List<String> nodeIds);
+    Set<String> deleteNodes(List<String> nodeIds);
 
     /**
      * Creates a new node in the tree.

@@ -31,12 +31,12 @@ public class WebSocket {
     /**
      * Track when the last message was received by web client
      */
-    private volatile long last_client_message = 0;
+    private volatile long lastClientMessage = 0;
 
     /**
      * Track when the last message was sent to web client
      */
-    private volatile long last_message_sent = 0;
+    private volatile long lastMessageSent = 0;
 
     /**
      * Is the queue full?
@@ -50,7 +50,7 @@ public class WebSocket {
      * IllegalStateException "remote endpoint was in state [TEXT_FULL_WRITING]"
      * All writes are thus performed by just one thread off this queue.
      */
-    private final ArrayBlockingQueue<String> write_queue = new ArrayBlockingQueue<>(2048);
+    private final ArrayBlockingQueue<String> writeQueue = new ArrayBlockingQueue<>(2048);
 
     private static final String EXIT_MESSAGE = "EXIT";
 
@@ -70,10 +70,10 @@ public class WebSocket {
         logger.log(Level.INFO, () -> "Opening web socket " + session.getUri() + " ID " + session.getId());
         this.objectMapper = objectMapper;
         this.id = webSocketSession.getId();
-        Thread write_thread = new Thread(this::writeQueuedMessages, "Web Socket Write Thread");
-        write_thread.setName("Web Socket Write Thread " + this.id);
-        write_thread.setDaemon(true);
-        write_thread.start();
+        Thread writeThread = new Thread(this::writeQueuedMessages, "Web Socket Write Thread");
+        writeThread.setName("Web Socket Write Thread " + this.id);
+        writeThread.setDaemon(true);
+        writeThread.start();
         trackClientUpdate();
     }
 
@@ -98,21 +98,21 @@ public class WebSocket {
      * @return Timestamp (ms since epoch) of last client message
      */
     public long getLastClientMessage() {
-        return last_client_message;
+        return lastClientMessage;
     }
 
     /**
      * @return Timestamp (ms since epoch) of last message sent to client
      */
     public long getLastMessageSent() {
-        return last_message_sent;
+        return lastMessageSent;
     }
 
     /**
      * @return Number of queued messages
      */
     public int getQueuedMessageCount() {
-        return write_queue.size();
+        return writeQueue.size();
     }
 
     /**
@@ -125,12 +125,12 @@ public class WebSocket {
         return message.substring(0, 200) + " ...";
     }
 
-    private void queueMessage(final String message) {
+    public void queueMessage(final String message) {
         // Ignore messages after 'dispose'
         if (session == null)
             return;
 
-        if (write_queue.offer(message)) {   // Queued OK. Is this a recovery from stuffed queue?
+        if (writeQueue.offer(message)) {   // Queued OK. Is this a recovery from stuffed queue?
             if (stuffed.getAndSet(false))
                 logger.log(Level.WARNING, () -> "Un-stuffed message queue for " + id);
         } else {   // Log, but only for the first message to prevent flooding the log
@@ -144,7 +144,7 @@ public class WebSocket {
             while (true) {
                 final String message;
                 try {
-                    message = write_queue.take();
+                    message = writeQueue.take();
                 } catch (final InterruptedException ex) {
                     return;
                 }
@@ -155,25 +155,25 @@ public class WebSocket {
                     return;
                 }
 
-                final WebSocketSession safe_session = session;
+                final WebSocketSession safeSession = session;
                 try {
-                    if (safe_session == null)
+                    if (safeSession == null)
                         throw new Exception("No session");
-                    if (!safe_session.isOpen())
+                    if (!safeSession.isOpen())
                         throw new Exception("Session closed");
-                    safe_session.sendMessage(new TextMessage(message));
-                    last_message_sent = System.currentTimeMillis();
+                    safeSession.sendMessage(new TextMessage(message));
+                    lastMessageSent = System.currentTimeMillis();
                 } catch (final Exception ex) {
                     logger.log(Level.WARNING, ex, () -> "Cannot write '" + shorten(message) + "' for " + id);
 
                     // Clear queue
-                    String drop = write_queue.take();
+                    String drop = writeQueue.take();
                     while (drop != null) {
                         if (drop.equals(EXIT_MESSAGE)) {
                             logger.log(Level.FINE, () -> "Exiting write thread " + id);
                             return;
                         }
-                        drop = write_queue.take();
+                        drop = writeQueue.take();
                     }
                 }
             }
@@ -183,18 +183,7 @@ public class WebSocket {
     }
 
     public void trackClientUpdate() {
-        last_client_message = System.currentTimeMillis();
-    }
-
-    private List<String> getPVs(final String message, final JsonNode json) throws Exception {
-        final JsonNode node = json.path("pvs");
-        if (node.isMissingNode())
-            throw new Exception("Missing 'pvs' in " + shorten(message));
-        final Iterator<JsonNode> nodes = node.elements();
-        final List<String> pvs = new ArrayList<>();
-        while (nodes.hasNext())
-            pvs.add(nodes.next().asText());
-        return pvs;
+        lastClientMessage = System.currentTimeMillis();
     }
 
     /**
@@ -238,7 +227,7 @@ public class WebSocket {
         try {
             // Drop queued messages (which might be stuffed):
             // We're closing and just need the EXIT_MESSAGE
-            write_queue.clear();
+            writeQueue.clear();
             queueMessage(EXIT_MESSAGE);
             // TODO: is this needed?
             session.close();
@@ -246,7 +235,7 @@ public class WebSocket {
             logger.log(Level.WARNING, "Error disposing " + getId(), ex);
         }
         logger.log(Level.FINE, () -> "Web socket " + session.getId() + " closed");
-        last_client_message = 0;
+        lastClientMessage = 0;
     }
 
 

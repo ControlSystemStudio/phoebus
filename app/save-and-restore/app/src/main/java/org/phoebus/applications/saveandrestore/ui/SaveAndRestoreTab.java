@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Base class for save-n-restore {@link Tab}s containing common functionality.
  */
-public abstract class SaveAndRestoreTab extends Tab implements NodeChangedListener {
+public abstract class SaveAndRestoreTab extends Tab {
 
     protected SaveAndRestoreBaseController controller;
 

@@ -29,6 +29,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.ui.DataChangeListener;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -51,7 +52,7 @@ import java.util.logging.Logger;
  * Note that this class is used also to show the snapshot view for {@link Node}s of type {@link NodeType#COMPOSITE_SNAPSHOT}.
  * </p>
  */
-public class SnapshotTab extends SaveAndRestoreTab {
+public class SnapshotTab extends SaveAndRestoreTab implements DataChangeListener {
 
     public SaveAndRestoreService saveAndRestoreService;
 
@@ -110,7 +111,7 @@ public class SnapshotTab extends SaveAndRestoreTab {
             if (controller != null && !((SnapshotController) controller).handleSnapshotTabClosed()) {
                 event.consume();
             } else {
-                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
+                SaveAndRestoreService.getInstance().removeDataChangeListener(this);
             }
         });
 
@@ -126,7 +127,7 @@ public class SnapshotTab extends SaveAndRestoreTab {
         });
         getContextMenu().getItems().add(compareSnapshotToArchiverDataMenuItem);
 
-        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
+        SaveAndRestoreService.getInstance().addDataChangeListener(this);
     }
 
     public void updateTabTitle(String name) {

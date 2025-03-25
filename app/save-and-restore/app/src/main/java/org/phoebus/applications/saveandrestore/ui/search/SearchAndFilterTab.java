@@ -27,6 +27,7 @@ import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.ui.DataChangeListener;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -44,7 +45,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChangedListener {
+public class SearchAndFilterTab extends SaveAndRestoreTab implements DataChangeListener {
     public static final String SEARCH_AND_FILTER_TAB_ID = "SearchAndFilterTab";
 
     private SearchAndFilterViewController searchAndFilterViewController;
@@ -92,9 +93,9 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
         setText(Messages.search);
         setGraphic(new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search_18x18.png")));
 
-        setOnCloseRequest(event -> SaveAndRestoreService.getInstance().removeNodeChangeListener(this));
+        setOnCloseRequest(event -> SaveAndRestoreService.getInstance().removeDataChangeListener(this));
 
-        saveAndRestoreService.addNodeChangeListener(this);
+        saveAndRestoreService.addDataChangeListener(this);
     }
 
 

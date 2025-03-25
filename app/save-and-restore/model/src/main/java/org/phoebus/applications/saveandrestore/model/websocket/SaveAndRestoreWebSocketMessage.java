@@ -4,5 +4,5 @@
 
 package org.phoebus.applications.saveandrestore.model.websocket;
 
-public record WebSocketMessage(MessageType messageType, String payload) {
+public record SaveAndRestoreWebSocketMessage<T>(MessageType messageType, T payload) {
 }

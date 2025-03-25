@@ -136,9 +136,4 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
     public void addToCompositeSnapshot(List<Node> snapshotNodes) {
         ((CompositeSnapshotController) controller).addToCompositeSnapshot(snapshotNodes);
     }
-
-    @Override
-    public void nodeChanged(Node node) {
-
-    }
 }

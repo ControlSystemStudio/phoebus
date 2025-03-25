@@ -48,9 +48,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -141,7 +143,8 @@ public class ElasticsearchDAO implements NodeDAO {
      *  {@inheritDoc}
      */
     @Override
-    public void deleteNodes(List<String> nodeIds){
+    public Set<String> deleteNodes(List<String> nodeIds){
+        Set<String> parentIds = new HashSet<>();
         List<Node> nodes = new ArrayList<>();
         for(String nodeId : nodeIds){
             Node nodeToDelete = getNode(nodeId);
@@ -152,7 +155,11 @@ public class ElasticsearchDAO implements NodeDAO {
             }
             nodes.add(nodeToDelete);
         }
-        nodes.forEach(this::deleteNode);
+        nodes.forEach(node -> {
+            String parentNodeId = deleteNode(node);
+            parentIds.add(parentNodeId);
+        });
+        return parentIds;
     }
 
     @Override
@@ -636,8 +643,12 @@ public class ElasticsearchDAO implements NodeDAO {
         resolvePath(parent.getUniqueId(), pathElements);
     }
 
-
-    private void deleteNode(Node nodeToDelete) {
+    /**
+     *
+     * @param nodeToDelete
+     * @return The id of the deleted {@link Node}s parent.
+     */
+    private String deleteNode(Node nodeToDelete) {
         for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
             deleteNode(node);
         }
@@ -664,6 +675,7 @@ public class ElasticsearchDAO implements NodeDAO {
         // Delete the node
         elasticsearchTreeRepository.deleteById(nodeToDelete.getUniqueId());
 
+        return parentNode.getNode().getUniqueId();
     }
 
     @Override

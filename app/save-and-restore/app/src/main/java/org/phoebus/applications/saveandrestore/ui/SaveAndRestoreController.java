@@ -69,6 +69,7 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.RestoreUtil;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.actions.OpenNodeAction;
+import org.phoebus.applications.saveandrestore.client.Preferences;
 import org.phoebus.applications.saveandrestore.client.WebSocketClient;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
@@ -79,6 +80,7 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.CopyUniqueIdToClipboardMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.CreateSnapshotMenuItem;
@@ -137,7 +139,7 @@ import java.util.stream.Collectors;
  * Main controller for the save and restore UI.
  */
 public class SaveAndRestoreController extends SaveAndRestoreBaseController
-        implements Initializable, NodeChangedListener, NodeAddedListener, FilterChangeListener {
+        implements Initializable, DataChangeListener {
 
     @FXML
     protected TreeView<Node> treeView;
@@ -255,7 +257,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private final SimpleStringProperty webSocketTrackerText = new SimpleStringProperty();
 
-    WebSocketClient webSocketClient = new WebSocketClient();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -292,9 +293,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         treeView.setShowRoot(true);
 
-        saveAndRestoreService.addNodeChangeListener(this);
-        saveAndRestoreService.addNodeAddedListener(this);
-        saveAndRestoreService.addFilterChangeListener(this);
+        //saveAndRestoreService.addNodeChangeListener(this);
+        //saveAndRestoreService.addNodeAddedListener(this);
+        //saveAndRestoreService.addFilterChangeListener(this);
+        saveAndRestoreService.addDataChangeListener(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(this));
         treeViewPane.disableProperty().bind(disabledUi);
@@ -370,9 +372,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         treeView.setContextMenu(contextMenu);
 
-        //loadTreeData();
-    }
+        loadTreeData();
 
+        webSocketTrackerLabel.textProperty().bind(webSocketTrackerText);
+    }
 
     /**
      * Loads the data for the tree root as provided (persisted) by the current
@@ -789,11 +792,14 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (result.isPresent()) {
             node.getValue().setName(result.get());
             try {
+                String parentNodeIdBefore = saveAndRestoreService.getParentNode(node.getValue().getUniqueId()).getUniqueId();
                 saveAndRestoreService.updateNode(node.getValue());
-                // Since a changed node name may push the node to a different location in the tree view,
-                // we need to locate it to keep it selected. The tree view will otherwise "select" the node
-                // at the previous position of the renamed node. This is standard JavaFX TreeView behavior
-                // where TreeItems are "recycled", and updated by the cell renderer.
+                // Node updated... Does it have a new parent, i.e. has it been moved in the tree structure?
+                String parentNodeIdAfter = saveAndRestoreService.getParentNode(node.getValue().getUniqueId()).getUniqueId();
+                if(parentNodeIdAfter.equals(parentNodeIdBefore)){
+                    return;
+                }
+                // New parent node, update UI
                 Stack<Node> copiedStack = new Stack<>();
                 DirectoryUtilities.CreateLocationStringAndNodeStack(node.getValue(), false).getValue().forEach(copiedStack::push);
                 locateNode(copiedStack);
@@ -826,6 +832,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      *
      * @param node The updated node.
      */
+
     @Override
     public void nodeChanged(Node node) {
         // Find the node that has changed
@@ -835,26 +842,27 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
         nodeSubjectToUpdate.setValue(node);
         // Folder and configuration node changes may include structure changes, so expand to force update.
+        /*
         if (nodeSubjectToUpdate.isExpanded() && (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) ||
                 nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.CONFIGURATION))) {
             if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
                 nodeSubjectToUpdate.getParent().getChildren().sort(treeNodeComparator);
             }
             expandTreeNode(nodeSubjectToUpdate);
-        }
+        }*/
     }
 
     /**
      * Handles callback in order to update the tree view when a {@link Node} has been added, e.g. when
      * a snapshot is saved.
      *
-     * @param parentNode Parent of the new {@link Node}
-     * @param newNodes   The list of new {@link Node}s
+     * @param parentNodeId Unique id of the parent {@link Node}
      */
+
     @Override
-    public void nodesAdded(Node parentNode, List<Node> newNodes) {
+    public void nodeAddedOrRemoved(String parentNodeId){
         // Find the parent to which the new node is to be added
-        TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
+        TreeItem<Node> parentTreeItem = recursiveSearch(parentNodeId, treeView.getRoot());
         if (parentTreeItem == null) {
             return;
         }
@@ -965,9 +973,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     public void handleTabClosed() {
         saveLocalState();
-        saveAndRestoreService.removeNodeChangeListener(this);
-        saveAndRestoreService.removeNodeAddedListener(this);
-        saveAndRestoreService.removeFilterChangeListener(this);
+        //saveAndRestoreService.removeNodeChangeListener(this);
+        //saveAndRestoreService.removeNodeAddedListener(this);
+        //saveAndRestoreService.removeFilterChangeListener(this);
+        //webSocketClient.close("User closing " + SaveAndRestoreApplication.DISPLAY_NAME);
     }
 
     /**
@@ -1023,7 +1032,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
         List<Node> updatedNodes = TagUtil.addTag(selectedNodes);
-        updatedNodes.forEach(this::nodeChanged);
+        //updatedNodes.forEach(this::nodeChanged);
     }
 
     /**
@@ -1036,7 +1045,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        TagUtil.tag(tagMenu, selectedNodes, updatedNodes -> updatedNodes.forEach(this::nodeChanged));
+        //TagUtil.tag(tagMenu, selectedNodes, updatedNodes -> updatedNodes.forEach(this::nodeChanged));
     }
 
     /**
@@ -1530,4 +1539,5 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             });
         }
     }
+
 }

@@ -54,6 +54,7 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.ui.DataChangeListener;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -75,7 +76,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ConfigurationController extends SaveAndRestoreBaseController implements NodeChangedListener {
+public class ConfigurationController extends SaveAndRestoreBaseController implements DataChangeListener {
 
     @FXML
     private BorderPane root;
@@ -264,7 +265,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
         addPVsPane.disableProperty().bind(userIdentity.isNull());
 
-        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
+        SaveAndRestoreService.getInstance().addDataChangeListener(this);
     }
 
     @FXML
