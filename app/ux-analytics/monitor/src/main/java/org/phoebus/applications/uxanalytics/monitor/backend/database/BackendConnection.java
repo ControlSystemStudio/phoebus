@@ -47,7 +47,7 @@ public interface BackendConnection {
     public default void handleClick(ActiveTab who, Integer x, Integer y){this.handleClick(who, null, x, y);}
     public default void handleAction(ActiveTab who, Widget widget, ActionInfo info){}
     public default void handlePVWrite(ActiveTab who, Widget widget, String PVName, String value){};
-    public default void handleDisplayOpen(DisplayInfo target, DisplayInfo src, ResourceOpenSources how){};
-
+    public default void handleDisplayOpen(DisplayInfo target, DisplayInfo src, ResourceOpenSources how){}
+    public default void consentToCollection(boolean consent){}
 
 }

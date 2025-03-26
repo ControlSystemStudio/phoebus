@@ -7,10 +7,7 @@ import java.util.concurrent.ExecutorService;
 import javafx.stage.Stage;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.phoebus.applications.uxanalytics.monitor.backend.database.BackendConnection;
-import org.phoebus.applications.uxanalytics.monitor.backend.database.MongoDBConnection;
-import org.phoebus.applications.uxanalytics.monitor.backend.database.Neo4JConnection;
 import org.phoebus.applications.uxanalytics.monitor.representation.ActiveWindowsService;
-import org.phoebus.framework.preferences.PhoebusPreferenceService;
 
 /**
  * Singleton Class to capture UI events (clicks, PV Writes, Display open/close)
@@ -45,6 +42,14 @@ public class UXAMonitor{
 
     public void setPhoebusConnection(BackendConnection phoebusConnection) {
         this.phoebusConnection = phoebusConnection;
+    }
+
+    public void disableTracking(){
+        activeWindowsService.stop();
+    }
+
+    public void enableTracking(){
+        activeWindowsService.start();
     }
 
     public void setJfxConnection(BackendConnection jfxConnection) {

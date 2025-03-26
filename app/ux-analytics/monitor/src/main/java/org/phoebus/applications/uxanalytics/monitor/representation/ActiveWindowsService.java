@@ -6,6 +6,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
+import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
@@ -13,13 +15,17 @@ import org.phoebus.ui.docking.DockStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+/*
+    * This class is a singleton that keeps track of all active windows and their tabs.
+    * The state remains tracked, but if 'stop()' is called, the listeners are detached from the actual representation.
+    * This way, if the user consents to tracking, the listeners are reattached and the state is updated without restarting.
+ */
 public class ActiveWindowsService {
 
-    private boolean started = false;
+    private boolean active = false;
     private static ActiveWindowsService instance = null;
     private final ConcurrentHashMap<String, ActiveTabsOfWindow> activeWindowsAndTabs = new ConcurrentHashMap<>();
     private final ReentrantLock lock = new ReentrantLock();
-
 
     ConcurrentHashMap<String, ActiveTabsOfWindow> getActiveWindowsAndTabs() {
         return activeWindowsAndTabs;
@@ -114,19 +120,41 @@ public class ActiveWindowsService {
     public static ActiveWindowsService getInstance() {
         if(instance == null){
             instance = new ActiveWindowsService();
-            instance.start();
-            instance.started = true;
+            instance.addWindowChangeListener();
         }
         return instance;
     }
 
-    public boolean isStarted() {
-        return started;
+    //If user has not consented to tracking, we still keep track of the state, but don't ping listeners about it.
+    //Allows tracking to start/stop mid-session without restarting the application.
+    public boolean isActive() {
+        return active;
     }
 
-    private void start() {
-        instance = this;
+    public void addWindowChangeListener(){
         javafx.stage.Window.getWindows().addListener(UXAWindowChangeListener);
+    }
+
+    public void start() {
+        if(!active) {
+            for(ActiveTabsOfWindow window: activeWindowsAndTabs.values()) {
+                for (ActiveTab tab : window.getActiveTabs().values()) {
+                    tab.addListeners();
+                }
+            }
+        }
+        active = true;
+    }
+
+    public void stop() {
+        if(active){
+            for(ActiveTabsOfWindow window: activeWindowsAndTabs.values()) {
+                for (ActiveTab tab : window.getActiveTabs().values()) {
+                    tab.detachListeners();
+                }
+            }
+        }
+        active = false;
     }
 
     public ActiveTabsOfWindow getTabsForWindow(Window window){

@@ -1,7 +1,6 @@
 package org.phoebus.applications.uxanalytics.ui;
 
 import org.phoebus.framework.workbench.ApplicationService;
-
 import org.phoebus.ui.spi.MenuEntry;
 
 public class CreateUXAMenuEntry implements MenuEntry {

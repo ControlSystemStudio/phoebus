@@ -1,11 +1,13 @@
 package org.phoebus.applications.uxanalytics.ui;
 
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 import org.phoebus.applications.uxanalytics.monitor.backend.database.BackendConnection;
 import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
 
 import java.util.logging.Level;
 
@@ -22,74 +24,47 @@ public class UXAController {
     BackendConnection connectionLogic;
 
     @FXML
-    TextField txtHost;
+    Button btnAgree;
     @FXML
-    TextField txtPort;
+    Button buttonDisagree;
     @FXML
-    TextField txtUser;
-    @FXML
-    PasswordField passPassword;
-    @FXML
-    Button btnConnect;
-    @FXML
-    Label lblSuccessFailure;
-    @FXML
-    Label lblProtocol;
+    CheckBox chkRemember;
 
     String host;
     String protocol;
 
 
     public UXAController(BackendConnection connectionLogic) {
-        this.protocol = connectionLogic.getProtocol();
         this.connectionLogic = connectionLogic;
     }
 
     @FXML
     public void initialize() {
-        lblProtocol.setText(protocol);
-        txtHost.setText(connectionLogic.getHost());
-        txtPort.setText(connectionLogic.getPort());
+        chkRemember.setSelected(ConsentPersistence.getConsent());
     }
 
     @FXML
-    public int tryConnect(Event event) {
-        lblSuccessFailure.setVisible(false);
-        try {
-            host = txtHost.getText();
-            if (host.isEmpty()) {
-                lblSuccessFailure.setText("Set a host name.");
-                lblSuccessFailure.setVisible(true);
-                return 1;
-            }
-            String port = txtPort.getText();
-            if (port.isEmpty() || !port.matches("\\d+")) {
-                lblSuccessFailure.setText("Set a valid port number.");
-                lblSuccessFailure.setVisible(true);
-                return 1;
-            }
-
-            String user = txtUser.getText();
-            String pass = passPassword.getText();
-            try {
-                if (!connectionLogic.connect(host, Integer.parseInt(port), user, pass)) {
-                    lblSuccessFailure.setText("Failed to connect to host " + host + " as " + user + ".");
-                    lblSuccessFailure.setVisible(true);
-                    return 1;
-                } else {
-                    lblSuccessFailure.setText("Connected to server.");
-                    lblSuccessFailure.setVisible(true);
-                    observer.notifyConnectionChange(connectionLogic);
-                }
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to connect to server", e);
-                lblSuccessFailure.setText("Failed to connect to server.");
-                lblSuccessFailure.setVisible(true);
-                return 1;
-            }
-            return 0;
-        } finally {
-
+    public void onAgree(ActionEvent event) {
+        observer.enableTracking();
+        if (chkRemember.isSelected()) {
+            ConsentPersistence.storeConsent();
         }
+        else{
+            ConsentPersistence.deleteConsent();
+        }
+        ((Button) event.getSource()).getScene().getWindow().hide();
     }
+
+    @FXML
+    public void onDisagree(ActionEvent event) {
+        observer.disableTracking();
+        if (chkRemember.isSelected()){
+            ConsentPersistence.revokeConsent();
+        }
+        else{
+            ConsentPersistence.deleteConsent();
+        }
+        ((Button) event.getSource()).getScene().getWindow().hide();
+    }
+
 }

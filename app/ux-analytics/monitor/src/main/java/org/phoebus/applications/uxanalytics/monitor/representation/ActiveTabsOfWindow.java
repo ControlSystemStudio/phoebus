@@ -29,14 +29,14 @@ public class ActiveTabsOfWindow {
 
     public void remove(DockItemWithInput tab){
         if(activeTabs.containsKey(tab.toString())){
-            activeTabs.get(tab.toString()).close();
+            activeTabs.get(tab.toString()).detachListeners();
             activeTabs.remove(tab.toString());
         }
     }
 
     public void remove(ActiveTab tab){
         if(activeTabs.containsKey(tab.toString())){
-            activeTabs.get(tab.toString()).close();
+            activeTabs.get(tab.toString()).detachListeners();
             activeTabs.remove(tab.toString());
         }
     }
