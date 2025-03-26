@@ -9,6 +9,7 @@ services:
       bootstrap.memory_lock: "true"
       xpack.security.enabled: "false"
       ES_JAVA_OPTS: "-Xmx1G"
+      http.host: 0.0.0.0
     volumes:
       - es-data:/usr/share/elasticsearch/data
 
