@@ -60,6 +60,7 @@ public class AnnunciatorMessage implements Comparable<AnnunciatorMessage>
     @Override
     public String toString()
     {
-        return TimestampFormats.MILLI_FORMAT.format(time) + " " + severity + " " + message;
+        String timeStr = (time != null) ? TimestampFormats.MILLI_FORMAT.format(time) : "null";
+        return timeStr + " " + severity + " " + message;
     }
 }

@@ -12,7 +12,7 @@
       <Label text="%actionDescription" />
       <TextField fx:id="description" text="%actionOpenFilterDescription" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
       <Label text="%actionOpenFilterId" GridPane.rowIndex="1" />
-      <ComboBox fx:id="filterId" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" prefHeight="26" GridPane.rowIndex="1" />
+      <ComboBox fx:id="filterComboBox" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" prefHeight="26" GridPane.rowIndex="1" />
    <columnConstraints>
       <ColumnConstraints />
       <ColumnConstraints />

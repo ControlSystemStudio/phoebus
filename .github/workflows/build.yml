@@ -10,9 +10,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup Maven and Java Action
-      uses: s4u/setup-maven-action@v1.13.0
+      uses: s4u/setup-maven-action@v1.18.0
       with:
         java-version: '17'
         maven-version: '3.9.6'

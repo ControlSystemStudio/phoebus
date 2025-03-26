@@ -9,6 +9,7 @@ package org.phoebus.applications.pvtable.model;
 
 import java.util.concurrent.TimeUnit;
 
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VFloat;
@@ -56,6 +57,13 @@ public class SavedScalarValue extends SavedValue
         if (current_value instanceof VEnum)
         {
             final int v1 = ((VEnum) current_value).getIndex();
+            final int v2 = Integer.parseInt(saved_value);
+            return Math.abs(v2 - v1) <= tolerance;
+        }
+        if (current_value instanceof VBoolean)
+        {
+            boolean boolVal = ((VBoolean) current_value).getValue();
+            final int v1 = boolVal ? 1 : 0;
             final int v2 = Integer.parseInt(saved_value);
             return Math.abs(v2 - v1) <= tolerance;
         }

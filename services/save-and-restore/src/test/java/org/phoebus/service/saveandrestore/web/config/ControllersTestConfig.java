@@ -33,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
 import org.springframework.util.Base64Utils;
 
 import java.util.concurrent.ExecutorService;
@@ -121,20 +120,13 @@ public class ControllersTestConfig {
         return "Basic " + Base64Utils.encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
     }
 
-    @SuppressWarnings("unused")
     @Bean
-    @Scope("singleton")
-    public SnapshotUtil snapshotRestorer(){
-        return new SnapshotUtil();
-    }
-
-    @Bean
-    public ExecutorService executorService(){
+    public ExecutorService executorService() {
         return Executors.newCachedThreadPool();
     }
 
     @Bean
-    public SnapshotUtil snapshotUtil(){
-        return Mockito.mock(SnapshotUtil.class);
+    public SnapshotUtil snapshotUtil() {
+        return new SnapshotUtil();
     }
 }

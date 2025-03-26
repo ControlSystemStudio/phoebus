@@ -1,0 +1,39 @@
+services:
+  saveandrestore:
+    image: ghcr.io/controlsystemstudio/phoebus/service-save-and-restore:master
+    ports:
+      - "8080:8080"
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_NETWORK_HOST: ${HOST_EXTERNAL_IP_ADDRESS}
+      EPICS_PVA_ADDR_LIST: ${HOST_EXTERNAL_IP_ADDRESS}
+      EPICS_PVA_AUTO_ADDR_LIST: "NO"
+      EPICS_PVA_ENABLE_IPV6: "false"
+    command: >
+      /bin/bash -c "
+        until curl --fail --silent http://${HOST_EXTERNAL_IP_ADDRESS}:9200/_cluster/health; do
+            echo 'Waiting for Elasticsearch'
+          sleep 1
+        done
+        java -DdefaultProtocol=pva -Dauthorization.permitall=false -Dauth.impl=demo -jar /saveandrestore/service-save-and-restore-*.jar"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.2
+    ports:
+      - "9200:9200"
+    environment:
+      discovery.type: single-node
+      bootstrap.memory_lock: "true"
+      xpack.security.enabled: "false"
+    volumes:
+      - saveandrestore-es-data:/usr/share/elasticsearch/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  saveandrestore-es-data:
+    driver: local
+

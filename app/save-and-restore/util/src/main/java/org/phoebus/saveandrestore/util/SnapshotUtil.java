@@ -1,13 +1,14 @@
 package org.phoebus.saveandrestore.util;
 
 import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.model.CompareResult;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.PvCompareMode;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
-import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -19,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -29,16 +31,17 @@ import java.util.logging.Logger;
 
 /**
  * Provides some utility methods to read and write PVs in an asynchronous manner.
+ * And to perform a comparison operation.
  */
 public class SnapshotUtil {
 
     private final Logger LOG = Logger.getLogger(SnapshotUtil.class.getName());
 
-    private int connectionTimeout = Preferences.connectionTimeout;
+    private final int connectionTimeout = Preferences.connectionTimeout;
 
-    private int writeTimeout = Preferences.writeTimeout;
+    private final int writeTimeout = Preferences.writeTimeout;
 
-    private ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public SnapshotUtil() {
         final File site_settings = new File("settings.ini");
@@ -99,11 +102,24 @@ public class SnapshotUtil {
      * @return A list of {@link SnapshotItem}s holding the values read from IOCs.
      */
     public List<SnapshotItem> takeSnapshot(ConfigurationData configurationData) {
+        return takeSnapshot(configurationData.getPvList());
+    }
+
+    /**
+     * Reads all PVs and read-back PVs as defined in the {@link ConfigurationData} argument. For each
+     * {@link ConfigPv} item in {@link ConfigurationData} a {@link SnapshotItem} is created.
+     * Read operations are concurrent using a thread pool. Failed connections/reads will cause a wait of at most
+     * {@link #connectionTimeout} ms on each thread.
+     *
+     * @param configPvs List of {@link ConfigPv}s defining a {@link Configuration}.
+     * @return A list of {@link SnapshotItem}s holding the values read from IOCs.
+     */
+    public List<SnapshotItem> takeSnapshot(final List<ConfigPv> configPvs) {
         List<SnapshotItem> snapshotItems = new ArrayList<>();
         List<Callable<Void>> callables = new ArrayList<>();
-        Map<String, VType> pvValues = new HashMap<>();
-        Map<String, VType> readbackPvValues = new HashMap<>();
-        for (ConfigPv configPv : configurationData.getPvList()) {
+        Map<String, VType> pvValues = Collections.synchronizedMap(new HashMap<>());
+        Map<String, VType> readbackPvValues = Collections.synchronizedMap(new HashMap<>());
+        for (ConfigPv configPv : configPvs) {
             Callable<Void> pvValueCallable = () -> {
                 CountDownLatch countDownLatch = new CountDownLatch(1);
                 PV pv = null;
@@ -118,8 +134,7 @@ public class SnapshotUtil {
                         LOG.log(Level.WARNING, "Connection to PV '" + configPv.getPvName() +
                                 "' timed out after " + connectionTimeout + " ms.");
                         pvValues.put(configPv.getPvName(), null);
-                    }
-                    else{
+                    } else {
                         pvValues.put(configPv.getPvName(), pv.read());
                     }
                 } catch (Exception e) {
@@ -136,7 +151,7 @@ public class SnapshotUtil {
             callables.add(pvValueCallable);
         }
 
-        for (ConfigPv configPv : configurationData.getPvList()) {
+        for (ConfigPv configPv : configPvs) {
             if (configPv.getReadbackPvName() == null) {
                 continue;
             }
@@ -153,14 +168,13 @@ public class SnapshotUtil {
                     if (!countDownLatch.await(connectionTimeout, TimeUnit.MILLISECONDS)) {
                         LOG.log(Level.WARNING, "Connection to read-back PV '" + configPv.getReadbackPvName() +
                                 "' timed out after " + connectionTimeout + " ms.");
-                        readbackPvValues.put(configPv.getPvName(), null);
-                    }
-                    else{
-                        readbackPvValues.put(configPv.getPvName(), pv.read());
+                        readbackPvValues.put(configPv.getReadbackPvName(), null);
+                    } else {
+                        readbackPvValues.put(configPv.getReadbackPvName(), pv.read());
                     }
                 } catch (Exception e) {
                     LOG.log(Level.WARNING, "Failed to read read-back PV '" + configPv.getReadbackPvName() + "'", e);
-                    readbackPvValues.put(configPv.getPvName(), null);
+                    readbackPvValues.put(configPv.getReadbackPvName(), null);
                     countDownLatch.countDown();
                 } finally {
                     if (pv != null) {
@@ -182,20 +196,22 @@ public class SnapshotUtil {
 
         // Merge data into SnapshotItems
         for (String pvName : pvValues.keySet()) {
-            SnapshotItem snapshotItem = new SnapshotItem();
-            for (ConfigPv configPv : configurationData.getPvList()) {
-                if (configPv.getPvName().equals(pvName)) {
-                    snapshotItem.setConfigPv(configPv);
-                    break;
+            synchronized (pvValues) {
+                SnapshotItem snapshotItem = new SnapshotItem();
+                for (ConfigPv configPv : configPvs) {
+                    if (configPv.getPvName().equals(pvName)) {
+                        snapshotItem.setConfigPv(configPv);
+                        break;
+                    }
                 }
+                VType value = pvValues.get(pvName);
+                snapshotItem.setValue(value);
+                if (snapshotItem.getConfigPv().getReadbackPvName() != null) {
+                    VType readbackValue = readbackPvValues.get(snapshotItem.getConfigPv().getReadbackPvName());
+                    snapshotItem.setReadbackValue(readbackValue);
+                }
+                snapshotItems.add(snapshotItem);
             }
-            VType value = pvValues.get(pvName);
-            snapshotItem.setValue(value);
-            VType readbackValue = readbackPvValues.get(pvName);
-            if (readbackValue != null) {
-                snapshotItem.setReadbackValue(readbackValue);
-            }
-            snapshotItems.add(snapshotItem);
         }
 
         return snapshotItems;
@@ -256,5 +272,50 @@ public class SnapshotUtil {
                 PVPool.releasePV(pv);
             }
         }
+    }
+
+    /**
+     * Performs comparison between PV values to determine equality. The idea is to generate a return value mimicking
+     * the save-and-restore snapshot view, i.e. to show both stored and live values, plus an indication of equality.
+     * The comparison algorithm is the same as employed by the snapshot view.
+     *
+     * @param savedSnapshotItems A list if {@link SnapshotItem}s as pulled from a stored snapshot.
+     * @param tolerance          A tolerance (must be >=0) value used in the comparison. Comparisons use the tolerance
+     *                           value for a relative comparison.
+     * @return A list of {@link CompareResult}s, one for each {@link SnapshotItem} in the provided input. Note though that
+     * if the comparison evaluates to equal, then the actual live and stored value are not added to the {@link CompareResult}
+     * objects in order to avoid handling/transferring potentially large amounts of data.
+     */
+    public List<CompareResult> comparePvs(final List<SnapshotItem> savedSnapshotItems, double tolerance) {
+        if (tolerance < 0) {
+            throw new RuntimeException("Tolerance value must be >=0");
+        }
+        List<CompareResult> compareResults = new ArrayList<>();
+
+        // Extract the list of ConfigPvs and...
+        List<ConfigPv> configPvs = savedSnapshotItems.stream().map(si -> si.getConfigPv()).toList();
+        // ...take snapshot to retrieve live values
+        List<SnapshotItem> liveSnapshotItems = takeSnapshot(configPvs);
+
+        savedSnapshotItems.forEach(savedItem -> {
+            SnapshotItem liveSnapshotItem = liveSnapshotItems.stream().filter(si -> si.getConfigPv().getPvName().equals(savedItem.getConfigPv().getPvName())).findFirst().orElse(null);
+            if (liveSnapshotItem == null) {
+                throw new RuntimeException("Unable to match stored PV " + savedItem.getConfigPv().getPvName() + " in list of live PVs");
+            }
+            VType storedValue = savedItem.getValue();
+            VType liveValue = liveSnapshotItem.getValue();
+            Threshold<Number> threshold = new Threshold<>(tolerance);
+            boolean equal = Utilities.areValuesEqual(storedValue, liveValue, Optional.of(threshold));
+            CompareResult compareResult = new CompareResult(savedItem.getConfigPv().getPvName(),
+                    equal,
+                    PvCompareMode.RELATIVE,
+                    tolerance,
+                    equal ? null : storedValue, // Do not add potentially large amounts of data if comparison shows equal
+                    equal ? null : liveValue,   // Do not add potentially large amounts of data if comparison shows equal
+                    Utilities.deltaValueToString(storedValue, liveValue, Optional.of(threshold)).getString());
+            compareResults.add(compareResult);
+        });
+
+        return compareResults;
     }
 }

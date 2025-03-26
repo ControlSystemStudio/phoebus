@@ -7,10 +7,6 @@
   </parent>
   <artifactId>app-logbook-elog</artifactId>
   <dependencies>
-    <!-- https://mvnrepository.com/artifact/com.sun.jersey/jersey-core -->
-    <!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-multipart -->
-    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations -->
-    <!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-logbook</artifactId>

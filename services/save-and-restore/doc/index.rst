@@ -20,7 +20,7 @@ Server-side IOC communication
 The service exposes endpoints for reading and writing PVs, i.e. to create or restore snapshots. Depending on the
 setup this server-side IOC communication may need some configuration:
 
-For ca (channel access) the service must be started with the ``-Dca.use_env=true`` Java option, and the list of
+For ca (channel access) the service must be started with the ``-Djca.use_env=true`` Java option, and the list of
 gateways - if any - must be set as a system environment named ``EPICS_CA_ADDR_LIST``.
 
 For pva (pv access) the service must be started with the ``-DdefaultProtocol=pva`` Java option, and the list of
@@ -126,6 +126,20 @@ Nodes of type CONFIGURATION and SNAPSHOT will also have a ``description`` field.
 A special case is the root node as it has a fixed unique id:
 
 **.../node/44bef5de-e8e6-4014-af37-b8f6c8a939a2**
+
+Retrieve multiple nodes
+"""""""""""""""""""""""
+Method: GET
+
+Body:
+
+.. code-block:: JSON
+
+   ["nodeId-1", "nodeId-2",..., "nodeId-N"]
+
+Return:
+Details of the nodes listed as unique node ids in the request body.
+
 
 Create a new node
 """""""""""""""""
@@ -746,7 +760,7 @@ Body:
     ]
 
 Server Restore Endpoints
-----------------------------
+------------------------
 
 Restore from snapshot items
 """""""""""""""""""""""""""
@@ -756,7 +770,7 @@ Restore from snapshot items
 Method: POST
 
 This endpoint allows you to send a list of ``SnapshotItem`` and the save-and-restore server
-will set the values of the PVs in your system to the values supplied. 
+will set the values of the PVs in your system to the values supplied.
 This allows restoring from clients which do not support EPICS access, for example web clients.
 
 Body:
@@ -840,6 +854,80 @@ Method: POST
 
 This is the same as the endpoint to restore from snapshot items, however it uses snapshot items
 from an existing node rather than providing them explicitly. It returns the same result.
+
+Compare Endpoint
+----------------
+
+**.../compare/{uniqueId}[?tolerance=<tolerance_value>]**
+
+Method: GET
+
+The path variable ``{uniqueId}`` must identify an existing snapshot or composite snapshot. The ``tolerance`` query parameter is
+optional and defaults to zero. If specified it must be >= 0.
+
+This endpoint can be used to compare stored snapshot values to live values for each set-point PV in the snapshot.
+Comparisons are performed in the same manner as in the client UI, i.e.:
+
+* Scalar PVs are compared using the the optional relative tolerance, or compared using zero tolerance.
+* Array PVs are compared element wise, always using zero tolerance. Arrays must be of equal length.
+* Table PVs are compared element wise, always using zero tolerance. Tables must be of same dimensions, and data types must match between columns.
+* Enum PVs are compared using zero tolerance.
+
+Return value: a list of comparison results, one for each PV in the snapshot, e.g.:
+
+.. code-block:: JSON
+
+    {
+        "equal" : "false",
+        "pvCompareMode": "RELATIVE",
+        "tolerance" : 0,
+        "storedValue": {
+          "type": {
+            "name": "VInt",
+            "version": 1
+          },
+          "value": 18,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1653903750,
+            "nanoSec": 532912758
+          },
+          "display": {
+            "units": ""
+          }
+        },
+        "liveValue": {
+          "type": {
+            "name": "VInt",
+            "version": 1
+          },
+          "value": 14,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NO_ALARM"
+          },
+          "time": {
+            "unixSec": 1734688284,
+            "nanoSec": 605970324,
+            "userTag": 0
+          },
+          "display": {
+            "lowDisplay": 0.0,
+            "highDisplay": 255.0,
+            "units": "",
+            "description": "Mapping for Pulser 0"
+          }
+        },
+        "delta": "+4"
+    }
+
+Note that if the comparison evaluates to "equal", then ``storedValue`` and ``liveValue`` are set to ``null``.
+The ``delta`` field value is formatted in the same manner as the delta column in the client UI.
 
 Authentication and Authorization
 ================================

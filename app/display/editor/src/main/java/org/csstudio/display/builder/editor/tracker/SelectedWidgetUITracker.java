@@ -230,6 +230,15 @@ public class SelectedWidgetUITracker extends Tracker
     @Override
     protected void handleKeyEvent(final KeyEvent event)
     {
+        // Update move value bigDelta to grid size
+        {
+            final DisplayModel model = getModel();
+            if(model != null) {
+                bigDeltaX = model.propGridStepX().getValue();
+                bigDeltaY = model.propGridStepY().getValue();
+            }
+        }
+
         super.handleKeyEvent(event);
         if (event.isConsumed())
             group_handler.hide();
@@ -448,8 +457,9 @@ public class SelectedWidgetUITracker extends Tracker
     private void passClickToWidgets(final MouseEvent event)
     {
         final DisplayModel model = getModel();
-        if (model != null)
+        if (model != null) {
             new ClickWidgets(event, model.getChildren()).compute();
+        }
     }
 
     @Override
@@ -566,6 +576,7 @@ public class SelectedWidgetUITracker extends Tracker
     {
         if (updating)
             return;
+
         final Rectangle2D rect = GeometryTools.getDisplayBounds(widgets);
         updating = true;
 

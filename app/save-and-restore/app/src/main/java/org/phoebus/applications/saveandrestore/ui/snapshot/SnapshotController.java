@@ -34,7 +34,7 @@ import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventRe
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
-import org.phoebus.applications.saveandrestore.ui.VNoData;
+import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -359,27 +359,32 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     }
 
     public void restore(ActionEvent actionEvent) {
-        snapshotTableViewController.restoreSnapshot(snapshotControlsViewController.getRestoreMode(), snapshotProperty.get(), restoreResultList -> {
+        snapshotTableViewController.restore(snapshotControlsViewController.getRestoreMode(), snapshotProperty.get(), restoreResultList -> {
             if (snapshotControlsViewController.logAction()) {
                 eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreResultList, this::showLoggingError));
             }
             if (restoreResultList != null && !restoreResultList.isEmpty()) {
-                showFailedRestoreResult(restoreResultList);
+                showAndLogFailedRestoreResult(snapshotProperty.get(), restoreResultList);
+            }
+            else{
+                LOGGER.log(Level.INFO, "Successfully restored snapshot \"" + snapshotProperty.get().getSnapshotNode().getName() + "\"");
             }
         });
     }
 
-    private void showFailedRestoreResult(List<RestoreResult> restoreResultList) {
+    private void showAndLogFailedRestoreResult(Snapshot snapshot, List<RestoreResult> restoreResultList) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(Messages.restoreFailedPVs).append(System.lineSeparator());
         stringBuilder.append(restoreResultList.stream()
                 .map(r -> r.getSnapshotItem().getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle(Messages.restoreFailed);
+            alert.setTitle(Messages.restoreFailedPVs);
             alert.setContentText(stringBuilder.toString());
             alert.show();
         });
+        LOGGER.log(Level.WARNING,
+                "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
+                new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), stringBuilder.toString()});
     }
 
     /**

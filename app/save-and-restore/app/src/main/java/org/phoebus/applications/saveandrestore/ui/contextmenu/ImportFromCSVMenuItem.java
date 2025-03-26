@@ -9,14 +9,12 @@ import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.ui.javafx.ImageCache;
-
-import java.util.function.Consumer;
 
 public class ImportFromCSVMenuItem extends SaveAndRestoreMenuItem {
 
-    public ImportFromCSVMenuItem(SaveAndRestoreController saveAndRestoreController,
+    public ImportFromCSVMenuItem(SaveAndRestoreBaseController saveAndRestoreController,
                                  ObservableList<Node> selectedItemsProperty,
                                  Runnable onAction) {
         super(saveAndRestoreController, selectedItemsProperty, onAction);
@@ -26,7 +24,7 @@ public class ImportFromCSVMenuItem extends SaveAndRestoreMenuItem {
 
     @Override
     public void configure() {
-        disableProperty().set(saveAndRestoreController.getUserIdentity().isNull().get() ||
+        disableProperty().set(saveAndRestoreBaseController.getUserIdentity().isNull().get() ||
                 selectedItemsProperty.size() != 1 ||
                 selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) ||
                 selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT) ||

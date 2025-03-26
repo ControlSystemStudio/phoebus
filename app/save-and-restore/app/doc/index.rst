@@ -7,12 +7,10 @@ Overview
 The save-and-restore application can be used to take "snapshots" of a pre-defined list if PVs at a certain point in
 time, and write the persisted values back at some later point.
 
-The application uses the save-and-restore service deployed on the network such that it can be accessed over
-HTTP(s). The URL of the service is specified in the save-and-restore.properties file, or in the settings file
-pointed to on the command line.
+Data is managed by a central service to which the client UI connects.
 
 Actions that create, modify or delete data are protected by the service. User must sign in through the
-Crendentials Manager application. See also below.
+Credentials Manager application. See also below.
 
 Nodes and node types
 --------------------
@@ -20,7 +18,7 @@ Nodes and node types
 Save-and-restore data managed by the service is arranged in a tree structure and hence presented in the client UI using
 a tree view UI component. In the following objects in the tree are referred to as "nodes".
 
-The root of the tree structure is a folder that may only contain folder nodes. Folders may contain sub-folders and configurationsh.
+The root of the tree structure is a folder that may only contain folder nodes. Folders may contain sub-folders, configurations and composite snapshots.
 The child nodes of a configuration are snapshots associated with that configuration.
 
 Additionally a composite snapshot node may reference an arbitrary number of snapshot or composite snapshot nodes.
@@ -64,6 +62,40 @@ clients. Users should keep in mind that changes (e.g. new or deleted nodes) are 
 Caution is therefore advocated when working on the nodes in the tree, in particular when changing the structure by
 copying, deleting or moving nodes.
 
+Tree View Context Menu
+----------------------
+
+Most actions performed in the client UI are invoked from the tree view's context menu, which appears like so:
+
+.. image:: images/tree_view_context_menu.png
+    :width: 30%
+
+Since the set of applicable actions varies between node types, items in the context menu enabled/disabled
+and added/removed based on the current selection in the tree. Note that right-clicking on a tree item implicitly selects that item
+if not already selected.
+
+Brief description of all items in the context menu (details on actions are outlined below):
+
+* Login - launch authentication dialog. This item is hidden when user is signed in to the service.
+* Create Folder - create a new folder in a folder.
+* New Configuration - create a new configuration in a folder.
+* New Snapshot - crate a new snapshot based on a configuration.
+* New Composite Snapshot - create a new composite snapshot in a folder.
+* Restore from client - restore a snapshot or composite snapshot from the client application.
+* Restore from service - restore a snapshot or composite snapshot from the service.
+* Edit - edit a configuration.
+* Rename - rename a folder or configuration.
+* Copy - put selected items on clipboard.
+* Paste - paste items from clipboard.
+* Delete - delete selected items.
+* Compare Snapshots - compare a snapshot in view to the selected.
+* Add Golden Tag - tag a snapshot as "golden".
+* Tags with comment - add/delete tag on a snapshot or composite snapshot.
+* Copy unique id to clipboard - put a nodes unique string id on the clipboard.
+* Import ... from CSV - import configuration or configuration from CSV file.
+* Export ... to CSV - export configuration or snapshot to CSV file.
+* Create Log - launch log entry editor.
+
 Drag-n-drop
 -----------
 
@@ -71,9 +103,8 @@ Nodes in the tree can be moved using drag-n-drop. The following restrictions app
 
 * Configuration and folder nodes may be moved if target is a folder.
 * Configuration and composite snapshot nodes cannot be moved to the root folder.
-* A move operation on snapshot nodes is supported only if the target is a composite snapshot node. This
-will launch the editor for that composite snapshot. The source nodes are of course not removed from their parent node.
-* Target folder may not contain nodes of same type and name as nodes subject to move.
+* A move operation on snapshot nodes is supported only if the target is a composite snapshot node. This will launch the editor for that composite snapshot. The source nodes are of course not removed from their parent node.
+* Target folder may not contain nodes of same type and name as nodes subject to a move operation.
 
 Checks are performed on the service to enforce the above restrictions. If pre-conditions are not met when the selection
 is dropped, the application will present an error dialog.
@@ -105,10 +136,6 @@ editor for the purpose of logging when a new snapshot has been saved or restored
 Properties of the snapshot (name, date etc) are automatically set on the log entry rendered by the editor. If
 a restore action has failed to write one or multiple PVs, a list of these PVs is also added to the log entry.
 
-User may also launch the log entry editor from the context menu of the tree view:
-
-.. image:: images/create_log.png
-    :width: 30%
 
 In this case the log entry is empty save for a log entry property containing the name and path to
 the selected item in the tree. Note that this context menu entry is not available if a logbook implementation
@@ -123,21 +150,13 @@ The following sections describe typical use cases when working with configuratio
 Folder
 ------
 
-Folder nodes can be created from the New Folder option of the folder node context menu:
-
-.. image:: images/new-folder.png
-    :width: 30%
-
+Folder nodes can be created from the New Folder option of the folder node context menu.
 Folder names are case-sensitive and must be unique within the same parent folder.
 
 Configuration View
 ------------------
 
-A new configuration is created from the context menu launched when right-clicking on a folder node in the tree view:
-
-.. image:: images/new-configuration.png
-    :width: 30%
-
+A new configuration is created from the context menu launched when right-clicking on a folder node in the tree view.
 This will launch the configuration editor:
 
 .. image:: images/configuration-editor.png
@@ -152,10 +171,7 @@ with PVs in the order they appear.
 PV entries in a configuration marked as read only will be omitted whe performing a restore operation.
 
 To add a very large number of PVs, user should consider the import feature available via the "Import Configuration file to this folder"
-option in the context menu of a folder node in the tree view:
-
-.. image:: images/import-configuration.png
-   :width: 30%
+option in the context menu of a folder node in the tree view.
 
 The file format for such a file is::
 
@@ -191,10 +207,7 @@ PVs removed from a configurations will remain in existing snapshots.
 Create Snapshot
 ---------------
 
-To create a new snapshot one selects the New Snapshot option from the context menu of a configuration:
-
-.. image:: images/new-snapshot.png
-
+To create a new snapshot one selects the New Snapshot option from the context menu of the tree view.
 This will open the snapshot view:
 
 .. image:: images/snapshot-new.png
@@ -224,12 +237,7 @@ are **not** associated with a configuration. Instead the "configuration" - i.e. 
 referenced snapshots.
 
 To create a composite snapshot user must select the New Composite Snapshot context menu option of a folder node into
-which the composite snapshot will be saved:
-
-.. image:: images/new-composite-snapshot.png
-   :width: 30%
-
-This launches the composite snapshot editor:
+which the composite snapshot will be saved. This launches the composite snapshot editor:
 
 .. image:: images/composite-snapshot-editor.png
    :width: 80%
@@ -304,13 +312,18 @@ Prior to restore user has the option to:
 
 Restoring from a composite snapshot works in the same manner as the restore operation from a single-snapshot.
 
+Restore from context menu
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+User may invoke a restore operation (from client or from service) from context menu items in the tree
+view or in the search-and-filer view. In this case user will not have the possibility to unselect specific PVs.
+However, PV items configured as read-only will not be restored.
+
 Comparing Snapshots
 -------------------
 
 To compare two (or more) snapshots, user must first open an existing snapshot (double click in tree view). Using the
-Compare Snapshots context menu item for a snapshot node user may choose a snapshot to load for comparison:
-
-.. image:: images/compare-snapshot.png
+Compare Snapshots context menu item for a snapshot node user may choose a snapshot to load for comparison.
 
 Once the additional snapshot has been loaded, the snapshot view will show stored values from both snapshots. In this view
 the :math:`{\Delta}` Base Snapshot column will show the difference to the reference snapshot values:
@@ -353,7 +366,8 @@ for snapshot nodes. The table on the right-hand side will show the result.
 
 In the toolbar above the search result list user may choose to save the search query as a named "filter". The Help
 button will show details on how to specify the various search criteria to construct a suitable query. Filter names
-are case sensitive.
+are case sensitive. Note that if any text is present in the "Unique ID" field then the "Save Filter" button will be
+disabled.
 
 The bottom-right pane in the search tool shows all saved filters, which can be edited or deleted. If a filter is edited
 and saved it under the same name, user will be prompted whether to overwrite as filter names must be unique.
@@ -372,9 +386,7 @@ Tagging
 -------
 
 Tagging of snapshots can be used to facilitate search and filtering. The Tags context menu option of the
-snapshot node is used to launch the tagging dialog:
-
-.. image:: images/add-tag.png
+snapshot node is used to launch the tagging dialog.
 
 In the dialog user may specify a case sensitive tag name. When typing in the Tag name field,
 a list of existing tag names that may match the typed text is shown. User may hence reuse existing tags:
@@ -459,8 +471,8 @@ are supported:
 
 * | Open a configuration, snapshot or composite snapshot node in the Save-And-Restore application.
   | This can be used to quickly access a particular node in order to invoke a restore operation.
-* | Open a named filter in the Save-And-Restore application.
-  | This will open/show the search and filter view and automatically perform the search associated with the named filter.
+* | Open a named filter in the Save-And-Restore Filter View application.
+  | This will open/show the Filter View application and automatically perform the search associated with the named filter.
   | This feature can be used to quickly navigate from a Display Builder screen to a view containing a set of commonly used snapshots.
 
 Configuring actions

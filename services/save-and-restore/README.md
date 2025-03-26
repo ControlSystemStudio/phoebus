@@ -1,12 +1,11 @@
 # Save and restore service
 
-The save-and-restore service implements the MASAR (MAchine Save And Restore) service as a collection
-of REST endpoints. These can be used by clients to manage save sets (aka configurations) and
-snapshots, to compare snapshots and to restore settings from snapshots.
+The save-and-restore service implements service as a collection
+of REST endpoints. These can be used by clients to manage configurations (aka save sets) and
+snapshots, to compare snapshots and to restore PV values from snapshots.
 
-The service depends on the app-save-and-restore-model module. 
-
-Data is persisted by a relational database engine. The service has been verified on Postgresql and Mysql.
+The service is packaged as a self-contained Spring Boot jar file. External dependencies are limited to a JVM (Java 17+)
+and a running instance of Elasticsearch (8.x).
 
 # Build
 
@@ -37,7 +36,7 @@ or you can use a `.properties file`
 To check that the server is running correctly.
 
 ```
-$ curl --fail-with-body http://localhost:8080/save-restore
+$ curl --fail-with-body http://localhost:8080/save-restore/
 {
   "name" : "service-save-and-restore",
   "version" : "4.7.4-SNAPSHOT",
@@ -53,37 +52,34 @@ $ curl --fail-with-body http://localhost:8080/save-restore
 
 The response will have information about the service version, the root node id, the status of the connection with the elastic backend.
 
-# Features
+# Documentation
 
-* The service defines a set of data objects - nodes - arranged in a tree structure. Nodes in the tree are
-folders, configurations (aka save sets) and snapshots.
+Details about the REST API is found in the Phoebus bundled help content, which is pulled from the doc/index.rst file.
 
-* There is always a top level root node of type folder. This cannot be modified in any manner.
+# Docker
 
-* Child nodes of folder nodes are folder or configuration nodes. Child nodes
-of configuration nodes are only snapshot nodes. Snapshot nodes will not contain
-child nodes as this would not serve any use case.
+The latest version of the service is available as a Docker image (ghcr.io/controlsystemstudio/phoebus/service-save-and-restore:master). Pushes to the master branch into this directory will trigger a new build of the image.
 
-* Snapshot nodes are associated with snapshot data items (stored PV values) 
-and that are not part of the tree structure.
+Docker compose files are provided. These depend on the environment variables as described below.
 
-* Each node can be associated with an arbitrary number of named tags, e.g.
-a "golden" tag can be set on snapshot nodes.
+1. ```docker-compose.yml```. Use this to launch both Elasticsearch and the service. The environment variable ```HOST_IP_ADDRESS``` 
+    should be set to the host's external IP address (i.e. **not** 127.0.0.1 or localhost).
+2. ```docker-compose-save-and-restore.yml```. Use this to launch save-and-restore service only. The environment variable ```HOST_IP_ADDRESS```
+   should be set to the host's external IP address (i.e. **not** 127.0.0.1 or localhost), while the environment variable ```ELASTIC_HOST``` should
+   be set to the IP address of the Elasticsearch host. If Elasticsearch is running on  localhost, please specify the host's
+   external IP address.
 
-* Each node has a created date and a last updated date, as well as a username
-attribute. This should identify the user creating or updating a node.
+Docker supports environment variables to be set in a file (default ```.env``` in current directory) like so:
 
-* Nodes in the tree can be renamed or deleted. When a folder or configuration
-node is deleted, its entire subtree is deleted unconditionally.
+```HOST_IP_ADDRESS=1.2.3.4```  
+```ELASTIC_HOST=1.2.3.4```  
+.  
+.  
+.
 
-* A folder or configuration node can be moved to another parent node. All
-child nodes of the moved node remain child nodes of the moved node.
+This may be preferable compared to setting environment variables on command line, e.g.
 
-* Snapshot nodes cannot be moved as they are associated with the configuration
-defining the list of PVs in the snapshot.
+```>export HOST_IP_ADDRESS=1.2.3.4```.
 
-* The service is built upon Spring Boot and depends on Elasticsearch for data persistence.
-
-Missing features:
-
-* Security in terms of authentication and authorization.
+**NOTE:** Accessing IOCs over pva (default mode in the Docker compose files) works **only** if IOC is running on the
+same host as the Docker container. Moreover, this has been verified to work only on Linux.

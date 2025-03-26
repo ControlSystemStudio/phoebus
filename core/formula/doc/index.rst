@@ -126,9 +126,14 @@ element is defined as pow(array[x], exponent).
 **arraySum(VNumberArray array, VNumber offset)** - Returns a VNumberArray where each
 element is defined as array[x] + offset. To subtract, use negative offset.
 
+**arrayTotal(VNumberArray array)** - Returns the sum of all elements in the input array.
+
 **elementAt([VNumberArray | VStringArray] array , VNumber index)** - Returns a VNumber
 or VString at the specified index of the input array. If the index is invalid, a NaN or
 empty string is returned.
+
+**arrayIndex([VNumberArray | VStringArray] array, [VNumber | VString] value)** - Returns the index of the first
+occurrence of the specified value in the input array. If the value is not found, -1 is returned.
 
 **histogramOf(VNumberArray array [, VNumber binCount])** - Computes a histogram for the input array. The binCount
 argument is optional and defaults to 100.
@@ -150,6 +155,9 @@ This includes the average, min, max, and element count
 
 **arrayMin(VNumberArray array)** - Returns a VDouble with the smallest value of the given array
 
+**arraySampleWithStride(VNumberArray array, VNumber stride, VNumber offset)** - Returns a VNumberArray where each element is defined as array\[x \* stride + offset\].
+
+**arrayCumSum(VNumberArray array)** - Returns a VNumberArray where each element is defined as the cumulative sum of the input array.
 
 String
 ------
@@ -213,3 +221,11 @@ i.e. [Int8, UInt8, Int16, UInt16, Int32, UInt32, Float32, Float64].
 **imageYOffset(VImage image)** - Fetch vertical offset of image.
 
 **imageYReversed(VImage image)** - Fetch vertical reversal of image.
+
+**imageDataHorizontalProfile(VNumberArray image, VNumber imageWidth, VNumber yPosition)** - Fetch the horizontal profile data for the given Image data at a specific y position.
+
+**imageDataVerticalProfile(VNumberArray image, VNumber imageWidth, VNumber xPosition)** - Fetch the vertical profile data for the given Image data at a specific x position.
+
+**imageHorizontalProfile(VImage image, VNumber yPosition)** - Fetch the horizontal profile of the given Image at a specific y position.
+
+**imageVerticalProfile(VImage image, VNumber xPosition)** - Fetch the vertical profile of the given Image at a specific x position.

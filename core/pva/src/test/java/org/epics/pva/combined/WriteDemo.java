@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,8 +22,10 @@ import org.epics.pva.PVASettings;
 import org.epics.pva.client.PVAChannel;
 import org.epics.pva.client.PVAClient;
 import org.epics.pva.data.PVADouble;
+import org.epics.pva.data.PVAStatus;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.nt.PVATimeStamp;
+import org.epics.pva.server.MessageRequest;
 import org.epics.pva.server.PVAServer;
 import org.epics.pva.server.WriteEventHandler;
 
@@ -47,14 +49,22 @@ public class WriteDemo
             final PVAStructure data = new PVAStructure("demo", "demo_t",
                                                        new PVADouble("value", 3.13),
                                                        new PVATimeStamp());
-            final WriteEventHandler write_handler = (pv, changes, written) ->
+            final WriteEventHandler write_handler = (tcp, pv, changes, written) ->
             {
                 // Set timestamp, then take data as received
                 PVATimeStamp.set(written, Instant.now());
                 pv.update(written);
 
-                System.out.println("Received " + name + " = " + written);
-                if (((PVADouble)written.get(1)).get() < 0)
+                double value = ((PVADouble)written.get(1)).get();
+                
+                // Demo of issuing a status message
+                // The request ID should point to the
+                // client request to which this message applies.
+                // In this demo, we simply use '1'
+                tcp.submit(new MessageRequest(1, PVAStatus.Type.OK, 
+                                              "Received " + name + " = " + value));
+            	
+                if (value < 0)
                     done.countDown();
             };
             server.createPV(name, data, write_handler);
@@ -76,7 +86,7 @@ public class WriteDemo
         // Configure logging
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
         final Logger root = Logger.getLogger("");
-        root.setLevel(Level.WARNING);
+        root.setLevel(Level.INFO);
         for (Handler handler : root.getHandlers())
             handler.setLevel(root.getLevel());
 

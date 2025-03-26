@@ -18,6 +18,7 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import org.epics.vtype.VType;
+import org.phoebus.saveandrestore.util.Threshold;
 
 import java.util.Optional;
 

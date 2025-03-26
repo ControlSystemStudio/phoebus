@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.phoebus.framework.nls.NLS;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -86,5 +87,17 @@ public class AlarmLogTable implements AppInstance {
 
         controller.setSearchString(parsedQuery);
         controller.setIsNodeTable(true);
+    }
+
+    @Override
+    public void restore(final Memento memento)
+    {
+        controller.restore(memento);
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        controller.save(memento);
     }
 }

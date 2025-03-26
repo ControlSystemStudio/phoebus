@@ -72,11 +72,6 @@ public class AllWidgetsAllProperties {
                     }
 
                     @Override
-                    public Node getEditor(Widget widget) {
-                        return null;
-                    }
-
-                    @Override
                     public void readFromXML(ModelReader modelReader, Element actionXml)  {
                     }
 
@@ -89,17 +84,6 @@ public class AllWidgetsAllProperties {
                         writer.writeStartElement(XMLTags.SCRIPT);
                         writer.writeEndElement();
                     }
-
-                    @Override
-                    public void revert(){
-
-                    }
-
-                    @Override
-                    public ActionInfo commit(){
-                        return this;
-                    }
-
                 };
                 button.propActions().setValue(new ActionInfos(Arrays.asList(actionInfo)));
             }

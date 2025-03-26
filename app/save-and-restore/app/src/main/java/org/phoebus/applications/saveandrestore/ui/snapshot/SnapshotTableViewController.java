@@ -35,13 +35,13 @@ import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
-import org.phoebus.applications.saveandrestore.ui.Threshold;
-import org.phoebus.applications.saveandrestore.ui.Utilities;
-import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
+import org.phoebus.saveandrestore.util.Threshold;
+import org.phoebus.saveandrestore.util.Utilities;
+import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.time.DateTimePane;
@@ -50,7 +50,6 @@ import org.phoebus.util.time.TimestampFormats;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -62,14 +61,19 @@ import java.util.stream.Collectors;
 
 public class SnapshotTableViewController extends BaseSnapshotTableViewController {
 
+    @SuppressWarnings("unused")
     @FXML
     private TooltipTableColumn<String> pvNameColumn;
+    @SuppressWarnings("unused")
     @FXML
     private TooltipTableColumn<Instant> timeColumn;
+    @SuppressWarnings("unused")
     @FXML
     private TooltipTableColumn<VType> storedReadbackColumn;
+    @SuppressWarnings("unused")
     @FXML
     private TooltipTableColumn<VType> liveReadbackColumn;
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<TableEntry, ?> readbackColumn;
 
@@ -243,8 +247,15 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             snapshot.setSnapshotData(snapshotData);
             showSnapshotInTable(snapshot);
             if (!Preferences.default_snapshot_name_date_format.isEmpty()) {
-                SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
-                snapshot.getSnapshotNode().setName(formatter.format(new Date()));
+                String dateFormat = Preferences.default_snapshot_name_date_format;
+                try {
+                    //The format could be not correct
+                    SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+                    snapshot.getSnapshotNode().setName(formatter.format(new Date()));
+                }
+                catch (Exception e) {
+                    LOGGER.log(Level.WARNING, dateFormat + " is not a valid date format please check 'default_snapshot_name_date_format' preference ", e);
+                }
             }
             consumer.accept(Optional.of(snapshot));
         });
@@ -365,47 +376,23 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         Platform.runLater(() -> updateTable(arrayList));
     }
 
-
     /**
-     * Restore a snapshot either from the client or from the services
-     * @param restoreMode
-     * @param snapshot
-     * @param consumer
-     */
-    public void restoreSnapshot(RestoreMode restoreMode, Snapshot snapshot, Consumer<List<RestoreResult>> consumer) {
-        switch (restoreMode) {
-            case CLIENT_RESTORE -> restoreFromClient(snapshot, consumer);
-            case SERVICE_RESTORE -> restoreFromService(snapshot, consumer);
-            default -> throw new IllegalArgumentException("RestoreMode mode " + restoreMode + " not supported");
-        }
-    }
-
-    /**
-     * Restores a snapshot through a call to the remote service.
+     * Restores a snapshot from client or service.
      *
-     * @param snapshot   The {@link Snapshot} object subject to restore
-     * @param completion A handler for the outcome of the restore operation
+     * @param restoreMode Specifies whether to restore from client or from service
+     * @param snapshot    {@link Snapshot} content
+     * @param completion  Callback to handle a potentially empty list of {@link RestoreResult}s.
      */
-    public void restoreFromService(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
+    public void restore(RestoreMode restoreMode, Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
         JobManager.schedule("Restore snapshot " + snapshot.getSnapshotNode().getName(), monitor -> {
-            List<SnapshotItem> itemsToRestore = new ArrayList<>();
             List<RestoreResult> restoreResultList = null;
-            // Before invoking restore, compile a list of items where non-restorable PVs are excluded.
-            for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
-                TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
-
-                boolean restorable = e.selectedProperty().get() &&
-                        !e.readOnlyProperty().get() &&
-                        entry.getValue() != null &&
-                        !entry.getValue().equals(VNoData.INSTANCE);
-
-                if (restorable) {
-                    itemsToRestore.add(entry);
-                }
-            }
-
             try {
-                restoreResultList = SaveAndRestoreService.getInstance().restore(itemsToRestore);
+                switch (restoreMode) {
+                    case CLIENT_RESTORE ->
+                            restoreResultList = snapshotUtil.restore(getSnapshotItemsToRestore(snapshot));
+                    case SERVICE_RESTORE ->
+                            restoreResultList = SaveAndRestoreService.getInstance().restore(getSnapshotItemsToRestore(snapshot));
+                }
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -415,63 +402,35 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                     DialogHelper.positionDialog(alert, snapshotTableView, -150, -150);
                     alert.showAndWait();
                 });
+                return;
             }
             completion.accept(restoreResultList);
         });
     }
 
     /**
-     * Restores a snapshot from client.
+     * Compiles a list of {@link SnapshotItem}s based on the snapshot's PVs (and potential read-only property setting)
+     * as well as user's choice to exclude items in the UI.
      *
-     * @param snapshot   The {@link Snapshot} object subject to restore
-     * @param completion A handler for the outcome of the restore operation
+     * @param snapshot {@link Snapshot} contents.
+     * @return A list of {@link SnapshotItem}s to be subject to a restore operation.
      */
-    @SuppressWarnings("unused")
-    public void restoreFromClient(Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
-        new Thread(() -> {
+    private List<SnapshotItem> getSnapshotItemsToRestore(Snapshot snapshot) {
+        List<SnapshotItem> itemsToRestore = new ArrayList<>();
 
-            List<SnapshotItem> itemsToRestore = new ArrayList<>();
-            List<RestoreResult> restoreResultList = new ArrayList<>();
+        for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
+            TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
 
-            for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
-                TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
+            boolean restorable = e.selectedProperty().get() &&
+                    !e.readOnlyProperty().get() &&
+                    entry.getValue() != null &&
+                    !entry.getValue().equals(VNoData.INSTANCE);
 
-                boolean restorable = e.selectedProperty().get() &&
-                        !e.readOnlyProperty().get() &&
-                        entry.getValue() != null &&
-                        !entry.getValue().equals(VNoData.INSTANCE);
-
-                if (restorable) {
-                    itemsToRestore.add(entry);
-                }
+            if (restorable) {
+                itemsToRestore.add(entry);
             }
-
-            try {
-                restoreResultList = snapshotUtil.restore(itemsToRestore);
-            } catch (Exception e) {
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle(Messages.errorActionFailed);
-                    alert.setContentText(e.getMessage());
-                    alert.setHeaderText(Messages.restoreFailed);
-                    DialogHelper.positionDialog(alert, snapshotTableView, -150, -150);
-                    alert.showAndWait();
-                });
-            }
-            // Legacy
-            if (restoreResultList.isEmpty()) {
-                LOGGER.log(Level.FINE, "Restored snapshot {0}", snapshot.getSnapshotNode().getName());
-            } else {
-                String msg = restoreResultList.stream()
-                        .sorted(Comparator.comparing(o -> o.getSnapshotItem().getConfigPv().getPvName()))
-                        .map(r -> r.getSnapshotItem().getConfigPv().getPvName())
-                        .collect(Collectors.joining(System.lineSeparator()));
-                LOGGER.log(Level.WARNING,
-                        "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
-                        new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), msg});
-            }
-            completion.accept(restoreResultList);
-        }).start();
+        }
+        return itemsToRestore;
     }
 
 

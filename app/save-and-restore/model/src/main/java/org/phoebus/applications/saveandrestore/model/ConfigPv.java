@@ -65,12 +65,12 @@ public class ConfigPv implements Comparable<ConfigPv> {
         this.pvName = pvName;
     }
 
-    public String getReadbackPvName() {
-        return readbackPvName;
-    }
-
     public void setReadbackPvName(String readbackPvName) {
         this.readbackPvName = readbackPvName;
+    }
+
+    public String getReadbackPvName(){
+        return readbackPvName;
     }
 
     public boolean isReadOnly() {
@@ -80,6 +80,7 @@ public class ConfigPv implements Comparable<ConfigPv> {
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
     }
+
 
     public PvCompareMode getPvCompareMode() {
         return pvCompareMode;
@@ -137,7 +138,7 @@ public class ConfigPv implements Comparable<ConfigPv> {
 
     public static class Builder {
 
-        private ConfigPv configPv;
+        private final ConfigPv configPv;
 
         private Builder() {
             configPv = new ConfigPv();

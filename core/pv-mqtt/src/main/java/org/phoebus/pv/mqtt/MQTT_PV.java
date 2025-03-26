@@ -177,8 +177,7 @@ public class MQTT_PV extends PV
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, "Failed to unsubscribe PV from topic " + topicStr);
-            ex.printStackTrace();
+            logger.log(Level.WARNING, "Failed to unsubscribe PV from topic " + topicStr, ex);
         }
     }
 
@@ -205,9 +204,8 @@ public class MQTT_PV extends PV
         }
         catch (Exception ex)
         {
-            logger.log(Level.SEVERE, "Could not parse message: '" + new_value + "' to " + getName());
-
-            throw new Exception("Failed to parse message", ex);
+            notifyListenersOfDisconnect();
+            logger.log(Level.WARNING, "Could not parse message: '" + new_value + "' to " + getName(), ex);
         }
     }
 

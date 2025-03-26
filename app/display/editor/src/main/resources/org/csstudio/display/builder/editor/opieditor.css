@@ -187,3 +187,7 @@
 .widget_pane_focused{
     -fx-border-color: #00A0D8;
 }
+
+.code-dialog {
+    -fx-font-family: monospace !important;
+}

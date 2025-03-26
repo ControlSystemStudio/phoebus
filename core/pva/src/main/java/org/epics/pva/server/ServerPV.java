@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -40,7 +40,7 @@ public class ServerPV implements AutoCloseable
     private static final RPCService DEFAULT_RPC_SERVICE = request -> NO_SERVICE_VALUE;
 
     /** {@link WriteEventHandler} for read-only PVs */
-    static final WriteEventHandler READONLY_WRITE_HANDLER = (pv, changes, data) ->
+    static final WriteEventHandler READONLY_WRITE_HANDLER = (tcp, pv, changes, data) ->
     {
         throw new Exception("PV " + pv.getName() + " is read-only");
     };
@@ -223,13 +223,14 @@ public class ServerPV implements AutoCloseable
     }
 
     /** Notification that a client wrote to the PV
+     *  @param tcp {@link ServerTCPHandler} that received the 'write'
      *  @param changes Elements that the client tried to change
      *  @param written_data Data written by the client
      *  @throws Exception on error
      */
-    void wrote(final BitSet changes, final PVAStructure written_data) throws Exception
+    void wrote(final ServerTCPHandler tcp, final BitSet changes, final PVAStructure written_data) throws Exception
     {
-        write_handler.handleWrite(this, changes, written_data);
+        write_handler.handleWrite(tcp, this, changes, written_data);
     }
 
     /** Invoke RPC service

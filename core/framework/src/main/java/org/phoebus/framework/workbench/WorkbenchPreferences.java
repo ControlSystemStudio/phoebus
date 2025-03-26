@@ -27,6 +27,12 @@ public class WorkbenchPreferences
     /** directory of external applications */
     @Preference public static File external_apps_directory;
     
+    /** Phoebus memento folder name default from $(phoebus.folder.name.preference) System property */
+    @Preference public static String  phoebus_folder_name;
+    
+    /** Phoebus user home directory contents memento default from $(phoebus.user) System property */
+    @Preference public static File  phoebus_user;
+    
     /** external applications */
     public static final Collection<String> external_apps;
 

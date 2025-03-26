@@ -325,8 +325,7 @@ public class PhoebusApplication extends Application {
             String errorMessage = errorTitleAndErrorMessage.getValue();
 
             logger.log(Level.SEVERE, errorMessage);
-
-            Dialog errorDialog = new Alert(AlertType.ERROR);
+            Alert errorDialog = new Alert(AlertType.ERROR);
             errorDialog.setTitle(errorTitle);
             errorDialog.setHeaderText(errorTitle);
             errorDialog.setContentText(errorMessage + "\n\n" + Messages.PhoebusWillQuit);
@@ -348,7 +347,7 @@ public class PhoebusApplication extends Application {
                     ObservableList<File> iniFilesInDirectory_ObservableList = FXCollections.observableArrayList(iniFilesInDirectory_List);
 
                     if (iniFilesInDirectory_List.size() > 0) {
-                        Dialog<File> iniFileSelectionDialog = new Dialog();
+                        Dialog<File> iniFileSelectionDialog = new Dialog<>();
                         iniFileSelectionDialog.setTitle(Messages.SelectPhoebusConfiguration);
                         iniFileSelectionDialog.setHeaderText(Messages.SelectPhoebusConfiguration);
                         iniFileSelectionDialog.setGraphic(null);
@@ -357,7 +356,7 @@ public class PhoebusApplication extends Application {
                         iniFileSelectionDialog.setHeight(400);
                         iniFileSelectionDialog.setResizable(false);
 
-                        ListView listView = new ListView(iniFilesInDirectory_ObservableList);
+                        ListView<File> listView = new ListView<>(iniFilesInDirectory_ObservableList);
                         listView.getSelectionModel().select(0);
 
                         Runnable setReturnValueAndCloseDialog = () -> {
@@ -419,20 +418,20 @@ public class PhoebusApplication extends Application {
                                         PropertyPreferenceLoader.load(selectedFile_FileInputStream);
                                     }
                                 } catch (Exception exception) {
-                                    displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage()));
+                                    displayErrorMessageAndQuit.accept(new Pair<>(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage()));
                                 }
                             } catch (FileNotFoundException e) {
-                                displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + Messages.FileDoesNotExist));
+                                displayErrorMessageAndQuit.accept(new Pair<>(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + Messages.FileDoesNotExist));
                             }
                         } else {
                             // Selecting a configuration was cancelled either by pressing the "X"-button or by pressing the ESC-key.
                             stop();
                         }
                     } else {
-                        displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheDirectoryDoesNotContainConfigurationFiles, iniFilesLocation_String)));
+                        displayErrorMessageAndQuit.accept(new Pair<>(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheDirectoryDoesNotContainConfigurationFiles, iniFilesLocation_String)));
                     }
                 } else {
-                    displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheArgumentIsNotADirectory, iniFilesLocation_String)));
+                    displayErrorMessageAndQuit.accept(new Pair<>(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheArgumentIsNotADirectory, iniFilesLocation_String)));
                 }
             }
         }
@@ -1296,9 +1295,10 @@ public class PhoebusApplication extends Application {
      */
     private MementoTree loadDefaultMemento(final List<String> parameters, final JobMonitor monitor) {
         monitor.beginTask(Messages.MonitorTaskPers, 1);
-        File memfile = XMLMementoTree.getDefaultFile();
+        MementoTree memTree = null;
+        File memfile = null;
         try {
-            for (int i = 0; i < parameters.size(); ++i)
+            for (int i = 0; i < parameters.size(); ++i) {
                 if ("-layout".equals(parameters.get(i))) {
                     if (i >= parameters.size() - 1)
                         throw new Exception("Missing /path/to/Example.memento for -layout option");
@@ -1310,9 +1310,24 @@ public class PhoebusApplication extends Application {
                     parameters.remove(i);
                     break;
                 }
+            }
+            if(memfile == null) {//if no layout found in argument check preferences
+                //Load a custom layout at start if layout_default is defined in preferences
+                String layoutFileName = Preferences.layout_default;
+                if(layoutFileName != null && !layoutFileName.isBlank()) {
+                    //layout is in absolute path and not based on layout_dir
+                    layoutFileName = !layoutFileName.endsWith(".memento")? layoutFileName + ".memento" :layoutFileName;
+                    memfile = new File(layoutFileName);
+                }
+            }
+            
+            if(memfile == null) {// if still null get default one
+                memfile = XMLMementoTree.getDefaultFile();
+            }
+            
             if (memfile.canRead()) {
                 logger.log(Level.INFO, "Loading state from " + memfile);
-                return loadMemento(memfile);
+                memTree = loadMemento(memfile);
             } else
                 logger.log(Level.WARNING, "Cannot load state from " + memfile + ", no such file");
         } catch (Exception ex) {
@@ -1320,7 +1335,7 @@ public class PhoebusApplication extends Application {
         } finally {
             monitor.done();
         }
-        return null;
+        return memTree;
     }
 
     /**

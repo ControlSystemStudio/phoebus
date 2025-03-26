@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2022-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.TCPHandler;
 import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.nt.PVATimeStamp;
@@ -53,7 +54,7 @@ public class BoolDemo
 
             // Create PVs
             final ServerPV pv1 = server.createPV("bool", data);
-            final ServerPV pv2 = server.createPV("struct", struct, (ServerPV pv, BitSet changes, PVAStructure written) ->
+            final ServerPV pv2 = server.createPV("struct", struct, (TCPHandler tcp, ServerPV pv, BitSet changes, PVAStructure written) ->
             {
                 System.out.println("Somebody wrote this to '" + pv.getName() + "':\n" + written);
                 pv.update(written);

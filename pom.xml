@@ -142,7 +142,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.11.2</version>
         <configuration>
           <!-- Only document 'public' code -->
           <show>public</show>
@@ -273,7 +273,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>3.11.2</version>
           <executions>
             <execution>
               <id>attach-javadocs</id>
@@ -283,7 +283,7 @@
               <configuration>
                 <!-- add this to disable checking -->
                 <doclint>none</doclint>
-                <source>11</source>
+                <source>17</source>
               </configuration>
             </execution>
           </executions>
@@ -382,14 +382,14 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.8</version>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.7.0</version>
             <extensions>true</extensions>
             <configuration>
-              <serverId>phoebus-releases</serverId>
-              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>false</autoReleaseAfterClose>
+              <publishingServerId>phoebus-releases</publishingServerId>
+              <checksums>required</checksums>
+              <centralBaseUrl>https://central.sonatype.com</centralBaseUrl>
             </configuration>
           </plugin>
           <plugin>
@@ -403,6 +403,39 @@
                 <goals>
                   <goal>sign</goal>
                 </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Assuming that the documentation has been built and put into the file doc.tar.gz,
+         the following profile attaches the doc.tar.gz file as an attached artifact. -->
+    <profile>
+      <id>attach-documentation</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.6.0</version>
+            <executions>
+              <execution>
+                <id>attach-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot> <!-- Only run in the parent project -->
+                  <artifacts>
+                    <artifact>
+                      <file>${project.basedir}/doc.tar.gz</file>
+                      <type>tar.gz</type>
+                    </artifact>
+                  </artifacts>
+                </configuration>
               </execution>
             </executions>
           </plugin>

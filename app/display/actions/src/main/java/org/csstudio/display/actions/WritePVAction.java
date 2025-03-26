@@ -4,24 +4,17 @@
 
 package org.csstudio.display.actions;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.image.Image;
-import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.ActionInfoBase;
-import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
-import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.w3c.dom.Element;
 
 import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,8 +26,6 @@ public class WritePVAction extends ActionInfoBase {
     public static final String WRITE_PV = "write_pv";
     private static final Integer PRIORITY = 20;
     private final Logger logger = Logger.getLogger(WritePVAction.class.getName());
-
-    private WritePVActionController writePVActionController;
 
     @SuppressWarnings("unused")
     /**
@@ -115,47 +106,5 @@ public class WritePVAction extends ActionInfoBase {
 
     public void setValue(String value) {
         this.value = value;
-    }
-
-    @Override
-    public Node getEditor(Widget widget) {
-        if (editorUi != null) {
-            return editorUi;
-        }
-        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-        FXMLLoader fxmlLoader = new FXMLLoader();
-        fxmlLoader.setResources(resourceBundle);
-        fxmlLoader.setLocation(this.getClass().getResource("WritePVAction.fxml"));
-        fxmlLoader.setControllerFactory(clazz -> {
-            try {
-                return clazz.getConstructor(ActionInfo.class).newInstance(this);
-            } catch (Exception e) {
-                Logger.getLogger(WritePVAction.class.getName()).log(Level.SEVERE, "Failed to construct WritePVActionController", e);
-            }
-            return null;
-        });
-
-        try {
-            editorUi = fxmlLoader.load();
-            writePVActionController = fxmlLoader.getController();
-            return editorUi;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void revert() {
-        writePVActionController.setDescription(description);
-        writePVActionController.setPvName(pv);
-        writePVActionController.setValue(value);
-    }
-
-    @Override
-    public ActionInfo commit() {
-        description = writePVActionController.getDescription();
-        value = writePVActionController.getValue();
-        pv = writePVActionController.getPvName();
-        return this;
     }
 }

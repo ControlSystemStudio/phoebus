@@ -26,10 +26,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.*;
 import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
@@ -92,13 +89,22 @@ import javafx.util.Duration;
  *   |
  *  scroll_body   (Group)
  *   |
- *  widget_parent (Pane)
+ *  widget_pane   (Pane)
+ *   |
+ *  widget_parent (Group)
+ *
  *  </pre>
+ *
+ *  <p>widget_pane:
+ *  This contains the group with the child widgets.
+ *  Its scaling factors are used to zoom.
+ *  Also used to set the overall background color.
  *
  *  <p>widget_parent:
  *  This is where the widgets of the model get represented.
- *  Its scaling factors are used to zoom.
- *  Also used to set the overall background color.
+ *  We need this to be a Group, as a Pane handle the prefSize properly when it contains
+ *  transformed widgets (like a rotated Label). Groups set their prefSize according
+ *  to the _transformed_ dimensions of its children.
  *
  *  <p>scroll_body:
  *  Needed for scroll pane to use visual bounds, i.e. be aware of zoom.
@@ -152,8 +158,9 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     /** Update background color, grid */
     private final UntypedWidgetPropertyListener background_listener = ( p, o, n ) -> execute(this::updateBackground);
 
+    private Group widget_parent;
     private Line horiz_bound, vert_bound;
-    private Pane widget_parent;
+    private Pane widget_pane;
     private Group scroll_body;
     private ScrollPane model_root;
 
@@ -191,8 +198,9 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         if (model_root != null)
             throw new IllegalStateException("Already created model root");
 
-        widget_parent = new Pane();
-        scroll_body = new Group(widget_parent);
+        widget_parent = new Group();
+        widget_pane = new Pane(widget_parent);
+        scroll_body = new Group(widget_pane);
 
         if (isEditMode())
         {
@@ -281,7 +289,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                 }
             });
         else
-            widget_parent.addEventHandler(ScrollEvent.ANY, evt ->
+            widget_pane.addEventHandler(ScrollEvent.ANY, evt ->
             {
                 if (evt.isShortcutDown())
                 {
@@ -319,7 +327,8 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         // setText() only, otherwise it gets into an endless update due to getValue/setValue implementation in Editor. In Runtime was OK.
         // Drawback: return to a previous "combo driven" zoom level from any wheel level not possible directly (no value change in combo)
         setZoom(new_zoom);
-        zoom_listener.accept(Integer.toString((int)(new_zoom * 100)) + " %");
+        if (zoom_listener != null)
+            zoom_listener.accept(Integer.toString((int)(new_zoom * 100)) + " %");
 
         repositionScroller(scroll_body, model_root, realFactor, scrollOffset, new Point2D(x, y));
     }
@@ -448,7 +457,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         if (zoom <= 0.0)
         {   // Determine zoom to fit outline of display into available space
             final Bounds available = model_root.getLayoutBounds();
-            final Bounds outline = widget_parent.getLayoutBounds();
+            final Bounds outline = widget_pane.getLayoutBounds();
 
             // 'outline' will wrap the actual widgets when the display
             // is larger than the available viewport.
@@ -483,6 +492,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         }
 
         widget_parent.getTransforms().setAll(new Scale(zoom, zoom));
+        widget_pane.getTransforms().setAll(new Scale(zoom, zoom));
         // Appears similar to using this API:
         //     widget_parent.setScaleX(zoom);
         //     widget_parent.setScaleY(zoom);
@@ -502,7 +512,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     /** @return Zoom factor, 1.0 for 1:1 */
     public double getZoom()
     {
-        final List<Transform> transforms = widget_parent.getTransforms();
+        final List<Transform> transforms = widget_pane.getTransforms();
         if (transforms.isEmpty()  ||
             transforms.size() > 1 ||
             ! (transforms.get(0) instanceof Scale))
@@ -568,8 +578,8 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                          : model_height;
 
         // Does not consider zooming.
-        // If the widget_parent is zoomed 'out', e.g. 50%,
-        // the widget_parent will only be half as large
+        // If the widget_pane is zoomed 'out', e.g. 50%,
+        // the widget_pane will only be half as large
         // as we specify here in pixels
         // -> Ignore. If user zooms out a lot, there'll be an
         //    area a gray area at the right and bottom of the display.
@@ -577,7 +587,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         //    so there is very little gray area.
         //        widget_parent.setMinWidth(show_x / zoom);
         //        widget_parent.setMinHeight(show_y / zoom);
-        widget_parent.setMinSize(show_x, show_y);
+        widget_pane.setMinSize(show_x, show_y);
     }
 
     /** Update lines that indicate model's size in edit mode */
@@ -586,7 +596,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         int width = model.propWidth().getValue();
         int height = model.propHeight().getValue();
 
-        final ObservableList<Transform> transforms = widget_parent.getTransforms();
+        final ObservableList<Transform> transforms = widget_pane.getTransforms();
         if (transforms.size() > 0  &&  transforms.get(0) instanceof Scale)
         {
             final Scale scale = (Scale) transforms.get(0);
@@ -883,7 +893,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         final WritableImage wimage = new WritableImage(gridStepX, gridStepY);
         SwingFXUtils.toFXImage(image, wimage);
         final ImagePattern pattern = new ImagePattern(wimage, 0, 0, gridStepX, gridStepY, false);
-        widget_parent.setBackground(new Background(new BackgroundFill(pattern, CornerRadii.EMPTY, Insets.EMPTY)));
+        widget_pane.setBackground(new Background(new BackgroundFill(pattern, CornerRadii.EMPTY, Insets.EMPTY)));
     }
 
     // Future for controlling the audio player
@@ -1065,6 +1075,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             logger.log(Level.WARNING, "Display representation still contains items on shutdown: " + widget_parent.getChildren());
 
         widget_parent = null;
+        widget_pane = null;
         model_root = null;
         scroll_body = null;
         zoom_listener = null;

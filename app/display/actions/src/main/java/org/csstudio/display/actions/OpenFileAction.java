@@ -4,34 +4,23 @@
 
 package org.csstudio.display.actions;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.image.Image;
-import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.ActionInfoBase;
-import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
-import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.w3c.dom.Element;
 
 import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class OpenFileAction extends ActionInfoBase {
 
     public static final String OPEN_FILE = "open_file";
     private static final Integer PRIORITY = 50;
     private String file;
-
-    private OpenFileActionController openFileActionController;
 
     @SuppressWarnings("unused")
     /**
@@ -40,14 +29,13 @@ public class OpenFileAction extends ActionInfoBase {
     public OpenFileAction() {
         this.description = Messages.ActionOpenFile;
         this.type = OPEN_FILE;
-
     }
 
-    /** @param description Action description
-     *  @param file Path to file to open
+    /**
+     * @param description Action description
+     * @param file        Path to file to open
      */
-    public OpenFileAction(final String description, final String file)
-    {
+    public OpenFileAction(final String description, final String file) {
         this.description = description;
         this.file = file;
         this.type = OPEN_FILE;
@@ -89,45 +77,5 @@ public class OpenFileAction extends ActionInfoBase {
 
     public void setFile(String file) {
         this.file = file;
-    }
-
-    @Override
-    public Node getEditor(Widget widget){
-        if(editorUi != null){
-            return editorUi;
-        }
-        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-        FXMLLoader fxmlLoader = new FXMLLoader();
-        fxmlLoader.setResources(resourceBundle);
-        fxmlLoader.setLocation(this.getClass().getResource("OpenFileAction.fxml"));
-        fxmlLoader.setControllerFactory(clazz -> {
-            try {
-                return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, this);
-            } catch (Exception e) {
-                Logger.getLogger(OpenFileAction.class.getName())
-                        .log(Level.SEVERE, "Failed to construct OpenFileActionController", e);
-            }
-            return null;
-        });
-
-        try {
-            editorUi = fxmlLoader.load();
-            openFileActionController = fxmlLoader.getController();
-            return editorUi;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void revert(){
-        openFileActionController.setFilePath(file);
-        openFileActionController.setDescription(description);
-    }
-
-    public ActionInfo commit(){
-        description = openFileActionController.getDescription();
-        file = openFileActionController.getFilePath();
-        return this;
     }
 }

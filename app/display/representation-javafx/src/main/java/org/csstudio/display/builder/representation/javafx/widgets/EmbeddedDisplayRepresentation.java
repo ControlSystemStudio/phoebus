@@ -60,23 +60,23 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
     private static final Background TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
     private static final Background EDIT_TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(
             new LinearGradient(
-                0, 0, 10, 10, false, CycleMethod.REPEAT,
-                new Stop(0.0, new Color(0.53, 0.52, 0.51, 0.15)),
-                new Stop(0.5, new Color(0.53, 0.52, 0.51, 0.15)),
-                new Stop(0.5, Color.TRANSPARENT),
-                new Stop(1.0, Color.TRANSPARENT)
+                    0, 0, 10, 10, false, CycleMethod.REPEAT,
+                    new Stop(0.0, new Color(0.53, 0.52, 0.51, 0.15)),
+                    new Stop(0.5, new Color(0.53, 0.52, 0.51, 0.15)),
+                    new Stop(0.5, Color.TRANSPARENT),
+                    new Stop(1.0, Color.TRANSPARENT)
             ), CornerRadii.EMPTY, Insets.EMPTY
-        ));
+    ));
 
     private static final Background EDIT_OVERDRAWN_BACKGROUND = new Background(new BackgroundFill(
             new LinearGradient(
-                10, 0, 0, 10, false, CycleMethod.REPEAT,
-                new Stop(0.0, Color.TRANSPARENT),
-                new Stop(0.5, Color.TRANSPARENT),
-                new Stop(0.5, new Color(0.93, 0.1, 0.1, 0.45)),
-                new Stop(1.0, new Color(0.93, 0.1, 0.1, 0.45))
+                    10, 0, 0, 10, false, CycleMethod.REPEAT,
+                    new Stop(0.0, Color.TRANSPARENT),
+                    new Stop(0.5, Color.TRANSPARENT),
+                    new Stop(0.5, new Color(0.93, 0.1, 0.1, 0.45)),
+                    new Stop(1.0, new Color(0.93, 0.1, 0.1, 0.45))
             ), CornerRadii.EMPTY, Insets.EMPTY
-        ));
+    ));
 
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag dirty_background = new DirtyFlag();
@@ -243,7 +243,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
     private void fileChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         final DisplayAndGroup file_and_group =
-            new DisplayAndGroup(model_widget.propFile().getValue(), model_widget.propGroupName().getValue());
+                new DisplayAndGroup(model_widget.propFile().getValue(), model_widget.propGroupName().getValue());
 
         // System.out.println("Requested: " + file_and_group);
         final DisplayAndGroup skipped = pending_display_and_group.getAndSet(file_and_group);

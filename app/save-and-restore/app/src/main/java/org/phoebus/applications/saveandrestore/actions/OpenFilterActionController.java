@@ -22,24 +22,25 @@ import java.util.logging.Logger;
 
 public class OpenFilterActionController extends ActionControllerBase {
 
-    private final OpenFilterAction openFilterAction;
-
+    @SuppressWarnings("unused")
     @FXML
-    private ComboBox<Filter> filterId;
+    private ComboBox<Filter> filterComboBox;
+
+    private final String filterId;
 
     private final SimpleListProperty<Filter> filters = new SimpleListProperty<>();
 
-    public OpenFilterActionController(ActionInfo actionInfo) {
-        this.openFilterAction = (OpenFilterAction) actionInfo;
-        descriptionProperty.set(actionInfo.getDescription());
+    public OpenFilterActionController(OpenFilterAction openFilterAction) {
+        descriptionProperty.set(openFilterAction.getDescription());
+        filterId = openFilterAction.getFilterId();
     }
 
     @FXML
     public void initialize() {
         super.initialize();
-        filterId.itemsProperty().bindBidirectional(filters);
+        filterComboBox.itemsProperty().bindBidirectional(filters);
 
-        filterId.setConverter(new StringConverter<>() {
+        filterComboBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(Filter filter) {
                 return filter == null ? null : filter.getName();
@@ -47,7 +48,7 @@ public class OpenFilterActionController extends ActionControllerBase {
 
             @Override
             public Filter fromString(String string) {
-                return filters.stream().filter(f -> f.getName().equalsIgnoreCase(openFilterAction.getFilterId())).findFirst().get();
+                return filters.stream().filter(f -> f.getName().equalsIgnoreCase(filterId)).findFirst().get();
             }
         });
 
@@ -55,23 +56,23 @@ public class OpenFilterActionController extends ActionControllerBase {
             SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
             try {
                 filters.set(FXCollections.observableArrayList(saveAndRestoreService.getAllFilters()));
-                setFilter(openFilterAction.getFilterId());
+                setFilterId(filterId);
             } catch (Exception e) {
                 Logger.getLogger(OpenFilterActionController.class.getName()).log(Level.WARNING, "Failed to retrieve all filters");
             }
         });
     }
 
-    public Filter getSelectedFilter() {
-        return filterId.getSelectionModel().getSelectedItem();
-    }
-
-    public void setFilter(String filterId) {
+    public void setFilterId(String filterId) {
         Optional<Filter> filter = filters.stream().filter(f -> f.getName().equalsIgnoreCase(filterId)).findFirst();
         if (filter.isPresent()) {
-            Platform.runLater(() -> this.filterId.getSelectionModel().select(filter.get()));
+            Platform.runLater(() -> this.filterComboBox.getSelectionModel().select(filter.get()));
         } else if (!filters.isEmpty()) {
-            Platform.runLater(() -> this.filterId.getSelectionModel().select(filters.get(0)));
+            Platform.runLater(() -> this.filterComboBox.getSelectionModel().select(filters.get(0)));
         }
+    }
+
+    public ActionInfo getActionInfo(){
+        return new OpenFilterAction(descriptionProperty.get(), filterComboBox.getSelectionModel().getSelectedItem().getName());
     }
 }

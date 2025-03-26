@@ -1,40 +1,52 @@
 package org.phoebus.olog.api;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import com.sun.jersey.multipart.FormDataMultiPart;
-import com.sun.jersey.multipart.file.FileDataBodyPart;
-import com.sun.jersey.multipart.impl.MultiPartWriter;
-import org.phoebus.logbook.*;
-import org.phoebus.security.managers.DummyX509TrustManager;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.Messages;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.SearchResult;
+import org.phoebus.logbook.Tag;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
+import org.phoebus.util.http.HttpRequestMultipartBody;
+import org.phoebus.util.http.QueryParamsHelper;
 import org.phoebus.util.time.TimeParser;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+import java.net.Socket;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,10 +54,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -58,95 +68,39 @@ import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 public class OlogClient implements LogClient {
 
     private static final Logger logger = Logger.getLogger(OlogClient.class.getName());
-
-    private final WebResource service;
+    private final HttpClient httpClient;
     private final ExecutorService executor;
+    private final String basicAuthenticationHeader;
+
+    private static final Logger LOGGER = Logger.getLogger(OlogClient.class.getName());
+
+    private static final ObjectMapper OBJECT_MAPPER;
+
+    static {
+        OBJECT_MAPPER = new ObjectMapper();
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
 
     /**
      * Builder Class to help create a olog client.
-     * 
+     *
      * @author shroffk
-     * 
      */
     public static class OlogClientBuilder {
-        // required
-        private URI ologURI = null;
 
-        // optional
-        private boolean withHTTPAuthentication = false;
-        private boolean withRawFilter;
-
-        private ClientConfig clientConfig = null;
-        private TrustManager[] trustManager = new TrustManager[] { new DummyX509TrustManager() };;
-        @SuppressWarnings("unused")
-        private SSLContext sslContext = null;
-
-        private String protocol = null;
         private String username = null;
         private String password = null;
-        private String connectTimeoutAsString = null;
-
-        private ExecutorService executor = Executors.newSingleThreadExecutor();
-
-        private OlogProperties properties = new OlogProperties();
-
+        private final URI uri;
 
         private OlogClientBuilder() {
-            this.ologURI = URI.create(this.properties.getPreferenceValue("olog_url"));
-            this.protocol = this.ologURI.getScheme();
-        }
-
-        private OlogClientBuilder(URI uri) {
-            this.ologURI = uri;
-            this.protocol = this.ologURI.getScheme();
-        }
-
-        /**
-         * Creates a {@link OlogClientBuilder} for a CF client to Default URL in the
-         * channelfinder.properties.
-         * 
-         * @return
-         */
-        public static OlogClientBuilder serviceURL() {
-            return new OlogClientBuilder();
-        }
-
-        /**
-         * Creates a {@link OlogClientBuilder} for a CF client to URI <code>uri</code>.
-         * 
-         * @param uri
-         * @return {@link OlogClientBuilder}
-         */
-        public static OlogClientBuilder serviceURL(String uri) {
-            return new OlogClientBuilder(URI.create(uri));
-        }
-
-        /**
-         * Creates a {@link OlogClientBuilder} for a CF client to {@link URI}
-         * <code>uri</code>.
-         * 
-         * @param uri
-         * @return {@link OlogClientBuilder}
-         */
-        public static OlogClientBuilder serviceURL(URI uri) {
-            return new OlogClientBuilder(uri);
-        }
-
-        /**
-         * Enable of Disable the HTTP authentication on the client connection.
-         * 
-         * @param withHTTPAuthentication
-         * @return {@link OlogClientBuilder}
-         */
-        public OlogClientBuilder withHTTPAuthentication(boolean withHTTPAuthentication) {
-            this.withHTTPAuthentication = withHTTPAuthentication;
-            return this;
+            this.uri = URI.create(Preferences.olog_url);
         }
 
         /**
          * Set the username to be used for HTTP Authentication.
-         * 
-         * @param username
+         *
+         * @param username User account name
          * @return {@link OlogClientBuilder}
          */
         public OlogClientBuilder username(String username) {
@@ -156,8 +110,8 @@ public class OlogClient implements LogClient {
 
         /**
          * Set the password to be used for the HTTP Authentication.
-         * 
-         * @param password
+         *
+         * @param password User's password
          * @return {@link OlogClientBuilder}
          */
         public OlogClientBuilder password(String password) {
@@ -165,118 +119,84 @@ public class OlogClient implements LogClient {
             return this;
         }
 
-        /**
-         * set the {@link ClientConfig} to be used while creating the channelfinder
-         * client connection.
-         * 
-         * @param clientConfig
-         * @return {@link OlogClientBuilder}
-         */
-        public OlogClientBuilder withClientConfig(ClientConfig clientConfig) {
-            this.clientConfig = clientConfig;
-            return this;
+        private ScopedAuthenticationToken getCredentialsFromSecureStore() {
+            try {
+                SecureStore secureStore = new SecureStore();
+                return secureStore.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
+            } catch (Exception e) {
+                Logger.getLogger(OlogClient.class.getName()).log(Level.WARNING, "Unable to instantiate SecureStore", e);
+                return null;
+            }
         }
 
-        @SuppressWarnings("unused")
-        private OlogClientBuilder withSSLContext(SSLContext sslContext) {
-            this.sslContext = sslContext;
-            return this;
-        }
-
-        /**
-         * Set the trustManager that should be used for authentication.
-         * 
-         * @param trustManager
-         * @return {@link OlogClientBuilder}
-         */
-        public OlogClientBuilder withTrustManager(TrustManager[] trustManager) {
-            this.trustManager = trustManager;
-            return this;
-        }
-
-        /**
-         * Provide your own executor on which the queries are to be made. <br>
-         * By default a single threaded executor is used.
-         * 
-         * @param executor
-         * @return {@link OlogClientBuilder}
-         */
-        public OlogClientBuilder withExecutor(ExecutorService executor) {
-            this.executor = executor;
-            return this;
-        }
-
-        public OlogClient create() throws Exception {
-            if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
-                this.clientConfig = new DefaultClientConfig();
-            } else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
-                if (this.clientConfig == null) {
-                    SSLContext sslContext = null;
-                    try {
-                        sslContext = SSLContext.getInstance("SSL"); //$NON-NLS-1$
-                        sslContext.init(null, this.trustManager, null);
-                    } catch (NoSuchAlgorithmException e) {
-                        throw new OlogException();
-                    } catch (KeyManagementException e) {
-                        throw new OlogException();
-                    }
-                    this.clientConfig = new DefaultClientConfig();
-                    this.clientConfig.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-                            new HTTPSProperties(new HostnameVerifier() {
-                                @Override
-                                public boolean verify(String hostname, SSLSession session) {
-                                    return true;
-                                }
-                            }, sslContext));
+        public OlogClient build() {
+            if (this.username == null || this.password == null) {
+                ScopedAuthenticationToken scopedAuthenticationToken = getCredentialsFromSecureStore();
+                if (scopedAuthenticationToken != null) {
+                    this.username = scopedAuthenticationToken.getUsername();
+                    this.password = scopedAuthenticationToken.getPassword();
                 }
             }
 
-            this.username = ifNullReturnPreferenceValue(this.username, "username");
-            this.password = ifNullReturnPreferenceValue(this.password, "password");
-            this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
-            Integer connectTimeout = 0;
-            try {
-                connectTimeout = Integer.parseInt(connectTimeoutAsString);
-            } catch (NumberFormatException e) {
-                Logger.getLogger(OlogClientBuilder.class.getPackageName())
-                        .warning("connectTimeout preference not set or invalid, using 0 (=infinite)");
-            }
-            this.clientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, connectTimeout);
+            HttpClient httpClient;
 
-            this.withRawFilter = Boolean.valueOf(this.properties.getPreferenceValue("debug"));
-            return new OlogClient(this.ologURI,
-                    this.clientConfig,
-                    this.withHTTPAuthentication,
-                    this.username,
-                    this.password,
-                    this.executor,
-                    this.withRawFilter);
-        }
-
-        private String ifNullReturnPreferenceValue(String value, String key) {
-            if (value == null) {
-                return this.properties.getPreferenceValue(key);
+            if (uri.getScheme().equalsIgnoreCase("https")) {
+                try {
+                    SSLContext sslContext = SSLContext.getInstance("SSL"); // OR TLS
+                    sslContext.init(null, new PromiscuousTrustManager[]{new PromiscuousTrustManager()}, new SecureRandom());
+                    if (Preferences.connectTimeout > 0) {
+                        httpClient = HttpClient.newBuilder()
+                                .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
+                                .followRedirects(HttpClient.Redirect.ALWAYS)
+                                .connectTimeout(Duration.ofMillis(Preferences.connectTimeout))
+                                .sslContext(sslContext)
+                                .build();
+                    } else {
+                        httpClient = HttpClient.newBuilder()
+                                .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
+                                .followRedirects(HttpClient.Redirect.ALWAYS)
+                                .connectTimeout(Duration.ofMillis(Preferences.connectTimeout))
+                                .sslContext(sslContext)
+                                .build();
+                    }
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING,
+                            "Failed to properly create the olog rest client to: " + Preferences.olog_url
+                            , e);
+                    throw new RuntimeException(e);
+                }
             } else {
-                return value;
+                if (Preferences.connectTimeout > 0) {
+                    httpClient = HttpClient.newBuilder()
+                            .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
+                            .followRedirects(HttpClient.Redirect.ALWAYS)
+                            .connectTimeout(Duration.ofMillis(Preferences.connectTimeout))
+                            .build();
+                } else {
+                    httpClient = HttpClient.newBuilder()
+                            .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
+                            .followRedirects(HttpClient.Redirect.ALWAYS)
+                            .connectTimeout(Duration.ofMillis(Preferences.connectTimeout))
+                            .build();
+                }
             }
+
+            return new OlogClient(httpClient, this.username, this.password);
         }
+    }
+
+    public static OlogClientBuilder builder() {
+        return new OlogClientBuilder();
+    }
+
+    private OlogClient(HttpClient httpClient, String userName, String password) {
+        this.httpClient = httpClient;
+        executor = Executors.newSingleThreadExecutor();
+        basicAuthenticationHeader = "Basic " + Base64.getEncoder().encodeToString((userName != null ? userName : Preferences.username + ":" +
+                password != null ? password : Preferences.password).getBytes());
 
     }
 
-    private OlogClient(URI ologURI, ClientConfig config, boolean withHTTPBasicAuthFilter, String username,
-            String password, ExecutorService executor, boolean withRawFilter) {
-        this.executor = executor;
-        config.getClasses().add(MultiPartWriter.class);
-        Client client = Client.create(config);
-        if (withHTTPBasicAuthFilter) {
-            client.addFilter(new HTTPBasicAuthFilter(username, password));
-        }
-        if (withRawFilter) {
-            client.addFilter(new RawLoggingFilter(Logger.getLogger(OlogClient.class.getName())));
-        }
-        client.setFollowRedirects(true);
-        service = client.resource(UriBuilder.fromUri(ologURI).build());
-    }
 
     // A predefined set of levels supported by olog
     private final List<String> levels = Arrays.asList("Urgent", "Suggestion", "Info", "Request", "Problem");
@@ -285,34 +205,58 @@ public class OlogClient implements LogClient {
     public Collection<String> listLevels() {
         return levels;
     }
-    
+
     @Override
     public Collection<Logbook> listLogbooks() {
-        return wrappedSubmit(new Callable<Collection<Logbook>>() {
+        return wrappedSubmit(new Callable<>() {
 
             @Override
             public Collection<Logbook> call() throws Exception {
 
-                Collection<Logbook> allLogbooks = new HashSet<Logbook>();
-                XmlLogbooks allXmlLogbooks = service.path("logbooks").accept(MediaType.APPLICATION_XML)
-                        .get(XmlLogbooks.class);
+                Collection<Logbook> allLogbooks = new HashSet<>();
+
+                HttpRequest httpRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(Preferences.olog_url + "/logbooks"))
+                        .header("Accept", MediaType.APPLICATION_XML)
+                        .GET()
+                        .build();
+                HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+                if (httpResponse.statusCode() < 300) {
+                    LOGGER.log(Level.WARNING, "Failed to retrieve logbooks list: " + httpResponse.body());
+                    throw new OlogException(httpResponse.statusCode(), httpResponse.body());
+                }
+
+                XmlLogbooks allXmlLogbooks = OBJECT_MAPPER.readValue(httpResponse.body(), XmlLogbooks.class);
                 for (XmlLogbook xmlLogbook : allXmlLogbooks.getLogbooks()) {
                     allLogbooks.add(new OlogLogbook(xmlLogbook));
                 }
                 return allLogbooks;
             }
-
         });
     }
 
     @Override
     public Collection<Tag> listTags() {
-        return wrappedSubmit(new Callable<Collection<Tag>>() {
+        return wrappedSubmit(new Callable<>() {
 
             @Override
             public Collection<Tag> call() throws Exception {
-                Collection<Tag> allTags = new HashSet<Tag>();
-                XmlTags allXmlTags = service.path("tags").accept(MediaType.APPLICATION_XML).get(XmlTags.class);
+
+                HttpRequest httpRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(Preferences.olog_url + "/tags"))
+                        .header("Accept", MediaType.APPLICATION_XML)
+                        .GET()
+                        .build();
+                HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+                if (httpResponse.statusCode() != 200) {
+                    LOGGER.log(Level.WARNING, "Failed to retrieve tags list: " + httpResponse.body());
+                    throw new OlogException(httpResponse.statusCode(), httpResponse.body());
+                }
+
+                Collection<Tag> allTags = new HashSet<>();
+                XmlTags allXmlTags = OBJECT_MAPPER.readValue(httpResponse.body(), XmlTags.class);
                 for (XmlTag xmlTag : allXmlTags.getTags()) {
                     allTags.add(new OlogTag(xmlTag));
                 }
@@ -324,12 +268,25 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<Property> listProperties() {
-        return wrappedSubmit(new Callable<Collection<Property>>() {
+        return wrappedSubmit(new Callable<>() {
             @Override
             public Collection<Property> call() throws Exception {
-                Collection<Property> allProperties = new HashSet<Property>();
-                XmlProperties xmlProperties = service.path("properties").accept(MediaType.APPLICATION_XML)
-                        .accept(MediaType.APPLICATION_JSON).get(XmlProperties.class);
+
+                HttpRequest httpRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(Preferences.olog_url + "/properties"))
+                        .header("Accept", MediaType.APPLICATION_XML)
+                        .header("Accept", MediaType.APPLICATION_JSON)
+                        .GET()
+                        .build();
+                HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+                if (httpResponse.statusCode() != 200) {
+                    LOGGER.log(Level.WARNING, "Failed to retrieve properties list: " + httpResponse.body());
+                    throw new OlogException(httpResponse.statusCode(), httpResponse.body());
+                }
+
+                Collection<Property> allProperties = new HashSet<>();
+                XmlProperties xmlProperties = OBJECT_MAPPER.readValue(httpResponse.body(), XmlProperties.class);
                 for (XmlProperty xmlProperty : xmlProperties.getProperties()) {
                     allProperties.add(new OlogProperty(xmlProperty));
                 }
@@ -345,11 +302,25 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<LogEntry> listLogs() {
-        return wrappedSubmit(new Callable<Collection<LogEntry>>() {
+        return wrappedSubmit(new Callable<>() {
             @Override
             public Collection<LogEntry> call() throws Exception {
-                XmlLogs xmlLogs = service.path("logs").accept(MediaType.APPLICATION_XML)
-                        .accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
+
+
+                HttpRequest httpRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(Preferences.olog_url + "/logs"))
+                        .header("Accept", MediaType.APPLICATION_XML)
+                        .header("Accept", MediaType.APPLICATION_JSON)
+                        .GET()
+                        .build();
+                HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+                if (httpResponse.statusCode() != 200) {
+                    LOGGER.log(Level.WARNING, "Failed to retrieve log entries: " + httpResponse.body());
+                    throw new OlogException(httpResponse.statusCode(), httpResponse.body());
+                }
+
+                XmlLogs xmlLogs = OBJECT_MAPPER.readValue(httpResponse.body(), XmlLogs.class);
 
                 return LogUtil.toLogs(xmlLogs);
             }
@@ -363,13 +334,26 @@ public class OlogClient implements LogClient {
 
     @Override
     public Collection<Attachment> listAttachments(Long logId) {
-        return wrappedSubmit(new Callable<Collection<Attachment>>() {
+        return wrappedSubmit(new Callable<>() {
 
             @Override
             public Collection<Attachment> call() throws Exception {
-                Collection<Attachment> allAttachments = new HashSet<Attachment>();
-                XmlAttachments allXmlAttachments = service.path("attachments").path(logId.toString())
-                        .accept(MediaType.APPLICATION_XML).get(XmlAttachments.class);
+
+
+                HttpRequest httpRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(Preferences.olog_url + "/attachments"))
+                        .header("Accept", MediaType.APPLICATION_XML)
+                        .GET()
+                        .build();
+                HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+                if (httpResponse.statusCode() != 200) {
+                    LOGGER.log(Level.WARNING, "Failed to retrieve attachments list: " + httpResponse.body());
+                    throw new OlogException(httpResponse.statusCode(), httpResponse.body());
+                }
+                Collection<Attachment> allAttachments = new HashSet<>();
+
+                XmlAttachments allXmlAttachments = OBJECT_MAPPER.readValue(httpResponse.body(), XmlAttachments.class);
                 for (XmlAttachment xmlAttachment : allXmlAttachments.getAttachments()) {
                     allAttachments.add(new OlogAttachment(xmlAttachment));
                 }
@@ -382,11 +366,18 @@ public class OlogClient implements LogClient {
     @Override
     public InputStream getAttachment(Long logId, Attachment attachment) {
         try {
-            ClientResponse response = service.path("attachments")
-                    .path(logId.toString())
-                    .path(attachment.getName())
-                    .get(ClientResponse.class);
-            return response.getEntity(InputStream.class);
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.olog_url + "/attachments/" +
+                            URLEncoder.encode(attachment.getName(), StandardCharsets.UTF_8).replace("+", "%20")))
+                    .header("Accept", MediaType.APPLICATION_XML)
+                    .GET()
+                    .build();
+            HttpResponse<InputStream> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+
+            if (httpResponse.statusCode() < 300){
+                LOGGER.log(Level.WARNING, "Failed to get attachment");
+                throw new OlogException("Failed to get attachment");
+            }
         } catch (Exception e) {
         }
         return null;
@@ -395,12 +386,18 @@ public class OlogClient implements LogClient {
     @Override
     public InputStream getAttachment(Long logId, String attachmentName) {
         try {
-            ClientResponse response = service
-                    .path("attachments")
-                    .path(logId.toString())
-                    .path(attachmentName)
-                    .get(ClientResponse.class);
-            return response.getEntity(InputStream.class);
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.olog_url + "/attachments/" + logId.toString() + "/" +
+                            URLEncoder.encode(attachmentName, StandardCharsets.UTF_8).replace("+", "%20")))
+                    .header("Accept", MediaType.APPLICATION_XML)
+                    .GET()
+                    .build();
+            HttpResponse<InputStream> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+
+            if (httpResponse.statusCode() < 300){
+                LOGGER.log(Level.WARNING, "Failed to get attachment");
+                throw new OlogException("Failed to get attachment");
+            }
         } catch (Exception e) {
         }
         return null;
@@ -408,15 +405,23 @@ public class OlogClient implements LogClient {
 
     @Override
     public Property getProperty(String property) {
-        final String propertyName = property;
-        return wrappedSubmit(new Callable<Property>() {
+        return wrappedSubmit(new Callable<>() {
 
             @Override
             public Property call() throws Exception {
-                return new OlogProperty(service.path("properties")
-                        .path(propertyName).accept(MediaType.APPLICATION_XML)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .get(XmlProperty.class));
+                HttpRequest httpRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(Preferences.olog_url + "/properties/" +
+                                URLEncoder.encode(property, StandardCharsets.UTF_8).replace("+", "%20")))
+                        .header("Accept", MediaType.APPLICATION_XML)
+                        .header("Accept", MediaType.APPLICATION_XML)
+                        .GET()
+                        .build();
+                HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+                if(httpResponse.statusCode() < 300){
+                    LOGGER.log(Level.WARNING, "Failed to get property " + property);
+                    throw new OlogException(httpResponse.statusCode(), httpResponse.body());
+                }
+                return new OlogProperty(OBJECT_MAPPER.readValue(httpResponse.body(), XmlProperty.class));
             }
         });
     }
@@ -436,48 +441,75 @@ public class OlogClient implements LogClient {
     }
 
     private class SetLogs implements Callable<Collection<LogEntry>> {
-        private Collection<LogEntry> logs;
+        private final Collection<LogEntry> logs;
 
         public SetLogs(LogEntry log) {
-            this.logs = new ArrayList<LogEntry>();
+            this.logs = new ArrayList<>();
             this.logs.add(log);
         }
 
         @Override
         public Collection<LogEntry> call() {
-            Collection<LogEntry> returnLogs = new HashSet<LogEntry>();
+            Collection<LogEntry> returnLogs = new HashSet<>();
             for (LogEntry log : logs) {
                 XmlLogs xmlLogs = new XmlLogs();
                 XmlLog xmlLog = new XmlLog(log);
                 xmlLog.setLevel("Info");
                 xmlLogs.getLogs().add(xmlLog);
 
-                ClientResponse clientResponse = service.path("logs")
-                        .accept(MediaType.APPLICATION_XML)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .post(ClientResponse.class, xmlLogs);
+                try {
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(Preferences.olog_url + "/logs"))
+                            .header("Accept", MediaType.APPLICATION_JSON)
+                            .header("Accept", MediaType.APPLICATION_XML)
+                            .header("Content-Type", MediaType.APPLICATION_JSON)
+                            .header("Authorization", basicAuthenticationHeader)
+                            .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(xmlLogs)))
+                            .build();
 
-                if (clientResponse.getStatus() < 300) {
+                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    if (response.statusCode() < 300) {
+                        LOGGER.log(Level.WARNING, "Failed to create log entry");
+                        throw new OlogException(response.statusCode(), response.body());
+                    }
 
                     // XXX there is an assumption that the result without an error status will consist of a single created log entry
-                    XmlLog createdLog = clientResponse.getEntity(XmlLogs.class).getLogs().iterator().next();
+                    XmlLog createdLog = OBJECT_MAPPER.readValue(response.body(), XmlLogs.class).getLogs().iterator().next();
+                    //XmlLog createdLog = clientResponse.getEntity(XmlLogs.class).getLogs().iterator().next();
                     log.getAttachments().forEach(attachment -> {
-                        FormDataMultiPart form = new FormDataMultiPart();
-                        form.bodyPart(new FileDataBodyPart("file", attachment.getFile()));
-                        XmlAttachment createdAttachment = service.path("attachments").path(createdLog.getId().toString())
-                                .type(MediaType.MULTIPART_FORM_DATA).accept(MediaType.APPLICATION_XML)
-                                .post(XmlAttachment.class, form);
-                        createdLog.addXmlAttachment(createdAttachment);
+
+                        HttpRequestMultipartBody httpRequestMultipartBody = new HttpRequestMultipartBody();
+                        httpRequestMultipartBody.addFilePart(attachment.getFile());
+
+                        HttpRequest attachmentRequest = HttpRequest.newBuilder()
+                                .uri(URI.create(Preferences.olog_url + "/attachments/" + createdLog.getId()))
+                                .header("Accept", MediaType.APPLICATION_XML)
+                                .header("Content-Type", httpRequestMultipartBody.getContentType())
+                                .header("Authorization", basicAuthenticationHeader)
+                                .POST(HttpRequest.BodyPublishers.ofByteArray(httpRequestMultipartBody.getBytes()))
+                                .build();
+
+                        try {
+                            HttpResponse<String> attachmentResponse = httpClient.send(attachmentRequest, HttpResponse.BodyHandlers.ofString());
+
+                            if (attachmentResponse.statusCode() < 300) {
+                                LOGGER.log(Level.WARNING, "Failed to create attachment");
+                                throw new OlogException(attachmentResponse.statusCode(), attachmentResponse.body());
+                            }
+
+                            createdLog.addXmlAttachment(OBJECT_MAPPER.readValue(attachmentResponse.body(),
+                                    XmlAttachment.class));
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
                     });
                     returnLogs.add(new OlogLog(createdLog));
-
-                } else
-                    throw new UniformInterfaceException(clientResponse);
-                
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
-
             return Collections.unmodifiableCollection(returnLogs);
-
         }
     }
 
@@ -495,15 +527,22 @@ public class OlogClient implements LogClient {
 
         @Override
         public LogEntry call() throws Exception {
-            ClientResponse clientResponse = service.path("logs")
-                    .path(String.valueOf(log.getId()))
-                    .accept(MediaType.APPLICATION_XML)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .post(ClientResponse.class, log);
-            if (clientResponse.getStatus() < 300)
-                return new OlogLog(clientResponse.getEntity(XmlLog.class));
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.olog_url + "/logs/" + log.getId()))
+                    .header("Accept", MediaType.APPLICATION_JSON)
+                    .header("Accept", MediaType.APPLICATION_XML)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .header("Authorization", basicAuthenticationHeader)
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(log)))
+                    .build();
+
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (httpResponse.statusCode() < 300)
+                return new OlogLog(OBJECT_MAPPER.readValue(httpResponse.body(), XmlLog.class));
             else
-                throw new UniformInterfaceException(clientResponse);
+               throw new OlogException(httpResponse.statusCode(), httpResponse.body());
         }
     }
 
@@ -517,7 +556,7 @@ public class OlogClient implements LogClient {
 
         public UpdateLogs(Collection<LogEntry> logs) {
             this.logs = new XmlLogs();
-            Collection<XmlLog> xmlLogs = new ArrayList<XmlLog>();
+            Collection<XmlLog> xmlLogs = new ArrayList<>();
             for (LogEntry log : logs) {
                 xmlLogs.add(new XmlLog(log));
             }
@@ -526,34 +565,51 @@ public class OlogClient implements LogClient {
 
         @Override
         public Collection<LogEntry> call() throws Exception {
-            ClientResponse clientResponse = service.path("logs").accept(MediaType.APPLICATION_XML)
-                    .accept(MediaType.APPLICATION_JSON).post(ClientResponse.class, logs);
-            if (clientResponse.getStatus() < 300) {
-                // return new Log(clientResponse.getEntity(XmlLog.class));
-                Collection<LogEntry> logs = new HashSet<LogEntry>();
-                for (XmlLog xmlLog : clientResponse.getEntity(XmlLogs.class).getLogs()) {
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.olog_url + "/logs"))
+                    .header("Accept", MediaType.APPLICATION_JSON)
+                    .header("Accept", MediaType.APPLICATION_XML)
+                    .header("Content-Type", MediaType.APPLICATION_JSON)
+                    .header("Authorization", basicAuthenticationHeader)
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(logs)))
+                    .build();
+
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (httpResponse.statusCode() < 300) {
+                Collection<LogEntry> logs = new HashSet<>();
+                for (XmlLog xmlLog : OBJECT_MAPPER.readValue(httpResponse.body(), XmlLogs.class).getLogs()) {
                     logs.add(new OlogLog(xmlLog));
                 }
-                ;
                 return Collections.unmodifiableCollection(logs);
             } else {
-                throw new UniformInterfaceException(clientResponse);
+                throw new OlogException(httpResponse.statusCode(), httpResponse.body());
             }
         }
     }
 
     @Override
     public LogEntry findLogById(Long logId) {
-        return wrappedSubmit(new Callable<LogEntry>() {
+        return wrappedSubmit(new Callable<>() {
 
             @Override
             public LogEntry call() throws Exception {
-                XmlLog xmlLog = service.path("logs").path(logId.toString())
-                        .accept(MediaType.APPLICATION_XML)
-                        .accept(MediaType.APPLICATION_JSON).get(XmlLog.class);
-                return new OlogLog(xmlLog);
-            }
 
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Preferences.olog_url + "/logs/" + logId))
+                        .header("Accept", MediaType.APPLICATION_JSON)
+                        .header("Accept", MediaType.APPLICATION_XML)
+                        .GET()
+                        .build();
+
+                HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (httpResponse.statusCode() < 300) {
+                    LOGGER.log(Level.WARNING, "Failed to get log id " + logId + ": " + httpResponse.body());
+                    throw new OlogException(httpResponse.statusCode(), httpResponse.body());
+                }
+                return new OlogLog(OBJECT_MAPPER.readValue(httpResponse.body(), XmlLog.class));
+            }
         });
     }
 
@@ -574,7 +630,7 @@ public class OlogClient implements LogClient {
 
     @Override
     public List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue) {
-        MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> mMap = new MultivaluedHashMap<>();
         mMap.putSingle(propertyName + "." + attributeName, attributeValue);
         return wrappedSubmit(new FindLogs(mMap));
     }
@@ -589,7 +645,7 @@ public class OlogClient implements LogClient {
         List<LogEntry> logs = findLogs(map);
         return SearchResult.of(logs, logs.size());
     }
-    
+
     @Override
     public List<LogEntry> findLogs(Map<String, String> map) {
         return wrappedSubmit(new FindLogs(map));
@@ -600,7 +656,7 @@ public class OlogClient implements LogClient {
         private final MultivaluedMap<String, String> map;
 
         public FindLogs(String queryParameter, String pattern) {
-            MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
+            MultivaluedMap<String, String> mMap = new MultivaluedHashMap<>();
             mMap.putSingle(queryParameter, pattern);
             this.map = mMap;
         }
@@ -610,7 +666,7 @@ public class OlogClient implements LogClient {
         }
 
         public FindLogs(Map<String, String> map) {
-            MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
+            MultivaluedMap<String, String> mMap = new MultivaluedHashMap<>();
             Iterator<Map.Entry<String, String>> itr = map.entrySet().iterator();
             while (itr.hasNext()) {
                 Map.Entry<String, String> entry = itr.next();
@@ -621,29 +677,37 @@ public class OlogClient implements LogClient {
 
         @Override
         public List<LogEntry> call() throws Exception {
-            List<LogEntry> logs = new ArrayList<LogEntry>();
+            List<LogEntry> logs = new ArrayList<>();
             // Map Phoebus logbook search parameters to Olog ones
             // desc, title -> search
             // size -> limit
-            if(map.containsKey("desc")) {
+            if (map.containsKey("desc")) {
                 map.put("search", map.get("desc"));
             }
-            if(map.containsKey("size")) {
+            if (map.containsKey("size")) {
                 map.put("limit", map.get("size"));
             }
-            if(map.containsKey("start")) {
+            if (map.containsKey("start")) {
                 map.putSingle("start", parseTemporalValue(map.getFirst("start")));
             }
-            if(map.containsKey("end")) {
+            if (map.containsKey("end")) {
                 map.putSingle("end", parseTemporalValue(map.getFirst("end")));
             }
 
-            XmlLogs xmlLogs = service
-                    .path("logs")
-                    .queryParams(map)
-                    .accept(MediaType.APPLICATION_XML)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .get(XmlLogs.class);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.olog_url + "/logs?" + QueryParamsHelper.mapToQueryParams(map)))
+                    .header("Accept", MediaType.APPLICATION_JSON)
+                    .header("Accept", MediaType.APPLICATION_XML)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (httpResponse.statusCode() < 300) {
+                LOGGER.log(Level.WARNING, "Failed to search for logs: " + httpResponse.body());
+                throw new OlogException(httpResponse.statusCode(), httpResponse.body());
+            }
+
+            XmlLogs xmlLogs = OBJECT_MAPPER.readValue(httpResponse.body(), XmlLogs.class);
             for (XmlLog xmllog : xmlLogs.getLogs()) {
                 OlogLog log = new OlogLog(xmllog);
                 if (!xmllog.getXmlAttachments().getAttachments().isEmpty()) {
@@ -682,26 +746,39 @@ public class OlogClient implements LogClient {
     private <T> T wrappedSubmit(Callable<T> callable) {
         try {
             return this.executor.submit(callable).get();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            if (e.getCause() != null && e.getCause() instanceof UniformInterfaceException) {
-                throw new OlogException((UniformInterfaceException) e.getCause());
-            }
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void wrappedSubmit(Runnable runnable) {
-        try {
-            this.executor.submit(runnable).get(60, TimeUnit.SECONDS);
-        } catch (ExecutionException e) {
-            if (e.getCause() != null && e.getCause() instanceof UniformInterfaceException) {
-                throw new OlogException((UniformInterfaceException) e.getCause());
-            }
-            throw new RuntimeException(e);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    private static class PromiscuousTrustManager extends X509ExtendedTrustManager {
+        @Override
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[0];
+        }
+
+        @Override
+        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
         }
     }
 }

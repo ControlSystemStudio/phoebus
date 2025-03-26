@@ -18,22 +18,20 @@ import java.util.Optional;
 
 public class OpenNodeActionController extends ActionControllerBase {
 
-    private final OpenNodeAction openNodeAction;
-
+    @SuppressWarnings("unused")
     @FXML
     private TextField nodeId;
 
     private final SimpleStringProperty nodeIdProperty = new SimpleStringProperty();
 
-    public OpenNodeActionController(ActionInfo actionInfo) {
-        this.openNodeAction = (OpenNodeAction) actionInfo;
+    public OpenNodeActionController(OpenNodeAction openNodeAction) {
         descriptionProperty.set(openNodeAction.getDescription());
+        nodeIdProperty.set(openNodeAction.getNodeId());
     }
 
     @FXML
     public void initialize() {
         super.initialize();
-        setInitialNodeId(openNodeAction.getNodeId());
         nodeId.textProperty().bindBidirectional(nodeIdProperty);
 
         nodeId.setOnDragDropped(event -> {
@@ -44,6 +42,7 @@ public class OpenNodeActionController extends ActionControllerBase {
         });
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void selectNode() {
         NodeSelectionDialog nodeSelectionDialog = new NodeSelectionDialog(false);
@@ -53,11 +52,7 @@ public class OpenNodeActionController extends ActionControllerBase {
         }
     }
 
-    public String getNodeId() {
-        return nodeIdProperty.get();
-    }
-
-    public void setInitialNodeId(String nodeId) {
-        nodeIdProperty.set(nodeId);
+    public ActionInfo getActionInfo(){
+        return new OpenNodeAction(descriptionProperty.get(), nodeIdProperty.get());
     }
 }
