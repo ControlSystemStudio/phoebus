@@ -380,7 +380,10 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                         userIdentity.isNull().get(),
                 dirty, configurationDescriptionProperty, configurationNameProperty, userIdentity));
 
-        addPvButton.disableProperty().bind(pvNameField.textProperty().isEmpty());
+        addPvButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                pvNameField.textProperty().isEmpty().get() &&
+                        readbackPvNameField.textProperty().isEmpty().get(),
+                pvNameField.textProperty(), readbackPvNameField.textProperty()));
 
         readOnlyCheckBox.selectedProperty().bindBidirectional(readOnlyProperty);
 
