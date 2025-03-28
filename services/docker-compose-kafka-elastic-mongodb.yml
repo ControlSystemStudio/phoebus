@@ -8,6 +8,8 @@ services:
       discovery.type: single-node
       bootstrap.memory_lock: "true"
       xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xmx1G"
+      http.host: 0.0.0.0
     volumes:
       - es-data:/usr/share/elasticsearch/data
 
@@ -30,6 +32,7 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_HEAP_OPTS: "-Xmx512M"
     ports:
       - 2181:2181
 
@@ -52,6 +55,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+      KAFKA_HEAP_OPTS: "-Xmx1G"
 
 volumes:
   es-data:
