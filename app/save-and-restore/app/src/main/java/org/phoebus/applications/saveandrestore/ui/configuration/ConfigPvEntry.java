@@ -79,17 +79,13 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
     }
 
     public ConfigPv toConfigPv() {
-        ConfigPv configPv = ConfigPv.builder()
+        return ConfigPv.builder()
                 .pvName(pvNameProperty.get())
                 .readbackPvName(readBackPvNameProperty.get())
                 .readOnly(readOnlyProperty.get())
+                .pvCompareMode(pvCompareModeProperty.get())
+                .tolerance(toleranceProperty.get())
                 .build();
-        if (!readBackPvNameProperty.isEmpty().get() &&
-                pvCompareModeProperty.get() != null) {
-            configPv.setPvCompareMode(pvCompareModeProperty.get());
-            configPv.setTolerance(toleranceProperty.get());
-        }
-        return configPv;
     }
 
     @Override

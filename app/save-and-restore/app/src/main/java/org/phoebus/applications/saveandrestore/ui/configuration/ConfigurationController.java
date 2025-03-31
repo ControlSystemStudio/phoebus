@@ -269,6 +269,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             values.add(0, null);
             ComboBoxTableCell<ConfigPvEntry, PvCompareMode> tableCell = new ComboBoxTableCell<>(values) {
 
+                /*
                 @Override
                 public void startEdit() {
                     String readBackPvName = getTableView().getItems().get(getIndex()).getReadBackPvNameProperty().get();
@@ -278,6 +279,8 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                     }
                     super.startEdit();
                 }
+
+                 */
 
                 @Override
                 public void commitEdit(PvCompareMode pvCompareMode) {
