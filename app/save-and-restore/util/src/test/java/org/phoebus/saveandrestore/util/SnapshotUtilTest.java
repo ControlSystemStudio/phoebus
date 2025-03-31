@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.model.CompareResult;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.PvCompareMode;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
@@ -98,7 +99,7 @@ public class SnapshotUtilTest {
         snapshotItem2.setConfigPv(configPv2);
         snapshotItem2.setValue(VDouble.of(771.0, Alarm.none(), Time.now(), Display.none()));
 
-        List<CompareResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0);
+        List<CompareResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0, PvCompareMode.ABSOLUTE, false);
 
         assertTrue(compareResults.get(0).isEqual());
         assertTrue(compareResults.get(1).isEqual());
@@ -106,7 +107,7 @@ public class SnapshotUtilTest {
         snapshotItem1.setValue(VDouble.of(43.0, Alarm.none(), Time.now(), Display.none()));
         snapshotItem2.setValue(VDouble.of(771.0, Alarm.none(), Time.now(), Display.none()));
 
-        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0);
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0,  PvCompareMode.ABSOLUTE, false);
 
         assertFalse(compareResults.get(0).isEqual());
         assertNotNull(compareResults.get(0).getStoredValue());
@@ -118,12 +119,12 @@ public class SnapshotUtilTest {
         snapshotItem1.setValue(VDouble.of(43.0, Alarm.none(), Time.now(), Display.none()));
         snapshotItem2.setValue(VDouble.of(771.0, Alarm.none(), Time.now(), Display.none()));
 
-        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 10.0);
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 10.0, PvCompareMode.ABSOLUTE, false);
 
         assertTrue(compareResults.get(0).isEqual());
         assertTrue(compareResults.get(1).isEqual());
 
-        assertThrows(RuntimeException.class, () -> snapshotUtil.comparePvs(null, -77));
+        assertThrows(RuntimeException.class, () -> snapshotUtil.comparePvs(null, -77, PvCompareMode.ABSOLUTE, false));
 
     }
 }

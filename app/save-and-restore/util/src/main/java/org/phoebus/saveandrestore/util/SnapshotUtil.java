@@ -286,7 +286,10 @@ public class SnapshotUtil {
      * if the comparison evaluates to equal, then the actual live and stored value are not added to the {@link CompareResult}
      * objects in order to avoid handling/transferring potentially large amounts of data.
      */
-    public List<CompareResult> comparePvs(final List<SnapshotItem> savedSnapshotItems, double tolerance) {
+    public List<CompareResult> comparePvs(final List<SnapshotItem> savedSnapshotItems,
+                                          double tolerance,
+                                          PvCompareMode comparisonMode,
+                                          boolean skipReadback) {
         if (tolerance < 0) {
             throw new RuntimeException("Tolerance value must be >=0");
         }
