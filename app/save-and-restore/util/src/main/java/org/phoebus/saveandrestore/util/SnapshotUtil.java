@@ -1,5 +1,6 @@
 package org.phoebus.saveandrestore.util;
 
+import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.CompareResult;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -38,8 +39,6 @@ public class SnapshotUtil {
     private final Logger LOG = Logger.getLogger(SnapshotUtil.class.getName());
 
     private final int connectionTimeout = Preferences.connectionTimeout;
-
-    private final int writeTimeout = Preferences.writeTimeout;
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -277,14 +276,15 @@ public class SnapshotUtil {
     /**
      * Performs comparison between PV values to determine equality. The idea is to generate a return value mimicking
      * the save-and-restore snapshot view, i.e. to show both stored and live values, plus an indication of equality.
-     * The comparison algorithm is the same as employed by the snapshot view.
+     * Caller must specify a {@link PvCompareMode} to indicate if the provided <code>tolerance</code> should be used
+     * as relative or absolute tolerance.
      *
      * @param savedSnapshotItems A list if {@link SnapshotItem}s as pulled from a stored snapshot.
-     * @param tolerance          A tolerance (must be >=0) value used in the comparison. Comparisons use the tolerance
-     *                           value for a relative comparison.
+     * @param tolerance          A tolerance (must be >=0) value used in the comparison.
+     * @param comparisonMode     Determines if comparison is relative or absolute.
      * @return A list of {@link CompareResult}s, one for each {@link SnapshotItem} in the provided input. Note though that
      * if the comparison evaluates to equal, then the actual live and stored value are not added to the {@link CompareResult}
-     * objects in order to avoid handling/transferring potentially large amounts of data.
+     * objects in order to avoid handling/transferring potentially large amounts of data (e.g. large arrays).
      */
     public List<CompareResult> comparePvs(final List<SnapshotItem> savedSnapshotItems,
                                           double tolerance,
@@ -305,13 +305,28 @@ public class SnapshotUtil {
             if (liveSnapshotItem == null) {
                 throw new RuntimeException("Unable to match stored PV " + savedItem.getConfigPv().getPvName() + " in list of live PVs");
             }
-            VType storedValue = savedItem.getValue();
+            VType storedValue = savedItem.getValue(); // Always PV name field, even if read-back PV is specified
             VType liveValue = liveSnapshotItem.getValue();
-            Threshold<Number> threshold = new Threshold<>(tolerance);
+            VType readbackValue = liveSnapshotItem.getReadbackValue();
+
+            // Apply reference selection algorithm
+            VType referenceValue = getReferenceValue(liveValue, readbackValue, skipReadback);
+
+            double finalTolerance = tolerance;
+            // For relative tolerance and scalar types, compute an absolute tolerance
+            // since this is what Utilities.areValuesEqual expects.
+            if(tolerance > 0 &&
+                    referenceValue instanceof VNumber &&
+                    VTypeHelper.toDouble(referenceValue) != 0 &&
+                    comparisonMode.equals(PvCompareMode.RELATIVE)){
+                finalTolerance = VTypeHelper.toDouble(referenceValue) * tolerance;
+            }
+
+            Threshold<Number> threshold = new Threshold<>(finalTolerance);
             boolean equal = Utilities.areValuesEqual(storedValue, liveValue, Optional.of(threshold));
             CompareResult compareResult = new CompareResult(savedItem.getConfigPv().getPvName(),
                     equal,
-                    PvCompareMode.RELATIVE,
+                    comparisonMode,
                     tolerance,
                     equal ? null : storedValue, // Do not add potentially large amounts of data if comparison shows equal
                     equal ? null : liveValue,   // Do not add potentially large amounts of data if comparison shows equal
@@ -320,5 +335,12 @@ public class SnapshotUtil {
         });
 
         return compareResults;
+    }
+
+    private VType getReferenceValue(final VType liveValue, final VType liveReadbackValue, final boolean skipReadback){
+        if(skipReadback){
+            return liveValue;
+        }
+        return liveReadbackValue != null ? liveReadbackValue : liveValue;
     }
 }

@@ -858,20 +858,35 @@ from an existing node rather than providing them explicitly. It returns the same
 Compare Endpoint
 ----------------
 
-**.../compare/{uniqueId}[?tolerance=<tolerance_value>]**
+**.../compare/{uniqueId}[?tolerance=<tolerance_value>&comparisonMode=<ABSOLUTE|RELATIVE>&skipReadback=<true|false>]**
 
 Method: GET
 
-The path variable ``{uniqueId}`` must identify an existing snapshot or composite snapshot. The ``tolerance`` query parameter is
-optional and defaults to zero. If specified it must be >= 0.
+The path variable ``{uniqueId}`` must identify an existing snapshot or composite snapshot.
 
-This endpoint can be used to compare stored snapshot values to live values for each set-point PV in the snapshot.
-Comparisons are performed in the same manner as in the client UI, i.e.:
+The ``tolerance`` query parameter is optional and defaults to zero. If specified it must be >= 0.
+The ``comparisonMode`` query parameter is optional and defaults to ``ABSOLUTE``.
+The ``skipReadback`` query parameter is optional and defaults to ``false``.
 
-* Scalar PVs are compared using the the optional relative tolerance, or compared using zero tolerance.
+This endpoint can be used to compare stored snapshot values to live values for each set-point PV in the snapshot. The
+reference value for the comparison is always the one corresponding to the ``PV Name`` column in the configuration.
+
+Comparisons are performed like so:
+
+* Scalar PVs are compared using the tolerance and comparison mode (absolute or relative), or compared using zero tolerance.
 * Array PVs are compared element wise, always using zero tolerance. Arrays must be of equal length.
 * Table PVs are compared element wise, always using zero tolerance. Tables must be of same dimensions, and data types must match between columns.
 * Enum PVs are compared using zero tolerance.
+
+In addition, the ``comparisonMode`` and ``skipReadback`` together with the presence of a read-back PV value is used to
+determine which values to compare:
+* If a read-back PV name has been specified it's live value is compare to the stored value.
+* If a read-back PV name has not been specified, or if ``skipReadback`` is ``true``, then the live value of ``PV Name``
+is used to compare to the stored value.
+* Comparison mode=ABSOLUTE (default) will apply absolute delta comparison.
+* Comparison mode=RELATIVE will apply relative comparison.
+* If an item in the configuration specifies a tolerance of zero, then a tolerance value specified in the API
+call will be ignored.
 
 Return value: a list of comparison results, one for each PV in the snapshot, e.g.:
 
