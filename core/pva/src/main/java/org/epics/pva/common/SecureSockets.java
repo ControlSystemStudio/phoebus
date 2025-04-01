@@ -160,7 +160,7 @@ public class SecureSockets
     public static Socket createClientSocket(final InetSocketAddress address, final boolean tls) throws Exception
     {
         initialize();
-        int connection_timeout = Math.max(1, PVASettings.EPICS_PVA_CONN_TMO) * 1000; // Use EPICS_PVA_CONN_TMO for socket connection timeout, but at least 1 second
+        int connection_timeout = Math.max(1, PVASettings.EPICS_PVA_TCP_SOCKET_TMO) * 1000; // Use EPICS_PVA_CONN_TMO for socket connection timeout, but at least 1 second
 
         if (!tls) {
             Socket socket = new Socket();

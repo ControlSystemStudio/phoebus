@@ -212,6 +212,12 @@ public class PVASettings
      */
     public static int EPICS_PVA_CONN_TMO = 30;
 
+    /** Socket timeout for TCP connections
+     *
+     * TCP socket creation timeout in seconds
+     */
+    public static int EPICS_PVA_TCP_SOCKET_TMO = 30;
+
     /** Maximum number of array elements shown when printing data */
     public static int EPICS_PVA_MAX_ARRAY_FORMATTING = 256;
 

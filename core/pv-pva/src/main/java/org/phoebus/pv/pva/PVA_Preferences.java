@@ -65,6 +65,7 @@ public class PVA_Preferences
                                 "epics_pva_server_port",
                                 "epics_pva_broadcast_port",
                                 "epics_pva_conn_tmo",
+                                "epics_pva_tcp_socket_tmo",
                                 "epics_pva_max_array_formatting",
                                 "epics_pva_send_buffer_size"
                             })
