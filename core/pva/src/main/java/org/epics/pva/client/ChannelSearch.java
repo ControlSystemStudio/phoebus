@@ -278,7 +278,7 @@ class ChannelSearch
             {
                 for (LinkedList<SearchedChannel> bucket : search_buckets)
                     bucket.remove(searched);
-			} 
+            } 
             return searched.channel;
         }
         return null;
