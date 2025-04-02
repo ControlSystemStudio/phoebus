@@ -34,7 +34,7 @@ public class Preferences
      */
     final private static String
         PROMPT_FOR_RAW_DATA = "prompt_for_raw_data_request",
-	    PROMPT_FOR_VISIBILITY = "prompt_for_visibility";
+            PROMPT_FOR_VISIBILITY = "prompt_for_visibility";
 
     /** Predefined time range */
     public static class TimePreset
@@ -115,7 +115,7 @@ public class Preferences
 
         // Allow at least one at a time
         if (concurrent_requests < 1)
-        	concurrent_requests = 1;
+                concurrent_requests = 1;
 
         archive_urls = parseArchives(prefs.get("urls"));
         archives = parseArchives(prefs.get("archives"));
