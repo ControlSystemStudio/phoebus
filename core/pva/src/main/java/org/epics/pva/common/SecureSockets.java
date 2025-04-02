@@ -160,12 +160,18 @@ public class SecureSockets
     public static Socket createClientSocket(final InetSocketAddress address, final boolean tls) throws Exception
     {
         initialize();
-        if (! tls)
-            return new Socket(address.getAddress(), address.getPort());
+        int connection_timeout = Math.max(1, PVASettings.EPICS_PVA_TCP_SOCKET_TMO) * 1000; // Use EPICS_PVA_TCP_SOCKET_TMO for socket connection timeout, but at least 1 second
+
+        if (!tls) {
+            Socket socket = new Socket();
+            socket.connect(address, connection_timeout);
+            return socket;
+        }
 
         if (tls_client_sockets == null)
             throw new Exception("TLS is not supported. Configure EPICS_PVA_TLS_KEYCHAIN");
-        final SSLSocket socket = (SSLSocket) tls_client_sockets.createSocket(address.getAddress(), address.getPort());
+        final SSLSocket socket = (SSLSocket) tls_client_sockets.createSocket();
+        socket.connect(address, connection_timeout);
         socket.setEnabledProtocols(PROTOCOLS);
         // Handshake starts when first writing, but that might delay SSL errors, so force handshake before we use the socket
         socket.startHandshake();
