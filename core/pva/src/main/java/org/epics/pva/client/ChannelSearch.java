@@ -274,11 +274,11 @@ class ChannelSearch
         if (searched != null)
         {
             logger.log(Level.FINE, () -> "Unregister search for " + searched.channel.getName() + " " + channel_id);
-            // NOT removing `searched` from all `search_buckets`.
-            // Removal would be a slow, linear operation.
-            // `runSearches()` will drop the channel from `search_buckets`
-            // because it's no longer listed in `searched_channels`
-
+            synchronized (search_buckets)
+            {
+                for (LinkedList<SearchedChannel> bucket : search_buckets)
+                    bucket.remove(searched);
+			} 
             return searched.channel;
         }
         return null;

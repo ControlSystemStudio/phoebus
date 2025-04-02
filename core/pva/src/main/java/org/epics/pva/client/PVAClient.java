@@ -250,32 +250,40 @@ public class PVAClient implements AutoCloseable
         channel.setState(ClientChannelState.FOUND);
         logger.log(Level.FINE, () -> "Reply for " + channel + " from " + (tls ? "TLS " : "TCP ") + server + " " + guid);
 
-        final ClientTCPHandler tcp = tcp_handlers.computeIfAbsent(server, addr ->
+        // TCP connection can be slow, especially when blocked by firewall, so move to thread
+        // TODO Lightweight thread? Thread pool?
+        final Thread setup_tcp = new Thread(() ->
         {
-            try
+            final ClientTCPHandler tcp = tcp_handlers.computeIfAbsent(server, addr ->
             {
-                return new ClientTCPHandler(this, addr, guid, tls);
+                try
+                {
+                    return new ClientTCPHandler(this, addr, guid, tls);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
+                }
+                return null;
+            });
+            // In case of connection errors, tcp will be null
+            if (tcp == null)
+            {   // Cannot connect to server on provided port? Likely a server or firewall problem.
+                // On the next search, that same server might reply and then we fail the same way on connect.
+                // Still, no way around re-registering the search so we succeed once the server is fixed.
+                search.register(channel, false /* not "now" but eventually */);
             }
-            catch (Exception ex)
+            else
             {
-                logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
+                if (tcp.updateGuid(guid))
+                    logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
+    
+                channel.registerWithServer(tcp);
             }
-            return null;
         });
-        // In case of connection errors, tcp will be null
-        if (tcp == null)
-        {   // Cannot connect to server on provided port? Likely a server or firewall problem.
-            // On the next search, that same server might reply and then we fail the same way on connect.
-            // Still, no way around re-registering the search so we succeed once the server is fixed.
-            search.register(channel, false /* not "now" but eventually */);
-        }
-        else
-        {
-            if (tcp.updateGuid(guid))
-                logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
-
-            channel.registerWithServer(tcp);
-        }
+        setup_tcp.setName("TCP connect " + server);
+        setup_tcp.setDaemon(true);
+        setup_tcp.start();
     }
 
     /** Called by {@link ClientTCPHandler} when connection is lost or closed because unused
