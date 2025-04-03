@@ -19,6 +19,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -174,7 +175,7 @@ class ChannelSearch
     private final ClientUDPHandler udp;
 
     /** Create ClientTCPHandler from IP address and 'tls' flag */
-    private final BiFunction<InetSocketAddress, Boolean, ClientTCPHandler> tcp_provider;
+    private final BiFunction<InetSocketAddress, Boolean, Future<ClientTCPHandler>> tcp_provider;
 
     /** Buffer for assembling search messages */
     private final ByteBuffer send_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_UNFRAGMENTED_SEND);
@@ -196,7 +197,7 @@ class ChannelSearch
      */
     public ChannelSearch(final ClientUDPHandler udp,
                          final List<AddressInfo> udp_addresses,
-                         final BiFunction<InetSocketAddress, Boolean, ClientTCPHandler> tcp_provider,
+                         final BiFunction<InetSocketAddress, Boolean, Future<ClientTCPHandler>> tcp_provider,
                          final List<AddressInfo> name_server_addresses) throws Exception
     {
         this.udp = udp;
@@ -453,28 +454,35 @@ class ChannelSearch
         {
             // For search via TCP, do we use plain TCP or do we send the search itself via TLS?
             // This is configured in EPICS_PVA_NAME_SERVERS via prefix pvas://
-            final ClientTCPHandler tcp = tcp_provider.apply(name_server.getAddress(), name_server.isTLS());
+            final Future<ClientTCPHandler> create_tcp = tcp_provider.apply(name_server.getAddress(), name_server.isTLS());
+            final ClientTCPHandler tcp;
+            try
+            {
+                tcp = create_tcp.get();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot obtain TCP handler to search " + name_server, ex);
+                continue;
+            }
 
             // In case of connection errors (TCP connection blocked by firewall),
             // tcp will be null
-            if (tcp != null)
+            final RequestEncoder search_request = (version, buffer) ->
             {
-                final RequestEncoder search_request = (version, buffer) ->
-                {
-                    logger.log(Level.FINE, () -> "Searching for " + channels + " via TCP " + tcp.getRemoteAddress());
+                logger.log(Level.FINE, () -> "Searching for " + channels + " via TCP " + tcp.getRemoteAddress());
 
-                    // Search sequence identifies the potentially repeated UDP.
-                    // TCP search is once only, so PVXS always sends 0x66696E64 = "find".
-                    // We send "look" ("kool" for little endian).
-                    final int seq = 0x6C6F6F6B;
+                // Search sequence identifies the potentially repeated UDP.
+                // TCP search is once only, so PVXS always sends 0x66696E64 = "find".
+                // We send "look" ("kool" for little endian).
+                final int seq = 0x6C6F6F6B;
 
-                    // Use 'any' reply address since reply will be via this TCP socket
-                    final InetSocketAddress response_address = new InetSocketAddress(0);
+                // Use 'any' reply address since reply will be via this TCP socket
+                final InetSocketAddress response_address = new InetSocketAddress(0);
 
-                    SearchRequest.encode(true, seq, channels, response_address, tls , buffer);
-                };
-                tcp.submit(search_request);
-            }
+                SearchRequest.encode(true, seq, channels, response_address, tls , buffer);
+            };
+            tcp.submit(search_request);
         }
 
         // Shortcut UDP search, avoid log messages when lists are empty

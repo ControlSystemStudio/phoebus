@@ -12,7 +12,9 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
@@ -58,7 +60,7 @@ public class PVAClient implements AutoCloseable
     private final ConcurrentHashMap<Integer, PVAChannel> channels_by_id = new ConcurrentHashMap<>();
 
     /** TCP handlers by server address */
-    private final ConcurrentHashMap<InetSocketAddress, ClientTCPHandler> tcp_handlers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<InetSocketAddress, Future<ClientTCPHandler>> tcp_handlers = new ConcurrentHashMap<>();
 
     private final AtomicInteger request_ids = new AtomicInteger();
 
@@ -89,20 +91,24 @@ public class PVAClient implements AutoCloseable
 
         // TCP traffic is handled by one ClientTCPHandler per address (IP, socket).
         // Pass helper to channel search for getting such a handler.
-        final BiFunction<InetSocketAddress, Boolean, ClientTCPHandler> tcp_provider = (the_addr, use_tls) ->
+        final BiFunction<InetSocketAddress, Boolean, Future<ClientTCPHandler>> tcp_provider = (the_addr, use_tls) ->
             tcp_handlers.computeIfAbsent(the_addr, addr ->
             {
-                try
+                // If absent, create with initial empty GUID
+                final CompletableFuture<ClientTCPHandler> create_tcp = new CompletableFuture<>();
+                create_tcp.completeAsync(() ->
                 {
-                    // If absent, create with initial empty GUID
-                    return new ClientTCPHandler(this, addr, Guid.EMPTY, use_tls);
-                }
-                catch (Exception ex)
-                {
-                    logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
-                }
-                return null;
-
+                    try
+                    {
+                        return new ClientTCPHandler(this, addr, Guid.EMPTY, use_tls);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
+                    }
+                    return null;
+                });
+                return create_tcp;
             });
         search = new ChannelSearch(udp, udp_search_addresses, tcp_provider, name_server_addresses);
 
@@ -254,18 +260,33 @@ public class PVAClient implements AutoCloseable
         // TODO Lightweight thread? Thread pool?
         final Thread setup_tcp = new Thread(() ->
         {
-            final ClientTCPHandler tcp = tcp_handlers.computeIfAbsent(server, addr ->
+            final Future<ClientTCPHandler> tcp_future = tcp_handlers.computeIfAbsent(server, addr ->
             {
-                try
+                final CompletableFuture<ClientTCPHandler> create_tcp = new CompletableFuture<>();
+                create_tcp.completeAsync(() ->
                 {
-                    return new ClientTCPHandler(this, addr, guid, tls);
-                }
-                catch (Exception ex)
-                {
-                    logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
-                }
-                return null;
+                    try
+                    {
+                        return new ClientTCPHandler(this, addr, guid, tls);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
+                    }
+                    return null;
+                });
+                return create_tcp;
             });
+            ClientTCPHandler tcp;
+            try
+            {
+                tcp = tcp_future.get();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot connect to " + server, ex);
+                tcp = null;
+            }
             // In case of connection errors, tcp will be null
             if (tcp == null)
             {   // Cannot connect to server on provided port? Likely a server or firewall problem.
@@ -277,7 +298,6 @@ public class PVAClient implements AutoCloseable
             {
                 if (tcp.updateGuid(guid))
                     logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
-    
                 channel.registerWithServer(tcp);
             }
         });
@@ -296,7 +316,18 @@ public class PVAClient implements AutoCloseable
     void shutdownConnection(final ClientTCPHandler tcp)
     {
         // Forget this connection
-        final ClientTCPHandler removed = tcp_handlers.remove(tcp.getRemoteAddress());
+        final Future<ClientTCPHandler> tcp_future = tcp_handlers.remove(tcp.getRemoteAddress());
+        final ClientTCPHandler removed;
+        try
+        {
+            removed = tcp_future == null ? null : tcp_future.get();
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot obtain TCP client to close for " + tcp, ex);
+            return;
+        }
+        
         if (removed != tcp)
             logger.log(Level.WARNING, "Closed unknown " + tcp, new Exception("Call stack"));
 
@@ -360,8 +391,15 @@ public class PVAClient implements AutoCloseable
         }
 
         // Stop TCP and UDP threads
-        for (ClientTCPHandler handler : tcp_handlers.values())
-            handler.close(true);
+        for (Future<ClientTCPHandler> handler : tcp_handlers.values())
+            try
+            {
+                handler.get().close(true);
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "PVA Client error getting channel to close", ex);
+            }
 
         udp.close();
     }
