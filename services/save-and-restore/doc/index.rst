@@ -5,7 +5,8 @@ The save-and-restore service implements service as a collection
 of REST endpoints. These can be used by clients to manage configurations (aka save sets) and
 snapshots, to compare snapshots and to restore PV values from snapshots.
 
-The service is packaged as a self-contained Spring Boot jar file. External dependencies are limited to a JVM (Java 17+)
+The service is packaged as a self-contained Spring Boot jar file.
+External dependencies are limited to a JVM (Java 21+)
 and a running instance of Elasticsearch (8.x).
 
 Running the service
