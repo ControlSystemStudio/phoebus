@@ -104,7 +104,7 @@ public class ComparisonControllerTest {
 
         when(nodeDAO.getSnapshotData("nodeId")).thenReturn(snapshotData);
 
-        MockHttpServletRequestBuilder request = get("/compare/nodeId");
+        MockHttpServletRequestBuilder request = get("/compare/nodeId?skipReadback=TRUE");
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();

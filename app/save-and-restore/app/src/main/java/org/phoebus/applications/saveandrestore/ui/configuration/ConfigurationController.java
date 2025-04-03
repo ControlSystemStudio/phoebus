@@ -35,7 +35,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -59,7 +58,7 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.PvCompareMode;
+import org.phoebus.applications.saveandrestore.model.CompareMode;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -72,7 +71,6 @@ import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
-import javax.naming.Context;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -102,7 +100,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     @FXML
     @SuppressWarnings("unused")
-    private TableColumn<ConfigPvEntry, PvCompareMode> comparisonModeColumn;
+    private TableColumn<ConfigPvEntry, CompareMode> comparisonModeColumn;
 
     @FXML
     @SuppressWarnings("unused")
@@ -250,7 +248,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         readbackPvNameColumn.setOnEditCommit(t -> {
             t.getTableView().getItems().get(t.getTablePosition().getRow()).setReadBackPvNameProperty(t.getNewValue());
             if (t.getNewValue() == null || t.getNewValue().isEmpty()) {
-                t.getTableView().getItems().get(t.getTablePosition().getRow()).setPvCompareModeProperty(null);
+                t.getTableView().getItems().get(t.getTablePosition().getRow()).setCompareModeProperty(null);
                 t.getTableView().getItems().get(t.getTablePosition().getRow()).setToleranceProperty(null);
             }
             setDirty(true);
@@ -263,11 +261,11 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             return readOnly;
         });
 
-        comparisonModeColumn.setCellValueFactory(cell -> cell.getValue().getPvCompareModeProperty());
+        comparisonModeColumn.setCellValueFactory(cell -> cell.getValue().getCompareModeProperty());
         comparisonModeColumn.setCellFactory(callback -> {
-            ObservableList<PvCompareMode> values = FXCollections.observableArrayList(Arrays.stream(PvCompareMode.values()).toList());
+            ObservableList<CompareMode> values = FXCollections.observableArrayList(Arrays.stream(CompareMode.values()).toList());
             values.add(0, null);
-            ComboBoxTableCell<ConfigPvEntry, PvCompareMode> tableCell = new ComboBoxTableCell<>(values) {
+            ComboBoxTableCell<ConfigPvEntry, CompareMode> tableCell = new ComboBoxTableCell<>(values) {
 
                 /*
                 @Override
@@ -283,21 +281,21 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                  */
 
                 @Override
-                public void commitEdit(PvCompareMode pvCompareMode) {
+                public void commitEdit(CompareMode pvCompareMode) {
                     if (pvCompareMode == null) {
                         getTableView().getItems().get(getIndex()).setToleranceProperty(null);
                     } else if (getTableView().getItems().get(getIndex()).getToleranceProperty().get() == null) {
                         getTableView().getItems().get(getIndex()).setToleranceProperty(0.0);
                     }
-                    getTableView().getItems().get(getIndex()).setPvCompareModeProperty(pvCompareMode);
+                    getTableView().getItems().get(getIndex()).setCompareModeProperty(pvCompareMode);
                     setDirty(true);
                     super.commitEdit(pvCompareMode);
                 }
             };
 
-            StringConverter<PvCompareMode> converter = new StringConverter<>() {
+            StringConverter<CompareMode> converter = new StringConverter<>() {
                 @Override
-                public String toString(PvCompareMode object) {
+                public String toString(CompareMode object) {
                     if (object == null) {
                         return "";
                     }
@@ -305,11 +303,11 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 }
 
                 @Override
-                public PvCompareMode fromString(String string) {
+                public CompareMode fromString(String string) {
                     if (string == null) {
                         return null;
                     }
-                    return PvCompareMode.valueOf(string);
+                    return CompareMode.valueOf(string);
                 }
             };
             tableCell.setConverter(converter);
@@ -581,7 +579,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         return null;
     }
 
-    public record ComparisonData(PvCompareMode pvCompareMode, Double tolerance){
+    public record ComparisonData(CompareMode pvCompareMode, Double tolerance){
 
     }
 }

@@ -5,15 +5,13 @@
 package org.phoebus.applications.saveandrestore.ui.configuration;
 
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.PvCompareMode;
+import org.phoebus.applications.saveandrestore.model.CompareMode;
 
 import java.util.Objects;
 
@@ -26,14 +24,14 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
     private final StringProperty pvNameProperty;
     private final StringProperty readBackPvNameProperty;
     private final BooleanProperty readOnlyProperty;
-    private final ObjectProperty<PvCompareMode> pvCompareModeProperty;
+    private final ObjectProperty<CompareMode> compareModeProperty;
     private ObjectProperty<Double> toleranceProperty;
 
     public ConfigPvEntry(ConfigPv configPv) {
         this.pvNameProperty = new SimpleStringProperty(this, "pvNameProperty", configPv.getPvName());
         this.readBackPvNameProperty = new SimpleStringProperty(configPv.getReadbackPvName());
         this.readOnlyProperty = new SimpleBooleanProperty(configPv.isReadOnly());
-        this.pvCompareModeProperty = new SimpleObjectProperty(configPv.getPvCompareMode());
+        this.compareModeProperty = new SimpleObjectProperty(configPv.getCompareMode());
         this.toleranceProperty = configPv.getTolerance() != null ?
                 new SimpleObjectProperty<>(configPv.getTolerance()) : new SimpleObjectProperty<>(null);
     }
@@ -50,8 +48,8 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
         return readOnlyProperty;
     }
 
-    public ObjectProperty<PvCompareMode> getPvCompareModeProperty() {
-        return pvCompareModeProperty;
+    public ObjectProperty<CompareMode> getCompareModeProperty() {
+        return compareModeProperty;
     }
 
     public ObjectProperty<Double> getToleranceProperty() {
@@ -70,8 +68,8 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
         this.readOnlyProperty.set(readOnlyProperty);
     }
 
-    public void setPvCompareModeProperty(PvCompareMode pvCompareModeProperty) {
-        this.pvCompareModeProperty.set(pvCompareModeProperty);
+    public void setCompareModeProperty(CompareMode compareModeProperty) {
+        this.compareModeProperty.set(compareModeProperty);
     }
 
     public void setToleranceProperty(Double toleranceProperty) {
@@ -79,13 +77,13 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
     }
 
     public ConfigPv toConfigPv() {
-        return ConfigPv.builder()
+        ConfigPv configPv = ConfigPv.builder()
                 .pvName(pvNameProperty.get())
                 .readbackPvName(readBackPvNameProperty.get())
                 .readOnly(readOnlyProperty.get())
-                .pvCompareMode(pvCompareModeProperty.get())
-                .tolerance(toleranceProperty.get())
+                .compareMode(compareModeProperty.get())
                 .build();
+        return configPv;
     }
 
     @Override

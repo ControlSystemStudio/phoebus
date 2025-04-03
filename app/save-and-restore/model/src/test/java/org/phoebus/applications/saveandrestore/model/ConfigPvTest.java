@@ -42,11 +42,11 @@ public class ConfigPvTest {
 
         assertEquals("b", configPV.getReadbackPvName());
         assertTrue(configPV.isReadOnly());
-        assertNull(configPV.getPvCompareMode());
+        assertNull(configPV.getCompareMode());
         assertNull(configPV.getTolerance());
 
-        configPV = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).pvCompareMode(PvCompareMode.ABSOLUTE).tolerance(1.0).build();
-        assertEquals(PvCompareMode.ABSOLUTE, configPV.getPvCompareMode());
+        configPV = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).compareMode(CompareMode.ABSOLUTE).tolerance(1.0).build();
+        assertEquals(CompareMode.ABSOLUTE, configPV.getCompareMode());
         assertEquals(1.0, configPV.getTolerance());
     }
 

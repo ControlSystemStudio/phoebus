@@ -20,7 +20,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.CompareResult;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.PvCompareMode;
+import org.phoebus.applications.saveandrestore.model.CompareMode;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
@@ -62,7 +62,7 @@ public class ComparisonController extends BaseController {
     @GetMapping(value = "/{nodeId}", produces = JSON)
     public List<CompareResult> compare(@PathVariable String nodeId,
                                        @RequestParam(value = "tolerance", required = false, defaultValue = "0") double tolerance,
-                                       @RequestParam(value = "comparisonMode", required = false, defaultValue = "ABSOLUTE") PvCompareMode pvCompareMode,
+                                       @RequestParam(value = "compareMode", required = false, defaultValue = "ABSOLUTE") CompareMode compareMode,
                                        @RequestParam(value = "skipReadback", required = false, defaultValue = "false") boolean skipReadback) {
         if(tolerance < 0){
             throw new IllegalArgumentException("Tolerance must be >=0");
@@ -73,9 +73,9 @@ public class ComparisonController extends BaseController {
         }
         switch (node.getNodeType()) {
             case SNAPSHOT:
-                return snapshotUtil.comparePvs(getSnapshotItems(node.getUniqueId()), tolerance, pvCompareMode, skipReadback);
+                return snapshotUtil.comparePvs(getSnapshotItems(node.getUniqueId()), tolerance, compareMode, skipReadback);
             case COMPOSITE_SNAPSHOT:
-                return snapshotUtil.comparePvs(getCompositeSnapshotItems(node.getUniqueId()), tolerance, pvCompareMode, skipReadback);
+                return snapshotUtil.comparePvs(getCompositeSnapshotItems(node.getUniqueId()), tolerance, compareMode, skipReadback);
             default:
                 throw new IllegalArgumentException("Node type" + node.getNodeType() + " cannot be compared");
         }

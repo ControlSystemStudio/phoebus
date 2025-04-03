@@ -62,13 +62,13 @@ public class ConfigurationController extends BaseController {
         // Validation: a ConfigPV cannot specify non-null  unless read-back PV is set.
         // Comparison must also be validated.
         for(ConfigPv configPv : configuration.getConfigurationData().getPvList()){
-            if((configPv.getReadbackPvName() == null || configPv.getReadbackPvName().isEmpty()) && configPv.getPvCompareMode() != null){
+            if((configPv.getReadbackPvName() == null || configPv.getReadbackPvName().isEmpty()) && configPv.getCompareMode() != null){
                 throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies comparison mode, but read-back PV is not set");
             }
             // Tolerance is set...
             else if(configPv.getTolerance() != null){
                 //...but not compare mode
-                if(configPv.getPvCompareMode() == null){
+                if(configPv.getCompareMode() == null){
                     throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies tolerance but no comparison mode");
                 }
                 //...but is less than zero, which does not make sense as comparison considers tolerance as upper and lower limit.

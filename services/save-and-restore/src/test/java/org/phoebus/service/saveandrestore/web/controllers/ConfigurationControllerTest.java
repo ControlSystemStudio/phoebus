@@ -27,7 +27,7 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.PvCompareMode;
+import org.phoebus.applications.saveandrestore.model.CompareMode;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,7 +176,7 @@ public class ConfigurationControllerTest {
         ConfigurationData configurationData = new ConfigurationData();
         configuration.setConfigurationData(configurationData);
         configurationData.setPvList(List.of(ConfigPv.builder().pvName("foo").build(),
-                ConfigPv.builder().pvName("fooo").pvCompareMode(PvCompareMode.ABSOLUTE).tolerance(1.0).build()));
+                ConfigPv.builder().pvName("fooo").compareMode(CompareMode.ABSOLUTE).tolerance(1.0).build()));
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
@@ -195,7 +195,7 @@ public class ConfigurationControllerTest {
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
         configurationData.setPvList(List.of(
-                ConfigPv.builder().pvName("fooo").readbackPvName("bar").pvCompareMode(PvCompareMode.RELATIVE)
+                ConfigPv.builder().pvName("fooo").readbackPvName("bar").compareMode(CompareMode.RELATIVE)
                         .tolerance(-0.1).build()));
 
         configuration.setConfigurationData(configurationData);

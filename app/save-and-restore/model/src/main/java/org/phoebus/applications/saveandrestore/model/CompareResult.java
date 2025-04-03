@@ -22,7 +22,7 @@ public class CompareResult{
 
     private String pvName;
     private boolean equal;
-    private PvCompareMode pvCompareMode;
+    private CompareMode pvCompareMode;
     private double tolerance;
     @JsonSerialize(using = VTypeSerializer.class)
     @JsonDeserialize(using = VTypeDeserializer.class)
@@ -39,7 +39,7 @@ public class CompareResult{
 
     public CompareResult(String pvName,
         boolean equal,
-        PvCompareMode pvCompareMode,
+        CompareMode pvCompareMode,
         double tolerance,
         VType storedValue,
         VType liveValue,
@@ -58,7 +58,7 @@ public class CompareResult{
         return equal;
     }
 
-    public PvCompareMode getPvCompareMode() {
+    public CompareMode getPvCompareMode() {
         return pvCompareMode;
     }
 

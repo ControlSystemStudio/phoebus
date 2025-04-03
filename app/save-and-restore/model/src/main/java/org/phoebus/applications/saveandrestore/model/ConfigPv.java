@@ -27,10 +27,10 @@ import java.util.Objects;
  * is optionally associated with the PV name. A PV record is uniquely identified by both the PV name
  * and the read-back PV name (if it has been specified).
  * <p>
- *     If a read-back PV name has been specified, a {@link PvCompareMode} can optionally be specified to
- *     indicate how the stored read-back value is compared to the live read-back value
- *     if a client requests it. A non-null {@link PvCompareMode} must be paired non-null and non-zero
- *     {@link #tolerance} value.
+ *     A {@link CompareMode} can optionally be specified to
+ *     indicate how the stored value (as defined by the {@link #pvName} field) is compared to a live value
+ *     if a client requests it. A non-null {@link CompareMode} must be paired non-null and a
+ *     {@link #tolerance} value &ge;0.
  * </p>
  * @author georgweiss
  * Created 1 Oct 2018
@@ -52,7 +52,7 @@ public class ConfigPv implements Comparable<ConfigPv> {
      */
     private boolean readOnly = false;
 
-    private PvCompareMode pvCompareMode;
+    private CompareMode compareMode;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Double tolerance = null;
@@ -82,12 +82,12 @@ public class ConfigPv implements Comparable<ConfigPv> {
     }
 
 
-    public PvCompareMode getPvCompareMode() {
-        return pvCompareMode;
+    public CompareMode getCompareMode() {
+        return compareMode;
     }
 
-    public void setPvCompareMode(PvCompareMode pvCompareMode) {
-        this.pvCompareMode = pvCompareMode;
+    public void setCompareMode(CompareMode compareMode) {
+        this.compareMode = compareMode;
     }
 
     public Double getTolerance() {
@@ -119,6 +119,8 @@ public class ConfigPv implements Comparable<ConfigPv> {
                 .append("PV name=").append(pvName)
                 .append(", readback PV name=").append(readbackPvName)
                 .append(", readOnly=").append(readOnly)
+                .append(", compareMode=").append(compareMode)
+                .append(", tolerance=").append(tolerance)
                 .toString();
     }
 
@@ -159,8 +161,8 @@ public class ConfigPv implements Comparable<ConfigPv> {
             return this;
         }
 
-        public Builder pvCompareMode(PvCompareMode pvCompareMode) {
-            configPv.setPvCompareMode(pvCompareMode);
+        public Builder compareMode(CompareMode compareMode) {
+            configPv.setCompareMode(compareMode);
             return this;
         }
 

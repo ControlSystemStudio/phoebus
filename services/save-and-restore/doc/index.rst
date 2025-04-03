@@ -346,7 +346,9 @@ Body:
                     {
                         "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinX",
                         "readbackPvName": null,
-                        "readOnly": false
+                        "readOnly": false,
+                        "pvCompareMode": "ABSOLUTE",
+                        "tolerance": 2.5
                     },
                     {
                         "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinY",
@@ -858,35 +860,40 @@ from an existing node rather than providing them explicitly. It returns the same
 Compare Endpoint
 ----------------
 
-**.../compare/{uniqueId}[?tolerance=<tolerance_value>&comparisonMode=<ABSOLUTE|RELATIVE>&skipReadback=<true|false>]**
+**.../compare/{uniqueId}[?tolerance=<tolerance_value>&compareMode=<ABSOLUTE|RELATIVE>&skipReadback=<true|false>]**
 
 Method: GET
 
 The path variable ``{uniqueId}`` must identify an existing snapshot or composite snapshot.
 
-The ``tolerance`` query parameter is optional and defaults to zero. If specified it must be >= 0.
-The ``comparisonMode`` query parameter is optional and defaults to ``ABSOLUTE``.
-The ``skipReadback`` query parameter is optional and defaults to ``false``.
+The ``tolerance`` query parameter is optional and defaults to zero. If specified it must be >= 0. Non-numeric values
+will trigger a HTTP 400 response.
+
+The ``compareMode`` query parameter is optional and defaults to ``ABSOLUTE``. This is case sensitive, values other
+than ``ABSOLUTE`` or ``RELATIVE`` will trigger a HTTP 400 response.
+
+The ``skipReadback`` query parameter is optional and defaults to ``false``. This is case insensitive, values
+that cannot be evaluated as boolean will trigger a HTTP 400 response.
 
 This endpoint can be used to compare stored snapshot values to live values for each set-point PV in the snapshot. The
 reference value for the comparison is always the one corresponding to the ``PV Name`` column in the configuration.
 
 Comparisons are performed like so:
 
-* Scalar PVs are compared using the tolerance and comparison mode (absolute or relative), or compared using zero tolerance.
+* Scalar PVs are compared using the tolerance and compare mode (absolute or relative), or compared using zero tolerance.
 * Array PVs are compared element wise, always using zero tolerance. Arrays must be of equal length.
 * Table PVs are compared element wise, always using zero tolerance. Tables must be of same dimensions, and data types must match between columns.
 * Enum PVs are compared using zero tolerance.
 
-In addition, the ``comparisonMode`` and ``skipReadback`` together with the presence of a read-back PV value is used to
-determine which values to compare:
+In addition, the ``compareMode`` and ``skipReadback`` together with the presence of a read-back PV value is used to
+determine which value to compare to the stored value:
+
 * If a read-back PV name has been specified it's live value is compare to the stored value.
-* If a read-back PV name has not been specified, or if ``skipReadback`` is ``true``, then the live value of ``PV Name``
-is used to compare to the stored value.
-* Comparison mode=ABSOLUTE (default) will apply absolute delta comparison.
-* Comparison mode=RELATIVE will apply relative comparison.
-* If an item in the configuration specifies a tolerance of zero, then a tolerance value specified in the API
-call will be ignored.
+* If a read-back PV name has not been specified, or if ``skipReadback`` is ``true``, then the live value of ``PV Name`` is used to compare to the stored value.
+* Compare mode=ABSOLUTE (default) will apply absolute delta comparison.
+* Compare mode=RELATIVE will apply relative comparison.
+* If an item in the configuration specifies a tolerance of zero, then a tolerance value specified in the API call will be ignored.
+* If the stored value is zero and compareMode is RELATIVE, then live value must also be zero to be treated as equal.
 
 Return value: a list of comparison results, one for each PV in the snapshot, e.g.:
 

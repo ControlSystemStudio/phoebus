@@ -9,13 +9,15 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VFloat;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.model.CompareResult;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.PvCompareMode;
+import org.phoebus.applications.saveandrestore.model.CompareMode;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
@@ -99,7 +101,7 @@ public class SnapshotUtilTest {
         snapshotItem2.setConfigPv(configPv2);
         snapshotItem2.setValue(VDouble.of(771.0, Alarm.none(), Time.now(), Display.none()));
 
-        List<CompareResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0, PvCompareMode.ABSOLUTE, false);
+        List<CompareResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0, CompareMode.ABSOLUTE, false);
 
         assertTrue(compareResults.get(0).isEqual());
         assertTrue(compareResults.get(1).isEqual());
@@ -107,7 +109,7 @@ public class SnapshotUtilTest {
         snapshotItem1.setValue(VDouble.of(43.0, Alarm.none(), Time.now(), Display.none()));
         snapshotItem2.setValue(VDouble.of(771.0, Alarm.none(), Time.now(), Display.none()));
 
-        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0,  PvCompareMode.ABSOLUTE, false);
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0,  CompareMode.ABSOLUTE, false);
 
         assertFalse(compareResults.get(0).isEqual());
         assertNotNull(compareResults.get(0).getStoredValue());
@@ -119,21 +121,21 @@ public class SnapshotUtilTest {
         snapshotItem1.setValue(VDouble.of(43.0, Alarm.none(), Time.now(), Display.none()));
         snapshotItem2.setValue(VDouble.of(771.0, Alarm.none(), Time.now(), Display.none()));
 
-        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 10.0, PvCompareMode.ABSOLUTE, false);
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 10.0, CompareMode.ABSOLUTE, false);
 
         assertTrue(compareResults.get(0).isEqual());
         assertTrue(compareResults.get(1).isEqual());
 
-        assertThrows(RuntimeException.class, () -> snapshotUtil.comparePvs(null, -77, PvCompareMode.ABSOLUTE, false));
+        assertThrows(RuntimeException.class, () -> snapshotUtil.comparePvs(null, -77, CompareMode.ABSOLUTE, false));
 
     }
 
     @Test
     public void testComparePvsRelative(){
         ConfigPv configPv1 = new ConfigPv();
-        configPv1.setPvName("loc://x(42.0)");
+        configPv1.setPvName("loc://xx(42.0)");
         ConfigPv configPv2 = new ConfigPv();
-        configPv2.setPvName("loc://y(771.0)");
+        configPv2.setPvName("loc://yy(771.0)");
 
         SnapshotItem snapshotItem1 = new SnapshotItem();
         snapshotItem1.setConfigPv(configPv1);
@@ -142,7 +144,7 @@ public class SnapshotUtilTest {
         snapshotItem2.setConfigPv(configPv2);
         snapshotItem2.setValue(VDouble.of(771.0, Alarm.none(), Time.now(), Display.none()));
 
-        List<CompareResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0, PvCompareMode.RELATIVE, false);
+        List<CompareResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0, CompareMode.RELATIVE, false);
 
         assertTrue(compareResults.get(0).isEqual());
         assertTrue(compareResults.get(1).isEqual());
@@ -150,7 +152,7 @@ public class SnapshotUtilTest {
         snapshotItem1.setValue(VDouble.of(43.0, Alarm.none(), Time.now(), Display.none()));
         snapshotItem2.setValue(VDouble.of(771.0, Alarm.none(), Time.now(), Display.none()));
 
-        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0,  PvCompareMode.RELATIVE, false);
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.0,  CompareMode.RELATIVE, false);
 
         assertFalse(compareResults.get(0).isEqual());
         assertNotNull(compareResults.get(0).getStoredValue());
@@ -162,30 +164,60 @@ public class SnapshotUtilTest {
         snapshotItem1.setValue(VDouble.of(43.0, Alarm.none(), Time.now(), Display.none()));
         snapshotItem2.setValue(VDouble.of(999.0, Alarm.none(), Time.now(), Display.none()));
 
-        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.1, PvCompareMode.RELATIVE, false);
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2), 0.1, CompareMode.RELATIVE, false);
 
         assertTrue(compareResults.get(0).isEqual());
         assertFalse(compareResults.get(1).isEqual());
 
-        assertThrows(RuntimeException.class, () -> snapshotUtil.comparePvs(null, -77, PvCompareMode.RELATIVE, false));
+        assertThrows(RuntimeException.class, () -> snapshotUtil.comparePvs(null, -77, CompareMode.RELATIVE, false));
 
     }
 
     @Test
-    public void testComparePvsWithReadbacks() {
+    public void testCompareWithZeroStored(){
         ConfigPv configPv1 = new ConfigPv();
-        configPv1.setPvName("loc://x(42.0)");
-        configPv1.setReadbackPvName("loc://xx(43.0)");
+        configPv1.setPvName("loc://b(0.0)");
+
+        SnapshotItem snapshotItem1 = new SnapshotItem();
+        snapshotItem1.setConfigPv(configPv1);
+        snapshotItem1.setValue(VDouble.of(1.0, Alarm.none(), Time.now(), Display.none()));
+
+        List<CompareResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 10.0, CompareMode.RELATIVE, false);
+        assertFalse(compareResults.get(0).isEqual());
+
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 2.0, CompareMode.ABSOLUTE, false);
+        assertTrue(compareResults.get(0).isEqual());
+
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 10.0, CompareMode.RELATIVE, false);
+        assertFalse(compareResults.get(0).isEqual());
+
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 0.5, CompareMode.ABSOLUTE, false);
+        assertFalse(compareResults.get(0).isEqual());
+
+        snapshotItem1 = new SnapshotItem();
+        snapshotItem1.setConfigPv(configPv1);
+        snapshotItem1.setValue(VDouble.of(0.0, Alarm.none(), Time.now(), Display.none()));
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 10.0, CompareMode.RELATIVE, false);
+
+        assertTrue(compareResults.get(0).isEqual());
+    }
+
+    @Test
+    public void testComparePvsWithReadbacks() {
+
+        ConfigPv configPv1 = new ConfigPv();
+        configPv1.setPvName("loc://a(42.0)");
+        configPv1.setReadbackPvName("loc://aa(50.0)");
 
         SnapshotItem snapshotItem1 = new SnapshotItem();
         snapshotItem1.setConfigPv(configPv1);
         snapshotItem1.setValue(VDouble.of(42.0, Alarm.none(), Time.now(), Display.none()));
         snapshotItem1.setReadbackValue(VDouble.of(50.0, Alarm.none(), Time.now(), Display.none()));
 
-        List<CompareResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 8.0, PvCompareMode.ABSOLUTE, false);
+        List<CompareResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 8.0, CompareMode.ABSOLUTE, false);
         assertTrue(compareResults.get(0).isEqual());
 
-        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 9.0, PvCompareMode.ABSOLUTE, false);
+        compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 7.0, CompareMode.ABSOLUTE, false);
         assertFalse(compareResults.get(0).isEqual());
 
     }
