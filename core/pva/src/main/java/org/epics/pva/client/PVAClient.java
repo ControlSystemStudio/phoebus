@@ -257,8 +257,9 @@ public class PVAClient implements AutoCloseable
         logger.log(Level.FINE, () -> "Reply for " + channel + " from " + (tls ? "TLS " : "TCP ") + server + " " + guid);
 
         // TCP connection can be slow, especially when blocked by firewall, so move to thread
-        // TODO Lightweight thread? Thread pool?
-        final Thread setup_tcp = new Thread(() ->
+        Thread.ofVirtual()
+              .name("TCP connect " + server)
+              .start(() ->
         {
             final Future<ClientTCPHandler> tcp_future = tcp_handlers.computeIfAbsent(server, addr ->
             {
@@ -301,9 +302,6 @@ public class PVAClient implements AutoCloseable
                 channel.registerWithServer(tcp);
             }
         });
-        setup_tcp.setName("TCP connect " + server);
-        setup_tcp.setDaemon(true);
-        setup_tcp.start();
     }
 
     /** Called by {@link ClientTCPHandler} when connection is lost or closed because unused
