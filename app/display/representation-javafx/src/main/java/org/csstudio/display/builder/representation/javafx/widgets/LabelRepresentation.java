@@ -18,6 +18,7 @@ import org.phoebus.ui.javafx.TextUtils;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -137,23 +138,31 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
             {
             case NONE:
                 jfx_node.setPrefSize(width, height);
+                jfx_node.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+                jfx_node.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
                 if (was_ever_transformed)
                     jfx_node.getTransforms().clear();
                 break;
             case NINETY:
                 jfx_node.setPrefSize(height, width);
+                jfx_node.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+                jfx_node.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
                 jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()),
                                                 new Translate(-height, 0));
                 was_ever_transformed = true;
                 break;
             case ONEEIGHTY:
                 jfx_node.setPrefSize(width, height);
+                jfx_node.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+                jfx_node.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
                 jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()),
                                                 new Translate(-width, -height));
                 was_ever_transformed = true;
                                break;
             case MINUS_NINETY:
                 jfx_node.setPrefSize(height, width);
+                jfx_node.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+                jfx_node.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
                 jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()),
                                                 new Translate(0, -width));
                 was_ever_transformed = true;
