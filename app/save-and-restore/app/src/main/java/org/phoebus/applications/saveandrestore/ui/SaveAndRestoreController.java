@@ -359,10 +359,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         contextMenu.getItems().addAll(menuItems);
         treeView.setContextMenu(contextMenu);
 
-        treeView.getSelectionModel().selectedItemProperty().addListener((a,b,c) -> {
-            System.out.println();
-        });
-
         loadTreeData();
     }
 
