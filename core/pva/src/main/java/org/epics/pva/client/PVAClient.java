@@ -256,52 +256,46 @@ public class PVAClient implements AutoCloseable
         channel.setState(ClientChannelState.FOUND);
         logger.log(Level.FINE, () -> "Reply for " + channel + " from " + (tls ? "TLS " : "TCP ") + server + " " + guid);
 
-        // TCP connection can be slow, especially when blocked by firewall, so move to thread
-        Thread.ofVirtual()
-              .name("TCP connect " + server)
-              .start(() ->
+        final Future<ClientTCPHandler> tcp_future = tcp_handlers.computeIfAbsent(server, addr ->
         {
-            final Future<ClientTCPHandler> tcp_future = tcp_handlers.computeIfAbsent(server, addr ->
-            {
-                final CompletableFuture<ClientTCPHandler> create_tcp = new CompletableFuture<>();
-                create_tcp.completeAsync(() ->
-                {
-                    try
+            final CompletableFuture<ClientTCPHandler> new_tcp_future = new CompletableFuture<>();
+
+            // Trying to establish a TCP connection is blocking and can be slow,
+            // especially when blocked by firewall. Therefore, attempt the TCP
+            // connection on a separate virtual thread:
+            Thread.ofVirtual().name("TCP connect " + server)
+                    .start(() ->
                     {
-                        return new ClientTCPHandler(this, addr, guid, tls);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
-                    }
-                    return null;
-                });
-                return create_tcp;
-            });
-            ClientTCPHandler tcp;
-            try
-            {
-                tcp = tcp_future.get();
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Cannot connect to " + server, ex);
-                tcp = null;
-            }
-            // In case of connection errors, tcp will be null
-            if (tcp == null)
-            {   // Cannot connect to server on provided port? Likely a server or firewall problem.
-                // On the next search, that same server might reply and then we fail the same way on connect.
-                // Still, no way around re-registering the search so we succeed once the server is fixed.
-                search.register(channel, false /* not "now" but eventually */);
-            }
-            else
-            {
-                if (tcp.updateGuid(guid))
-                    logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
-                channel.registerWithServer(tcp);
-            }
+                        try {
+                            var client_tcp_handler = new ClientTCPHandler(this, addr, guid, tls);
+                            new_tcp_future.complete(client_tcp_handler);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
+                        }
+                        new_tcp_future.complete(null);
+                    });
+
+            return new_tcp_future;
         });
+        ClientTCPHandler tcp;
+        try {
+            tcp = tcp_future.get();
+        } catch (Exception ex) {
+            logger.log(Level.WARNING, "Cannot connect to " + server, ex);
+            tcp = null;
+        }
+        // In case of connection errors, tcp will be null
+        if (tcp == null) {   // Cannot connect to server on provided port? Likely a server or firewall problem.
+            // On the next search, that same server might reply and then we fail the same way on connect.
+            // Still, no way around re-registering the search so we succeed once the server is fixed.
+            search.register(channel, false /* not "now" but eventually */);
+        } else {
+            if (tcp.updateGuid(guid))
+                logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
+            channel.registerWithServer(tcp);
+        }
     }
 
     /** Called by {@link ClientTCPHandler} when connection is lost or closed because unused
