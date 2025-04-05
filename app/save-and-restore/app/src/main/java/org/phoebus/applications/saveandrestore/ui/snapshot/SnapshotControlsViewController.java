@@ -191,6 +191,9 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
                 snapshotDataDirty.set(newValue != null && (snapshotNodeProperty.isNull().get() || snapshotNodeProperty.isNotNull().get() && !newValue.equals(snapshotNodeProperty.get().getDescription())))));
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        // TODO: support save (=update) a composite snapshot from the snapshot view. In the meanwhile, disable save button.
+                        snapshotNodeProperty.isNull().get() ||
+                        snapshotNodeProperty.get().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT) ||
                         snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
                                 snapshotCommentProperty.isEmpty().get() ||
@@ -289,14 +292,7 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
         snapshotNodeProperty.addListener((ob, old, node) -> {
             if (node != null) {
-                Platform.runLater(() -> {
-                    snapshotNameProperty.set(node.getName());
-                    snapshotCommentProperty.set(node.getDescription());
-                    createdDateTextProperty.set(node.getCreated() != null ? TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant()) : null);
-                    lastModifiedDateTextProperty.set(node.getLastModified() != null ? TimestampFormats.SECONDS_FORMAT.format(node.getLastModified().toInstant()) : null);
-                    createdByTextProperty.set(node.getUserName());
-                    filterToolbar.disableProperty().set(node.getName() == null);
-                });
+                updateUi(node);
             }
         });
 
@@ -382,6 +378,18 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     public void setSnapshotNode(Node node) {
         snapshotNodeProperty.set(node);
+        updateUi(node);
+    }
+
+    private void updateUi(Node node){
+        Platform.runLater(() -> {
+            snapshotNameProperty.set(node.getName());
+            snapshotCommentProperty.set(node.getDescription());
+            createdDateTextProperty.set(node.getCreated() != null ? TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant()) : null);
+            lastModifiedDateTextProperty.set(node.getLastModified() != null ? TimestampFormats.SECONDS_FORMAT.format(node.getLastModified().toInstant()) : null);
+            createdByTextProperty.set(node.getUserName());
+            filterToolbar.disableProperty().set(node.getName() == null);
+        });
     }
 
     private void parseAndUpdateThreshold(String value) {

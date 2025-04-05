@@ -357,8 +357,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         pasteMenuItem.setOnAction(ae -> pasteFromClipboard());
 
         contextMenu.getItems().addAll(menuItems);
-
-
         treeView.setContextMenu(contextMenu);
 
         loadTreeData();
@@ -440,33 +438,19 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * Expands the specified {@link Node}. In order to maintain the list of child {@link Node}s between repeated
      * expand/collapse actions, this method will query the service for the current list of child {@link Node}s and
-     * then update the tree view accordingly, i.e. add {@link Node}s that are not yet present, and remove those that
-     * have been removed.
+     * then update the tree view accordingly.
      *
      * @param targetItem {@link TreeItem<Node>} on which the operation is performed.
      */
     protected void expandTreeNode(TreeItem<Node> targetItem) {
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
-        List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).toList();
-        List<String> existingNodeIds =
-                targetItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).toList();
-        List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
-        childNodes.forEach(n -> {
-            if (!existingNodeIds.contains(n.getUniqueId())) {
-                itemsToAdd.add(createTreeItem(n));
-            }
-        });
-        List<TreeItem<Node>> itemsToRemove = new ArrayList<>();
-        targetItem.getChildren().forEach(item -> {
-            if (!childNodeIds.contains(item.getValue().getUniqueId())) {
-                itemsToRemove.add(item);
-            }
-        });
-
-        targetItem.getChildren().addAll(itemsToAdd);
-        targetItem.getChildren().removeAll(itemsToRemove);
+        List<TreeItem<Node>> list =
+                childNodes.stream().map(n -> createTreeItem(n)).toList();
+        targetItem.getChildren().setAll(list);
         targetItem.getChildren().sort(treeNodeComparator);
         targetItem.setExpanded(true);
+        treeView.getSelectionModel().clearSelection();
+        treeView.getSelectionModel().select(null);
     }
 
     /**
