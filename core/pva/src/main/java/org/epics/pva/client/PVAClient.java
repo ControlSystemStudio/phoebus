@@ -273,8 +273,12 @@ public class PVAClient implements AutoCloseable
                                         new_tcp_future.complete(client_tcp_handler);
                                     } catch (Exception ex) {
                                         logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
+                                        // Cannot connect to server on provided port? Likely a server or firewall problem.
+                                        // On the next search, that same server might reply and then we fail the same way on connect.
+                                        // Still, no way around re-registering the search so we succeed once the server is fixed.
+                                        search.register(channel, false /* not "now" but eventually */);
+                                        new_tcp_future.complete(null);
                                     }
-                                    new_tcp_future.complete(null);
                                 });
 
                         return new_tcp_future;
@@ -287,11 +291,7 @@ public class PVAClient implements AutoCloseable
                         tcp = null;
                     }
                     // In case of connection errors, tcp will be null
-                    if (tcp == null) {   // Cannot connect to server on provided port? Likely a server or firewall problem.
-                        // On the next search, that same server might reply and then we fail the same way on connect.
-                        // Still, no way around re-registering the search so we succeed once the server is fixed.
-                        search.register(channel, false /* not "now" but eventually */);
-                    } else {
+                    if (tcp != null) {
                         if (tcp.updateGuid(guid))
                             logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
                         channel.registerWithServer(tcp);
