@@ -260,7 +260,7 @@ class ChannelSearch
     /** @param channel Channel that should be searched
      *  @param now Start searching as soon as possible, or delay?
      */
-    public void register(final PVAChannel channel, final boolean now)
+    public synchronized void register(final PVAChannel channel, final boolean now)
     {
         logger.log(Level.FINE, () -> "Register search for " + channel + (now ? " now" : " soon"));
 
@@ -286,7 +286,7 @@ class ChannelSearch
      *  @param channel_id
      *  @return {@link PVAChannel}, <code>null</code> when channel wasn't searched any more
      */
-    public PVAChannel unregister(final int channel_id)
+    public synchronized PVAChannel unregister(final int channel_id)
     {
         final SearchedChannel searched = searched_channels.remove(channel_id);
         if (searched != null)
@@ -306,7 +306,7 @@ class ChannelSearch
      *
      *  <p>Resets their search counter so they're searched "real soon".
      */
-    public void boost()
+    public synchronized void boost()
     {
         for (SearchedChannel searched : searched_channels.values())
         {
@@ -337,7 +337,7 @@ class ChannelSearch
 
     /** Invoked by timer: Check searched channels for the next one to handle */
     @SuppressWarnings("unchecked")
-    private void runSearches()
+    private synchronized void runSearches()
     {
         to_search.clear();
         synchronized (search_buckets)
@@ -548,7 +548,7 @@ class ChannelSearch
     }
 
     /** Stop searching channels */
-    public void close()
+    public synchronized void close()
     {
         searched_channels.clear();
 
