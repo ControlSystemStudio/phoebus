@@ -154,13 +154,13 @@ class ChannelSearch
      *  which would result in an endless loop.
      *
      *  <p>Access to either {@link #search_buckets} or {@link #current_search_bucket}
-     *  must SYNC on {@link #search_buckets}.
+     *  must only occur in a 'synchronized' method.
      */
     private final ArrayList<Set<SearchedChannel>> search_buckets = new ArrayList<>(MAX_SEARCH_PERIOD+2);
 
     /** Index of current search bucket, i.e. the one about to be searched.
      *
-     *  <p>Access must SYNC on {@link #search_buckets}.
+     *  <p>Access must only occur in a 'synchronized' method.
      */
     private final AtomicInteger current_search_bucket = new AtomicInteger();
 
@@ -203,11 +203,9 @@ class ChannelSearch
         this.udp = udp;
         this.tcp_provider = tcp_provider;
 
-        synchronized (search_buckets)
-        {
-            for (int i=0; i<MAX_SEARCH_PERIOD+2; ++i)
-                search_buckets.add(new HashSet<>());
-        }
+
+        for (int i = 0; i < MAX_SEARCH_PERIOD + 2; ++i)
+            search_buckets.add(new HashSet<>());
 
         // Searches sent to multicast (IPv4, IPv6) or broadcast addresses (IPv4) reach every PVA server
         // on that multicast group or bcast subnet.
@@ -270,13 +268,11 @@ class ChannelSearch
 
         final SearchedChannel sc = searched_channels.computeIfAbsent(channel.getCID(), id -> new SearchedChannel(channel));
 
-        synchronized (search_buckets)
-        {
-            int bucket = current_search_bucket.get();
-            if (!now)
-                bucket = (bucket + SEARCH_SOON_DELAY)  % search_buckets.size();
-            search_buckets.get(bucket).add(sc);
-        }
+        int bucket = current_search_bucket.get();
+        if (!now)
+            bucket = (bucket + SEARCH_SOON_DELAY) % search_buckets.size();
+        search_buckets.get(bucket).add(sc);
+
         // Jumpstart search instead of waiting up to ~1 second for current bucket to be handled
         if (now)
             timer.execute(this::runSearches);
@@ -292,11 +288,8 @@ class ChannelSearch
         if (searched != null)
         {
             logger.log(Level.FINE, () -> "Unregister search for " + searched.channel.getName() + " " + channel_id);
-            synchronized (search_buckets)
-            {
-                for (Set<SearchedChannel> bucket : search_buckets)
-                    bucket.remove(searched);
-            } 
+            for (Set<SearchedChannel> bucket : search_buckets)
+                bucket.remove(searched);
             return searched.channel;
         }
         return null;
@@ -317,11 +310,9 @@ class ChannelSearch
             if (period == MIN_SEARCH_PERIOD)
             {
                 logger.log(Level.FINE, () -> "Restart search for '" + searched.channel.getName() + "'");
-                synchronized (search_buckets)
-                {
-                    final Set<SearchedChannel> bucket = search_buckets.get(current_search_bucket.get());
-                    bucket.add(searched);
-                }
+
+                final Set<SearchedChannel> bucket = search_buckets.get(current_search_bucket.get());
+                bucket.add(searched);
             }
             // Not sending search right now:
             //   search(channel);
@@ -340,47 +331,41 @@ class ChannelSearch
     private synchronized void runSearches()
     {
         to_search.clear();
-        synchronized (search_buckets)
-        {
-            // Determine current search bucket
-            final int current = current_search_bucket.getAndUpdate(i -> (i + 1) % search_buckets.size());
-            final Set<SearchedChannel> bucket = search_buckets.get(current);
-            logger.log(Level.FINEST, () -> "Search bucket " + current);
 
-            // Remove searched channels from the current bucket
-            for (SearchedChannel sc : bucket)
-            {
-                if (sc.channel.getState() == ClientChannelState.SEARCHING  &&
-                    searched_channels.containsKey(sc.channel.getCID()))
-                {
-                    // Collect channels in 'to_search' for handling outside of sync. section
-                    to_search.add(sc.channel);
+        // Determine current search bucket
+        final int current = current_search_bucket.getAndUpdate(i -> (i + 1) % search_buckets.size());
+        final Set<SearchedChannel> bucket = search_buckets.get(current);
+        logger.log(Level.FINEST, () -> "Search bucket " + current);
 
-                    // Determine next search period
-                    final int period = sc.search_period.updateAndGet(sec -> sec < MAX_SEARCH_PERIOD
-                                                                     ? sec + 1
-                                                                     : MAX_SEARCH_PERIOD);
+        // Remove searched channels from the current bucket
+        for (SearchedChannel sc : bucket) {
+            if (sc.channel.getState() == ClientChannelState.SEARCHING &&
+                    searched_channels.containsKey(sc.channel.getCID())) {
+                // Collect channels in 'to_search' for handling outside of sync. section
+                to_search.add(sc.channel);
 
-                    // Add to corresponding search bucket, or delay by one second
-                    // in case that search bucket is quite full
-                    final int i_n   = (current + period) % search_buckets.size();
-                    final int i_n_n = (i_n + 1)          % search_buckets.size();
-                    final Set<SearchedChannel> next = search_buckets.get(i_n);
-                    final Set<SearchedChannel> next_next = search_buckets.get(i_n_n);
-                    if (i_n == current  ||  i_n_n == current)
-                        throw new IllegalStateException("Current, next and nextnext search indices for " + sc.channel + " are " +
-                                                        current + ", " + i_n + ", " + i_n_n);
-                    if (next_next.size() < next.size())
-                        next_next.add(sc);
-                    else
-                        next.add(sc);
-                }
+                // Determine next search period
+                final int period = sc.search_period.updateAndGet(sec -> sec < MAX_SEARCH_PERIOD
+                        ? sec + 1
+                        : MAX_SEARCH_PERIOD);
+
+                // Add to corresponding search bucket, or delay by one second
+                // in case that search bucket is quite full
+                final int i_n = (current + period) % search_buckets.size();
+                final int i_n_n = (i_n + 1) % search_buckets.size();
+                final Set<SearchedChannel> next = search_buckets.get(i_n);
+                final Set<SearchedChannel> next_next = search_buckets.get(i_n_n);
+                if (i_n == current || i_n_n == current)
+                    throw new IllegalStateException("Current, next and nextnext search indices for " + sc.channel + " are " +
+                            current + ", " + i_n + ", " + i_n_n);
+                if (next_next.size() < next.size())
+                    next_next.add(sc);
                 else
-                    logger.log(Level.FINE, "Dropping channel from search: " + sc.channel);
-            }
-            bucket.clear();
+                    next.add(sc);
+            } else
+                logger.log(Level.FINE, "Dropping channel from search: " + sc.channel);
         }
-
+        bucket.clear();
 
         // Search batch..
         // Size of a search request is close to 50 bytes
