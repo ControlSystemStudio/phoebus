@@ -13,11 +13,11 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -133,7 +133,7 @@ class ChannelSearch
     //   up to MAX_SEARCH_PERIOD.
 
     /**  Map of searched channels by channel ID */
-    private ConcurrentHashMap<Integer, SearchedChannel> searched_channels = new ConcurrentHashMap<>();
+    private HashMap<Integer, SearchedChannel> searched_channels = new HashMap<>();
 
     /** Search buckets
      *
