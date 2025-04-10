@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import javafx.application.Platform;
@@ -48,6 +49,9 @@ public class ServiceLayerConnection implements BackendConnection{
     public static final String ACTION_NAVIGATED = "navigation_button";
     public static final String ACTION_RELOADED = "reloaded";
 
+    //track if last attempt failed, to prevent spamming the log
+    private boolean exceptionRaised = false;
+
     Logger logger = Logger.getLogger(ServiceLayerConnection.class.getName());
 
     Client client = new Client();
@@ -79,6 +83,7 @@ public class ServiceLayerConnection implements BackendConnection{
         }
         catch(JsonProcessingException e){
             logger.warning("Exception connecting to UX Analytics service layer: " + e.getMessage());
+            exceptionRaised = true;
             return false;
         }
     }
@@ -140,9 +145,21 @@ public class ServiceLayerConnection implements BackendConnection{
         click.put("x", x.toString());
         click.put("y", y.toString());
         click.put("filename", FileUtils.analyticsPathForTab(who));
-        ClientResponse response = client.resource(endpoint+"/recordClick")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, click);
+        click.put("timestamp", Instant.now().toString());
+        ObjectMapper mapper = new JsonMapper();
+        try {
+            String json = mapper.writeValueAsString(click);
+            ClientResponse response = client.resource(endpoint + "/recordClick")
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .post(ClientResponse.class, json);
+            exceptionRaised = false;
+        }
+        catch(Exception e){
+            if (!exceptionRaised) {
+                logger.warning("Exception connecting to UX Analytics service layer: " + e.getMessage());
+                exceptionRaised = true;
+            }
+        }
     }
 
     @Override
@@ -161,14 +178,22 @@ public class ServiceLayerConnection implements BackendConnection{
     }
 
     private void recordConnection(String srcType, String dstType, String srcName, String dstName, String action){
-        Map<String, String> connection = Map.of("srcName", srcName,
-                "srcType", srcType,
-                "dstName", dstName,
-                "dstType", dstType,
-                "action", action);
-        ClientResponse response = client.resource(endpoint+"/recordNavigation")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class,connection);
+        try {
+            Map<String, String> connection = Map.of("srcName", srcName,
+                    "srcType", srcType,
+                    "dstName", dstName,
+                    "dstType", dstType,
+                    "action", action);
+            ClientResponse response = client.resource(endpoint + "/recordNavigation")
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .post(ClientResponse.class, connection);
+        }
+        catch(Exception e){
+            if (!exceptionRaised) {
+                logger.warning("Exception connecting to UX Analytics service layer: " + e.getMessage());
+                exceptionRaised = true;
+            }
+        }
     }
 
     private void recordConnection(String srcType, String dstType, String srcName, String dstName, String action, String via){
@@ -176,15 +201,23 @@ public class ServiceLayerConnection implements BackendConnection{
             recordConnection(srcType, dstType, srcName, dstName, action);
             return;
         }
-        Map<String, Object> connection = Map.of("srcName", srcName,
-                "srcType", srcType,
-                "dstName", dstName,
-                "dstType", dstType,
-                "action", action,
-                "via", via);
-        ClientResponse response = client.resource(endpoint+"/recordNavigation")
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class,connection);
+        try {
+            Map<String, Object> connection = Map.of("srcName", srcName,
+                    "srcType", srcType,
+                    "dstName", dstName,
+                    "dstType", dstType,
+                    "action", action,
+                    "via", via);
+            ClientResponse response = client.resource(endpoint + "/recordNavigation")
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .post(ClientResponse.class, connection);
+        }
+        catch(Exception e){
+            if (!exceptionRaised) {
+                logger.warning("Exception connecting to UX Analytics service layer: " + e.getMessage());
+                exceptionRaised = true;
+            }
+        }
     }
 
     @Override
@@ -206,12 +239,7 @@ public class ServiceLayerConnection implements BackendConnection{
                             currentDisplayInfo.getPath(),
                             openDisplayAction.getFile())
             );
-            try {
-                recordConnection(TYPE_DISPLAY,TYPE_DISPLAY,sourcePath,targetPath,ACTION_OPENED,widgetID);
-            }
-            catch(Exception e){
-                logger.warning("Problem opening " + targetPath + " from " + sourcePath + ", not logging in analytics.");
-            }
+            recordConnection(TYPE_DISPLAY,TYPE_DISPLAY,sourcePath,targetPath,ACTION_OPENED,widgetID);
         });
     }
 
