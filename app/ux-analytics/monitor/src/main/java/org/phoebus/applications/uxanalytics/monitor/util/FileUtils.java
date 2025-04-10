@@ -72,9 +72,6 @@ public class FileUtils {
         //first check if it's a url
         if(isURL(path)){
             String webRootNoProtocol = getWebContentRoot();
-            if(webRootNoProtocol == null){
-                return null;
-            }
             String pathNoProtocol = path.substring(path.indexOf("://") + 3);
             if(pathNoProtocol.startsWith(webRootNoProtocol)){
                 return getWebContentRoot();
@@ -151,7 +148,6 @@ public class FileUtils {
 
     public static String getAnalyticsPathFor(String path){
         String pathWithoutRoot = ModelResourceUtil.normalize(getPathWithoutSourceRoot(path));
-        pathWithoutRoot = pathWithoutRoot.substring(0, pathWithoutRoot.lastIndexOf("."));
         String first8OfSHA256 = getSHA256Suffix(path);
         if(first8OfSHA256 == null){
             return null;
