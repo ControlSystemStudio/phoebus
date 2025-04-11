@@ -108,6 +108,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         snapshotProperty.addListener((ob, o, n) -> {
             if (n != null) {
                 snapshotControlsViewController.setSnapshotNode(n.getSnapshotNode());
+                snapshotTableViewController.showSnapshotInTable(n);
             }
         });
     }
@@ -150,6 +151,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
             disabledUi.set(false);
             if (snapshot.isPresent()) {
                 snapshotProperty.set(snapshot.get());
+                snapshotTableViewController.showSnapshotInTable(snapshot.get());
             }
         });
     }
@@ -336,7 +338,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
                 Snapshot snapshot = getSnapshotFromService(snapshotNode);
                 snapshotProperty.set(snapshot);
                 Platform.runLater(() -> {
-                    snapshotTableViewController.showSnapshotInTable(snapshot);
+                    //snapshotTableViewController.showSnapshotInTable(snapshot);
                     snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
                 });
             } finally {
