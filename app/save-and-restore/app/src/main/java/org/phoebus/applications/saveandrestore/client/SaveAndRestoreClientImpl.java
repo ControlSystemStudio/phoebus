@@ -463,6 +463,9 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     @Override
     public SearchResult search(MultivaluedMap<String, String> searchParams) {
         try {
+            LOGGER.log(Level.INFO, "searchParams: " + searchParams);
+            URI search_uri = URI.create(Preferences.jmasarServiceUrl + "/search?" + QueryParamsHelper.mapToQueryParams(searchParams));
+            LOGGER.log(Level.INFO, "search_uri: " + search_uri);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(Preferences.jmasarServiceUrl + "/search?" + QueryParamsHelper.mapToQueryParams(searchParams)))
                     .header("Content-Type", CONTENT_TYPE_JSON)

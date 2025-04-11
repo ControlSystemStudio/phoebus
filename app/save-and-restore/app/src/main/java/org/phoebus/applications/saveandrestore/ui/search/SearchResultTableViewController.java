@@ -331,18 +331,73 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         Map<String, String> searchParams =
                 SearchQueryUtil.parseHumanReadableQueryString(queryString);
 
-        searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
-        searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
+        LOGGER.log(Level.INFO, "searchParams: " + searchParams);
+
+        searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(
+                pagination.getCurrentPageIndex() * pageSizeProperty.get()));
+        searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(
+                pageSizeProperty.get()));
 
         JobManager.schedule("Save-and-restore Search", monitor -> {
             MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
             searchParams.forEach(map::add);
             try {
+                LOGGER.log(Level.INFO, "searchParams: " + searchParams);
+                LOGGER.log(Level.INFO, "map: " + map);
+                LOGGER.log(Level.INFO, "map[desc]: " + map.get("desc"));
+
                 SearchResult searchResult = saveAndRestoreService.search(map);
-                if (searchResult.getHitCount() > 0) {
+
+                // Parse out the original search words from the description search string
+                String descSearchString = map.get("desc").toString().toLowerCase();
+                descSearchString = descSearchString.replace("[", "");
+                descSearchString = descSearchString.replace("]", "");
+                descSearchString = descSearchString.replace("*", "");
+                String[] descSearchWords = descSearchString.split("[,\\s\\*]+");
+
+                // The REST search works as an OR on the supplied words, but here the results
+                // are made so that the search functions as an AND
+                List<Node> matchingNodes = new ArrayList<>(List.of());
+                Integer newHitCount = 0;
+                for(Node node : searchResult.getNodes()){
+                    Boolean goodMatch = true;
+                    LOGGER.log(Level.INFO, "--> node id: " + node.getUniqueId());
+
+                    String description = node.getDescription();
+                    LOGGER.log(Level.INFO, "--> description: " + description);
+                    for (String searchWord: descSearchWords) {
+                        LOGGER.log(Level.INFO, "   - check for searchWord: " + searchWord);
+                        if (description.toLowerCase().contains(searchWord)) {
+                            LOGGER.log(Level.INFO,"       --> yes!");
+                        } else {
+                            LOGGER.log(Level.INFO,"       --> no!");
+                            goodMatch = false;
+                        }
+                    }
+                    LOGGER.log(Level.INFO,"       --> goodMatch: " + goodMatch);
+
+                    if (goodMatch) {
+                        matchingNodes.add(node);
+                        newHitCount++;
+                    }
+                }
+
+                LOGGER.log(Level.INFO,"*** newHitCount: " + newHitCount);
+                for (Node node : matchingNodes) {
+                    String description = node.getDescription();
+                    LOGGER.log(Level.INFO, "*** Final search results: " + description);
+                }
+
+                // if (searchResult.getHitCount() > 0) {
+                //     Platform.runLater(() -> {
+                //         tableEntries.setAll(searchResult.getNodes());
+                //         hitCountProperty.set(searchResult.getHitCount());
+                //     });
+                if (newHitCount > 0) {
+                    Integer finalNewHitCount = newHitCount;
                     Platform.runLater(() -> {
-                        tableEntries.setAll(searchResult.getNodes());
-                        hitCountProperty.set(searchResult.getHitCount());
+                        tableEntries.setAll(matchingNodes);
+                        hitCountProperty.set(finalNewHitCount);
                     });
                 } else {
                     Platform.runLater(() -> tableEntries.setAll(Collections.emptyList()));
