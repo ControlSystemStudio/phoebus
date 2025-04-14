@@ -259,40 +259,45 @@ public class ServiceLayerConnection implements BackendConnection{
     @Override
     public void handleDisplayOpen(DisplayInfo target, DisplayInfo src, ResourceOpenSources how) {
         String sourcePath = "UNKNOWN";
-        String targetPath = FileUtils.getAnalyticsPathFor(target.getPath());
-        String sourceType = null;
-        String action = ACTION_OPENED;
-        switch (how) {
-            case RELOAD:
-            case NAVIGATION_BUTTON:
-                if (src != null) {
-                    sourcePath = FileUtils.getAnalyticsPathFor(src.getPath());
-                    sourceType = TYPE_DISPLAY;
-                    assert sourcePath != null;
-                    if(sourcePath.equals(targetPath)){
-                        action=ACTION_RELOADED;
+        try {
+            String targetPath = FileUtils.getAnalyticsPathFor(target.getPath());
+            String sourceType = null;
+            String action = ACTION_OPENED;
+            switch (how) {
+                case RELOAD:
+                case NAVIGATION_BUTTON:
+                    if (src != null) {
+                        sourcePath = FileUtils.getAnalyticsPathFor(src.getPath());
+                        sourceType = TYPE_DISPLAY;
+                        assert sourcePath != null;
+                        if (sourcePath.equals(targetPath)) {
+                            action = ACTION_RELOADED;
+                        } else {
+                            action = ACTION_NAVIGATED;
+                        }
                     }
-                    else{
-                        action = ACTION_NAVIGATED;
-                    }
-                }
-                break;
-            case FILE_BROWSER:
-                sourcePath = SRC_FILE_BROWSER;
-                sourceType = TYPE_ORIGIN;
-                break;
-            case TOP_RESOURCES:
-                sourcePath = SRC_TOP_RESOURCES;
-                sourceType = TYPE_ORIGIN;
-                break;
-            case RESTORED:
-                sourcePath = SRC_RESTORATION;
-                sourceType = TYPE_ORIGIN;
-                break;
-            default:
-                sourcePath = SRC_UNKNOWN;
-                sourceType = TYPE_ORIGIN;
+                    break;
+                case FILE_BROWSER:
+                    sourcePath = SRC_FILE_BROWSER;
+                    sourceType = TYPE_ORIGIN;
+                    break;
+                case TOP_RESOURCES:
+                    sourcePath = SRC_TOP_RESOURCES;
+                    sourceType = TYPE_ORIGIN;
+                    break;
+                case RESTORED:
+                    sourcePath = SRC_RESTORATION;
+                    sourceType = TYPE_ORIGIN;
+                    break;
+                default:
+                    sourcePath = SRC_UNKNOWN;
+                    sourceType = TYPE_ORIGIN;
+            }
+            recordConnection(sourceType, TYPE_DISPLAY, sourcePath, targetPath, action, null);
+            resetLogging();
         }
-        recordConnection(sourceType, TYPE_DISPLAY, sourcePath, targetPath, action, null);
+        catch(Exception e){
+            logMessage("Exception connecting to UX Analytics service layer: " + e.getMessage());
+        }
     }
 }
