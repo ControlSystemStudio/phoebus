@@ -25,7 +25,7 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
     private final StringProperty readBackPvNameProperty;
     private final BooleanProperty readOnlyProperty;
     private final ObjectProperty<CompareMode> compareModeProperty;
-    private ObjectProperty<Double> toleranceProperty;
+    private final ObjectProperty<Double> toleranceProperty;
 
     public ConfigPvEntry(ConfigPv configPv) {
         this.pvNameProperty = new SimpleStringProperty(this, "pvNameProperty", configPv.getPvName());
@@ -64,10 +64,6 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
         this.readBackPvNameProperty.set(readBackPvNameProperty);
     }
 
-    public void setReadOnlyProperty(boolean readOnlyProperty) {
-        this.readOnlyProperty.set(readOnlyProperty);
-    }
-
     public void setCompareModeProperty(CompareMode compareModeProperty) {
         this.compareModeProperty.set(compareModeProperty);
     }
@@ -83,6 +79,9 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
                 .readOnly(readOnlyProperty.get())
                 .compareMode(compareModeProperty.get())
                 .build();
+        if(toleranceProperty != null){
+            configPv.setTolerance(toleranceProperty.get());
+        }
         return configPv;
     }
 

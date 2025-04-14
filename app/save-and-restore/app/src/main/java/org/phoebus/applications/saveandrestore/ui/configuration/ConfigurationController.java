@@ -215,10 +215,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
         ContextMenu contextMenu = new ContextMenu();
         MenuItem setComparisonData = new MenuItem("Add comparison on selection");
-        setComparisonData.setOnAction(e -> {
-            List<ConfigPvEntry> selectedItems = pvTable.getSelectionModel().getSelectedItems();
-            launchComparisonEditor();
-        });
+        setComparisonData.setOnAction(e -> launchComparisonEditor());
         contextMenu.getItems().add(setComparisonData);
         pvTable.setOnContextMenuRequested(event -> {
             contextMenu.getItems().clear();
@@ -247,10 +244,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         readbackPvNameColumn.setCellValueFactory(cell -> cell.getValue().getReadBackPvNameProperty());
         readbackPvNameColumn.setOnEditCommit(t -> {
             t.getTableView().getItems().get(t.getTablePosition().getRow()).setReadBackPvNameProperty(t.getNewValue());
-            if (t.getNewValue() == null || t.getNewValue().isEmpty()) {
-                t.getTableView().getItems().get(t.getTablePosition().getRow()).setCompareModeProperty(null);
-                t.getTableView().getItems().get(t.getTablePosition().getRow()).setToleranceProperty(null);
-            }
             setDirty(true);
         });
 
@@ -267,27 +260,12 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             values.add(0, null);
             ComboBoxTableCell<ConfigPvEntry, CompareMode> tableCell = new ComboBoxTableCell<>(values) {
 
-                /*
-                @Override
-                public void startEdit() {
-                    String readBackPvName = getTableView().getItems().get(getIndex()).getReadBackPvNameProperty().get();
-                    if (readBackPvName == null || readBackPvName.isEmpty()) {
-                        cancelEdit();
-                        return;
-                    }
-                    super.startEdit();
-                }
-
-                 */
-
                 @Override
                 public void commitEdit(CompareMode pvCompareMode) {
+                    getTableView().getItems().get(getIndex()).setCompareModeProperty(pvCompareMode);
                     if (pvCompareMode == null) {
                         getTableView().getItems().get(getIndex()).setToleranceProperty(null);
-                    } else if (getTableView().getItems().get(getIndex()).getToleranceProperty().get() == null) {
-                        getTableView().getItems().get(getIndex()).setToleranceProperty(0.0);
                     }
-                    getTableView().getItems().get(getIndex()).setCompareModeProperty(pvCompareMode);
                     setDirty(true);
                     super.commitEdit(pvCompareMode);
                 }
@@ -323,12 +301,12 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             @Override
             public Double fromString(String string) {
                 try {
-                    Double value = Double.parseDouble(string);
-                    if(value < 0){
+                    double value = Double.parseDouble(string);
+                    if(value >= 0){
                         // Tolerance must be >= 0.
-                        return null;
+                        return value;
                     }
-                    return value;
+                    return null;
                 } catch (Exception e) {
                     // No logging needed: user has entered text that cannot be parsed as double.
                     return null;
@@ -336,20 +314,11 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             }
         }) {
             @Override
-            public void startEdit() {
-                String readBackPvName = getTableView().getItems().get(getIndex()).getReadBackPvNameProperty().get();
-                if (readBackPvName == null || readBackPvName.isEmpty()) {
-                    cancelEdit();
-                    return;
-                }
-                super.startEdit();
-            }
-
-            @Override
             public void commitEdit(Double value) {
                 if (value == null) {
                     return;
                 }
+                getTableView().getItems().get(getIndex()).setToleranceProperty(value);
                 setDirty(true);
                 super.commitEdit(value);
             }
@@ -464,7 +433,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 configPVs.add(new ConfigPvEntry(configPV));
             }
             configurationEntries.addAll(configPVs);
-            //configurationTab.annotateDirty(true);
             resetAddPv();
         });
 
@@ -560,7 +528,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         this.dirty.set(dirty && !loadInProgress.get());
     }
 
-    private ComparisonData launchComparisonEditor(){
+    private void launchComparisonEditor(){
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setHeaderText(null);
         alert.setGraphic(null);
@@ -575,8 +543,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        return null;
     }
 
     public record ComparisonData(CompareMode pvCompareMode, Double tolerance){
