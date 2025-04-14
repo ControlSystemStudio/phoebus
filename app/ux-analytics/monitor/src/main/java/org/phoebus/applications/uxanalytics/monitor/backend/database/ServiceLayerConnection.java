@@ -4,14 +4,11 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import javafx.application.Platform;
 import org.csstudio.display.actions.OpenDisplayAction;
 import org.csstudio.display.actions.WritePVAction;
 import org.csstudio.display.builder.model.Widget;
@@ -26,7 +23,6 @@ import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.security.tokens.AuthenticationScope;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import java.util.Map;
 
 import static org.csstudio.display.actions.OpenDisplayAction.OPEN_DISPLAY;
@@ -35,10 +31,10 @@ import static org.csstudio.display.actions.WritePVAction.WRITE_PV;
 public class ServiceLayerConnection implements BackendConnection{
 
     //string names for "origin" sources (i.e., not another display)
-    public static final String SRC_FILE_BROWSER = "file_browser";
-    public static final String SRC_TOP_RESOURCES = "top_resources_list";
-    public static final String SRC_RESTORATION = "memento_restored";
-    public static final String SRC_UNKNOWN = "other_source";
+    public static final String SRC_FILE_BROWSER = ResourceOpenSources.FILE_BROWSER.name().toLowerCase();
+    public static final String SRC_TOP_RESOURCES = ResourceOpenSources.TOP_RESOURCES.name().toLowerCase();
+    public static final String SRC_RESTORATION = ResourceOpenSources.RESTORED.name().toLowerCase();
+    public static final String SRC_UNKNOWN = ResourceOpenSources.UNKNOWN.name().toLowerCase();
 
     public static final String TYPE_ORIGIN = "origin_source";
     public static final String TYPE_DISPLAY = "display";
@@ -57,12 +53,32 @@ public class ServiceLayerConnection implements BackendConnection{
     Client client = new Client();
     private String endpoint;
 
+    private final JsonMapper mapper = new JsonMapper();
+
     public static ServiceLayerConnection instance;
     public static ServiceLayerConnection getInstance(){
         if(instance == null){
             instance = new ServiceLayerConnection();
         }
         return instance;
+    }
+
+    public void resetLogging(){
+        exceptionRaised = false;
+    }
+
+    public void killLogging(){
+        exceptionRaised = true;
+    }
+
+    private void logMessage(String msg){
+        if(!exceptionRaised) {
+            logger.warning(msg + "\nFuture messages will only be logged at FINE level until the connection is re-established.");
+            killLogging();
+        }
+        else{
+            logger.fine(msg);
+        }
     }
 
     private ServiceLayerConnection(){
@@ -76,14 +92,17 @@ public class ServiceLayerConnection implements BackendConnection{
             boolean appStatus =  node.get("applicationStatus").asText().equals("OK");
             boolean dbStatus = node.get("mariaDatabaseStatus").asText().equals("OK");
             boolean graphStatus = node.get("graphDatabaseStatus").asText().equals("OK");
-            if (!(dbStatus && graphStatus)) {
-                logger.warning("UX Analytics service layer connection failed. Application status: " + appStatus + ", MariaDB status: " + dbStatus + ", GraphDB status: " + graphStatus);
+            if (!(appStatus && dbStatus && graphStatus)) {
+                logMessage("UX Analytics service layer connection failed. Application status: " + appStatus + ", MariaDB status: " + dbStatus + ", GraphDB status: " + graphStatus);
+            }
+            else {
+                resetLogging();
             }
             return appStatus && dbStatus && graphStatus;
         }
-        catch(JsonProcessingException e){
-            logger.warning("Exception connecting to UX Analytics service layer: " + e.getMessage());
-            exceptionRaised = true;
+        catch(Exception e){
+            logMessage("Exception connecting to UX Analytics service layer: " + e.getMessage());
+            killLogging();
             return false;
         }
     }
@@ -144,21 +163,17 @@ public class ServiceLayerConnection implements BackendConnection{
         HashMap<String, String> click = new HashMap<String,String>();
         click.put("x", x.toString());
         click.put("y", y.toString());
-        click.put("filename", FileUtils.analyticsPathForTab(who));
         click.put("timestamp", Instant.now().toString());
-        ObjectMapper mapper = new JsonMapper();
         try {
+            click.put("filename", FileUtils.analyticsPathForTab(who));
             String json = mapper.writeValueAsString(click);
             ClientResponse response = client.resource(endpoint + "/recordClick")
                     .type(MediaType.APPLICATION_JSON_TYPE)
                     .post(ClientResponse.class, json);
-            exceptionRaised = false;
+            resetLogging();
         }
         catch(Exception e){
-            if (!exceptionRaised) {
-                logger.warning("Exception connecting to UX Analytics service layer: " + e.getMessage());
-                exceptionRaised = true;
-            }
+            logMessage("Exception connecting to UX Analytics service layer: " + e.getMessage());
         }
     }
 
@@ -186,13 +201,11 @@ public class ServiceLayerConnection implements BackendConnection{
                     "action", action);
             ClientResponse response = client.resource(endpoint + "/recordNavigation")
                     .type(MediaType.APPLICATION_JSON_TYPE)
-                    .post(ClientResponse.class, connection);
+                    .post(ClientResponse.class, mapper.writeValueAsString(connection));
+            resetLogging();
         }
         catch(Exception e){
-            if (!exceptionRaised) {
-                logger.warning("Exception connecting to UX Analytics service layer: " + e.getMessage());
-                exceptionRaised = true;
-            }
+            logMessage("Exception connecting to UX Analytics service layer: " + e.getMessage());
         }
     }
 
@@ -210,27 +223,23 @@ public class ServiceLayerConnection implements BackendConnection{
                     "via", via);
             ClientResponse response = client.resource(endpoint + "/recordNavigation")
                     .type(MediaType.APPLICATION_JSON_TYPE)
-                    .post(ClientResponse.class, connection);
+                    .post(ClientResponse.class, mapper.writeValueAsString(connection));
+            resetLogging();
         }
         catch(Exception e){
-            if (!exceptionRaised) {
-                logger.warning("Exception connecting to UX Analytics service layer: " + e.getMessage());
-                exceptionRaised = true;
-            }
+            logMessage("Exception connecting to UX Analytics service layer: " + e.getMessage());
         }
     }
 
     @Override
     public void handlePVWrite(ActiveTab who, Widget widget, String PVName, String value) {
-        Platform.runLater(()->{
-            String display = FileUtils.analyticsPathForTab(who);
-            String widgetID = widget.getName();
-            recordConnection(TYPE_DISPLAY, TYPE_PV, display, PVName, ACTION_WROTE, widgetID);
-        });
+        String display = FileUtils.analyticsPathForTab(who);
+        String widgetID = widget.getName();
+        recordConnection(TYPE_DISPLAY, TYPE_PV, display, PVName, ACTION_WROTE, widgetID);
     }
 
-    public void handleDisplayOpenViaActionButton(ActiveTab who, Widget widget, OpenDisplayAction openDisplayAction) {
-        Platform.runLater(() -> {
+    private void handleDisplayOpenViaActionButton(ActiveTab who, Widget widget, OpenDisplayAction openDisplayAction) {
+        try{
             DisplayInfo currentDisplayInfo = who.getDisplayInfo();
             String widgetID = widget.getName();
             String sourcePath = FileUtils.getAnalyticsPathFor(currentDisplayInfo.getPath());
@@ -240,48 +249,50 @@ public class ServiceLayerConnection implements BackendConnection{
                             openDisplayAction.getFile())
             );
             recordConnection(TYPE_DISPLAY,TYPE_DISPLAY,sourcePath,targetPath,ACTION_OPENED,widgetID);
-        });
+            resetLogging();
+        }
+        catch(Exception e){
+            logMessage("Exception connecting to UX Analytics service layer: " + e.getMessage());
+        }
     }
 
     @Override
     public void handleDisplayOpen(DisplayInfo target, DisplayInfo src, ResourceOpenSources how) {
-        Platform.runLater(()->{
-                String sourcePath = "UNKNOWN";
-            String targetPath = FileUtils.getAnalyticsPathFor(target.getPath());
-            String sourceType = null;
-            String action = ACTION_OPENED;
-            switch (how) {
-                case RELOAD:
-                case NAVIGATION_BUTTON:
-                    if (src != null) {
-                        sourcePath = FileUtils.getAnalyticsPathFor(src.getPath());
-                        sourceType = TYPE_DISPLAY;
-                        assert sourcePath != null;
-                        if(sourcePath.equals(targetPath)){
-                            action=ACTION_RELOADED;
-                        }
-                        else{
-                            action = ACTION_NAVIGATED;
-                        }
+        String sourcePath = "UNKNOWN";
+        String targetPath = FileUtils.getAnalyticsPathFor(target.getPath());
+        String sourceType = null;
+        String action = ACTION_OPENED;
+        switch (how) {
+            case RELOAD:
+            case NAVIGATION_BUTTON:
+                if (src != null) {
+                    sourcePath = FileUtils.getAnalyticsPathFor(src.getPath());
+                    sourceType = TYPE_DISPLAY;
+                    assert sourcePath != null;
+                    if(sourcePath.equals(targetPath)){
+                        action=ACTION_RELOADED;
                     }
-                    break;
-                case FILE_BROWSER:
-                    sourcePath = SRC_FILE_BROWSER;
-                    sourceType = TYPE_ORIGIN;
-                    break;
-                case TOP_RESOURCES:
-                    sourcePath = SRC_TOP_RESOURCES;
-                    sourceType = TYPE_ORIGIN;
-                    break;
-                case RESTORED:
-                    sourcePath = SRC_RESTORATION;
-                    sourceType = TYPE_ORIGIN;
-                    break;
-                default:
-                    sourcePath = SRC_UNKNOWN;
-                    sourceType = TYPE_ORIGIN;
-            }
-            recordConnection(sourceType, TYPE_DISPLAY, sourcePath, targetPath, action, null);
-        });
+                    else{
+                        action = ACTION_NAVIGATED;
+                    }
+                }
+                break;
+            case FILE_BROWSER:
+                sourcePath = SRC_FILE_BROWSER;
+                sourceType = TYPE_ORIGIN;
+                break;
+            case TOP_RESOURCES:
+                sourcePath = SRC_TOP_RESOURCES;
+                sourceType = TYPE_ORIGIN;
+                break;
+            case RESTORED:
+                sourcePath = SRC_RESTORATION;
+                sourceType = TYPE_ORIGIN;
+                break;
+            default:
+                sourcePath = SRC_UNKNOWN;
+                sourceType = TYPE_ORIGIN;
+        }
+        recordConnection(sourceType, TYPE_DISPLAY, sourcePath, targetPath, action, null);
     }
 }
