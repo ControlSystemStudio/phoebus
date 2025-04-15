@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class SearchQueryUtil {
 
@@ -77,6 +79,8 @@ public class SearchQueryUtil {
         }
     }
 
+    private static final Logger LOGGER = Logger.getLogger(SearchQueryUtil.class.getName());
+
     /**
      * This method parses a logbook query string and returns a map of search keys and their associated search patterns as
      * values.
@@ -109,7 +113,9 @@ public class SearchQueryUtil {
         List<String> params = new ArrayList<>();
         queryParams.keySet().forEach(key -> {
             if(Keys.lookupTable.containsKey(key)){
-                params.add(key + "=" + (queryParams.get(key) == null ? "" : formatSearchTerm(queryParams.get(key))));
+                String formattedString = formatSearchTerm(queryParams.get(key));
+                LOGGER.log(Level.INFO, "toQueryString formatSearchTerm:  [" + formattedString + "]");
+                params.add(key + "=" + (queryParams.get(key) == null ? "" : formattedString));
             }
         });
         return params.stream().collect(Collectors.joining("&"));
@@ -120,10 +126,29 @@ public class SearchQueryUtil {
      * @return A formatted string with trimmed values, e.g. "a,b" rather than " a , b".
      */
     private static String formatSearchTerm(String searchTerm){
+        LOGGER.log(Level.INFO, "formatSearchTerm() searchTerm input:  [" +
+                searchTerm + "]");
+
         if(searchTerm == null || searchTerm.isEmpty()){
             return "";
         }
-        return Arrays.asList(searchTerm.split(",")).stream().map(i -> i.trim()).collect(Collectors.joining(","));
+
+        // The REST search only works with lower case
+        searchTerm = searchTerm.toLowerCase();
+        // Replace multiple commas, periods, or wildcards with a space
+        searchTerm = searchTerm.replaceAll("[.,*]+", " ");
+        // Trim trailing and leading spaces
+        searchTerm = searchTerm.strip();
+        // Replace one or more spaces with commas, as the REST search accepts
+        // commas as delimiters between search words
+        searchTerm = searchTerm.replaceAll("\\s+", ",");
+
+        LOGGER.log(Level.INFO, "formatSearchTerm() searchTerm final:  [" +
+                searchTerm + "]");
+
+        return searchTerm;
+        // return Arrays.asList(searchTerm.split(",")).stream().map(
+        //         i -> i.trim()).collect(Collectors.joining(","));
     }
 
     private static class KeyParser implements Function<String, String> {

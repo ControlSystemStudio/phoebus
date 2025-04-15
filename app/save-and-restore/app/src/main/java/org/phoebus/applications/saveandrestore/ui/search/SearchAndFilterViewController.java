@@ -279,7 +279,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         descTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 LOGGER.log(Level.INFO, "ENTER has been pressed in descTextField");
-                LOGGER.log(Level.INFO, "descProperty initial:  [" + descProperty.getValueSafe() + "]");
+                LOGGER.log(Level.INFO, "descProperty initial:  [" +
+                        descProperty.getValueSafe() + "]");
                 if (descProperty.isEmpty().get()) {
                     LOGGER.log(Level.INFO, "descProperty: is empty");
                 }
@@ -507,30 +508,30 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             map.put(Keys.USER.getName(), userNameProperty.get());
         }
         if (descProperty.get() != null && !descProperty.get().isEmpty()) {
-            // Trim trailing and leading spaces, apply this to the text field also
-            String searchString = descProperty.get().trim();
-            descProperty.set(searchString);
-            LOGGER.log(Level.INFO, "descProperty trimmed:  [" + searchString + "]");
+            // // Trim trailing and leading spaces, apply this to the text field also
+            // String searchString = descProperty.get().trim();
+            // descProperty.set(searchString);
+            // LOGGER.log(Level.INFO, "descProperty trimmed:  [" + searchString + "]");
 
-            // Set all letters to lower case - the REST search only works with lower case
-            searchString = searchString.toLowerCase();
-            LOGGER.log(Level.INFO, "searchString lowered:  [" + searchString + "]");
+            // // Set all letters to lower case - the REST search only works with lower case
+            // searchString = searchString.toLowerCase();
+            // LOGGER.log(Level.INFO, "searchString lowered:  [" + searchString + "]");
 
-            // Replace one or more spaces with a comma - the REST search accepts commas
-            // deliemters between search terms
-            searchString = searchString.replaceAll("\\s+", ",");
-            LOGGER.log(Level.INFO, "searchString comma-ed: [" + searchString + "]");
+            // // Replace one or more spaces with a comma - the REST search accepts commas
+            // // deliemters between search terms
+            // searchString = searchString.replaceAll("\\s+", ",");
+            // LOGGER.log(Level.INFO, "searchString comma-ed: [" + searchString + "]");
 
-            // Add wildcard before and after all words - the REST search can then
-            // search for partial words
-            searchString = searchString.replace(",", "*,*");
-            searchString = "*".concat(searchString.concat("*"));
-            LOGGER.log(Level.INFO, "searchString starred:  [" + searchString + "]");
+            // // Add wildcard before and after all words - the REST search can then
+            // // search for partial words
+            // searchString = searchString.replace(",", "*,*");
+            // searchString = "*".concat(searchString.concat("*"));
+            // LOGGER.log(Level.INFO, "searchString starred:  [" + searchString + "]");
 
-            LOGGER.log(Level.INFO, "searchString final:    [" + searchString + "]");
+            // LOGGER.log(Level.INFO, "searchString final:    [" + searchString + "]");
 
-            map.put(Keys.DESC.getName(), searchString);
-            // map.put(Keys.DESC.getName(), descProperty.get());
+            // map.put(Keys.DESC.getName(), searchString);
+            map.put(Keys.DESC.getName(), descProperty.get());
         }
         if (tagsProperty.get() != null && !tagsProperty.get().isEmpty()) {
             map.put(Keys.TAGS.getName(), tagsProperty.get());
@@ -569,7 +570,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             }
         }
 
-        LOGGER.log(Level.INFO, "map: " + map);
+        LOGGER.log(Level.INFO, "buildQueryString map: " + map);
+        String queryString = SearchQueryUtil.toQueryString(map);
+        LOGGER.log(Level.INFO, "buildQueryString queryString: " + queryString);
 
         return SearchQueryUtil.toQueryString(map);
     }

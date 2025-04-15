@@ -327,130 +327,69 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         Map<String, String> searchParams =
                 SearchQueryUtil.parseHumanReadableQueryString(queryString);
 
-        LOGGER.log(Level.INFO, "searchParams: " + searchParams);
+        LOGGER.log(Level.INFO, "searchParams initial: " + searchParams);
 
-        // Add pagination parameters to the search
-        Integer pageSize = pageSizeProperty.get();
-        Integer pageIndex = pagination.getCurrentPageIndex();
-        Integer pageFrom = pageIndex * pageSize;
-        LOGGER.log(Level.INFO, "pageSize:  " + pageSize);
-        LOGGER.log(Level.INFO, "pageIndex: " + pageIndex);
-        LOGGER.log(Level.INFO, "pageFrom: " + pageFrom);
-        searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(pageSize));
-        searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(pageFrom));
+        // Add pagination parameters to the search parameters
+        searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(
+                pageSizeProperty.get()));
+        searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(
+                pageSizeProperty.get() *  pagination.getCurrentPageIndex()));
 
-        String[] descSearchWords;
-        if (searchParams.containsKey("desc")) {
-            LOGGER.log(Level.INFO, "searchParams[desc]: " + searchParams.get("desc"));
-            String descSearchString = searchParams.get("desc").toLowerCase();
-            LOGGER.log(Level.INFO, "descSearchString: " + descSearchString);
-            descSearchWords = descSearchString.split(",");
-            LOGGER.log(Level.INFO, ": descSearchWords.length: " + descSearchWords.length);
-
-            if (descSearchWords.length > 1) {
-                // Choose the longest word to initially search with, will hopefully reduce
-                // number of returned results
-                Integer longestSearchWord = descSearchWords[0].length();
-                String initialSearchWord = descSearchWords[0];
-                for (String searchWord : descSearchWords) {
-                    LOGGER.log(Level.INFO, "   * searchWord: " + searchWord);
-                    LOGGER.log(Level.INFO, "   --> length:   " + searchWord.length());
-                    if (searchWord.length() > longestSearchWord) {
-                       initialSearchWord = searchWord;
-                       longestSearchWord = searchWord.length();
-                    }
-                }
-                searchParams.put("desc", initialSearchWord);
-
-                // There seems to be a default search result limit of 100, set to something big
-                searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(100000));
-                searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(0));
-            }
-            LOGGER.log(Level.INFO, "searchParams: " + searchParams);
-        } else {
-            descSearchWords = new String[0];
-        }
+        LOGGER.log(Level.INFO, "searchParams default: " + searchParams);
 
         JobManager.schedule("Save-and-restore Search", monitor -> {
             MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
             searchParams.forEach(map::add);
             try {
-                LOGGER.log(Level.INFO, "map: " + map);
-                if (map.containsKey("desc")) {
-                    LOGGER.log(Level.INFO, "map[desc]: " + map.get("desc"));
-                }
+                LOGGER.log(Level.INFO, "search map default: " + map);
 
-                /*
-                    The elastic search does not behave as I would have expected:
-                        - it does not seem possible to search with multiple desc words
-                          performing an AND with all of them, it seems only capable
-                          of functioning as an OR
+                // Get individual search words from "Description/Comment" and
+                // "Node Name" fields.
+                // Alter the search parameters, prepare to perform AND search with
+                // all words in their respective fields.
+                String[] descSearchWords;
+                String descSearchKey = SearchQueryUtil.Keys.DESC.getName();
+                descSearchWords = splitSearchWords(map, descSearchKey);
+                map = alterSearchParams(map, descSearchKey, descSearchWords);
 
-                    Therefore, what follows is a clunky circumvention of this by
-                    searching for one term, then using simple for loops to search
-                    for additional terms.
-                 */
+                String[] nameSearchWords;
+                String nameSearchKey = SearchQueryUtil.Keys.NAME.getName();
+                nameSearchWords = splitSearchWords(map, nameSearchKey);
+                map = alterSearchParams(map, nameSearchKey, nameSearchWords);
 
+                LOGGER.log(Level.INFO, "search map altered: " + map);
+
+                // Call the REST API search
                 SearchResult searchResult = saveAndRestoreService.search(map);
                 LOGGER.log(Level.INFO, "Initial hitCount: " + searchResult.getHitCount());
 
-                // If there is more than one word in the Description field, then
-                // check if all words are present.
-                if (descSearchWords.length > 1) {
-                    List<Node> matchingNodes = new ArrayList<>(List.of());
-                    Integer newHitCount = 0;
+                // Perform an additional search of the results, matching all words in
+                // each field
+                SearchResult descSearchResult = performSubSearchAND(searchResult,
+                        descSearchKey,
+                        descSearchWords);
+                LOGGER.log(Level.INFO, "desc hitCount: " + descSearchResult.getHitCount());
 
-                    // Loop over each search result
-                    for(Node node : searchResult.getNodes()){
+                SearchResult nameSearchResult = performSubSearchAND(descSearchResult,
+                        nameSearchKey,
+                        nameSearchWords);
+                LOGGER.log(Level.INFO, "name hitCount: " + nameSearchResult.getHitCount());
 
-                        Boolean goodMatch = true;
-                        // LOGGER.log(Level.INFO, "--> node id: " + node.getUniqueId());
-                        String description = node.getDescription();
-                        LOGGER.log(Level.INFO, "--> description: " + description);
-
-                        // Loop over each word
-                        for (String searchWord: descSearchWords) {
-                            searchWord = searchWord.replace("*", "");
-                            // LOGGER.log(Level.INFO, "   - check for searchWord: " +
-                            //         searchWord);
-                            if (description.toLowerCase().contains(searchWord)) {
-                                // LOGGER.log(Level.INFO,"       --> yes!");
-                            } else {
-                                // LOGGER.log(Level.INFO,"       --> no!");
-                                goodMatch = false;
-                            }
-                        }
-
-                        LOGGER.log(Level.INFO,"       --> goodMatch: " + goodMatch);
-                        if (goodMatch) {
-                            if (newHitCount >= pageFrom && newHitCount < pageFrom + pageSize) {
-                                matchingNodes.add(node);
-                            }
-                            newHitCount++;
-                        }
-                    }
-
-                    LOGGER.log(Level.INFO,"*** newHitCount: " + newHitCount);
-                    for (Node node : matchingNodes) {
-                        String description = node.getDescription();
-                        LOGGER.log(Level.INFO, "*** Final search results: " + description);
-                    }
-
-                    searchResult.setNodes(matchingNodes);
-                    searchResult.setHitCount(newHitCount);
+                SearchResult finalSearchResult;
+                if (descSearchWords.length > 1 || nameSearchWords.length > 1) {
+                    finalSearchResult = fillResultsPages(nameSearchResult);
+                    LOGGER.log(Level.INFO, "Final hitCount: " +
+                            finalSearchResult.getHitCount());
+                } else {
+                    finalSearchResult = nameSearchResult;
                 }
 
-                LOGGER.log(Level.INFO, "Final hitCount: " + searchResult.getHitCount());
-                LOGGER.log(Level.INFO, "Page count: " + pageCountProperty.get());
-                if (searchResult.getHitCount() > 0) {
+                // Fill the results table, the pages should automatically update
+                if (finalSearchResult.getHitCount() > 0) {
                     Platform.runLater(() -> {
-                        tableEntries.setAll(searchResult.getNodes());
-                        hitCountProperty.set(searchResult.getHitCount());
-
-                        LOGGER.log(Level.INFO, "** hitCount:   " + hitCountProperty.get());
-                        LOGGER.log(Level.INFO, "** pageSize:   " + pageSizeProperty.get());
-                        LOGGER.log(Level.INFO, "** Page count: " + pageCountProperty.get());
-                        LOGGER.log(Level.INFO, "** Page count: " + Math.ceil(Double.valueOf(hitCountProperty.get()) / Double.valueOf(pageSizeProperty.get())));
+                        tableEntries.setAll(finalSearchResult.getNodes());
+                        hitCountProperty.set(finalSearchResult.getHitCount());
+                        LOGGER.log(Level.INFO, "Page count: " + pageCountProperty.get());
                     });
                 } else {
                     Platform.runLater(() -> tableEntries.setAll(Collections.emptyList()));
@@ -464,6 +403,152 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 tableEntries.setAll(Collections.emptyList());
             }
         });
+    }
+
+    String[] splitSearchWords(MultivaluedMap<String, String> searchParams,
+                String searchKey) {
+
+        String[] searchWords;
+        if (searchParams.containsKey(searchKey)) {
+            LOGGER.log(Level.INFO, "splitSearchWords");
+            searchWords = searchParams.getFirst(searchKey).split(",");
+            LOGGER.log(Level.INFO, "  searchWords.length: " + searchWords.length);
+        } else {
+            searchWords = new String[0];
+        }
+
+        return searchWords;
+    }
+
+    String getLongestWord(String[] multipleWords) {
+        // Choose the longest word to initially search with, will hopefully reduce
+        // number of returned results
+        String longestWord = multipleWords[0];
+        Integer longestLength = longestWord.length();
+        for (String searchWord : multipleWords) {
+            // LOGGER.log(Level.INFO, "   * searchWord: " + searchWord);
+            // LOGGER.log(Level.INFO, "   --> length:   " + searchWord.length());
+            if (searchWord.length() > longestLength) {
+                longestWord = searchWord;
+                longestLength = searchWord.length();
+            }
+        }
+
+        LOGGER.log(Level.INFO, "   * longestWord: " + longestWord);
+        return longestWord;
+    }
+
+    MultivaluedMap<String, String> alterSearchParams(MultivaluedMap<String, String> searchParams,
+                                          String searchKey,
+                                          String[] searchWords) {
+        if (searchWords.length > 0) {
+            // Choose just the longest word to query the REST search with, otherwise
+            // all words are searched for as an OR
+            String initialSearchWord = getLongestWord(searchWords);
+
+            // Add wildcard before and after search word - the REST search can then
+            // search for partial words
+            initialSearchWord = "*".concat(initialSearchWord.concat("*"));
+            searchParams.put(searchKey, Collections.singletonList(initialSearchWord));
+        }
+
+        // There seems to be a default search result limit of 100, set to something big
+        // when searching for multiple words
+        if (searchWords.length > 1) {
+            searchParams.put(SearchQueryUtil.Keys.SIZE.getName(),
+                    Collections.singletonList("10000"));
+            searchParams.put(SearchQueryUtil.Keys.FROM.getName(),
+                    Collections.singletonList("0"));
+        }
+
+        return searchParams;
+    }
+
+    SearchResult performSubSearchAND(SearchResult searchResult,
+                                     String searchKey, String[] searchWords) {
+
+        LOGGER.log(Level.INFO, "searchResult:  " + searchResult);
+        LOGGER.log(Level.INFO, "searchKey:     " + searchKey);
+        LOGGER.log(Level.INFO, "searchWords:   " + searchWords);
+
+        if (searchWords.length > 1) {
+            List<Node> matchingNodes = new ArrayList<>(List.of());
+            Integer newHitCount = 0;
+
+            // Loop over each search result
+            for (Node node : searchResult.getNodes()) {
+
+                Boolean goodMatch = true;
+                String description;
+                if (searchKey == SearchQueryUtil.Keys.DESC.getName()) {
+                    description = node.getDescription();
+                } else if (searchKey == SearchQueryUtil.Keys.NAME.getName()) {
+                    description = node.getName();
+                } else {
+                    description = "";
+                }
+                LOGGER.log(Level.INFO, "--> description: " + description);
+
+                // Loop over each search word
+                for (String searchWord : searchWords) {
+                    if (!description.toLowerCase().contains(searchWord)) {
+                        goodMatch = false;
+                    }
+                }
+                LOGGER.log(Level.INFO, "       --> goodMatch: " + goodMatch);
+
+                if (goodMatch) {
+                    matchingNodes.add(node);
+                    newHitCount++;
+                }
+            }
+            LOGGER.log(Level.INFO, "newHitCount: " + newHitCount);
+
+            for (Node node : matchingNodes) {
+                String description;
+                if (searchKey == SearchQueryUtil.Keys.DESC.getName()) {
+                    description = node.getDescription();
+                } else if (searchKey == SearchQueryUtil.Keys.NAME.getName()) {
+                    description = node.getName();
+                } else {
+                    description = "";
+                }
+                LOGGER.log(Level.INFO, "*** Final search results for: " + searchKey +
+                        ": " + description);
+            }
+
+            searchResult.setNodes(matchingNodes);
+            searchResult.setHitCount(newHitCount);
+        }
+
+        return searchResult;
+    }
+
+    SearchResult fillResultsPages(SearchResult searchResult) {
+
+        Integer pageSize = pageSizeProperty.get();
+        Integer pageIndex = pagination.getCurrentPageIndex();
+        Integer resultFrom = pageIndex * pageSize;
+        LOGGER.log(Level.INFO, "pageSize:   " + pageSize);
+        LOGGER.log(Level.INFO, "pageIndex:  " + pageIndex);
+        LOGGER.log(Level.INFO, "resultFrom: " + resultFrom);
+
+        List<Node> matchingNodes = new ArrayList<>(List.of());
+        Integer newHitCount = 0;
+        for (Node node : searchResult.getNodes()) {
+            if (newHitCount >= resultFrom && newHitCount < resultFrom + pageSize) {
+                matchingNodes.add(node);
+            }
+            newHitCount++;
+        }
+        LOGGER.log(Level.INFO, "newHitCount: " + newHitCount);
+
+        // Only this subset of the matching nodes will be displayed in the
+        // results table
+        searchResult.setNodes(matchingNodes);
+        searchResult.setHitCount(newHitCount);
+
+        return searchResult;
     }
 
     /**
