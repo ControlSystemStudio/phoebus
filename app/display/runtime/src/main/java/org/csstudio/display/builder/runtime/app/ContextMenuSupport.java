@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialog;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 
 import javafx.collections.ObservableList;
@@ -133,9 +133,10 @@ class ContextMenuSupport {
         // Skip if widget requires password or confirmation dialog,
         // because in here we would invoke actions without those constraints
         final Optional<WidgetProperty<String>> pass = widget.checkProperty(propPassword);
-        final Optional<WidgetProperty<String>> prompt = widget.checkProperty(propConfirmMessage);
+        final Optional<WidgetProperty<Boolean>> prompt = widget.checkProperty(propConfirmDialog);
         final boolean need_dialog = (pass.isPresent()  &&  !pass.get().getValue().isBlank())  ||
-                                  (prompt.isPresent()  &&  !prompt.get().getValue().isBlank());
+                                  (prompt.isPresent()  &&   prompt.get().getValue());
+
         if (! need_dialog)
             for (ActionInfo info : widget.propActions().getValue().getActions()) {
                 List<MenuItem> actionMenuItems = info.getContextMenuItems(RuntimeUtil.getExecutor(), widget);
