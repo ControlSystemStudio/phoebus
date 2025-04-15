@@ -25,15 +25,15 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
     private final StringProperty pvNameProperty;
     private final StringProperty readBackPvNameProperty;
     private final BooleanProperty readOnlyProperty;
-    private final ObjectProperty<Comparison> comparisonProperty;
-    private final ObjectProperty<ComparisonMode> compareModeProperty;
+    private final ObjectProperty<ComparisonMode> comparisonModeProperty;
     private final ObjectProperty<Double> toleranceProperty;
 
     public ConfigPvEntry(ConfigPv configPv) {
         this.pvNameProperty = new SimpleStringProperty(this, "pvNameProperty", configPv.getPvName());
         this.readBackPvNameProperty = new SimpleStringProperty(configPv.getReadbackPvName());
         this.readOnlyProperty = new SimpleBooleanProperty(configPv.isReadOnly());
-        this.comparisonProperty = new SimpleObjectProperty<>(configPv.getComparison());
+        this.comparisonModeProperty = new SimpleObjectProperty<>(configPv.getComparison() == null ? null : configPv.getComparison().getComparisonMode());
+        this.toleranceProperty = new SimpleObjectProperty<>(configPv.getComparison() == null ? null : configPv.getComparison().getTolerance());
     }
 
     public StringProperty getPvNameProperty() {
@@ -48,8 +48,8 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
         return readOnlyProperty;
     }
 
-    public ObjectProperty<ComparisonMode> getCompareModeProperty() {
-        return compareModeProperty;
+    public ObjectProperty<ComparisonMode> getComparisonModeProperty() {
+        return comparisonModeProperty;
     }
 
     public ObjectProperty<Double> getToleranceProperty() {
@@ -64,8 +64,8 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
         this.readBackPvNameProperty.set(readBackPvNameProperty);
     }
 
-    public void setCompareModeProperty(ComparisonMode compareModeProperty) {
-        this.compareModeProperty.set(compareModeProperty);
+    public void setComparisonModeProperty(ComparisonMode comparisonModeProperty) {
+        this.comparisonModeProperty.set(comparisonModeProperty);
     }
 
     public void setToleranceProperty(Double toleranceProperty) {
@@ -77,10 +77,9 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
                 .pvName(pvNameProperty.get())
                 .readbackPvName(readBackPvNameProperty.get())
                 .readOnly(readOnlyProperty.get())
-                .compareMode(compareModeProperty.get())
                 .build();
-        if(toleranceProperty != null){
-            configPv.setTolerance(toleranceProperty.get());
+        if(comparisonModeProperty.isNotNull().get() && toleranceProperty.isNotNull().get()){
+            configPv.setComparison(new Comparison(comparisonModeProperty.get(), toleranceProperty.get()));
         }
         return configPv;
     }

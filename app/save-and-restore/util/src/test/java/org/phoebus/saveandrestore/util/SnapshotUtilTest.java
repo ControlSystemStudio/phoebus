@@ -12,6 +12,7 @@ import org.epics.vtype.VFloat;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.phoebus.applications.saveandrestore.model.Comparison;
 import org.phoebus.applications.saveandrestore.model.ComparisonResult;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
@@ -225,8 +226,7 @@ public class SnapshotUtilTest {
 
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("loc://a(42.0)");
-        configPv1.setCompareMode(ComparisonMode.RELATIVE);
-        configPv1.setTolerance(0.3);
+        configPv1.setComparison(new Comparison(ComparisonMode.RELATIVE, 0.3));
 
         ConfigPv configPv2 = new ConfigPv();
         configPv2.setPvName("loc://aa(42.0)");
@@ -250,8 +250,7 @@ public class SnapshotUtilTest {
 
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("loc://a(42.0)");
-        configPv1.setCompareMode(ComparisonMode.RELATIVE);
-        configPv1.setTolerance(0.15);
+        configPv1.setComparison(new Comparison(ComparisonMode.RELATIVE, 0.15));
 
         SnapshotItem snapshotItem1 = new SnapshotItem();
         snapshotItem1.setConfigPv(configPv1);
@@ -267,8 +266,7 @@ public class SnapshotUtilTest {
 
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("loc://a(42.0)");
-        configPv1.setCompareMode(ComparisonMode.ABSOLUTE);
-        configPv1.setTolerance(9.0);
+        configPv1.setComparison(new Comparison(ComparisonMode.ABSOLUTE, 9.0));
 
         SnapshotItem snapshotItem1 = new SnapshotItem();
         snapshotItem1.setConfigPv(configPv1);
@@ -284,14 +282,20 @@ public class SnapshotUtilTest {
 
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("loc://a(42.0)");
-        configPv1.setCompareMode(ComparisonMode.ABSOLUTE);
-        configPv1.setTolerance(7.0);
+
+        ConfigPv configPv11 = new ConfigPv();
+        configPv11.setPvName("loc://a(42.0)");
+        configPv11.setComparison(new Comparison(ComparisonMode.ABSOLUTE, 7.0));
 
         SnapshotItem snapshotItem1 = new SnapshotItem();
         snapshotItem1.setConfigPv(configPv1);
         snapshotItem1.setValue(VDouble.of(50.0, Alarm.none(), Time.now(), Display.none()));
 
-        List<ComparisonResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 0.5, ComparisonMode.RELATIVE, false);
+        List<ComparisonResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1),
+                List.of(configPv11),
+                0.5,
+                ComparisonMode.RELATIVE,
+                false);
         assertFalse(compareResults.get(0).isEqual());
 
     }
@@ -302,14 +306,20 @@ public class SnapshotUtilTest {
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("loc://a(42.0)");
         configPv1.setReadbackPvName("loc://aa(49.0)");
-        configPv1.setCompareMode(ComparisonMode.RELATIVE);
-        configPv1.setTolerance(0.1);
+
+        ConfigPv configPv11 = new ConfigPv();
+        configPv11.setPvName("loc://a(42.0)");
+        configPv11.setComparison(new Comparison(ComparisonMode.RELATIVE, 0.1));
 
         SnapshotItem snapshotItem1 = new SnapshotItem();
         snapshotItem1.setConfigPv(configPv1);
         snapshotItem1.setValue(VDouble.of(50.0, Alarm.none(), Time.now(), Display.none()));
 
-        List<ComparisonResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 0.0, null, false);
+        List<ComparisonResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1),
+                List.of(configPv11),
+                0.0,
+                null,
+                false);
         assertTrue(compareResults.get(0).isEqual());
 
     }
@@ -320,8 +330,7 @@ public class SnapshotUtilTest {
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("loc://a(42.0)");
         configPv1.setReadbackPvName("loc://aa(49.0)");
-        configPv1.setCompareMode(ComparisonMode.RELATIVE);
-        configPv1.setTolerance(0.1);
+        configPv1.setComparison(new Comparison(ComparisonMode.RELATIVE, 0.1));
 
         SnapshotItem snapshotItem1 = new SnapshotItem();
         snapshotItem1.setConfigPv(configPv1);
@@ -338,15 +347,81 @@ public class SnapshotUtilTest {
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("loc://a(42.0)");
         configPv1.setReadbackPvName("loc://aa(49.0)");
-        configPv1.setCompareMode(ComparisonMode.ABSOLUTE);
-        configPv1.setTolerance(1.1);
+
+        ConfigPv configPv11 = new ConfigPv();
+        configPv11.setPvName("loc://a(42.0)");
+        configPv11.setComparison(new Comparison(ComparisonMode.ABSOLUTE, 1.1));
 
         SnapshotItem snapshotItem1 = new SnapshotItem();
         snapshotItem1.setConfigPv(configPv1);
         snapshotItem1.setValue(VDouble.of(50.0, Alarm.none(), Time.now(), Display.none()));
 
-        List<ComparisonResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1), 0.0, null, false);
+        List<ComparisonResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1),
+                List.of(configPv11),
+                0.0,
+                null,
+                false);
         assertTrue(compareResults.get(0).isEqual());
+    }
 
+    @Test
+    public void testComparePvsWithIndividualToleranceValues8() {
+
+        ConfigPv configPv1 = new ConfigPv();
+        configPv1.setPvName("loc://a(42.0)");
+        configPv1.setReadbackPvName("loc://aa(49.0)");
+
+        ConfigPv configPv2 = new ConfigPv();
+        configPv2.setPvName("loc://aa(42.0)");
+        configPv2.setReadbackPvName("loc://aaa(49.0)");
+
+        ConfigPv configPv11 = new ConfigPv();
+        configPv11.setPvName("loc://a(42.0)");
+        configPv11.setComparison(new Comparison(ComparisonMode.ABSOLUTE, 11.0));
+
+        SnapshotItem snapshotItem1 = new SnapshotItem();
+        snapshotItem1.setConfigPv(configPv1);
+        snapshotItem1.setValue(VDouble.of(50.0, Alarm.none(), Time.now(), Display.none()));
+
+        SnapshotItem snapshotItem2 = new SnapshotItem();
+        snapshotItem2.setConfigPv(configPv2);
+        snapshotItem2.setValue(VDouble.of(50.0, Alarm.none(), Time.now(), Display.none()));
+
+        List<ComparisonResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1, snapshotItem2),
+                List.of(configPv11),
+                0.0,
+                null,
+                false);
+        assertTrue(compareResults.get(0).isEqual());
+        assertFalse(compareResults.get(1).isEqual());
+    }
+
+
+
+    @Test
+    public void testComparePvsWithIndividualToleranceValues9() {
+
+        ConfigPv configPv1 = new ConfigPv();
+        configPv1.setPvName("loc://a(42.0)");
+        configPv1.setReadbackPvName("loc://aa(49.0)");
+
+        ConfigPv configPv11 = new ConfigPv();
+        configPv11.setPvName("loc://a(42.0)");
+        configPv11.setComparison(new Comparison(ComparisonMode.ABSOLUTE, 1.1));
+
+        ConfigPv configPv22 = new ConfigPv();
+        configPv22.setPvName("loc://aaa(42.0)");
+
+        SnapshotItem snapshotItem1 = new SnapshotItem();
+        snapshotItem1.setConfigPv(configPv1);
+        snapshotItem1.setValue(VDouble.of(50.0, Alarm.none(), Time.now(), Display.none()));
+
+        List<ComparisonResult> compareResults = snapshotUtil.comparePvs(List.of(snapshotItem1),
+                List.of(configPv11, configPv22),
+                0.0,
+                null,
+                false);
+        assertTrue(compareResults.get(0).isEqual());
+        assertFalse(compareResults.get(1).isEqual());
     }
 }

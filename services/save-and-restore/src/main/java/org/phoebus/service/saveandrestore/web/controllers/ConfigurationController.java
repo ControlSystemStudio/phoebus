@@ -61,19 +61,13 @@ public class ConfigurationController extends BaseController {
                                              Principal principal) {
         for(ConfigPv configPv : configuration.getConfigurationData().getPvList()){
             // Compare mode is set, verify tolerance is non-null
-            if(configPv.getCompareMode() != null && configPv.getTolerance() == null){
-                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies comparison mode but no tolerance value");
+            if(configPv.getComparison() != null && (configPv.getComparison().getComparisonMode() == null || configPv.getComparison().getTolerance() == null)){
+                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies comparison but no comparison or tolerance value");
             }
             // Tolerance is set...
-            if(configPv.getTolerance() != null){
-                //...but not compare mode
-                if(configPv.getCompareMode() == null){
-                    throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies tolerance but no comparison mode");
-                }
-                //...but is less than zero, which does not make sense as comparison considers tolerance as upper and lower limit.
-                else if(configPv.getTolerance() < 0 ){
-                    throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies zero tolerance");
-                }
+            if(configPv.getComparison() != null && configPv.getComparison().getTolerance() < 0){
+                //Tolerance is less than zero, which does not make sense as comparison considers tolerance as upper and lower limit.
+                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies zero tolerance");
              }
         }
         configuration.getConfigurationNode().setUserName(principal.getName());

@@ -61,8 +61,8 @@
                                 <TableColumn fx:id="pvNameColumn" editable="true" prefWidth="${controlsPane.width * 0.35}" text="%pvName"/>
                                 <TableColumn fx:id="readOnlyColumn" editable="true" prefWidth="${controlsPane.width * 0.1}" text="%pvReadOnly"/>
                                 <TableColumn fx:id="readbackPvNameColumn" editable="true" prefWidth="${controlsPane.width * 0.35}" text="%pvNameReadback"/>
-                                <TableColumn fx:id="comparisonModeColumn" editable="true" prefWidth="${controlsPane.width * 0.1}" text="%compareMode"/>
-                                <TableColumn fx:id="toleranceColumn" editable="true" prefWidth="${controlsPane.width * 0.1}" text="%compareTolerance"/>
+                                <TableColumn fx:id="comparisonModeColumn" editable="true" prefWidth="${controlsPane.width * 0.1}" text="%comparisonMode"/>
+                                <TableColumn fx:id="toleranceColumn" editable="true" prefWidth="${controlsPane.width * 0.1}" text="%comparisonTolerance"/>
                             </columns>
                         </TableColumn>
 

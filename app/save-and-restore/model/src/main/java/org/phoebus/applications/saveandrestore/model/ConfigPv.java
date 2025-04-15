@@ -89,14 +89,6 @@ public class ConfigPv implements Comparable<ConfigPv> {
         this.comparison = comparison;
     }
 
-    public Double getTolerance() {
-        return tolerance;
-    }
-
-    public void setTolerance(Double tolerance) {
-        this.tolerance = tolerance;
-    }
-
     @Override
     public boolean equals(Object other) {
         if (other instanceof ConfigPv otherConfigPv) {
@@ -119,8 +111,8 @@ public class ConfigPv implements Comparable<ConfigPv> {
                 .append(", readOnly=").append(readOnly)
                 .append(", tolerance=").append(tolerance);
         if(comparison != null){
-            stringBuffer.append(", comparison mode=").append(comparison.comparisonMode());
-            stringBuffer.append(", tolerance=").append(comparison.tolerance());
+            stringBuffer.append(", comparison mode=").append(comparison.getComparisonMode());
+            stringBuffer.append(", tolerance=").append(comparison.getTolerance());
         }
         return stringBuffer.toString();
     }
@@ -164,11 +156,6 @@ public class ConfigPv implements Comparable<ConfigPv> {
 
         public Builder comparison(Comparison comparison) {
             configPv.setComparison(comparison);
-            return this;
-        }
-
-        public Builder tolerance(double tolerance) {
-            configPv.setTolerance(tolerance);
             return this;
         }
 

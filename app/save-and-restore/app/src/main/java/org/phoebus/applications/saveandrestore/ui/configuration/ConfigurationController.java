@@ -214,12 +214,9 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 pvTable.getSelectionModel().getSelectedItems(), userIdentity));
 
         ContextMenu contextMenu = new ContextMenu();
-        MenuItem setComparisonData = new MenuItem("Add comparison on selection");
-        setComparisonData.setOnAction(e -> launchComparisonEditor());
-        contextMenu.getItems().add(setComparisonData);
         pvTable.setOnContextMenuRequested(event -> {
             contextMenu.getItems().clear();
-            contextMenu.getItems().addAll(deleteMenuItem, setComparisonData);
+            contextMenu.getItems().addAll(deleteMenuItem);
             contextMenu.getItems().add(new SeparatorMenuItem());
             ObservableList<ConfigPvEntry> selectedPVs = pvTable.getSelectionModel().getSelectedItems();
             if (!selectedPVs.isEmpty()) {
@@ -254,20 +251,20 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             return readOnly;
         });
 
-        comparisonModeColumn.setCellValueFactory(cell -> cell.getValue().getCompareModeProperty());
+        comparisonModeColumn.setCellValueFactory(cell -> cell.getValue().getComparisonModeProperty());
         comparisonModeColumn.setCellFactory(callback -> {
             ObservableList<ComparisonMode> values = FXCollections.observableArrayList(Arrays.stream(ComparisonMode.values()).toList());
             values.add(0, null);
             ComboBoxTableCell<ConfigPvEntry, ComparisonMode> tableCell = new ComboBoxTableCell<>(values) {
 
                 @Override
-                public void commitEdit(ComparisonMode pvCompareMode) {
-                    getTableView().getItems().get(getIndex()).setCompareModeProperty(pvCompareMode);
-                    if (pvCompareMode == null) {
+                public void commitEdit(ComparisonMode comparisonMode) {
+                    getTableView().getItems().get(getIndex()).setComparisonModeProperty(comparisonMode);
+                    if (comparisonMode == null) {
                         getTableView().getItems().get(getIndex()).setToleranceProperty(null);
                     }
                     setDirty(true);
-                    super.commitEdit(pvCompareMode);
+                    super.commitEdit(comparisonMode);
                 }
             };
 
@@ -526,26 +523,5 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     private void setDirty(boolean dirty) {
         this.dirty.set(dirty && !loadInProgress.get());
-    }
-
-    private void launchComparisonEditor(){
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setHeaderText(null);
-        alert.setGraphic(null);
-        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-        FXMLLoader loader = new FXMLLoader();
-        loader.setResources(resourceBundle);
-        loader.setLocation(this.getClass().getResource("ComparisonDataEditor.fxml"));
-        try {
-            javafx.scene.Node content = loader.load();
-            alert.getDialogPane().setContent(content);
-            alert.showAndWait();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public record ComparisonData(ComparisonMode pvCompareMode, Double tolerance){
-
     }
 }
