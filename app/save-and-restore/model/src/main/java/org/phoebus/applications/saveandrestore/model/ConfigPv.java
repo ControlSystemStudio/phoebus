@@ -27,9 +27,9 @@ import java.util.Objects;
  * is optionally associated with the PV name. A PV record is uniquely identified by both the PV name
  * and the read-back PV name (if it has been specified).
  * <p>
- *     A {@link CompareMode} can optionally be specified to
+ *     A {@link ComparisonMode} can optionally be specified to
  *     indicate how the stored value (as defined by the {@link #pvName} field) is compared to a live value
- *     if a client requests it. A non-null {@link CompareMode} must be paired non-null and a
+ *     if a client requests it. A non-null {@link ComparisonMode} must be paired non-null and a
  *     {@link #tolerance} value &ge;0.
  * </p>
  * @author georgweiss
@@ -52,7 +52,7 @@ public class ConfigPv implements Comparable<ConfigPv> {
      */
     private boolean readOnly = false;
 
-    private CompareMode compareMode;
+    private Comparison comparison;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Double tolerance = null;
@@ -81,13 +81,12 @@ public class ConfigPv implements Comparable<ConfigPv> {
         this.readOnly = readOnly;
     }
 
-
-    public CompareMode getCompareMode() {
-        return compareMode;
+    public Comparison getComparison() {
+        return comparison;
     }
 
-    public void setCompareMode(CompareMode compareMode) {
-        this.compareMode = compareMode;
+    public void setComparison(Comparison comparison) {
+        this.comparison = comparison;
     }
 
     public Double getTolerance() {
@@ -100,8 +99,7 @@ public class ConfigPv implements Comparable<ConfigPv> {
 
     @Override
     public boolean equals(Object other) {
-        if (other instanceof ConfigPv) {
-            ConfigPv otherConfigPv = (ConfigPv) other;
+        if (other instanceof ConfigPv otherConfigPv) {
             return Objects.equals(pvName, otherConfigPv.getPvName()) && Objects.equals(readbackPvName, otherConfigPv.getReadbackPvName()) && Objects.equals(readOnly, otherConfigPv.isReadOnly());
         }
         return false;
@@ -115,13 +113,16 @@ public class ConfigPv implements Comparable<ConfigPv> {
     @Override
     public String toString() {
 
-        return new StringBuffer()
+        StringBuilder stringBuffer = new StringBuilder()
                 .append("PV name=").append(pvName)
                 .append(", readback PV name=").append(readbackPvName)
                 .append(", readOnly=").append(readOnly)
-                .append(", compareMode=").append(compareMode)
-                .append(", tolerance=").append(tolerance)
-                .toString();
+                .append(", tolerance=").append(tolerance);
+        if(comparison != null){
+            stringBuffer.append(", comparison mode=").append(comparison.comparisonMode());
+            stringBuffer.append(", tolerance=").append(comparison.tolerance());
+        }
+        return stringBuffer.toString();
     }
 
     /**
@@ -161,8 +162,8 @@ public class ConfigPv implements Comparable<ConfigPv> {
             return this;
         }
 
-        public Builder compareMode(CompareMode compareMode) {
-            configPv.setCompareMode(compareMode);
+        public Builder comparison(Comparison comparison) {
+            configPv.setComparison(comparison);
             return this;
         }
 

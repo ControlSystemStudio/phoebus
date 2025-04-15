@@ -2,11 +2,12 @@ package org.phoebus.saveandrestore.util;
 
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.model.CompareResult;
+import org.phoebus.applications.saveandrestore.model.Comparison;
+import org.phoebus.applications.saveandrestore.model.ComparisonResult;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.CompareMode;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
@@ -274,31 +275,105 @@ public class SnapshotUtil {
     }
 
     /**
-     * Performs comparison between PV values to determine equality. The idea is to generate a return value mimicking
-     * the save-and-restore snapshot view, i.e. to show both stored and live values, plus an indication of equality.
-     * Caller must specify a {@link CompareMode} to indicate if the provided <code>tolerance</code> should be used
-     * as relative or absolute tolerance.
+     * Performs comparison between PV values to determine equality. Note that comparison uses optional data stored
+     * in the snapshot's parent configuration data, see {@link ConfigPv}, if defined. Caller is responsible for
+     * passing a list of {@link ConfigPv}s matching the list of {@link SnapshotItem}s. Since configurations may
+     * have been updated (e.g. PVs added) after snapshots have been created, any {@link SnapshotItem}'s PV not found
+     * in the list of {@link ConfigPv}s will be compared using the provided comparison mode and tolerance.
+     * If the list of {@link ConfigPv}s is <code>null</code> or empty, the provided comparison mode and tolerance is used.
+     * <p>
+     * Equality between a stored value and the live value is determined on each PV like so:
+     * <ul>
+     *     <li>If the configuration of a PV does not specify a {@link ComparisonMode} and tolerance,
+     *     the <code>compareMode</code> and <code>tolerance</code> parameters are used.
+     *     <code>compareMode</code> however is optional and defaults to {@link ComparisonMode#ABSOLUTE},
+     *     while tolerance defaults to zero.
+     *     </li>
+     *     <li>
+     *         The base (reference) value is always the value stored in the <code>value</code> field of a {@link org.phoebus.applications.saveandrestore.model.SnapshotItem}
+     *         object. It corresponds to the <code>pvName</code> field, i.e. never the <code>readbackPvName</code> of
+     *         a {@link ConfigPv} object.
+     *     </li>
+     *     <li>
+     *         The live value used in the comparison is either the value corresponding to <code>pvName</code>, or
+     *         <code>readbackPvName</code> if specified. The latter can be overridden with the <code>skipReadback</code>
+     *         parameter.
+     *     </li>
+     * </ul>
+     * </p>
      *
      * @param savedSnapshotItems A list if {@link SnapshotItem}s as pulled from a stored snapshot.
      * @param tolerance          A tolerance (must be >=0) value used in the comparison.
-     * @param compareMode     Determines if comparison is relative or absolute.
-     * @return A list of {@link CompareResult}s, one for each {@link SnapshotItem} in the provided input. Note though that
-     * if the comparison evaluates to equal, then the actual live and stored value are not added to the {@link CompareResult}
+     * @param compareMode        Determines if comparison is relative or absolute.
+     * @param skipReadback       Indicates that comparison should not use a read-back PV, even if specified.
+     * @return A list of {@link ComparisonResult}s, one for each {@link SnapshotItem} in the provided input. Note though that
+     * if the comparison evaluates to equal, then the actual live and stored value are not added to the {@link ComparisonResult}
      * objects in order to avoid handling/transferring potentially large amounts of data (e.g. large arrays).
      */
-    public List<CompareResult> comparePvs(final List<SnapshotItem> savedSnapshotItems,
-                                          double tolerance,
-                                          CompareMode compareMode,
-                                          boolean skipReadback) {
+    public List<ComparisonResult> comparePvs(final List<SnapshotItem> savedSnapshotItems,
+                                             double tolerance,
+                                             ComparisonMode compareMode,
+                                             boolean skipReadback) {
+        return comparePvs(savedSnapshotItems, null, tolerance, compareMode, skipReadback);
+    }
+
+    /**
+     * Performs comparison between PV values to determine equality. Note that comparison uses optional data stored
+     * in the snapshot's parent configuration data, see {@link ConfigPv}, if defined. Caller is responsible for
+     * passing a list of {@link ConfigPv}s matching the list of {@link SnapshotItem}s. Since configurations may
+     * have been updated (e.g. PVs added) after snapshots have been created, any {@link SnapshotItem}'s PV not found
+     * in the list of {@link ConfigPv}s will be compared using the provided comparison mode and tolerance.
+     * If the list of {@link ConfigPv}s is <code>null</code> or empty, the provided comparison mode and tolerance is used.
+     * <p>
+     * Equality between a stored value and the live value is determined on each PV like so:
+     * <ul>
+     *     <li>If the configuration of a PV does not specify a {@link ComparisonMode} and tolerance,
+     *     the <code>compareMode</code> and <code>tolerance</code> parameters are used.
+     *     <code>compareMode</code> however is optional and defaults to {@link ComparisonMode#ABSOLUTE},
+     *     while tolerance defaults to zero.
+     *     </li>
+     *     <li>
+     *         The base (reference) value is always the value stored in the <code>value</code> field of a {@link org.phoebus.applications.saveandrestore.model.SnapshotItem}
+     *         object. It corresponds to the <code>pvName</code> field, i.e. never the <code>readbackPvName</code> of
+     *         a {@link ConfigPv} object.
+     *     </li>
+     *     <li>
+     *         The live value used in the comparison is either the value corresponding to <code>pvName</code>, or
+     *         <code>readbackPvName</code> if specified. The latter can be overridden with the <code>skipReadback</code>
+     *         parameter.
+     *     </li>
+     * </ul>
+     * </p>
+     *
+     * @param savedSnapshotItems A list if {@link SnapshotItem}s as pulled from a stored snapshot.
+     * @param configPvs         The list of {@link ConfigPv}s the items in <code>savedSnapshotItems</code>.
+     *                           May be <code>null</code> or empty.
+     * @param tolerance          A tolerance (must be >=0) value used in the comparison.
+     * @param compareMode        Determines if comparison is relative or absolute.
+     * @param skipReadback       Indicates that comparison should not use a read-back PV, even if specified.
+     * @return A list of {@link ComparisonResult}s, one for each {@link SnapshotItem} in the provided input. Note though that
+     * if the comparison evaluates to equal, then the actual live and stored value are not added to the {@link ComparisonResult}
+     * objects in order to avoid handling/transferring potentially large amounts of data (e.g. large arrays).
+     */
+    public List<ComparisonResult> comparePvs(final List<SnapshotItem> savedSnapshotItems,
+                                             final List<ConfigPv> configPvs,
+                                             double tolerance,
+                                             ComparisonMode compareMode,
+                                             boolean skipReadback) {
         if (tolerance < 0) {
             throw new RuntimeException("Tolerance value must be >=0");
         }
-        List<CompareResult> compareResults = new ArrayList<>();
+        // Default to absolute.
+        if(compareMode == null){
+            compareMode = ComparisonMode.ABSOLUTE;
+        }
+        final ComparisonMode _compareMode = compareMode;
+        List<ComparisonResult> compareResults = new ArrayList<>();
 
         // Extract the list of ConfigPvs and...
-        List<ConfigPv> configPvs = savedSnapshotItems.stream().map(si -> si.getConfigPv()).toList();
+        List<ConfigPv> configPvsFromSnapshot = savedSnapshotItems.stream().map(SnapshotItem::getConfigPv).toList();
         // ...take snapshot to retrieve live values
-        List<SnapshotItem> liveSnapshotItems = takeSnapshot(configPvs);
+        List<SnapshotItem> liveSnapshotItems = takeSnapshot(configPvsFromSnapshot);
 
         savedSnapshotItems.forEach(savedItem -> {
             SnapshotItem liveSnapshotItem = liveSnapshotItems.stream().filter(si -> si.getConfigPv().getPvName().equals(savedItem.getConfigPv().getPvName())).findFirst().orElse(null);
@@ -309,23 +384,30 @@ public class SnapshotUtil {
             VType liveValue = liveSnapshotItem.getValue();
             VType liveReadbackValue = liveSnapshotItem.getReadbackValue();
 
+            ComparisonMode finalCompareMode = _compareMode;
+            double finalTolerance = tolerance;
+            // Does this SnapshotItems configuration define individual compare mode and tolerance?
+            if(savedItem.getConfigPv().getCompareMode() != null){
+                finalCompareMode = savedItem.getConfigPv().getCompareMode();
+                finalTolerance = savedItem.getConfigPv().getTolerance();
+            }
+
             // Determine if comparison is made on read-back or not.
             VType referenceValue = getReferenceValue(liveValue, liveReadbackValue, skipReadback);
-            double finalTolerance = tolerance;
+
             // For relative tolerance and scalar types, compute an absolute tolerance
             // since this is what Utilities.areValuesEqual expects.
-            if(tolerance > 0 &&
-                    compareMode.equals(CompareMode.RELATIVE) &&
+            if(finalTolerance > 0 &&
+                    finalCompareMode.equals(ComparisonMode.RELATIVE) &&
                     referenceValue instanceof VNumber){
-                finalTolerance = VTypeHelper.toDouble(referenceValue) * tolerance;
+                finalTolerance = VTypeHelper.toDouble(referenceValue) * finalTolerance;
             }
 
             Threshold<Number> threshold = new Threshold<>(finalTolerance);
             boolean equal = Utilities.areValuesEqual(storedValue, referenceValue, Optional.of(threshold));
-            CompareResult compareResult = new CompareResult(savedItem.getConfigPv().getPvName(),
+            ComparisonResult compareResult = new ComparisonResult(savedItem.getConfigPv().getPvName(),
                     equal,
-                    compareMode,
-                    tolerance,
+                    new Comparison(finalCompareMode, finalTolerance),
                     equal ? null : storedValue, // Do not add potentially large amounts of data if comparison shows equal
                     equal ? null : liveValue,   // Do not add potentially large amounts of data if comparison shows equal
                     Utilities.deltaValueToString(storedValue, liveValue, Optional.of(threshold)).getString());

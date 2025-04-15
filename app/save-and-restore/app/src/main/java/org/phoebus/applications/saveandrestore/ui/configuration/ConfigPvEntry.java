@@ -10,8 +10,9 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.phoebus.applications.saveandrestore.model.Comparison;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.CompareMode;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 
 import java.util.Objects;
 
@@ -24,16 +25,15 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
     private final StringProperty pvNameProperty;
     private final StringProperty readBackPvNameProperty;
     private final BooleanProperty readOnlyProperty;
-    private final ObjectProperty<CompareMode> compareModeProperty;
+    private final ObjectProperty<Comparison> comparisonProperty;
+    private final ObjectProperty<ComparisonMode> compareModeProperty;
     private final ObjectProperty<Double> toleranceProperty;
 
     public ConfigPvEntry(ConfigPv configPv) {
         this.pvNameProperty = new SimpleStringProperty(this, "pvNameProperty", configPv.getPvName());
         this.readBackPvNameProperty = new SimpleStringProperty(configPv.getReadbackPvName());
         this.readOnlyProperty = new SimpleBooleanProperty(configPv.isReadOnly());
-        this.compareModeProperty = new SimpleObjectProperty(configPv.getCompareMode());
-        this.toleranceProperty = configPv.getTolerance() != null ?
-                new SimpleObjectProperty<>(configPv.getTolerance()) : new SimpleObjectProperty<>(null);
+        this.comparisonProperty = new SimpleObjectProperty<>(configPv.getComparison());
     }
 
     public StringProperty getPvNameProperty() {
@@ -48,7 +48,7 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
         return readOnlyProperty;
     }
 
-    public ObjectProperty<CompareMode> getCompareModeProperty() {
+    public ObjectProperty<ComparisonMode> getCompareModeProperty() {
         return compareModeProperty;
     }
 
@@ -64,7 +64,7 @@ public class ConfigPvEntry implements Comparable<ConfigPvEntry> {
         this.readBackPvNameProperty.set(readBackPvNameProperty);
     }
 
-    public void setCompareModeProperty(CompareMode compareModeProperty) {
+    public void setCompareModeProperty(ComparisonMode compareModeProperty) {
         this.compareModeProperty.set(compareModeProperty);
     }
 

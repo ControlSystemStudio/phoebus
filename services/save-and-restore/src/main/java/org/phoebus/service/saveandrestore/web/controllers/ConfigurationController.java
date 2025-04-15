@@ -59,14 +59,13 @@ public class ConfigurationController extends BaseController {
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
                                              @RequestBody Configuration configuration,
                                              Principal principal) {
-        // Validation: a ConfigPV cannot specify non-null  unless read-back PV is set.
-        // Comparison must also be validated.
         for(ConfigPv configPv : configuration.getConfigurationData().getPvList()){
-            if((configPv.getReadbackPvName() == null || configPv.getReadbackPvName().isEmpty()) && configPv.getCompareMode() != null){
-                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies comparison mode, but read-back PV is not set");
+            // Compare mode is set, verify tolerance is non-null
+            if(configPv.getCompareMode() != null && configPv.getTolerance() == null){
+                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies comparison mode but no tolerance value");
             }
             // Tolerance is set...
-            else if(configPv.getTolerance() != null){
+            if(configPv.getTolerance() != null){
                 //...but not compare mode
                 if(configPv.getCompareMode() == null){
                     throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies tolerance but no comparison mode");

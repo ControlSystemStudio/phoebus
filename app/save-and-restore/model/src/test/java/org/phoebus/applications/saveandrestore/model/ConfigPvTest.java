@@ -45,8 +45,8 @@ public class ConfigPvTest {
         assertNull(configPV.getCompareMode());
         assertNull(configPV.getTolerance());
 
-        configPV = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).compareMode(CompareMode.ABSOLUTE).tolerance(1.0).build();
-        assertEquals(CompareMode.ABSOLUTE, configPV.getCompareMode());
+        configPV = ConfigPv.builder().pvName("a").readbackPvName("b").readOnly(true).compareMode(ComparisonMode.ABSOLUTE).tolerance(1.0).build();
+        assertEquals(ComparisonMode.ABSOLUTE, configPV.getCompareMode());
         assertEquals(1.0, configPV.getTolerance());
     }
 

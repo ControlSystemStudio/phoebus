@@ -58,7 +58,7 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.CompareMode;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -100,7 +100,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     @FXML
     @SuppressWarnings("unused")
-    private TableColumn<ConfigPvEntry, CompareMode> comparisonModeColumn;
+    private TableColumn<ConfigPvEntry, ComparisonMode> comparisonModeColumn;
 
     @FXML
     @SuppressWarnings("unused")
@@ -256,12 +256,12 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
         comparisonModeColumn.setCellValueFactory(cell -> cell.getValue().getCompareModeProperty());
         comparisonModeColumn.setCellFactory(callback -> {
-            ObservableList<CompareMode> values = FXCollections.observableArrayList(Arrays.stream(CompareMode.values()).toList());
+            ObservableList<ComparisonMode> values = FXCollections.observableArrayList(Arrays.stream(ComparisonMode.values()).toList());
             values.add(0, null);
-            ComboBoxTableCell<ConfigPvEntry, CompareMode> tableCell = new ComboBoxTableCell<>(values) {
+            ComboBoxTableCell<ConfigPvEntry, ComparisonMode> tableCell = new ComboBoxTableCell<>(values) {
 
                 @Override
-                public void commitEdit(CompareMode pvCompareMode) {
+                public void commitEdit(ComparisonMode pvCompareMode) {
                     getTableView().getItems().get(getIndex()).setCompareModeProperty(pvCompareMode);
                     if (pvCompareMode == null) {
                         getTableView().getItems().get(getIndex()).setToleranceProperty(null);
@@ -271,9 +271,9 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 }
             };
 
-            StringConverter<CompareMode> converter = new StringConverter<>() {
+            StringConverter<ComparisonMode> converter = new StringConverter<>() {
                 @Override
-                public String toString(CompareMode object) {
+                public String toString(ComparisonMode object) {
                     if (object == null) {
                         return "";
                     }
@@ -281,11 +281,11 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 }
 
                 @Override
-                public CompareMode fromString(String string) {
+                public ComparisonMode fromString(String string) {
                     if (string == null) {
                         return null;
                     }
-                    return CompareMode.valueOf(string);
+                    return ComparisonMode.valueOf(string);
                 }
             };
             tableCell.setConverter(converter);
@@ -545,7 +545,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         }
     }
 
-    public record ComparisonData(CompareMode pvCompareMode, Double tolerance){
+    public record ComparisonData(ComparisonMode pvCompareMode, Double tolerance){
 
     }
 }

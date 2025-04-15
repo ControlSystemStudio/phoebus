@@ -12,19 +12,19 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
-import org.phoebus.applications.saveandrestore.model.CompareMode;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 
 import java.util.regex.Pattern;
 
 public class ComparisonDataEditorController {
 
     @FXML
-    private ComboBox<CompareMode> comparisonModeComboBox;
+    private ComboBox<ComparisonMode> comparisonModeComboBox;
 
     @FXML
     private TextField toleranceTextField;
 
-    private ObjectProperty<CompareMode> comparisonModeProperty = new SimpleObjectProperty<>();
+    private ObjectProperty<ComparisonMode> comparisonModeProperty = new SimpleObjectProperty<>();
     private StringProperty toleranceProperty = new SimpleStringProperty();
     private Pattern pattern = Pattern.compile("\\d*(\\.?\\d*)?");
 
@@ -35,7 +35,7 @@ public class ComparisonDataEditorController {
 
     @FXML
     public void initialize(){
-        comparisonModeComboBox.itemsProperty().set(FXCollections.observableArrayList(CompareMode.values()));
+        comparisonModeComboBox.itemsProperty().set(FXCollections.observableArrayList(ComparisonMode.values()));
         comparisonModeComboBox.valueProperty().bind(comparisonModeProperty);
         toleranceTextField.textProperty().bindBidirectional(toleranceProperty);
 

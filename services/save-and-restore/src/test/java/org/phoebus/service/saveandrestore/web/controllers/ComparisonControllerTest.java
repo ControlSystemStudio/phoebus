@@ -12,7 +12,7 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.phoebus.applications.saveandrestore.model.CompareResult;
+import org.phoebus.applications.saveandrestore.model.ComparisonResult;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -108,7 +108,7 @@ public class ComparisonControllerTest {
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
-        List<CompareResult> compareResults =
+        List<ComparisonResult> compareResults =
                 objectMapper.readValue(result.getResponse().getContentAsString(),
                         new TypeReference<>() {
                         });
@@ -152,7 +152,7 @@ public class ComparisonControllerTest {
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
-        List<CompareResult> compareResults =
+        List<ComparisonResult> compareResults =
                 objectMapper.readValue(result.getResponse().getContentAsString(),
                         new TypeReference<>() {
                         });

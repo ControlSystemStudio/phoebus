@@ -17,10 +17,10 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.CompareResult;
+import org.phoebus.applications.saveandrestore.model.ComparisonResult;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.CompareMode;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
@@ -55,15 +55,15 @@ public class ComparisonController extends BaseController {
     /**
      *
      * @param nodeId The unique node id of a snapshot or composite snapshot.
-     * @return A list of {@link CompareResult}s, one for each PV item in the snapshot/composite snapshot. The
-     * {@link CompareResult#getLiveValue()} and {@link CompareResult#getStoredValue()} will return <code>null</code> if
+     * @return A list of {@link ComparisonResult}s, one for each PV item in the snapshot/composite snapshot. The
+     * {@link ComparisonResult#getLiveValue()} and {@link ComparisonResult#getStoredValue()} will return <code>null</code> if
      * comparison evaluates to &quot;equal&quot; for a PV.
      */
     @GetMapping(value = "/{nodeId}", produces = JSON)
-    public List<CompareResult> compare(@PathVariable String nodeId,
-                                       @RequestParam(value = "tolerance", required = false, defaultValue = "0") double tolerance,
-                                       @RequestParam(value = "compareMode", required = false, defaultValue = "ABSOLUTE") CompareMode compareMode,
-                                       @RequestParam(value = "skipReadback", required = false, defaultValue = "false") boolean skipReadback) {
+    public List<ComparisonResult> compare(@PathVariable String nodeId,
+                                          @RequestParam(value = "tolerance", required = false, defaultValue = "0") double tolerance,
+                                          @RequestParam(value = "compareMode", required = false, defaultValue = "ABSOLUTE") ComparisonMode compareMode,
+                                          @RequestParam(value = "skipReadback", required = false, defaultValue = "false") boolean skipReadback) {
         if(tolerance < 0){
             throw new IllegalArgumentException("Tolerance must be >=0");
         }
