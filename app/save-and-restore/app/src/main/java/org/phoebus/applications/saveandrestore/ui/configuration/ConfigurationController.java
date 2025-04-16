@@ -413,14 +413,13 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             String[] pvNames = pvNameProperty.get().trim().split("[\\s;]+");
             String[] readbackPvNames = readbackPvNameProperty.get().trim().split("[\\s;]+");
 
+            if(!checkForDuplicatePvNames(pvNames)){
+                return;
+            }
+
             ArrayList<ConfigPvEntry> configPVs = new ArrayList<>();
             for (int i = 0; i < pvNames.length; i++) {
-                // Disallow duplicate PV names as in a restore operation this would mean that a PV is written
-                // multiple times, possibly with different values.
                 String pvName = pvNames[i].trim();
-                if (configurationEntries.stream().anyMatch(s -> s.getPvNameProperty().get().equals(pvName))) {
-                    continue;
-                }
                 String readbackPV = i >= readbackPvNames.length ? null : readbackPvNames[i] == null || readbackPvNames[i].isEmpty() ? null : readbackPvNames[i].trim();
                 ConfigPv configPV = ConfigPv.builder()
                         .pvName(pvName)
@@ -432,7 +431,26 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             configurationEntries.addAll(configPVs);
             resetAddPv();
         });
+    }
 
+    /**
+     * Checks that added PV names are not added multiple times
+     * @param addedPvNames New PV names added in the UI
+     * @return <code>true</code> if no duplicates are detected, otherwise <code>false</code>
+     */
+    private boolean checkForDuplicatePvNames(String[] addedPvNames){
+        List<String> pvNamesAsList = new ArrayList<>();
+        pvNamesAsList.addAll(Arrays.asList(addedPvNames));
+        pvTable.itemsProperty().get().forEach(i -> pvNamesAsList.add(i.getPvNameProperty().get()));
+        List<String> duplicatePvNames = pvNamesAsList.stream().filter(n -> Collections.frequency(pvNamesAsList, n) > 1).toList();
+
+        if(duplicatePvNames.size() > 0){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText(Messages.duplicatePVNamesNotSupported);
+            alert.showAndWait();
+            return false;
+        }
+        return true;
     }
 
     private void resetAddPv() {
