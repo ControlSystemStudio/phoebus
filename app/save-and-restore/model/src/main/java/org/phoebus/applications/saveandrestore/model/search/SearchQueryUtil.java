@@ -114,7 +114,8 @@ public class SearchQueryUtil {
         queryParams.keySet().forEach(key -> {
             if(Keys.lookupTable.containsKey(key)){
                 String formattedString = formatSearchTerm(queryParams.get(key));
-                LOGGER.log(Level.INFO, "toQueryString formatSearchTerm:  [" + formattedString + "]");
+                LOGGER.log(Level.INFO, "toQueryString formatSearchTerm for " + key +
+                        ":  [" + formattedString + "]");
                 params.add(key + "=" + (queryParams.get(key) == null ? "" : formattedString));
             }
         });
@@ -126,8 +127,7 @@ public class SearchQueryUtil {
      * @return A formatted string with trimmed values, e.g. "a,b" rather than " a , b".
      */
     private static String formatSearchTerm(String searchTerm){
-        LOGGER.log(Level.INFO, "formatSearchTerm() searchTerm input:  [" +
-                searchTerm + "]");
+        LOGGER.log(Level.INFO, "formatSearchTerm() input:  [" + searchTerm + "]");
 
         if(searchTerm == null || searchTerm.isEmpty()){
             return "";
@@ -143,12 +143,9 @@ public class SearchQueryUtil {
         // commas as delimiters between search words
         searchTerm = searchTerm.replaceAll("\\s+", ",");
 
-        LOGGER.log(Level.INFO, "formatSearchTerm() searchTerm final:  [" +
-                searchTerm + "]");
+        LOGGER.log(Level.INFO, "formatSearchTerm() output:  [" + searchTerm + "]");
 
         return searchTerm;
-        // return Arrays.asList(searchTerm.split(",")).stream().map(
-        //         i -> i.trim()).collect(Collectors.joining(","));
     }
 
     private static class KeyParser implements Function<String, String> {

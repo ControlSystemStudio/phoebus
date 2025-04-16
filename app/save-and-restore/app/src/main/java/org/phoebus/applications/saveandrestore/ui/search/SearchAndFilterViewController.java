@@ -240,6 +240,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         nodeNameTextField.textProperty().bindBidirectional(nodeNameProperty);
         nodeNameTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
+                LOGGER.log(Level.INFO, "ENTER has been pressed in nodeNameTextField");
+                LOGGER.log(Level.INFO, "  initial value:  [" +
+                        nodeNameProperty.getValueSafe() + "]");
                 updateParametersAndSearch();
             }
         });
@@ -279,11 +282,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         descTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 LOGGER.log(Level.INFO, "ENTER has been pressed in descTextField");
-                LOGGER.log(Level.INFO, "descProperty initial:  [" +
+                LOGGER.log(Level.INFO, "  initial value:  [" +
                         descProperty.getValueSafe() + "]");
-                if (descProperty.isEmpty().get()) {
-                    LOGGER.log(Level.INFO, "descProperty: is empty");
-                }
                 updateParametersAndSearch();
             }
         });
