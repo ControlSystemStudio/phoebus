@@ -1,0 +1,19 @@
+{
+  "configurationNode": {
+    "name": "IT-test2",
+    "description": "IT-test2",
+    "nodeType": "CONFIGURATION"
+  },
+  "configurationData": {
+    "pvList": [
+      {
+        "pvName": "ao3",
+        "readOnly": false,
+        "comparison": {
+          "comparisonMode": "RELATIVE",
+          "tolerance": 0.3
+        }
+      }
+    ]
+  }
+}

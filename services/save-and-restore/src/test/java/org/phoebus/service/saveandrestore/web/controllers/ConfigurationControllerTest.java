@@ -22,6 +22,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.phoebus.applications.saveandrestore.model.Comparison;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
@@ -176,7 +177,7 @@ public class ConfigurationControllerTest {
         ConfigurationData configurationData = new ConfigurationData();
         configuration.setConfigurationData(configurationData);
         configurationData.setPvList(List.of(ConfigPv.builder().pvName("foo").build(),
-                ConfigPv.builder().pvName("fooo").tolerance(1.0).build()));
+                ConfigPv.builder().pvName("fooo").comparison(new Comparison(null, 0.1)).build()));
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
@@ -184,7 +185,7 @@ public class ConfigurationControllerTest {
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
         configurationData.setPvList(List.of(
-                ConfigPv.builder().pvName("fooo").readbackPvName("bar").tolerance(1.0).build()));
+                ConfigPv.builder().pvName("fooo").readbackPvName("bar").comparison(new Comparison(null, 0.1)).build()));
 
         configuration.setConfigurationData(configurationData);
 
@@ -195,8 +196,8 @@ public class ConfigurationControllerTest {
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
         configurationData.setPvList(List.of(
-                ConfigPv.builder().pvName("fooo").readbackPvName("bar").compareMode(ComparisonMode.RELATIVE)
-                        .tolerance(-0.1).build()));
+                ConfigPv.builder().pvName("fooo").readbackPvName("bar").comparison(new Comparison(ComparisonMode.RELATIVE, -0.1))
+                        .build()));
 
         configuration.setConfigurationData(configurationData);
 

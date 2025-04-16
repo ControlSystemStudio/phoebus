@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
+import org.phoebus.applications.saveandrestore.model.Comparison;
 import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
@@ -198,8 +199,7 @@ public class NodeControllerTest {
         ConfigurationData configurationData = new ConfigurationData();
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("name");
-        configPv1.setCompareMode(ComparisonMode.ABSOLUTE);
-        configPv1.setTolerance(1.0);
+        configPv1.setComparison(new Comparison(ComparisonMode.ABSOLUTE, 1.0));
         configurationData.setPvList(List.of(configPv1));
         configuration.setConfigurationData(configurationData);
 
@@ -230,7 +230,7 @@ public class NodeControllerTest {
         ConfigurationData configurationData = new ConfigurationData();
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("name");
-        configPv1.setCompareMode(ComparisonMode.ABSOLUTE);
+        configPv1.setComparison(new Comparison(ComparisonMode.ABSOLUTE, null));
         configurationData.setPvList(List.of(configPv1));
         configuration.setConfigurationData(configurationData);
 
@@ -257,7 +257,7 @@ public class NodeControllerTest {
         ConfigurationData configurationData = new ConfigurationData();
         ConfigPv configPv1 = new ConfigPv();
         configPv1.setPvName("name");
-        configPv1.setTolerance(1.0);
+        configPv1.setComparison(new Comparison(null, 0.1));
         configurationData.setPvList(List.of(configPv1));
         configuration.setConfigurationData(configurationData);
 
