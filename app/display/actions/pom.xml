@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.phoebus</groupId>
         <artifactId>app-display</artifactId>
-        <version>4.7.4-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>app-display-actions</artifactId>
@@ -24,12 +24,12 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-display-representation-javafx</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
            <groupId>org.phoebus</groupId>
            <artifactId>app-display-model</artifactId>
-           <version>4.7.4-SNAPSHOT</version>
+           <version>${revision}</version>
        </dependency>
        <dependency>
 	      <groupId>org.junit.jupiter</groupId>

@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>4.7.4-SNAPSHOT</version>
+    <version>${revision}</version>
   </parent>
   <properties>
     <java.version>1.11</java.version>
@@ -95,12 +95,12 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>${revision}</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>${revision}</version>
     </dependency>
 
     <!--log4j2 to slf4j adapter-->
