@@ -3,34 +3,34 @@
     <parent>
         <groupId>org.phoebus</groupId>
         <artifactId>app-logbook</artifactId>
-        <version>5.0.0-SNAPSHOT</version>
+        <version>5.0.0</version>
     </parent>
     <artifactId>app-logbook-ui</artifactId>
     <dependencies>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-framework</artifactId>
-            <version>5.0.0-SNAPSHOT</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-ui</artifactId>
-            <version>5.0.0-SNAPSHOT</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-util</artifactId>
-            <version>5.0.0-SNAPSHOT</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-logbook</artifactId>
-            <version>5.0.0-SNAPSHOT</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-security</artifactId>
-            <version>5.0.0-SNAPSHOT</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.jfxtras</groupId>
