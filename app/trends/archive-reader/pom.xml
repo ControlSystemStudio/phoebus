@@ -3,7 +3,7 @@
     <parent>
         <artifactId>app-trends</artifactId>
         <groupId>org.phoebus</groupId>
-        <version>5.0.0</version>
+        <version>5.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -18,17 +18,17 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-pv</artifactId>
-            <version>5.0.0</version>
+            <version>5.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-types</artifactId>
-            <version>5.0.0</version>
+            <version>5.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-util</artifactId>
-            <version>5.0.0</version>
+            <version>5.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-ui</artifactId>
-            <version>5.0.0</version>
+            <version>5.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
