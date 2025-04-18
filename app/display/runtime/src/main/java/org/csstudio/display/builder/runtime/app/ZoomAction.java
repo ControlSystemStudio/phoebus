@@ -49,6 +49,8 @@ public class ZoomAction extends ComboBox<String>
         {
             String zoom = String.format("%d %%", default_zoom_factor);
             setValue(zoom);
+            // Invoke zoom changed handler
+            getOnAction().handle(null);
         });
     }
 
