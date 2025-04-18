@@ -22,7 +22,7 @@ public class ZoomAction extends ComboBox<String>
 {
     private boolean updating = false;
 
-    @Preference public static double default_zoom_factor;
+    @Preference public static int default_zoom_factor;
 
     static
     {
@@ -35,6 +35,7 @@ public class ZoomAction extends ComboBox<String>
         setEditable(true);
         setPrefWidth(100.0);
         getItems().addAll(JFXRepresentation.ZOOM_LEVELS);
+        setValue(JFXRepresentation.DEFAULT_ZOOM_LEVEL);
         // For Ctrl-Wheel zoom gesture
         instance.getRepresentation().setZoomListener(txt ->
         {
@@ -43,10 +44,10 @@ public class ZoomAction extends ComboBox<String>
         });
         setOnAction(event -> zoom(instance.getRepresentation()));
 
-        // Add the zoom action into a queue
+        // Apply default zoom factor from settings.ini
         Platform.runLater(() ->
         {
-            String zoom = String.format("%d %%", (int)(default_zoom_factor * 100));
+            String zoom = String.format("%d %%", default_zoom_factor);
             setValue(zoom);
         });
     }
