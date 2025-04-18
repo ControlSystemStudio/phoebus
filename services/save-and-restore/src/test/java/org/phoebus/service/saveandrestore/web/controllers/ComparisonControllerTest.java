@@ -12,9 +12,10 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.phoebus.applications.saveandrestore.model.CompareResult;
+import org.phoebus.applications.saveandrestore.model.ComparisonResult;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
@@ -91,7 +92,16 @@ public class ComparisonControllerTest {
         ConfigPv configPv2 = new ConfigPv();
         configPv2.setPvName("loc://y(771.0)");
 
+        when(nodeDAO.getParentNode("nodeId")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId("configId").build());
+
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setUniqueId("configId");
+        configurationData.setPvList(List.of(configPv1, configPv2));
+
+        when(nodeDAO.getConfigurationData("configId")).thenReturn(configurationData);
+
         SnapshotData snapshotData = new SnapshotData();
+        //snapshotData.setUniqueId("uniqueId");
         SnapshotItem snapshotItem1 = new SnapshotItem();
         snapshotItem1.setConfigPv(configPv1);
         snapshotItem1.setValue(VDouble.of(42.0, Alarm.none(),
@@ -104,11 +114,11 @@ public class ComparisonControllerTest {
 
         when(nodeDAO.getSnapshotData("nodeId")).thenReturn(snapshotData);
 
-        MockHttpServletRequestBuilder request = get("/compare/nodeId");
+        MockHttpServletRequestBuilder request = get("/compare/nodeId?skipReadback=TRUE");
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
-        List<CompareResult> compareResults =
+        List<ComparisonResult> compareResults =
                 objectMapper.readValue(result.getResponse().getContentAsString(),
                         new TypeReference<>() {
                         });
@@ -148,11 +158,26 @@ public class ComparisonControllerTest {
         when(nodeDAO.getSnapshotData("id1")).thenReturn(snapshotData1);
         when(nodeDAO.getSnapshotData("id2")).thenReturn(snapshotData2);
 
+        when(nodeDAO.getNode("id1")).thenReturn(Node.builder().name("id1").uniqueId("id1").nodeType(NodeType.SNAPSHOT).build());
+        when(nodeDAO.getNode("id2")).thenReturn(Node.builder().name("id2").uniqueId("id2").nodeType(NodeType.SNAPSHOT).build());
+        when(nodeDAO.getParentNode("id1")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).name("id1parent").uniqueId("id1parent").build());
+        when(nodeDAO.getParentNode("id2")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).name("id2parent").uniqueId("id2parent").build());
+
+        ConfigurationData configurationData1 = new ConfigurationData();
+        configurationData1.setPvList(List.of(configPv1, configPv2));
+
+        when(nodeDAO.getConfigurationData("id1parent")).thenReturn(configurationData1);
+
+        ConfigurationData configurationData2 = new ConfigurationData();
+        configurationData2.setPvList(List.of(configPv1, configPv2));
+
+        when(nodeDAO.getConfigurationData("id2parent")).thenReturn(configurationData2);
+
         MockHttpServletRequestBuilder request = get("/compare/nodeId");
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
-        List<CompareResult> compareResults =
+        List<ComparisonResult> compareResults =
                 objectMapper.readValue(result.getResponse().getContentAsString(),
                         new TypeReference<>() {
                         });

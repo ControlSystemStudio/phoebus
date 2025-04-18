@@ -1,0 +1,76 @@
+{
+  "snapshotNode": {
+    "name" : "IT-test1-snapshot",
+    "description": "IT-test1-snapshot",
+    "nodeType": "SNAPSHOT"
+  },
+  "snapshotData": {
+    "snapshotItems": [
+      {
+        "configPv": {
+          "pvName": "ao1",
+          "readOnly": false,
+          "comparison": {
+            "comparisonMode": "ABSOLUTE",
+            "tolerance": 1
+          }
+        },
+        "value": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 1,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "UDF_ALARM"
+          },
+          "time": {
+            "unixSec": 631152000,
+            "nanoSec": 0,
+            "userTag": 0
+          },
+          "display": {
+            "lowAlarm": -30,
+            "highAlarm": 30,
+            "lowDisplay": -50,
+            "highDisplay": 50,
+            "lowWarning": -20,
+            "highWarning": 2,
+            "units": "kW"
+          }
+        }
+      },
+      {
+        "configPv": {
+          "pvName": "ao2",
+          "readOnly": false
+        },
+        "value": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 0,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "UDF_ALARM"
+          },
+          "time": {
+            "unixSec": 631152000,
+            "nanoSec": 0,
+            "userTag": 0
+          },
+          "display": {
+            "highAlarm": 1,
+            "lowDisplay": 0,
+            "highDisplay": 0,
+            "units": ""
+          }
+        }
+      }
+    ]
+  }
+}

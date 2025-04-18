@@ -5,7 +5,8 @@
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="root" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController">
+<BorderPane fx:id="root" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController">
     <center>
         <GridPane id="parent" fx:id="controlsPane" alignment="TOP_RIGHT" hgap="5.0" style="-fx-background-color: #f4f4f4;" BorderPane.alignment="TOP_LEFT">
             <children>
@@ -53,25 +54,15 @@
                 </Label>
                 <Label fx:id="createdByField" text="Created by" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-                <TableView fx:id="pvTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+                <TableView fx:id="pvTable" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
                     <columns>
                         <TableColumn prefWidth="-1.0" text="%pvList">
                             <columns>
-                                <TableColumn fx:id="pvNameColumn" editable="true" prefWidth="${controlsPane.width * 0.45}" text="%pvName">
-                                    <!--cellValueFactory>
-                                        <PropertyValueFactory property="pvName" />
-                                    </cellValueFactory-->
-                                </TableColumn>
-                                <TableColumn fx:id="readbackPvNameColumn" prefWidth="${controlsPane.width * 0.45}" text="%pvNameReadback">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="readbackPvName" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                                <TableColumn fx:id="readOnlyColumn" prefWidth="${controlsPane.width * 0.1}" text="%pvReadOnly">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="readOnly" />
-                                    </cellValueFactory>
-                                </TableColumn>
+                                <TableColumn fx:id="pvNameColumn" editable="true" prefWidth="${controlsPane.width * 0.35}" text="%pvName"/>
+                                <TableColumn fx:id="readOnlyColumn" editable="true" prefWidth="${controlsPane.width * 0.1}" text="%pvReadOnly"/>
+                                <TableColumn fx:id="readbackPvNameColumn" editable="true" prefWidth="${controlsPane.width * 0.35}" text="%pvNameReadback"/>
+                                <TableColumn fx:id="comparisonModeColumn" editable="true" prefWidth="${controlsPane.width * 0.1}" text="%comparisonMode"/>
+                                <TableColumn fx:id="toleranceColumn" editable="true" prefWidth="${controlsPane.width * 0.1}" text="%comparisonTolerance"/>
                             </columns>
                         </TableColumn>
 

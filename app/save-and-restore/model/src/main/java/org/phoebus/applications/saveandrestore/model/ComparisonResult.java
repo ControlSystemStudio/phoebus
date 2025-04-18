@@ -18,12 +18,11 @@ import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
  * For the live {@link VType} value, <code>null</code> indicates failure to connect to the PV.
  */
 @SuppressWarnings("unused")
-public class CompareResult{
+public class ComparisonResult {
 
     private String pvName;
     private boolean equal;
-    private PvCompareMode pvCompareMode;
-    private double tolerance;
+    private Comparison comparison;
     @JsonSerialize(using = VTypeSerializer.class)
     @JsonDeserialize(using = VTypeDeserializer.class)
     private VType storedValue;
@@ -35,20 +34,18 @@ public class CompareResult{
     /**
      * Needed by unit tests. Do not remove.
      */
-    public CompareResult(){}
+    public ComparisonResult(){}
 
-    public CompareResult(String pvName,
-        boolean equal,
-        PvCompareMode pvCompareMode,
-        double tolerance,
-        VType storedValue,
-        VType liveValue,
-        String delta){
+    public ComparisonResult(String pvName,
+                            boolean equal,
+                            Comparison comparison,
+                            VType storedValue,
+                            VType liveValue,
+                            String delta){
 
         this.pvName = pvName;
         this.equal = equal;
-        this.pvCompareMode = pvCompareMode;
-        this.tolerance = tolerance;
+        this.comparison = comparison;
         this.storedValue = storedValue;
         this.liveValue = liveValue;
         this.delta = delta;
@@ -58,16 +55,12 @@ public class CompareResult{
         return equal;
     }
 
-    public PvCompareMode getPvCompareMode() {
-        return pvCompareMode;
+    public Comparison getComparison() {
+        return comparison;
     }
 
-    public double getTolerance() {
-        return tolerance;
-    }
-
-    public void setTolerance(double tolerance) {
-        this.tolerance = tolerance;
+    public void setComparison(Comparison comparison) {
+        this.comparison = comparison;
     }
 
     /**
