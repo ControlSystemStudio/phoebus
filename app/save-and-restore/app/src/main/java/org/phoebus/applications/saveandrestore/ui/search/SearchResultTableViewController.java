@@ -63,12 +63,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -268,7 +263,8 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 hitCountProperty, pagination.pageCountProperty()));
         pagination.pageCountProperty().bind(pageCountProperty);
 
-        pageCountProperty.bind(Bindings.createIntegerBinding(() -> 1 + (hitCountProperty.get() / pageSizeProperty.get()),
+        pageCountProperty.bind(Bindings.createIntegerBinding(() ->
+                        (int) Math.ceil(Double.valueOf(hitCountProperty.get()) / Double.valueOf(pageSizeProperty.get())),
                 hitCountProperty, pageSizeProperty));
 
         pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
@@ -331,18 +327,47 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         Map<String, String> searchParams =
                 SearchQueryUtil.parseHumanReadableQueryString(queryString);
 
-        searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
-        searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
+        LOGGER.log(Level.INFO, "searchParams initial: " + searchParams);
+
+        // Add pagination parameters to the search parameters
+        searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(
+                pageSizeProperty.get()));
+        searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(
+                pageSizeProperty.get() *  pagination.getCurrentPageIndex()));
+
+        LOGGER.log(Level.INFO, "searchParams default: " + searchParams);
 
         JobManager.schedule("Save-and-restore Search", monitor -> {
-            MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
-            searchParams.forEach(map::add);
+            MultivaluedMap<String, String> initialMap = new MultivaluedHashMap<>();
+            MultivaluedMap<String, String> alteredMap = new MultivaluedHashMap<>();
+            searchParams.forEach(initialMap::add);
+            searchParams.forEach(alteredMap::add);
             try {
-                SearchResult searchResult = saveAndRestoreService.search(map);
+                LOGGER.log(Level.INFO, "search initialMap: " + initialMap);
+
+                // Alter the search parameters for certain fields
+                alterSearchParams(alteredMap, SearchQueryUtil.Keys.DESC.getName());
+                alterSearchParams(alteredMap, SearchQueryUtil.Keys.NAME.getName());
+
+                // Call the REST API search
+                SearchResult searchResult = saveAndRestoreService.search(alteredMap);
+                LOGGER.log(Level.INFO, "Initial hitCount: " + searchResult.getHitCount());
+
+                // Perform an additional sub-search of the results
+                performSubSearchAND(searchResult, initialMap,
+                        SearchQueryUtil.Keys.DESC.getName());
+                performSubSearchAND(searchResult, initialMap,
+                        SearchQueryUtil.Keys.NAME.getName());
+
+                // Fill the results in a way that matches desired pagination parameters
+                fillResultsPages(searchResult, initialMap);
+
+                // Fill the results table, the pages should automatically update
                 if (searchResult.getHitCount() > 0) {
                     Platform.runLater(() -> {
                         tableEntries.setAll(searchResult.getNodes());
                         hitCountProperty.set(searchResult.getHitCount());
+                        LOGGER.log(Level.INFO, "Page count: " + pageCountProperty.get());
                     });
                 } else {
                     Platform.runLater(() -> tableEntries.setAll(Collections.emptyList()));
@@ -356,6 +381,173 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 tableEntries.setAll(Collections.emptyList());
             }
         });
+    }
+
+    String[] splitSearchWords(MultivaluedMap<String, String> searchParams,
+                String searchKey) {
+
+        String[] searchWords;
+        if (searchParams.containsKey(searchKey)) {
+            LOGGER.log(Level.INFO, "splitSearchWords");
+            searchWords = searchParams.getFirst(searchKey).split(",");
+            LOGGER.log(Level.INFO, "  searchWords.length: " + searchWords.length);
+        } else {
+            searchWords = new String[0];
+        }
+
+        return searchWords;
+    }
+
+    String getLongestWord(String[] multipleWords) {
+        // Choose the longest word to initially search with, will hopefully reduce
+        // number of returned results
+        String longestWord = multipleWords[0];
+        Integer longestLength = longestWord.length();
+        for (String searchWord : multipleWords) {
+            // LOGGER.log(Level.INFO, "   * searchWord: " + searchWord);
+            // LOGGER.log(Level.INFO, "   --> length:   " + searchWord.length());
+            if (searchWord.length() > longestLength) {
+                longestWord = searchWord;
+                longestLength = searchWord.length();
+            }
+        }
+
+        LOGGER.log(Level.INFO, "   * longestWord: " + longestWord);
+        return longestWord;
+    }
+
+    void alterSearchParams(
+            MultivaluedMap<String, String> searchParams,
+            String searchKey) {
+        /*
+            Alter the search parameters in the following way:
+                1) Use only one of potentially several words in the field to search with
+                2) Choose the longest word to most likely reduce the number of results
+                3) Add wild card symbols inorder to search for sub-strings
+                4) If there are multiple words, then allow the search to be large enough to
+                   return all matches
+        */
+
+        String[] searchWords = splitSearchWords(searchParams, searchKey);
+
+        if (searchWords.length > 0) {
+            String initialSearchWord = getLongestWord(searchWords);
+            initialSearchWord = "*".concat(initialSearchWord.concat("*"));
+
+            searchParams.put(searchKey, Collections.singletonList(initialSearchWord));
+
+            if (searchWords.length > 1) {
+                // Set limits on number of results to something big
+                searchParams.put(SearchQueryUtil.Keys.SIZE.getName(),
+                        Collections.singletonList("10000"));
+                searchParams.put(SearchQueryUtil.Keys.FROM.getName(),
+                        Collections.singletonList("0"));
+            }
+        }
+
+        LOGGER.log(Level.INFO, "search alteredMap: " + searchParams);
+    }
+
+    void performSubSearchAND(SearchResult searchResult,
+                             MultivaluedMap<String, String> searchParams,
+                             String searchKey) {
+        /*
+            Perform an AND sub-search of the REST API search results for
+            multiple words listed in a field.
+         */
+
+        LOGGER.log(Level.INFO, "performSubSearchAND() searchKey: " + searchKey);
+
+        String[] searchWords = splitSearchWords(searchParams, searchKey);
+        LOGGER.log(Level.INFO, "  searchWords:   ");
+        for (String searchWord : searchWords) {
+            LOGGER.log(Level.INFO, "  - " + searchWord);
+        }
+
+        if (searchWords.length <= 1) {
+            LOGGER.log(Level.INFO, "No AND search needed");
+            LOGGER.log(Level.INFO, "  " + searchKey + " hitCount: " +
+                    searchResult.getHitCount());
+            return;
+        }
+
+        List<Node> matchingNodes = new ArrayList<>(List.of());
+        Integer newHitCount = 0;
+
+        // Loop over each search result
+        for (Node node : searchResult.getNodes()) {
+
+            Boolean goodMatch = true;
+            String searchFieldString;
+            if (searchKey == SearchQueryUtil.Keys.DESC.getName()) {
+                searchFieldString = node.getDescription();
+            } else if (searchKey == SearchQueryUtil.Keys.NAME.getName()) {
+                searchFieldString = node.getName();
+            } else {
+                searchFieldString = "";
+            }
+            LOGGER.log(Level.INFO, "  --> searchFieldString: " + searchFieldString);
+
+            // Loop over each search word
+            for (String searchWord : searchWords) {
+                if (!searchFieldString.toLowerCase().contains(searchWord)) {
+                    goodMatch = false;
+                }
+            }
+            LOGGER.log(Level.INFO, "       --> goodMatch: " + goodMatch);
+
+            if (goodMatch) {
+                matchingNodes.add(node);
+                newHitCount++;
+            }
+        }
+
+        searchResult.setNodes(matchingNodes);
+        searchResult.setHitCount(newHitCount);
+
+        LOGGER.log(Level.INFO, "  " + searchKey + " hitCount: " +
+                searchResult.getHitCount());
+    }
+
+    void fillResultsPages(
+            SearchResult searchResult,
+            MultivaluedMap<String, String> searchParams) {
+
+        /*
+            For cases where multiple words have been searched for in a field, the
+            REST API search did not conain any pagination information.
+            This function set the serach results nodes so that the table pages
+            show the proper results.
+         */
+
+        String[] descSearchWords = splitSearchWords(searchParams,
+                SearchQueryUtil.Keys.DESC.getName());
+        String[] nameSearchWords = splitSearchWords(searchParams,
+                SearchQueryUtil.Keys.NAME.getName());
+
+        if (descSearchWords.length > 1 || nameSearchWords.length > 1) {
+            Integer pageSize = pageSizeProperty.get();
+            Integer pageIndex = pagination.getCurrentPageIndex();
+            Integer resultFrom = pageIndex * pageSize;
+            LOGGER.log(Level.INFO, "pageSize:   " + pageSize);
+            LOGGER.log(Level.INFO, "pageIndex:  " + pageIndex);
+            LOGGER.log(Level.INFO, "resultFrom: " + resultFrom);
+
+            List<Node> matchingNodes = new ArrayList<>(List.of());
+            Integer newHitCount = 0;
+            for (Node node : searchResult.getNodes()) {
+                if (newHitCount >= resultFrom && newHitCount < resultFrom + pageSize) {
+                    matchingNodes.add(node);
+                }
+                newHitCount++;
+            }
+
+            // Only this subset of the matching nodes will be displayed in the
+            // results table
+            searchResult.setNodes(matchingNodes);
+        }
+
+        LOGGER.log(Level.INFO, "Final hitCount: " + searchResult.getHitCount());
     }
 
     /**
