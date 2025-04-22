@@ -8,9 +8,7 @@
 package org.csstudio.display.builder.runtime.app;
 
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
-import org.phoebus.framework.preferences.AnnotatedPreferences;
-import org.phoebus.framework.preferences.PreferencesReader;
-import org.phoebus.framework.preferences.Preference;
+import org.csstudio.display.builder.runtime.Preferences;
 
 import javafx.application.Platform;
 import javafx.scene.control.ComboBox;
@@ -21,13 +19,6 @@ import javafx.scene.control.ComboBox;
 public class ZoomAction extends ComboBox<String>
 {
     private boolean updating = false;
-
-    @Preference public static int default_zoom_factor;
-
-    static
-    {
-        AnnotatedPreferences.initialize(ZoomAction.class, "/zoom_preferences.properties");
-    }
 
     /** @param instance {@link DisplayRuntimeInstance} */
     public ZoomAction(final DisplayRuntimeInstance instance)
@@ -47,7 +38,7 @@ public class ZoomAction extends ComboBox<String>
         // Apply default zoom factor from settings.ini
         Platform.runLater(() ->
         {
-            String zoom = String.format("%d %%", default_zoom_factor);
+            String zoom = String.format("%d %%", Preferences.default_zoom_factor);
             setValue(zoom);
             // Invoke zoom changed handler
             getOnAction().handle(null);
