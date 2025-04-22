@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-display</artifactId>
-    <version>4.7.4-SNAPSHOT</version>
+    <version>5.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>app-display-convert-edm</artifactId>
   <dependencies>
@@ -22,27 +22,27 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-editor</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-actions</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

@@ -1,0 +1,11 @@
+services:
+  alarmserver:
+    image: ghcr.io/controlsystemstudio/phoebus/service-alarm-server:master
+    environment:
+      EPICS_PVA_ADDR_LIST: ${HOST_IP_ADDRESS}
+    volumes:
+      - /home:/home
+    command: >
+      /bin/bash -c "
+      java -jar /alarmserver/service-alarm-server-*.jar -settings ${ALARM_SERVICE_SETTINGS_FILE} -config ${CONFIG} -server ${KAFKA_HOST_IP_ADDRESS}:9092 -settings ${SETTINGS_FILE} -noshell"
+  

@@ -3,19 +3,19 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.7.4-SNAPSHOT</version>
+    <version>5.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>core-logbook</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

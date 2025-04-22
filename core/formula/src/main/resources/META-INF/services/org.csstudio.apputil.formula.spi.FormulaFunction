@@ -49,7 +49,9 @@ org.csstudio.apputil.formula.string.StringEqualsFunction
 org.csstudio.apputil.formula.array.ScaleArrayFormulaFunction
 org.csstudio.apputil.formula.array.SubArrayFunction
 org.csstudio.apputil.formula.array.ElementAtNumberFunction
+org.csstudio.apputil.formula.array.HistogramOfFunction
 org.csstudio.apputil.formula.array.ArraySumFunction
+org.csstudio.apputil.formula.array.ArrayTotalFunction
 org.csstudio.apputil.formula.array.ArrayPowFunction
 org.csstudio.apputil.formula.array.ArrayMultiplicationFunction
 org.csstudio.apputil.formula.array.ArrayDivisionFunction
@@ -61,6 +63,8 @@ org.csstudio.apputil.formula.array.ArraySampleWithStrideFunction
 org.csstudio.apputil.formula.array.ArrayStatsFunction
 org.csstudio.apputil.formula.array.ArrayMaxFunction
 org.csstudio.apputil.formula.array.ArrayMinFunction
+org.csstudio.apputil.formula.array.ArrayIndexFunction
+org.csstudio.apputil.formula.array.ArrayCumSumFunction
 
 # Bitwise Operation
 org.csstudio.apputil.formula.bitwise.BitAND

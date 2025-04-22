@@ -366,7 +366,8 @@ for snapshot nodes. The table on the right-hand side will show the result.
 
 In the toolbar above the search result list user may choose to save the search query as a named "filter". The Help
 button will show details on how to specify the various search criteria to construct a suitable query. Filter names
-are case sensitive.
+are case sensitive. Note that if any text is present in the "Unique ID" field then the "Save Filter" button will be
+disabled.
 
 The bottom-right pane in the search tool shows all saved filters, which can be edited or deleted. If a filter is edited
 and saved it under the same name, user will be prompted whether to overwrite as filter names must be unique.

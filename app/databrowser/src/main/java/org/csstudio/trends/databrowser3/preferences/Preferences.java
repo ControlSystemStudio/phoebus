@@ -164,13 +164,15 @@ public class Preferences
     public static List<ArchiveDataSource> parseArchives(final String setting)
     {
         final List<ArchiveDataSource> urls = new ArrayList<>();
-        for (String fragment : setting.split("\\*"))
-        {
-            final String[] strs = fragment.split("\\|");
-            if (strs.length == 1)
-                urls.add(new ArchiveDataSource(strs[0], strs[0]));
-            else if (strs.length >= 2)
-                urls.add(new ArchiveDataSource(strs[0], strs[1]));
+        //When settings is empty do not search for a archive datasource
+        if (setting != null && !setting.trim().isEmpty()) {
+            for (String fragment : setting.split("\\*")) {
+                final String[] strs = fragment.split("\\|");
+                if (strs.length == 1)
+                    urls.add(new ArchiveDataSource(strs[0], strs[0]));
+                else if (strs.length >= 2)
+                    urls.add(new ArchiveDataSource(strs[0], strs[1]));
+            }
         }
         return urls;
     }

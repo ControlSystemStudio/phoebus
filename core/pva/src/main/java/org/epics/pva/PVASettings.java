@@ -212,6 +212,12 @@ public class PVASettings
      */
     public static int EPICS_PVA_CONN_TMO = 30;
 
+    /** Socket timeout for TCP connections
+     *
+     * TCP socket creation timeout in seconds
+     */
+    public static int EPICS_PVA_TCP_SOCKET_TMO = 5;
+
     /** Maximum number of array elements shown when printing data */
     public static int EPICS_PVA_MAX_ARRAY_FORMATTING = 256;
 
@@ -263,6 +269,7 @@ public class PVASettings
         EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
         EPICS_PVAS_BROADCAST_PORT = get("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);
         EPICS_PVA_CONN_TMO = get("EPICS_PVA_CONN_TMO", EPICS_PVA_CONN_TMO);
+        EPICS_PVA_TCP_SOCKET_TMO = get("EPICS_PVA_TCP_SOCKET_TMO", EPICS_PVA_TCP_SOCKET_TMO);
         EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
         EPICS_PVAS_TLS_KEYCHAIN = get("EPICS_PVAS_TLS_KEYCHAIN", EPICS_PVAS_TLS_KEYCHAIN);
         EPICS_PVAS_TLS_OPTIONS = get("EPICS_PVAS_TLS_OPTIONS", EPICS_PVAS_TLS_OPTIONS);

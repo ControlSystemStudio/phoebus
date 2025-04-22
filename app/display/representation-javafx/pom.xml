@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-display</artifactId>
-    <version>4.7.4-SNAPSHOT</version>
+    <version>5.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>app-display-representation-javafx</artifactId>
   <dependencies>
@@ -51,32 +51,32 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-rtplot</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-model</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-representation</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-databrowser</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-3d-viewer</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <!--<dependency>
       <groupId>org.phoebus</groupId>

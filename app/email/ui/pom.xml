@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.phoebus</groupId>
         <artifactId>app-email</artifactId>
-        <version>4.7.4-SNAPSHOT</version>
+        <version>5.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>app-email-ui</artifactId>
@@ -11,17 +11,17 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-util</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
+            <version>5.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-email</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
+            <version>5.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-ui</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
+            <version>5.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>

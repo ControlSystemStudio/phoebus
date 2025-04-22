@@ -58,6 +58,7 @@ public class ExecuteScriptAction extends ActionInfoBase {
 
     @Override
     public void readFromXML(ModelReader modelReader, Element actionXml) throws Exception {
+        String type = actionXml.getAttribute(XMLTags.TYPE);
         if (type.equalsIgnoreCase(EXECUTE_SCRIPT)) {
             // <script file="EmbeddedPy">
             //   <text>  the embedded text  </text>
@@ -105,10 +106,10 @@ public class ExecuteScriptAction extends ActionInfoBase {
         writer.writeAttribute(XMLTags.TYPE, EXECUTE_SCRIPT);
         writeDescriptionToXML(writer, description);
         writer.writeStartElement(XMLTags.SCRIPT);
-        writer.writeAttribute(XMLTags.FILE, path);
+        writer.writeAttribute(XMLTags.FILE, scriptInfo.getPath());
         // The controller updates the text and path not the scriptInfo
-        if (this.path.equals(ScriptInfo.EMBEDDED_PYTHON) ||
-                this.path.equals(ScriptInfo.EMBEDDED_JAVASCRIPT)) {
+        if (scriptInfo.getPath().equals(ScriptInfo.EMBEDDED_PYTHON) ||
+                scriptInfo.getPath().equals(ScriptInfo.EMBEDDED_JAVASCRIPT)) {
             final String text = this.text;
             if (text != null) {
                 writer.writeStartElement(XMLTags.TEXT);
@@ -119,6 +120,13 @@ public class ExecuteScriptAction extends ActionInfoBase {
         writer.writeEndElement();
     }
 
+    @Override
+    public boolean matchesAction(String actionId) {
+        return actionId.equalsIgnoreCase(EXECUTE_SCRIPT) ||
+                actionId.equalsIgnoreCase(EXECUTE_PYTHONSCRIPT) ||
+                actionId.equalsIgnoreCase(EXECUTE_JAVASCRIPT);
+    }
+    
     public ScriptInfo getScriptInfo() {
         return scriptInfo;
     }

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>app-save-and-restore</artifactId>
-		<version>4.7.4-SNAPSHOT</version>
+		<version>5.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>save-and-restore</artifactId>
@@ -18,33 +18,33 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-ui</artifactId>
-			<version>4.7.4-SNAPSHOT</version>
+			<version>5.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-logbook</artifactId>
-			<version>4.7.4-SNAPSHOT</version>
+			<version>5.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 		  <groupId>org.phoebus</groupId>
 		  <artifactId>save-and-restore-model</artifactId>
-		  <version>4.7.4-SNAPSHOT</version>
+		  <version>5.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-util</artifactId>
-			<version>4.7.4-SNAPSHOT</version>
+			<version>5.0.1-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>app-display-model</artifactId>
-			<version>4.7.4-SNAPSHOT</version>
+			<version>5.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>app-trends-archive-datasource</artifactId>
-			<version>4.7.4-SNAPSHOT</version>
+			<version>5.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>

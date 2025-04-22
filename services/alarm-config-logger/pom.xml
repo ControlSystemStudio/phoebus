@@ -3,11 +3,11 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>4.7.4-SNAPSHOT</version>
+    <version>5.0.1-SNAPSHOT</version>
   </parent>
   <properties>
     <spring.boot-version>2.7.3</spring.boot-version>
-    <java.version>1.11</java.version>
+    <java.version>17</java.version>
   </properties>
   <artifactId>service-alarm-config-logger</artifactId>
 
@@ -44,7 +44,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
-      <version>4.7.4-SNAPSHOT</version>
+      <version>5.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>

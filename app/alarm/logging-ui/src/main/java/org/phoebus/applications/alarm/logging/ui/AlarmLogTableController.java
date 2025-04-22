@@ -42,9 +42,12 @@ import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.table.AlarmInfoRow;
 import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.TableHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
@@ -607,6 +610,9 @@ public class AlarmLogTableController {
         // search for other context menu actions registered for AlarmLogTableType
         SelectionService.getInstance().setSelection("AlarmLogTable", tableView.getSelectionModel().getSelectedItems());
 
+        if (TableHelper.addContextMenuColumnVisibilityEntries(tableView, contextMenu))
+            contextMenu.getItems().add(new SeparatorMenuItem());
+
         ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(tableView), contextMenu);
 
         tableView.setContextMenu(contextMenu);
@@ -659,5 +665,13 @@ public class AlarmLogTableController {
         } else {
             configsContextMenu.hide();
         }
+    }
+
+    void save(final Memento memento) {
+        TableHelper.saveColumnVisibilities(tableView, memento, (col, idx) -> "COL" + idx + "vis");
+    }
+
+    void restore(final Memento memento) {
+        TableHelper.restoreColumnVisibilities(tableView, memento, (col, idx) -> "COL" + idx + "vis");
     }
 }

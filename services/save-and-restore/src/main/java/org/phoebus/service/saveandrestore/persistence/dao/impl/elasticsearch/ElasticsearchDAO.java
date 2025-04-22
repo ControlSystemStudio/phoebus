@@ -42,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.lang.annotation.Inherited;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -131,7 +130,7 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     /**
-     *  {@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     @Deprecated
@@ -140,13 +139,13 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     /**
-     *  {@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     public Set<String> deleteNodes(List<String> nodeIds){
         Set<String> parentIds = new HashSet<>();
         List<Node> nodes = new ArrayList<>();
-        for(String nodeId : nodeIds){
+        for (String nodeId : nodeIds) {
             Node nodeToDelete = getNode(nodeId);
             if (nodeToDelete == null) {
                 throw new NodeNotFoundException("Cannot delete non-existing node");
@@ -325,17 +324,17 @@ public class ElasticsearchDAO implements NodeDAO {
             throw new RuntimeException("Parent node of source node " + sourceNodes.get(0).getUniqueId() + " not found. Should not happen.");
         }
 
-        if (targetNode.getChildNodes() != null){
+        if (targetNode.getChildNodes() != null) {
             List<Node> targetsChildNodes = new ArrayList<>();
-            for(String parentChildNode : targetNode.getChildNodes()){
+            for (String parentChildNode : targetNode.getChildNodes()) {
                 Optional<ESTreeNode> targetChildNodeOptional = elasticsearchTreeRepository.findById(parentChildNode);
-                if(targetChildNodeOptional.isEmpty()){ // Should not happen, but ignore if it does.
+                if (targetChildNodeOptional.isEmpty()) { // Should not happen, but ignore if it does.
                     continue;
                 }
                 targetsChildNodes.add(targetChildNodeOptional.get().getNode());
             }
-            for(Node sourceNode : sourceNodes){
-                for(Node targetChildNode : targetsChildNodes) {
+            for (Node sourceNode : sourceNodes) {
+                for (Node targetChildNode : targetsChildNodes) {
                     if (targetChildNode.getName().equals(sourceNode.getName()) && targetChildNode.getNodeType().equals(sourceNode.getNodeType())) {
                         throw new IllegalArgumentException("Cannot move, at least one source node has same name and type as a target child node");
                     }
@@ -770,15 +769,16 @@ public class ElasticsearchDAO implements NodeDAO {
 
         snapshot.getSnapshotNode().setNodeType(NodeType.SNAPSHOT); // Force node type
         SnapshotData newSnapshotData;
+        Snapshot newSnapshot = new Snapshot();
         try {
             newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
+            Node updatedNode = updateNode(snapshot.getSnapshotNode(), false);
+            newSnapshot.setSnapshotData(newSnapshotData);
+            newSnapshot.setSnapshotNode(updatedNode);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        Snapshot newSnapshot = new Snapshot();
-        newSnapshot.setSnapshotData(newSnapshotData);
-        newSnapshot.setSnapshotNode(snapshot.getSnapshotNode());
 
         return newSnapshot;
     }
@@ -822,7 +822,8 @@ public class ElasticsearchDAO implements NodeDAO {
 
     /**
      * Checks if a {@link Node} is present in a subtree. This is called recursively.
-     * @param startNode {@link Node} id from which the search will start.
+     *
+     * @param startNode     {@link Node} id from which the search will start.
      * @param nodeToLookFor Self-explanatory.
      * @return <code>true</code> if the #nodeToLookFor is found in the subtree, otherwise <code>false</code>.
      */
@@ -1091,11 +1092,7 @@ public class ElasticsearchDAO implements NodeDAO {
                 }
             }
             return true;
-        } else if (node.getNodeType().equals(NodeType.SNAPSHOT)) {
-            return true;
-        } else {
-            return false;
-        }
+        } else return node.getNodeType().equals(NodeType.SNAPSHOT);
     }
 
     @Override
@@ -1103,11 +1100,11 @@ public class ElasticsearchDAO implements NodeDAO {
         return searchInternal(searchParameters);
     }
 
-    private SearchResult searchInternal(MultiValueMap<String, String> searchParameters){
+    private SearchResult searchInternal(MultiValueMap<String, String> searchParameters) {
         // Did client specify search on pv name(s)?
-        if(searchParameters.keySet().stream().anyMatch(k -> k.strip().toLowerCase().contains("pvs"))){
+        if (searchParameters.keySet().stream().anyMatch(k -> k.strip().toLowerCase().contains("pvs"))) {
             List<ConfigurationData> configurationDataList = configurationDataRepository.searchOnPvName(searchParameters);
-            if(configurationDataList.isEmpty()){
+            if (configurationDataList.isEmpty()) {
                 // No matching configurations found, return empty SearchResult
                 return new SearchResult(0, Collections.emptyList());
             }
@@ -1116,8 +1113,7 @@ public class ElasticsearchDAO implements NodeDAO {
             augmented.putAll(searchParameters);
             augmented.put("uniqueid", uniqueIds);
             return elasticsearchTreeRepository.search(augmented);
-        }
-        else{
+        } else {
             return elasticsearchTreeRepository.search(searchParameters);
         }
     }
@@ -1240,7 +1236,7 @@ public class ElasticsearchDAO implements NodeDAO {
         // Filter to make sure only nodes of same type are considered.
         targetParentChildNodes = targetParentChildNodes.stream().filter(n -> n.getNodeType().equals(sourceNode.getNodeType())).collect(Collectors.toList());
         List<String> targetParentChildNodeNames = targetParentChildNodes.stream().map(Node::getName).collect(Collectors.toList());
-        if(!targetParentChildNodeNames.contains(sourceNode.getName())){
+        if (!targetParentChildNodeNames.contains(sourceNode.getName())) {
             return sourceNode.getName();
         }
         String newNodeBaseName = sourceNode.getName();
@@ -1252,7 +1248,7 @@ public class ElasticsearchDAO implements NodeDAO {
         Pattern pattern = Pattern.compile(newNodeBaseName + "(\\scopy(\\s\\d*)?$)");
         for (Node targetChildNode : targetParentChildNodes) {
             String targetChildNodeName = targetChildNode.getName();
-            if(pattern.matcher(targetChildNodeName).matches()){
+            if (pattern.matcher(targetChildNodeName).matches()) {
                 nodeNameCopies.add(targetChildNodeName);
             }
         }
@@ -1279,11 +1275,11 @@ public class ElasticsearchDAO implements NodeDAO {
     /**
      * Compares {@link Node} names for the purpose of ordering.
      */
-    public static class NodeNameComparator implements Comparator<String>{
+    public static class NodeNameComparator implements Comparator<String> {
 
         @Override
-        public int compare(String s1, String s2){
-            if(s1.endsWith("copy") || s2.endsWith("copy")){
+        public int compare(String s1, String s2) {
+            if (s1.endsWith("copy") || s2.endsWith("copy")) {
                 return s1.compareTo(s2);
             }
             int copyIndex1 = s1.indexOf("copy");

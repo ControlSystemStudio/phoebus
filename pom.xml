@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>4.7.4-SNAPSHOT</version>
+  <version>5.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
   <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>
@@ -19,7 +19,7 @@
     <connection>scm:git:git://github.com/ControlSystemStudio/phoebus.git</connection>
     <developerConnection>scm:git:https://github.com/ControlSystemStudio/phoebus</developerConnection>
     <url>https://github.com/ControlSystemStudio/phoebus/tree/master</url>
-    <tag>HEAD</tag>
+    <tag>v4.7.4</tag>
   </scm>
 
   <developers>
@@ -64,11 +64,11 @@
   </distributionManagement>
 
   <properties>
-    <project.build.outputTimestamp>2024-01-10T19:23:58Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2025-04-17T18:26:31Z</project.build.outputTimestamp>
     <epics.version>7.0.10</epics.version>
     <epics.util.version>1.0.7</epics.util.version>
     <vtype.version>1.0.7</vtype.version>
-    <openjfx.version>21.0.3</openjfx.version>
+    <openjfx.version>21.0.7</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
@@ -382,14 +382,14 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.8</version>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.7.0</version>
             <extensions>true</extensions>
             <configuration>
-              <serverId>phoebus-releases</serverId>
-              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>false</autoReleaseAfterClose>
+              <publishingServerId>phoebus-releases</publishingServerId>
+              <checksums>required</checksums>
+              <centralBaseUrl>https://central.sonatype.com</centralBaseUrl>
             </configuration>
           </plugin>
           <plugin>

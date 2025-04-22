@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>services</artifactId>
-		<version>4.7.4-SNAPSHOT</version>
+		<version>5.0.1-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.phoebus</groupId>
 	<artifactId>service-save-and-restore</artifactId>
-	<version>4.7.4-SNAPSHOT</version>
+	<version>5.0.1-SNAPSHOT</version>
 
 	<properties>
 		<spring.boot.version>2.7.3</spring.boot.version>
@@ -66,24 +66,24 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-model</artifactId>
-			<version>4.7.4-SNAPSHOT</version>
+			<version>5.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-util</artifactId>
-			<version>4.7.4-SNAPSHOT</version>
+			<version>5.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-pv-pva</artifactId>
-			<version>4.7.4-SNAPSHOT</version>
+			<version>5.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-pv-ca</artifactId>
-			<version>4.7.4-SNAPSHOT</version>
+			<version>5.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

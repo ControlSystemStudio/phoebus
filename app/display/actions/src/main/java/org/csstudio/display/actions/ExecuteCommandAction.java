@@ -93,7 +93,7 @@ public class ExecuteCommandAction extends ActionInfoBase {
     @Override
     public boolean matchesAction(String actionId) {
         return actionId.equalsIgnoreCase(EXECUTE_COMMAND) ||
-                "EXECUTE_CMD".equalsIgnoreCase(type);
+                actionId.equalsIgnoreCase("EXECUTE_CMD");
     }
 
     public String getCommand() {

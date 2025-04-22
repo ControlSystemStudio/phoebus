@@ -16,6 +16,8 @@ import java.net.Socket;
 import java.security.KeyStore;
 import java.util.logging.Level;
 
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
@@ -158,12 +160,18 @@ public class SecureSockets
     public static Socket createClientSocket(final InetSocketAddress address, final boolean tls) throws Exception
     {
         initialize();
-        if (! tls)
-            return new Socket(address.getAddress(), address.getPort());
+        int connection_timeout = Math.max(1, PVASettings.EPICS_PVA_TCP_SOCKET_TMO) * 1000; // Use EPICS_PVA_TCP_SOCKET_TMO for socket connection timeout, but at least 1 second
+
+        if (!tls) {
+            Socket socket = new Socket();
+            socket.connect(address, connection_timeout);
+            return socket;
+        }
 
         if (tls_client_sockets == null)
             throw new Exception("TLS is not supported. Configure EPICS_PVA_TLS_KEYCHAIN");
-        final SSLSocket socket = (SSLSocket) tls_client_sockets.createSocket(address.getAddress(), address.getPort());
+        final SSLSocket socket = (SSLSocket) tls_client_sockets.createSocket();
+        socket.connect(address, connection_timeout);
         socket.setEnabledProtocols(PROTOCOLS);
         // Handshake starts when first writing, but that might delay SSL errors, so force handshake before we use the socket
         socket.startHandshake();
@@ -173,18 +181,16 @@ public class SecureSockets
     /** Get name from local principal
      *
      *  @param socket {@link SSLSocket} that may have local principal
-     *  @return Name (without "CN=..") or <code>null</code> if socket has certificate to authenticate
+     *  @return Name (without "CN=..") if socket has certificate to authenticate or <code>null</code>
      */
     public static String getLocalPrincipalName(final SSLSocket socket)
     {
         try
         {
-            String name = socket.getSession().getLocalPrincipal().getName();
-            if (name.startsWith("CN="))
-                name = name.substring(3);
-            else
-                logger.log(Level.WARNING, "Client has principal '" + name + "', expected 'CN=...'");
-            return name;
+            final LdapName ldn = new LdapName(socket.getSession().getLocalPrincipal().getName());
+            for (Rdn rdn : ldn.getRdns())
+                if (rdn.getType().equals("CN"))
+                    return (String) rdn.getValue();
         }
         catch (Exception ex)
         {   // May not have certificate with name

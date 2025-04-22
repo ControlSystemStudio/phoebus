@@ -1,12 +1,151 @@
-Secure Socket Support
-=====================
+Secure PV Access
+================
 
-By default, the server and client will use plain TCP sockets to communicate.
-By configuring a keystore for the server and a truststore for the client,
-the communication can be switched to secure (TLS) sockets.
-The sockets are encrypted, and clients will only communicate with trusted servers.
-The following describes a minimal setup for initial tests,
-followed by a more elaborate setup later in this document.
+By default, the PV Access server and client will use plain TCP sockets to communicate.
+Secure PV Access uses Transport Layer Security (TLS) sockets.
+TLS sockets, also known as secure sockets, are encrypted.
+Clients will only communicate with trusted servers, and servers can
+determine the identity of their clients in a trusted way.
+
+Secure PV Access is under development for PVXS, the current C++ implementation
+of PV Access. This java implementation aims to be compatible with recent versions of PVXS.
+Secure PV Access is not supported in the original C++ (pvAccessCpp) and Java (pvAccessJava) implementations,
+but PVXS and this java library can still communicate with the original implementations
+using plain TCP sockets.
+
+TLS relies on private and public encryption key pairs, where public keys are
+exchanged in the form of certificates.
+In a secure EPICS environment, the PV Access Certificate Management Service (pvacms)
+issues certificates for servers and clients and allows online checks of their
+validity.
+
+
+PV Access Certificate Management Service (pvacms)
+=================================================
+
+An EPICS administrator needs to deploy `pvacms` as a service and maintain
+certificates for servers (IOCs) and clients (users running CS-Studio
+as well as IOCs reading from other IOCs).
+This is an example recipe for getting started.
+
+1) Build EPICS base and PVXS as described on
+   https://george-mcintyre.github.io/pvxs/spvaqstart.html
+
+2) Start `pvacms -v`. It will create several files, including
+
+ * `~/.config/pva/1.3/admin.p12`: Certificate for the `admin` user
+ 
+3) For an IOC, request a hybrid server and client certificate.
+   Note its "Certificate identifier":
+
+   ```
+   $ authnstd --name ioc --cert-usage hybrid
+   Keychain file created   : /home/user/.config/pva/1.3/server.p12
+   Certificate identifier  : e53ed409:15273288300286014953
+   ```
+
+   As `admin`, accept that certificate:
+
+   ```
+   $ EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/admin.p12  \
+     pvxcert --approve e53ed409:15273288300286014953
+   Approve ==> CERT:STATUS:e53ed409:15273288300286014953 ==> Completed Successfully
+   ```
+
+ * `~/.config/pva/1.3/server.p12`: Our server certificate (hybrid, for IOC) 
+
+4) Request a client certificate, note its identifier:
+
+   ```
+   $ authnstd 
+   Keychain file created   : /home/user/.config/pva/1.3/client.p12
+   Certificate identifier  : e53ed409:11521018863975115478
+   ```
+
+   Accept that certificate: 
+
+   ```
+   $ EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/admin.p12  \
+     pvxcert --approve  e53ed409:11521018863975115478
+   Approve ==> CERT:STATUS:e53ed409:11521018863975115478 ==> Completed Successfully
+   ```
+
+ * `~/.config/pva/1.3/client.p12`: Our client (user) certificate
+
+
+You now have a server and a client certificate.
+Example for checking the status:
+
+```
+$ pvxcert -f ~/.config/pva/1.3/client.p12
+...
+Subject        : CN=fred, C=US, O=host.site.org
+...
+Cert Expires   : Wed Apr 16 18:08:58 2025 UTC
+...
+Certificate ID : e53ed409:11521018863975115478
+Status         : VALID
+...
+```
+
+To list certificate details:
+
+```
+keytool -list -v -keystore ~/.config/pva/1.3/client.p12 -storepass ""
+```
+
+For a test setup, all the above can be executed by a single user on one host.
+In a production setup, however, each human user should only have access to their own `client.p12` file.
+Pseudo-users running IOCs would have a `server.p12` file.
+Only an admin user on a designated host would have access to the remaining `pvacms` files,
+including the `admin.p12` file that permits accepting and revoking certificates.
+
+
+Secure IOC
+==========
+
+Example for running a secure IOC:
+
+```
+$ EPICS_PVAS_TLS_KEYCHAIN=~/.config/pva/1.3/server.p12  \
+  softIocPVX -m user=fred -d pvxs/test/testioc.db
+```
+
+The command `pvxsr 10` will list all connected clients
+with their connection credentials.
+
+
+Secure Java PVA Client
+======================
+
+Example for running Java PVA client command line tool:
+
+```
+$ export EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/client.p12
+$ pvaclient monitor -v 5 fred:aiExample
+```
+
+Example for running CS-Studio:
+
+```
+$ export EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/client.p12
+$ phoebus.sh
+```
+
+
+For more, refer to the PVXS documentation.
+
+
+--------------------------------------------------------
+
+
+Manually creating certificates
+==============================
+
+In this section we describe an earlier approach to creating certificates.
+It is left for reference, the suggested approach is now based on `pvacms`.
+
+We start with a minimal setup for initial tests.
 
 Step 1: Create a server KEYSTORE that contains a public and private key.
 -------

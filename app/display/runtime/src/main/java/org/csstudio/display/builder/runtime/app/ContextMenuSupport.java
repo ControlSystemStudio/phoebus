@@ -1,11 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.app;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialog;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -127,12 +130,20 @@ class ContextMenuSupport {
         }
 
         // Widget actions
-        for (ActionInfo info : widget.propActions().getValue().getActions()) {
-            List<MenuItem> actionMenuItems = info.getContextMenuItems(RuntimeUtil.getExecutor(), widget);
-            if (actionMenuItems != null) {
-                items.addAll(actionMenuItems);
+        // Skip if widget requires password or confirmation dialog,
+        // because in here we would invoke actions without those constraints
+        final Optional<WidgetProperty<String>> pass = widget.checkProperty(propPassword);
+        final Optional<WidgetProperty<Boolean>> prompt = widget.checkProperty(propConfirmDialog);
+        final boolean need_dialog = (pass.isPresent()  &&  !pass.get().getValue().isBlank())  ||
+                                  (prompt.isPresent()  &&   prompt.get().getValue());
+
+        if (! need_dialog)
+            for (ActionInfo info : widget.propActions().getValue().getActions()) {
+                List<MenuItem> actionMenuItems = info.getContextMenuItems(RuntimeUtil.getExecutor(), widget);
+                if (actionMenuItems != null) {
+                    items.addAll(actionMenuItems);
+                }
             }
-        }
 
         // Actions of the widget runtime
         final WidgetRuntime<Widget> runtime = RuntimeUtil.getRuntime(widget);
