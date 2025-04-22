@@ -21,6 +21,7 @@ package org.phoebus.applications.saveandrestore.ui.configuration;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -28,6 +29,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -37,16 +39,18 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.util.Callback;
+import javafx.util.StringConverter;
+import javafx.util.converter.DoubleStringConverter;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -54,10 +58,12 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -65,11 +71,14 @@ import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -78,30 +87,55 @@ import java.util.stream.Collectors;
 public class ConfigurationController extends SaveAndRestoreBaseController implements NodeChangedListener {
 
     @FXML
+    @SuppressWarnings("unused")
     private BorderPane root;
 
     @FXML
-    private TableColumn<ConfigPv, String> pvNameColumn;
+    @SuppressWarnings("unused")
+    private TableColumn<ConfigPvEntry, String> pvNameColumn;
 
     @FXML
-    private TableView<ConfigPv> pvTable;
+    @SuppressWarnings("unused")
+    private TableColumn<ConfigPvEntry, String> readbackPvNameColumn;
 
     @FXML
+    @SuppressWarnings("unused")
+    private TableColumn<ConfigPvEntry, ComparisonMode> comparisonModeColumn;
+
+    @FXML
+    @SuppressWarnings("unused")
+    private TableColumn<ConfigPvEntry, Double> toleranceColumn;
+
+    @FXML
+    @SuppressWarnings("unused")
+    private TableColumn<ConfigPvEntry, Boolean> readOnlyColumn;
+
+    @FXML
+    @SuppressWarnings("unused")
+    private TableView<ConfigPvEntry> pvTable;
+
+    @FXML
+    @SuppressWarnings("unused")
     private TextArea descriptionTextArea;
 
     @FXML
+    @SuppressWarnings("unused")
     private Button saveButton;
 
     @FXML
+    @SuppressWarnings("unused")
     private TextField pvNameField;
 
     @FXML
+    @SuppressWarnings("unused")
     private TextField readbackPvNameField;
 
     @FXML
+    @SuppressWarnings("unused")
     private Button addPvButton;
 
     @FXML
+    @SuppressWarnings("unused")
     private CheckBox readOnlyCheckBox;
 
     @FXML
@@ -113,25 +147,28 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     private final SimpleBooleanProperty readOnlyProperty = new SimpleBooleanProperty(false);
 
     @FXML
+    @SuppressWarnings("unused")
     private TextField configurationNameField;
     @FXML
+    @SuppressWarnings("unused")
     private Label configurationCreatedDateField;
 
     @FXML
+    @SuppressWarnings("unused")
     private Label configurationLastModifiedDateField;
     @FXML
+    @SuppressWarnings("unused")
     private Label createdByField;
 
     @FXML
+    @SuppressWarnings("unused")
     private Pane addPVsPane;
 
     private SaveAndRestoreService saveAndRestoreService;
 
     private static final Executor UI_EXECUTOR = Platform::runLater;
 
-    private final SimpleBooleanProperty dirty = new SimpleBooleanProperty(false);
-
-    private final ObservableList<ConfigPv> configurationEntries = FXCollections.observableArrayList();
+    private final ObservableList<ConfigPvEntry> configurationEntries = FXCollections.observableArrayList();
 
     private final SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
     private final SimpleStringProperty configurationDescriptionProperty = new SimpleStringProperty();
@@ -146,6 +183,9 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     private final Logger logger = Logger.getLogger(ConfigurationController.class.getName());
 
+    private final BooleanProperty loadInProgress = new SimpleBooleanProperty();
+    private final BooleanProperty dirty = new SimpleBooleanProperty();
+
     public ConfigurationController(ConfigurationTab configurationTab) {
         this.configurationTab = configurationTab;
     }
@@ -155,16 +195,17 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
+        dirty.addListener((obs, o, n) -> configurationTab.annotateDirty(n));
+
+        pvTable.editableProperty().bind(userIdentity.isNull().not());
         pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         pvTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
-
-        ContextMenu pvNameContextMenu = new ContextMenu();
 
         MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
                 new ImageView(ImageCache.getImage(ConfigurationController.class, "/icons/delete.png")));
         deleteMenuItem.setOnAction(ae -> {
             configurationEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
-            configurationTab.annotateDirty(true);
+            //configurationTab.annotateDirty(true);
             pvTable.refresh();
         });
 
@@ -172,50 +213,114 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                         || userIdentity.isNull().get(),
                 pvTable.getSelectionModel().getSelectedItems(), userIdentity));
 
-        pvNameColumn.setEditable(true);
-        pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
-
-        pvNameColumn.setCellFactory(new Callback<>() {
-            @Override
-            public TableCell<ConfigPv, String> call(TableColumn param) {
-                final TableCell<ConfigPv, String> cell = new TableCell<>() {
-                    @Override
-                    public void updateItem(String item, boolean empty) {
-                        super.updateItem(item, empty);
-                        selectionEmpty.set(empty);
-                        if (empty) {
-                            setText(null);
-                        } else {
-                            if (isEditing()) {
-                                setText(null);
-                            } else {
-                                setText(getItem());
-                                setGraphic(null);
-                            }
-                        }
-                    }
-                };
-                cell.setOnContextMenuRequested(event -> {
-                    pvNameContextMenu.hide();
-                    pvNameContextMenu.getItems().clear();
-                    pvNameContextMenu.getItems().addAll(deleteMenuItem);
-                    pvNameContextMenu.getItems().add(new SeparatorMenuItem());
-                    ObservableList<ConfigPv> selectedPVs = pvTable.getSelectionModel().getSelectedItems();
-                    if (!selectedPVs.isEmpty()) {
-                        List<ProcessVariable> selectedPVList = selectedPVs.stream()
-                                .map(tableEntry -> new ProcessVariable(tableEntry.getPvName()))
-                                .collect(Collectors.toList());
-                        SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
-
-                        ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(cell), pvNameContextMenu);
-                    }
-                    pvNameContextMenu.show(cell, event.getScreenX(), event.getScreenY());
-                });
-                cell.setContextMenu(pvNameContextMenu);
-
-                return cell;
+        ContextMenu contextMenu = new ContextMenu();
+        pvTable.setOnContextMenuRequested(event -> {
+            contextMenu.getItems().clear();
+            contextMenu.getItems().addAll(deleteMenuItem);
+            contextMenu.getItems().add(new SeparatorMenuItem());
+            ObservableList<ConfigPvEntry> selectedPVs = pvTable.getSelectionModel().getSelectedItems();
+            if (!selectedPVs.isEmpty()) {
+                List<ProcessVariable> selectedPVList = selectedPVs.stream()
+                        .map(tableEntry -> new ProcessVariable(tableEntry.getPvNameProperty().get()))
+                        .collect(Collectors.toList());
+                SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
+                ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(pvTable), contextMenu);
             }
         });
+
+        pvTable.setContextMenu(contextMenu);
+
+        pvNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        pvNameColumn.setCellValueFactory(cell -> cell.getValue().getPvNameProperty());
+        pvNameColumn.setOnEditCommit(t -> {
+            t.getTableView().getItems().get(t.getTablePosition().getRow()).setPvNameProperty(t.getNewValue());
+            setDirty(true);
+        });
+
+        readbackPvNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        readbackPvNameColumn.setCellValueFactory(cell -> cell.getValue().getReadBackPvNameProperty());
+        readbackPvNameColumn.setOnEditCommit(t -> {
+            t.getTableView().getItems().get(t.getTablePosition().getRow()).setReadBackPvNameProperty(t.getNewValue());
+            setDirty(true);
+        });
+
+        readOnlyColumn.setCellFactory(CheckBoxTableCell.forTableColumn(readOnlyColumn));
+        readOnlyColumn.setCellValueFactory(cell -> {
+            BooleanProperty readOnly = cell.getValue().getReadOnlyProperty();
+            readOnly.addListener((obs, o, n) -> setDirty(true));
+            return readOnly;
+        });
+
+        comparisonModeColumn.setCellValueFactory(cell -> cell.getValue().getComparisonModeProperty());
+        comparisonModeColumn.setCellFactory(callback -> {
+            ObservableList<ComparisonMode> values = FXCollections.observableArrayList(Arrays.stream(ComparisonMode.values()).toList());
+            values.add(0, null);
+            ComboBoxTableCell<ConfigPvEntry, ComparisonMode> tableCell = new ComboBoxTableCell<>(values) {
+
+                @Override
+                public void commitEdit(ComparisonMode comparisonMode) {
+                    getTableView().getItems().get(getIndex()).setComparisonModeProperty(comparisonMode);
+                    if (comparisonMode == null) {
+                        getTableView().getItems().get(getIndex()).setToleranceProperty(null);
+                    }
+                    setDirty(true);
+                    super.commitEdit(comparisonMode);
+                }
+            };
+
+            StringConverter<ComparisonMode> converter = new StringConverter<>() {
+                @Override
+                public String toString(ComparisonMode object) {
+                    if (object == null) {
+                        return "";
+                    }
+                    return object.toString();
+                }
+
+                @Override
+                public ComparisonMode fromString(String string) {
+                    if (string == null) {
+                        return null;
+                    }
+                    return ComparisonMode.valueOf(string);
+                }
+            };
+            tableCell.setConverter(converter);
+            return tableCell;
+        });
+
+        toleranceColumn.setCellFactory(callback -> new TextFieldTableCell<>(new DoubleStringConverter() {
+            @Override
+            public String toString(Double value) {
+                return value == null ? null : value.toString();
+            }
+
+            @Override
+            public Double fromString(String string) {
+                try {
+                    double value = Double.parseDouble(string);
+                    if(value >= 0){
+                        // Tolerance must be >= 0.
+                        return value;
+                    }
+                    return null;
+                } catch (Exception e) {
+                    // No logging needed: user has entered text that cannot be parsed as double.
+                    return null;
+                }
+            }
+        }) {
+            @Override
+            public void commitEdit(Double value) {
+                if (value == null) {
+                    return;
+                }
+                getTableView().getItems().get(getIndex()).setToleranceProperty(value);
+                setDirty(true);
+                super.commitEdit(value);
+            }
+        });
+        toleranceColumn.setCellValueFactory(cell -> cell.getValue().getToleranceProperty());
 
         pvNameField.textProperty().bindBidirectional(pvNameProperty);
         readbackPvNameField.textProperty().bindBidirectional(readbackPvNameProperty);
@@ -224,17 +329,17 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         descriptionTextArea.textProperty().bindBidirectional(configurationDescriptionProperty);
         descriptionTextArea.disableProperty().bind(userIdentity.isNull());
 
-        configurationEntries.addListener((ListChangeListener<ConfigPv>) change -> {
+        configurationEntries.addListener((ListChangeListener<ConfigPvEntry>) change -> {
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved()) {
                     FXCollections.sort(configurationEntries);
-                    dirty.set(true);
+                    setDirty(true);
                 }
             }
         });
 
-        configurationNameProperty.addListener((observableValue, oldValue, newValue) -> dirty.set(!newValue.equals(configurationNode.getName())));
-        configurationDescriptionProperty.addListener((observable, oldValue, newValue) -> dirty.set(!newValue.equals(configurationNode.get().getDescription())));
+        configurationNameProperty.addListener((observableValue, oldValue, newValue) -> setDirty(!newValue.equals(configurationNode.getName())));
+        configurationDescriptionProperty.addListener((observable, oldValue, newValue) -> setDirty(!newValue.equals(configurationNode.get().getDescription())));
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         configurationDescriptionProperty.isEmpty().get() ||
@@ -242,7 +347,10 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                         userIdentity.isNull().get(),
                 dirty, configurationDescriptionProperty, configurationNameProperty, userIdentity));
 
-        addPvButton.disableProperty().bind(pvNameField.textProperty().isEmpty());
+        addPvButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                pvNameField.textProperty().isEmpty().get() &&
+                        readbackPvNameField.textProperty().isEmpty().get(),
+                pvNameField.textProperty(), readbackPvNameField.textProperty()));
 
         readOnlyCheckBox.selectedProperty().bindBidirectional(readOnlyProperty);
 
@@ -268,12 +376,13 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void saveConfiguration() {
         UI_EXECUTOR.execute(() -> {
             try {
                 configurationNode.get().setName(configurationNameProperty.get());
                 configurationNode.get().setDescription(configurationDescriptionProperty.get());
-                configurationData.setPvList(configurationEntries);
+                configurationData.setPvList(configurationEntries.stream().map(ConfigPvEntry::toConfigPv).toList());
                 Configuration configuration = new Configuration();
                 configuration.setConfigurationNode(configurationNode.get());
                 configuration.setConfigurationData(configurationData);
@@ -281,12 +390,10 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                     configuration = saveAndRestoreService.createConfiguration(configurationNodeParent,
                             configuration);
                     configurationTab.setId(configuration.getConfigurationNode().getUniqueId());
-                    configurationTab.updateTabTitle(configuration.getConfigurationNode().getName());
                 } else {
                     configuration = saveAndRestoreService.updateConfiguration(configuration);
                 }
                 configurationData = configuration.getConfigurationData();
-                dirty.set(false);
                 loadConfiguration(configuration.getConfigurationNode());
             } catch (Exception e1) {
                 ExceptionDetailsErrorDialog.openError(pvTable,
@@ -298,6 +405,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     }
 
     @FXML
+    @SuppressWarnings("unused")
     public void addPv() {
 
         UI_EXECUTOR.execute(() -> {
@@ -305,27 +413,44 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             String[] pvNames = pvNameProperty.get().trim().split("[\\s;]+");
             String[] readbackPvNames = readbackPvNameProperty.get().trim().split("[\\s;]+");
 
-            ArrayList<ConfigPv> configPVs = new ArrayList<>();
+            if(!checkForDuplicatePvNames(pvNames)){
+                return;
+            }
+
+            ArrayList<ConfigPvEntry> configPVs = new ArrayList<>();
             for (int i = 0; i < pvNames.length; i++) {
-                // Disallow duplicate PV names as in a restore operation this would mean that a PV is written
-                // multiple times, possibly with different values.
                 String pvName = pvNames[i].trim();
-                if (configurationEntries.stream().anyMatch(s -> s.getPvName().equals(pvName))) {
-                    continue;
-                }
                 String readbackPV = i >= readbackPvNames.length ? null : readbackPvNames[i] == null || readbackPvNames[i].isEmpty() ? null : readbackPvNames[i].trim();
                 ConfigPv configPV = ConfigPv.builder()
                         .pvName(pvName)
                         .readOnly(readOnlyProperty.get())
                         .readbackPvName(readbackPV)
                         .build();
-                configPVs.add(configPV);
+                configPVs.add(new ConfigPvEntry(configPV));
             }
             configurationEntries.addAll(configPVs);
-            configurationTab.annotateDirty(true);
             resetAddPv();
         });
+    }
 
+    /**
+     * Checks that added PV names are not added multiple times
+     * @param addedPvNames New PV names added in the UI
+     * @return <code>true</code> if no duplicates are detected, otherwise <code>false</code>
+     */
+    private boolean checkForDuplicatePvNames(String[] addedPvNames){
+        List<String> pvNamesAsList = new ArrayList<>();
+        pvNamesAsList.addAll(Arrays.asList(addedPvNames));
+        pvTable.itemsProperty().get().forEach(i -> pvNamesAsList.add(i.getPvNameProperty().get()));
+        List<String> duplicatePvNames = pvNamesAsList.stream().filter(n -> Collections.frequency(pvNamesAsList, n) > 1).toList();
+
+        if(duplicatePvNames.size() > 0){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText(Messages.duplicatePVNamesNotSupported);
+            alert.showAndWait();
+            return false;
+        }
+        return true;
     }
 
     private void resetAddPv() {
@@ -348,7 +473,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         configurationData = new ConfigurationData();
         pvTable.setItems(configurationEntries);
         UI_EXECUTOR.execute(() -> configurationNameField.requestFocus());
-        dirty.set(false);
+        setDirty(false);
     }
 
     /**
@@ -363,6 +488,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
             return;
         }
+        loadInProgress.set(true);
         // Create a cloned Node object to avoid changes in the Node object contained in the tree view.
         configurationNode.set(Node.builder().uniqueId(node.getUniqueId())
                 .name(node.getName())
@@ -372,16 +498,16 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 .created(node.getCreated())
                 .lastModified(node.getLastModified())
                 .build());
-        loadConfigurationData();
+        loadConfigurationData(() -> loadInProgress.set(false));
     }
 
-    private void loadConfigurationData() {
+    private void loadConfigurationData(Runnable completion) {
         UI_EXECUTOR.execute(() -> {
             try {
                 Collections.sort(configurationData.getPvList());
-                configurationEntries.setAll(configurationData.getPvList());
+                configurationEntries.setAll(configurationData.getPvList().stream().map(ConfigPvEntry::new).toList());
                 pvTable.setItems(configurationEntries);
-                dirty.set(false);
+                completion.run();
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Unable to load existing configuration");
             }
@@ -411,5 +537,9 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                     .lastModified(node.getLastModified())
                     .build());
         }
+    }
+
+    private void setDirty(boolean dirty) {
+        this.dirty.set(dirty && !loadInProgress.get());
     }
 }

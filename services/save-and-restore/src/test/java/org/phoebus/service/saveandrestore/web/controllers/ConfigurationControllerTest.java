@@ -22,9 +22,13 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.phoebus.applications.saveandrestore.model.Comparison;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +39,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+
+import java.util.List;
 
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -77,6 +83,10 @@ public class ConfigurationControllerTest {
 
         Configuration configuration = new Configuration();
         configuration.setConfigurationNode(Node.builder().build());
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("foo").readbackPvName("bar").build()));
+
+        configuration.setConfigurationData(configurationData);
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
@@ -155,6 +165,46 @@ public class ConfigurationControllerTest {
 
         mockMvc.perform(request).andExpect(status().isUnauthorized()
         );
+    }
 
+    @Test
+    public void testCreateInvalidConfiguration() throws Exception {
+
+        reset(nodeDAO);
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(Node.builder().build());
+        ConfigurationData configurationData = new ConfigurationData();
+        configuration.setConfigurationData(configurationData);
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("foo").build(),
+                ConfigPv.builder().pvName("fooo").comparison(new Comparison(null, 0.1)).build()));
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        configurationData.setPvList(List.of(
+                ConfigPv.builder().pvName("fooo").readbackPvName("bar").comparison(new Comparison(null, 0.1)).build()));
+
+        configuration.setConfigurationData(configurationData);
+
+        request = put("/config?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        configurationData.setPvList(List.of(
+                ConfigPv.builder().pvName("fooo").readbackPvName("bar").comparison(new Comparison(ComparisonMode.RELATIVE, -0.1))
+                        .build()));
+
+        configuration.setConfigurationData(configurationData);
+
+        request = put("/config?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 }

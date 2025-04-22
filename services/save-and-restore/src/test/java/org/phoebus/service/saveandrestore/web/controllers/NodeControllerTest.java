@@ -25,7 +25,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
+import org.phoebus.applications.saveandrestore.model.Comparison;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -164,6 +168,9 @@ public class NodeControllerTest {
 
         Configuration configuration = new Configuration();
         configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(Collections.emptyList());
+        configuration.setConfigurationData(configurationData);
 
         when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer((Answer<Configuration>) invocation -> configuration);
 
@@ -177,6 +184,91 @@ public class NodeControllerTest {
 
         // Make sure response contains expected data
         objectMapper.readValue(result.getResponse().getContentAsString(), Configuration.class);
+    }
+
+    @Test
+    public void testCreateConfigWithToleranceData() throws Exception {
+
+        reset(nodeDAO);
+
+        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName("user").build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        ConfigPv configPv1 = new ConfigPv();
+        configPv1.setPvName("name");
+        configPv1.setComparison(new Comparison(ComparisonMode.ABSOLUTE, 1.0));
+        configurationData.setPvList(List.of(configPv1));
+        configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer((Answer<Configuration>) invocation -> configuration);
+
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(configuration));
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
+                .andReturn();
+
+        // Make sure response contains expected data
+        objectMapper.readValue(result.getResponse().getContentAsString(), Configuration.class);
+    }
+
+    @Test
+    public void testCreateConfigWithBadToleranceData1() throws Exception {
+
+        reset(nodeDAO);
+
+        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName("user").build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        ConfigPv configPv1 = new ConfigPv();
+        configPv1.setPvName("name");
+        configPv1.setComparison(new Comparison(ComparisonMode.ABSOLUTE, null));
+        configurationData.setPvList(List.of(configPv1));
+        configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer((Answer<Configuration>) invocation -> configuration);
+
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(configuration));
+
+       mockMvc.perform(request).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testCreateConfigWithBadToleranceData2() throws Exception {
+
+        reset(nodeDAO);
+
+        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName("user").build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        ConfigPv configPv1 = new ConfigPv();
+        configPv1.setPvName("name");
+        configPv1.setComparison(new Comparison(null, 0.1));
+        configurationData.setPvList(List.of(configPv1));
+        configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer((Answer<Configuration>) invocation -> configuration);
+
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
     @Test

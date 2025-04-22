@@ -17,6 +17,7 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -58,6 +59,17 @@ public class ConfigurationController extends BaseController {
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
                                              @RequestBody Configuration configuration,
                                              Principal principal) {
+        for(ConfigPv configPv : configuration.getConfigurationData().getPvList()){
+            // Compare mode is set, verify tolerance is non-null
+            if(configPv.getComparison() != null && (configPv.getComparison().getComparisonMode() == null || configPv.getComparison().getTolerance() == null)){
+                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies comparison but no comparison or tolerance value");
+            }
+            // Tolerance is set...
+            if(configPv.getComparison() != null && configPv.getComparison().getTolerance() < 0){
+                //Tolerance is less than zero, which does not make sense as comparison considers tolerance as upper and lower limit.
+                throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies zero tolerance");
+             }
+        }
         configuration.getConfigurationNode().setUserName(principal.getName());
         return nodeDAO.createConfiguration(parentNodeId, configuration);
     }

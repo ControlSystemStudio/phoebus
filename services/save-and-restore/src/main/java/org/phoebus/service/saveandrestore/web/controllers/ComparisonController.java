@@ -17,9 +17,11 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.CompareResult;
+import org.phoebus.applications.saveandrestore.model.ComparisonResult;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
@@ -54,12 +56,15 @@ public class ComparisonController extends BaseController {
     /**
      *
      * @param nodeId The unique node id of a snapshot or composite snapshot.
-     * @return A list of {@link CompareResult}s, one for each PV item in the snapshot/composite snapshot. The
-     * {@link CompareResult#getLiveValue()} and {@link CompareResult#getStoredValue()} will return <code>null</code> if
+     * @return A list of {@link ComparisonResult}s, one for each PV item in the snapshot/composite snapshot. The
+     * {@link ComparisonResult#getLiveValue()} and {@link ComparisonResult#getStoredValue()} will return <code>null</code> if
      * comparison evaluates to &quot;equal&quot; for a PV.
      */
     @GetMapping(value = "/{nodeId}", produces = JSON)
-    public List<CompareResult> compare(@PathVariable String nodeId, @RequestParam(value = "tolerance", required = false, defaultValue = "0") double tolerance) {
+    public List<ComparisonResult> compare(@PathVariable String nodeId,
+                                          @RequestParam(value = "tolerance", required = false, defaultValue = "0") double tolerance,
+                                          @RequestParam(value = "compareMode", required = false, defaultValue = "ABSOLUTE") ComparisonMode compareMode,
+                                          @RequestParam(value = "skipReadback", required = false, defaultValue = "false") boolean skipReadback) {
         if(tolerance < 0){
             throw new IllegalArgumentException("Tolerance must be >=0");
         }
@@ -67,26 +72,51 @@ public class ComparisonController extends BaseController {
         if (node == null) {
             throw new NodeNotFoundException("Node " + nodeId + " does not exist");
         }
+        List<ConfigPv> configPvs = new ArrayList<>();
+        List<SnapshotItem> snapshotItems = new ArrayList<>();
         switch (node.getNodeType()) {
-            case SNAPSHOT:
-                return snapshotUtil.comparePvs(getSnapshotItems(node.getUniqueId()), tolerance);
-            case COMPOSITE_SNAPSHOT:
-                return snapshotUtil.comparePvs(getCompositeSnapshotItems(node.getUniqueId()), tolerance);
+            case SNAPSHOT: {
+                getSnapshotItemsAndConfig(node.getUniqueId(), snapshotItems, configPvs);
+                return snapshotUtil.comparePvs(snapshotItems, configPvs, tolerance, compareMode, skipReadback);
+            }
+            case COMPOSITE_SNAPSHOT: {
+                getCompositeSnapshotItemsAndConfig(node.getUniqueId(), snapshotItems, configPvs);
+                return snapshotUtil.comparePvs(snapshotItems, configPvs, tolerance, compareMode, skipReadback);
+            }
             default:
                 throw new IllegalArgumentException("Node type" + node.getNodeType() + " cannot be compared");
         }
     }
 
-    private List<SnapshotItem> getSnapshotItems(String nodeId) {
-        return nodeDAO.getSnapshotData(nodeId).getSnapshotItems();
+    /**
+     * Collects {@link SnapshotItem}s from the snapshot and {@link ConfigPv}s from the associated configuration.
+     * @param snapshotNodeId The snapshot's unique id.
+     * @param snapshotItems {@link List} into which {@link SnapshotItem}s are added.
+     * @param configPvs {@link List} into which {@link ConfigPv}s are added.
+     */
+    private void getSnapshotItemsAndConfig(String snapshotNodeId, List<SnapshotItem> snapshotItems, List<ConfigPv> configPvs){
+        snapshotItems.addAll(nodeDAO.getSnapshotData(snapshotNodeId).getSnapshotItems());
+        Node configNode = nodeDAO.getParentNode(snapshotNodeId);
+        configPvs.addAll(nodeDAO.getConfigurationData(configNode.getUniqueId()).getPvList());
     }
 
-    private List<SnapshotItem> getCompositeSnapshotItems(String nodeId) {
-        CompositeSnapshotData compositeSnapshotData = nodeDAO.getCompositeSnapshotData(nodeId);
+    /**
+     * Collects {@link SnapshotItem}s from the composite snapshot and {@link ConfigPv}s from the associated configuration.
+     * Recursive calls are done when composite snapshots contains composite snapshots.
+     * @param compositeSnapshotNodeId The composite snapshot's unique id.
+     * @param snapshotItems {@link List} into which {@link SnapshotItem}s are added.
+     * @param configPvs {@link List} into which {@link ConfigPv}s are added.
+     */
+    protected void getCompositeSnapshotItemsAndConfig(String compositeSnapshotNodeId, List<SnapshotItem> snapshotItems, List<ConfigPv> configPvs){
+        CompositeSnapshotData compositeSnapshotData = nodeDAO.getCompositeSnapshotData(compositeSnapshotNodeId);
         List<String> referencedSnapshots = compositeSnapshotData.getReferencedSnapshotNodes();
-        List<SnapshotItem> snapshotItems = new ArrayList<>();
-        referencedSnapshots.forEach(id -> snapshotItems.addAll(getSnapshotItems(id)));
-        return snapshotItems;
+        referencedSnapshots.forEach(id -> {
+            Node node = nodeDAO.getNode(id);
+            switch (node.getNodeType()){
+                case SNAPSHOT -> getSnapshotItemsAndConfig(id, snapshotItems, configPvs);
+                case COMPOSITE_SNAPSHOT -> getCompositeSnapshotItemsAndConfig(id, snapshotItems, configPvs);
+            }
+        });
     }
 }
 
