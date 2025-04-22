@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.runtime.app;
 
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.csstudio.display.builder.runtime.Preferences;
 
 import javafx.application.Platform;
 import javafx.scene.control.ComboBox;
@@ -33,6 +34,15 @@ public class ZoomAction extends ComboBox<String>
             getEditor().setText(txt);
         });
         setOnAction(event -> zoom(instance.getRepresentation()));
+
+        // Apply default zoom factor from settings.ini
+        Platform.runLater(() ->
+        {
+            String zoom = String.format("%d %%", Preferences.default_zoom_factor);
+            setValue(zoom);
+            // Invoke zoom changed handler
+            getOnAction().handle(null);
+        });
     }
 
     private void zoom(final JFXRepresentation representation)
