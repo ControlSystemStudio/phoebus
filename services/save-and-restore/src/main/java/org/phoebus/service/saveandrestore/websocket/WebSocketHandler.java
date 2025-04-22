@@ -87,7 +87,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
-        logger.log(Level.INFO, "Opening web socket sesssion from remote " + session.getRemoteAddress().getAddress());
+        logger.log(Level.INFO, "Opening web socket session from remote " + session.getRemoteAddress().getAddress());
         WebSocket webSocket = new WebSocket(objectMapper, session);
         sockets.add(webSocket);
     }
@@ -104,6 +104,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         Optional<WebSocket> webSocketOptional =
                 sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
         if (webSocketOptional.isPresent()) {
+            logger.log(Level.INFO, "Closing web socket session from remote " + session.getRemoteAddress().getAddress());
             webSocketOptional.get().dispose();
             sockets.remove(webSocketOptional.get());
         }

@@ -67,7 +67,7 @@ public class WebSocket {
      */
     public WebSocket(ObjectMapper objectMapper, WebSocketSession webSocketSession) {
         this.session = webSocketSession;
-        logger.log(Level.INFO, () -> "Opening web socket " + session.getUri() + " ID " + session.getId());
+        logger.log(Level.INFO, () -> "Creating web socket " + session.getUri() + " ID " + session.getId());
         this.objectMapper = objectMapper;
         this.id = webSocketSession.getId();
         Thread writeThread = new Thread(this::writeQueuedMessages, "Web Socket Write Thread");
@@ -206,17 +206,6 @@ public class WebSocket {
     }
 
     /**
-     * @param name          PV name for which to send an update
-     * @param value         Current value
-     * @param last_value    Previous value
-     * @param last_readonly Was the PV read-only?
-     * @param readonly      Is the PV read-only?
-     */
-    public void sendUpdate(final String name, final VType value, final VType last_value, final boolean last_readonly, final boolean readonly) {
-
-    }
-
-    /**
      * Clears all PVs
      *
      * <p>Web socket calls this onClose(),
@@ -234,7 +223,7 @@ public class WebSocket {
         } catch (Throwable ex) {
             logger.log(Level.WARNING, "Error disposing " + getId(), ex);
         }
-        logger.log(Level.FINE, () -> "Web socket " + session.getId() + " closed");
+        logger.log(Level.INFO, () -> "Web socket " + session.getId() + " closed");
         lastClientMessage = 0;
     }
 

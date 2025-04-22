@@ -21,6 +21,7 @@
     <module>email</module>
     <module>launcher</module>
     <module>vtype</module>
+    <module>websocket</module>
   </modules>
   <parent>
    <groupId>org.phoebus</groupId>

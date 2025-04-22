@@ -69,8 +69,6 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.RestoreUtil;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.actions.OpenNodeAction;
-import org.phoebus.applications.saveandrestore.client.Preferences;
-import org.phoebus.applications.saveandrestore.client.WebSocketClient;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;

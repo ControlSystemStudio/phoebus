@@ -2,7 +2,7 @@
  * Copyright (C) 2025 European Spallation Source ERIC.
  */
 
-package org.phoebus.applications.saveandrestore.client;
+package org.phoebus.core.websocket;
 
 import java.net.URI;
 import java.net.http.HttpClient;
