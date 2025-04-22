@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.TermRangeQuery;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.phoebus.applications.eslog.Activator;
@@ -165,10 +166,8 @@ public class ElasticsearchModel<T extends LogMessage> extends ArchiveModel<T>
     @SuppressWarnings("nls")
     protected Query getTimeQuery(Instant from, Instant to)
     {
-        return RangeQuery.of(r -> r.field(this.dateField)
-                .gte(JsonData.of(from.toEpochMilli()))
-                .lte(JsonData.of(to.toEpochMilli())).format("epoch_millis"))
-                ._toQuery();
+        return RangeQuery.of(r ->
+            r.term(TermRangeQuery.of(t -> t.field("message_time").gte(JsonData.of(from.toEpochMilli()).toString()).lte(JsonData.of(to.toEpochMilli()).toString()))))._toQuery();
     }
 
     @Override

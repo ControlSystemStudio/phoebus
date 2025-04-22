@@ -8,6 +8,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.DisMaxQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.TermRangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
@@ -236,13 +237,11 @@ public class AlarmLogSearchUtil {
             boolQuery.must(
                     Query.of(q -> q
                             .range(RangeQuery.of(r -> r
-                                            .field("message_time")
-                                            .from(formatter.format(finalFromInstant))
-                                            .to(formatter.format(finalToInstant))
+                                            .term(TermRangeQuery.of(t -> t.field("message_time").gte(formatter.format(finalFromInstant)).lte((formatter.format(finalToInstant))))
                                     )
                             )
                     )
-            );
+            ));
 
             try {
                 // "root" is empty string unless user specifies a list of alarm configs, in which case we can narrow down to

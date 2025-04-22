@@ -313,7 +313,7 @@ public class ElasticClientHelper {
                             .name(ALARM_STATE_TEMPLATE)
                             .indexPatterns(Arrays.asList(ALARM_STATE_TEMPLATE_PATTERN))
                             .withJson(is)
-                            .priority(1)
+                            .priority(1L)
                             .create(true)
                             .build();
                     PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
@@ -333,7 +333,7 @@ public class ElasticClientHelper {
                             .name(ALARM_CMD_TEMPLATE)
                             .indexPatterns(Arrays.asList(ALARM_CMD_TEMPLATE_PATTERN))
                             .withJson(is)
-                            .priority(2)
+                            .priority(2L)
                             .create(true)
                             .build();
                     PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
@@ -353,7 +353,7 @@ public class ElasticClientHelper {
                             .name(ALARM_CONFIG_TEMPLATE)
                             .indexPatterns(Arrays.asList(ALARM_CONFIG_TEMPLATE_PATTERN))
                             .withJson(is)
-                            .priority(3)
+                            .priority(3L)
                             .create(true)
                             .build();
                     PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);

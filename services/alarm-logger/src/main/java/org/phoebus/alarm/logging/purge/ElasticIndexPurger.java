@@ -30,6 +30,7 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexResponse;
+import jakarta.annotation.PostConstruct;
 import org.phoebus.alarm.logging.ElasticClientHelper;
 import org.phoebus.alarm.logging.rest.AlarmLogMessage;
 import org.phoebus.alarm.logging.rest.AlarmLogSearchUtil;
@@ -38,7 +39,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

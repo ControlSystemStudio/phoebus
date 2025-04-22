@@ -4,14 +4,21 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.http.HttpMethod;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -19,7 +26,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.ldap.LdapBindAuthenticationManagerFactory;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
@@ -28,6 +40,9 @@ import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopul
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.PersonContextMapper;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * {@link Configuration} class setting up authentication/authorization depending on the
@@ -99,7 +114,6 @@ public class WebSecurityConfig {
     private String demoReadOnlyPassword;
 
     /**
-     *
      * @return name of regular user role
      */
     @Bean
@@ -108,7 +122,6 @@ public class WebSecurityConfig {
     }
 
     /**
-     *
      * @return name of admin user role
      */
     @Bean
@@ -117,98 +130,94 @@ public class WebSecurityConfig {
     }
 
     /**
-     *
      * @return Identity of demo regular user
      */
     @Bean
-    public String demoUser(){
+    public String demoUser() {
         return demoUser;
     }
 
     /**
-     *
      * @return Password of demo regular user
      */
     @Bean
-    public String demoUserPassword(){
+    public String demoUserPassword() {
         return demoUserPassword;
     }
 
     /**
-     *
      * @return Identity of the demo admin user.
      */
     @Bean
-    public String demoAdmin(){
+    public String demoAdmin() {
         return demoAdmin;
     }
 
     /**
-     *
      * @return Password of the demo admin user.
      */
     @Bean
-    public String demoAdminPassword(){
+    public String demoAdminPassword() {
         return demoAdminPassword;
     }
 
     /**
-     *
      * @return Identity of the demo read-only user.
      */
     @Bean
-    public String demoReadOnly(){
+    public String demoReadOnly() {
         return demoReadOnly;
     }
 
     /**
-     *
      * @return Password of the demo read-only user.
      */
     @Bean
-    public String demoReadOnlyPassword(){
+    public String demoReadOnlyPassword() {
         return demoReadOnlyPassword;
     }
 
     /**
-     *
      * @return The authentication implementation as specified in application property auth.impl.
      */
     @SuppressWarnings("unused")
     @Bean
-    public String authenticationImplementation(){
+    public String authenticationImplementation() {
         return authenitcationImplementation;
     }
 
     /**
      * Configures endpoints not subject to authentication.
+     *
      * @return A {@link WebSecurityCustomizer} object.
      */
     @Bean
     public WebSecurityCustomizer ignoringCustomizer() {
         return web -> {
             // The below lists exceptions for authentication.
-            web.ignoring().antMatchers(HttpMethod.GET, "/**");
-            web.ignoring().antMatchers(HttpMethod.POST, "/**/login*");
+            web.ignoring().requestMatchers(HttpMethod.GET, "/**");
+            web.ignoring().requestMatchers(HttpMethod.POST, "/login");
         };
     }
 
     /**
      * Configures http security policy.
+     *
      * @param http A {@link HttpSecurity} object provided by Spring
      * @return A {@link SecurityFilterChain} object.
      * @throws Exception on failure
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-        http.authorizeRequests().anyRequest().authenticated();
-        http.httpBasic();
+        http.csrf(Customizer.withDefaults());
+        http.authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry.anyRequest().authenticated());
+        http.httpBasic(Customizer.withDefaults());
         return http.build();
     }
 
     /**
      * Created based on condition implemented in {@link LdapAuthCondition}.
+     *
      * @return A {@link DefaultSpringSecurityContextSource} object
      */
     @Bean
@@ -226,6 +235,7 @@ public class WebSecurityConfig {
 
     /**
      * Created based on condition implemented in {@link LdapAuthCondition}.
+     *
      * @param contextSource provided by Spring
      * @return A {@link AuthenticationManager} object
      */
@@ -244,6 +254,7 @@ public class WebSecurityConfig {
 
     /**
      * Created based on condition implemented in {@link LdapAuthCondition}.
+     *
      * @param contextSource provided by Spring
      * @return A {@link LdapAuthoritiesPopulator} object
      */
@@ -270,6 +281,7 @@ public class WebSecurityConfig {
 
     /**
      * Created only if application property auth.impl = ad.
+     *
      * @return A {@link AuthenticationManager} object
      * @throws Exception on error
      */
@@ -284,7 +296,7 @@ public class WebSecurityConfig {
         SimpleAuthorityMapper simpleAuthorityMapper = new SimpleAuthorityMapper();
         simpleAuthorityMapper.setConvertToUpperCase(true);
         adProvider.setAuthoritiesMapper(simpleAuthorityMapper);
-        return new AuthenticationManagerBuilder(new ObjectPostProcessor<>() {
+        return new AuthenticationManagerBuilder(new org.springframework.security.config.ObjectPostProcessor<>() {
             @Override
             public <O> O postProcess(O object) {
                 return object;
@@ -294,27 +306,41 @@ public class WebSecurityConfig {
 
     /**
      * Created only if application property auth.impl = demo.
-     * @param auth Injected by Spring
+     *
+     * @param userDetailsService Injected by Spring
+     * @param passwordEncoder    Injected by Spring
      * @return A {@link AuthenticationManager} object
-     * @throws Exception on error
+     * @throws Exception on error, e.g. unknown user or wrong password.
      */
     @Bean
     @ConditionalOnProperty(name = "auth.impl", havingValue = "demo")
-    public AuthenticationManager demoAuthenticationManager(AuthenticationManagerBuilder auth) throws Exception {
-        return new AuthenticationManagerBuilder(new ObjectPostProcessor<>() {
-            @Override
-            public <O> O postProcess(O object) {
-                return object;
+    public AuthenticationManager demoAuthenticationManager(UserDetailsService userDetailsService,
+                                                           PasswordEncoder passwordEncoder) {
+
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder);
+
+        return new ProviderManager(authenticationProvider);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "auth.impl", havingValue = "demo")
+    public UserDetailsService userDetailsService() {
+        return username -> {
+            UserDetails userDetails;
+            if (demoUser.equals(username)) {
+                return new User(demoUser, encoder().encode(demoUserPassword), List.of(new SimpleGrantedAuthority(roleUser())));
+            } else if (demoAdmin.equals(username)) {
+                return new User(demoAdmin, encoder().encode(demoAdminPassword), List.of(new SimpleGrantedAuthority(roleAdmin())));
+            } else if (demoReadOnly.equals(username)) {
+                return new User(demoReadOnly, encoder().encode(demoReadOnlyPassword), Collections.emptyList());
             }
-        }).inMemoryAuthentication()
-                .passwordEncoder(encoder())
-                .withUser(demoAdmin).password(encoder().encode(demoAdminPassword)).roles(roleAdmin()).and()
-                .withUser(demoUser).password(encoder().encode(demoUserPassword)).roles(roleUser()).and()
-                .withUser(demoReadOnly).password(encoder().encode(demoReadOnlyPassword)).roles().and().and().build();
+            throw new UsernameNotFoundException("Unknown user: " + username);
+        };
     }
 
     /**
-     *
      * @return A {@link PasswordEncoder} object.
      */
     @Bean
@@ -324,7 +350,6 @@ public class WebSecurityConfig {
     }
 
     /**
-     *
      * @return An {@link ObjectMapper} object used for serialization/deserialization.
      */
     @SuppressWarnings("unused")

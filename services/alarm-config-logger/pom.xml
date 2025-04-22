@@ -6,8 +6,8 @@
     <version>5.0.1-SNAPSHOT</version>
   </parent>
   <properties>
-    <spring.boot-version>2.7.3</spring.boot-version>
-    <java.version>17</java.version>
+    <spring.boot-version>3.4.4</spring.boot-version>
+    <java.version>21</java.version>
   </properties>
   <artifactId>service-alarm-config-logger</artifactId>
 
@@ -97,7 +97,7 @@
           <plugin>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-maven-plugin</artifactId>
-            <version>2.7.9</version>
+            <version>${spring.boot-version}</version>
             <executions>
               <execution>
                 <goals>
@@ -112,6 +112,17 @@
   </profiles>
   <build>
     <plugins>
+      <!-- This is needed from Spring Boot 3.x in order to be able to reference
+           @PathVariable arguments by method parameter name-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <compilerArgs>
+            <arg>-parameters</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.2.0</version>

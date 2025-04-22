@@ -8,7 +8,7 @@
   <artifactId>phoebus-target</artifactId>
 
   <properties>
-    <spring.boot-version>2.7.3</spring.boot-version>
+    <spring.boot-version>3.4.4</spring.boot-version>
     <preReleaseScripts>${project.basedir}/release_classpath.py</preReleaseScripts>
   </properties>
 
@@ -107,6 +107,7 @@
       <artifactId>javafx-fxml</artifactId>
       <version>${openjfx.version}</version>
     </dependency>
+
 
     <!--  Includes
           jca-2.4.6.jar

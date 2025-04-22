@@ -20,7 +20,7 @@ package org.phoebus.service.saveandrestore.web.config;
 
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
