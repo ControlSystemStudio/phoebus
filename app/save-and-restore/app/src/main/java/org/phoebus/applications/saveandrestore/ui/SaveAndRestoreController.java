@@ -1269,9 +1269,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     @Override
-    public void filterRemoved(Filter filter) {
-        if (filtersList.contains(filter)) {
-            filtersList.remove(filter);
+    public void filterRemoved(String name) {
+        Optional<Filter> filterOptional = filtersList.stream().filter(f -> f.getName().equals(name)).findFirst();
+        if (filterOptional.isPresent()) {
+            Filter filterToRemove = new Filter();
+            filterToRemove.setName(name);
+            filtersList.remove(filterToRemove);
             // If this is the active filter, de-select filter completely
             filterEnabledProperty.set(false);
             filtersComboBox.getSelectionModel().select(null);

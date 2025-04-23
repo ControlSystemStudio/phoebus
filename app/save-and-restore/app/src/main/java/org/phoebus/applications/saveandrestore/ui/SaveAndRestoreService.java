@@ -345,7 +345,7 @@ public class SaveAndRestoreService {
      */
     public void deleteFilter(final Filter filter) throws Exception {
         executor.submit(() -> saveAndRestoreClient.deleteFilter(filter.getName())).get();
-        dataChangeListeners.forEach(l -> l.filterRemoved(filter));
+        dataChangeListeners.forEach(l -> l.filterRemoved(filter.getName()));
     }
 
     /**
@@ -499,7 +499,7 @@ public class SaveAndRestoreService {
                 case NODE_ADDED, NODE_REMOVED -> dataChangeListeners.forEach(l -> l.nodeAddedOrRemoved((String)saveAndRestoreWebSocketMessage.payload()));
                 case NODE_UPDATED -> dataChangeListeners.forEach(l -> l.nodeChanged((Node)saveAndRestoreWebSocketMessage.payload()));
                 case FILTER_ADDED_OR_UPDATED -> dataChangeListeners.forEach(l -> l.filterAddedOrUpdated((Filter)saveAndRestoreWebSocketMessage.payload()));
-                case FILTER_REMOVED -> dataChangeListeners.forEach(l -> l.filterRemoved((Filter)saveAndRestoreWebSocketMessage.payload()));
+                case FILTER_REMOVED -> dataChangeListeners.forEach(l -> l.filterRemoved((String)saveAndRestoreWebSocketMessage.payload()));
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

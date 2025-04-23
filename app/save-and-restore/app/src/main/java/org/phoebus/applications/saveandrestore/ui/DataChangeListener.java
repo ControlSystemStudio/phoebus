@@ -18,6 +18,6 @@ public interface DataChangeListener {
     default void filterAddedOrUpdated(Filter filter){
     }
 
-    default void filterRemoved(Filter filter){
+    default void filterRemoved(String filterName){
     }
 }

@@ -28,10 +28,9 @@ public class WebMessageDeserializer extends StdDeserializer<SaveAndRestoreWebSoc
             JsonNode rootNode = jsonParser.getCodec().readTree(jsonParser);
             String messageType = rootNode.get("messageType").asText();
             switch (MessageType.valueOf(messageType)) {
-                case NODE_ADDED, NODE_REMOVED -> {
+                case NODE_ADDED, NODE_REMOVED, FILTER_REMOVED-> {
                     SaveAndRestoreWebSocketMessage<String> saveAndRestoreWebSocketMessage =
-                            objectMapper.readValue(rootNode.toString(), new TypeReference<>() {
-                            });
+                            objectMapper.readValue(rootNode.toString(), SaveAndRestoreWebSocketMessage.class);
                     return saveAndRestoreWebSocketMessage;
                 }
                 case NODE_UPDATED -> {
@@ -39,12 +38,11 @@ public class WebMessageDeserializer extends StdDeserializer<SaveAndRestoreWebSoc
                     });
                     return saveAndRestoreWebSocketMessage;
                 }
-                case FILTER_REMOVED, FILTER_ADDED_OR_UPDATED -> {
+                case FILTER_ADDED_OR_UPDATED -> {
                     SaveAndRestoreWebSocketMessage<Filter> saveAndRestoreWebSocketMessage = objectMapper.readValue(rootNode.toString(), new TypeReference<>() {
                     });
                     return saveAndRestoreWebSocketMessage;
                 }
-
             }
         } catch (Exception e) {
             return null;

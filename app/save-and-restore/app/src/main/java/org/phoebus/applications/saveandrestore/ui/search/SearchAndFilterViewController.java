@@ -646,7 +646,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
     }
 
     @Override
-    public void filterRemoved(Filter filter) {
+    public void filterRemoved(String name) {
         loadFilters();
     }
 
