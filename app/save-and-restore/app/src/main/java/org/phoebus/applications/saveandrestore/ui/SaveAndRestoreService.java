@@ -88,7 +88,6 @@ public class SaveAndRestoreService {
         String webSocketUrl = schema + baseUrl.substring(baseUrl.indexOf("://", 0)) + "/web-socket";
         URI webSocketUri = URI.create(webSocketUrl);
         webSocketClient  = new WebSocketClient(webSocketUri, this::handleWebSocketConnect, this::handleWebSocketDisconnect, this::handleWebSocketMessage);
-        webSocketClient.connect();
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -509,5 +508,9 @@ public class SaveAndRestoreService {
 
     public void closeWebSocket(){
         webSocketClient.close("Application shutdown");
+    }
+
+    public void openWebSocket(){
+        webSocketClient.connect();
     }
 }

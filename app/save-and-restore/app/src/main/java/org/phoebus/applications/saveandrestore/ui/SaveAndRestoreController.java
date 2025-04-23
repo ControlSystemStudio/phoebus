@@ -263,6 +263,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
+        saveAndRestoreService.openWebSocket();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
