@@ -184,6 +184,9 @@ public class Messages {
 
     public static String updateNodeFailed;
 
+    public static String webSocketConnected;
+    public static String webSocketDisconnected;
+
     static {
         NLS.initializeMessages(Messages.class);
     }

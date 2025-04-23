@@ -955,6 +955,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     public void handleTabClosed() {
         saveLocalState();
+        saveAndRestoreService.closeWebSocket();
         //saveAndRestoreService.removeNodeChangeListener(this);
         //saveAndRestoreService.removeNodeAddedListener(this);
         //saveAndRestoreService.removeFilterChangeListener(this);

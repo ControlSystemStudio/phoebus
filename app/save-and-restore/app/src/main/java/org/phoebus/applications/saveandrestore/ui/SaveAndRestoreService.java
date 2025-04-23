@@ -79,7 +79,7 @@ public class SaveAndRestoreService {
     private final SaveAndRestoreClient saveAndRestoreClient;
     private final ObjectMapper objectMapper;
 
-    private final WebSocketClient webSocketClient;
+    private WebSocketClient webSocketClient;
 
     private SaveAndRestoreService() {
         saveAndRestoreClient = new SaveAndRestoreClientImpl();
@@ -87,7 +87,8 @@ public class SaveAndRestoreService {
         String schema = baseUrl.startsWith("https") ? "wss" : "ws";
         String webSocketUrl = schema + baseUrl.substring(baseUrl.indexOf("://", 0)) + "/web-socket";
         URI webSocketUri = URI.create(webSocketUrl);
-        webSocketClient  = new WebSocketClient(webSocketUri, this::handleWebSocketDisconnect, this::handleWebSocketMessage);
+        webSocketClient  = new WebSocketClient(webSocketUri, this::handleWebSocketConnect, this::handleWebSocketDisconnect, this::handleWebSocketMessage);
+        webSocketClient.connect();
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -487,6 +488,10 @@ public class SaveAndRestoreService {
         System.out.println("Web socket disconnected");
     }
 
+    private void handleWebSocketConnect(){
+        System.out.println("Web socket connected");
+    }
+
     private void handleWebSocketMessage(CharSequence charSequence){
         try {
             SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage =
@@ -500,5 +505,9 @@ public class SaveAndRestoreService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void closeWebSocket(){
+        webSocketClient.close("Application shutdown");
     }
 }

@@ -9,6 +9,9 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,9 +23,12 @@ public class WebSocketClient implements WebSocket.Listener {
 
     private WebSocket webSocket;
     private final Logger logger = Logger.getLogger(WebSocketClient.class.getName());
+    private Runnable connectCallback;
     private Runnable disconnectCallback;
     private URI uri;
     private Consumer<CharSequence> onTextCallback;
+    private CountDownLatch countDownLatch;
+    private AtomicBoolean reconnectAborted = new AtomicBoolean(false);
 
     /**
      *
@@ -30,10 +36,14 @@ public class WebSocketClient implements WebSocket.Listener {
      * @param disconnectCallback An optional {@link Runnable} called if the web socket is closed, e.g. if
      *                           peer closes it or due to network issues.
      */
-    public WebSocketClient(URI uri, Runnable disconnectCallback, Consumer<CharSequence> onTextCallback) {
-        this.disconnectCallback = disconnectCallback;
+    public WebSocketClient(URI uri, Runnable connectCallback, Runnable disconnectCallback, Consumer<CharSequence> onTextCallback) {
         this.uri = uri;
+        this.connectCallback = connectCallback;
+        this.disconnectCallback = disconnectCallback;
         this.onTextCallback = onTextCallback;
+    }
+
+    public void connect(){
         try {
             webSocket = HttpClient.newBuilder()
                     .build()
@@ -48,6 +58,9 @@ public class WebSocketClient implements WebSocket.Listener {
     @Override
     public void onOpen(WebSocket webSocket) {
         WebSocket.Listener.super.onOpen(webSocket);
+        if(connectCallback != null){
+            connectCallback.run();
+        }
         logger.log(Level.INFO, "Connected to " + uri);
     }
 
@@ -73,6 +86,9 @@ public class WebSocketClient implements WebSocket.Listener {
         if (disconnectCallback != null) {
             disconnectCallback.run();
         }
+        if(statusCode != WebSocket.NORMAL_CLOSURE){
+            new Thread(new ReconnectThread()).start();
+        }
         return null;
     }
 
@@ -81,12 +97,18 @@ public class WebSocketClient implements WebSocket.Listener {
      * is called.
      */
     public void sendPing() {
+        logger.log(Level.INFO, "Sending ping");
         webSocket.sendPing(ByteBuffer.allocate(0));
     }
 
     @Override
     public CompletionStage<?> onPong(WebSocket webSocket, ByteBuffer message) {
-        logger.log(Level.FINE, "Got pong");
+        logger.log(Level.INFO, "Got pong");
+        if(countDownLatch != null){
+            countDownLatch.countDown();
+            reconnectAborted.set(true);
+            logger.log(Level.INFO, "Reconnect aborted");
+        }
         return WebSocket.Listener.super.onPong(webSocket, message);
     }
 
@@ -108,5 +130,22 @@ public class WebSocketClient implements WebSocket.Listener {
 
     public void close(String reason){
         webSocket.sendClose(1000, reason);
+    }
+
+    private class ReconnectThread implements Runnable{
+        @Override
+        public void run(){
+            reconnectAborted.set(false);
+            while(!reconnectAborted.get()){
+                logger.log(Level.INFO, "Trying to reconnect");
+                countDownLatch = new CountDownLatch(1);
+                sendPing();
+                try {
+                    countDownLatch.await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 }
