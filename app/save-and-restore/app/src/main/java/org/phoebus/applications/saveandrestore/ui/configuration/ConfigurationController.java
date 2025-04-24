@@ -294,6 +294,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 configurationData = configuration.getConfigurationData();
                 dirty.set(false);
                 loadConfiguration(configuration.getConfigurationNode());
+                configurationTab.updateTabTitle(configuration.getConfigurationNode().getName());
             } catch (Exception e1) {
                 ExceptionDetailsErrorDialog.openError(pvTable,
                         Messages.errorActionFailed,
@@ -369,15 +370,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
             return;
         }
-        // Create a cloned Node object to avoid changes in the Node object contained in the tree view.
-        configurationNode.set(Node.builder().uniqueId(node.getUniqueId())
-                .name(node.getName())
-                .nodeType(NodeType.CONFIGURATION)
-                .description(node.getDescription())
-                .userName(node.getUserName())
-                .created(node.getCreated())
-                .lastModified(node.getLastModified())
-                .build());
+        configurationNode.set(node);
         loadConfigurationData();
     }
 
@@ -407,21 +400,19 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     private void nodeChanged(Node node) {
         if (node.getUniqueId().equals(configurationNode.get().getUniqueId())) {
-            configurationNode.setValue(Node.builder().uniqueId(node.getUniqueId())
-                    .name(node.getName())
-                    .nodeType(NodeType.CONFIGURATION)
-                    .userName(node.getUserName())
-                    .description(node.getDescription())
-                    .created(node.getCreated())
-                    .lastModified(node.getLastModified())
-                    .build());
+            configurationNode.setValue(node);
         }
     }
 
     @Override
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
         switch (saveAndRestoreWebSocketMessage.messageType()){
-            case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
+            case NODE_UPDATED -> {
+                Node node = (Node)saveAndRestoreWebSocketMessage.payload();
+                if (node.getUniqueId().equals(configurationNode.get().getUniqueId())){
+                    loadConfiguration(node);
+                }
+            }
         }
     }
 

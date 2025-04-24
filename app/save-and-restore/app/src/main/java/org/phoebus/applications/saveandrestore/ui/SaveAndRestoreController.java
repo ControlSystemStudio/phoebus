@@ -824,15 +824,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             return;
         }
         nodeSubjectToUpdate.setValue(node);
-        // Folder and configuration node changes may include structure changes, so expand to force update.
-        /*
-        if (nodeSubjectToUpdate.isExpanded() && (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) ||
-                nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.CONFIGURATION))) {
-            if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
-                nodeSubjectToUpdate.getParent().getChildren().sort(treeNodeComparator);
-            }
-            expandTreeNode(nodeSubjectToUpdate);
-        }*/
     }
 
     /**

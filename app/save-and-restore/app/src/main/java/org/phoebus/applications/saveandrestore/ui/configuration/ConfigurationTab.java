@@ -100,13 +100,6 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
         ((ConfigurationController) controller).newConfiguration(parentNode);
     }
 
-    private void nodeChanged(Node node) {
-        if (node.getUniqueId().equals(getId())) {
-            textProperty().set(node.getName());
-            originalConfigName = node.getName();
-        }
-    }
-
     /**
      * Updates tab title, e.g. if user has renamed the configuration.
      *
@@ -128,8 +121,13 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
     @Override
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
         switch (saveAndRestoreWebSocketMessage.messageType()){
-            //case NODE_ADDED, NODE_REMOVED -> nodeAddedOrRemoved((String)saveAndRestoreWebSocketMessage.payload());
-            case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
+            case NODE_UPDATED -> {
+                Node node = (Node)saveAndRestoreWebSocketMessage.payload();
+                if(node.getUniqueId().equals(getId())){
+                    textProperty().set(node.getName());
+                    originalConfigName = node.getName();
+                }
+            }
         }
     }
 }

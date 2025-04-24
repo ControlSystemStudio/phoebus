@@ -31,9 +31,12 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -56,7 +59,7 @@ import java.util.stream.Collectors;
  * Once the snapshot has been saved, this controller calls the {@link SnapshotTab} API to load
  * the view associated with restore actions.
  */
-public class SnapshotController extends SaveAndRestoreBaseController {
+public class SnapshotController extends SaveAndRestoreBaseController implements WebSocketMessageHandler {
 
 
     @SuppressWarnings("unused")
@@ -454,5 +457,12 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     @Override
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         snapshotControlsViewController.secureStoreChanged(validTokens);
+    }
+
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
+        switch (saveAndRestoreWebSocketMessage.messageType()){
+            //case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
+        }
     }
 }
