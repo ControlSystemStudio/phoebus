@@ -20,6 +20,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +30,7 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
@@ -114,6 +116,11 @@ public class NodeControllerTest {
         folderFromClient = Node.builder().name("SomeFolder").userName("myusername").uniqueId("11").build();
     }
 
+    @AfterEach
+    public void resetMocks(){
+        reset(webSocketHandler, nodeDAO);
+    }
+
     @Test
     public void testCreateFolder() throws Exception {
 
@@ -168,8 +175,6 @@ public class NodeControllerTest {
     @Test
     public void testCreateConfig() throws Exception {
 
-        reset(nodeDAO);
-
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
                 .userName("user").build();
 
@@ -192,7 +197,6 @@ public class NodeControllerTest {
 
     @Test
     public void testUpdateConfig() throws Exception {
-        reset(nodeDAO);
 
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
                 .userName("user").build();
@@ -247,7 +251,6 @@ public class NodeControllerTest {
 
     @Test
     public void testCreateNodeBadRequests() throws Exception {
-        reset(nodeDAO);
 
         Node config = Node.builder().nodeType(NodeType.FOLDER).uniqueId("hhh")
                 .userName("valid").build();
@@ -268,7 +271,6 @@ public class NodeControllerTest {
 
     @Test
     public void testGetChildNodes() throws Exception {
-        reset(nodeDAO);
 
         when(nodeDAO.getChildNodes("p")).thenAnswer((Answer<List<Node>>) invocation -> Collections.singletonList(config1));
 
@@ -286,7 +288,6 @@ public class NodeControllerTest {
 
     @Test
     public void testGetChildNodesNonExistingNode() throws Exception {
-        reset(nodeDAO);
 
         when(nodeDAO.getChildNodes("non-existing")).thenThrow(NodeNotFoundException.class);
         MockHttpServletRequestBuilder request = get("/node/non-existing/children").contentType(JSON);
@@ -347,8 +348,9 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage = new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b");
 
+        verify(webSocketHandler, times(1)).sendMessage(saveAndRestoreWebSocketMessage);
     }
 
     @Test
@@ -362,7 +364,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
     }
 
     @Test
@@ -378,13 +380,12 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
-
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
 
     }
 
@@ -419,7 +420,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketHandler, times(1)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
     }
 
     @Test
@@ -434,7 +435,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
     }
 
     @Test
@@ -449,7 +450,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
 
     }
 
@@ -491,8 +492,6 @@ public class NodeControllerTest {
     @Test
     public void testGetConfiguration() throws Exception {
 
-        Mockito.reset(nodeDAO);
-
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().build());
 
         MockHttpServletRequestBuilder request = get("/node/a");
@@ -506,7 +505,6 @@ public class NodeControllerTest {
 
     @Test
     public void testGetNonExistingConfiguration() throws Exception {
-        Mockito.reset(nodeDAO);
         when(nodeDAO.getNode("a")).thenThrow(NodeNotFoundException.class);
 
         MockHttpServletRequestBuilder request = get("/node/a");
@@ -518,8 +516,6 @@ public class NodeControllerTest {
 
     @Test
     public void testGetNonExistingFolder() throws Exception {
-
-        Mockito.reset(nodeDAO);
         when(nodeDAO.getNode("a")).thenThrow(NodeNotFoundException.class);
 
         MockHttpServletRequestBuilder request = get("/node/a");
@@ -547,8 +543,6 @@ public class NodeControllerTest {
 
     @Test
     public void testUpdateNode() throws Exception {
-
-        reset(nodeDAO);
 
         Node node = Node.builder().name("foo").uniqueId("a").userName(demoUser).build();
 
@@ -704,7 +698,6 @@ public class NodeControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        reset(nodeDAO);
     }
 
     @Test
@@ -728,6 +721,5 @@ public class NodeControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        reset(nodeDAO);
     }
 }

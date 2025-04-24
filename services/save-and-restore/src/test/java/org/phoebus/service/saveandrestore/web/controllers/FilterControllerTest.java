@@ -20,12 +20,15 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
@@ -40,6 +43,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -73,10 +78,16 @@ public class FilterControllerTest {
     @Autowired
     private String demoUser;
 
-    @Test
-    public void testSaveFilter() throws Exception {
+    @Autowired
+    private WebSocketHandler webSocketHandler;
 
-        reset(nodeDAO);
+    @AfterEach
+    public void resetMocks(){
+        reset(webSocketHandler,nodeDAO);
+    }
+
+    @Test
+    public void testSaveFilter1() throws Exception {
 
         Filter filter = new Filter();
         filter.setName("name");
@@ -99,25 +110,68 @@ public class FilterControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, Filter.class);
 
-        request = put("/filter")
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testSaveFilter2() throws Exception {
+
+        Filter filter = new Filter();
+        filter.setName("name");
+        filter.setQueryString("query");
+        filter.setUser("user");
+
+        String filterString = objectMapper.writeValueAsString(filter);
+
+        MockHttpServletRequestBuilder request = put("/filter")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON)
                 .content(filterString);
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        request = put("/filter")
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+    }
+
+    @Test
+    public void testSaveFiliter3() throws Exception {
+
+        Filter filter = new Filter();
+        filter.setName("name");
+        filter.setQueryString("query");
+        filter.setUser("user");
+
+        String filterString = objectMapper.writeValueAsString(filter);
+        MockHttpServletRequestBuilder request = put("/filter")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON)
                 .content(filterString);
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        request = put("/filter")
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+    }
+
+    @Test
+    public void testSaveFiliter4() throws Exception{
+
+        Filter filter = new Filter();
+        filter.setName("name");
+        filter.setQueryString("query");
+        filter.setUser("user");
+
+        String filterString = objectMapper.writeValueAsString(filter);
+
+        MockHttpServletRequestBuilder request = put("/filter")
                 .contentType(JSON)
                 .content(filterString);
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
     }
 
     @Test
@@ -134,27 +188,59 @@ public class FilterControllerTest {
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        request = delete("/filter/name")
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+    }
+
+    @Test
+    public void testDeleteFilter2() throws Exception {
+
+        MockHttpServletRequestBuilder request = delete("/filter/name")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        request = delete("/filter/name")
-                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
-                .contentType(JSON);
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
 
-        request = delete("/filter/name")
+    }
+
+    @Test
+    public void testDeleteFilter3() throws Exception {
+
+       MockHttpServletRequestBuilder request = delete("/filter/name")
+               .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+               .contentType(JSON);
+       mockMvc.perform(request).andExpect(status().isForbidden());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+    }
+
+    @Test
+    public void testDeleteFilter4() throws Exception {
+        MockHttpServletRequestBuilder request = delete("/filter/name")
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+    }
+
+    @Test
+    public void testDeleteFilter5() throws Exception{
+        Filter filter = new Filter();
+        filter.setName("name");
+        filter.setQueryString("query");
         filter.setUser("notUser");
         when(nodeDAO.getAllFilters()).thenReturn(List.of(filter));
 
-        request = delete("/filter/name")
+        MockHttpServletRequestBuilder request = delete("/filter/name")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isForbidden());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
 
     }
 

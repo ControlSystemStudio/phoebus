@@ -141,4 +141,5 @@ public class ControllersTestConfig {
     public WebSocketHandler webSocketHandler(){
         return Mockito.mock(WebSocketHandler.class);
     }
+
 }

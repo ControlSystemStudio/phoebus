@@ -59,6 +59,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private final Logger logger = Logger.getLogger(WebSocketHandler.class.getName());
 
+    public WebSocketHandler(){
+        System.out.println();
+    }
+
     /**
      * Handles text message from web socket client
      *
