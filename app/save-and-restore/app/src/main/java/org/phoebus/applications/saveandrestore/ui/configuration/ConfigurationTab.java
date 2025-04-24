@@ -124,7 +124,7 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
             case NODE_UPDATED -> {
                 Node node = (Node)saveAndRestoreWebSocketMessage.payload();
                 if(node.getUniqueId().equals(getId())){
-                    textProperty().set(node.getName());
+                    updateTabTitle(node.getName());
                     originalConfigName = node.getName();
                 }
             }

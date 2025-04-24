@@ -375,7 +375,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     }
 
     private void loadConfigurationData() {
-        UI_EXECUTOR.execute(() -> {
+        Platform.runLater(() -> {
             try {
                 Collections.sort(configurationData.getPvList());
                 configurationEntries.setAll(configurationData.getPvList());
