@@ -75,6 +75,7 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
                 event.consume();
             } else {
                 SaveAndRestoreService.getInstance().removeWebSocketMessageHandler(this);
+                ((ConfigurationController)controller).handleTabClosed();
             }
         });
 

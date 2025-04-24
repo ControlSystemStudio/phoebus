@@ -421,8 +421,11 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     @Override
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
         switch (saveAndRestoreWebSocketMessage.messageType()){
-            //case NODE_ADDED, NODE_REMOVED -> nodeAddedOrRemoved((String)saveAndRestoreWebSocketMessage.payload());
             case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
         }
+    }
+
+    public void handleTabClosed(){
+        saveAndRestoreService.removeWebSocketMessageHandler(this);
     }
 }
