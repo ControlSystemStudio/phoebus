@@ -33,6 +33,8 @@ public class Preferences
     @Preference public static String probe_display;
     /** Preference setting */
     public static final List<TextPatch> pv_name_patches = new ArrayList<>();
+    /** Preference setting */
+    @Preference public static int default_zoom_factor;
 
     static
     {

@@ -8,10 +8,9 @@ Welcome to the CS-Studio/Phoebus Documentation!
 
 .. image:: splash.png
 
-User Documentation:
-
 .. toctree::
    :maxdepth: 1
+   :caption: User Documentation
 
    intro
    running
@@ -24,10 +23,9 @@ User Documentation:
    services
    services_architecture
 
-Developer Documentation:
-
 .. toctree::
    :maxdepth: 1
+   :caption: Developer Documentation
 
    develop
    phoebus_product
@@ -41,11 +39,3 @@ Developer Documentation:
    trouble_shooting
    eclipse_debugging
    gui_testing
-
-Appendix
-========
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

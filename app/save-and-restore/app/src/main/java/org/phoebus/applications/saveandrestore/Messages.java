@@ -79,6 +79,7 @@ public class Messages {
     public static String duplicatePVNamesAdditionalItems;
     public static String duplicatePVNamesCheckFailed;
     public static String duplicatePVNamesFoundInSelection;
+    public static String duplicatePVNamesNotSupported;
     public static String Edit;
     public static String editFilter;
     public static String errorActionFailed;

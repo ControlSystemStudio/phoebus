@@ -157,7 +157,7 @@ Configuration View
 ------------------
 
 A new configuration is created from the context menu launched when right-clicking on a folder node in the tree view.
-This will launch the configuration editor:
+This screenshot shows the configuration editor:
 
 .. image:: images/configuration-editor.png
    :width: 80%
@@ -169,6 +169,9 @@ Specifying a read-back PV is optional. Specifying multiple read-back PV names is
 with PVs in the order they appear.
 
 PV entries in a configuration marked as read only will be omitted whe performing a restore operation.
+
+Compare Mode and Tolerance data is optional. This is used by the service when a client requests comparison between
+stored and live values of a snapshot. More information on this feature is found in the service documentation.
 
 To add a very large number of PVs, user should consider the import feature available via the "Import Configuration file to this folder"
 option in the context menu of a folder node in the tree view.

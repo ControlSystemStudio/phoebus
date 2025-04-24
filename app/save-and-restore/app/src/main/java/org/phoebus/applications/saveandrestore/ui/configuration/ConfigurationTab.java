@@ -109,6 +109,12 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
         Platform.runLater(() -> textProperty().set(tabTitle));
     }
 
+    /**
+     * Updates the tab to indicate if the data is dirty and needs to be saved.
+     * @param dirty If <code>true</code>, an asterisk is prepended, otherwise
+     *              only the name {@link org.phoebus.applications.saveandrestore.model.Configuration}
+     *              is rendered.
+     */
     public void annotateDirty(boolean dirty) {
         String tabTitle = textProperty().get();
         if (dirty && !tabTitle.contains("*")) {
