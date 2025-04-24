@@ -72,6 +72,7 @@ public class SaveAndRestoreService {
     private final ExecutorService executor;
 
     private final List<DataChangeListener> dataChangeListeners = Collections.synchronizedList(new ArrayList<>());
+    private final List<WebSocketMessageHandler> webSocketMessageHandlers = Collections.synchronizedList(new ArrayList<>());
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private static SaveAndRestoreService instance;
@@ -492,6 +493,7 @@ public class SaveAndRestoreService {
     }
 
     private void handleWebSocketMessage(CharSequence charSequence){
+        /*
         try {
             SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage =
                     objectMapper.readValue(charSequence.toString(), SaveAndRestoreWebSocketMessage.class);
@@ -503,6 +505,14 @@ public class SaveAndRestoreService {
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+        }*/
+
+        try {
+            SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage =
+                    objectMapper.readValue(charSequence.toString(), SaveAndRestoreWebSocketMessage.class);
+            webSocketMessageHandlers.forEach(w -> w.handleWebSocketMessage(saveAndRestoreWebSocketMessage));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -512,5 +522,13 @@ public class SaveAndRestoreService {
 
     public void openWebSocket(){
         webSocketClient.connect();
+    }
+
+    public void addWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler){
+        webSocketMessageHandlers.add(webSocketMessageHandler);
+    }
+
+    public void removeWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler){
+        webSocketMessageHandlers.remove(webSocketMessageHandler);
     }
 }

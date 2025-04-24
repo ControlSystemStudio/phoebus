@@ -137,7 +137,7 @@ import java.util.stream.Collectors;
  * Main controller for the save and restore UI.
  */
 public class SaveAndRestoreController extends SaveAndRestoreBaseController
-        implements Initializable, DataChangeListener {
+        implements Initializable, WebSocketMessageHandler {
 
     @FXML
     protected TreeView<Node> treeView;
@@ -295,7 +295,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         //saveAndRestoreService.addNodeChangeListener(this);
         //saveAndRestoreService.addNodeAddedListener(this);
         //saveAndRestoreService.addFilterChangeListener(this);
-        saveAndRestoreService.addDataChangeListener(this);
+        //saveAndRestoreService.addDataChangeListener(this);
+        saveAndRestoreService.addWebSocketMessageHandler(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(this));
         treeViewPane.disableProperty().bind(disabledUi);
@@ -816,8 +817,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * @param node The updated node.
      */
 
-    @Override
-    public void nodeChanged(Node node) {
+    private void nodeChanged(Node node) {
         // Find the node that has changed
         TreeItem<Node> nodeSubjectToUpdate = recursiveSearch(node.getUniqueId(), treeView.getRoot());
         if (nodeSubjectToUpdate == null) {
@@ -842,8 +842,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * @param parentNodeId Unique id of the parent {@link Node}
      */
 
-    @Override
-    public void nodeAddedOrRemoved(String parentNodeId){
+    private void nodeAddedOrRemoved(String parentNodeId){
         // Find the parent to which the new node is to be added
         TreeItem<Node> parentTreeItem = recursiveSearch(parentNodeId, treeView.getRoot());
         if (parentTreeItem == null) {
@@ -957,6 +956,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     public void handleTabClosed() {
         saveLocalState();
         saveAndRestoreService.closeWebSocket();
+        saveAndRestoreService.removeWebSocketMessageHandler(this);
         //saveAndRestoreService.removeNodeChangeListener(this);
         //saveAndRestoreService.removeNodeAddedListener(this);
         //saveAndRestoreService.removeFilterChangeListener(this);
@@ -1251,8 +1251,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         return null;
     }
 
-    @Override
-    public void filterAddedOrUpdated(Filter filter) {
+    private void filterAddedOrUpdated(Filter filter) {
         if (!filtersList.contains(filter)) {
             filtersList.add(filter);
         } else {
@@ -1268,14 +1267,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
     }
 
-    @Override
-    public void filterRemoved(String name) {
+    private void filterRemoved(String name) {
         Optional<Filter> filterOptional = filtersList.stream().filter(f -> f.getName().equals(name)).findFirst();
         if (filterOptional.isPresent()) {
             Filter filterToRemove = new Filter();
             filterToRemove.setName(name);
             filtersList.remove(filterToRemove);
-            // If this is the active filter, de-select filter completely
+            // If this is the active filter, unselect it
             filterEnabledProperty.set(false);
             filtersComboBox.getSelectionModel().select(null);
             // And refresh tree view
@@ -1524,6 +1522,16 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     contextMenu.getItems().add(menuItem);
                 }
             });
+        }
+    }
+
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
+        switch (saveAndRestoreWebSocketMessage.messageType()){
+            case NODE_ADDED, NODE_REMOVED -> nodeAddedOrRemoved((String)saveAndRestoreWebSocketMessage.payload());
+            case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
+            case FILTER_ADDED_OR_UPDATED -> filterAddedOrUpdated((Filter)saveAndRestoreWebSocketMessage.payload());
+            case FILTER_REMOVED -> filterRemoved((String)saveAndRestoreWebSocketMessage.payload());
         }
     }
 

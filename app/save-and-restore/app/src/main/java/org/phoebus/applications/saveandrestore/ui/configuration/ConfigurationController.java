@@ -54,10 +54,13 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.DataChangeListener;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -76,7 +79,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ConfigurationController extends SaveAndRestoreBaseController implements DataChangeListener {
+public class ConfigurationController extends SaveAndRestoreBaseController implements WebSocketMessageHandler {
 
     @FXML
     private BorderPane root;
@@ -265,7 +268,9 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
         addPVsPane.disableProperty().bind(userIdentity.isNull());
 
-        SaveAndRestoreService.getInstance().addDataChangeListener(this);
+        saveAndRestoreService.addWebSocketMessageHandler(this);
+
+        dirty.addListener((obs, o, n) -> configurationTab.annotateDirty(n));
     }
 
     @FXML
@@ -400,8 +405,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         return true;
     }
 
-    @Override
-    public void nodeChanged(Node node) {
+    private void nodeChanged(Node node) {
         if (node.getUniqueId().equals(configurationNode.get().getUniqueId())) {
             configurationNode.setValue(Node.builder().uniqueId(node.getUniqueId())
                     .name(node.getName())
@@ -411,6 +415,14 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                     .created(node.getCreated())
                     .lastModified(node.getLastModified())
                     .build());
+        }
+    }
+
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
+        switch (saveAndRestoreWebSocketMessage.messageType()){
+            //case NODE_ADDED, NODE_REMOVED -> nodeAddedOrRemoved((String)saveAndRestoreWebSocketMessage.payload());
+            case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
         }
     }
 }

@@ -94,6 +94,8 @@ public class ConfigurationController extends BaseController {
     public Configuration updateConfiguration(@RequestBody Configuration configuration,
                                              Principal principal) {
         configuration.getConfigurationNode().setUserName(principal.getName());
-        return nodeDAO.updateConfiguration(configuration);
+        Configuration updatedConfiguration = nodeDAO.updateConfiguration(configuration);
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedConfiguration.getConfigurationNode()));
+        return updatedConfiguration;
     }
 }

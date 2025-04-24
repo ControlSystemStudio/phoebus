@@ -23,17 +23,21 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.DataChangeListener;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConfigurationTab extends SaveAndRestoreTab implements DataChangeListener {
+public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
+
+    private String originalConfigName;
 
     public ConfigurationTab() {
         configure();
@@ -70,11 +74,11 @@ public class ConfigurationTab extends SaveAndRestoreTab implements DataChangeLis
             if (!((ConfigurationController) controller).handleConfigurationTabClosed()) {
                 event.consume();
             } else {
-                SaveAndRestoreService.getInstance().removeDataChangeListener(this);
+                SaveAndRestoreService.getInstance().removeWebSocketMessageHandler(this);
             }
         });
 
-        SaveAndRestoreService.getInstance().addDataChangeListener(this);
+        SaveAndRestoreService.getInstance().addWebSocketMessageHandler(this);
     }
 
     /**
@@ -83,20 +87,22 @@ public class ConfigurationTab extends SaveAndRestoreTab implements DataChangeLis
      * @param configurationNode non-null configuration {@link Node}
      */
     public void editConfiguration(Node configurationNode) {
+        originalConfigName = configurationNode.getName();
         setId(configurationNode.getUniqueId());
         textProperty().set(configurationNode.getName());
         ((ConfigurationController) controller).loadConfiguration(configurationNode);
     }
 
     public void configureForNewConfiguration(Node parentNode) {
+        originalConfigName = Messages.contextMenuNewConfiguration;
         textProperty().set(Messages.contextMenuNewConfiguration);
         ((ConfigurationController) controller).newConfiguration(parentNode);
     }
 
-    @Override
-    public void nodeChanged(Node node) {
+    private void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
             textProperty().set(node.getName());
+            originalConfigName = node.getName();
         }
     }
 
@@ -112,9 +118,17 @@ public class ConfigurationTab extends SaveAndRestoreTab implements DataChangeLis
     public void annotateDirty(boolean dirty) {
         String tabTitle = textProperty().get();
         if (dirty && !tabTitle.contains("*")) {
-            updateTabTitle("* " + tabTitle);
+            updateTabTitle("* " + originalConfigName);
         } else if (!dirty) {
-            updateTabTitle(tabTitle.substring(2));
+            updateTabTitle(originalConfigName);
+        }
+    }
+
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
+        switch (saveAndRestoreWebSocketMessage.messageType()){
+            //case NODE_ADDED, NODE_REMOVED -> nodeAddedOrRemoved((String)saveAndRestoreWebSocketMessage.payload());
+            case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
         }
     }
 }
