@@ -5,12 +5,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
+import org.codehaus.jackson.map.util.LRUMap;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
@@ -22,21 +25,32 @@ public class FileUtils {
     public static final String HG_METADATA_DIR = ".hg";
     public static final String WEB_CONTENT_ROOT_ENV_VAR = "PHOEBUS_WEB_CONTENT_ROOT";
     public static final String WEB_CONTENT_ROOT_SETTING_NAME = "web_content_root";
-    public static String getWebContentRoot(){
+    private static Map<String,String> sha256_cache = new LRUMap<>(0, 100);
+
+
+    private static String getWebContentRootEnvVar(){
         //check if PHOEBUS_WEB_CONTENT_ROOT is set
         String webContentRoot;
         webContentRoot = System.getenv(WEB_CONTENT_ROOT_ENV_VAR);
         if(webContentRoot != null){
             return webContentRoot;
         }
-        Preferences prefs = PhoebusPreferenceService.userNodeForClass(FileUtils.class);
-        String path = prefs.absolutePath();
-        //check if preference is set in phoebus.properties
-        String root = PhoebusPreferenceService.userNodeForClass(FileUtils.class).get(WEB_CONTENT_ROOT_SETTING_NAME, null);
-        if(!root.endsWith("/")){
-            root = root + "/";
+        return null;
+    }
+
+    private static String getWebContentRootFromSettings(){
+        String webContentRoot;
+        webContentRoot = PhoebusPreferenceService.userNodeForClass(FileUtils.class)
+                .get(WEB_CONTENT_ROOT_SETTING_NAME, null);
+        return webContentRoot;
+    }
+
+    private static String getWebContentRoot(){
+        String webContentRoot = getWebContentRootFromSettings();
+        if(webContentRoot != null){
+            return webContentRoot.substring(webContentRoot.indexOf("://") + 3);
         }
-        return root;
+        return getWebContentRootEnvVar();
     }
 
     private static boolean isGitRepo(File fileObject){
@@ -79,7 +93,11 @@ public class FileUtils {
             return null;
         }
         else{
-            return findSourceRootOf(new File(path)).getAbsolutePath();
+            File sourceRoot = findSourceRootOf(new File(path));
+            if (sourceRoot == null){
+                return null;
+            }
+            return sourceRoot.getAbsolutePath();
         }
     }
 
@@ -95,7 +113,7 @@ public class FileUtils {
     }
 
     //re-implement here with Java MessageDigest, so we don't need to depend on elog
-    private static String getFileSHA256(String path){
+    public static String getFileSHA256(String path){
         InputStream fis;
         try {
             MessageDigest sha256Digest = MessageDigest.getInstance("SHA-256");
@@ -124,8 +142,7 @@ public class FileUtils {
         String pathNoProtocol = path;
         if(isURL(path)){
             pathNoProtocol = path.substring(path.indexOf("://") + 3);
-            String webContentRoot = getWebContentRoot();
-            String sourceRootNoProtocol = webContentRoot.substring(webContentRoot.indexOf("://") + 3);
+            String sourceRootNoProtocol = getWebContentRoot();
             if(pathNoProtocol.startsWith(sourceRootNoProtocol)){
                 return ModelResourceUtil.normalize(pathNoProtocol.substring(sourceRootNoProtocol.length()));
             }
@@ -133,11 +150,14 @@ public class FileUtils {
         }
         else{
             String sourceRoot = findSourceRootOf(path);
+            if(sourceRoot == null){
+                return null;
+            }
             return ModelResourceUtil.normalize(new File(path).getAbsolutePath().substring(sourceRoot.length()+1));
         }
     }
 
-    public static String getSHA256Suffix(String path){
+    private static String getSHA256Suffix(String path){
         try{
             return getFileSHA256(path).substring(0, 8);
         }
@@ -147,11 +167,20 @@ public class FileUtils {
     }
 
     public static String getAnalyticsPathFor(String path){
-        String pathWithoutRoot = ModelResourceUtil.normalize(getPathWithoutSourceRoot(path));
-        String first8OfSHA256 = getSHA256Suffix(path);
+        String cached = sha256_cache.get(path);
+        if(cached != null){
+            return cached;
+        }
+        String pathWithoutRoot = getPathWithoutSourceRoot(path);
+        if(pathWithoutRoot == null){
+            return null;
+        }
+        String first8OfSHA256 = getSHA256Suffix(ModelResourceUtil.normalize(path));
         if(first8OfSHA256 == null){
             return null;
         }
+        String analyticsPath = pathWithoutRoot + "_" + first8OfSHA256;
+        sha256_cache.put(path, analyticsPath);
         return pathWithoutRoot + "_" + first8OfSHA256;
     }
 
