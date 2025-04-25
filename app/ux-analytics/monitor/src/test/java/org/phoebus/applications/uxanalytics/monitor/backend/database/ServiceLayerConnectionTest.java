@@ -69,8 +69,8 @@ public class ServiceLayerConnectionTest {
         try{
             //this probably lives in a git repository if you're running this test
             //ignore result, just make sure it can be done
-            FileUtils.getAnalyticsPathFor(display_path);
-            FileUtils.getAnalyticsPathFor(other_display_path);
+            Assertions.assertNotNull(FileUtils.getAnalyticsPathFor(display_path));
+            Assertions.assertNotNull(FileUtils.getAnalyticsPathFor(other_display_path));
         }
         catch(NullPointerException e){
             //and if it isn't, temporarily create a dummy .git directory adjacent to the test.bob file
