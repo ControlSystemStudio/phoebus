@@ -6,8 +6,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
-import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
-import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
@@ -25,7 +24,7 @@ public class ActiveWindowsService {
     private boolean active = false;
     private static ActiveWindowsService instance = null;
     private final ConcurrentHashMap<String, ActiveTabsOfWindow> activeWindowsAndTabs = new ConcurrentHashMap<>();
-    private final ReentrantLock lock = new ReentrantLock();
+    private static final ReentrantLock lock = new ReentrantLock();
 
     ConcurrentHashMap<String, ActiveTabsOfWindow> getActiveWindowsAndTabs() {
         return activeWindowsAndTabs;
@@ -38,7 +37,7 @@ public class ActiveWindowsService {
                 if(change.wasAdded()){
                     for(Tab tab: change.getAddedSubList()){
                         Window window = change.getList().get(0).getTabPane().getScene().getWindow();
-                        if(tab.getProperties().get("application") instanceof DisplayRuntimeInstance && tab instanceof DockItemWithInput){
+                        if(tab != null && tab.getProperties().get("application") instanceof DisplayRuntimeInstance && tab instanceof DockItemWithInput){
 
                             try {
                                 //Creating the wrapper object first (in the application thread) attaches a listener ASAP
@@ -68,7 +67,7 @@ public class ActiveWindowsService {
                 }
                 else if(change.wasRemoved()){
                     for(Tab tab: change.getRemoved()){
-                        if(tab.getProperties().get("application") instanceof DisplayRuntimeInstance && tab instanceof DockItemWithInput){
+                        if(tab!=null && tab.getProperties().get("application") instanceof DisplayRuntimeInstance && tab instanceof DockItemWithInput){
                             lock.lock();
                             String windowID = (String) tab.getTabPane().getScene().getWindow().getProperties().get(DockStage.KEY_ID);
                             activeWindowsAndTabs.get(windowID).remove((DockItemWithInput) tab);
@@ -118,15 +117,15 @@ public class ActiveWindowsService {
 
     //this singleton will be the exclusive communicator with the window list
     public static ActiveWindowsService getInstance() {
+        lock.lock();
         if(instance == null){
             instance = new ActiveWindowsService();
             instance.addWindowChangeListener();
         }
+        lock.unlock();
         return instance;
     }
 
-    //If user has not consented to tracking, we still keep track of the state, but don't ping listeners about it.
-    //Allows tracking to start/stop mid-session without restarting the application.
     public boolean isActive() {
         return active;
     }
@@ -135,8 +134,31 @@ public class ActiveWindowsService {
         javafx.stage.Window.getWindows().addListener(UXAWindowChangeListener);
     }
 
+    //re-synchronize state representation if tracking resumes after application startup
+    private void reinitialize(){
+        clear();
+        for (javafx.stage.Window window : javafx.stage.Window.getWindows()) {
+            if (window.getProperties().containsKey(DockStage.KEY_ID)) {
+                String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
+                activeWindowsAndTabs.putIfAbsent(windowID, new ActiveTabsOfWindow(window));
+                for (DockPane item : DockStage.getDockPanes((Stage) window)) {
+                    item.getTabs().removeListener(UXATabChangeListener);
+                    item.getTabs().addListener(UXATabChangeListener);
+                    for(DockItem tab: item.getDockItems()){
+                        try {
+                            activeWindowsAndTabs.get(windowID).add((DockItemWithInput) tab);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void start() {
         if(!active) {
+            reinitialize();
             for(ActiveTabsOfWindow window: activeWindowsAndTabs.values()) {
                 for (ActiveTab tab : window.getActiveTabs().values()) {
                     tab.addListeners();
@@ -148,17 +170,26 @@ public class ActiveWindowsService {
 
     public void stop() {
         if(active){
-            for(ActiveTabsOfWindow window: activeWindowsAndTabs.values()) {
-                for (ActiveTab tab : window.getActiveTabs().values()) {
-                    tab.detachListeners();
-                }
-            }
+            clear();
         }
         active = false;
     }
 
+    public static void setInstance(ActiveWindowsService instance) {
+        ActiveWindowsService.instance = instance;
+    }
+
     public ActiveTabsOfWindow getTabsForWindow(Window window){
         return activeWindowsAndTabs.get((String) window.getProperties().get(DockStage.KEY_ID));
+    }
+
+    public void clear(){
+        for(ActiveTabsOfWindow window: activeWindowsAndTabs.values()) {
+            for (ActiveTab tab : window.getActiveTabs().values()) {
+                tab.detachListeners();
+            }
+        }
+        activeWindowsAndTabs.clear();
     }
 
     public ActiveTabsOfWindow getTabsForWindow(String windowID){
