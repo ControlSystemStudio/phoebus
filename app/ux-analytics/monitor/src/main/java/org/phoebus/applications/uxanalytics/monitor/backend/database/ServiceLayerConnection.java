@@ -48,7 +48,7 @@ public class ServiceLayerConnection implements BackendConnection{
     //track if last attempt failed, to prevent spamming the log
     private boolean exceptionRaised = false;
 
-    Logger logger = Logger.getLogger(ServiceLayerConnection.class.getName());
+    static Logger logger = Logger.getLogger(ServiceLayerConnection.class.getName());
 
     Client client = new Client();
     private String endpoint;
@@ -79,6 +79,16 @@ public class ServiceLayerConnection implements BackendConnection{
         else{
             logger.fine(msg);
         }
+    }
+
+    static void logMessageForBadPath(String src, String target){
+        logger.fine("Source or target path do not have a sensible source root. " +
+                "Source: " + src + ", target: " + target + ".\n" +
+                "Not recording connection to service layer.\n" +
+                "If the target is a local file, there must be a SCM root to index from.\n " +
+                "If it's a web resource, the environment variable PHOEBUS_WEB_CONTENT_ROOT\n" +
+                "or the setting org.phoebus.applications.uxanalytics.monitor.web_content_root" +
+                "must be defined in settings.ini." );
     }
 
     private ServiceLayerConnection(){
@@ -242,14 +252,19 @@ public class ServiceLayerConnection implements BackendConnection{
         try{
             DisplayInfo currentDisplayInfo = who.getDisplayInfo();
             String widgetID = widget.getName();
-            String sourcePath = FileUtils.getAnalyticsPathFor(currentDisplayInfo.getPath());
+            String sourcePath = who.getAnalyticsName();
             String targetPath = FileUtils.getAnalyticsPathFor(
                     ModelResourceUtil.resolveResource(
                             currentDisplayInfo.getPath(),
                             openDisplayAction.getFile())
             );
-            recordConnection(TYPE_DISPLAY,TYPE_DISPLAY,sourcePath,targetPath,ACTION_OPENED,widgetID);
-            resetLogging();
+            if(sourcePath != null && targetPath != null){
+                recordConnection(TYPE_DISPLAY, TYPE_DISPLAY, sourcePath, targetPath, ACTION_OPENED, widgetID);
+                resetLogging();
+            }
+            else{
+                logMessageForBadPath( currentDisplayInfo.getPath() ,openDisplayAction.getFile() );
+            }
         }
         catch(Exception e){
             logMessage("Exception connecting to UX Analytics service layer: " + e.getMessage());
@@ -269,7 +284,6 @@ public class ServiceLayerConnection implements BackendConnection{
                     if (src != null) {
                         sourcePath = FileUtils.getAnalyticsPathFor(src.getPath());
                         sourceType = TYPE_DISPLAY;
-                        assert sourcePath != null;
                         if (sourcePath.equals(targetPath)) {
                             action = ACTION_RELOADED;
                         } else {
@@ -293,7 +307,12 @@ public class ServiceLayerConnection implements BackendConnection{
                     sourcePath = SRC_UNKNOWN;
                     sourceType = TYPE_ORIGIN;
             }
-            recordConnection(sourceType, TYPE_DISPLAY, sourcePath, targetPath, action, null);
+            if(sourcePath != null && targetPath != null){
+                recordConnection(sourceType, TYPE_DISPLAY, sourcePath, targetPath, action, null);
+            }
+            else{
+                logMessageForBadPath(sourcePath, targetPath);
+            }
             resetLogging();
         }
         catch(Exception e){
