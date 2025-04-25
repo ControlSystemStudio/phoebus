@@ -7,8 +7,10 @@ import org.phoebus.applications.uxanalytics.monitor.representation.ActiveTab;
 public class UXAMouseMonitor implements EventHandler<MouseEvent>{
 
     private final UXAMonitor monitor = UXAMonitor.getInstance();
+    private final ActiveTab tab;
 
     public UXAMouseMonitor(ActiveTab tab){
+        this.tab = tab;
     }
 
     @Override
