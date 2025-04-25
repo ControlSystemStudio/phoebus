@@ -1,5 +1,6 @@
 package org.phoebus.applications.uxanalytics.monitor.representation;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.ToolkitListener;
@@ -8,9 +9,11 @@ import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
 import org.phoebus.applications.uxanalytics.monitor.UXAMouseMonitor;
 import org.phoebus.applications.uxanalytics.monitor.UXAToolkitListener;
+import org.phoebus.applications.uxanalytics.monitor.util.FileUtils;
 import org.phoebus.ui.docking.DockItemWithInput;
 
 import javafx.scene.input.MouseEvent;
+import org.phoebus.ui.docking.DockStage;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -29,17 +32,22 @@ public class ActiveTab {
     private final Node jfxNode;
     private final UXAMouseMonitor mouseMonitor;
     private boolean listenersAdded = false;
+    private String analyticsName;
 
-    public ActiveTab(DockItemWithInput tab){
+    public ActiveTab(DockItemWithInput tab, ActiveWindowsService activeWindowsService){
         widgets = new ConcurrentLinkedDeque<>();
         parentTab = tab;
         toolkitListener = new UXAToolkitListener();
         ((UXAToolkitListener)toolkitListener).setTabWrapper(this);
         jfxNode = tab.getContent();
         mouseMonitor = new UXAMouseMonitor(this);
-        if(ActiveWindowsService.getInstance().isActive())
+        if(activeWindowsService.isActive())
             this.addListeners();
         parentTab.addCloseCheck(ok_to_close);
+    }
+
+    public ActiveTab(DockItemWithInput tab){
+        this(tab, ActiveWindowsService.getInstance());
     }
 
     public ToolkitListener getToolkitListener(){
@@ -101,6 +109,17 @@ public class ActiveTab {
 
     public double getWidth(){
         return getJFXRepresentation().getModelRoot().getWidth();
+    }
+
+    public String getAnalyticsName(){
+        if(analyticsName == null){
+            analyticsName = FileUtils.analyticsPathForTab(this);
+        }
+        return analyticsName;
+    }
+
+    public UXAMouseMonitor getMouseMonitor() {
+        return mouseMonitor;
     }
 
 }
