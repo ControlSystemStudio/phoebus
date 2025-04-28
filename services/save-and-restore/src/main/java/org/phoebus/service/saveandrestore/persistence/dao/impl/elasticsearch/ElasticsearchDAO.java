@@ -711,6 +711,9 @@ public class ElasticsearchDAO implements NodeDAO {
 
         Node existingConfigurationNode = getNode(configuration.getConfigurationNode().getUniqueId());
 
+        // Make sure node id is set on ConfigurationData, client may have omitted it.
+        configuration.getConfigurationNode().setUniqueId(configuration.getConfigurationNode().getUniqueId());
+
         // Set name, description and user even if unchanged.
         existingConfigurationNode.setName(configuration.getConfigurationNode().getName());
         existingConfigurationNode.setDescription(configuration.getConfigurationNode().getDescription());

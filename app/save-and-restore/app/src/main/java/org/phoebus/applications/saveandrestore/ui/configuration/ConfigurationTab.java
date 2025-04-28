@@ -23,21 +23,15 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
-import org.phoebus.applications.saveandrestore.ui.DataChangeListener;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
-import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
-
-    private String originalConfigName;
+public class ConfigurationTab extends SaveAndRestoreTab {
 
     public ConfigurationTab() {
         configure();
@@ -74,12 +68,9 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
             if (!((ConfigurationController) controller).handleConfigurationTabClosed()) {
                 event.consume();
             } else {
-                SaveAndRestoreService.getInstance().removeWebSocketMessageHandler(this);
-                ((ConfigurationController)controller).handleTabClosed();
+                ((ConfigurationController) controller).handleTabClosed();
             }
         });
-
-        SaveAndRestoreService.getInstance().addWebSocketMessageHandler(this);
     }
 
     /**
@@ -88,15 +79,14 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
      * @param configurationNode non-null configuration {@link Node}
      */
     public void editConfiguration(Node configurationNode) {
-        originalConfigName = configurationNode.getName();
-        setId(configurationNode.getUniqueId());
-        textProperty().set(configurationNode.getName());
         ((ConfigurationController) controller).loadConfiguration(configurationNode);
     }
 
+    /**
+     * Configures for new configuration
+     * @param parentNode Parent {@link Node} for the new configuration.
+     */
     public void configureForNewConfiguration(Node parentNode) {
-        originalConfigName = Messages.contextMenuNewConfiguration;
-        textProperty().set(Messages.contextMenuNewConfiguration);
         ((ConfigurationController) controller).newConfiguration(parentNode);
     }
 
@@ -107,33 +97,5 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
      */
     public void updateTabTitle(String tabTitle) {
         Platform.runLater(() -> textProperty().set(tabTitle));
-    }
-
-    /**
-     * Updates the tab to indicate if the data is dirty and needs to be saved.
-     * @param dirty If <code>true</code>, an asterisk is prepended, otherwise
-     *              only the name {@link org.phoebus.applications.saveandrestore.model.Configuration}
-     *              is rendered.
-     */
-    public void annotateDirty(boolean dirty) {
-        String tabTitle = textProperty().get();
-        if (dirty && !tabTitle.contains("*")) {
-            updateTabTitle("* " + originalConfigName);
-        } else if (!dirty) {
-            updateTabTitle(originalConfigName);
-        }
-    }
-
-    @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
-        switch (saveAndRestoreWebSocketMessage.messageType()){
-            case NODE_UPDATED -> {
-                Node node = (Node)saveAndRestoreWebSocketMessage.payload();
-                if(node.getUniqueId().equals(getId())){
-                    updateTabTitle(node.getName());
-                    originalConfigName = node.getName();
-                }
-            }
-        }
     }
 }

@@ -23,7 +23,6 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -52,17 +51,19 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DoubleStringConverter;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
-import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -163,8 +164,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     private SaveAndRestoreService saveAndRestoreService;
 
-    private static final Executor UI_EXECUTOR = Platform::runLater;
-
     private final ObservableList<ConfigPvEntry> configurationEntries = FXCollections.observableArrayList();
 
     private final SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
@@ -172,27 +171,25 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     private final SimpleStringProperty configurationNameProperty = new SimpleStringProperty();
     private Node configurationNodeParent;
 
-    private final SimpleObjectProperty<Node> configurationNode = new SimpleObjectProperty<>();
-
-    private final ConfigurationTab configurationTab;
-
-    private ConfigurationData configurationData;
-
     private final Logger logger = Logger.getLogger(ConfigurationController.class.getName());
 
     private final BooleanProperty loadInProgress = new SimpleBooleanProperty();
     private final BooleanProperty dirty = new SimpleBooleanProperty();
 
+    private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
+    private final SimpleStringProperty tabIdProperty = new SimpleStringProperty();
+
+    private String configurationNodeId;
+
     public ConfigurationController(ConfigurationTab configurationTab) {
-        this.configurationTab = configurationTab;
+        configurationTab.textProperty().bind(tabTitleProperty);
+        configurationTab.idProperty().bind(tabIdProperty);
     }
 
     @FXML
     public void initialize() {
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
-
-        dirty.addListener((obs, o, n) -> configurationTab.annotateDirty(n));
 
         pvTable.editableProperty().bind(userIdentity.isNull().not());
         pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -202,7 +199,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 new ImageView(ImageCache.getImage(ConfigurationController.class, "/icons/delete.png")));
         deleteMenuItem.setOnAction(ae -> {
             configurationEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
-            //configurationTab.annotateDirty(true);
             pvTable.refresh();
         });
 
@@ -256,9 +252,14 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
                 @Override
                 public void commitEdit(ComparisonMode comparisonMode) {
+                    ComparisonMode currentMode = getTableView().getItems().get(getIndex()).getComparisonModeProperty().get();
                     getTableView().getItems().get(getIndex()).setComparisonModeProperty(comparisonMode);
                     if (comparisonMode == null) {
                         getTableView().getItems().get(getIndex()).setToleranceProperty(null);
+                    }
+                    // User has selected a mode that was previously null -> set tolerance to a default value.
+                    else if (currentMode == null) {
+                        getTableView().getItems().get(getIndex()).setToleranceProperty(0.0);
                     }
                     setDirty(true);
                     super.commitEdit(comparisonMode);
@@ -296,7 +297,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             public Double fromString(String string) {
                 try {
                     double value = Double.parseDouble(string);
-                    if(value >= 0){
+                    if (value >= 0) {
                         // Tolerance must be >= 0.
                         return value;
                     }
@@ -334,9 +335,12 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 }
             }
         });
+        pvTable.setItems(configurationEntries);
 
-        configurationNameProperty.addListener((observableValue, oldValue, newValue) -> setDirty(!newValue.equals(configurationNode.getName())));
-        configurationDescriptionProperty.addListener((observable, oldValue, newValue) -> setDirty(!newValue.equals(configurationNode.get().getDescription())));
+        configurationNameProperty.addListener((observableValue, oldValue, newValue) ->
+                setDirty(newValue != null));
+        configurationDescriptionProperty.addListener((observable, oldValue, newValue) ->
+                setDirty(newValue != null));
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         configurationDescriptionProperty.isEmpty().get() ||
@@ -345,61 +349,48 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 dirty, configurationDescriptionProperty, configurationNameProperty, userIdentity));
 
         addPvButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                pvNameField.textProperty().isEmpty().get() &&
-                        readbackPvNameField.textProperty().isEmpty().get(),
+                        pvNameField.textProperty().isEmpty().get() &&
+                                readbackPvNameField.textProperty().isEmpty().get(),
                 pvNameField.textProperty(), readbackPvNameField.textProperty()));
 
         readOnlyCheckBox.selectedProperty().bindBidirectional(readOnlyProperty);
 
-        configurationNode.addListener(observable -> {
-            if (observable != null) {
-                SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>) observable;
-                Node newValue = simpleObjectProperty.get();
-                configurationNameProperty.set(newValue.getName());
-                Platform.runLater(() -> {
-                    configurationCreatedDateField.textProperty().set(newValue.getCreated() != null ?
-                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
-                    configurationLastModifiedDateField.textProperty().set(newValue.getLastModified() != null ?
-                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getLastModified().getTime())) : null);
-                    createdByField.textProperty().set(newValue.getUserName());
-                });
-                configurationDescriptionProperty.set(configurationNode.get().getDescription());
-            }
-        });
-
         addPVsPane.disableProperty().bind(userIdentity.isNull());
 
         saveAndRestoreService.addWebSocketMessageHandler(this);
-
-        dirty.addListener((obs, o, n) -> configurationTab.annotateDirty(n));
     }
 
     @FXML
     @SuppressWarnings("unused")
     public void saveConfiguration() {
-        UI_EXECUTOR.execute(() -> {
+        JobManager.schedule("Save save&restore configuration", monitor -> {
             try {
-                configurationNode.get().setName(configurationNameProperty.get());
-                configurationNode.get().setDescription(configurationDescriptionProperty.get());
+                Node configurationNode =
+                        Node.builder().nodeType(NodeType.CONFIGURATION)
+                                .name(configurationNameProperty.get())
+                                .description(configurationDescriptionProperty.get())
+                                .uniqueId(configurationNodeId)
+                                .build();
+                ConfigurationData configurationData = new ConfigurationData();
                 configurationData.setPvList(configurationEntries.stream().map(ConfigPvEntry::toConfigPv).toList());
+                configurationData.setUniqueId(configurationNodeId);
                 Configuration configuration = new Configuration();
-                configuration.setConfigurationNode(configurationNode.get());
+                configuration.setConfigurationNode(configurationNode);
                 configuration.setConfigurationData(configurationData);
-                if (configurationNode.get().getUniqueId() == null) { // New configuration
+                if (configurationNodeId == null) { // New configuration
                     configuration = saveAndRestoreService.createConfiguration(configurationNodeParent,
                             configuration);
-                    configurationTab.setId(configuration.getConfigurationNode().getUniqueId());
+                    tabIdProperty.setValue(configuration.getConfigurationNode().getUniqueId());
                 } else {
                     configuration = saveAndRestoreService.updateConfiguration(configuration);
                 }
-                configurationData = configuration.getConfigurationData();
                 loadConfiguration(configuration.getConfigurationNode());
-                configurationTab.updateTabTitle(configuration.getConfigurationNode().getName());
+                dirty.setValue(false);
             } catch (Exception e1) {
-                ExceptionDetailsErrorDialog.openError(pvTable,
+                Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(pvTable,
                         Messages.errorActionFailed,
                         Messages.errorCreateConfigurationFailed,
-                        e1);
+                        e1));
             }
         });
     }
@@ -408,12 +399,12 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     @SuppressWarnings("unused")
     public void addPv() {
 
-        UI_EXECUTOR.execute(() -> {
+        Platform.runLater(() -> {
             // Process a list of space or semicolon separated pvs
             String[] pvNames = pvNameProperty.get().trim().split("[\\s;]+");
             String[] readbackPvNames = readbackPvNameProperty.get().trim().split("[\\s;]+");
 
-            if(!checkForDuplicatePvNames(pvNames)){
+            if (!checkForDuplicatePvNames(pvNames)) {
                 return;
             }
 
@@ -435,16 +426,17 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     /**
      * Checks that added PV names are not added multiple times
+     *
      * @param addedPvNames New PV names added in the UI
      * @return <code>true</code> if no duplicates are detected, otherwise <code>false</code>
      */
-    private boolean checkForDuplicatePvNames(String[] addedPvNames){
+    private boolean checkForDuplicatePvNames(String[] addedPvNames) {
         List<String> pvNamesAsList = new ArrayList<>();
         pvNamesAsList.addAll(Arrays.asList(addedPvNames));
         pvTable.itemsProperty().get().forEach(i -> pvNamesAsList.add(i.getPvNameProperty().get()));
         List<String> duplicatePvNames = pvNamesAsList.stream().filter(n -> Collections.frequency(pvNamesAsList, n) > 1).toList();
 
-        if(duplicatePvNames.size() > 0){
+        if (!duplicatePvNames.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText(Messages.duplicatePVNamesNotSupported);
             alert.showAndWait();
@@ -469,11 +461,8 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      */
     public void newConfiguration(Node parentNode) {
         configurationNodeParent = parentNode;
-        configurationNode.set(Node.builder().nodeType(NodeType.CONFIGURATION).build());
-        configurationData = new ConfigurationData();
-        pvTable.setItems(configurationEntries);
-        UI_EXECUTOR.execute(() -> configurationNameField.requestFocus());
-        setDirty(false);
+        tabTitleProperty.setValue(Messages.contextMenuNewConfiguration);
+        Platform.runLater(() -> configurationNameField.requestFocus());
     }
 
     /**
@@ -482,27 +471,37 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      * @param node An existing {@link Node} of type {@link NodeType#CONFIGURATION}.
      */
     public void loadConfiguration(final Node node) {
-        try {
-            configurationData = saveAndRestoreService.getConfiguration(node.getUniqueId());
-        } catch (Exception e) {
-            ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
-            return;
-        }
-        configurationNode.set(node);
-        loadConfigurationData();
-    }
-
-    private void loadConfigurationData() {
-        Platform.runLater(() -> {
+        configurationNodeId = node.getUniqueId();
+        loadInProgress.setValue(true);
+        JobManager.schedule("Load save&restore configuration", monitor -> {
+            final ConfigurationData configurationData;
             try {
-                Collections.sort(configurationData.getPvList());
-                configurationEntries.setAll(configurationData.getPvList().stream().map(ConfigPvEntry::new).toList());
-                pvTable.setItems(configurationEntries);
-                //completion.run();
+                configurationData = saveAndRestoreService.getConfiguration(node.getUniqueId());
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Unable to load existing configuration");
+                Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e));
+                return;
             }
+
+            Platform.runLater(() -> {
+                try {
+                    Collections.sort(configurationData.getPvList());
+                    configurationEntries.setAll(configurationData.getPvList().stream().map(ConfigPvEntry::new).toList());
+                    pvTable.setItems(configurationEntries);
+                    configurationNameProperty.set(node.getName());
+                    configurationCreatedDateField.textProperty().set(node.getCreated() != null ?
+                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(node.getCreated().getTime())) : null);
+                    configurationLastModifiedDateField.textProperty().set(node.getLastModified() != null ?
+                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(node.getLastModified().getTime())) : null);
+                    createdByField.textProperty().set(node.getUserName());
+                    configurationDescriptionProperty.set(node.getDescription());
+                    tabTitleProperty.setValue(node.getName());
+                    loadInProgress.setValue(false);
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Unable to load existing configuration");
+                }
+            });
         });
+
     }
 
     public boolean handleConfigurationTabClosed() {
@@ -516,29 +515,29 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         return true;
     }
 
-    private void nodeChanged(Node node) {
-        if (node.getUniqueId().equals(configurationNode.get().getUniqueId())) {
-            configurationNode.setValue(node);
-        }
-    }
-
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
-        switch (saveAndRestoreWebSocketMessage.messageType()){
-            case NODE_UPDATED -> {
-                Node node = (Node)saveAndRestoreWebSocketMessage.payload();
-                if (node.getUniqueId().equals(configurationNode.get().getUniqueId())){
-                    loadConfiguration(node);
-                }
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+        if(saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
+            Node node = (Node) saveAndRestoreWebSocketMessage.payload();
+            if (node.getUniqueId().equals(configurationNodeId)) {
+                loadConfiguration(node);
             }
         }
     }
 
+    /**
+     * Removes this as web socket message listener.
+     */
     public void handleTabClosed() {
         saveAndRestoreService.removeWebSocketMessageHandler(this);
     }
 
     private void setDirty(boolean dirty) {
         this.dirty.set(dirty && !loadInProgress.get());
+        if (dirty && !tabTitleProperty.get().startsWith("* ")) {
+            tabTitleProperty.setValue("* " + tabTitleProperty.get());
+        } else if (!dirty && tabTitleProperty.get().startsWith("* ")) {
+            tabTitleProperty.setValue(tabIdProperty.get().substring(2));
+        }
     }
 }
