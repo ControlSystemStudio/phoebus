@@ -30,6 +30,22 @@ public class ActiveWindowsService {
         return activeWindowsAndTabs;
     }
 
+    public void appendToMap(ActiveTab tab) throws Exception {
+        String tabID = (String) tab.getParentTab().getProperties().get(DockStage.KEY_ID);
+        String windowID = tab.getParentWindowID();
+        if(tabID != null && windowID != null){
+            activeWindowsAndTabs.get(windowID).add(tab);
+        }
+    }
+
+    public void removeFromMap(ActiveTab tab) throws Exception {
+        String tabID = (String) tab.getParentTab().getProperties().get(DockStage.KEY_ID);
+        String windowID = tab.getParentWindowID();
+        if(tabID != null && windowID != null){
+            activeWindowsAndTabs.get(windowID).remove(tab);
+        }
+    }
+
     ListChangeListener<Tab> UXATabChangeListener = new ListChangeListener<>() {
         @Override
         public void onChanged(Change<? extends Tab> change) {
@@ -42,7 +58,8 @@ public class ActiveWindowsService {
                             try {
                                 //Creating the wrapper object first (in the application thread) attaches a listener ASAP
                                 //we want to catch what caused the display to open
-                                ActiveTab tabWrapper = new ActiveTab((DockItemWithInput) tab);
+                                String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
+                                ActiveTab tabWrapper = new ActiveTab((DockItemWithInput) tab, windowID);
                                 DisplayRuntimeInstance instance = (DisplayRuntimeInstance) tabWrapper.getParentTab().getProperties().get("application");
                                 //When @DockItem s are initialized, their models aren't ready yet.
                                 //On startup, the DockItemWithInput will show up but its DisplayModel will be null.
@@ -52,8 +69,7 @@ public class ActiveWindowsService {
                                         //block until the model is ready
                                         instance.getRepresentation_init().get();
                                         lock.lock();
-                                        String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
-                                        activeWindowsAndTabs.get(windowID).add(tabWrapper);
+                                        appendToMap(tabWrapper);
                                         lock.unlock();
                                     } catch (Exception e) {
                                         e.printStackTrace();
@@ -62,16 +78,6 @@ public class ActiveWindowsService {
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
-                        }
-                    }
-                }
-                else if(change.wasRemoved()){
-                    for(Tab tab: change.getRemoved()){
-                        if(tab!=null && tab.getProperties().get("application") instanceof DisplayRuntimeInstance && tab instanceof DockItemWithInput){
-                            lock.lock();
-                            String windowID = (String) tab.getTabPane().getScene().getWindow().getProperties().get(DockStage.KEY_ID);
-                            activeWindowsAndTabs.get(windowID).remove((DockItemWithInput) tab);
-                            lock.unlock();
                         }
                     }
                 }
