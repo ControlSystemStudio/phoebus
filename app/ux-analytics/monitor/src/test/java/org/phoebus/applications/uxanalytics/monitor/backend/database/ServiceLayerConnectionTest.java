@@ -184,7 +184,7 @@ public class ServiceLayerConnectionTest {
         setupUI();
         BorderPane content = mock(BorderPane.class);
         DockItemWithInput dockItem = new DockItemWithInput(instance, content,URI.create(display_path),null,null);
-        ActiveTab tab = new ActiveTab(dockItem);
+        ActiveTab tab = new ActiveTab(dockItem, null);
         String filename = FileUtils.getAnalyticsPathFor(display_path);
         ServiceLayerConnection serviceLayerConnection = ServiceLayerConnection.getInstance();
         serviceLayerConnection.connect("localhost", 11111, null, null);
@@ -219,7 +219,7 @@ public class ServiceLayerConnectionTest {
         setupUI();
         BorderPane content = mock(BorderPane.class);
         DockItemWithInput dockItem = new DockItemWithInput(instance, content,URI.create(display_path),null,null);
-        ActiveTab tab = new ActiveTab(dockItem);
+        ActiveTab tab = new ActiveTab(dockItem,null);
         String filename = FileUtils.getAnalyticsPathFor(display_path);
         ServiceLayerConnection serviceLayerConnection = ServiceLayerConnection.getInstance();
         serviceLayerConnection.resetLogging();
@@ -255,11 +255,11 @@ public class ServiceLayerConnectionTest {
         setupUI();
         BorderPane content = mock(BorderPane.class);
         DockItemWithInput dockItem = new DockItemWithInput(instance, content,URI.create(display_path),null,null);
-        ActiveTab tab = new ActiveTab(dockItem);
+        ActiveTab tab = new ActiveTab(dockItem,null);
         String filename = FileUtils.getAnalyticsPathFor(display_path);
         String other_filename = FileUtils.getAnalyticsPathFor(other_display_path);
         DockItemWithInput other_dockItem = new DockItemWithInput(other_instance, content,URI.create(other_display_path),null,null);
-        ActiveTab other_tab = new ActiveTab(other_dockItem);
+        ActiveTab other_tab = new ActiveTab(other_dockItem,null);
         ServiceLayerConnection serviceLayerConnection = ServiceLayerConnection.getInstance();
         serviceLayerConnection.resetLogging();
         serviceLayerConnection.connect("localhost", 11111, null, null);

@@ -41,7 +41,7 @@ public class ActiveTabTest {
     private DisplayRuntimeApplication app;
     private DisplayRuntimeInstance instance;
     private DockItemWithInput tab;
-
+    private static final String WINDOW_ID = "testWindowID";
 
     @BeforeAll
     public static void startJFX()
@@ -97,7 +97,7 @@ public class ActiveTabTest {
     public void testConstructorAddsListenersExactlyOnce(){
         ActiveWindowsService svc = mock(ActiveWindowsService.class);
         when(svc.isActive()).thenReturn(true);
-        ActiveTab activeTab = spy(new ActiveTab(tab, svc));
+        ActiveTab activeTab = spy(new ActiveTab(tab,svc,WINDOW_ID));
         Assertions.assertNotNull(activeTab.getMouseMonitor());
         Assertions.assertNotNull(activeTab.getParentTab().getContent());
         activeTab.addListeners();//should do nothing, already done in constructor, for total of one listener-add
@@ -109,7 +109,7 @@ public class ActiveTabTest {
     public void testConstructorPopulatesFields(){
         ActiveWindowsService svc = mock(ActiveWindowsService.class);
         when(svc.isActive()).thenReturn(true);
-        ActiveTab activeTab = new ActiveTab(tab, svc);
+        ActiveTab activeTab = new ActiveTab(tab, svc, WINDOW_ID);
         Assertions.assertNotNull(activeTab.getMouseMonitor());
         Assertions.assertNotNull(activeTab.getParentTab().getContent());
         Assertions.assertTrue(activeTab.isListening());
@@ -119,7 +119,7 @@ public class ActiveTabTest {
     public void testDetachListeners(){
         ActiveWindowsService svc = mock(ActiveWindowsService.class);
         when(svc.isActive()).thenReturn(true);
-        ActiveTab activeTab = spy(new ActiveTab(tab, svc));
+        ActiveTab activeTab = spy(new ActiveTab(tab,svc, WINDOW_ID));
         verify(instance, times(1)).addListener(any(UXAToolkitListener.class));
         verify(activeTab.getParentTab().getContent(), times(1)).addEventFilter(eq(MouseEvent.MOUSE_CLICKED), any(UXAMouseMonitor.class));
         activeTab.detachListeners();
