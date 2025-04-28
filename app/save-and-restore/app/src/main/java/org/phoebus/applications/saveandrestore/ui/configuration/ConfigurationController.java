@@ -77,7 +77,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -173,13 +172,13 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     private final Logger logger = Logger.getLogger(ConfigurationController.class.getName());
 
-    private final BooleanProperty loadInProgress = new SimpleBooleanProperty();
     private final BooleanProperty dirty = new SimpleBooleanProperty();
 
     private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
     private final SimpleStringProperty tabIdProperty = new SimpleStringProperty();
 
     private String configurationNodeId;
+
 
     public ConfigurationController(ConfigurationTab configurationTab) {
         configurationTab.textProperty().bind(tabTitleProperty);
@@ -199,7 +198,8 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 new ImageView(ImageCache.getImage(ConfigurationController.class, "/icons/delete.png")));
         deleteMenuItem.setOnAction(ae -> {
             configurationEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
-            pvTable.refresh();
+            dirty.setValue(true);
+            //pvTable.refresh();
         });
 
         deleteMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> pvTable.getSelectionModel().getSelectedItems().isEmpty()
@@ -227,20 +227,20 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         pvNameColumn.setCellValueFactory(cell -> cell.getValue().getPvNameProperty());
         pvNameColumn.setOnEditCommit(t -> {
             t.getTableView().getItems().get(t.getTablePosition().getRow()).setPvNameProperty(t.getNewValue());
-            setDirty(true);
+            dirty.setValue(true);
         });
 
         readbackPvNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         readbackPvNameColumn.setCellValueFactory(cell -> cell.getValue().getReadBackPvNameProperty());
         readbackPvNameColumn.setOnEditCommit(t -> {
             t.getTableView().getItems().get(t.getTablePosition().getRow()).setReadBackPvNameProperty(t.getNewValue());
-            setDirty(true);
+            dirty.setValue(true);
         });
 
         readOnlyColumn.setCellFactory(CheckBoxTableCell.forTableColumn(readOnlyColumn));
         readOnlyColumn.setCellValueFactory(cell -> {
             BooleanProperty readOnly = cell.getValue().getReadOnlyProperty();
-            readOnly.addListener((obs, o, n) -> setDirty(true));
+            readOnly.addListener((obs, o, n) -> dirty.setValue(true));
             return readOnly;
         });
 
@@ -261,7 +261,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                     else if (currentMode == null) {
                         getTableView().getItems().get(getIndex()).setToleranceProperty(0.0);
                     }
-                    setDirty(true);
+                    dirty.setValue(true);
                     super.commitEdit(comparisonMode);
                 }
             };
@@ -314,7 +314,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                     return;
                 }
                 getTableView().getItems().get(getIndex()).setToleranceProperty(value);
-                setDirty(true);
+                dirty.setValue(true);
                 super.commitEdit(value);
             }
         });
@@ -331,16 +331,24 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved()) {
                     FXCollections.sort(configurationEntries);
-                    setDirty(true);
+                    //dirty.setValue(true);
                 }
             }
         });
         pvTable.setItems(configurationEntries);
 
+        dirty.addListener((obs, o, n) -> {
+            if (n && !tabTitleProperty.get().startsWith("* ")) {
+                Platform.runLater(() -> tabTitleProperty.setValue("* " + tabTitleProperty.get()));
+            } else if (!n && tabTitleProperty.get().startsWith("* ")) {
+                Platform.runLater(() -> tabTitleProperty.setValue(tabIdProperty.get().substring(2)));
+            }
+        });
+
         configurationNameProperty.addListener((observableValue, oldValue, newValue) ->
-                setDirty(newValue != null));
+                dirty.setValue(oldValue != null && newValue != null));
         configurationDescriptionProperty.addListener((observable, oldValue, newValue) ->
-                setDirty(newValue != null));
+                dirty.setValue(oldValue != null && newValue != null));
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         configurationDescriptionProperty.isEmpty().get() ||
@@ -431,8 +439,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      * @return <code>true</code> if no duplicates are detected, otherwise <code>false</code>
      */
     private boolean checkForDuplicatePvNames(String[] addedPvNames) {
-        List<String> pvNamesAsList = new ArrayList<>();
-        pvNamesAsList.addAll(Arrays.asList(addedPvNames));
+        List<String> pvNamesAsList = new ArrayList<>(Arrays.asList(addedPvNames));
         pvTable.itemsProperty().get().forEach(i -> pvNamesAsList.add(i.getPvNameProperty().get()));
         List<String> duplicatePvNames = pvNamesAsList.stream().filter(n -> Collections.frequency(pvNamesAsList, n) > 1).toList();
 
@@ -472,7 +479,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      */
     public void loadConfiguration(final Node node) {
         configurationNodeId = node.getUniqueId();
-        loadInProgress.setValue(true);
         JobManager.schedule("Load save&restore configuration", monitor -> {
             final ConfigurationData configurationData;
             try {
@@ -484,9 +490,10 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
             Platform.runLater(() -> {
                 try {
+                    tabTitleProperty.setValue(node.getName());
+                    tabIdProperty.setValue(node.getUniqueId());
                     Collections.sort(configurationData.getPvList());
                     configurationEntries.setAll(configurationData.getPvList().stream().map(ConfigPvEntry::new).toList());
-                    pvTable.setItems(configurationEntries);
                     configurationNameProperty.set(node.getName());
                     configurationCreatedDateField.textProperty().set(node.getCreated() != null ?
                             TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(node.getCreated().getTime())) : null);
@@ -494,8 +501,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                             TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(node.getLastModified().getTime())) : null);
                     createdByField.textProperty().set(node.getUserName());
                     configurationDescriptionProperty.set(node.getDescription());
-                    tabTitleProperty.setValue(node.getName());
-                    loadInProgress.setValue(false);
+                    dirty.setValue(false);
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Unable to load existing configuration");
                 }
@@ -517,7 +523,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     @Override
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
-        if(saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
+        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
             Node node = (Node) saveAndRestoreWebSocketMessage.payload();
             if (node.getUniqueId().equals(configurationNodeId)) {
                 loadConfiguration(node);
@@ -530,14 +536,5 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      */
     public void handleTabClosed() {
         saveAndRestoreService.removeWebSocketMessageHandler(this);
-    }
-
-    private void setDirty(boolean dirty) {
-        this.dirty.set(dirty && !loadInProgress.get());
-        if (dirty && !tabTitleProperty.get().startsWith("* ")) {
-            tabTitleProperty.setValue("* " + tabTitleProperty.get());
-        } else if (!dirty && tabTitleProperty.get().startsWith("* ")) {
-            tabTitleProperty.setValue(tabIdProperty.get().substring(2));
-        }
     }
 }
