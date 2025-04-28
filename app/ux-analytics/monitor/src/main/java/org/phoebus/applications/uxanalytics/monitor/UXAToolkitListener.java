@@ -72,12 +72,17 @@ public class UXAToolkitListener implements ToolkitListener {
         return expression;
     }
 
+    public UXAMonitor getMonitor() {
+        return monitor;
+    }
+
     @Override
     public void handleMethodCalled(Object... user_args) {
         StackTraceElement[] stackTrace;
         if(user_args[0] instanceof List &&
                 ((List) user_args[0]).get(0) instanceof DisplayInfo &&
-                user_args[1] instanceof StackTraceElement[]) {
+                user_args[1] instanceof StackTraceElement[] &&
+                monitor.getPhoebusConnection()!=null) {
             List<DisplayInfo> dst_src = (List<DisplayInfo>) user_args[0];
             stackTrace = (StackTraceElement[]) user_args[1];
             for(StackTraceElement e: stackTrace){
