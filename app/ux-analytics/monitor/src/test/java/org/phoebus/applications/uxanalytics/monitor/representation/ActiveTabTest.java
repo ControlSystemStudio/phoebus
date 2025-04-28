@@ -46,13 +46,12 @@ public class ActiveTabTest {
     @BeforeAll
     public static void startJFX()
     {
-        Platform.startup(()->{});
-    }
-
-    @AfterAll
-    public static void stopJFX()
-    {
-        Platform.exit();
+        try {
+            Platform.startup(() -> {});
+        }
+        catch (IllegalStateException e) {
+            // JFX already started
+        }
     }
 
     @BeforeEach

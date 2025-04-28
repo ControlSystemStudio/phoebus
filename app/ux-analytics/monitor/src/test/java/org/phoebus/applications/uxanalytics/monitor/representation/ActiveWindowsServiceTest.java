@@ -37,7 +37,12 @@ public class ActiveWindowsServiceTest {
 
     @BeforeAll
     static void setUp() {
-        Platform.startup(() -> {});
+        try {
+            Platform.startup(() -> {});
+        }
+        catch (IllegalStateException e) {
+            // JFX already started
+        }
         Platform.runLater(()->{
             app = new DisplayRuntimeApplication();
             stage = new Stage();
@@ -61,15 +66,6 @@ public class ActiveWindowsServiceTest {
     void reset() {
         if(activeWindowsService != null)
             activeWindowsService.clear();
-    }
-
-    @AfterAll
-    static void tearDown() {
-        Platform.runLater(() ->{
-            if(stage!=null)
-                stage.close();
-        });
-        Platform.exit();
     }
 
     @Test

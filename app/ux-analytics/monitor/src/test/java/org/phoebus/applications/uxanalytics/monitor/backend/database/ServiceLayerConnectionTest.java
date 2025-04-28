@@ -52,13 +52,12 @@ public class ServiceLayerConnectionTest {
 
     @BeforeAll
     public static void initJFX(){
-        Platform.startup(()->{});
-
-    }
-
-    @AfterAll
-    public static void tearDownJFX(){
-        Platform.exit();
+        try {
+            Platform.startup(() -> {});
+        }
+        catch (IllegalStateException e) {
+            // JFX already started
+        }
     }
 
     public void setupUI(){
