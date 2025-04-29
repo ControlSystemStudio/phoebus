@@ -153,7 +153,11 @@ public class ActiveWindowsService {
                     for(DockItem tab: item.getDockItems()){
                         try {
                             activeWindowsAndTabs.get(windowID).add((DockItemWithInput) tab);
-                        } catch (Exception e) {
+                        }
+                        catch (ClassCastException ignored){
+                            //not a DockItemWithInput
+                        }
+                        catch (Exception e) {
                             throw new RuntimeException(e);
                         }
                     }
