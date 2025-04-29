@@ -479,8 +479,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      *
      * @param node An existing {@link Node} of type {@link NodeType#CONFIGURATION}.
      */
-    public void loadConfiguration(final Node node) {
-        //tabIdProperty.setValue(node.getUniqueId());
+    public synchronized void loadConfiguration(final Node node) {
         JobManager.schedule("Load save&restore configuration", monitor -> {
             final ConfigurationData configurationData;
             try {

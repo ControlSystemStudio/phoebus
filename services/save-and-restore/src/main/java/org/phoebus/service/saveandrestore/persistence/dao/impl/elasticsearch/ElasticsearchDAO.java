@@ -712,14 +712,13 @@ public class ElasticsearchDAO implements NodeDAO {
         Node existingConfigurationNode = getNode(configuration.getConfigurationNode().getUniqueId());
 
         // Make sure node id is set on ConfigurationData, client may have omitted it.
-        configuration.getConfigurationNode().setUniqueId(configuration.getConfigurationNode().getUniqueId());
+        configuration.getConfigurationNode().setUniqueId(existingConfigurationNode.getUniqueId());
 
         // Set name, description and user even if unchanged.
         existingConfigurationNode.setName(configuration.getConfigurationNode().getName());
         existingConfigurationNode.setDescription(configuration.getConfigurationNode().getDescription());
         existingConfigurationNode.setUserName(configuration.getConfigurationNode().getUserName());
         // Update last modified date
-        existingConfigurationNode.setLastModified(new Date());
         existingConfigurationNode = updateNode(existingConfigurationNode, false);
 
         ConfigurationData updatedConfigurationData = configurationDataRepository.save(configuration.getConfigurationData());
@@ -770,12 +769,18 @@ public class ElasticsearchDAO implements NodeDAO {
         SnapshotData sanitizedSnapshotData = removeDuplicateSnapshotItems(snapshot.getSnapshotData());
         snapshot.setSnapshotData(sanitizedSnapshotData);
 
-        snapshot.getSnapshotNode().setNodeType(NodeType.SNAPSHOT); // Force node type
+        Node existingSnapshotNode = getNode(snapshot.getSnapshotNode().getUniqueId());
+        // Make sure node id is set on ConfigurationData, client may have omitted it.
+        snapshot.getSnapshotNode().setUniqueId(existingSnapshotNode.getUniqueId());
+        existingSnapshotNode.setName(snapshot.getSnapshotNode().getName());
+        existingSnapshotNode.setDescription(snapshot.getSnapshotNode().getDescription());
+        existingSnapshotNode.setUserName(snapshot.getSnapshotNode().getUserName());
+
         SnapshotData newSnapshotData;
         Snapshot newSnapshot = new Snapshot();
         try {
             newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
-            Node updatedNode = updateNode(snapshot.getSnapshotNode(), false);
+            Node updatedNode = updateNode(existingSnapshotNode, false);
             newSnapshot.setSnapshotData(newSnapshotData);
             newSnapshot.setSnapshotNode(updatedNode);
         } catch (Exception e) {

@@ -379,7 +379,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      *
      * @param snapshotNode An existing {@link Node} of type {@link NodeType#SNAPSHOT}
      */
-    public void loadSnapshot(Node snapshotNode) {
+    public synchronized void loadSnapshot(Node snapshotNode) {
         snapshotControlsViewController.setSnapshotNode(snapshotNode);
         snapshotControlsViewController.setSnapshotRestorableProperty(true);
         snapshotTableViewController.setSelectionColumnVisible(true);

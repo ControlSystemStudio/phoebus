@@ -99,7 +99,7 @@ public class SnapshotController extends BaseController {
         }
         snapshot.getSnapshotNode().setUserName(principal.getName());
         Snapshot updatedSnapshot = nodeDAO.updateSnapshot(snapshot);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, snapshot));
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedSnapshot.getSnapshotNode()));
         return updatedSnapshot;
     }
 }
