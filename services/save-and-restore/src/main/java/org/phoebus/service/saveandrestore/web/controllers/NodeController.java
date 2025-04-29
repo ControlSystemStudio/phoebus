@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Controller offering endpoints for CRUD operations on {@link Node}s, which represent
@@ -86,7 +85,7 @@ public class NodeController extends BaseController {
         node.setUserName(principal.getName());
         Node savedNode = nodeDAO.createNode(parentsUniqueId, node);
         webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_ADDED,
-                parentsUniqueId));
+                savedNode.getUniqueId()));
         return savedNode;
     }
 
@@ -158,9 +157,9 @@ public class NodeController extends BaseController {
     @DeleteMapping(value = "/node", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayDelete(#nodeIds, #root)")
     public void deleteNodes(@RequestBody List<String> nodeIds) {
-        Set<String> parentNodeIds = nodeDAO.deleteNodes(nodeIds);
-        parentNodeIds.forEach(id ->
-                    webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, id)));
+        nodeDAO.deleteNodes(nodeIds);
+        nodeIds.forEach(id ->
+                webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, id)));
     }
 
     /**

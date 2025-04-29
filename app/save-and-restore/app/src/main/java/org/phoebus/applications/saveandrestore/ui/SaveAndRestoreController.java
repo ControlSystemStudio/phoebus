@@ -292,10 +292,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         treeView.setShowRoot(true);
 
-        //saveAndRestoreService.addNodeChangeListener(this);
-        //saveAndRestoreService.addNodeAddedListener(this);
-        //saveAndRestoreService.addFilterChangeListener(this);
-        //saveAndRestoreService.addDataChangeListener(this);
         saveAndRestoreService.addWebSocketMessageHandler(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(this));
@@ -823,18 +819,34 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     /**
      * Handles callback in order to update the tree view when a {@link Node} has been added, e.g. when
-     * a snapshot is saved.
+     * a snapshot is saved. The purpose is to update the {@link TreeView} accordingly to reflect the change.
      *
-     * @param parentNodeId Unique id of the parent {@link Node}
+     * @param nodeId Unique id of the added {@link Node}
      */
-
-    private void nodeAddedOrRemoved(String parentNodeId){
-        // Find the parent to which the new node is to be added
-        TreeItem<Node> parentTreeItem = recursiveSearch(parentNodeId, treeView.getRoot());
-        if (parentTreeItem == null) {
-            return;
+    private void nodeAdded(String nodeId){
+        Node newNode = saveAndRestoreService.getNode(nodeId);
+        try {
+            Node parentNode = saveAndRestoreService.getParentNode(nodeId);
+            // Find the parent to which the new node is to be added
+            TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
+            TreeItem<Node> newTreeItem = createTreeItem(newNode);
+            parentTreeItem.getChildren().add(newTreeItem);
+            parentTreeItem.getChildren().sort(treeNodeComparator);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        expandTreeNode(parentTreeItem);
+    }
+
+    /**
+     * Handles callback in order to update the tree view when a {@link Node} has been deleted.
+     * The purpose is to update the {@link TreeView} accordingly to reflect the change.
+     * @param nodeId Unique id of the deleted {@link Node}
+     */
+    private void nodeRemoved(String nodeId){
+        TreeItem<Node> treeItemToRemove = recursiveSearch(nodeId, treeView.getRoot());
+        if(treeItemToRemove != null){
+            treeItemToRemove.getParent().getChildren().remove(treeItemToRemove);
+        }
     }
 
     /**
@@ -1514,7 +1526,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @Override
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
         switch (saveAndRestoreWebSocketMessage.messageType()){
-            case NODE_ADDED, NODE_REMOVED -> nodeAddedOrRemoved((String)saveAndRestoreWebSocketMessage.payload());
+            case NODE_ADDED -> nodeAdded((String)saveAndRestoreWebSocketMessage.payload());
+            case NODE_REMOVED -> nodeRemoved((String)saveAndRestoreWebSocketMessage.payload());
             case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
             case FILTER_ADDED_OR_UPDATED -> filterAddedOrUpdated((Filter)saveAndRestoreWebSocketMessage.payload());
             case FILTER_REMOVED -> filterRemoved((String)saveAndRestoreWebSocketMessage.payload());
