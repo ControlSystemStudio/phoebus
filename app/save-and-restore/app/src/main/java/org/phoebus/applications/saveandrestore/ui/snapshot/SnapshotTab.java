@@ -56,8 +56,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements DataChangeListener
 
     public SaveAndRestoreService saveAndRestoreService;
 
-    private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
-
     protected Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
 
     public SnapshotTab(org.phoebus.applications.saveandrestore.model.Node node, SaveAndRestoreService saveAndRestoreService) {
@@ -99,12 +97,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements DataChangeListener
             return;
         }
 
-        ImageView imageView = new ImageView();
-        imageView.imageProperty().bind(tabGraphicImageProperty);
-
-        setGraphic(imageView);
-        setTabImage(node);
-
         setOnCloseRequest(event -> {
             if (controller != null && !((SnapshotController) controller).handleSnapshotTabClosed()) {
                 event.consume();
@@ -126,24 +118,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements DataChangeListener
         getContextMenu().getItems().add(compareSnapshotToArchiverDataMenuItem);
 
         SaveAndRestoreService.getInstance().addDataChangeListener(this);
-    }
-
-    /**
-     * Set tab image based on node type, and optionally golden tag
-     *
-     * @param node A snapshot {@link Node}
-     */
-    private void setTabImage(Node node) {
-        if (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
-            tabGraphicImageProperty.set(ImageRepository.COMPOSITE_SNAPSHOT);
-        } else {
-            boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
-            if (golden) {
-                tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
-            } else {
-                tabGraphicImageProperty.set(ImageRepository.SNAPSHOT);
-            }
-        }
     }
 
     /**
@@ -171,16 +145,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements DataChangeListener
 
     private void addSnapshotFromArchive() {
         ((SnapshotController) controller).addSnapshotFromArchiver();
-    }
-
-    @Override
-    public void nodeChanged(Node node) {
-        if (node.getUniqueId().equals(getId())) {
-            Platform.runLater(() -> {
-                ((SnapshotController) controller).setSnapshotNameProperty(node.getName());
-                setTabImage(node);
-            });
-        }
     }
 
     public Node getSnapshotNode() {

@@ -11,6 +11,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.epics.vtype.Alarm;
@@ -31,8 +33,10 @@ import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
@@ -77,6 +81,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
     private final SimpleStringProperty tabIdProperty = new SimpleStringProperty();
 
+    private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
+
     @FXML
     protected VBox progressIndicator;
 
@@ -86,6 +92,9 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         this.snapshotTab = snapshotTab;
         snapshotTab.textProperty().bind(tabTitleProperty);
         snapshotTab.idProperty().bind(tabIdProperty);
+        ImageView imageView = new ImageView();
+        imageView.imageProperty().bind(tabGraphicImageProperty);
+        snapshotTab.setGraphic(imageView);
     }
 
     /**
@@ -155,6 +164,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             snapshotData.setSnapshotItems(configurationToSnapshotItems(configPvs));
             snapshot.setSnapshotData(snapshotData);
             snapshotProperty.set(snapshot);
+            setTabImage(snapshot.getSnapshotNode());
             Platform.runLater(() -> snapshotTableViewController.showSnapshotInTable(snapshot));
         });
     }
@@ -190,19 +200,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                             .uniqueId(tabIdProperty.get())
                             .build();
             snapshot.setSnapshotNode(snapshotNode);
-
-            // Creating new or updating existing (e.g. name change)?
-            /*
-            if (snapshot == null) {
-                snapshot = new Snapshot();
-                snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT)
-                        .name(snapshotControlsViewController.getSnapshotNameProperty().get())
-                        .description(snapshotControlsViewController.getSnapshotCommentProperty().get()).build());
-            } else {
-                snapshot.getSnapshotNode().setName(snapshotControlsViewController.getSnapshotNameProperty().get());
-                snapshot.getSnapshotNode().setDescription(snapshotControlsViewController.getSnapshotCommentProperty().get());
-            }
-            snapshot.setSnapshotData(snapshotData);*/
 
             try {
                 snapshot = SaveAndRestoreService.getInstance().saveSnapshot(configurationNode, snapshot);
@@ -365,6 +362,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     tabTitleProperty.setValue(snapshotNode.getName());
                     tabIdProperty.setValue(snapshotNode.getUniqueId());
                     snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
+                    setTabImage(snapshotNode);
                 });
             } finally {
                 Platform.runLater(() -> disabledUi.set(false));
@@ -484,6 +482,24 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
         switch (saveAndRestoreWebSocketMessage.messageType()) {
             //case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
+        }
+    }
+
+    /**
+     * Set tab image based on node type, and optionally golden tag
+     *
+     * @param node A snapshot {@link Node}
+     */
+    private void setTabImage(Node node) {
+        if (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
+            tabGraphicImageProperty.set(ImageRepository.COMPOSITE_SNAPSHOT);
+        } else {
+            boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
+            if (golden) {
+                tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
+            } else {
+                tabGraphicImageProperty.set(ImageRepository.SNAPSHOT);
+            }
         }
     }
 }
