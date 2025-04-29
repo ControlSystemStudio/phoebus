@@ -35,6 +35,7 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
@@ -83,6 +84,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
+    private final SaveAndRestoreService saveAndRestoreService;
+
     @FXML
     protected VBox progressIndicator;
 
@@ -95,6 +98,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         ImageView imageView = new ImageView();
         imageView.imageProperty().bind(tabGraphicImageProperty);
         snapshotTab.setGraphic(imageView);
+
+        saveAndRestoreService = SaveAndRestoreService.getInstance();
     }
 
     /**
@@ -136,6 +141,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 Platform.runLater(() -> tabTitleProperty.setValue(tabTitleProperty.get().substring(2)));
             }
         });
+
+        saveAndRestoreService.addWebSocketMessageHandler(this);
     }
 
     /**
@@ -281,6 +288,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 return false;
             }
         }
+        saveAndRestoreService.removeWebSocketMessageHandler(this);
         dispose();
         return true;
     }
@@ -314,10 +322,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
     public Node getConfigurationNode() {
         return configurationNode;
-    }
-
-    public void setSnapshotNameProperty(String name) {
-        snapshotControlsViewController.getSnapshotNameProperty().set(name);
     }
 
     /**
@@ -383,7 +387,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         loadSnapshotInternal(snapshotNode);
     }
 
-    public void restore(ActionEvent actionEvent) {
+    @FXML
+    public void restore() {
         snapshotTableViewController.restore(snapshotControlsViewController.getRestoreMode(), snapshotProperty.get(), restoreResultList -> {
             if (snapshotControlsViewController.logAction()) {
                 eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreResultList, this::showLoggingError));
@@ -480,8 +485,11 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
     @Override
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
-        switch (saveAndRestoreWebSocketMessage.messageType()) {
-            //case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
+        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
+            Node node = (Node) saveAndRestoreWebSocketMessage.payload();
+            if (tabIdProperty.get() != null && node.getUniqueId().equals(tabIdProperty.get())) {
+                loadSnapshot(node);
+            }
         }
     }
 
