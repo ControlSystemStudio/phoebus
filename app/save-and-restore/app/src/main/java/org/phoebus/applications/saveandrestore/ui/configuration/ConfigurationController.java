@@ -175,10 +175,12 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     private final BooleanProperty dirty = new SimpleBooleanProperty();
 
     private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
+    /**
+     * Manages the id of the containing {@link javafx.scene.control.Tab}. This property will
+     * also indicate if the UI has been configured to edit a new or existing configuration: for a new configuration
+     * the id is <code>null</code>.
+     */
     private final SimpleStringProperty tabIdProperty = new SimpleStringProperty();
-
-    private String configurationNodeId;
-
 
     public ConfigurationController(ConfigurationTab configurationTab) {
         configurationTab.textProperty().bind(tabTitleProperty);
@@ -199,7 +201,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         deleteMenuItem.setOnAction(ae -> {
             configurationEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
             dirty.setValue(true);
-            //pvTable.refresh();
         });
 
         deleteMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> pvTable.getSelectionModel().getSelectedItems().isEmpty()
@@ -341,7 +342,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             if (n && !tabTitleProperty.get().startsWith("* ")) {
                 Platform.runLater(() -> tabTitleProperty.setValue("* " + tabTitleProperty.get()));
             } else if (!n && tabTitleProperty.get().startsWith("* ")) {
-                Platform.runLater(() -> tabTitleProperty.setValue(tabIdProperty.get().substring(2)));
+                Platform.runLater(() -> tabTitleProperty.setValue(tabTitleProperty.get().substring(2)));
             }
         });
 
@@ -377,15 +378,15 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                         Node.builder().nodeType(NodeType.CONFIGURATION)
                                 .name(configurationNameProperty.get())
                                 .description(configurationDescriptionProperty.get())
-                                .uniqueId(configurationNodeId)
+                                .uniqueId(tabIdProperty.get())
                                 .build();
                 ConfigurationData configurationData = new ConfigurationData();
                 configurationData.setPvList(configurationEntries.stream().map(ConfigPvEntry::toConfigPv).toList());
-                configurationData.setUniqueId(configurationNodeId);
+                configurationData.setUniqueId(tabIdProperty.get());
                 Configuration configuration = new Configuration();
                 configuration.setConfigurationNode(configurationNode);
                 configuration.setConfigurationData(configurationData);
-                if (configurationNodeId == null) { // New configuration
+                if (tabIdProperty.get() == null) { // New configuration
                     configuration = saveAndRestoreService.createConfiguration(configurationNodeParent,
                             configuration);
                     tabIdProperty.setValue(configuration.getConfigurationNode().getUniqueId());
@@ -428,6 +429,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 configPVs.add(new ConfigPvEntry(configPV));
             }
             configurationEntries.addAll(configPVs);
+            dirty.setValue(true);
             resetAddPv();
         });
     }
@@ -468,7 +470,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      */
     public void newConfiguration(Node parentNode) {
         configurationNodeParent = parentNode;
-        tabTitleProperty.setValue(Messages.contextMenuNewConfiguration);
+        tabTitleProperty.setValue(Messages.unnamedConfiguration);
         Platform.runLater(() -> configurationNameField.requestFocus());
     }
 
@@ -478,7 +480,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      * @param node An existing {@link Node} of type {@link NodeType#CONFIGURATION}.
      */
     public void loadConfiguration(final Node node) {
-        configurationNodeId = node.getUniqueId();
+        //tabIdProperty.setValue(node.getUniqueId());
         JobManager.schedule("Load save&restore configuration", monitor -> {
             final ConfigurationData configurationData;
             try {
@@ -525,7 +527,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
         if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
             Node node = (Node) saveAndRestoreWebSocketMessage.payload();
-            if (node.getUniqueId().equals(configurationNodeId)) {
+            if (tabIdProperty.get() != null && node.getUniqueId().equals(tabIdProperty.get())) {
                 loadConfiguration(node);
             }
         }

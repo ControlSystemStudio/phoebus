@@ -18,7 +18,6 @@
  */
 package org.phoebus.applications.saveandrestore.ui.configuration;
 
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -84,18 +83,10 @@ public class ConfigurationTab extends SaveAndRestoreTab {
 
     /**
      * Configures for new configuration
+     *
      * @param parentNode Parent {@link Node} for the new configuration.
      */
     public void configureForNewConfiguration(Node parentNode) {
         ((ConfigurationController) controller).newConfiguration(parentNode);
-    }
-
-    /**
-     * Updates tab title, e.g. if user has renamed the configuration.
-     *
-     * @param tabTitle The wanted tab title.
-     */
-    public void updateTabTitle(String tabTitle) {
-        Platform.runLater(() -> textProperty().set(tabTitle));
     }
 }

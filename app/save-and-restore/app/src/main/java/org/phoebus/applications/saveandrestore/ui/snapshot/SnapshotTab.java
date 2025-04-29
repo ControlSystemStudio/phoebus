@@ -103,8 +103,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements DataChangeListener
         imageView.imageProperty().bind(tabGraphicImageProperty);
 
         setGraphic(imageView);
-
-        textProperty().set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
         setTabImage(node);
 
         setOnCloseRequest(event -> {
@@ -128,10 +126,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements DataChangeListener
         getContextMenu().getItems().add(compareSnapshotToArchiverDataMenuItem);
 
         SaveAndRestoreService.getInstance().addDataChangeListener(this);
-    }
-
-    public void updateTabTitle(String name) {
-        Platform.runLater(() -> textProperty().set(name));
     }
 
     /**
@@ -159,7 +153,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements DataChangeListener
      *                          a snapshot will be created.
      */
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
-        setId(null);
         ((SnapshotController) controller).initializeViewForNewSnapshot(configurationNode);
     }
 
@@ -169,8 +162,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements DataChangeListener
      * @param snapshotNode The {@link Node} of type {@link NodeType#SNAPSHOT} containing snapshot data.
      */
     public void loadSnapshot(Node snapshotNode) {
-        updateTabTitle(snapshotNode.getName());
-        setId(snapshotNode.getUniqueId());
         ((SnapshotController) controller).loadSnapshot(snapshotNode);
     }
 

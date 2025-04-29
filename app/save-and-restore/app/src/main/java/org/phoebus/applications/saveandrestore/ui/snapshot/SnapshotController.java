@@ -6,6 +6,7 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -31,14 +32,13 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
-import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
-import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -74,6 +74,9 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
     protected ServiceLoader<SaveAndRestoreEventReceiver> eventReceivers;
 
+    private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
+    private final SimpleStringProperty tabIdProperty = new SimpleStringProperty();
+
     @FXML
     protected VBox progressIndicator;
 
@@ -81,6 +84,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
     public SnapshotController(SnapshotTab snapshotTab) {
         this.snapshotTab = snapshotTab;
+        snapshotTab.textProperty().bind(tabTitleProperty);
+        snapshotTab.idProperty().bind(tabIdProperty);
     }
 
     /**
@@ -114,6 +119,14 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 snapshotTableViewController.showSnapshotInTable(n);
             }
         });
+
+        snapshotControlsViewController.snapshotDataDirty.addListener((obs, o, n) -> {
+            if (n && !tabTitleProperty.get().startsWith("* ")) {
+                Platform.runLater(() -> tabTitleProperty.setValue("* " + tabTitleProperty.get()));
+            } else if (!n && tabTitleProperty.get().startsWith("* ")) {
+                Platform.runLater(() -> tabTitleProperty.setValue(tabTitleProperty.get().substring(2)));
+            }
+        });
     }
 
     /**
@@ -124,7 +137,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      */
     public void initializeViewForNewSnapshot(Node configurationNode) {
         this.configurationNode = configurationNode;
-        snapshotTab.updateTabTitle(Messages.unnamedSnapshot);
+        tabTitleProperty.setValue(Messages.unnamedSnapshot);
+        tabIdProperty.setValue(null);
         JobManager.schedule("Get configuration", monitor -> {
             ConfigurationData configuration;
             try {
@@ -149,7 +163,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     @SuppressWarnings("unused")
     public void takeSnapshot() {
         disabledUi.set(true);
-        snapshotTab.setText(Messages.unnamedSnapshot);
+        tabTitleProperty.setValue(Messages.unnamedSnapshot);
         snapshotTableViewController.takeSnapshot(snapshotControlsViewController.getDefaultSnapshotMode(), snapshot -> {
             disabledUi.set(false);
             if (snapshot.isPresent()) {
@@ -168,7 +182,17 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(snapshotItems);
             Snapshot snapshot = snapshotProperty.get();
+            Node snapshotNode =
+                    Node.builder()
+                            .nodeType(NodeType.SNAPSHOT)
+                            .name(snapshotControlsViewController.getSnapshotNameProperty().get())
+                            .description(snapshotControlsViewController.getSnapshotCommentProperty().get())
+                            .uniqueId(tabIdProperty.get())
+                            .build();
+            snapshot.setSnapshotNode(snapshotNode);
+
             // Creating new or updating existing (e.g. name change)?
+            /*
             if (snapshot == null) {
                 snapshot = new Snapshot();
                 snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT)
@@ -178,7 +202,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 snapshot.getSnapshotNode().setName(snapshotControlsViewController.getSnapshotNameProperty().get());
                 snapshot.getSnapshotNode().setDescription(snapshotControlsViewController.getSnapshotCommentProperty().get());
             }
-            snapshot.setSnapshotData(snapshotData);
+            snapshot.setSnapshotData(snapshotData);*/
 
             try {
                 snapshot = SaveAndRestoreService.getInstance().saveSnapshot(configurationNode, snapshot);
@@ -188,10 +212,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     eventReceivers.forEach(r -> r.snapshotSaved(_snapshotNode, this::showLoggingError));
                 }
                 snapshotControlsViewController.snapshotDataDirty.set(false);
-                Platform.runLater(() -> {
-                    // Load snapshot via the tab as that will also update the tab title and id.
-                    snapshotTab.loadSnapshot(_snapshotNode);
-                });
+                loadSnapshot(snapshot.getSnapshotNode());
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to save snapshot", e);
                 Platform.runLater(() -> {
@@ -341,7 +362,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 Snapshot snapshot = getSnapshotFromService(snapshotNode);
                 snapshotProperty.set(snapshot);
                 Platform.runLater(() -> {
-                    //snapshotTableViewController.showSnapshotInTable(snapshot);
+                    tabTitleProperty.setValue(snapshotNode.getName());
+                    tabIdProperty.setValue(snapshotNode.getUniqueId());
                     snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
                 });
             } finally {
@@ -370,8 +392,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             }
             if (restoreResultList != null && !restoreResultList.isEmpty()) {
                 showAndLogFailedRestoreResult(snapshotProperty.get(), restoreResultList);
-            }
-            else{
+            } else {
                 LOGGER.log(Level.INFO, "Successfully restored snapshot \"" + snapshotProperty.get().getSnapshotNode().getName() + "\"");
             }
         });
@@ -444,7 +465,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 snapshotData.setSnapshotItems(snapshotItems);
             }
         } catch (Exception e) {
-            ExceptionDetailsErrorDialog.openError(snapshotTab.getContent(), Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+            ExceptionDetailsErrorDialog.openError(borderPane, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
             LOGGER.log(Level.INFO, "Error loading snapshot", e);
             throw e;
         }
@@ -460,8 +481,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
-        switch (saveAndRestoreWebSocketMessage.messageType()){
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+        switch (saveAndRestoreWebSocketMessage.messageType()) {
             //case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
         }
     }

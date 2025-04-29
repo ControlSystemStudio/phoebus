@@ -505,36 +505,31 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     private void deleteTreeItems(ObservableList<TreeItem<Node>> items) {
-        TreeItem<Node> parent = items.get(0).getParent();
         disabledUi.set(true);
         List<String> nodeIds =
                 items.stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+        List<Tab> tabsToRemove = new ArrayList<>();
+        List<Tab> visibleTabs = tabPane.getTabs();
+        for (Tab tab : visibleTabs) {
+            for (TreeItem<Node> treeItem : items) {
+                if (treeItem.getValue().getUniqueId().equals(tab.getId())) {
+                    tabsToRemove.add(tab);
+                }
+            }
+        }
         JobManager.schedule("Delete nodes", monitor -> {
             try {
                 saveAndRestoreService.deleteNodes(nodeIds);
+                Platform.runLater(() -> {
+                    disabledUi.set(false);
+                    tabPane.getTabs().removeAll(tabsToRemove);
+                });
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
                         MessageFormat.format(Messages.errorDeleteNodeFailed, items.get(0).getValue().getName()),
                         e);
                 disabledUi.set(false);
-                return;
             }
-
-            Platform.runLater(() -> {
-                List<Tab> tabsToRemove = new ArrayList<>();
-                List<Tab> visibleTabs = tabPane.getTabs();
-                for (Tab tab : visibleTabs) {
-                    for (TreeItem<Node> treeItem : items) {
-                        if (tab.getId().equals(treeItem.getValue().getUniqueId())) {
-                            tabsToRemove.add(tab);
-                            tab.getOnCloseRequest().handle(null);
-                        }
-                    }
-                }
-                disabledUi.set(false);
-                tabPane.getTabs().removeAll(tabsToRemove);
-                parent.getChildren().removeAll(items);
-            });
         });
     }
 
