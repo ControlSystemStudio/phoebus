@@ -368,8 +368,8 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     }
 
     @FXML
-    public void restore(ActionEvent event) {
-        snapshotController.restore(event);
+    public void restore() {
+        snapshotController.restore();
     }
 
     public SimpleBooleanProperty getSnapshotRestorableProperty() {

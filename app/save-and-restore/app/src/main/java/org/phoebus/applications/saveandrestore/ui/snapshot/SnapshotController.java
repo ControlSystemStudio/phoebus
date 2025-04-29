@@ -387,7 +387,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         loadSnapshotInternal(snapshotNode);
     }
 
-    @FXML
     public void restore() {
         snapshotTableViewController.restore(snapshotControlsViewController.getRestoreMode(), snapshotProperty.get(), restoreResultList -> {
             if (snapshotControlsViewController.logAction()) {
