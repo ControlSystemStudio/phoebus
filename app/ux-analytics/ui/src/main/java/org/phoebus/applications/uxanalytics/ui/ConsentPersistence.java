@@ -1,12 +1,14 @@
 package org.phoebus.applications.uxanalytics.ui;
 
+import org.phoebus.framework.workbench.Locations;
+
 import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class ConsentPersistence {
 
-    static final String CONSENT_FILE = ".phoebus-analytics-consent";
+    static final String CONSENT_FILE = Locations.user().getAbsolutePath()+".phoebus-analytics-consent";
 
     static boolean consentIsPersistent(){
         return new File(CONSENT_FILE).exists();

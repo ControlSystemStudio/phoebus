@@ -59,7 +59,7 @@ public class UXAnalyticsMain implements AppResourceDescriptor {
         else{
             monitor.disableTracking();
         }
-        logger.log(Level.INFO, "Load UX Analytics AppResource");
+        logger.log(Level.FINE, "Loaded UX Analytics plugin with consent: " + consent);
     }
 
     @Override
