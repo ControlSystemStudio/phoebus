@@ -142,9 +142,8 @@ public class ElasticsearchDAO implements NodeDAO {
      * {@inheritDoc}
      */
     @Override
-    public Set<String> deleteNodes(List<String> nodeIds){
-        Set<String> parentIds = new HashSet<>();
-        List<Node> nodes = new ArrayList<>();
+    public void deleteNodes(List<String> nodeIds){
+        List<Node> nodesToDelete = new ArrayList<>();
         for (String nodeId : nodeIds) {
             Node nodeToDelete = getNode(nodeId);
             if (nodeToDelete == null) {
@@ -152,13 +151,11 @@ public class ElasticsearchDAO implements NodeDAO {
             } else if (nodeToDelete.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)) {
                 throw new IllegalArgumentException("Root node cannot be deleted");
             }
-            nodes.add(nodeToDelete);
+            nodesToDelete.add(nodeToDelete);
         }
-        nodes.forEach(node -> {
-            String parentNodeId = deleteNode(node);
-            parentIds.add(parentNodeId);
-        });
-        return parentIds;
+        for(Node node : nodesToDelete){
+            deleteNode(node);
+        }
     }
 
     @Override
@@ -645,9 +642,8 @@ public class ElasticsearchDAO implements NodeDAO {
     /**
      *
      * @param nodeToDelete
-     * @return The id of the deleted {@link Node}s parent.
      */
-    private String deleteNode(Node nodeToDelete) {
+    private void deleteNode(Node nodeToDelete) {
         for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
             deleteNode(node);
         }
@@ -673,8 +669,6 @@ public class ElasticsearchDAO implements NodeDAO {
 
         // Delete the node
         elasticsearchTreeRepository.deleteById(nodeToDelete.getUniqueId());
-
-        return parentNode.getNode().getUniqueId();
     }
 
     @Override

@@ -429,7 +429,6 @@ public class NodeControllerTest {
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
         when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
-        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
 
         request =
                 delete("/node")
@@ -437,9 +436,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage = new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b");
-
-        verify(webSocketHandler, times(1)).sendMessage(saveAndRestoreWebSocketMessage);
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
@@ -461,7 +458,6 @@ public class NodeControllerTest {
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
         when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
-        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
 
         MockHttpServletRequestBuilder request =
                 delete("/node")
@@ -483,7 +479,7 @@ public class NodeControllerTest {
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
         when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
-        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
+        //when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
 
         MockHttpServletRequestBuilder request =
                 delete("/node")
@@ -500,7 +496,6 @@ public class NodeControllerTest {
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
         when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
-        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
         MockHttpServletRequestBuilder request =
@@ -509,7 +504,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test

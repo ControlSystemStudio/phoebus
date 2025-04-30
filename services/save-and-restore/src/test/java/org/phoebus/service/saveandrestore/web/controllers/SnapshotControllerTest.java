@@ -281,7 +281,7 @@ public class SnapshotControllerTest {
 
         when(nodeDAO.getNode("a")).thenReturn(node);
 
-        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("a"));
+        //when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("a"));
 
         MockHttpServletRequestBuilder request =
                 delete("/node")
@@ -314,7 +314,7 @@ public class SnapshotControllerTest {
                 .uniqueId("a").userName("otherUser").build();
 
         when(nodeDAO.getNode("a")).thenReturn(node);
-        when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("a"));
+        //when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("a"));
 
         MockHttpServletRequestBuilder request =
                 delete("/node")

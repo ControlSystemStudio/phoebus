@@ -76,10 +76,10 @@ public interface NodeDAO {
      * Checks that each of the node ids passed to this method exist, and that none of them
      * is the root node. If check passes all nodes are deleted.
      * @param nodeIds List of (existing) node ids.
-     * @return The collection of unique node id representing the parent {@link Node}s of the deleted
+     * @return The collection of unique node id representing the deleted
      * {@link Node}s. Client may use this to trigger a refresh of the UI.
      */
-    Set<String> deleteNodes(List<String> nodeIds);
+    void deleteNodes(List<String> nodeIds);
 
     /**
      * Creates a new node in the tree.
