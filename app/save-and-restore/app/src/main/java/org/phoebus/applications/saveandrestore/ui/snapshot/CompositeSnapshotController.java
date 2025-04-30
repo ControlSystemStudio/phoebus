@@ -58,10 +58,13 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -79,7 +82,7 @@ import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class CompositeSnapshotController extends SaveAndRestoreBaseController {
+public class CompositeSnapshotController extends SaveAndRestoreBaseController implements WebSocketMessageHandler {
 
     @SuppressWarnings("unused")
     @FXML
@@ -339,6 +342,8 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
                 Platform.runLater(() -> tabTitleProperty.setValue(tabTitleProperty.get().substring(2)));
             }
         });
+
+        saveAndRestoreService.addWebSocketMessageHandler(this);
     }
 
     @FXML
@@ -368,7 +373,6 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
                     compositeSnapshotData.setUniqueId(compositeSnapshotNode.getUniqueId());
                     compositeSnapshot = saveAndRestoreService.updateCompositeSnapshot(compositeSnapshot);
                 }
-                //tabTitleProperty.setValue(compositeSnapshot.getCompositeSnapshotNode().getName());
                 dirty.set(false);
                 completion.accept(compositeSnapshot);
             } catch (Exception e1) {
@@ -430,7 +434,10 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
         }
-        return true;
+        else{
+            saveAndRestoreService.removeWebSocketMessageHandler(this);
+            return true;
+        }
     }
 
     /**
@@ -537,5 +544,15 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
         snapshotEntries.removeListener(entriesListChangeListener);
         compositeSnapshotNameProperty.removeListener(nodeNameChangeListener);
         compositeSnapshotDescriptionProperty.removeListener(descriptionChangeListener);
+    }
+
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
+            Node node = (Node) saveAndRestoreWebSocketMessage.payload();
+            if (tabIdProperty.get() != null && node.getUniqueId().equals(tabIdProperty.get())) {
+                loadCompositeSnapshot(node, Collections.emptyList());
+            }
+        }
     }
 }
