@@ -209,14 +209,14 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             snapshot.setSnapshotNode(snapshotNode);
 
             try {
-                snapshot = SaveAndRestoreService.getInstance().saveSnapshot(configurationNode, snapshot);
+                Snapshot _snapshot = SaveAndRestoreService.getInstance().saveSnapshot(configurationNode, snapshot);
                 snapshotProperty.set(snapshot);
                 Node _snapshotNode = snapshot.getSnapshotNode();
                 if (snapshotControlsViewController.logAction()) {
                     eventReceivers.forEach(r -> r.snapshotSaved(_snapshotNode, this::showLoggingError));
                 }
                 snapshotControlsViewController.snapshotDataDirty.set(false);
-                loadSnapshot(snapshot.getSnapshotNode());
+                Platform.runLater(() -> loadSnapshot(_snapshot.getSnapshotNode()));
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to save snapshot", e);
                 Platform.runLater(() -> {
@@ -277,6 +277,13 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 });
     }
 
+    /**
+     * Handles clean-up when the associated {@link SnapshotTab} is closed.
+     * A check is made if content is dirty, in which case user is prompted to cancel or close anyway.
+     *
+     * @return <code>true</code> if content is not dirty or user chooses to close anyway,
+     * otherwise <code>false</code>.
+     */
     public boolean handleSnapshotTabClosed() {
         if (snapshotControlsViewController.snapshotDataDirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -284,13 +291,12 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             alert.setContentText(Messages.promptCloseSnapshotTabContent);
             DialogHelper.positionDialog(alert, borderPane, -150, -150);
             Optional<ButtonType> result = alert.showAndWait();
-            if (result.isPresent() && result.get().equals(ButtonType.CANCEL)) {
-                return false;
-            }
+            return result.isPresent() && result.get().equals(ButtonType.OK);
+        } else {
+            saveAndRestoreService.removeWebSocketMessageHandler(this);
+            dispose();
+            return true;
         }
-        saveAndRestoreService.removeWebSocketMessageHandler(this);
-        dispose();
-        return true;
     }
 
     /**
@@ -357,7 +363,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
 
     private void loadSnapshotInternal(Node snapshotNode) {
-        Platform.runLater(() -> disabledUi.set(true));
+        disabledUi.set(true);
         JobManager.schedule("Load snapshot items", monitor -> {
             try {
                 Snapshot snapshot = getSnapshotFromService(snapshotNode);
@@ -369,7 +375,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     setTabImage(snapshotNode);
                 });
             } finally {
-                Platform.runLater(() -> disabledUi.set(false));
+               disabledUi.set(false);
             }
         });
     }

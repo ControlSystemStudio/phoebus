@@ -511,6 +511,12 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     }
 
+    /**
+     * Handles clean-up when the associated {@link ConfigurationTab} is closed.
+     * A check is made if content is dirty, in which case user is prompted to cancel or close anyway.
+     * @return <code>true</code> if content is not dirty or user chooses to close anyway,
+     * otherwise <code>false</code>.
+     */
     public boolean handleConfigurationTabClosed() {
         if (dirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -519,7 +525,10 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
         }
-        return true;
+        else{
+            saveAndRestoreService.removeWebSocketMessageHandler(this);
+            return true;
+        }
     }
 
     @Override
@@ -530,12 +539,5 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 loadConfiguration(node);
             }
         }
-    }
-
-    /**
-     * Removes this as web socket message listener.
-     */
-    public void handleTabClosed() {
-        saveAndRestoreService.removeWebSocketMessageHandler(this);
     }
 }

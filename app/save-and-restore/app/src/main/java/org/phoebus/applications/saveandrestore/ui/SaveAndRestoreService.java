@@ -80,7 +80,7 @@ public class SaveAndRestoreService {
     private final SaveAndRestoreClient saveAndRestoreClient;
     private final ObjectMapper objectMapper;
 
-    private WebSocketClient webSocketClient;
+    private final WebSocketClient webSocketClient;
 
     private SaveAndRestoreService() {
         saveAndRestoreClient = new SaveAndRestoreClientImpl();
@@ -198,8 +198,8 @@ public class SaveAndRestoreService {
      * Moves the <code>sourceNode</code> to the <code>targetNode</code>. The target {@link Node} may not contain
      * any {@link Node} of same name and type as the source {@link Node}.
      * <p>
-     * Once the move completes successfully in the remote service, this method will updated both the source node's parent
-     * as well as the target node. This is needed in order to keep the view updated with the changes performed.
+     * Once the move completes successfully in the remote service, this method will update both the source node's parent
+     * and the target node. This is needed in order to keep the view updated with the changes performed.
      *
      * @param sourceNodes A list of {@link Node}s of type {@link NodeType#FOLDER} or {@link NodeType#CONFIGURATION}.
      * @param targetNode  A {@link Node} of type {@link NodeType#FOLDER}.
@@ -497,6 +497,7 @@ public class SaveAndRestoreService {
             SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage =
                     objectMapper.readValue(charSequence.toString(), SaveAndRestoreWebSocketMessage.class);
             webSocketMessageHandlers.forEach(w -> w.handleWebSocketMessage(saveAndRestoreWebSocketMessage));
+
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

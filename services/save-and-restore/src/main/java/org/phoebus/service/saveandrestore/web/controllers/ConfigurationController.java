@@ -79,7 +79,7 @@ public class ConfigurationController extends BaseController {
         }
         configuration.getConfigurationNode().setUserName(principal.getName());
         Configuration newConfiguration = nodeDAO.createConfiguration(parentNodeId, configuration);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, parentNodeId));
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newConfiguration.getConfigurationNode().getUniqueId()));
         return newConfiguration;
     }
 

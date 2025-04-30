@@ -453,7 +453,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     protected void expandTreeNode(TreeItem<Node> targetItem) {
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
         List<TreeItem<Node>> list =
-                childNodes.stream().map(n -> createTreeItem(n)).toList();
+                childNodes.stream().map(this::createTreeItem).toList();
         targetItem.getChildren().setAll(list);
         targetItem.getChildren().sort(treeNodeComparator);
         targetItem.setExpanded(true);
@@ -470,9 +470,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (tab == null) {
             return;
         }
-        if (tab instanceof SnapshotTab) {
+        if (tab instanceof SnapshotTab currentTab) {
             try {
-                SnapshotTab currentTab = (SnapshotTab) tab;
                 currentTab.addSnapshot(node);
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to compare snapshot", e);
@@ -504,22 +503,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         disabledUi.set(true);
         List<String> nodeIds =
                 items.stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
-        List<Tab> tabsToRemove = new ArrayList<>();
-        List<Tab> visibleTabs = tabPane.getTabs();
-        for (Tab tab : visibleTabs) {
-            for (TreeItem<Node> treeItem : items) {
-                if (treeItem.getValue().getUniqueId().equals(tab.getId())) {
-                    tabsToRemove.add(tab);
-                }
-            }
-        }
         JobManager.schedule("Delete nodes", monitor -> {
             try {
                 saveAndRestoreService.deleteNodes(nodeIds);
-                Platform.runLater(() -> {
-                    disabledUi.set(false);
-                    tabPane.getTabs().removeAll(tabsToRemove);
-                });
+                disabledUi.set(false);
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
                         MessageFormat.format(Messages.errorDeleteNodeFailed, items.get(0).getValue().getName()),

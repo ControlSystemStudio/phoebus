@@ -18,19 +18,24 @@
  */
 package org.phoebus.applications.saveandrestore.ui.configuration;
 
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConfigurationTab extends SaveAndRestoreTab {
+public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
 
     public ConfigurationTab() {
         configure();
@@ -66,10 +71,13 @@ public class ConfigurationTab extends SaveAndRestoreTab {
         setOnCloseRequest(event -> {
             if (!((ConfigurationController) controller).handleConfigurationTabClosed()) {
                 event.consume();
-            } else {
-                ((ConfigurationController) controller).handleTabClosed();
+            }
+            else{
+                SaveAndRestoreService.getInstance().removeWebSocketMessageHandler(this);
             }
         });
+
+        SaveAndRestoreService.getInstance().addWebSocketMessageHandler(this);
     }
 
     /**
@@ -88,5 +96,15 @@ public class ConfigurationTab extends SaveAndRestoreTab {
      */
     public void configureForNewConfiguration(Node parentNode) {
         ((ConfigurationController) controller).newConfiguration(parentNode);
+    }
+
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_REMOVED)) {
+            String nodeId = (String) saveAndRestoreWebSocketMessage.payload();
+            if (getId() != null && nodeId.equals(getId())) {
+                Platform.runLater(() -> getTabPane().getTabs().remove(this));
+            }
+        }
     }
 }
