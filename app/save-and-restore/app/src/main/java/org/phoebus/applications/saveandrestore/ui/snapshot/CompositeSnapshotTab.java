@@ -48,8 +48,6 @@ import java.util.logging.Logger;
  */
 public class CompositeSnapshotTab extends SaveAndRestoreTab {
 
-    private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.contextMenuNewCompositeSnapshot);
-
     private final SaveAndRestoreController saveAndRestoreController;
 
     public CompositeSnapshotTab(SaveAndRestoreController saveAndRestoreController) {
@@ -89,7 +87,6 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
 
         setContent(rootNode);
         setGraphic(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
-        textProperty().bind(tabTitleProperty);
 
         setOnCloseRequest(event -> {
             if (!((CompositeSnapshotController) controller).handleCompositeSnapshotTabClosed()) {
@@ -98,19 +95,9 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
         });
     }
 
-    public void setNodeName(String nodeName) {
-        Platform.runLater(() -> tabTitleProperty.set("[" + Messages.Edit + "] " + nodeName));
-    }
-
-    public void annotateDirty(boolean dirty) {
-        String tabTitle = tabTitleProperty.get();
-        if (dirty) {
-            Platform.runLater(() -> tabTitleProperty.set("* " + tabTitle));
-        }
-    }
 
     public void configureForNewCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
-        tabTitleProperty.set(Messages.contextMenuNewCompositeSnapshot);
+        //tabTitleProperty.set(Messages.contextMenuNewCompositeSnapshot);
         ((CompositeSnapshotController) controller).newCompositeSnapshot(parentNode, snapshotNodes);
     }
 
@@ -122,8 +109,8 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
      *                              be added to the list of references snapshots.
      */
     public void editCompositeSnapshot(Node compositeSnapshotNode, List<Node> snapshotNodes) {
-        setId("edit_" + compositeSnapshotNode.getUniqueId());
-        setNodeName(compositeSnapshotNode.getName());
+        //setId("edit_" + compositeSnapshotNode.getUniqueId());
+        //setNodeName(compositeSnapshotNode.getName());
         ((CompositeSnapshotController) controller).loadCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
     }
 

@@ -73,6 +73,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Consumer;
@@ -126,7 +127,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
     private SaveAndRestoreService saveAndRestoreService;
 
-    private final SimpleBooleanProperty dirty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty dirty = new SimpleBooleanProperty();
 
     private final ObservableList<Node> snapshotEntries = FXCollections.observableArrayList();
 
@@ -143,11 +144,12 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
     private Node compositeSnapshotNode;
 
-    private final CompositeSnapshotTab compositeSnapshotTab;
-
     private final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
     private final SaveAndRestoreController saveAndRestoreController;
+
+    private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.unnamedCompositeSnapshot);
+    private final SimpleStringProperty tabIdProperty = new SimpleStringProperty();
 
     @SuppressWarnings("unused")
     @FXML
@@ -159,8 +161,9 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
 
     public CompositeSnapshotController(CompositeSnapshotTab compositeSnapshotTab, SaveAndRestoreController saveAndRestoreController) {
-        this.compositeSnapshotTab = compositeSnapshotTab;
         this.saveAndRestoreController = saveAndRestoreController;
+        compositeSnapshotTab.textProperty().bind(tabTitleProperty);
+        compositeSnapshotTab.idProperty().bind(tabIdProperty);
     }
 
     @FXML
@@ -297,8 +300,8 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
         snapshotTable.setItems(snapshotEntries);
 
-        nodeNameChangeListener = (observableValue, oldValue, newValue) -> dirty.set(true);
-        descriptionChangeListener = (observableValue, oldValue, newValue) -> dirty.set(true);
+        nodeNameChangeListener = (observableValue, oldValue, newValue) -> dirty.setValue(true);
+        descriptionChangeListener = (observableValue, oldValue, newValue) -> dirty.setValue(true);
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         compositeSnapshotDescriptionProperty.isEmpty().get() ||
@@ -330,8 +333,10 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
         disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
 
         dirty.addListener((ob, o, n) -> {
-            if (dirty.get()) {
-                compositeSnapshotTab.annotateDirty(n);
+            if (n && !tabTitleProperty.get().startsWith("* ")) {
+                Platform.runLater(() -> tabTitleProperty.setValue("* " + tabTitleProperty.get()));
+            } else if (!n && tabTitleProperty.get().startsWith("* ")) {
+                Platform.runLater(() -> tabTitleProperty.setValue(tabTitleProperty.get().substring(2)));
             }
         });
     }
@@ -358,12 +363,12 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
                 if (compositeSnapshotNode.getUniqueId() == null) { // New composite snapshot
                     compositeSnapshot = saveAndRestoreService.saveCompositeSnapshot(parentFolder,
                             compositeSnapshot);
-                    compositeSnapshotTab.setId(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
+                    tabIdProperty.setValue(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
                 } else {
                     compositeSnapshotData.setUniqueId(compositeSnapshotNode.getUniqueId());
                     compositeSnapshot = saveAndRestoreService.updateCompositeSnapshot(compositeSnapshot);
                 }
-                compositeSnapshotTab.setNodeName(compositeSnapshot.getCompositeSnapshotNode().getName());
+                //tabTitleProperty.setValue(compositeSnapshot.getCompositeSnapshotNode().getName());
                 dirty.set(false);
                 completion.accept(compositeSnapshot);
             } catch (Exception e1) {
@@ -396,6 +401,8 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
                 // Add change listener added only after the saved entries have been loaded.
                 Collections.sort(snapshotEntries);
                 Platform.runLater(() -> {
+                    tabTitleProperty.setValue(node.getName());
+                    tabIdProperty.setValue(node.getUniqueId());
                     snapshotTable.setItems(snapshotEntries);
                     compositeSnapshotNameProperty.set(compositeSnapshotNode.getName());
                     compositeSnapshotDescriptionProperty.set(compositeSnapshotNode.getDescription());
@@ -406,7 +413,6 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
                     createdByProperty.set(compositeSnapshotNode.getUserName());
                     addToCompositeSnapshot(snapshotNodes);
                     addListeners();
-
                 });
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
@@ -442,7 +448,6 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
             dirty.set(false);
         } else {
             dirty.set(true);
-            //snapshotEntries.addAll(snapshotNodes);
             addToCompositeSnapshot(snapshotNodes);
         }
         addListeners();

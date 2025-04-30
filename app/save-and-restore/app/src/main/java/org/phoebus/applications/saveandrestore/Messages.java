@@ -179,6 +179,7 @@ public class Messages {
     public static String toolTipConfigurationExistsOption;
     public static String toolTipMultiplierSpinner;
     public static String unnamedConfiguration;
+    public static String unnamedCompositeSnapshot;
     public static String unnamedSnapshot;
 
     public static String updateCompositeSnapshotFailed;

@@ -24,6 +24,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -76,6 +77,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -175,12 +177,16 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     private final BooleanProperty dirty = new SimpleBooleanProperty();
 
     private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
+
     /**
      * Manages the id of the containing {@link javafx.scene.control.Tab}. This property will
      * also indicate if the UI has been configured to edit a new or existing configuration: for a new configuration
      * the id is <code>null</code>.
      */
     private final SimpleStringProperty tabIdProperty = new SimpleStringProperty();
+
+    private ChangeListener<String> nodeNameChangeListener;
+    private ChangeListener<String> descriptionChangeListener;
 
     public ConfigurationController(ConfigurationTab configurationTab) {
         configurationTab.textProperty().bind(tabTitleProperty);
@@ -332,7 +338,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved()) {
                     FXCollections.sort(configurationEntries);
-                    //dirty.setValue(true);
                 }
             }
         });
@@ -346,10 +351,8 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             }
         });
 
-        configurationNameProperty.addListener((observableValue, oldValue, newValue) ->
-                dirty.setValue(oldValue != null && newValue != null));
-        configurationDescriptionProperty.addListener((observable, oldValue, newValue) ->
-                dirty.setValue(oldValue != null && newValue != null));
+        nodeNameChangeListener = (observableValue, oldValue, newValue) -> dirty.setValue(true);
+        descriptionChangeListener = (observableValue, oldValue, newValue) -> dirty.setValue(true);
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         configurationDescriptionProperty.isEmpty().get() ||
@@ -470,6 +473,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      */
     public void newConfiguration(Node parentNode) {
         configurationNodeParent = parentNode;
+        addListeners();
         tabTitleProperty.setValue(Messages.unnamedConfiguration);
         Platform.runLater(() -> configurationNameField.requestFocus());
     }
@@ -480,6 +484,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      * @param node An existing {@link Node} of type {@link NodeType#CONFIGURATION}.
      */
     public synchronized void loadConfiguration(final Node node) {
+        removeListeners();
         JobManager.schedule("Load save&restore configuration", monitor -> {
             final ConfigurationData configurationData;
             try {
@@ -503,6 +508,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                     createdByField.textProperty().set(node.getUserName());
                     configurationDescriptionProperty.set(node.getDescription());
                     dirty.setValue(false);
+                    addListeners();
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Unable to load existing configuration");
                 }
@@ -514,6 +520,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     /**
      * Handles clean-up when the associated {@link ConfigurationTab} is closed.
      * A check is made if content is dirty, in which case user is prompted to cancel or close anyway.
+     *
      * @return <code>true</code> if content is not dirty or user chooses to close anyway,
      * otherwise <code>false</code>.
      */
@@ -524,8 +531,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             alert.setContentText(Messages.closeConfigurationWarning);
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
-        }
-        else{
+        } else {
             saveAndRestoreService.removeWebSocketMessageHandler(this);
             return true;
         }
@@ -539,5 +545,15 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                 loadConfiguration(node);
             }
         }
+    }
+
+    private void addListeners() {
+        configurationNameProperty.addListener(nodeNameChangeListener);
+        configurationDescriptionProperty.addListener(descriptionChangeListener);
+    }
+
+    private void removeListeners() {
+        configurationNameProperty.removeListener(nodeNameChangeListener);
+        configurationDescriptionProperty.removeListener(descriptionChangeListener);
     }
 }
