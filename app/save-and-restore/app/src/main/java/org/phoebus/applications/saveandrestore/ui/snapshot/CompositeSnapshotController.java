@@ -399,14 +399,13 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
         removeListeners();
         JobManager.schedule("Load composite snapshot data", monitor -> {
             try {
-                snapshotEntries.clear();
                 List<Node> referencedNodes = saveAndRestoreService.getCompositeSnapshotNodes(compositeSnapshotNode.getUniqueId());
-                snapshotEntries.addAll(referencedNodes);
                 // Add change listener added only after the saved entries have been loaded.
                 Collections.sort(snapshotEntries);
                 Platform.runLater(() -> {
                     tabTitleProperty.setValue(node.getName());
                     tabIdProperty.setValue(node.getUniqueId());
+                    snapshotEntries.setAll(referencedNodes);
                     snapshotTable.setItems(snapshotEntries);
                     compositeSnapshotNameProperty.set(compositeSnapshotNode.getName());
                     compositeSnapshotDescriptionProperty.set(compositeSnapshotNode.getDescription());
@@ -415,8 +414,8 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
                     lastUpdatedProperty.set(compositeSnapshotNode.getLastModified() != null ?
                             TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(compositeSnapshotNode.getLastModified().getTime())) : null);
                     createdByProperty.set(compositeSnapshotNode.getUserName());
-                    addToCompositeSnapshot(snapshotNodes);
                     addListeners();
+                    dirty.setValue(false);
                 });
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
