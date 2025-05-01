@@ -147,7 +147,7 @@ public class InfoPVActionExecutor
         done.countDown();
         try
         {
-            thread.join(Duration.ofSeconds(5));
+            thread.join(5000);
         }
         catch (InterruptedException ex)
         {
