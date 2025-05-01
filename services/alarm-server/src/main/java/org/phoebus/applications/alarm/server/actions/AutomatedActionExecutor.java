@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,6 +27,9 @@ import org.phoebus.framework.jobs.JobManager;
  *  <p>"mailto:user@site.org,another@else.com"<br>
  *  Sends email with alarm detail to list of recipients.
  *
+ *  <p>"infopv:ca://demo"<br>
+ *  Writes alarm detail to string PV.
+ *
  *  <p>"cmd:some_command arg1 arg2"<br>
  *  Invokes command with list of space-separated arguments.
  *  The special argument "*" will be replaced with a list of alarm PVs and their alarm severity.
@@ -44,18 +47,21 @@ public class AutomatedActionExecutor implements BiConsumer<AlarmTreeItem<?>, Tit
         // Perform the automated action in background thread
         JobManager.schedule("Automated Action", monitor ->
         {
-            if (action.detail.startsWith("mailto:"))
-	    {
-		if (AlarmLogic.getDisableNotify() == true)
-		{
-		    return;
-		}
-                EmailActionExecutor.sendEmail(item, action.detail.substring(7).split(" *, *"));
-	    }
+            final boolean mailto = action.detail.startsWith("mailto:");
+            final boolean infopv = action.detail.startsWith("infopv:");
+            if (mailto || infopv)
+            {   // Are notifications disabled?
+                if (AlarmLogic.getDisableNotify())
+                    return;
+                if (mailto)
+                    EmailActionExecutor.sendEmail(item, action.detail.substring(7).split(" *, *"));
+                else
+                    InfoPVActionExecutor.writeInfo(item, action.detail.substring(7).trim());
+            }
             else if (action.detail.startsWith("cmd:"))
                 CommandActionExecutor.run(item, action.detail.substring(4));
             else
-                logger.log(Level.WARNING, "Automated action " + action + " lacks 'mailto:' or 'cmd:' in detail");
+                logger.log(Level.WARNING, "Automated action " + action + " lacks 'mailto:', 'infopv:' or 'cmd:' in detail");
         });
     }
 
