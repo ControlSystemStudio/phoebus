@@ -454,19 +454,14 @@ public class WidgetInfoDialog extends Dialog<Boolean> {
             @Override
             protected void updateItem(ArchivedStatus item, boolean empty) {
                 if (empty) {
-                    //setGraphic(null);
                     setText(null);
                 } else if (item.equals(ArchivedStatus.NOT_APPLICABLE)) {
-                    //setGraphic(null);
                     setText("Not Applicable");
                 } else if (item.equals(ArchivedStatus.NO)) {
-                    //setGraphic(new ImageView(notokImage));
                     setText("No");
                 } else if (item.equals(ArchivedStatus.LOADING)) {
-                    //setGraphic(new ImageView(loadingImage));
-                    setText("Wait...");
+                    setText("Please Wait...");
                 } else if (item.equals(ArchivedStatus.YES)) {
-                    //setGraphic(new ImageView(okImage));
                     setText("Yes");
                 }
             }
