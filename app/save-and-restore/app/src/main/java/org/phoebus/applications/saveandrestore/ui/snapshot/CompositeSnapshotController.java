@@ -76,7 +76,6 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Consumer;
@@ -432,8 +431,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
             alert.setContentText(Messages.closeCompositeSnapshotWarning);
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
-        }
-        else{
+        } else {
             saveAndRestoreService.removeWebSocketMessageHandler(this);
             return true;
         }
@@ -546,7 +544,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
         if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
             Node node = (Node) saveAndRestoreWebSocketMessage.payload();
             if (tabIdProperty.get() != null && node.getUniqueId().equals(tabIdProperty.get())) {

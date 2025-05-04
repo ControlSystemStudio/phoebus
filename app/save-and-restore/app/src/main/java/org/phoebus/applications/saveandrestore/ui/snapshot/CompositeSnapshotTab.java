@@ -20,7 +20,6 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -92,8 +91,7 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocket
         setOnCloseRequest(event -> {
             if (!((CompositeSnapshotController) controller).handleCompositeSnapshotTabClosed()) {
                 event.consume();
-            }
-            else {
+            } else {
                 SaveAndRestoreService.getInstance().removeWebSocketMessageHandler(this);
             }
         });
@@ -128,7 +126,7 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocket
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
         if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_REMOVED)) {
             String nodeId = (String) saveAndRestoreWebSocketMessage.payload();
             if (getId() != null && nodeId.equals(getId())) {

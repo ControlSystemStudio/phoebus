@@ -71,7 +71,6 @@ public class SaveAndRestoreService {
 
     private final ExecutorService executor;
 
-    private final List<DataChangeListener> dataChangeListeners = Collections.synchronizedList(new ArrayList<>());
     private final List<WebSocketMessageHandler> webSocketMessageHandlers = Collections.synchronizedList(new ArrayList<>());
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
@@ -138,10 +137,6 @@ public class SaveAndRestoreService {
         return null;
     }
 
-    public Node updateNode(Node nodeToUpdate) throws Exception {
-        return updateNode(nodeToUpdate, false);
-    }
-
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) throws Exception {
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.updateNode(nodeToUpdate, customTimeForMigration));
         return future.get();
@@ -166,32 +161,18 @@ public class SaveAndRestoreService {
 
     public Configuration createConfiguration(final Node parentNode, final Configuration configuration) throws Exception {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.createConfiguration(parentNode.getUniqueId(), configuration));
-        Configuration newConfiguration = future.get();
-        dataChangeListeners.forEach(l -> l.nodeAddedOrRemoved(parentNode.getUniqueId()));
-        return newConfiguration;
+        return future.get();
     }
 
     public Configuration updateConfiguration(Configuration configuration) throws Exception {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.updateConfiguration(configuration));
-        Configuration updatedConfiguration = future.get();
-        // Associated configuration Node may have a new name
-        dataChangeListeners.forEach(l -> l.nodeChanged(updatedConfiguration.getConfigurationNode()));
-        return updatedConfiguration;
+        return future.get();
     }
 
     public List<Tag> getAllTags() throws Exception {
         Future<List<Tag>> future = executor.submit(saveAndRestoreClient::getAllTags);
         return future.get();
     }
-
-    public void addDataChangeListener(DataChangeListener dataChangeListener){
-        dataChangeListeners.add(dataChangeListener);
-    }
-
-    public void removeDataChangeListener(DataChangeListener dataChangeListener){
-        dataChangeListeners.remove(dataChangeListener);
-    }
-
     /**
      * Moves the <code>sourceNode</code> to the <code>targetNode</code>. The target {@link Node} may not contain
      * any {@link Node} of same name and type as the source {@link Node}.
@@ -256,10 +237,7 @@ public class SaveAndRestoreService {
                 return saveAndRestoreClient.updateSnapshot(snapshot);
             }
         });
-        Snapshot updatedSnapshot = future.get();
-        // Notify listeners as the configuration node has a new child node.
-        dataChangeListeners.forEach(l -> l.nodeChanged(configurationNode));
-        return updatedSnapshot;
+        return future.get();
     }
 
     public List<Node> getCompositeSnapshotNodes(String compositeSnapshotNodeUniqueId) throws Exception {
@@ -277,17 +255,12 @@ public class SaveAndRestoreService {
     public CompositeSnapshot saveCompositeSnapshot(Node parentNode, CompositeSnapshot compositeSnapshot) throws Exception {
         Future<CompositeSnapshot> future =
                 executor.submit(() -> saveAndRestoreClient.createCompositeSnapshot(parentNode.getUniqueId(), compositeSnapshot));
-        CompositeSnapshot newCompositeSnapshot = future.get();
-        dataChangeListeners.forEach(l -> l.nodeAddedOrRemoved(parentNode.getUniqueId()));
-        return newCompositeSnapshot;
+        return future.get();
     }
 
     public CompositeSnapshot updateCompositeSnapshot(final CompositeSnapshot compositeSnapshot) throws Exception {
         Future<CompositeSnapshot> future = executor.submit(() -> saveAndRestoreClient.updateCompositeSnapshot(compositeSnapshot));
-        CompositeSnapshot updatedCompositeSnapshot = future.get();
-        // Associated composite snapshot Node may have a new name
-        dataChangeListeners.forEach(l -> l.nodeChanged(updatedCompositeSnapshot.getCompositeSnapshotNode()));
-        return updatedCompositeSnapshot;
+        return future.get();
     }
 
     /**
@@ -323,9 +296,7 @@ public class SaveAndRestoreService {
     public Filter saveFilter(Filter filter) throws Exception {
         Future<Filter> future =
                 executor.submit(() -> saveAndRestoreClient.saveFilter(filter));
-        Filter addedOrUpdatedFilter = future.get();
-        dataChangeListeners.forEach(l -> l.filterAddedOrUpdated(filter));
-        return addedOrUpdatedFilter;
+        return future.get();
     }
 
     /**
@@ -344,7 +315,6 @@ public class SaveAndRestoreService {
      */
     public void deleteFilter(final Filter filter) throws Exception {
         executor.submit(() -> saveAndRestoreClient.deleteFilter(filter.getName())).get();
-        dataChangeListeners.forEach(l -> l.filterRemoved(filter.getName()));
     }
 
     /**
@@ -357,9 +327,7 @@ public class SaveAndRestoreService {
     public List<Node> addTag(TagData tagData) throws Exception {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.addTag(tagData));
-        List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(n -> dataChangeListeners.forEach(l -> l.nodeChanged(n)));
-        return updatedNodes;
+        return future.get();
     }
 
     /**
@@ -372,9 +340,7 @@ public class SaveAndRestoreService {
     public List<Node> deleteTag(TagData tagData) throws Exception {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.deleteTag(tagData));
-        List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(n -> dataChangeListeners.forEach(l -> l.nodeChanged(n)));
-        return updatedNodes;
+        return future.get();
     }
 
     /**

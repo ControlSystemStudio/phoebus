@@ -155,7 +155,7 @@ public class SnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHa
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
         if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_REMOVED)) {
             String nodeId = (String) saveAndRestoreWebSocketMessage.payload();
             if (getId() != null && nodeId.equals(getId())) {

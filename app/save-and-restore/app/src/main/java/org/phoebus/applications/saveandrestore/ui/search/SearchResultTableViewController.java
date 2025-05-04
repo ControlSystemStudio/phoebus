@@ -41,10 +41,12 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromServiceMenuItem;
@@ -77,7 +79,8 @@ import java.util.stream.Collectors;
 /**
  * Controller for the search result table.
  */
-public class SearchResultTableViewController extends SaveAndRestoreBaseController implements Initializable {
+public class SearchResultTableViewController extends SaveAndRestoreBaseController
+        implements Initializable, WebSocketMessageHandler {
 
     @SuppressWarnings("unused")
     @FXML
@@ -287,6 +290,8 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 pageSizeTextField.setText(oldValue);
             }
         });
+
+        saveAndRestoreService.addWebSocketMessageHandler(this);
     }
 
     private ImageView getImageView(Node node) {
@@ -305,15 +310,6 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 return new ImageView(ImageRepository.CONFIGURATION);
         }
         return null;
-    }
-
-    public void nodeChanged(Node updatedNode) {
-        for (Node node : resultTableView.getItems()) {
-            if (node.getUniqueId().equals(updatedNode.getUniqueId())) {
-                node.setTags(updatedNode.getTags());
-                resultTableView.refresh();
-            }
-        }
     }
 
     public void clearTable() {
@@ -417,5 +413,16 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(resultTableView, Messages.errorGeneric, MessageFormat.format(Messages.failedGetSpecificFilter, filterId), e);
         }
+    }
+
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
+        switch (saveAndRestoreWebSocketMessage.messageType()){
+            case NODE_UPDATED, NODE_REMOVED, NODE_ADDED -> search();
+        }
+    }
+
+    public void handleTabClosed(){
+        saveAndRestoreService.removeWebSocketMessageHandler(this);
     }
 }

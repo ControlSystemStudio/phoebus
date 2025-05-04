@@ -489,7 +489,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
         if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
             Node node = (Node) saveAndRestoreWebSocketMessage.payload();
             if (tabIdProperty.get() != null && node.getUniqueId().equals(tabIdProperty.get())) {

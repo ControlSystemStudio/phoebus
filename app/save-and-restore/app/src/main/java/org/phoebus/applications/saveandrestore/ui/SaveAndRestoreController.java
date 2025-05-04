@@ -751,7 +751,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (result.isPresent()) {
             node.getValue().setName(result.get());
             try {
-                saveAndRestoreService.updateNode(node.getValue());
+                saveAndRestoreService.updateNode(node.getValue(), false);
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle(Messages.errorActionFailed);
@@ -1422,8 +1422,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 return;
             }
             Stack<Node> copiedStack = new Stack<>();
-            DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
             Platform.runLater(() -> {
+                DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
                 locateNode(copiedStack);
                 nodeDoubleClicked(node);
             });
@@ -1491,7 +1491,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage){
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage){
         switch (saveAndRestoreWebSocketMessage.messageType()){
             case NODE_ADDED -> nodeAdded((String)saveAndRestoreWebSocketMessage.payload());
             case NODE_REMOVED -> nodeRemoved((String)saveAndRestoreWebSocketMessage.payload());

@@ -8,5 +8,5 @@ import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWeb
 
 public interface WebSocketMessageHandler {
 
-    void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage);
+    void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage);
 }
