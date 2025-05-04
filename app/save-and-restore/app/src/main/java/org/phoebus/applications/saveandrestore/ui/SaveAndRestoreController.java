@@ -456,9 +456,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 childNodes.stream().map(this::createTreeItem).toList();
         targetItem.getChildren().setAll(list);
         targetItem.getChildren().sort(treeNodeComparator);
-        targetItem.setExpanded(true);
-        treeView.getSelectionModel().clearSelection();
-        treeView.getSelectionModel().select(null);
     }
 
     /**
@@ -754,17 +751,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (result.isPresent()) {
             node.getValue().setName(result.get());
             try {
-                String parentNodeIdBefore = saveAndRestoreService.getParentNode(node.getValue().getUniqueId()).getUniqueId();
                 saveAndRestoreService.updateNode(node.getValue());
-                // Node updated... Does it have a new parent, i.e. has it been moved in the tree structure?
-                String parentNodeIdAfter = saveAndRestoreService.getParentNode(node.getValue().getUniqueId()).getUniqueId();
-                if(parentNodeIdAfter.equals(parentNodeIdBefore)){
-                    return;
-                }
-                // New parent node, update UI
-                Stack<Node> copiedStack = new Stack<>();
-                DirectoryUtilities.CreateLocationStringAndNodeStack(node.getValue(), false).getValue().forEach(copiedStack::push);
-                locateNode(copiedStack);
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle(Messages.errorActionFailed);
@@ -802,6 +789,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             return;
         }
         nodeSubjectToUpdate.setValue(node);
+        // For updated and expanded folder nodes, refresh with respect to child nodes as
+        // a move/copy operation may add/remove nodes.
+        if(nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) && nodeSubjectToUpdate.isExpanded()){
+            expandTreeNode(nodeSubjectToUpdate);
+        }
     }
 
     /**
@@ -942,10 +934,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         saveLocalState();
         saveAndRestoreService.closeWebSocket();
         saveAndRestoreService.removeWebSocketMessageHandler(this);
-        //saveAndRestoreService.removeNodeChangeListener(this);
-        //saveAndRestoreService.removeNodeAddedListener(this);
-        //saveAndRestoreService.removeFilterChangeListener(this);
-        //webSocketClient.close("User closing " + SaveAndRestoreApplication.DISPLAY_NAME);
     }
 
     /**
@@ -1046,18 +1034,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     protected void moveNodes(List<Node> sourceNodes, Node targetNode, TransferMode transferMode) {
         disabledUi.set(true);
         JobManager.schedule("Copy Or Move save&restore node(s)", monitor -> {
-            TreeItem<Node> rootTreeItem = treeView.getRoot();
-            TreeItem<Node> targetTreeItem = recursiveSearch(targetNode.getUniqueId(), rootTreeItem);
             try {
-                TreeItem<Node> sourceTreeItem = recursiveSearch(sourceNodes.get(0).getUniqueId(), rootTreeItem);
-                TreeItem<Node> sourceParentTreeItem = sourceTreeItem.getParent();
                 if (transferMode.equals(TransferMode.MOVE)) {
                     saveAndRestoreService.moveNodes(sourceNodes, targetNode);
-                    Platform.runLater(() -> {
-                        removeMovedNodes(sourceParentTreeItem, sourceNodes);
-                        addMovedNodes(targetTreeItem, sourceNodes);
-                    });
-                } // TransferMode.COPY not supported
+                }// TransferMode.COPY not supported
             } catch (Exception exception) {
                 Logger.getLogger(SaveAndRestoreController.class.getName())
                         .log(Level.SEVERE, "Failed to move or copy");

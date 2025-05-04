@@ -86,7 +86,7 @@ public class SaveAndRestoreService {
         saveAndRestoreClient = new SaveAndRestoreClientImpl();
         String baseUrl = Preferences.jmasarServiceUrl;
         String schema = baseUrl.startsWith("https") ? "wss" : "ws";
-        String webSocketUrl = schema + baseUrl.substring(baseUrl.indexOf("://", 0)) + "/web-socket";
+        String webSocketUrl = schema + baseUrl.substring(baseUrl.indexOf("://")) + "/web-socket";
         URI webSocketUri = URI.create(webSocketUrl);
         webSocketClient  = new WebSocketClient(webSocketUri, this::handleWebSocketConnect, this::handleWebSocketDisconnect, this::handleWebSocketMessage);
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
@@ -144,9 +144,7 @@ public class SaveAndRestoreService {
 
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) throws Exception {
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.updateNode(nodeToUpdate, customTimeForMigration));
-        Node node = future.get();
-        dataChangeListeners.forEach(l -> l.nodeChanged(node));
-        return node;
+        return future.get();
     }
 
     public Node createNode(String parentNodeId, Node newTreeNode) throws Exception {

@@ -28,7 +28,6 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.ui.DataChangeListener;
-import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
@@ -120,7 +119,7 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements DataChangeL
                 return;
             }
             Optional<Filter> filterOptional = allFilters.stream().filter(f -> f.getName().equalsIgnoreCase(filterId)).findFirst();
-            if (!filterOptional.isPresent()) {
+            if (filterOptional.isEmpty()) {
                 Platform.runLater(() -> {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setContentText(MessageFormat.format(Messages.filterNotFound, filterId));
