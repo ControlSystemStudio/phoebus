@@ -61,14 +61,13 @@ public class InfoPVActionExecutor
         thread.start();
     }
 
-
     /** Request writing alarm info text to PV
      *  @param item Alarm item from which to get alarm info
      *  @param pv_name Name of PV to update
      */
     public static void writeInfo(final AlarmTreeItem<?> item, final String pv_name)
     {
-        final String info = EmailActionExecutor.createTitle(item) +
+        final String info = EmailActionExecutor.createTitle(item) + System.lineSeparator() +
                             EmailActionExecutor.createBody(item);
 
         // Register PV or find existing one
