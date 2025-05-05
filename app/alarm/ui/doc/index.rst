@@ -310,7 +310,11 @@ The email server is configured in the alarm preferences.
 ``infopv:SomePV``:
 Writes the alarm detail to a PV.
 
-The PV needs to hold a string, for example::
+The PV needs to hold a string, for example
+`mqtt://alarm/message<VString>` for an MQTT topic
+or
+`ca://NameOfPV.VAL$`
+for Channel Access where the PV refers to a string record::
     
     # Example for "Info PV"
     # used with automated action set to "infopv:NameOfPV"
