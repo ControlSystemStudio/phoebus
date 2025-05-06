@@ -62,6 +62,7 @@ import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.jobs.JobManager;
@@ -163,6 +164,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     private Pane addPVsPane;
 
     private SaveAndRestoreService saveAndRestoreService;
+    private WebSocketClientService webSocketClientService;
 
     private final ObservableList<ConfigPvEntry> configurationEntries = FXCollections.observableArrayList();
 
@@ -196,6 +198,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     public void initialize() {
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
+        webSocketClientService = WebSocketClientService.getInstance();
 
         pvTable.editableProperty().bind(userIdentity.isNull().not());
         pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -368,7 +371,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
         addPVsPane.disableProperty().bind(userIdentity.isNull());
 
-        saveAndRestoreService.addWebSocketMessageHandler(this);
+        webSocketClientService.addWebSocketMessageHandler(this);
     }
 
     @FXML
@@ -531,7 +534,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
         } else {
-            saveAndRestoreService.removeWebSocketMessageHandler(this);
+            webSocketClientService.removeWebSocketMessageHandler(this);
             return true;
         }
     }

@@ -55,6 +55,7 @@ import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -182,6 +183,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
     private final SimpleStringProperty filterNameProperty = new SimpleStringProperty();
 
     private final SaveAndRestoreService saveAndRestoreService;
+    private final WebSocketClientService webSocketClientService;
 
     private final SimpleStringProperty query = new SimpleStringProperty();
 
@@ -221,6 +223,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
     public SearchAndFilterViewController(SaveAndRestoreController saveAndRestoreController) {
         this.saveAndRestoreController = saveAndRestoreController;
         this.saveAndRestoreService = SaveAndRestoreService.getInstance();
+        this.webSocketClientService = WebSocketClientService.getInstance();
     }
 
     @FXML
@@ -383,7 +386,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
 
         loadFilters();
 
-        saveAndRestoreService.addWebSocketMessageHandler(this);
+        webSocketClientService.addWebSocketMessageHandler(this);
 
         progressIndicator.visibleProperty().bind(disableUi);
         disableUi.addListener((observable, oldValue, newValue) -> mainUi.setDisable(newValue));
@@ -636,7 +639,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
     }
 
     public void handleSaveAndFilterTabClosed() {
-        saveAndRestoreService.removeWebSocketMessageHandler(this);
+        webSocketClientService.removeWebSocketMessageHandler(this);
         searchResultTableViewController.handleTabClosed();
     }
 

@@ -4,11 +4,15 @@
 
 package org.phoebus.core.websocket;
 
+import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -25,37 +29,44 @@ public class WebSocketClient implements WebSocket.Listener {
     private Runnable disconnectCallback;
     private URI uri;
     private Consumer<CharSequence> onTextCallback;
-    private AtomicBoolean reconnectAborted = new AtomicBoolean(false);
+    private AtomicBoolean attemptConnect = new AtomicBoolean(true);
 
     /**
-     *
      * @param uri The URI of the web socket peer.
-     * @param disconnectCallback An optional {@link Runnable} called if the web socket is closed, e.g. if
-     *                           peer closes it or due to network issues.
      */
-    public WebSocketClient(URI uri, Runnable connectCallback, Runnable disconnectCallback, Consumer<CharSequence> onTextCallback) {
+    public WebSocketClient(URI uri, Consumer<CharSequence> onTextCallback) {
         this.uri = uri;
-        this.connectCallback = connectCallback;
-        this.disconnectCallback = disconnectCallback;
         this.onTextCallback = onTextCallback;
     }
 
-    public void connect(){
-        try {
-            webSocket = HttpClient.newBuilder()
-                    .build()
-                    .newWebSocketBuilder()
-                    .buildAsync(uri, this)
-                    .join();
-        } catch (Exception e) {
-            logger.log(Level.INFO, "Failed to connect to " + uri);
-        }
+    public void connect() {
+        new Thread(() -> {
+            while(attemptConnect.get()){
+                logger.log(Level.INFO, "Attempting web socket connection to " + uri);
+                try {
+                    webSocket = HttpClient.newBuilder()
+                            .build()
+                            .newWebSocketBuilder()
+                            .buildAsync(uri, this)
+                            .join();
+                    break;
+                }
+                catch (Exception e) {
+                    logger.log(Level.INFO, "Failed to connect to " + uri + " " + (e != null ? e.getMessage() : ""));
+                }
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    logger.log(Level.WARNING, "Interrupted while sleeping");
+                }
+            }
+        }).start();
     }
 
     @Override
     public void onOpen(WebSocket webSocket) {
         WebSocket.Listener.super.onOpen(webSocket);
-        if(connectCallback != null){
+        if (connectCallback != null) {
             connectCallback.run();
         }
         logger.log(Level.INFO, "Connected to " + uri);
@@ -63,6 +74,7 @@ public class WebSocketClient implements WebSocket.Listener {
 
     /**
      * Send a text message to peer.
+     *
      * @param message The actual message. In practice a JSON formatted string that peer can evaluate
      *                to take proper action.
      */
@@ -83,6 +95,7 @@ public class WebSocketClient implements WebSocket.Listener {
         if (disconnectCallback != null) {
             disconnectCallback.run();
         }
+        connect();
         return null;
     }
 
@@ -113,11 +126,22 @@ public class WebSocketClient implements WebSocket.Listener {
                                      CharSequence data,
                                      boolean last) {
         webSocket.request(1);
-        onTextCallback.accept(data);
+        if(onTextCallback != null) {
+            onTextCallback.accept(data);
+        }
         return WebSocket.Listener.super.onText(webSocket, data, last);
     }
 
-    public void close(String reason){
+    public void close(String reason) {
+        attemptConnect.set(false);
         webSocket.sendClose(1000, reason);
+    }
+
+    public void setConnectCallback(Runnable connectCallback){
+        this.connectCallback = connectCallback;
+    }
+
+    public void setDisconnectCallback(Runnable disconnectCallback){
+        this.disconnectCallback = disconnectCallback;
     }
 }

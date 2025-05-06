@@ -41,6 +41,7 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
+import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.saveandrestore.util.VNoData;
@@ -85,6 +86,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
     private final SaveAndRestoreService saveAndRestoreService;
+    private final WebSocketClientService webSocketClientService;
 
     @FXML
     protected VBox progressIndicator;
@@ -100,6 +102,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         snapshotTab.setGraphic(imageView);
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
+        webSocketClientService = WebSocketClientService.getInstance();
     }
 
     /**
@@ -142,7 +145,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             }
         });
 
-        saveAndRestoreService.addWebSocketMessageHandler(this);
+        webSocketClientService.addWebSocketMessageHandler(this);
     }
 
     /**
@@ -293,7 +296,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
         } else {
-            saveAndRestoreService.removeWebSocketMessageHandler(this);
+            webSocketClientService.removeWebSocketMessageHandler(this);
             dispose();
             return true;
         }

@@ -168,24 +168,17 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @FXML
     private VBox treeViewPane;
 
-    protected SaveAndRestoreService saveAndRestoreService;
+    private SaveAndRestoreService saveAndRestoreService;
+    private WebSocketClientService webSocketClientService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
-
     private static final String TREE_STATE = "tree_state";
-
     private static final String FILTER_NAME = "filter_name";
-
     protected static final Logger LOG = Logger.getLogger(SaveAndRestoreController.class.getName());
-
     protected Comparator<TreeItem<Node>> treeNodeComparator;
-
     protected SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
-
     private final SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
-
     private static final Logger logger = Logger.getLogger(SaveAndRestoreController.class.getName());
 
     @SuppressWarnings("unused")
@@ -263,7 +256,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
-        saveAndRestoreService.openWebSocket();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
@@ -291,9 +283,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         });
 
         treeView.setShowRoot(true);
-
-        saveAndRestoreService.addWebSocketMessageHandler(this);
-
         treeView.setCellFactory(p -> new BrowserTreeCell(this));
         treeViewPane.disableProperty().bind(disabledUi);
         progressIndicator.visibleProperty().bind(disabledUi);
@@ -369,6 +358,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         loadTreeData();
 
         webSocketTrackerLabel.textProperty().bind(webSocketTrackerText);
+
+        webSocketClientService = WebSocketClientService.getInstance();
+        webSocketClientService.addWebSocketMessageHandler(this);
+        webSocketClientService.setConnectCallback(() -> Platform.runLater(() -> webSocketTrackerText.setValue("Web Socket Connected")));
+        webSocketClientService.setDisconnectCallback(() -> Platform.runLater(() -> webSocketTrackerText.setValue("Web Socket Disconnected")));
+        webSocketClientService.connect();
     }
 
     /**
@@ -540,6 +535,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             return searchAndFilterTab;
         }
     }
+
     /**
      * Creates a new folder {@link Node}.
      */
@@ -791,7 +787,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         nodeSubjectToUpdate.setValue(node);
         // For updated and expanded folder nodes, refresh with respect to child nodes as
         // a move/copy operation may add/remove nodes.
-        if(nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) && nodeSubjectToUpdate.isExpanded()){
+        if (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) && nodeSubjectToUpdate.isExpanded()) {
             expandTreeNode(nodeSubjectToUpdate);
         }
     }
@@ -802,7 +798,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      *
      * @param nodeId Unique id of the added {@link Node}
      */
-    private void nodeAdded(String nodeId){
+    private void nodeAdded(String nodeId) {
         Node newNode = saveAndRestoreService.getNode(nodeId);
         try {
             Node parentNode = saveAndRestoreService.getParentNode(nodeId);
@@ -819,11 +815,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * Handles callback in order to update the tree view when a {@link Node} has been deleted.
      * The purpose is to update the {@link TreeView} accordingly to reflect the change.
+     *
      * @param nodeId Unique id of the deleted {@link Node}
      */
-    private void nodeRemoved(String nodeId){
+    private void nodeRemoved(String nodeId) {
         TreeItem<Node> treeItemToRemove = recursiveSearch(nodeId, treeView.getRoot());
-        if(treeItemToRemove != null){
+        if (treeItemToRemove != null) {
             treeItemToRemove.getParent().getChildren().remove(treeItemToRemove);
         }
     }
@@ -932,8 +929,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     public void handleTabClosed() {
         saveLocalState();
-        saveAndRestoreService.closeWebSocket();
-        saveAndRestoreService.removeWebSocketMessageHandler(this);
+        webSocketClientService.closeWebSocket();
+        webSocketClientService.removeWebSocketMessageHandler(this);
+        webSocketClientService.close();
     }
 
     /**
@@ -1298,10 +1296,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (clipBoardContent == null || browserSelectionModel.getSelectedItems().size() != 1) {
             return false;
         }
-        if(selectedItemsProperty.size() != 1 ||
-           selectedItemsProperty.get(0).getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) ||
-           (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.FOLDER) && !selectedItemsProperty.get(0).getNodeType().equals(NodeType.CONFIGURATION))){
-           return false;
+        if (selectedItemsProperty.size() != 1 ||
+                selectedItemsProperty.get(0).getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) ||
+                (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.FOLDER) && !selectedItemsProperty.get(0).getNodeType().equals(NodeType.CONFIGURATION))) {
+            return false;
         }
         // Check is made if target node is of supported type for the clipboard content.
         List<Node> selectedNodes = (List<Node>) clipBoardContent;
@@ -1491,14 +1489,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage){
-        switch (saveAndRestoreWebSocketMessage.messageType()){
-            case NODE_ADDED -> nodeAdded((String)saveAndRestoreWebSocketMessage.payload());
-            case NODE_REMOVED -> nodeRemoved((String)saveAndRestoreWebSocketMessage.payload());
-            case NODE_UPDATED -> nodeChanged((Node)saveAndRestoreWebSocketMessage.payload());
-            case FILTER_ADDED_OR_UPDATED -> filterAddedOrUpdated((Filter)saveAndRestoreWebSocketMessage.payload());
-            case FILTER_REMOVED -> filterRemoved((String)saveAndRestoreWebSocketMessage.payload());
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+        switch (saveAndRestoreWebSocketMessage.messageType()) {
+            case NODE_ADDED -> nodeAdded((String) saveAndRestoreWebSocketMessage.payload());
+            case NODE_REMOVED -> nodeRemoved((String) saveAndRestoreWebSocketMessage.payload());
+            case NODE_UPDATED -> nodeChanged((Node) saveAndRestoreWebSocketMessage.payload());
+            case FILTER_ADDED_OR_UPDATED -> filterAddedOrUpdated((Filter) saveAndRestoreWebSocketMessage.payload());
+            case FILTER_REMOVED -> filterRemoved((String) saveAndRestoreWebSocketMessage.payload());
         }
     }
-
 }

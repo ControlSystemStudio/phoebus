@@ -20,6 +20,7 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.property.SimpleStringProperty;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -62,5 +63,12 @@ public abstract class SaveAndRestoreBaseController {
 
     public SimpleStringProperty getUserIdentity() {
         return userIdentity;
+    }
+
+    /**
+     * Default no-op implementation of a handler for {@link SaveAndRestoreWebSocketMessage}s.
+     * @param webSocketMessage See {@link SaveAndRestoreWebSocketMessage}
+     */
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> webSocketMessage){
     }
 }

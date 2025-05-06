@@ -28,6 +28,7 @@ import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWeb
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
+import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 
@@ -73,11 +74,11 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
                 event.consume();
             }
             else{
-                SaveAndRestoreService.getInstance().removeWebSocketMessageHandler(this);
+                WebSocketClientService.getInstance().removeWebSocketMessageHandler(this);
             }
         });
 
-        SaveAndRestoreService.getInstance().addWebSocketMessageHandler(this);
+        WebSocketClientService.getInstance().addWebSocketMessageHandler(this);
     }
 
     /**

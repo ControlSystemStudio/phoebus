@@ -46,6 +46,7 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
@@ -141,6 +142,7 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
     private static final Logger LOGGER = Logger.getLogger(SearchResultTableViewController.class.getName());
 
     private SaveAndRestoreService saveAndRestoreService;
+    private WebSocketClientService webSocketClientService;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -291,7 +293,7 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
             }
         });
 
-        saveAndRestoreService.addWebSocketMessageHandler(this);
+        webSocketClientService.addWebSocketMessageHandler(this);
     }
 
     private ImageView getImageView(Node node) {
@@ -423,6 +425,6 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
     }
 
     public void handleTabClosed(){
-        saveAndRestoreService.removeWebSocketMessageHandler(this);
+        webSocketClientService.removeWebSocketMessageHandler(this);
     }
 }

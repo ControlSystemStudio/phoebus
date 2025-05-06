@@ -19,13 +19,10 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.client.Preferences;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClientImpl;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
@@ -43,20 +40,15 @@ import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
-import org.phoebus.applications.saveandrestore.model.websocket.WebMessageDeserializer;
 import org.phoebus.core.vtypes.VDisconnectedData;
-import org.phoebus.core.websocket.WebSocketClient;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.util.time.TimestampFormats;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -71,7 +63,6 @@ public class SaveAndRestoreService {
 
     private final ExecutorService executor;
 
-    private final List<WebSocketMessageHandler> webSocketMessageHandlers = Collections.synchronizedList(new ArrayList<>());
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private static SaveAndRestoreService instance;
@@ -79,25 +70,13 @@ public class SaveAndRestoreService {
     private final SaveAndRestoreClient saveAndRestoreClient;
     private final ObjectMapper objectMapper;
 
-    private final WebSocketClient webSocketClient;
-
     private SaveAndRestoreService() {
         saveAndRestoreClient = new SaveAndRestoreClientImpl();
-        String baseUrl = Preferences.jmasarServiceUrl;
-        String schema = baseUrl.startsWith("https") ? "wss" : "ws";
-        String webSocketUrl = schema + baseUrl.substring(baseUrl.indexOf("://")) + "/web-socket";
-        URI webSocketUri = URI.create(webSocketUrl);
-        webSocketClient  = new WebSocketClient(webSocketUri, this::handleWebSocketConnect, this::handleWebSocketDisconnect, this::handleWebSocketMessage);
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(SaveAndRestoreWebSocketMessage.class,
-                new WebMessageDeserializer(SaveAndRestoreWebSocketMessage.class));
-        objectMapper.registerModule(module);
-
     }
 
     public static SaveAndRestoreService getInstance() {
@@ -173,6 +152,7 @@ public class SaveAndRestoreService {
         Future<List<Tag>> future = executor.submit(saveAndRestoreClient::getAllTags);
         return future.get();
     }
+
     /**
      * Moves the <code>sourceNode</code> to the <code>targetNode</code>. The target {@link Node} may not contain
      * any {@link Node} of same name and type as the source {@link Node}.
@@ -446,40 +426,5 @@ public class SaveAndRestoreService {
         } catch (Exception e) {
             return VDisconnectedData.INSTANCE;
         }
-    }
-
-    private void handleWebSocketDisconnect(){
-        LOG.log(Level.INFO, "Web socket disonnected");
-    }
-
-    private void handleWebSocketConnect(){
-        LOG.log(Level.INFO, "Web socket connected");
-    }
-
-    private void handleWebSocketMessage(CharSequence charSequence){
-        try {
-            SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage =
-                    objectMapper.readValue(charSequence.toString(), SaveAndRestoreWebSocketMessage.class);
-            webSocketMessageHandlers.forEach(w -> w.handleWebSocketMessage(saveAndRestoreWebSocketMessage));
-
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void closeWebSocket(){
-        webSocketClient.close("Application shutdown");
-    }
-
-    public void openWebSocket(){
-        webSocketClient.connect();
-    }
-
-    public void addWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler){
-        webSocketMessageHandlers.add(webSocketMessageHandler);
-    }
-
-    public void removeWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler){
-        webSocketMessageHandlers.remove(webSocketMessageHandler);
     }
 }

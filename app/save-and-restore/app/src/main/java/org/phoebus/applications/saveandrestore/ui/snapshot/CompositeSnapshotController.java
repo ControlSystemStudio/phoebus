@@ -64,6 +64,7 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -128,6 +129,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     private Label createdByField;
 
     private SaveAndRestoreService saveAndRestoreService;
+    private WebSocketClientService webSocketClientService;
 
     private final SimpleBooleanProperty dirty = new SimpleBooleanProperty();
 
@@ -174,6 +176,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
         snapshotTable.getStylesheets().add(CompareSnapshotsController.class.getResource("/save-and-restore-style.css").toExternalForm());
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
+        webSocketClientService = WebSocketClientService.getInstance();
 
         snapshotTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         snapshotTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
@@ -342,7 +345,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
             }
         });
 
-        saveAndRestoreService.addWebSocketMessageHandler(this);
+        webSocketClientService.addWebSocketMessageHandler(this);
     }
 
     @FXML
@@ -432,7 +435,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
         } else {
-            saveAndRestoreService.removeWebSocketMessageHandler(this);
+            webSocketClientService.removeWebSocketMessageHandler(this);
             return true;
         }
     }

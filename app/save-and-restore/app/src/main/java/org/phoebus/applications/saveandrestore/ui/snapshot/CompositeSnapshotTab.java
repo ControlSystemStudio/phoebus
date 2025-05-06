@@ -30,6 +30,7 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
+import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -92,11 +93,11 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocket
             if (!((CompositeSnapshotController) controller).handleCompositeSnapshotTabClosed()) {
                 event.consume();
             } else {
-                SaveAndRestoreService.getInstance().removeWebSocketMessageHandler(this);
+                WebSocketClientService.getInstance().removeWebSocketMessageHandler(this);
             }
         });
 
-        SaveAndRestoreService.getInstance().addWebSocketMessageHandler(this);
+        WebSocketClientService.getInstance().addWebSocketMessageHandler(this);
     }
 
 
