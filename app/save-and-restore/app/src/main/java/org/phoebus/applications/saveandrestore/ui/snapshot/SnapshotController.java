@@ -41,7 +41,6 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
-import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.saveandrestore.util.VNoData;
@@ -85,9 +84,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
-    private final SaveAndRestoreService saveAndRestoreService;
-    private final WebSocketClientService webSocketClientService;
-
     @FXML
     protected VBox progressIndicator;
 
@@ -100,9 +96,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         ImageView imageView = new ImageView();
         imageView.imageProperty().bind(tabGraphicImageProperty);
         snapshotTab.setGraphic(imageView);
-
-        saveAndRestoreService = SaveAndRestoreService.getInstance();
-        webSocketClientService = WebSocketClientService.getInstance();
     }
 
     /**
@@ -378,7 +371,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     setTabImage(snapshotNode);
                 });
             } finally {
-               disabledUi.set(false);
+                disabledUi.set(false);
             }
         });
     }

@@ -4,15 +4,11 @@
 
 package org.phoebus.core.websocket;
 
-import java.io.IOException;
-import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -27,9 +23,9 @@ public class WebSocketClient implements WebSocket.Listener {
     private final Logger logger = Logger.getLogger(WebSocketClient.class.getName());
     private Runnable connectCallback;
     private Runnable disconnectCallback;
-    private URI uri;
-    private Consumer<CharSequence> onTextCallback;
-    private AtomicBoolean attemptConnect = new AtomicBoolean(true);
+    private final URI uri;
+    private final Consumer<CharSequence> onTextCallback;
+    private final AtomicBoolean attemptConnect = new AtomicBoolean(true);
 
     /**
      * @param uri The URI of the web socket peer.
@@ -40,8 +36,13 @@ public class WebSocketClient implements WebSocket.Listener {
     }
 
     public void connect() {
+        attemptConnect.set(true);
+        reconnect();
+    }
+
+    private void reconnect() {
         new Thread(() -> {
-            while(attemptConnect.get()){
+            while (attemptConnect.get()) {
                 logger.log(Level.INFO, "Attempting web socket connection to " + uri);
                 try {
                     webSocket = HttpClient.newBuilder()
@@ -50,9 +51,8 @@ public class WebSocketClient implements WebSocket.Listener {
                             .buildAsync(uri, this)
                             .join();
                     break;
-                }
-                catch (Exception e) {
-                    logger.log(Level.INFO, "Failed to connect to " + uri + " " + (e != null ? e.getMessage() : ""));
+                } catch (Exception e) {
+                    logger.log(Level.INFO, "Failed to connect to " + uri + " " + (e.getMessage() != null ? e.getMessage() : ""));
                 }
                 try {
                     Thread.sleep(10000);
@@ -95,7 +95,7 @@ public class WebSocketClient implements WebSocket.Listener {
         if (disconnectCallback != null) {
             disconnectCallback.run();
         }
-        connect();
+        reconnect();
         return null;
     }
 
@@ -116,8 +116,7 @@ public class WebSocketClient implements WebSocket.Listener {
 
     @Override
     public void onError(WebSocket webSocket, Throwable error) {
-        logger.log(Level.WARNING, "Got web socket error");
-        error.printStackTrace();
+        logger.log(Level.WARNING, "Got web socket error", error);
         WebSocket.Listener.super.onError(webSocket, error);
     }
 
@@ -126,7 +125,7 @@ public class WebSocketClient implements WebSocket.Listener {
                                      CharSequence data,
                                      boolean last) {
         webSocket.request(1);
-        if(onTextCallback != null) {
+        if (onTextCallback != null) {
             onTextCallback.accept(data);
         }
         return WebSocket.Listener.super.onText(webSocket, data, last);
@@ -137,11 +136,11 @@ public class WebSocketClient implements WebSocket.Listener {
         webSocket.sendClose(1000, reason);
     }
 
-    public void setConnectCallback(Runnable connectCallback){
+    public void setConnectCallback(Runnable connectCallback) {
         this.connectCallback = connectCallback;
     }
 
-    public void setDisconnectCallback(Runnable disconnectCallback){
+    public void setDisconnectCallback(Runnable disconnectCallback) {
         this.disconnectCallback = disconnectCallback;
     }
 }

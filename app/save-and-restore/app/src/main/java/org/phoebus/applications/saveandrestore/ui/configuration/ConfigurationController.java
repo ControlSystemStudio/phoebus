@@ -61,8 +61,6 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.jobs.JobManager;
@@ -163,9 +161,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     @SuppressWarnings("unused")
     private Pane addPVsPane;
 
-    private SaveAndRestoreService saveAndRestoreService;
-    private WebSocketClientService webSocketClientService;
-
     private final ObservableList<ConfigPvEntry> configurationEntries = FXCollections.observableArrayList();
 
     private final SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
@@ -196,9 +191,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     @FXML
     public void initialize() {
-
-        saveAndRestoreService = SaveAndRestoreService.getInstance();
-        webSocketClientService = WebSocketClientService.getInstance();
 
         pvTable.editableProperty().bind(userIdentity.isNull().not());
         pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -526,7 +518,8 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      * @return <code>true</code> if content is not dirty or user chooses to close anyway,
      * otherwise <code>false</code>.
      */
-    public boolean handleConfigurationTabClosed() {
+    @Override
+    public boolean handleTabClosed() {
         if (dirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle(Messages.closeTabPrompt);

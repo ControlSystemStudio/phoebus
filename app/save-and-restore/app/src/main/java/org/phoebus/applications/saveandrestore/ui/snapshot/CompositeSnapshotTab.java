@@ -28,9 +28,7 @@ import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
-import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -52,10 +50,8 @@ import java.util.logging.Logger;
  */
 public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
 
-    private final SaveAndRestoreController saveAndRestoreController;
 
     public CompositeSnapshotTab(SaveAndRestoreController saveAndRestoreController) {
-        this.saveAndRestoreController = saveAndRestoreController;
 
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
@@ -88,16 +84,6 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocket
 
         setContent(rootNode);
         setGraphic(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
-
-        setOnCloseRequest(event -> {
-            if (!((CompositeSnapshotController) controller).handleCompositeSnapshotTabClosed()) {
-                event.consume();
-            } else {
-                WebSocketClientService.getInstance().removeWebSocketMessageHandler(this);
-            }
-        });
-
-        WebSocketClientService.getInstance().addWebSocketMessageHandler(this);
     }
 
 

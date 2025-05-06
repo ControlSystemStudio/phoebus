@@ -26,9 +26,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
-import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 
@@ -39,10 +37,6 @@ import java.util.logging.Logger;
 public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
 
     public ConfigurationTab() {
-        configure();
-    }
-
-    private void configure() {
         try {
             FXMLLoader loader = new FXMLLoader();
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
@@ -66,19 +60,7 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
         } catch (Exception e) {
             Logger.getLogger(ConfigurationTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
-            return;
         }
-
-        setOnCloseRequest(event -> {
-            if (!((ConfigurationController) controller).handleConfigurationTabClosed()) {
-                event.consume();
-            }
-            else{
-                WebSocketClientService.getInstance().removeWebSocketMessageHandler(this);
-            }
-        });
-
-        WebSocketClientService.getInstance().addWebSocketMessageHandler(this);
     }
 
     /**

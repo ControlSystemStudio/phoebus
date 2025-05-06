@@ -63,8 +63,6 @@ import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWeb
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -128,9 +126,6 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     @FXML
     private Label createdByField;
 
-    private SaveAndRestoreService saveAndRestoreService;
-    private WebSocketClientService webSocketClientService;
-
     private final SimpleBooleanProperty dirty = new SimpleBooleanProperty();
 
     private final ObservableList<Node> snapshotEntries = FXCollections.observableArrayList();
@@ -174,9 +169,6 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     public void initialize() {
 
         snapshotTable.getStylesheets().add(CompareSnapshotsController.class.getResource("/save-and-restore-style.css").toExternalForm());
-
-        saveAndRestoreService = SaveAndRestoreService.getInstance();
-        webSocketClientService = WebSocketClientService.getInstance();
 
         snapshotTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         snapshotTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
@@ -238,7 +230,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
 
         snapshotTable.setContextMenu(contextMenu);
         snapshotTable.setOnContextMenuRequested(event -> {
-            if (snapshotTable.getSelectionModel().getSelectedItems().size() == 0) {
+            if (snapshotTable.getSelectionModel().getSelectedItems().isEmpty()) {
                 contextMenu.hide();
                 event.consume();
             }
@@ -427,7 +419,8 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
         });
     }
 
-    public boolean handleCompositeSnapshotTabClosed() {
+    @Override
+    public boolean handleTabClosed() {
         if (dirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle(Messages.closeTabPrompt);
@@ -482,7 +475,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
         JobManager.schedule("Check snapshot PV duplicates", monitor -> {
             disabledUi.set(true);
             List<String> allSnapshotIds = snapshotEntries.stream().map(Node::getUniqueId).collect(Collectors.toList());
-            allSnapshotIds.addAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+            allSnapshotIds.addAll(sourceNodes.stream().map(Node::getUniqueId).toList());
             List<String> duplicates = null;
             try {
                 duplicates = saveAndRestoreService.checkCompositeSnapshotConsistency(allSnapshotIds);

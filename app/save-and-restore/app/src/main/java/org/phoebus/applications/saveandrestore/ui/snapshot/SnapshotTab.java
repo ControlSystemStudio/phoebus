@@ -32,7 +32,6 @@ import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWeb
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
-import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -97,14 +96,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHa
             return;
         }
 
-        setOnCloseRequest(event -> {
-            if (controller != null && !((SnapshotController) controller).handleSnapshotTabClosed()) {
-                event.consume();
-            } else {
-                WebSocketClientService.getInstance().removeWebSocketMessageHandler(this);
-            }
-        });
-
         MenuItem compareSnapshotToArchiverDataMenuItem = new MenuItem(Messages.contextMenuCompareSnapshotWithArchiverData, new ImageView(compareSnapshotIcon));
         compareSnapshotToArchiverDataMenuItem.setOnAction(ae -> addSnapshotFromArchive());
 
@@ -117,7 +108,7 @@ public class SnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHa
         });
         getContextMenu().getItems().add(compareSnapshotToArchiverDataMenuItem);
 
-        WebSocketClientService.getInstance().addWebSocketMessageHandler(this);
+        //WebSocketClientService.getInstance().addWebSocketMessageHandler(this);
     }
 
     /**

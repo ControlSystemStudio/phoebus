@@ -46,7 +46,6 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.WebSocketClientService;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
@@ -141,13 +140,9 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
     private String queryString;
     private static final Logger LOGGER = Logger.getLogger(SearchResultTableViewController.class.getName());
 
-    private SaveAndRestoreService saveAndRestoreService;
-    private WebSocketClientService webSocketClientService;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
-        saveAndRestoreService = SaveAndRestoreService.getInstance();
 
         tableUi.disableProperty().bind(disableUi);
         progressIndicator.visibleProperty().bind(disableUi);
@@ -375,7 +370,7 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                     tableEntries.setAll(List.of(uniqueIdNode));
                     hitCountProperty.set(1);
                 });
-            /* Clear the results table if no record returned */
+                /* Clear the results table if no record returned */
             } else {
                 Platform.runLater(tableEntries::clear);
                 hitCountProperty.set(0);
@@ -396,16 +391,16 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
     /**
      * Retrieves a filter from the service and loads then performs a search for matching {@link Node}s. If
      * the filter does not exist, or if retrieval fails, an error dialog is shown.
+     *
      * @param filterId Unique id of an existing {@link Filter}.
      */
-    public void loadFilter(String filterId){
+    public void loadFilter(String filterId) {
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
             Optional<Filter> filter = filters.stream().filter(f -> f.getName().equals(filterId)).findFirst();
-            if(filter.isPresent()){
+            if (filter.isPresent()) {
                 search(filter.get().getQueryString());
-            }
-            else{
+            } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle(Messages.errorGeneric);
                 alert.setHeaderText(MessageFormat.format(Messages.failedGetSpecificFilter, filterId));
@@ -419,12 +414,13 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
 
     @Override
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
-        switch (saveAndRestoreWebSocketMessage.messageType()){
+        switch (saveAndRestoreWebSocketMessage.messageType()) {
             case NODE_UPDATED, NODE_REMOVED, NODE_ADDED -> search();
         }
     }
 
-    public void handleTabClosed(){
+    public boolean handleTabClosed() {
         webSocketClientService.removeWebSocketMessageHandler(this);
+        return true;
     }
 }

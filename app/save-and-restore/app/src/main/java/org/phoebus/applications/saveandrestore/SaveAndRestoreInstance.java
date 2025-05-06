@@ -20,7 +20,6 @@ package org.phoebus.applications.saveandrestore;
 
 import javafx.fxml.FXMLLoader;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -83,11 +82,11 @@ public class SaveAndRestoreInstance implements AppInstance {
         saveAndRestoreController.openResource(uri);
     }
 
-    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         saveAndRestoreController.secureStoreChanged(validTokens);
     }
 
-    public void raise(){
+    public void raise() {
         dockItem.select();
     }
 }

@@ -19,12 +19,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class WebSocketClientService {
 
     private final List<WebSocketMessageHandler> webSocketMessageHandlers = Collections.synchronizedList(new ArrayList<>());
-    private static final Logger LOG = Logger.getLogger(WebSocketClientService.class.getName());
 
     private static WebSocketClientService instance;
     private final WebSocketClient webSocketClient;
@@ -36,7 +34,7 @@ public class WebSocketClientService {
         String schema = baseUrl.startsWith("https") ? "wss" : "ws";
         String webSocketUrl = schema + baseUrl.substring(baseUrl.indexOf("://")) + "/web-socket";
         URI webSocketUri = URI.create(webSocketUrl);
-        webSocketClient  = new WebSocketClient(webSocketUri, this::handleWebSocketMessage);
+        webSocketClient = new WebSocketClient(webSocketUri, this::handleWebSocketMessage);
         objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.registerModule(new JavaTimeModule());
@@ -47,34 +45,31 @@ public class WebSocketClientService {
         objectMapper.registerModule(module);
     }
 
-    public static WebSocketClientService getInstance(){
-        if(instance == null){
+    public static WebSocketClientService getInstance() {
+        if (instance == null) {
             instance = new WebSocketClientService();
         }
         return instance;
     }
 
-    public void connect(){
+    public void connect() {
         webSocketClient.connect();
     }
 
-    public void closeWebSocket(){
+    public void closeWebSocket() {
+        webSocketMessageHandlers.clear();
         webSocketClient.close("Application shutdown");
     }
 
-    public void openWebSocket(){
-        webSocketClient.connect();
-    }
-
-    public void addWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler){
+    public void addWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler) {
         webSocketMessageHandlers.add(webSocketMessageHandler);
     }
 
-    public void removeWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler){
+    public void removeWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler) {
         webSocketMessageHandlers.remove(webSocketMessageHandler);
     }
 
-    private void handleWebSocketMessage(CharSequence charSequence){
+    private void handleWebSocketMessage(CharSequence charSequence) {
         try {
             SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage =
                     objectMapper.readValue(charSequence.toString(), SaveAndRestoreWebSocketMessage.class);
@@ -85,15 +80,11 @@ public class WebSocketClientService {
         }
     }
 
-    public void setConnectCallback(Runnable connectCallback){
+    public void setConnectCallback(Runnable connectCallback) {
         webSocketClient.setConnectCallback(connectCallback);
     }
 
-    public void setDisconnectCallback(Runnable disconnectCallback){
+    public void setDisconnectCallback(Runnable disconnectCallback) {
         webSocketClient.setDisconnectCallback(disconnectCallback);
-    }
-
-    public void close(){
-        webSocketClient.close("Application shutdown");
     }
 }

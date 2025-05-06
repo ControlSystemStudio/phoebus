@@ -168,9 +168,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @FXML
     private VBox treeViewPane;
 
-    private SaveAndRestoreService saveAndRestoreService;
-    private WebSocketClientService webSocketClientService;
-
     private final ObjectMapper objectMapper = new ObjectMapper();
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
     private static final String TREE_STATE = "tree_state";
@@ -255,7 +252,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         // Tree items are first compared on type, then on name (case-insensitive).
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
-        saveAndRestoreService = SaveAndRestoreService.getInstance();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
@@ -359,7 +355,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         webSocketTrackerLabel.textProperty().bind(webSocketTrackerText);
 
-        webSocketClientService = WebSocketClientService.getInstance();
         webSocketClientService.addWebSocketMessageHandler(this);
         webSocketClientService.setConnectCallback(() -> Platform.runLater(() -> webSocketTrackerText.setValue("Web Socket Connected")));
         webSocketClientService.setDisconnectCallback(() -> Platform.runLater(() -> webSocketTrackerText.setValue("Web Socket Disconnected")));
@@ -927,11 +922,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
     }
 
-    public void handleTabClosed() {
+    @Override
+    public boolean handleTabClosed() {
         saveLocalState();
         webSocketClientService.closeWebSocket();
-        webSocketClientService.removeWebSocketMessageHandler(this);
-        webSocketClientService.close();
+        return true;
     }
 
     /**
