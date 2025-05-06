@@ -328,8 +328,10 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
 
     public void search(final String query) {
         queryString = query;
+        LOGGER.log(Level.INFO, "search() query: = " + queryString);
         Map<String, String> searchParams =
                 SearchQueryUtil.parseHumanReadableQueryString(queryString);
+        LOGGER.log(Level.INFO, "search() searchParams: = " + searchParams);
 
         searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
