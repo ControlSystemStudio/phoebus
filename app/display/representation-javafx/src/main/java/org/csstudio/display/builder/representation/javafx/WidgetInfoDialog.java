@@ -448,21 +448,20 @@ public class WidgetInfoDialog extends Dialog<Boolean> {
         boolean archiveDataSourceAvailable =
                 ServiceLoader.load(PVFactory.class).stream().filter(f -> f.get().getType().equals("archive")).findFirst().isPresent();
 
-        final TableColumn<NameStateValue, ArchivedStatus> archiverValue = new TableColumn<>("Archived?");
+        final TableColumn<NameStateValue, ArchivedStatus> archiverValue = new TableColumn<>(Messages.ArchivedStatus);
         archiverValue.setCellValueFactory(cell -> cell.getValue().archiverValue);
         archiverValue.setCellFactory(c -> new TableCell<>() {
             @Override
             protected void updateItem(ArchivedStatus item, boolean empty) {
-                if (empty) {
+                if (empty || item.equals(ArchivedStatus.UNKNOWN)) {
                     setText(null);
-                } else if (item.equals(ArchivedStatus.NOT_APPLICABLE)) {
-                    setText("Not Applicable");
-                } else if (item.equals(ArchivedStatus.NO)) {
-                    setText("No");
-                } else if (item.equals(ArchivedStatus.LOADING)) {
-                    setText("Please Wait...");
-                } else if (item.equals(ArchivedStatus.YES)) {
-                    setText("Yes");
+                    return;
+                }
+                switch (item){
+                    case NOT_APPLICABLE -> setText(Messages.ArchivedStatusNotApplicable);
+                    case YES ->  setText(Messages.ArchivedStatusYes);
+                    case NO -> setText(Messages.ArchivedStatusNo);
+                    case LOADING -> setText(Messages.ArchivedStatusPleaseWait);
                 }
             }
         });
@@ -638,8 +637,18 @@ public class WidgetInfoDialog extends Dialog<Boolean> {
         });
     }
 
+    /**
+     * Uses the archive:// data source to retrieve last archived sample.
+     * For loc://, sim://, sys:// and formula functions, {@link ArchivedStatus#NOT_APPLICABLE} is returned.
+     * @param pvName A valid PV name.
+     * @return The {@link ArchivedStatus} of the PV, if any, or {@link ArchivedStatus#UNKNOWN} if there is
+     * an issue interacting with the data source.
+     */
     private ArchivedStatus getFromArchiver(String pvName) {
-        if (pvName.toLowerCase().startsWith("loc://") || pvName.toLowerCase().startsWith("sim://")) {
+        if (pvName.toLowerCase().startsWith("loc://") ||
+            pvName.toLowerCase().startsWith("sim://") ||
+            pvName.toLowerCase().startsWith("sys://") ||
+            pvName.toLowerCase().startsWith("=")) {
             return ArchivedStatus.NOT_APPLICABLE;
         }
         // Check if pv name is prefixed with a scheme, e.g. pva://, ca://...
