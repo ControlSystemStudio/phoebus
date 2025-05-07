@@ -330,6 +330,7 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         queryString = query;
         Map<String, String> searchParams =
                 SearchQueryUtil.parseHumanReadableQueryString(queryString);
+        LOGGER.log(Level.INFO, "search() searchParams: = " + searchParams);
 
         searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
@@ -368,7 +369,6 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         try {
             /* Search with the uniqueID */
             Node uniqueIdNode = SaveAndRestoreService.getInstance().getNode(uniqueIdString);
-            LOGGER.log(Level.INFO, "uniqueIDNode: " + uniqueIdNode);
 
             /* Check that there are results, then fill table - should be at most one result */
             if (uniqueIdNode != null) {

@@ -230,9 +230,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             if (e.getCode() == KeyCode.ENTER) {
                 LOGGER.log(Level.INFO, "ENTER has been pressed in uniqueIdTextField");
                 LOGGER.log(Level.INFO, "uniqueIdProperty: " + uniqueIdProperty.getValueSafe());
-                if (uniqueIdProperty.isEmpty().get()) {
-                    LOGGER.log(Level.INFO, "uniqueIdString: is empty");
-                } else {
+                if (!uniqueIdProperty.isEmpty().get()) {
                     searchResultTableViewController.uniqueIdSearch(uniqueIdProperty.getValueSafe());
                 }
             }
@@ -493,13 +491,13 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
      */
     private String buildQueryString() {
         Map<String, String> map = new HashMap<>();
-        if (nodeNameProperty.get() != null && !nodeNameProperty.get().isEmpty()) {
+        if (nodeNameProperty.get() != null && !nodeNameProperty.get().trim().isEmpty()) {
             map.put(Keys.NAME.getName(), nodeNameProperty.get());
         }
         if (userNameProperty.get() != null && !userNameProperty.get().isEmpty()) {
             map.put(Keys.USER.getName(), userNameProperty.get());
         }
-        if (descProperty.get() != null && !descProperty.get().isEmpty()) {
+        if (descProperty.get() != null && !descProperty.get().trim().isEmpty()) {
             map.put(Keys.DESC.getName(), descProperty.get());
         }
         if (tagsProperty.get() != null && !tagsProperty.get().isEmpty()) {
