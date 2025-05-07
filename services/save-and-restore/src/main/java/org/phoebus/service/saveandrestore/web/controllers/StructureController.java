@@ -71,9 +71,9 @@ public class StructureController extends BaseController {
         Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
         Node targetNode = nodeDAO.moveNodes(nodes, to, principal.getName());
         // Update clients
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED,
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_UPDATED,
                 targetNode));
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED,
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_UPDATED,
                 sourceParentNode));
         return targetNode;
     }
@@ -98,8 +98,11 @@ public class StructureController extends BaseController {
         if (to.isEmpty() || nodes.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Target node and list of source nodes must all be non-empty.");
         }
-        Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
-        return nodeDAO.copyNodes(nodes, to, principal.getName());
+        Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " copy");
+        Node targetNode = nodeDAO.getNode(to);
+        List<Node> newNodes = nodeDAO.copyNodes(nodes, to, principal.getName());
+        newNodes.forEach(n -> webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_ADDED, n.getUniqueId())));
+        return targetNode;
     }
 
     /**

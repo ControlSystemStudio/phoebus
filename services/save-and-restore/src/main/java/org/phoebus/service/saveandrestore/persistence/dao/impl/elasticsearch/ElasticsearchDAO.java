@@ -47,11 +47,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -142,7 +140,7 @@ public class ElasticsearchDAO implements NodeDAO {
      * {@inheritDoc}
      */
     @Override
-    public void deleteNodes(List<String> nodeIds){
+    public void deleteNodes(List<String> nodeIds) {
         List<Node> nodesToDelete = new ArrayList<>();
         for (String nodeId : nodeIds) {
             Node nodeToDelete = getNode(nodeId);
@@ -153,7 +151,7 @@ public class ElasticsearchDAO implements NodeDAO {
             }
             nodesToDelete.add(nodeToDelete);
         }
-        for(Node node : nodesToDelete){
+        for (Node node : nodesToDelete) {
             deleteNode(node);
         }
     }
@@ -340,7 +338,7 @@ public class ElasticsearchDAO implements NodeDAO {
         }
 
         // Remove source nodes from the list of child nodes in parent node.
-        parentNode.getChildNodes().removeAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+        parentNode.getChildNodes().removeAll(sourceNodes.stream().map(Node::getUniqueId).toList());
         elasticsearchTreeRepository.save(parentNode);
 
         // Update the target node to include the source nodes in its list of child nodes
@@ -348,14 +346,14 @@ public class ElasticsearchDAO implements NodeDAO {
             targetNode.setChildNodes(new ArrayList<>());
         }
 
-        targetNode.getChildNodes().addAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+        targetNode.getChildNodes().addAll(sourceNodes.stream().map(Node::getUniqueId).toList());
         ESTreeNode updatedTargetNode = elasticsearchTreeRepository.save(targetNode);
 
         return updatedTargetNode.getNode();
     }
 
     @Override
-    public Node copyNodes(List<String> nodeIds, String targetId, String userName) {
+    public List<Node> copyNodes(List<String> nodeIds, String targetId, String userName) {
         // Copy to root node not allowed, neither is copying of root folder itself
         if (targetId.equals(ROOT_FOLDER_UNIQUE_ID) || nodeIds.contains(ROOT_FOLDER_UNIQUE_ID)) {
             throw new IllegalArgumentException("Copy to root node or copy root node not supported");
@@ -428,9 +426,11 @@ public class ElasticsearchDAO implements NodeDAO {
             }
         }
 
-        sourceNodes.forEach(sourceNode -> copyNode(sourceNode, targetNode, userName));
+        List<Node> newNodes = new ArrayList<>();
 
-        return targetNode;
+        sourceNodes.forEach(sourceNode -> newNodes.add(copyNode(sourceNode, targetNode, userName)));
+
+        return newNodes;
     }
 
     /**
@@ -444,8 +444,9 @@ public class ElasticsearchDAO implements NodeDAO {
      * @param sourceNode       The source {@link Node} to be copied (cloned).
      * @param targetParentNode The parent {@link Node} of the copy.
      * @param userName         Username of the individual performing the action.
+     * @return The new {@link Node}
      */
-    private void copyNode(Node sourceNode, Node targetParentNode, String userName) {
+    private Node copyNode(Node sourceNode, Node targetParentNode, String userName) {
         List<Node> targetsChildNodes = getChildNodes(targetParentNode.getUniqueId());
         String newNodeName = determineNewNodeName(sourceNode, targetsChildNodes);
         // First create a clone of the source Node object
@@ -470,6 +471,7 @@ public class ElasticsearchDAO implements NodeDAO {
                     getCompositeSnapshotData(sourceNode.getUniqueId());
             copyCompositeSnapshotData(newSourceNode, compositeSnapshotData);
         }
+        return newSourceNode;
     }
 
     protected boolean mayMoveOrCopySnapshot(Node sourceNode, Node targetParentNode) {
@@ -639,10 +641,6 @@ public class ElasticsearchDAO implements NodeDAO {
         resolvePath(parent.getUniqueId(), pathElements);
     }
 
-    /**
-     *
-     * @param nodeToDelete
-     */
     private void deleteNode(Node nodeToDelete) {
         for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
             deleteNode(node);
@@ -1237,7 +1235,7 @@ public class ElasticsearchDAO implements NodeDAO {
     protected String determineNewNodeName(Node sourceNode, List<Node> targetParentChildNodes) {
         // Filter to make sure only nodes of same type are considered.
         targetParentChildNodes = targetParentChildNodes.stream().filter(n -> n.getNodeType().equals(sourceNode.getNodeType())).collect(Collectors.toList());
-        List<String> targetParentChildNodeNames = targetParentChildNodes.stream().map(Node::getName).collect(Collectors.toList());
+        List<String> targetParentChildNodeNames = targetParentChildNodes.stream().map(Node::getName).toList();
         if (!targetParentChildNodeNames.contains(sourceNode.getName())) {
             return sourceNode.getName();
         }
@@ -1258,7 +1256,7 @@ public class ElasticsearchDAO implements NodeDAO {
         if (nodeNameCopies.isEmpty()) {
             return newNodeBaseName + " copy";
         } else {
-            Collections.sort(nodeNameCopies, new NodeNameComparator());
+            nodeNameCopies.sort(new NodeNameComparator());
             try {
                 String lastCopyName = nodeNameCopies.get(nodeNameCopies.size() - 1);
                 if (lastCopyName.equals(newNodeBaseName + " copy")) {

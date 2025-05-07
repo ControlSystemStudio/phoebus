@@ -186,6 +186,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @FXML
     private VBox errorPane;
 
+    @SuppressWarnings("unused")
     @FXML
     private Label webSocketTrackerLabel;
 
@@ -207,14 +208,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     List<MenuItem> menuItems = Arrays.asList(
             new LoginMenuItem(this, selectedItemsProperty,
                     () -> ApplicationService.createInstance("credentials_management")),
-            new NewFolderMenuItem(this, selectedItemsProperty,
-                    () -> createNewFolder()),
-            new NewConfigurationMenuItem(this, selectedItemsProperty,
-                    () -> createNewConfiguration()),
-            new CreateSnapshotMenuItem(this, selectedItemsProperty,
-                    () -> openConfigurationForSnapshot()),
-            new NewCompositeSnapshotMenuItem(this, selectedItemsProperty,
-                    () -> createNewCompositeSnapshot()),
+            new NewFolderMenuItem(this, selectedItemsProperty, this::createNewFolder),
+            new NewConfigurationMenuItem(this, selectedItemsProperty, this::createNewConfiguration),
+            new CreateSnapshotMenuItem(this, selectedItemsProperty, this::openConfigurationForSnapshot),
+            new NewCompositeSnapshotMenuItem(this, selectedItemsProperty, this::createNewCompositeSnapshot),
             new RestoreFromClientMenuItem(this, selectedItemsProperty,
                     () -> {
                         disabledUi.set(true);
@@ -226,8 +223,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                         RestoreUtil.restore(RestoreMode.SERVICE_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disabledUi.set(false));
                     }),
             new SeparatorMenuItem(),
-            new EditCompositeMenuItem(this, selectedItemsProperty, () -> editCompositeSnapshot()),
-            new RenameFolderMenuItem(this, selectedItemsProperty, () -> renameNode()),
+            new EditCompositeMenuItem(this, selectedItemsProperty, this::editCompositeSnapshot),
+            new RenameFolderMenuItem(this, selectedItemsProperty, this::renameNode),
             copyMenuItem,
             pasteMenuItem,
             deleteNodeMenuItem,
@@ -236,11 +233,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             new TagGoldenMenuItem(this, selectedItemsProperty),
             tagWithComment,
             new SeparatorMenuItem(),
-            new CopyUniqueIdToClipboardMenuItem(this, selectedItemsProperty,
-                    () -> copyUniqueNodeIdToClipboard()),
+            new CopyUniqueIdToClipboardMenuItem(this, selectedItemsProperty, this::copyUniqueNodeIdToClipboard),
             new SeparatorMenuItem(),
-            new ImportFromCSVMenuItem(this, selectedItemsProperty, () -> importFromCSV()),
-            new ExportToCSVMenuItem(this, selectedItemsProperty, () -> exportToCSV())
+            new ImportFromCSVMenuItem(this, selectedItemsProperty, this::importFromCSV),
+            new ExportToCSVMenuItem(this, selectedItemsProperty, this::exportToCSV)
     );
 
     private final SimpleStringProperty webSocketTrackerText = new SimpleStringProperty();
@@ -1042,45 +1038,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Updates the tree view such that moved items are shown in the drop target.
-     *
-     * @param parentTreeItem The drop target
-     * @param nodes          List of {@link Node}s that were moved.
-     */
-    private void addMovedNodes(TreeItem<Node> parentTreeItem, List<Node> nodes) {
-        parentTreeItem.getChildren().addAll(nodes.stream().map(this::createTreeItem).toList());
-        parentTreeItem.getChildren().sort(treeNodeComparator);
-        TreeItem<Node> nextItemToExpand = parentTreeItem;
-        while (nextItemToExpand != null) {
-            nextItemToExpand.setExpanded(true);
-            nextItemToExpand = nextItemToExpand.getParent();
-        }
-
-    }
-
-    /**
-     * Updates the tree view such that moved items are removed from source nodes' parent.
-     *
-     * @param parentTreeItem The parent of the {@link Node}s before the move.
-     * @param nodes          List of {@link Node}s that were moved.
-     */
-    private void removeMovedNodes(TreeItem<Node> parentTreeItem, List<Node> nodes) {
-        List<TreeItem<Node>> childItems = parentTreeItem.getChildren();
-        List<TreeItem<Node>> treeItemsToRemove = new ArrayList<>();
-        childItems.forEach(childItem -> {
-            if (nodes.contains(childItem.getValue())) {
-                treeItemsToRemove.add(childItem);
-            }
-        });
-        parentTreeItem.getChildren().removeAll(treeItemsToRemove);
-        TreeItem<Node> nextItemToExpand = parentTreeItem;
-        while (nextItemToExpand != null) {
-            nextItemToExpand.setExpanded(true);
-            nextItemToExpand = nextItemToExpand.getParent();
-        }
-    }
-
-    /**
      * Parses the {@link URI} to determine what to do. Supported actions/behavior:
      * <ul>
      *     <li>Open a {@link Node}, which must not be of {@link NodeType#FOLDER}.</li>
@@ -1316,7 +1273,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
         List<String> selectedNodeIds =
                 ((List<Node>) selectedNodes).stream().map(Node::getUniqueId).collect(Collectors.toList());
-        JobManager.schedule("copy nodes", monitor -> {
+        JobManager.schedule("Copy odes", monitor -> {
             try {
                 saveAndRestoreService.copyNodes(selectedNodeIds, browserSelectionModel.getSelectedItem().getValue().getUniqueId());
                 disabledUi.set(false);
@@ -1324,12 +1281,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 disabledUi.set(false);
                 ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.failedToPasteObjects, e);
                 LOG.log(Level.WARNING, "Failed to paste nodes into target " + browserSelectionModel.getSelectedItem().getValue().getName());
-                return;
             }
-            Platform.runLater(() -> {
-                expandTreeNode(browserSelectionModel.getSelectedItem());
-                treeView.refresh();
-            });
         });
     }
 
