@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.apache.kafka.clients.consumer.Consumer;
@@ -34,6 +33,7 @@ import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.json.JsonModelReader;
 import org.phoebus.applications.alarm.model.json.JsonModelWriter;
+import org.phoebus.applications.alarm.server.actions.InfoPVActionExecutor;
 
 /** Server's model of the alarm configuration
  *
@@ -120,6 +120,7 @@ class ServerModel
     {
         thread.start();
         SeverityPVHandler.initialize();
+        InfoPVActionExecutor.initialize();
 
         // Alarm server startup message
         sendAnnunciatorMessage(root.getPathName(), SeverityLevel.OK, "* Alarm server started. Everything is going to be all right.");
@@ -603,6 +604,7 @@ class ServerModel
     public void shutdown()
     {
         SeverityPVHandler.stop();
+        InfoPVActionExecutor.stop();
         running = false;
         consumer.wakeup();
         try

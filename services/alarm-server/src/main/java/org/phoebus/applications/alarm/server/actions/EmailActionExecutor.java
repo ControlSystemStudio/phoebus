@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,7 +54,11 @@ public class EmailActionExecutor
             }
     }
 
-    private static String createTitle(final AlarmTreeItem<?> item)
+    /** Create title for email, also used by Info PV 
+     *  @param item Item for which to create title
+     *  @return Title
+     */
+    static String createTitle(final AlarmTreeItem<?> item)
     {
         final StringBuilder buf = new StringBuilder();
 
@@ -77,7 +81,11 @@ public class EmailActionExecutor
         return buf.toString();
     }
 
-    private static String createBody(final AlarmTreeItem<?> item)
+    /** Create info body for email, also used by Info PV 
+     *  @param item Item for which to create info
+     *  @return Info text
+     */
+    static String createBody(final AlarmTreeItem<?> item)
     {
         final StringBuilder buf = new StringBuilder();
 

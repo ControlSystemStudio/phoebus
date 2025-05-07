@@ -1,0 +1,13 @@
+# Example for "Info PV"
+# used with automated action set to "infopv:NameOfPV"
+#
+# softIoc -s -m N=NameOfPV -d infopv.db
+#
+# With Channel Access, use $(N).VAL$ to access the full text.
+
+record(lsi, "$(N)")
+{
+    field(SIZV, 1000)
+    field(INP,  {const:""})
+    field(PINI, "YES")
+}

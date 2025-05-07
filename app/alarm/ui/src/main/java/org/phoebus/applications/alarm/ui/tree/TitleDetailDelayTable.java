@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -49,8 +49,16 @@ import javafx.util.converter.DefaultStringConverter;
 @SuppressWarnings("nls")
 public class TitleDetailDelayTable extends BorderPane
 {
-    private enum Option_d {
-        mailto, cmd, sevrpv
+    private enum Option_d
+    {
+    	// Send email with alarm info
+        mailto,
+        // Execute external command
+        cmd,
+        // Update PV with severity
+        sevrpv,
+        // Update PV with alarm info text
+        infopv
     };
 
     private final ObservableList<TitleDetailDelay> items = FXCollections.observableArrayList();
