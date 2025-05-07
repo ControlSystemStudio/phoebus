@@ -977,8 +977,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     protected void addTagToSnapshots() {
         ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
-        List<Node> updatedNodes = TagUtil.addTag(selectedNodes);
-        //updatedNodes.forEach(this::nodeChanged);
+        TagUtil.addTag(selectedNodes);
     }
 
     /**

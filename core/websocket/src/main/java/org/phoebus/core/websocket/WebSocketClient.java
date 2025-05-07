@@ -29,18 +29,26 @@ public class WebSocketClient implements WebSocket.Listener {
 
     /**
      * @param uri The URI of the web socket peer.
+     * @param onTextCallback A callback method the API client will use to process web socket messages.
      */
     public WebSocketClient(URI uri, Consumer<CharSequence> onTextCallback) {
         this.uri = uri;
         this.onTextCallback = onTextCallback;
     }
 
+    /**
+     * Attempts to connect to the remote web socket.
+     */
     public void connect() {
         attemptConnect.set(true);
-        reconnect();
+        doConnect();
     }
 
-    private void reconnect() {
+    /**
+     * Internal connect implementation. This is done in a loop with 10 s intervals until
+     * connection is established.
+     */
+    private void doConnect() {
         new Thread(() -> {
             while (attemptConnect.get()) {
                 logger.log(Level.INFO, "Attempting web socket connection to " + uri);
@@ -63,6 +71,12 @@ public class WebSocketClient implements WebSocket.Listener {
         }).start();
     }
 
+    /**
+     * Called when connection has been established. An API client may optionally register a
+     * {@link #connectCallback} which is called when connection is opened.
+     * @param webSocket
+     *         the WebSocket that has been connected
+     */
     @Override
     public void onOpen(WebSocket webSocket) {
         WebSocket.Listener.super.onOpen(webSocket);
@@ -87,6 +101,16 @@ public class WebSocketClient implements WebSocket.Listener {
     }
 
 
+    /**
+     * Called when connection has been closed, e.g. by remote peer. An API client may optionally register a
+     * {@link #disconnectCallback} which is called when connection is opened.
+     *
+     * <p>
+     *     Note that reconnection will be attempted immediately.
+     * </p>
+     * @param webSocket
+     *         the WebSocket that has been connected
+     */
     @Override
     public CompletionStage<?> onClose(WebSocket webSocket,
                                       int statusCode,
@@ -95,7 +119,7 @@ public class WebSocketClient implements WebSocket.Listener {
         if (disconnectCallback != null) {
             disconnectCallback.run();
         }
-        reconnect();
+        doConnect();
         return null;
     }
 
@@ -131,15 +155,34 @@ public class WebSocketClient implements WebSocket.Listener {
         return WebSocket.Listener.super.onText(webSocket, data, last);
     }
 
+    /**
+     *
+     * <b>NOTE:</b> this <b>must</b> be called by the API client when web socket messages are no longer
+     * needed, otherwise reconnect attempts will continue as these run on a separate thread.
+     *
+     * <p>
+     *     The status code 1000 is used when calling the {@link WebSocket#sendClose(int, String)} method. See
+     *     list of common web socket status codes
+     *     <a href='https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code'>here</a>.
+     * </p>
+     * @param reason Custom reason text.
+     */
     public void close(String reason) {
         attemptConnect.set(false);
         webSocket.sendClose(1000, reason);
     }
 
+    /**
+     * @param connectCallback A {@link Runnable} invoked when web socket connects successfully.
+     */
     public void setConnectCallback(Runnable connectCallback) {
         this.connectCallback = connectCallback;
     }
 
+    /**
+     * @param disconnectCallback A {@link Runnable} invoked when web socket disconnects, either
+     *                           when closed explicitly, or if remote peer goes away.
+     */
     public void setDisconnectCallback(Runnable disconnectCallback) {
         this.disconnectCallback = disconnectCallback;
     }

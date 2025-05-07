@@ -145,8 +145,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
         if (webSocketOptional.isEmpty()) {
             return; // Should only happen in case of timing issues?
         }
-        webSocketOptional.get().trackClientUpdate();
-
     }
 
     /**

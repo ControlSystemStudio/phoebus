@@ -8,35 +8,20 @@ package org.phoebus.service.saveandrestore.websocket;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-import org.epics.vtype.VType;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Utility class for handling web socket messages. In the context of the save-and-restore service,
+ * only messages from server are expected. Client messages are logged, but do not invoke any behavior.
+ */
 @SuppressWarnings("nls")
 public class WebSocket {
-    /**
-     * Time when web socket was created
-     */
-    private final long created = System.currentTimeMillis();
-
-    /**
-     * Track when the last message was received by web client
-     */
-    private volatile long lastClientMessage = 0;
-
-    /**
-     * Track when the last message was sent to web client
-     */
-    private volatile long lastMessageSent = 0;
 
     /**
      * Is the queue full?
@@ -54,9 +39,8 @@ public class WebSocket {
 
     private static final String EXIT_MESSAGE = "EXIT";
 
-    private volatile WebSocketSession session;
-    private volatile String id;
-
+    private final WebSocketSession session;
+    private final String id;
 
     private final Logger logger = Logger.getLogger(WebSocket.class.getName());
 
@@ -74,7 +58,6 @@ public class WebSocket {
         writeThread.setName("Web Socket Write Thread " + this.id);
         writeThread.setDaemon(true);
         writeThread.start();
-        trackClientUpdate();
     }
 
     /**
@@ -85,34 +68,6 @@ public class WebSocket {
             return "(" + id + ")";
         else
             return id;
-    }
-
-    /**
-     * @return Timestamp (ms since epoch) when socket was created
-     */
-    public long getCreateTime() {
-        return created;
-    }
-
-    /**
-     * @return Timestamp (ms since epoch) of last client message
-     */
-    public long getLastClientMessage() {
-        return lastClientMessage;
-    }
-
-    /**
-     * @return Timestamp (ms since epoch) of last message sent to client
-     */
-    public long getLastMessageSent() {
-        return lastMessageSent;
-    }
-
-    /**
-     * @return Number of queued messages
-     */
-    public int getQueuedMessageCount() {
-        return writeQueue.size();
     }
 
     /**
@@ -162,7 +117,6 @@ public class WebSocket {
                     if (!safeSession.isOpen())
                         throw new Exception("Session closed");
                     safeSession.sendMessage(new TextMessage(message));
-                    lastMessageSent = System.currentTimeMillis();
                 } catch (final Exception ex) {
                     logger.log(Level.WARNING, ex, () -> "Cannot write '" + shorten(message) + "' for " + id);
 
@@ -182,10 +136,6 @@ public class WebSocket {
         }
     }
 
-    public void trackClientUpdate() {
-        lastClientMessage = System.currentTimeMillis();
-    }
-
     /**
      * Called when client sends a general message
      *
@@ -197,12 +147,7 @@ public class WebSocket {
         if (node.isMissingNode())
             throw new Exception("Missing 'type' in " + shorten(message.getPayload()));
         final String type = node.asText();
-
-        switch (type) {
-            case "monitor":
-            default:
-                throw new Exception("Unknown message type: " + shorten(message.getPayload()));
-        }
+        logger.log(Level.INFO, "Client message type: " + type);
     }
 
     /**
@@ -224,24 +169,5 @@ public class WebSocket {
             logger.log(Level.WARNING, "Error disposing " + getId(), ex);
         }
         logger.log(Level.INFO, () -> "Web socket " + session.getId() + " closed");
-        lastClientMessage = 0;
-    }
-
-
-    private void write(String message, JsonNode json) throws Exception {
-        JsonNode n = json.path("pv");
-        if (n.isMissingNode())
-            throw new Exception("Missing 'pv' in " + shorten(message));
-        final String pv_name = n.asText();
-
-        n = json.path("value");
-        if (n.isMissingNode())
-            throw new Exception("Missing 'value' in " + shorten(message));
-        final Object value;
-        if (n.getNodeType() == JsonNodeType.NUMBER)
-            value = n.asDouble();
-        else
-            value = n.asText();
-
     }
 }
