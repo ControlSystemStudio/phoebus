@@ -230,9 +230,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             if (e.getCode() == KeyCode.ENTER) {
                 LOGGER.log(Level.INFO, "ENTER has been pressed in uniqueIdTextField");
                 LOGGER.log(Level.INFO, "uniqueIdProperty: " + uniqueIdProperty.getValueSafe());
-                if (uniqueIdProperty.isEmpty().get()) {
-                    LOGGER.log(Level.INFO, "uniqueIdString: is empty");
-                } else {
+                if (!uniqueIdProperty.isEmpty().get()) {
                     searchResultTableViewController.uniqueIdSearch(uniqueIdProperty.getValueSafe());
                 }
             }

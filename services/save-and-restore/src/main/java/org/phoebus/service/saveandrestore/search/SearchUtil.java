@@ -75,7 +75,6 @@ public class SearchUtil {
         LOG.info("  searchParameters: " + searchParameters);
 
         for (Entry<String, List<String>> parameter : searchParameters.entrySet()) {
-            LOG.info("    key: " + parameter.getKey().strip().toLowerCase());
             switch (parameter.getKey().strip().toLowerCase()) {
                 case "uniqueid":
                     for (String value : parameter.getValue()) {
@@ -84,14 +83,12 @@ public class SearchUtil {
                         }
                     }
                     break;
+
                 // Search for node name. List of names cannot be split on space char as it is allowed in a node name.
                 case "name":
                     for (String value : parameter.getValue()) {
-                        LOG.info("    value: [" + value + "]");
                         for (String pattern : getSearchTerms(value)) {
-                        // for (String pattern : value.split("[|,;]")) {
                             String term = pattern.trim().toLowerCase();
-                            LOG.info("        term: [" + term + "]");
                             // Quoted strings will be mapped to a phrase query
                             if(term.startsWith("\"") && term.endsWith("\"")){
                                 nodeNamePhraseTerms.add(term.substring(1, term.length() - 1));
@@ -108,10 +105,8 @@ public class SearchUtil {
                 case "desc":
                 case "description":
                     for (String value : parameter.getValue()) {
-                        LOG.info("    value: [" + value + "]");
                         for (String pattern : getSearchTerms(value)) {
                             String term = pattern.trim().toLowerCase();
-                            LOG.info("        term: [" + term + "]");
                             // Quoted strings will be mapped to a phrase query
                             if (term.startsWith("\"") && term.endsWith("\"")) {
                                 descriptionPhraseTerms.add(term.substring(1, term.length() - 1));
@@ -240,11 +235,8 @@ public class SearchUtil {
             }
         }
 
-        LOG.info("  descriptionTerms: " + descriptionTerms);
-        LOG.info("  descriptionTerms.isEmpty() : " + descriptionTerms.isEmpty());
         // Add the description query. Multiple search terms will be AND:ed.
         if (!descriptionTerms.isEmpty()) {
-            LOG.info("  fuzzySearch: " + fuzzySearch);
             for (String searchTerm : descriptionTerms) {
                 NestedQuery innerNestedQuery;
                 if (fuzzySearch) {
@@ -258,8 +250,6 @@ public class SearchUtil {
             }
         }
 
-        LOG.info("  descriptionPhraseTerms: " + descriptionPhraseTerms);
-        LOG.info("  descriptionPhraseTerms.isEmpty() : " + descriptionPhraseTerms.isEmpty());
         // Add phrase queries for the description key. Multiple search terms will be AND:ed.
         if (!descriptionPhraseTerms.isEmpty()) {
             for (String searchTerm : descriptionPhraseTerms) {
@@ -274,11 +264,8 @@ public class SearchUtil {
             boolQueryBuilder.must(IdsQuery.of(id -> id.values(uniqueIdTerms))._toQuery());
         }
 
-        LOG.info("  nodeNameTerms: " + nodeNameTerms);
-        LOG.info("  nodeNameTerms.isEmpty() : " + nodeNameTerms.isEmpty());
         // Add the description query. Multiple search terms will be AND:ed.
         if (!nodeNameTerms.isEmpty()) {
-            LOG.info("  fuzzySearch: " + fuzzySearch);
             for (String searchTerm : nodeNameTerms) {
                 NestedQuery innerNestedQuery;
                 if (fuzzySearch) {
@@ -292,8 +279,6 @@ public class SearchUtil {
             }
         }
 
-        LOG.info("  nodeNamePhraseTerms: " + nodeNamePhraseTerms);
-        LOG.info("  nodeNamePhraseTerms.isEmpty() : " + nodeNamePhraseTerms.isEmpty());
         // Add phrase queries for the nodeName key. Multiple search terms will be AND:ed.
         if (!nodeNamePhraseTerms.isEmpty()) {
             for (String searchTerm : nodeNamePhraseTerms) {

@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.logging.Logger;
-import java.util.logging.Level;
 
 public class SearchQueryUtil {
 
@@ -79,8 +77,6 @@ public class SearchQueryUtil {
         }
     }
 
-    private static final Logger LOGGER = Logger.getLogger(SearchQueryUtil.class.getName());
-
     /**
      * This method parses a logbook query string and returns a map of search keys and their associated search patterns as
      * values.
@@ -124,8 +120,6 @@ public class SearchQueryUtil {
      * @return A formatted string with trimmed values, e.g. "a,b" rather than " a , b".
      */
     private static String formatSearchTerm(String searchTerm){
-        LOGGER.log(Level.INFO, "formatSearchTerm() input:  [" + searchTerm + "]");
-
         if(searchTerm == null || searchTerm.isEmpty()){
             return "";
         }
