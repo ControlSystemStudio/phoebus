@@ -21,7 +21,10 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +42,8 @@ public class SnapshotController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    @Autowired
+    private WebSocketHandler webSocketHandler;
     /**
      *
      * @param uniqueId Unique {@link Node} id of a snapshot.
@@ -74,7 +79,9 @@ public class SnapshotController extends BaseController {
             throw new IllegalArgumentException("Snapshot node of wrong type");
         }
         snapshot.getSnapshotNode().setUserName(principal.getName());
-        return nodeDAO.createSnapshot(parentNodeId, snapshot);
+        Snapshot newSnapshot = nodeDAO.createSnapshot(parentNodeId, snapshot);
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newSnapshot.getSnapshotNode().getUniqueId()));
+        return newSnapshot;
     }
 
     /**
@@ -91,6 +98,8 @@ public class SnapshotController extends BaseController {
             throw new IllegalArgumentException("Snapshot node of wrong type");
         }
         snapshot.getSnapshotNode().setUserName(principal.getName());
-        return nodeDAO.updateSnapshot(snapshot);
+        Snapshot updatedSnapshot = nodeDAO.updateSnapshot(snapshot);
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedSnapshot.getSnapshotNode()));
+        return updatedSnapshot;
     }
 }

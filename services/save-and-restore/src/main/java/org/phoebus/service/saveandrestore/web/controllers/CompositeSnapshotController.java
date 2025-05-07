@@ -20,7 +20,10 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,6 +47,9 @@ public class CompositeSnapshotController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    @Autowired
+    private WebSocketHandler webSocketHandler;
+
     /**
      * Creates a new {@link CompositeSnapshot} {@link Node}.
      * @param parentNodeId Valid id of the {@link Node}s intended parent.
@@ -60,7 +66,9 @@ public class CompositeSnapshotController extends BaseController {
             throw new IllegalArgumentException("Composite snapshot node of wrong type");
         }
         compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
-        return nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
+        CompositeSnapshot newCompositeSnapshot = nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newCompositeSnapshot.getCompositeSnapshotNode().getUniqueId()));
+        return newCompositeSnapshot;
     }
 
     /**
@@ -77,7 +85,9 @@ public class CompositeSnapshotController extends BaseController {
             throw new IllegalArgumentException("Composite snapshot node of wrong type");
         }
         compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
-        return nodeDAO.updateCompositeSnapshot(compositeSnapshot);
+        CompositeSnapshot updatedCompositeSnapshot = nodeDAO.updateCompositeSnapshot(compositeSnapshot);
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedCompositeSnapshot.getCompositeSnapshotNode()));
+        return updatedCompositeSnapshot;
     }
 
     /**

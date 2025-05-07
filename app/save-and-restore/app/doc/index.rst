@@ -58,9 +58,13 @@ A word of caution
 -----------------
 
 Save-and-restore data is persisted in a central service and is therefore accessible by multiple
-clients. Users should keep in mind that changes (e.g. new or deleted nodes) are not pushed to all clients.
-Caution is therefore advocated when working on the nodes in the tree, in particular when changing the structure by
-copying, deleting or moving nodes.
+clients. Users should keep in mind that changes (e.g. new or deleted nodes) are pushed by the service to
+all connected clients. If any other user is working in the save-and-restore app, saved changes may update
+the current view. For instance, if a folder node is expanded and another user adds an object (folder
+or configuration) to that folder, the new object will automatically be added to the expanded folder.
+
+In other words, changes in the current view are triggered not only by the current user, but may be triggered as a result of
+changes done by others.
 
 Tree View Context Menu
 ----------------------

@@ -55,7 +55,7 @@ public class SaveAndRestoreInstance implements AppInstance {
             loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUI.fxml"));
             dockItem = new DockItem(this, loader.load());
         } catch (Exception e) {
-            Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);
+            Logger.getLogger(SaveAndRestoreInstance.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);
         }
 
         saveAndRestoreController = loader.getController();
@@ -82,11 +82,11 @@ public class SaveAndRestoreInstance implements AppInstance {
         saveAndRestoreController.openResource(uri);
     }
 
-    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         saveAndRestoreController.secureStoreChanged(validTokens);
     }
 
-    public void raise(){
+    public void raise() {
         dockItem.select();
     }
 }

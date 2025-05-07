@@ -57,6 +57,7 @@ public interface NodeDAO {
 
     /**
      * Retrieve the nodes identified by the list of unique node ids
+     *
      * @param uniqueNodeIds List of unique node ids
      * @return List of matching nodes
      */
@@ -72,7 +73,9 @@ public interface NodeDAO {
     /**
      * Checks that each of the node ids passed to this method exist, and that none of them
      * is the root node. If check passes all nodes are deleted.
+     *
      * @param nodeIds List of (existing) node ids.
+     * {@link Node}s. Client may use this to trigger a refresh of the UI.
      */
     void deleteNodes(List<String> nodeIds);
 
@@ -87,7 +90,6 @@ public interface NodeDAO {
 
 
     /**
-     *
      * @param uniqueNodeId Valid {@link Node} id.
      * @return The parent {@link Node}
      */
@@ -109,9 +111,9 @@ public interface NodeDAO {
      * @param nodeIds  Non-null and non-empty list of unique node ids subject to move
      * @param targetId Non-null and non-empty unique id of target node
      * @param userName The (account) name of the user performing the operation.
-     * @return The target {@link Node} object that is the new parent of the moved source {@link Node}
+     * @return A list of new {@link Node}s
      */
-    Node copyNodes(List<String> nodeIds, String targetId, String userName);
+    List<Node> copyNodes(List<String> nodeIds, String targetId, String userName);
 
 
     /**
@@ -134,8 +136,9 @@ public interface NodeDAO {
 
     /**
      * Saves the {@link org.phoebus.applications.saveandrestore.model.Snapshot} to the persistence layer.
+     *
      * @param parentNodeId The unique id of the parent {@link Node} for the new {@link Snapshot}.
-     * @param snapshot The {@link Snapshot} data.
+     * @param snapshot     The {@link Snapshot} data.
      * @return The persisted {@link Snapshot} data.
      */
     Snapshot createSnapshot(String parentNodeId, Snapshot snapshot);
@@ -196,7 +199,8 @@ public interface NodeDAO {
 
     /**
      * Saves the {@link org.phoebus.applications.saveandrestore.model.Configuration} to the persistence layer.
-     * @param parentNodeId The unique id of the parent {@link Node} for the new {@link Configuration}.
+     *
+     * @param parentNodeId  The unique id of the parent {@link Node} for the new {@link Configuration}.
      * @param configuration The {@link Configuration} data.
      * @return The persisted {@link Configuration} data.
      */
@@ -204,6 +208,7 @@ public interface NodeDAO {
 
     /**
      * Retrieves the {@link ConfigurationData} for the specified (unique) id.
+     *
      * @param uniqueId Id of the configuration {@link Node}
      * @return A {@link ConfigurationData} object.
      */
@@ -221,6 +226,7 @@ public interface NodeDAO {
 
     /**
      * Retrieves the {@link SnapshotData} for the specified (unique) id.
+     *
      * @param uniqueId Id of the snapshot {@link Node}
      * @return A {@link SnapshotData} object.
      */
@@ -244,7 +250,8 @@ public interface NodeDAO {
 
     /**
      * Saves the {@link org.phoebus.applications.saveandrestore.model.CompositeSnapshot} to the persistence layer.
-     * @param parentNodeId The unique id of the parent {@link Node} for the new {@link CompositeSnapshot}.
+     *
+     * @param parentNodeId      The unique id of the parent {@link Node} for the new {@link CompositeSnapshot}.
      * @param compositeSnapshot The {@link CompositeSnapshot} data.
      * @return The persisted {@link CompositeSnapshot} data.
      */
@@ -263,6 +270,7 @@ public interface NodeDAO {
 
     /**
      * Checks for duplicate PV names in the specified list of snapshot or composite snapshot {@link Node}s.
+     *
      * @param snapshotIds list of snapshot or composite snapshot {@link Node}s
      * @return A list if PV names that occur multiple times in the specified snapshot nodes or snapshot nodes
      * referenced in composite snapshots. If no duplicates are found, an empty list is returned.
@@ -283,6 +291,7 @@ public interface NodeDAO {
      * Aggregates a list of {@link SnapshotItem}s from a composite snapshot node. Note that since a
      * composite snapshot may reference other composite snapshots, the implementation may need to recursively
      * locate all referenced single snapshots.
+     *
      * @param compositeSnapshotNodeId The if of an existing composite snapshot {@link Node}
      * @return A list of {@link SnapshotItem}s.
      */
@@ -292,14 +301,16 @@ public interface NodeDAO {
      * Checks if all the referenced snapshot {@link Node}s in a {@link CompositeSnapshot} are
      * of the supported type, i.e. {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
      * or {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     *
      * @param compositeSnapshot An existing {@link CompositeSnapshot}.
      * @return <code>true</code> if all referenced snapshot {@link Node}s in a {@link CompositeSnapshot} are all
-     *      * of the supported type.
+     * * of the supported type.
      */
     boolean checkCompositeSnapshotReferencedNodeTypes(CompositeSnapshot compositeSnapshot);
 
     /**
      * Performs a search based on the provided search parameters.
+     *
      * @param searchParameters Map of keyword/value pairs defining the search criteria.
      * @return A {@link SearchResult} object with a potentially empty list of {@link Node}s.
      */
@@ -307,6 +318,7 @@ public interface NodeDAO {
 
     /**
      * Save a new or updated {@link Filter}
+     *
      * @param filter The {@link Filter} to save
      * @return The saved {@link Filter}
      */
@@ -319,6 +331,7 @@ public interface NodeDAO {
 
     /**
      * Deletes a {@link Filter} based on its name.
+     *
      * @param name Unique name of the {@link Filter}
      */
     void deleteFilter(String name);
@@ -330,6 +343,7 @@ public interface NodeDAO {
 
     /**
      * Adds a {@link Tag} to specified list of target {@link Node}s
+     *
      * @param tagData See {@link TagData}
      * @return The list of updated {@link Node}s
      */
@@ -337,6 +351,7 @@ public interface NodeDAO {
 
     /**
      * Removes a {@link Tag} from specified list of target {@link Node}s
+     *
      * @param tagData See {@link TagData}
      * @return The list of updated {@link Node}s
      */

@@ -21,6 +21,8 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,8 +32,10 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
@@ -45,6 +49,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.util.List;
 
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -77,6 +83,9 @@ public class CompositeSnapshotControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private WebSocketHandler webSocketHandler;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static CompositeSnapshot compositeSnapshot;
@@ -91,8 +100,13 @@ public class CompositeSnapshotControllerTest {
         compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
     }
 
+    @AfterEach
+    public void resetMocks(){
+        reset(nodeDAO, webSocketHandler);
+    }
+
     @Test
-    public void testCreateCompositeSnapshot() throws Exception {
+    public void testCreateCompositeSnapshot1() throws Exception {
 
         when(nodeDAO.createCompositeSnapshot(Mockito.any(String.class), Mockito.any(CompositeSnapshot.class))).thenReturn(compositeSnapshot);
 
@@ -110,27 +124,54 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, CompositeSnapshot.class);
 
-        request = put("/composite-snapshot?parentNodeId=id")
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testCreateCompositeSnapshot2() throws Exception {
+
+        when(nodeDAO.createCompositeSnapshot(Mockito.any(String.class), Mockito.any(CompositeSnapshot.class))).thenReturn(compositeSnapshot);
+
+        String compositeSnapshotString = objectMapper.writeValueAsString(compositeSnapshot);
+
+        MockHttpServletRequestBuilder request = put("/composite-snapshot?parentNodeId=id")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        request = put("/composite-snapshot?parentNodeId=id")
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testCreateCompositeSnapshot3() throws Exception {
+
+        String compositeSnapshotString = objectMapper.writeValueAsString(compositeSnapshot);
+
+        MockHttpServletRequestBuilder request = put("/composite-snapshot?parentNodeId=id")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        request = put("/composite-snapshot?parentNodeId=id")
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testCreateCompositeSnapshot4() throws Exception {
+
+        String compositeSnapshotString = objectMapper.writeValueAsString(compositeSnapshot);
+
+        MockHttpServletRequestBuilder request = put("/composite-snapshot?parentNodeId=id")
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        reset(nodeDAO);
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
     }
 
     @Test
@@ -144,10 +185,12 @@ public class CompositeSnapshotControllerTest {
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(compositeSnapshot1));
         mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
-    public void testUpdateCompositeSnapshot() throws Exception {
+    public void testUpdateCompositeSnapshot1() throws Exception {
 
         Node node = Node.builder().uniqueId("c").nodeType(NodeType.COMPOSITE_SNAPSHOT).userName(demoUser).build();
         CompositeSnapshot compositeSnapshot1 = new CompositeSnapshot();
@@ -170,16 +213,42 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, CompositeSnapshot.class);
 
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateCompositeSnapshot2() throws Exception {
+
+        Node node = Node.builder().uniqueId("c").nodeType(NodeType.COMPOSITE_SNAPSHOT).userName(demoUser).build();
         when(nodeDAO.getNode("c")).thenReturn(Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).uniqueId("c").userName("notUser").build());
 
-        request = post("/composite-snapshot")
+        CompositeSnapshot compositeSnapshot1 = new CompositeSnapshot();
+        compositeSnapshot1.setCompositeSnapshotNode(node);
+
+        String compositeSnapshotString = objectMapper.writeValueAsString(compositeSnapshot1);
+
+        MockHttpServletRequestBuilder request = post("/composite-snapshot")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        request = post("/composite-snapshot")
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateCompositeSnapshot3() throws Exception {
+
+        Node node = Node.builder().uniqueId("c").nodeType(NodeType.COMPOSITE_SNAPSHOT).userName(demoUser).build();
+        when(nodeDAO.getNode("c")).thenReturn(Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).uniqueId("c").userName("notUser").build());
+
+        CompositeSnapshot compositeSnapshot1 = new CompositeSnapshot();
+        compositeSnapshot1.setCompositeSnapshotNode(node);
+
+        String compositeSnapshotString = objectMapper.writeValueAsString(compositeSnapshot1);
+
+        MockHttpServletRequestBuilder request = post("/composite-snapshot")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON)
                 .content(compositeSnapshotString);
@@ -192,16 +261,30 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateCompositeSnapshot4() throws Exception {
+
+        Node node = Node.builder().uniqueId("c").nodeType(NodeType.COMPOSITE_SNAPSHOT).userName(demoUser).build();
         when(nodeDAO.getNode("c")).thenReturn(Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).uniqueId("c").userName("notUser").build());
 
-        request = post("/composite-snapshot")
+        CompositeSnapshot compositeSnapshot1 = new CompositeSnapshot();
+        compositeSnapshot1.setCompositeSnapshotNode(node);
+
+        String compositeSnapshotString = objectMapper.writeValueAsString(compositeSnapshot1);
+
+        when(nodeDAO.updateCompositeSnapshot(compositeSnapshot1)).thenReturn(compositeSnapshot1);
+
+        MockHttpServletRequestBuilder request = post("/composite-snapshot")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        reset(nodeDAO);
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
@@ -217,6 +300,8 @@ public class CompositeSnapshotControllerTest {
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(compositeSnapshot1));
         mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
@@ -236,7 +321,6 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, CompositeSnapshotData.class);
 
-        reset(nodeDAO);
     }
 
     @Test
@@ -257,8 +341,6 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, new TypeReference<List<Node>>() {
         });
-
-        reset(nodeDAO);
     }
 
     @Test
@@ -276,8 +358,6 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, new TypeReference<List<SnapshotItem>>() {
         });
-
-        reset(nodeDAO);
     }
 
     @Test
@@ -317,7 +397,5 @@ public class CompositeSnapshotControllerTest {
                 .content(objectMapper.writeValueAsString(List.of("id")));
 
         mockMvc.perform(request).andExpect(status().isOk());
-
-        reset(nodeDAO);
     }
 }

@@ -23,22 +23,20 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConfigurationTab extends SaveAndRestoreTab {
+public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
 
     public ConfigurationTab() {
-        configure();
-    }
-
-    private void configure() {
         try {
             FXMLLoader loader = new FXMLLoader();
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
@@ -62,18 +60,7 @@ public class ConfigurationTab extends SaveAndRestoreTab {
         } catch (Exception e) {
             Logger.getLogger(ConfigurationTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
-            return;
         }
-
-        setOnCloseRequest(event -> {
-            if (!((ConfigurationController) controller).handleConfigurationTabClosed()) {
-                event.consume();
-            } else {
-                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
-            }
-        });
-
-        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
     /**
@@ -82,44 +69,25 @@ public class ConfigurationTab extends SaveAndRestoreTab {
      * @param configurationNode non-null configuration {@link Node}
      */
     public void editConfiguration(Node configurationNode) {
-        setId(configurationNode.getUniqueId());
-        textProperty().set(configurationNode.getName());
         ((ConfigurationController) controller).loadConfiguration(configurationNode);
     }
 
+    /**
+     * Configures for new configuration
+     *
+     * @param parentNode Parent {@link Node} for the new configuration.
+     */
     public void configureForNewConfiguration(Node parentNode) {
-        textProperty().set(Messages.contextMenuNewConfiguration);
         ((ConfigurationController) controller).newConfiguration(parentNode);
     }
 
     @Override
-    public void nodeChanged(Node node) {
-        if (node.getUniqueId().equals(getId())) {
-            Platform.runLater(() -> textProperty().set(node.getName()));
-        }
-    }
-
-    /**
-     * Updates tab title, e.g. if user has renamed the configuration.
-     *
-     * @param tabTitle The wanted tab title.
-     */
-    private void updateTabTitle(String tabTitle) {
-        Platform.runLater(() -> textProperty().set(tabTitle));
-    }
-
-    /**
-     * Updates the tab to indicate if the data is dirty and needs to be saved.
-     * @param dirty If <code>true</code>, an asterisk is prepended, otherwise
-     *              only the name {@link org.phoebus.applications.saveandrestore.model.Configuration}
-     *              is rendered.
-     */
-    public void annotateDirty(boolean dirty) {
-        String tabTitle = textProperty().get();
-        if (dirty && !tabTitle.startsWith("*")) {
-            updateTabTitle("* " + tabTitle);
-        } else if (!dirty && tabTitle.startsWith("*")) {
-            updateTabTitle(tabTitle.substring(2));
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
+        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_REMOVED)) {
+            String nodeId = (String) saveAndRestoreWebSocketMessage.payload();
+            if (getId() != null && nodeId.equals(getId())) {
+                Platform.runLater(() -> getTabPane().getTabs().remove(this));
+            }
         }
     }
 }

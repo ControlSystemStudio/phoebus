@@ -44,6 +44,7 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.types.TimeStampedProcessVariable;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.javafx.FocusUtil;
@@ -315,13 +316,15 @@ public abstract class BaseSnapshotTableViewController {
     }
 
     protected void connectPVs() {
-        tableEntryItems.values().forEach(e -> {
-            SaveAndRestorePV pv = pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()));
-            if (pv == null) {
-                pvs.put(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()), new SaveAndRestorePV(e));
-            } else {
-                pv.setSnapshotTableEntry(e);
-            }
+        JobManager.schedule("Connect PVs", monitor -> {
+            tableEntryItems.values().forEach(e -> {
+                SaveAndRestorePV pv = pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()));
+                if (pv == null) {
+                    pvs.put(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()), new SaveAndRestorePV(e));
+                } else {
+                    pv.setSnapshotTableEntry(e);
+                }
+            });
         });
     }
 }

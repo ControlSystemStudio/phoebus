@@ -1,0 +1,4 @@
+{
+  "messageType": "NODE_ADDED",
+  "payload": "parentNodeId"
+}

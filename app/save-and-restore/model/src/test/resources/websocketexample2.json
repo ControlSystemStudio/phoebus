@@ -1,0 +1,9 @@
+{
+  "messageType": "NODE_UPDATED",
+  "payload": {
+    "uniqueId": "a",
+    "name" : "myNode",
+    "nodeType": "CONFIGURATION",
+    "created": 1654690762473
+  }
+}
