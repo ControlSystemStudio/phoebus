@@ -60,7 +60,7 @@ public class WebSocketClient implements WebSocket.Listener {
                             .join();
                     break;
                 } catch (Exception e) {
-                    logger.log(Level.INFO, "Failed to connect to " + uri + " " + (e.getMessage() != null ? e.getMessage() : ""));
+                    logger.log(Level.INFO, "Failed to connect to web socket on " + uri, e);
                 }
                 try {
                     Thread.sleep(10000);
