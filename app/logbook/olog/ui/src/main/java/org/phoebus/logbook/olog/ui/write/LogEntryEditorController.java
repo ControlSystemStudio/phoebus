@@ -341,15 +341,8 @@ public class LogEntryEditorController {
         }
 
         levelLabel.setText(LogbookUIPreferences.level_field_name);
-        // Sites may wish to define a different meaning and name for the "level" field.
-        String[] levelList = org.phoebus.olog.es.api.Preferences.levels;
-        availableLevels.addAll(Arrays.asList(levelList));
         levelSelector.setItems(availableLevels);
-        selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : availableLevels.get(0));
-
-        levelSelector.getSelectionModel().select(selectedLevelProperty.get());
         dateField.setText(TimestampFormats.DATE_FORMAT.format(Instant.now()));
-
 
         titleField.textProperty().bindBidirectional(titleProperty);
         titleProperty.addListener((changeListener, oldVal, newVal) ->
@@ -830,6 +823,17 @@ public class LogEntryEditorController {
             }
 
             templatesProperty.setAll(logClient.getTemplates().stream().toList());
+
+            Collection<org.phoebus.logbook.Level> levels = logClient.getLevels();
+            availableLevels.setAll(levels.stream().map(org.phoebus.logbook.Level::name).sorted().toList());
+            Optional<org.phoebus.logbook.Level> optionalLevel = levels.stream().filter(org.phoebus.logbook.Level::defaultLevel).findFirst();
+            String defaultLevel = null;
+            if(optionalLevel.isPresent()){
+                // One level value should be the default level
+               defaultLevel = optionalLevel.get().name();
+            }
+            selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : defaultLevel);
+            levelSelector.getSelectionModel().select(selectedLevelProperty.get());
         });
     }
 

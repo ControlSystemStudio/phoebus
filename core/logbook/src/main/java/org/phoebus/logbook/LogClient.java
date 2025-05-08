@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Eric Berryman taken from shroffk
@@ -528,5 +529,9 @@ public interface LogClient {
      */
     default LogTemplate saveTemplate(LogTemplate logTemplate) throws LogbookException{
         return null;
+    }
+
+    default Collection<Level> getLevels(){
+        return Collections.emptySet();
     }
 }
