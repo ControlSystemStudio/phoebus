@@ -35,6 +35,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntryLevel;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
@@ -261,7 +262,7 @@ public class AdvancedSearchViewController {
             searchParameters.put(Keys.TITLE, newValue);
         });
 
-        List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
+        List<String> levelList = logClient.listLevels().stream().map(LogEntryLevel::name).toList();
         levelSelector.getItems().add("");
         levelSelector.getItems().addAll(levelList);
 

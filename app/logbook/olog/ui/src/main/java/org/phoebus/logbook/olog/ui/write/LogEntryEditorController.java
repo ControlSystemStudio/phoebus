@@ -61,6 +61,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryLevel;
 import org.phoebus.logbook.LogFactory;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.LogTemplate;
@@ -341,15 +342,8 @@ public class LogEntryEditorController {
         }
 
         levelLabel.setText(LogbookUIPreferences.level_field_name);
-        // Sites may wish to define a different meaning and name for the "level" field.
-        String[] levelList = org.phoebus.olog.es.api.Preferences.levels;
-        availableLevels.addAll(Arrays.asList(levelList));
         levelSelector.setItems(availableLevels);
-        selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : availableLevels.get(0));
-
-        levelSelector.getSelectionModel().select(selectedLevelProperty.get());
         dateField.setText(TimestampFormats.DATE_FORMAT.format(Instant.now()));
-
 
         titleField.textProperty().bindBidirectional(titleProperty);
         titleProperty.addListener((changeListener, oldVal, newVal) ->
@@ -830,6 +824,17 @@ public class LogEntryEditorController {
             }
 
             templatesProperty.setAll(logClient.getTemplates().stream().toList());
+
+            Collection<LogEntryLevel> levels = logClient.listLevels();
+            availableLevels.setAll(levels.stream().map(LogEntryLevel::name).sorted().toList());
+            Optional<LogEntryLevel> optionalLevel = levels.stream().filter(LogEntryLevel::defaultLevel).findFirst();
+            String defaultLevel = null;
+            if(optionalLevel.isPresent()){
+                // One level value should be the default level
+               defaultLevel = optionalLevel.get().name();
+            }
+            selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : defaultLevel);
+            levelSelector.getSelectionModel().select(selectedLevelProperty.get());
         });
     }
 
@@ -902,7 +907,7 @@ public class LogEntryEditorController {
      * Loads template to configure UI elements.
      *
      * @param logTemplate A {@link LogTemplate} selected by user. If <code>null</code>, all log entry elements
-     *                    will be cleared, except the Level selector, which will be set to the top-most item.
+     *                    will be cleared, except the LogEntryLevel selector, which will be set to the top-most item.
      */
     private void loadTemplate(LogTemplate logTemplate) {
         if (logTemplate != null) {
