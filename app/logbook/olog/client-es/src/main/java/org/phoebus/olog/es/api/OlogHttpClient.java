@@ -552,7 +552,7 @@ public class OlogHttpClient implements LogClient {
     }
 
     @Override
-    public Collection<LogEntryLevel> getLogEntryLevels(){
+    public Collection<LogEntryLevel> listLevels(){
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(Preferences.olog_url + "/levels"))
                 .GET()

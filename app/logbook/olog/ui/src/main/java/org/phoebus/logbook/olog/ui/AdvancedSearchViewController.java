@@ -180,9 +180,7 @@ public class AdvancedSearchViewController {
         startTime.setOnKeyReleased(this::searchOnEnter);
         endTime.textProperty().bindBidirectional(this.searchParameters.endTimeProperty());
         endTime.setOnKeyReleased(this::searchOnEnter);
-        searchParameters.addListener((observable, oldValue, newValue) -> {
-            updateControls(newValue);
-        });
+        searchParameters.addListener((observable, oldValue, newValue) -> updateControls(newValue));
         sortAscending.addListener(searchOnSortChange);
 
         attachmentTypes.textProperty().bindBidirectional(this.searchParameters.attachmentsProperty());
@@ -318,7 +316,7 @@ public class AdvancedSearchViewController {
             }
         });
 
-        levelsList.addAll(logClient.getLogEntryLevels().stream().map(LogEntryLevel::name).sorted().toList());
+        levelsList.addAll(logClient.listLevels().stream().map(LogEntryLevel::name).sorted().toList());
         levelsList.forEach(level -> {
             LevelSelection levelSelection = new LevelSelection(level, false);
             levelSelections.add(levelSelection);

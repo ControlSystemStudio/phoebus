@@ -92,11 +92,9 @@ public interface LogClient {
     }
 
     /**
-     * List the supported log levels
-     *
-     * @return a list of supported levels
+     * @return List of {@link LogEntryLevel}s maintained in the service
      */
-    default Collection<String> listLevels() {
+    default Collection<LogEntryLevel> listLevels() {
         return Collections.emptyList();
     }
 
@@ -528,12 +526,5 @@ public interface LogClient {
      */
     default LogTemplate saveTemplate(LogTemplate logTemplate) throws LogbookException{
         return null;
-    }
-
-    /**
-     * @return List of {@link LogEntryLevel}s maintained in the service
-     */
-    default Collection<LogEntryLevel> getLogEntryLevels(){
-        return Collections.emptySet();
     }
 }

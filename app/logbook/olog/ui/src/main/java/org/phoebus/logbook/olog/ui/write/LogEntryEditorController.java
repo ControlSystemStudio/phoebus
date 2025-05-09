@@ -825,7 +825,7 @@ public class LogEntryEditorController {
 
             templatesProperty.setAll(logClient.getTemplates().stream().toList());
 
-            Collection<LogEntryLevel> levels = logClient.getLogEntryLevels();
+            Collection<LogEntryLevel> levels = logClient.listLevels();
             availableLevels.setAll(levels.stream().map(LogEntryLevel::name).sorted().toList());
             Optional<LogEntryLevel> optionalLevel = levels.stream().filter(LogEntryLevel::defaultLevel).findFirst();
             String defaultLevel = null;
