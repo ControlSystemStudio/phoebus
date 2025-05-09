@@ -107,8 +107,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHa
             compareSnapshotToArchiverDataMenuItem.disableProperty().set(snapshot.getSnapshotNode().getUniqueId() == null);
         });
         getContextMenu().getItems().add(compareSnapshotToArchiverDataMenuItem);
-
-        //WebSocketClientService.getInstance().addWebSocketMessageHandler(this);
     }
 
     /**

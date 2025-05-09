@@ -1272,7 +1272,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
         List<String> selectedNodeIds =
                 ((List<Node>) selectedNodes).stream().map(Node::getUniqueId).collect(Collectors.toList());
-        JobManager.schedule("Copy odes", monitor -> {
+        JobManager.schedule("Copy nodes", monitor -> {
             try {
                 saveAndRestoreService.copyNodes(selectedNodeIds, browserSelectionModel.getSelectedItem().getValue().getUniqueId());
                 disabledUi.set(false);

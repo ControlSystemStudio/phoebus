@@ -477,7 +477,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
      *
      * @param node An existing {@link Node} of type {@link NodeType#CONFIGURATION}.
      */
-    public synchronized void loadConfiguration(final Node node) {
+    public void loadConfiguration(final Node node) {
         removeListeners();
         JobManager.schedule("Load save&restore configuration", monitor -> {
             final ConfigurationData configurationData;

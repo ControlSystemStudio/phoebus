@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 
 /**
  * Custom JSON deserializer of {@link SaveAndRestoreWebSocketMessage}s.
@@ -37,16 +39,20 @@ public class WebMessageDeserializer extends StdDeserializer<SaveAndRestoreWebSoc
             JsonNode rootNode = jsonParser.getCodec().readTree(jsonParser);
             String messageType = rootNode.get("messageType").asText();
             switch (MessageType.valueOf(messageType)) {
-                case NODE_ADDED, NODE_REMOVED, FILTER_REMOVED -> {
-                    return objectMapper.readValue(rootNode.toString(), SaveAndRestoreWebSocketMessage.class);
+                case NODE_ADDED, NODE_REMOVED, FILTER_REMOVED-> {
+                    SaveAndRestoreWebSocketMessage<String> saveAndRestoreWebSocketMessage =
+                            objectMapper.readValue(rootNode.toString(), SaveAndRestoreWebSocketMessage.class);
+                    return saveAndRestoreWebSocketMessage;
                 }
                 case NODE_UPDATED -> {
-                    return objectMapper.readValue(rootNode.toString(), new TypeReference<>() {
+                    SaveAndRestoreWebSocketMessage<Node> saveAndRestoreWebSocketMessage = objectMapper.readValue(rootNode.toString(), new TypeReference<>() {
                     });
+                    return saveAndRestoreWebSocketMessage;
                 }
                 case FILTER_ADDED_OR_UPDATED -> {
-                    return objectMapper.readValue(rootNode.toString(), new TypeReference<>() {
+                    SaveAndRestoreWebSocketMessage<Filter> saveAndRestoreWebSocketMessage = objectMapper.readValue(rootNode.toString(), new TypeReference<>() {
                     });
+                    return saveAndRestoreWebSocketMessage;
                 }
             }
         } catch (Exception e) {
