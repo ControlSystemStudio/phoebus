@@ -61,6 +61,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryLevel;
 import org.phoebus.logbook.LogFactory;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.LogTemplate;
@@ -824,9 +825,9 @@ public class LogEntryEditorController {
 
             templatesProperty.setAll(logClient.getTemplates().stream().toList());
 
-            Collection<org.phoebus.logbook.Level> levels = logClient.getLevels();
-            availableLevels.setAll(levels.stream().map(org.phoebus.logbook.Level::name).sorted().toList());
-            Optional<org.phoebus.logbook.Level> optionalLevel = levels.stream().filter(org.phoebus.logbook.Level::defaultLevel).findFirst();
+            Collection<LogEntryLevel> levels = logClient.getLogEntryLevels();
+            availableLevels.setAll(levels.stream().map(LogEntryLevel::name).sorted().toList());
+            Optional<LogEntryLevel> optionalLevel = levels.stream().filter(LogEntryLevel::defaultLevel).findFirst();
             String defaultLevel = null;
             if(optionalLevel.isPresent()){
                 // One level value should be the default level
@@ -906,7 +907,7 @@ public class LogEntryEditorController {
      * Loads template to configure UI elements.
      *
      * @param logTemplate A {@link LogTemplate} selected by user. If <code>null</code>, all log entry elements
-     *                    will be cleared, except the Level selector, which will be set to the top-most item.
+     *                    will be cleared, except the LogEntryLevel selector, which will be set to the top-most item.
      */
     private void loadTemplate(LogTemplate logTemplate) {
         if (logTemplate != null) {

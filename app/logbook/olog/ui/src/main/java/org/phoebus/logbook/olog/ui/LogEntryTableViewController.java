@@ -165,7 +165,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
         configureComboBox();
         ologQueries.setAll(ologQueryManager.getQueries());
 
-        searchParameters.addListener((observable, oldValue, newValue) -> query.getEditor().setText(newValue));
+        searchParameters.addListener((observable, oldValue, newValue) -> {
+            query.getEditor().setText(newValue);
+        });
 
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 

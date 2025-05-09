@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Eric Berryman taken from shroffk
@@ -531,7 +530,10 @@ public interface LogClient {
         return null;
     }
 
-    default Collection<Level> getLevels(){
+    /**
+     * @return List of {@link LogEntryLevel}s maintained in the service
+     */
+    default Collection<LogEntryLevel> getLogEntryLevels(){
         return Collections.emptySet();
     }
 }

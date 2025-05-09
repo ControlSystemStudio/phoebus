@@ -11,5 +11,5 @@ package org.phoebus.logbook;
  *                     default level. Server will ensure only one single
  *                     level is maintained as the default level.
  */
-public record Level(String name, boolean defaultLevel) {
+public record LogEntryLevel(String name, boolean defaultLevel) {
 }
