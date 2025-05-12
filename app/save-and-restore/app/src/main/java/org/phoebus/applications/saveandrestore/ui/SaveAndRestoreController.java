@@ -909,7 +909,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     @Override
     public boolean handleTabClosed() {
-        //saveLocalState();
+        saveLocalState();
         webSocketClientService.closeWebSocket();
         return true;
     }
@@ -1434,16 +1434,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private void handleWebSocketConnected() {
         serviceConnected.setValue(true);
-        Platform.runLater(() -> {
-        });
         loadTreeData();
     }
 
     private void handleWebSocketDisconnected() {
         serviceConnected.setValue(false);
-        Platform.runLater(() -> {
-
-        });
         saveLocalState();
     }
 }
