@@ -96,9 +96,11 @@ public class ExcelExportJob extends ExportJob
         }
     }
 
+    /** {@inheritDoc}  */
     @Override
     protected void printExportInfo(final PrintStream out) throws Exception
     {
+        // Called first and may throw Exception, so create workbook etc in here
         wb = new HSSFWorkbook();
 
         comment_style = wb.createCellStyle();
@@ -120,6 +122,7 @@ public class ExcelExportJob extends ExportJob
                   .createDataFormat()
                   .getFormat("yyyy-mm-dd hh:mm:ss.000"));
 
+        // Create sheet with summary of exported data
         sheet = wb.createSheet("Archive Data");
 
         addComment(row = sheet.createRow(0),                   "Created by CS-Studio Data Browser", null);
@@ -133,6 +136,10 @@ public class ExcelExportJob extends ExportJob
             addComment(row = sheet.createRow(row.getRowNum() + 1), "Interpolation Interval", SecondsParser.formatSeconds(optimize_parameter));
     }
 
+    /** @param row Row where to create time stamp cell
+     *  @param time Timestamp to place in cell
+     *  @return The cell in column 0 of row
+     */
     private Cell createTimeCell(final Row row, final Instant time)
     {
         Cell cell = row.createCell(0, CellType.NUMERIC);
@@ -146,6 +153,11 @@ public class ExcelExportJob extends ExportJob
         return cell;
     }
 
+    /** @param row Row where to create value cell
+     *  @param column Column index
+     *  @param value Value to show
+     *  @return Cell that was created for the value
+     */
     private Cell createValueCell(final Row row, final int column, final VType value)
     {
         final Cell cell;
@@ -179,6 +191,12 @@ public class ExcelExportJob extends ExportJob
         return cell;
     }
 
+    /** Create basic value cell as well as optional min/max and sevr/stat cells
+     *  @param row Row where to create cells
+     *  @param column Index of first cell column
+     *  @param value Value to show in cell(s)
+     *  @return Last cell created
+     */
     private Cell createValueCells(final Row row, final int column, final VType value)
     {
         Cell cell = createValueCell(row, column, value);
@@ -243,6 +261,7 @@ public class ExcelExportJob extends ExportJob
         wb.write(out);
     }
 
+    /** Export data in combined table */
     private void exportTable(final JobMonitor monitor) throws Exception
     {
         // Spreadsheet data header
@@ -305,6 +324,7 @@ public class ExcelExportJob extends ExportJob
         iter.close();
     }
 
+    /** Export data as list of single-channel tables */
     private void exportList(final JobMonitor monitor) throws Exception
     {
         for (ModelItem item : model.getItems())
