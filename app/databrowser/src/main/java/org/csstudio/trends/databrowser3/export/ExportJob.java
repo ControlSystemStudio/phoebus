@@ -87,7 +87,7 @@ abstract public class ExportJob implements JobRunnable
         }
     }
 
-    /** @param comment Comment prefix ('#\t' for most ASCII, '%' for Matlab, ...)
+    /** @param comment Comment prefix ('# ' for most ASCII, '% ' for Matlab, ...)
      *  @param model Model with data
      *  @param start Start time
      *  @param end End time
