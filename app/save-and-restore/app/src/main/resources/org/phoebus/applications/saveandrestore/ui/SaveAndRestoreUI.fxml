@@ -42,10 +42,6 @@
                         </Button>
                     </HBox>
                     <TreeView fx:id="treeView" onContextMenuRequested="#configureContextMenu" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS" />
-                    <Label fx:id="webSocketTrackerLabel" maxWidth="1.7976931348623157E308">
-                  <VBox.margin>
-                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                  </VBox.margin></Label>
                 </VBox>
                 <VBox fx:id="errorPane" alignment="CENTER" visible="false">
                     <children>

@@ -25,7 +25,6 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -38,7 +37,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -186,16 +184,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @FXML
     private VBox errorPane;
 
-    @SuppressWarnings("unused")
-    @FXML
-    private Label webSocketTrackerLabel;
-
     private final ObservableList<Node> searchResultNodes = FXCollections.observableArrayList();
-
     private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
 
     private final CountDownLatch treeInitializationCountDownLatch = new CountDownLatch(1);
     private final ObservableList<Node> selectedItemsProperty = FXCollections.observableArrayList();
+    private final SimpleBooleanProperty serviceConnected = new SimpleBooleanProperty();
 
     private final ContextMenu contextMenu = new ContextMenu();
     private final Menu tagWithComment = new Menu(Messages.contextMenuTags, new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-add_tag.png")));
@@ -238,8 +232,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             new ImportFromCSVMenuItem(this, selectedItemsProperty, this::importFromCSV),
             new ExportToCSVMenuItem(this, selectedItemsProperty, this::exportToCSV)
     );
-
-    private final SimpleStringProperty webSocketTrackerText = new SimpleStringProperty();
 
 
     @Override
@@ -347,13 +339,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         contextMenu.getItems().addAll(menuItems);
         treeView.setContextMenu(contextMenu);
 
-        loadTreeData();
-
-        webSocketTrackerLabel.textProperty().bind(webSocketTrackerText);
+        splitPane.disableProperty().bind(serviceConnected.not());
+        treeView.visibleProperty().bind(serviceConnected);
+        errorPane.visibleProperty().bind(serviceConnected.not());
 
         webSocketClientService.addWebSocketMessageHandler(this);
-        webSocketClientService.setConnectCallback(() -> Platform.runLater(() -> webSocketTrackerText.setValue("Web Socket Connected")));
-        webSocketClientService.setDisconnectCallback(() -> Platform.runLater(() -> webSocketTrackerText.setValue("Web Socket Disconnected")));
+        webSocketClientService.setConnectCallback(this::handleWebSocketConnected);
+        webSocketClientService.setDisconnectCallback(this::handleWebSocketDisconnected);
         webSocketClientService.connect();
     }
 
@@ -365,11 +357,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         JobManager.schedule("Load save-and-restore tree data", monitor -> {
             Node rootNode = saveAndRestoreService.getRootNode();
-            if (rootNode == null) { // Service off-line or not reachable
-                treeInitializationCountDownLatch.countDown();
-                errorPane.visibleProperty().set(true);
-                return;
-            }
+            treeInitializationCountDownLatch.countDown();
             TreeItem<Node> rootItem = createTreeItem(rootNode);
             List<String> savedTreeViewStructure = getSavedTreeStructure();
             // Check if there is a save tree structure. Also check that the first node id (=tree root)
@@ -385,12 +373,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     }
                 });
                 setChildItems(childNodesMap, rootItem);
+
             } else {
                 List<Node> childNodes = saveAndRestoreService.getChildNodes(rootItem.getValue());
                 List<TreeItem<Node>> childItems = childNodes.stream().map(this::createTreeItem).sorted(treeNodeComparator).toList();
                 rootItem.getChildren().addAll(childItems);
             }
-
             Platform.runLater(() -> {
                 treeView.setRoot(rootItem);
                 expandNodes(treeView.getRoot());
@@ -398,6 +386,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
                 treeInitializationCountDownLatch.countDown();
             });
+
             loadFilters();
         });
     }
@@ -920,7 +909,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     @Override
     public boolean handleTabClosed() {
-        saveLocalState();
+        //saveLocalState();
         webSocketClientService.closeWebSocket();
         return true;
     }
@@ -1170,14 +1159,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             filtersList.add(filter);
         } else {
             final int index = filtersList.indexOf(filter);
-            Platform.runLater(() -> {
-                filtersList.set(index, filter);
-                filtersComboBox.valueProperty().set(filter);
-                // If this is the active filter, update the tree view
-                if (filter.equals(filtersComboBox.getSelectionModel().getSelectedItem())) {
-                    applyFilter(filter);
-                }
-            });
+            filtersList.set(index, filter);
+            filtersComboBox.valueProperty().set(filter);
+            // If this is the active filter, update the tree view
+            if (filter.equals(filtersComboBox.getSelectionModel().getSelectedItem())) {
+                applyFilter(filter);
+            }
         }
     }
 
@@ -1443,5 +1430,20 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             case FILTER_ADDED_OR_UPDATED -> filterAddedOrUpdated((Filter) saveAndRestoreWebSocketMessage.payload());
             case FILTER_REMOVED -> filterRemoved((String) saveAndRestoreWebSocketMessage.payload());
         }
+    }
+
+    private void handleWebSocketConnected() {
+        serviceConnected.setValue(true);
+        Platform.runLater(() -> {
+        });
+        loadTreeData();
+    }
+
+    private void handleWebSocketDisconnected() {
+        serviceConnected.setValue(false);
+        Platform.runLater(() -> {
+
+        });
+        saveLocalState();
     }
 }
