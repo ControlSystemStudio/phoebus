@@ -90,7 +90,7 @@ public class ElogApi {
 
     String encoded_Text = new String(attributes.get("Text").getBytes(), StandardCharsets.ISO_8859_1); // charset hell - this seems stupid but works
     attributes.put("Text", encoded_Text);
-    String encoded_Subject = new String(attributes.get("Text").getBytes(), StandardCharsets.UTF_8); // charset hell - this seems stupid but works
+    String encoded_Subject = new String(attributes.get("Subject").getBytes(), StandardCharsets.UTF_8); // charset hell - this seems stupid but works
     attributes.put("Subject", encoded_Subject);
 
     Map<String, String> new_attributes = new HashMap<>(attributes);
