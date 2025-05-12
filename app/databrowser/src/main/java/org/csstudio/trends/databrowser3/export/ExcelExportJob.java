@@ -24,10 +24,12 @@ import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.PVItem;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
+import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.SpreadsheetIterator;
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimestampFormats;
@@ -59,6 +61,9 @@ public class ExcelExportJob extends ExportJob
      *  @param start Start time
      *  @param end End time
      *  @param source Data source
+     *  @param tabular Create one combined table? Otherwise one table per channel
+     *  @param min_max Show min/max info (error) for statistical data?
+     *  @param sevr_stat Include alarm severity and status?
      *  @param optimize_parameter Bin count
      *  @param filename Export file name
      *  @param error_handler Error handler
@@ -128,13 +133,31 @@ public class ExcelExportJob extends ExportJob
             addComment(row = sheet.createRow(row.getRowNum() + 1), "Interpolation Interval", SecondsParser.formatSeconds(optimize_parameter));
     }
 
-    private Cell createCell(final Row row, final int column, final VType value)
+    private Cell createTimeCell(final Row row, final Instant time)
+    {
+        Cell cell = row.createCell(0, CellType.NUMERIC);
+        if (unixTimeStamp)
+            cell.setCellValue(time.toEpochMilli());
+        else
+        {
+            cell.setCellValue(LocalDateTime.ofInstant(time, zone));
+            cell.setCellStyle(timestamp_style);
+        }
+        return cell;
+    }
+
+    private Cell createValueCell(final Row row, final int column, final VType value)
     {
         final Cell cell;
         if (value instanceof VNumber v)
         {
             cell = row.createCell(column, CellType.NUMERIC);
             cell.setCellValue(v.getValue().doubleValue());
+        }
+        else if (value instanceof VStatistics v)
+        {
+            cell = row.createCell(column, CellType.NUMERIC);
+            cell.setCellValue(v.getAverage());
         }
         else if (value instanceof VEnum v)
         {
@@ -156,9 +179,38 @@ public class ExcelExportJob extends ExportJob
         return cell;
     }
 
+    private Cell createValueCells(final Row row, final int column, final VType value)
+    {
+        Cell cell = createValueCell(row, column, value);
+        if (min_max)
+        {
+            if (value instanceof VStatistics stats)
+            {   // Turn min..max into negative & positive error
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.NUMERIC);
+                cell.setCellValue(stats.getAverage() - stats.getMin());
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.NUMERIC);
+                cell.setCellValue(stats.getMax() - stats.getAverage());
+            }
+            else
+            {
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.BLANK);
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.BLANK);
+            }
+        }
+        if (sevr_stat)
+        {
+            cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+            cell.setCellValue(Objects.toString(org.phoebus.core.vtypes.VTypeHelper.getSeverity(value)));
+
+            cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+            cell.setCellValue(VTypeHelper.getMessage(value));
+        }
+        return cell;
+    }
+
+
     @Override
-    protected void performExport(final JobMonitor monitor,
-                                 final PrintStream out) throws Exception
+    protected void performExport(final JobMonitor monitor, final PrintStream out) throws Exception
     {
         // Item header
         for (ModelItem item : model.getItems())
@@ -183,6 +235,16 @@ public class ExcelExportJob extends ExportJob
             }
         }
 
+        if (tabular)
+            exportTable(monitor);
+        else
+            exportList(monitor);
+
+        wb.write(out);
+    }
+
+    private void exportTable(final JobMonitor monitor) throws Exception
+    {
         // Spreadsheet data header
         row = sheet.createRow(row.getRowNum() + 2);
         Cell cell = row.createCell(0, CellType.STRING);
@@ -193,6 +255,27 @@ public class ExcelExportJob extends ExportJob
             cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
             cell.setCellStyle(header_style);
             cell.setCellValue(item.getResolvedName());
+
+            if (min_max)
+            {
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+                cell.setCellStyle(header_style);
+                cell.setCellValue(Messages.NegErrColumn);
+
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+                cell.setCellStyle(header_style);
+                cell.setCellValue(Messages.PosErrColumn);
+            }
+            if (sevr_stat)
+            {
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+                cell.setCellStyle(header_style);
+                cell.setCellValue(Messages.SeverityColumn);
+
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+                cell.setCellStyle(header_style);
+                cell.setCellValue(Messages.StatusColumn);
+            }
         }
 
         // Create spreadsheet interpolation
@@ -210,20 +293,9 @@ public class ExcelExportJob extends ExportJob
             final Instant time = iter.getTime();
             final VType line[] = iter.next();
 
-            row = sheet.createRow(row.getRowNum() + 1);
-            cell = row.createCell(0, CellType.NUMERIC);
-            if (unixTimeStamp)
-                cell.setCellValue(time.toEpochMilli());
-            else
-            {
-                cell.setCellValue(LocalDateTime.ofInstant(time, zone));
-                cell.setCellStyle(timestamp_style);
-            }
-
+            cell = createTimeCell(row = sheet.createRow(row.getRowNum() + 1), time);
             for (int i=0; i<line.length; ++i)
-            {
-                cell = createCell(row, cell.getColumnIndex()+1, line[i]);
-            }
+                cell = createValueCells(row, cell.getColumnIndex()+1, line[i]);
             ++line_count;
             if ((line_count % PROGRESS_UPDATE_LINES) == 0)
                 monitor.beginTask(MessageFormat.format("Wrote {0} samples", line_count));
@@ -231,7 +303,62 @@ public class ExcelExportJob extends ExportJob
                 break;
         }
         iter.close();
+    }
 
-        wb.write(out);
+    private void exportList(final JobMonitor monitor) throws Exception
+    {
+        for (ModelItem item : model.getItems())
+        {
+            // Item data header
+            row = sheet.createRow(row.getRowNum() + 2);
+            Cell cell = row.createCell(0, CellType.STRING);
+            cell.setCellStyle(header_style);
+            cell.setCellValue(Messages.TimeColumn);
+            cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+            cell.setCellStyle(header_style);
+            cell.setCellValue(item.getResolvedName());
+
+            if (min_max)
+            {
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+                cell.setCellStyle(header_style);
+                cell.setCellValue(Messages.NegErrColumn);
+
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+                cell.setCellStyle(header_style);
+                cell.setCellValue(Messages.PosErrColumn);
+            }
+            if (sevr_stat)
+            {
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+                cell.setCellStyle(header_style);
+                cell.setCellValue(Messages.SeverityColumn);
+
+                cell = row.createCell(cell.getColumnIndex()+1, CellType.STRING);
+                cell.setCellStyle(header_style);
+                cell.setCellValue(Messages.StatusColumn);
+            }
+
+            // Dump data lines
+            monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getName()));
+            final ValueIterator iter = createValueIterator(item);
+            long line_count = 0;
+            while (iter.hasNext()  &&  !monitor.isCanceled())
+            {
+                final VType value = iter.next();
+                final Instant time = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value);
+
+                cell = createTimeCell(row = sheet.createRow(row.getRowNum() + 1), time);
+                cell = createValueCells(row, cell.getColumnIndex()+1, value);
+                ++line_count;
+                if ((line_count % PROGRESS_UPDATE_LINES) == 0)
+                    monitor.beginTask(MessageFormat.format("Wrote {0} samples", line_count));
+                if (monitor.isCanceled())
+                    break;
+            }
+            iter.close();
+            if (monitor.isCanceled())
+                break;
+        }
     }
 }
