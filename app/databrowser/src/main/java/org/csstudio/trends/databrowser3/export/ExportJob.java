@@ -155,8 +155,11 @@ abstract public class ExportJob implements JobRunnable
         monitor.done();
     }
 
-    /** Print file header, gets invoked before <code>performExport</code> */
-    protected void printExportInfo(final PrintStream out)
+    /** Print file header, gets invoked before <code>performExport</code>
+     *  @param out PrintStream for output
+     *  @throws Exception on error
+     */
+    protected void printExportInfo(final PrintStream out)  throws Exception
     {
         out.println(comment + "Created by CS-Studio Data Browser");
         out.println(comment);

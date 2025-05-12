@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.util.function.BiConsumer;
 
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.export.ExcelExportJob;
 import org.csstudio.trends.databrowser3.export.ExportJob;
 import org.csstudio.trends.databrowser3.export.MatlabFileExportJob;
 import org.csstudio.trends.databrowser3.export.MatlabScriptExportJob;
@@ -88,6 +89,7 @@ public class ExportView extends VBox
                             format_digits = new TextField(Messages.ExportDefaultDigits),
                             filename = new TextField();
     private final RadioButton source_raw = new RadioButton(Source.RAW_ARCHIVE.toString()),
+                              type_excel = new RadioButton(Messages.ExportTypeExcel),
                               type_matlab = new RadioButton(Messages.ExportTypeMatlab);
 
     private final CheckBox useUnixTimeStamp = new CheckBox(Messages.UseUnixTimeStamp);
@@ -190,7 +192,7 @@ public class ExportView extends VBox
 
 
         // * Format *
-        // (*) Spreadsheet ( ) Matlab
+        // (*) Excel ( ) Spreadsheet ( ) Matlab
         // [x] Tabular [x] ... with min/max column [x] ... with Severity/Status
         // (*) Default format  ( ) decimal notation  ( ) exponential notation _digits_ fractional digits
         grid = new GridPane();
@@ -198,16 +200,20 @@ public class ExportView extends VBox
         grid.setVgap(5);
         grid.setPadding(new Insets(5));
 
+        type_excel.setTooltip(new Tooltip(Messages.ExportTypeExcelTT));
+        type_excel.setToggleGroup(table_types);
+        grid.add(type_excel, 0, 0);
+
         final RadioButton type_spreadsheet = new RadioButton(Messages.ExportTypeSpreadsheet);
         type_spreadsheet.setTooltip(new Tooltip(Messages.ExportTypeSpreadsheetTT));
         type_spreadsheet.setToggleGroup(table_types);
-        grid.add(type_spreadsheet, 0, 0);
+        grid.add(type_spreadsheet, 1, 0);
 
         type_matlab.setTooltip(new Tooltip(Messages.ExportTypeMatlabTT));
         type_matlab.setToggleGroup(table_types);
-        grid.add(type_matlab, 1, 0);
+        grid.add(type_matlab, 2, 0);
 
-        type_spreadsheet.setSelected(true);
+        type_excel.setSelected(true);
 
         tabular.setTooltip(new Tooltip(Messages.ExportTabularTT));
         tabular.setSelected(true);
@@ -250,10 +256,10 @@ public class ExportView extends VBox
         grid.add(format_digits, 3, 2);
 
         // Formatting only applies to spreadsheet
-        format_default.disableProperty().bind(type_matlab.selectedProperty());
-        format_decimal.disableProperty().bind(type_matlab.selectedProperty());
-        format_expo.disableProperty().bind(type_matlab.selectedProperty());
-        format_digits.disableProperty().bind(type_matlab.selectedProperty());
+        format_default.disableProperty().bind(type_matlab.selectedProperty().or(type_excel.selectedProperty()));
+        format_decimal.disableProperty().bind(type_matlab.selectedProperty().or(type_excel.selectedProperty()));
+        format_expo.disableProperty().bind(type_matlab.selectedProperty().or(type_excel.selectedProperty()));
+        format_digits.disableProperty().bind(type_matlab.selectedProperty().or(type_excel.selectedProperty()));
 
         grid.add(new Label(Messages.ExportDigits), 4, 2);
 
@@ -371,7 +377,7 @@ public class ExportView extends VBox
             }
 
             // Get remaining export parameters
-            final String filename = this.filename.getText().trim();
+            String filename = this.filename.getText().trim();
             if (filename.isEmpty())
             {
                 ExceptionDetailsErrorDialog.openError(this.filename, Messages.Error, Messages.ExportEnterFilenameError, new Exception(filename));
@@ -395,7 +401,31 @@ public class ExportView extends VBox
             // Construct appropriate export job
             final ExportJob export;
             final TimeInterval start_end = range.toAbsoluteInterval();
-            if (type_matlab.isSelected())
+            if (type_excel.isSelected())
+            {   // Excel file export
+                if (! filename.endsWith(".xls"))
+                {
+                    final Alert dialog = new Alert(AlertType.CONFIRMATION);
+                    dialog.setTitle(Messages.ExportTypeExcel);
+                    dialog.setHeaderText(Messages.ExportTypeExcelFilenamePrompt);
+                    DialogHelper.positionDialog(dialog, this.filename, -200, -200);
+                    ButtonType result = dialog.showAndWait().orElse(ButtonType.CANCEL);
+                    if (result == ButtonType.CANCEL)
+                        return;
+                    if (result == ButtonType.OK)
+                    {
+                        int last = filename.lastIndexOf('.');
+                        if (last == -1)
+                            filename = filename + ".xls";
+                        else
+                            filename = filename.substring(0, last) + ".xls";
+                    }
+                }
+                export = new ExcelExportJob(model, start_end.getStart(), start_end.getEnd(), source,
+                        tabular.isSelected(), min_max_col.isSelected(), sev_stat.isSelected(),
+                        optimize_parameter, filename, this::handleError, unixTimeStamp.get());
+            }
+            else if (type_matlab.isSelected())
             {   // Matlab file export
                 if (filename.endsWith(".m"))
                     export = new MatlabScriptExportJob(model,
