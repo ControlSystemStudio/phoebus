@@ -961,54 +961,63 @@ Return value: a list of comparison results, one for each PV in the snapshot, e.g
 
 .. code-block:: JSON
 
-    {
-        "equal" : "false",
-        "pvCompareMode": "RELATIVE",
-        "tolerance" : 0,
+    [
+      {
+        "pvName": "COUNTER10",
+        "equal": false,
+        "comparison": {
+          "comparisonMode": "ABSOLUTE",
+          "tolerance": 0
+        },
         "storedValue": {
           "type": {
-            "name": "VInt",
+            "name": "VDouble",
             "version": 1
           },
-          "value": 18,
-          "alarm": {
-            "severity": "NONE",
-            "status": "NONE",
-            "name": "NONE"
-          },
-          "time": {
-            "unixSec": 1653903750,
-            "nanoSec": 532912758
-          },
-          "display": {
-            "units": ""
-          }
-        },
-        "liveValue": {
-          "type": {
-            "name": "VInt",
-            "version": 1
-          },
-          "value": 14,
+          "value": 409553,
           "alarm": {
             "severity": "NONE",
             "status": "NONE",
             "name": "NO_ALARM"
           },
           "time": {
-            "unixSec": 1734688284,
-            "nanoSec": 605970324,
+            "unixSec": 1747125271,
+            "nanoSec": 462384000,
             "userTag": 0
           },
           "display": {
-            "lowDisplay": 0.0,
-            "highDisplay": 255.0,
+            "lowDisplay": 0,
+            "highDisplay": 0,
             "units": "",
-            "description": "Mapping for Pulser 0"
+            "description": "This is a description"
           }
         },
-        "delta": "+4"
-    }
+        "liveValue": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 409623,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NO_ALARM"
+          },
+          "time": {
+            "unixSec": 1747125341,
+            "nanoSec": 460785000,
+            "userTag": 0
+          },
+          "display": {
+            "lowDisplay": 0,
+            "highDisplay": 0,
+            "units": "",
+            "description": "This is a description"
+          }
+        },
+        "delta": "-70.0"
+      }
+    ]
 
 Note that if the comparison evaluates to "equal", then ``storedValue`` and ``liveValue`` are set to ``null``.
 The ``delta`` field value is formatted in the same manner as the delta column in the client UI.
