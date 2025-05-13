@@ -21,6 +21,7 @@ import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.LogEntryLevel;
 import org.phoebus.logbook.LogFactory;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
@@ -46,7 +47,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
@@ -579,7 +579,7 @@ public class LogEntryModel {
             {
                 LogClient logClient = logFactory.getLogClient();
 
-                List<String> levelList = logClient.listLevels().stream().collect(Collectors.toList());
+                List<String> levelList = logClient.listLevels().stream().map(LogEntryLevel::name).toList();
 
                 // Certain views have listeners to these observable lists. So, when they change, the call backs need to execute on the FX Application thread.
                 Platform.runLater(() ->

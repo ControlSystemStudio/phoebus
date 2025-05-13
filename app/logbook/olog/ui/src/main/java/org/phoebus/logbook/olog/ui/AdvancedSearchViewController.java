@@ -20,33 +20,43 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.phoebus.logbook.LogEntryLevel;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
-import org.phoebus.olog.es.api.Preferences;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.dialog.PopOver;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.text.Strings;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -85,30 +95,47 @@ public class AdvancedSearchViewController {
     ListSelectionPopOver logbookSearchPopover;
 
     @FXML
-    ComboBox<String> levelSelector;
-
-    @FXML
     TextField searchTags;
     ListSelectionPopOver tagSearchPopover;
 
     private final LogClient logClient;
 
+    @SuppressWarnings("unused")
     @FXML
     private AnchorPane advancedSearchPane;
 
+    @SuppressWarnings("unused")
     @FXML
     private RadioButton sortDescRadioButton;
 
+    @SuppressWarnings("unused")
     @FXML
     private RadioButton sortAscRadioButton;
 
+    @SuppressWarnings("unused")
     @FXML
     private TextField attachmentTypes;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private TextField selectedLevelsField;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private ToggleButton levelsToggleButton;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private GridPane gridPane;
+
+    private final ContextMenu levelsContextMenu = new ContextMenu();
 
     private final SearchParameters searchParameters;
 
     private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
-    private final SimpleBooleanProperty requireAttachments = new SimpleBooleanProperty(false);
+    private final ObservableList<LevelSelection> levelSelections = FXCollections.observableArrayList();
+    private final SimpleStringProperty selectedLevelsString = new SimpleStringProperty();
+    private final List<String> levelsList = new ArrayList<>();
 
     private Runnable searchCallback = () -> {
         throw new IllegalStateException("Search callback is not set on AdvancedSearchViewController!");
@@ -133,8 +160,18 @@ public class AdvancedSearchViewController {
         searchText.setOnKeyReleased(this::searchOnEnter);
         searchAuthor.textProperty().bindBidirectional(this.searchParameters.authorProperty());
         searchAuthor.setOnKeyReleased(this::searchOnEnter);
-        levelSelector.valueProperty().bindBidirectional(this.searchParameters.levelProperty());
-        levelSelector.setOnAction(e -> searchCallback.run());
+        selectedLevelsField.textProperty().bind(selectedLevelsString);
+        levelsToggleButton.setGraphic(new ImageView(ImageCache.getImage(AdvancedSearchViewController.class, "/icons/down_triangle.png")));
+        levelsToggleButton.focusedProperty().addListener((changeListener, oldVal, newVal) ->
+        {
+            if (!newVal && !levelsContextMenu.isShowing())
+                levelsToggleButton.setSelected(false);
+        });
+
+        selectedLevelsString.addListener((obs, o, n) -> {
+            this.searchParameters.levelsProperty().setValue(selectedLevelsString.get());
+            searchCallback.run();
+        });
         searchTags.textProperty().bindBidirectional(this.searchParameters.tagsProperty());
         searchParameters.tagsProperty().addListener(searchOnTextChange);
         searchLogbooks.textProperty().bindBidirectional(this.searchParameters.logbooksProperty());
@@ -143,9 +180,7 @@ public class AdvancedSearchViewController {
         startTime.setOnKeyReleased(this::searchOnEnter);
         endTime.textProperty().bindBidirectional(this.searchParameters.endTimeProperty());
         endTime.setOnKeyReleased(this::searchOnEnter);
-        searchParameters.addListener((observable, oldValue, newValue) -> {
-            updateControls(newValue);
-        });
+        searchParameters.addListener((observable, oldValue, newValue) -> updateControls(newValue));
         sortAscending.addListener(searchOnSortChange);
 
         attachmentTypes.textProperty().bindBidirectional(this.searchParameters.attachmentsProperty());
@@ -170,24 +205,22 @@ public class AdvancedSearchViewController {
         Button apply = new Button();
         apply.setText(Messages.Apply);
         apply.setPrefWidth(80);
-        apply.setOnAction((event) -> {
-            Platform.runLater(() -> {
-                TimeRelativeInterval interval = timeSelectionPane.getInterval();
-                if (interval.isStartAbsolute()) {
-                    searchParameters.startTimeProperty().setValue(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteStart().get()));
-                } else {
-                    searchParameters.startTimeProperty().setValue(TimeParser.format(interval.getRelativeStart().get()));
-                }
-                if (interval.isEndAbsolute()) {
-                    searchParameters.endTimeProperty().setValue(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteEnd().get()));
-                } else {
-                    searchParameters.endTimeProperty().setValue(TimeParser.format(interval.getRelativeEnd().get()));
-                }
-                if (timeSearchPopover.isShowing())
-                    timeSearchPopover.hide();
-                searchCallback.run();
-            });
-        });
+        apply.setOnAction((event) -> Platform.runLater(() -> {
+            TimeRelativeInterval interval = timeSelectionPane.getInterval();
+            if (interval.isStartAbsolute()) {
+                searchParameters.startTimeProperty().setValue(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteStart().get()));
+            } else {
+                searchParameters.startTimeProperty().setValue(TimeParser.format(interval.getRelativeStart().get()));
+            }
+            if (interval.isEndAbsolute()) {
+                searchParameters.endTimeProperty().setValue(TimestampFormats.MILLI_FORMAT.format(interval.getAbsoluteEnd().get()));
+            } else {
+                searchParameters.endTimeProperty().setValue(TimeParser.format(interval.getRelativeEnd().get()));
+            }
+            if (timeSearchPopover.isShowing())
+                timeSearchPopover.hide();
+            searchCallback.run();
+        }));
         Button cancel = new Button();
         cancel.setText("Cancel");
         cancel.setPrefWidth(80);
@@ -283,9 +316,19 @@ public class AdvancedSearchViewController {
             }
         });
 
-        List<String> levelList = Arrays.stream(Preferences.levels).toList();
-        levelSelector.getItems().add("");
-        levelSelector.getItems().addAll(levelList);
+        levelsList.addAll(logClient.listLevels().stream().map(LogEntryLevel::name).sorted().toList());
+        levelsList.forEach(level -> {
+            LevelSelection levelSelection = new LevelSelection(level, false);
+            levelSelections.add(levelSelection);
+            CheckBox checkBox = new CheckBox(level);
+            LevelSelectionMenuItem levelSelectionMenuItem = new LevelSelectionMenuItem(checkBox);
+            levelSelectionMenuItem.setHideOnClick(false);
+            checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                levelSelection.selected = newValue;
+                setSelectedLevelsString();
+            });
+            levelsContextMenu.getItems().add(levelSelectionMenuItem);
+        });
 
         sortAscending.addListener((observable, oldValue, newValue) -> {
             sortDescRadioButton.selectedProperty().set(!newValue);
@@ -295,6 +338,11 @@ public class AdvancedSearchViewController {
         sortDescRadioButton.setOnAction(ae -> sortAscending.set(false));
 
         sortAscRadioButton.setOnAction(ae -> sortAscending.set(true));
+
+        gridPane.setOnMouseClicked(e -> levelsToggleButton.setSelected(false));
+
+        // Make sure controls are updated based on search string entered by user
+        updateControls(searchParameters.getValue());
     }
 
     public AnchorPane getPane() {
@@ -308,23 +356,30 @@ public class AdvancedSearchViewController {
      */
     private void updateControls(String queryString) {
         Map<String, String> queryStringParameters = LogbookQueryUtil.parseHumanReadableQueryString(queryString);
-        queryStringParameters.entrySet().stream().forEach(entry -> {
+        queryStringParameters.entrySet().forEach(entry -> {
             Keys keys = Keys.findKey(entry.getKey());
             if (keys != null) {
                 if (keys.equals(Keys.LEVEL)) {
-                    List<String> levels = Arrays.stream(Preferences.levels).toList();
-                    if (levels.contains(entry.getValue())) {
-                        searchParameters.levelProperty().setValue(entry.getValue());
+                    List<String> validatedLevels = getValidatedLevelsSelection(entry.getValue());
+                    if (validatedLevels.isEmpty()) {
+                        searchParameters.levelsProperty().setValue(null);
                     } else {
-                        searchParameters.levelProperty().setValue(null);
+                        String selectedLevels =
+                                String.join(",", validatedLevels);
+                        searchParameters.levelsProperty().setValue(selectedLevels);
                     }
+                    levelsContextMenu.getItems().forEach(mi -> {
+                        LevelSelectionMenuItem levelSelectionMenuItem =
+                                (LevelSelectionMenuItem) mi;
+                        levelSelectionMenuItem.setSelected(validatedLevels.contains(levelSelectionMenuItem.getCheckBox().getText()));
+                    });
                 } else if (keys.equals(Keys.LOGBOOKS)) {
                     List<String> validatedLogbookNames = getValidatedLogbooksSelection(entry.getValue());
                     if (validatedLogbookNames.isEmpty()) {
                         searchParameters.logbooksProperty().setValue(null);
                     } else {
                         String selectedLogbooks =
-                                validatedLogbookNames.stream().collect(Collectors.joining(","));
+                                String.join(",", validatedLogbookNames);
                         searchParameters.logbooksProperty().setValue(selectedLogbooks);
                     }
                     logbookSearchPopover.setSelected(validatedLogbookNames);
@@ -333,7 +388,7 @@ public class AdvancedSearchViewController {
                     if (validatedTagsNames.isEmpty()) {
                         searchParameters.tagsProperty().setValue(null);
                     } else {
-                        String selectedTags = validatedTagsNames.stream().collect(Collectors.joining(","));
+                        String selectedTags = String.join(",", validatedTagsNames);
                         searchParameters.tagsProperty().setValue(selectedTags);
                     }
                     tagSearchPopover.setSelected(validatedTagsNames);
@@ -347,12 +402,10 @@ public class AdvancedSearchViewController {
             return Collections.emptyList();
         }
         List<String> validLogbookNames =
-                logClient.listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
+                logClient.listLogbooks().stream().map(Logbook::getName).sorted().toList();
         List<String> logbooksFromQueryString =
-                Arrays.stream(logbooks.split(",")).map(s -> s.trim()).collect(Collectors.toList());
-        List<String> validatedLogbookNames =
-                logbooksFromQueryString.stream().filter(logbookName -> validLogbookNames.contains(logbookName)).collect(Collectors.toList());
-        return validatedLogbookNames;
+                Arrays.stream(logbooks.split(",")).map(String::trim).toList();
+        return logbooksFromQueryString.stream().filter(validLogbookNames::contains).collect(Collectors.toList());
     }
 
     protected List<String> getValidatedTagsSelection(String tags) {
@@ -360,12 +413,19 @@ public class AdvancedSearchViewController {
             return Collections.emptyList();
         }
         List<String> validTagsNames =
-                logClient.listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
+                logClient.listTags().stream().map(Tag::getName).sorted().toList();
         List<String> logbooksFromQueryString =
-                Arrays.stream(tags.split(",")).map(s -> s.trim()).collect(Collectors.toList());
-        List<String> validatedLogbookNames =
-                logbooksFromQueryString.stream().filter(logbookName -> validTagsNames.contains(logbookName)).collect(Collectors.toList());
-        return validatedLogbookNames;
+                Arrays.stream(tags.split(",")).map(String::trim).toList();
+        return logbooksFromQueryString.stream().filter(validTagsNames::contains).collect(Collectors.toList());
+    }
+
+    protected List<String> getValidatedLevelsSelection(String levels) {
+        if (Strings.isNullOrEmpty(levels)) {
+            return Collections.emptyList();
+        }
+        List<String> levelsFromQueryString =
+                Arrays.stream(levels.split(",")).map(String::trim).toList();
+        return levelsFromQueryString.stream().filter(levelsList::contains).collect(Collectors.toList());
     }
 
     public SimpleBooleanProperty getSortAscending() {
@@ -378,12 +438,64 @@ public class AdvancedSearchViewController {
         }
     }
 
-    private final ChangeListener<? super String> searchOnTextChange = (options, oldValue, newValue) -> {
-        searchCallback.run();
-    };
+    private final ChangeListener<? super String> searchOnTextChange = (options, oldValue, newValue) -> searchCallback.run();
 
-    private final ChangeListener<? super Boolean> searchOnSortChange = (options, oldValue, newValue) -> {
-        searchCallback.run();
-    };
+    private final ChangeListener<? super Boolean> searchOnSortChange = (options, oldValue, newValue) -> searchCallback.run();
+
+    private void setSelectedLevelsString() {
+        selectedLevelsString.set(levelSelections.stream().filter(LevelSelection::isSelected)
+                .map(LevelSelection::getName).collect(Collectors.joining(",")));
+    }
+
+    @SuppressWarnings("unused")
+    @FXML
+    public void selectLevels() {
+        if (levelsToggleButton.isSelected()) {
+            levelsContextMenu.show(selectedLevelsField, Side.BOTTOM, 0, 0);
+        } else {
+            levelsContextMenu.hide();
+        }
+    }
+
+    /**
+     * Encapsulates data needed to construct the level selection context menu.
+     */
+    private static class LevelSelection {
+        private final String name;
+        private boolean selected;
+
+        public LevelSelection(String name, boolean selected) {
+            this.name = name;
+            this.selected = selected;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean isSelected() {
+            return selected;
+        }
+    }
+
+    /**
+     * Encapsulates items needed to maintain the level selection context menu.
+     */
+    private static class LevelSelectionMenuItem extends CustomMenuItem {
+        private final CheckBox checkBox;
+
+        public LevelSelectionMenuItem(CheckBox checkBox) {
+            super(checkBox);
+            this.checkBox = checkBox;
+        }
+
+        public void setSelected(boolean selected) {
+            checkBox.setSelected(selected);
+        }
+
+        public CheckBox getCheckBox() {
+            return checkBox;
+        }
+    }
 
 }

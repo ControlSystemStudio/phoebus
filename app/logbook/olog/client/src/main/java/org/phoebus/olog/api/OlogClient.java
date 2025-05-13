@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryLevel;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Messages;
@@ -197,13 +198,12 @@ public class OlogClient implements LogClient {
 
     }
 
-
     // A predefined set of levels supported by olog
     private final List<String> levels = Arrays.asList("Urgent", "Suggestion", "Info", "Request", "Problem");
 
     @Override
-    public Collection<String> listLevels() {
-        return levels;
+    public Collection<LogEntryLevel> listLevels() {
+        return levels.stream().map(l -> new LogEntryLevel(l, false)).toList();
     }
 
     @Override

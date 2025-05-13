@@ -13,6 +13,7 @@ import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryChangeHandler;
+import org.phoebus.logbook.LogEntryLevel;
 import org.phoebus.logbook.LogTemplate;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
@@ -49,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -546,6 +548,24 @@ public class OlogHttpClient implements LogClient {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to submit template, got client exception", e);
             throw new LogbookException(e);
+        }
+    }
+
+    @Override
+    public Collection<LogEntryLevel> listLevels(){
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(Preferences.olog_url + "/levels"))
+                .GET()
+                .build();
+
+        try {
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            return OlogObjectMappers.logEntryDeserializer.readValue(
+                    response.body(), new TypeReference<Set<LogEntryLevel>>() {
+                    });
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Unable to get templates from service", e);
+            return Collections.emptySet();
         }
     }
 }
