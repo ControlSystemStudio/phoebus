@@ -7,12 +7,15 @@
  *******************************************************************************/
 package org.phoebus.ui.help;
 
-import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.scene.image.Image;
+import org.phoebus.ui.web.WebBrowserApplication;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /** Menu entry to open help
  *  @author Kay Kasemir
@@ -41,7 +44,13 @@ public class OpenHelp implements MenuEntry
     @Override
     public Void call()
     {
-        ApplicationService.createInstance(HelpApplication.NAME);
+        try {
+            URI helpLocationURI = new URI(HelpBrowser.determineHelpLocation());
+            WebBrowserApplication webBrowserApplication = new WebBrowserApplication();
+            webBrowserApplication.create(helpLocationURI);
+        } catch (URISyntaxException uriSyntaxException) {
+            throw new RuntimeException(uriSyntaxException);
+        }
         return null;
     }
 }
