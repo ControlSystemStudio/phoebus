@@ -9,6 +9,8 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -16,6 +18,12 @@ import java.util.logging.Logger;
 
 /**
  * A web socket client implementation supporting pong and text messages.
+ *
+ * <p>
+ *     Once connection is established, a ping/pong thread is set up to check peer availability. This should be
+ *     able to handle both remote peer being shut down and network issues. Ping messages are dispatched once
+ *     per minute. A reconnection loop is started if a pong message is not received from peer within three seconds.
+ * </p>
  */
 public class WebSocketClient implements WebSocket.Listener {
 
@@ -25,10 +33,12 @@ public class WebSocketClient implements WebSocket.Listener {
     private Runnable disconnectCallback;
     private final URI uri;
     private final Consumer<CharSequence> onTextCallback;
-    private final AtomicBoolean attemptConnect = new AtomicBoolean(true);
+
+    private final AtomicBoolean attemptReconnect = new AtomicBoolean();
+    private CountDownLatch pingCountdownLatch;
 
     /**
-     * @param uri The URI of the web socket peer.
+     * @param uri            The URI of the web socket peer.
      * @param onTextCallback A callback method the API client will use to process web socket messages.
      */
     public WebSocketClient(URI uri, Consumer<CharSequence> onTextCallback) {
@@ -40,7 +50,6 @@ public class WebSocketClient implements WebSocket.Listener {
      * Attempts to connect to the remote web socket.
      */
     public void connect() {
-        attemptConnect.set(true);
         doConnect();
     }
 
@@ -49,23 +58,18 @@ public class WebSocketClient implements WebSocket.Listener {
      * connection is established.
      */
     private void doConnect() {
+        attemptReconnect.set(true);
         new Thread(() -> {
-            while (attemptConnect.get()) {
+            while (attemptReconnect.get()) {
                 logger.log(Level.INFO, "Attempting web socket connection to " + uri);
-                try {
-                    webSocket = HttpClient.newBuilder()
-                            .build()
-                            .newWebSocketBuilder()
-                            .buildAsync(uri, this)
-                            .join();
-                    break;
-                } catch (Exception e) {
-                    logger.log(Level.INFO, "Failed to connect to web socket on " + uri, e);
-                }
+                HttpClient.newBuilder()
+                        .build()
+                        .newWebSocketBuilder()
+                        .buildAsync(uri, this);
                 try {
                     Thread.sleep(10000);
                 } catch (InterruptedException e) {
-                    logger.log(Level.WARNING, "Interrupted while sleeping");
+                    logger.log(Level.WARNING, "Got interrupted exception");
                 }
             }
         }).start();
@@ -74,16 +78,19 @@ public class WebSocketClient implements WebSocket.Listener {
     /**
      * Called when connection has been established. An API client may optionally register a
      * {@link #connectCallback} which is called when connection is opened.
-     * @param webSocket
-     *         the WebSocket that has been connected
+     *
+     * @param webSocket the WebSocket that has been connected
      */
     @Override
     public void onOpen(WebSocket webSocket) {
         WebSocket.Listener.super.onOpen(webSocket);
+        attemptReconnect.set(false);
+        this.webSocket = webSocket;
         if (connectCallback != null) {
             connectCallback.run();
         }
         logger.log(Level.INFO, "Connected to " + uri);
+        new Thread(new PingRunnable()).start();
     }
 
     /**
@@ -106,10 +113,10 @@ public class WebSocketClient implements WebSocket.Listener {
      * {@link #disconnectCallback} which is called when connection is opened.
      *
      * <p>
-     *     Note that reconnection will be attempted immediately.
+     * Note that reconnection will be attempted immediately.
      * </p>
-     * @param webSocket
-     *         the WebSocket that has been connected
+     *
+     * @param webSocket the WebSocket that has been connected
      */
     @Override
     public CompletionStage<?> onClose(WebSocket webSocket,
@@ -119,7 +126,6 @@ public class WebSocketClient implements WebSocket.Listener {
         if (disconnectCallback != null) {
             disconnectCallback.run();
         }
-        doConnect();
         return null;
     }
 
@@ -128,13 +134,14 @@ public class WebSocketClient implements WebSocket.Listener {
      * is called.
      */
     public void sendPing() {
-        logger.log(Level.INFO, "Sending ping");
+        logger.log(Level.FINE, "Sending ping");
         webSocket.sendPing(ByteBuffer.allocate(0));
     }
 
     @Override
     public CompletionStage<?> onPong(WebSocket webSocket, ByteBuffer message) {
-        logger.log(Level.INFO, "Got pong");
+        pingCountdownLatch.countDown();
+        logger.log(Level.FINE, "Got pong");
         return WebSocket.Listener.super.onPong(webSocket, message);
     }
 
@@ -156,19 +163,18 @@ public class WebSocketClient implements WebSocket.Listener {
     }
 
     /**
-     *
      * <b>NOTE:</b> this <b>must</b> be called by the API client when web socket messages are no longer
      * needed, otherwise reconnect attempts will continue as these run on a separate thread.
      *
      * <p>
-     *     The status code 1000 is used when calling the {@link WebSocket#sendClose(int, String)} method. See
-     *     list of common web socket status codes
-     *     <a href='https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code'>here</a>.
+     * The status code 1000 is used when calling the {@link WebSocket#sendClose(int, String)} method. See
+     * list of common web socket status codes
+     * <a href='https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code'>here</a>.
      * </p>
+     *
      * @param reason Custom reason text.
      */
     public void close(String reason) {
-        attemptConnect.set(false);
         webSocket.sendClose(1000, reason);
     }
 
@@ -185,5 +191,31 @@ public class WebSocketClient implements WebSocket.Listener {
      */
     public void setDisconnectCallback(Runnable disconnectCallback) {
         this.disconnectCallback = disconnectCallback;
+    }
+
+    private class PingRunnable implements Runnable {
+
+        @Override
+        public void run() {
+            while (true) {
+                pingCountdownLatch = new CountDownLatch(1);
+                sendPing();
+                try {
+                    if (!pingCountdownLatch.await(3, TimeUnit.SECONDS)) {
+                        if (disconnectCallback != null) {
+                            disconnectCallback.run();
+                        }
+                        logger.log(Level.WARNING, "No pong response within three seconds");
+                        doConnect();
+                        return;
+                    } else {
+                        Thread.sleep(60000);
+                    }
+                } catch (InterruptedException e) {
+                    logger.log(Level.WARNING, "Got interrupted exception");
+                    return;
+                }
+            }
+        }
     }
 }
