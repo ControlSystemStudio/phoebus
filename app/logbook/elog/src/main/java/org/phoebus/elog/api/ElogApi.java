@@ -541,7 +541,10 @@ public class ElogApi {
         } else {
           URI loc = URI.create( location );
           String[] path = loc.getPath().split("/");
-          msgId = Integer.parseInt( path[ path.length-1 ] );
+          String msgIdStr = path[ path.length-1 ];
+          if(msgIdStr != null && msgIdStr.matches("\\d+")) {
+            msgId = Integer.parseInt( msgIdStr );
+          }
         }
       }
       if( body.contains("form name=form1") || body.contains("type=password") ) {
