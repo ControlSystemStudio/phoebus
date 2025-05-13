@@ -307,6 +307,30 @@ Sends email with alarm detail to list of recipients.
 The email server is configured in the alarm preferences.
 
 
+``infopv:SomePV``:
+Writes the alarm detail to a PV.
+
+The PV needs to hold a string, for example
+`mqtt://alarm/message<VString>` for an MQTT topic
+or
+`ca://NameOfPV.VAL$`
+for Channel Access where the PV refers to a string record::
+    
+    # Example for "Info PV"
+    # used with automated action set to "infopv:NameOfPV"
+    #
+    # softIoc -s -m N=NameOfPV -d infopv.db
+
+    record(lsi, "$(N)")
+    {
+        field(SIZV, 1000)
+        field(INP,  {const:""})
+        field(PINI, "YES")
+    }
+
+With Channel Access, since the text usually exceeds 40 characters, use ``infopv:SomePV.VAL$``.
+
+
 ``cmd:some_command arg1 arg2``:
 Invokes command with list of space-separated arguments.
 The special argument "*" will be replaced with a list of alarm PVs and their alarm severity.
