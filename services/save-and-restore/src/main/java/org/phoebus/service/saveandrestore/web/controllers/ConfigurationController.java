@@ -21,7 +21,10 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +48,10 @@ public class ConfigurationController extends BaseController {
     @SuppressWarnings("unused")
     @Autowired
     private NodeDAO nodeDAO;
+
+    @SuppressWarnings("unused")
+    @Autowired
+    private WebSocketHandler webSocketHandler;
 
     /**
      * Creates new {@link Configuration} {@link Node}.
@@ -71,7 +78,9 @@ public class ConfigurationController extends BaseController {
              }
         }
         configuration.getConfigurationNode().setUserName(principal.getName());
-        return nodeDAO.createConfiguration(parentNodeId, configuration);
+        Configuration newConfiguration = nodeDAO.createConfiguration(parentNodeId, configuration);
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newConfiguration.getConfigurationNode().getUniqueId()));
+        return newConfiguration;
     }
 
     /**
@@ -97,6 +106,8 @@ public class ConfigurationController extends BaseController {
     public Configuration updateConfiguration(@RequestBody Configuration configuration,
                                              Principal principal) {
         configuration.getConfigurationNode().setUserName(principal.getName());
-        return nodeDAO.updateConfiguration(configuration);
+        Configuration updatedConfiguration = nodeDAO.updateConfiguration(configuration);
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedConfiguration.getConfigurationNode()));
+        return updatedConfiguration;
     }
 }

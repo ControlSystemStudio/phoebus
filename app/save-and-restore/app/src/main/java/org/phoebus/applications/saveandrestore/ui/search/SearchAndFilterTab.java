@@ -19,43 +19,30 @@
 
 package org.phoebus.applications.saveandrestore.ui.search;
 
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
-import org.phoebus.applications.saveandrestore.model.search.Filter;
-import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
-import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.nls.NLS;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChangedListener {
+public class SearchAndFilterTab extends SaveAndRestoreTab {
     public static final String SEARCH_AND_FILTER_TAB_ID = "SearchAndFilterTab";
 
     private SearchAndFilterViewController searchAndFilterViewController;
-    private final SaveAndRestoreService saveAndRestoreService;
 
     public SearchAndFilterTab(SaveAndRestoreController saveAndRestoreController) {
 
         setId(SEARCH_AND_FILTER_TAB_ID);
-
-        saveAndRestoreService = SaveAndRestoreService.getInstance();
-
         final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
 
         FXMLLoader loader = new FXMLLoader();
@@ -66,8 +53,7 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
                 if (clazz.isAssignableFrom(SearchAndFilterViewController.class)) {
                     return clazz.getConstructor(SaveAndRestoreController.class)
                             .newInstance(saveAndRestoreController);
-                }
-                else if(clazz.isAssignableFrom(SearchResultTableViewController.class)){
+                } else if (clazz.isAssignableFrom(SearchResultTableViewController.class)) {
                     return clazz.getConstructor()
                             .newInstance();
                 }
@@ -91,45 +77,5 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
 
         setText(Messages.search);
         setGraphic(new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search_18x18.png")));
-
-        setOnCloseRequest(event -> SaveAndRestoreService.getInstance().removeNodeChangeListener(this));
-
-        saveAndRestoreService.addNodeChangeListener(this);
-    }
-
-
-    @Override
-    public void nodeChanged(org.phoebus.applications.saveandrestore.model.Node updatedNode) {
-        searchAndFilterViewController.nodeChanged(updatedNode);
-    }
-
-    /**
-     * Shows a {@link Filter} in the view. If the filter identified through the specified (unique) id does not
-     * exist, an error message is show.
-     *
-     * @param filterId Unique, case-sensitive name of a persisted {@link Filter}.
-     */
-    public void showFilter(String filterId) {
-        JobManager.schedule("Show Filter", monitor -> {
-            List<Filter> allFilters;
-            try {
-                allFilters = saveAndRestoreService.getAllFilters();
-            } catch (Exception e) {
-                Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.failedGetFilters, e));
-                return;
-            }
-            Optional<Filter> filterOptional = allFilters.stream().filter(f -> f.getName().equalsIgnoreCase(filterId)).findFirst();
-            if (!filterOptional.isPresent()) {
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setContentText(MessageFormat.format(Messages.filterNotFound, filterId));
-                    alert.show();
-                });
-            } else {
-                Filter filter = filterOptional.get();
-                Platform.runLater(() ->
-                    searchAndFilterViewController.setFilter(filter));
-            }
-        });
     }
 }

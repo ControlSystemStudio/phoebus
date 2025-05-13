@@ -26,6 +26,16 @@
 			<version>5.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>core-ui</artifactId>
+			<version>5.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>core-websocket</artifactId>
+			<version>5.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 		  <groupId>org.phoebus</groupId>
 		  <artifactId>save-and-restore-model</artifactId>
 		  <version>5.0.1-SNAPSHOT</version>

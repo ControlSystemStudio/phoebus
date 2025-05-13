@@ -54,6 +54,8 @@ public class FilterViewInstance implements AppInstance {
             return CompletableFuture.completedFuture(true);
         });
 
+        dockItem.setOnCloseRequest(e -> searchResultTableViewController.handleTabClosed());
+
         DockPane.getActiveDockPane().addTab(dockItem);
     }
 

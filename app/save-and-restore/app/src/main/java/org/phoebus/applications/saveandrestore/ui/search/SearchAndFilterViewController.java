@@ -45,17 +45,17 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
-import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
@@ -78,7 +78,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class SearchAndFilterViewController extends SaveAndRestoreBaseController implements Initializable, FilterChangeListener {
+public class SearchAndFilterViewController extends SaveAndRestoreBaseController
+        implements Initializable, WebSocketMessageHandler {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -180,8 +181,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     private final SimpleStringProperty filterNameProperty = new SimpleStringProperty();
 
-    private final SaveAndRestoreService saveAndRestoreService;
-
     private final SimpleStringProperty query = new SimpleStringProperty();
 
     private final SimpleStringProperty pvNamesProperty = new SimpleStringProperty();
@@ -219,7 +218,6 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
     public SearchAndFilterViewController(SaveAndRestoreController saveAndRestoreController) {
         this.saveAndRestoreController = saveAndRestoreController;
-        this.saveAndRestoreService = SaveAndRestoreService.getInstance();
     }
 
     @FXML
@@ -365,10 +363,10 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         filterNameTextField.textProperty().bindBidirectional(filterNameProperty);
         filterNameTextField.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
         saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-            filterNameProperty.isEmpty().get() ||
-                saveAndRestoreController.getUserIdentity().isNull().get() ||
-                uniqueIdProperty.isNotEmpty().get(),
-            filterNameProperty, saveAndRestoreController.getUserIdentity(), uniqueIdProperty));
+                        filterNameProperty.isEmpty().get() ||
+                                saveAndRestoreController.getUserIdentity().isNull().get() ||
+                                uniqueIdProperty.isNotEmpty().get(),
+                filterNameProperty, saveAndRestoreController.getUserIdentity(), uniqueIdProperty));
 
         query.addListener((observable, oldValue, newValue) -> {
             if (newValue == null || newValue.isEmpty()) {
@@ -380,7 +378,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
 
         loadFilters();
 
-        saveAndRestoreService.addFilterChangeListener(this);
+        webSocketClientService.addWebSocketMessageHandler(this);
 
         progressIndicator.visibleProperty().bind(disableUi);
         disableUi.addListener((observable, oldValue, newValue) -> mainUi.setDisable(newValue));
@@ -632,28 +630,21 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         searchDisabled = false;
     }
 
-
-    public void nodeChanged(Node updatedNode) {
-        searchResultTableViewController.nodeChanged(updatedNode);
-    }
-
-    @Override
-    public void filterAddedOrUpdated(Filter filter) {
-        loadFilters();
-    }
-
-    @Override
-    public void filterRemoved(Filter filter) {
-        loadFilters();
-    }
-
     public void handleSaveAndFilterTabClosed() {
-        saveAndRestoreService.removeFilterChangeListener(this);
+        webSocketClientService.removeWebSocketMessageHandler(this);
+        searchResultTableViewController.handleTabClosed();
     }
 
     @Override
-    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         super.secureStoreChanged(validTokens);
         searchResultTableViewController.secureStoreChanged(validTokens);
+    }
+
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
+        switch (saveAndRestoreWebSocketMessage.messageType()) {
+            case FILTER_REMOVED, FILTER_ADDED_OR_UPDATED -> loadFilters();
+        }
     }
 }

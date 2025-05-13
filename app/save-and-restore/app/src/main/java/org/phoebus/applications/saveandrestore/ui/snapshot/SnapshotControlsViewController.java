@@ -193,7 +193,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         // TODO: support save (=update) a composite snapshot from the snapshot view. In the meanwhile, disable save button.
                         snapshotNodeProperty.isNull().get() ||
-                        snapshotNodeProperty.get().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT) ||
                         snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
                                 snapshotCommentProperty.isEmpty().get() ||
@@ -368,8 +367,8 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     }
 
     @FXML
-    public void restore(ActionEvent event) {
-        snapshotController.restore(event);
+    public void restore() {
+        snapshotController.restore();
     }
 
     public SimpleBooleanProperty getSnapshotRestorableProperty() {

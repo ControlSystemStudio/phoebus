@@ -20,6 +20,7 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.property.SimpleStringProperty;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -32,8 +33,12 @@ import java.util.logging.Logger;
 public abstract class SaveAndRestoreBaseController {
 
     protected final SimpleStringProperty userIdentity = new SimpleStringProperty();
+    protected final WebSocketClientService webSocketClientService;
+    protected final SaveAndRestoreService saveAndRestoreService;
 
     public SaveAndRestoreBaseController() {
+        this.webSocketClientService = WebSocketClientService.getInstance();
+        this.saveAndRestoreService = SaveAndRestoreService.getInstance();
         try {
             SecureStore secureStore = new SecureStore();
             ScopedAuthenticationToken token =
@@ -62,5 +67,17 @@ public abstract class SaveAndRestoreBaseController {
 
     public SimpleStringProperty getUserIdentity() {
         return userIdentity;
+    }
+
+    /**
+     * Default no-op implementation of a handler for {@link SaveAndRestoreWebSocketMessage}s.
+     * @param webSocketMessage See {@link SaveAndRestoreWebSocketMessage}
+     */
+    protected void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> webSocketMessage){
+    }
+
+
+    protected boolean handleTabClosed(){
+        return true;
     }
 }

@@ -24,7 +24,10 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,6 +35,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.socket.WebSocketMessage;
 
 import java.security.Principal;
 import java.util.List;
@@ -48,6 +52,9 @@ public class TagController extends BaseController {
 
     @Autowired
     private NodeDAO nodeDAO;
+
+    @Autowired
+    private WebSocketHandler webSocketHandler;
 
     /**
      * @return A {@link List} of all {@link Tag}s.
@@ -70,7 +77,9 @@ public class TagController extends BaseController {
     public List<Node> addTag(@RequestBody TagData tagData,
                              Principal principal) {
         tagData.getTag().setUserName(principal.getName());
-        return nodeDAO.addTag(tagData);
+        List<Node> taggedNodes = nodeDAO.addTag(tagData);
+        taggedNodes.forEach(n -> webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, n)));
+        return taggedNodes;
     }
 
     /**
@@ -83,6 +92,8 @@ public class TagController extends BaseController {
     @DeleteMapping("/tags")
     @PreAuthorize("@authorizationHelper.mayAddOrDeleteTag(#tagData, #root)")
     public List<Node> deleteTag(@RequestBody TagData tagData) {
-        return nodeDAO.deleteTag(tagData);
+        List<Node> untaggedNodes = nodeDAO.deleteTag(tagData);
+        untaggedNodes.forEach(n -> webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, n)));
+        return untaggedNodes;
     }
 }

@@ -39,14 +39,9 @@
                             <HBox.margin>
                                 <Insets bottom="5.0" right="5.0" top="5.0" />
                             </HBox.margin>
-
                         </Button>
-
-
                     </HBox>
-
                     <TreeView fx:id="treeView" onContextMenuRequested="#configureContextMenu" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS" />
-
                 </VBox>
                 <VBox fx:id="errorPane" alignment="CENTER" visible="false">
                     <children>

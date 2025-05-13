@@ -18,7 +18,10 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,6 +44,9 @@ public class StructureController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    @Autowired
+    private WebSocketHandler webSocketHandler;
+
     /**
      * Moves a list of source nodes to a new target (parent) node.
      *
@@ -60,8 +66,16 @@ public class StructureController extends BaseController {
         if (to.isEmpty() || nodes.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Target node and list of source nodes must all be non-empty.");
         }
+        // Get parent node before move
+        Node sourceParentNode = nodeDAO.getParentNode(nodes.get(0));
         Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
-        return nodeDAO.moveNodes(nodes, to, principal.getName());
+        Node targetNode = nodeDAO.moveNodes(nodes, to, principal.getName());
+        // Update clients
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_UPDATED,
+                targetNode));
+        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_UPDATED,
+                sourceParentNode));
+        return targetNode;
     }
 
     /**
@@ -84,8 +98,11 @@ public class StructureController extends BaseController {
         if (to.isEmpty() || nodes.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Target node and list of source nodes must all be non-empty.");
         }
-        Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
-        return nodeDAO.copyNodes(nodes, to, principal.getName());
+        Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " copy");
+        Node targetNode = nodeDAO.getNode(to);
+        List<Node> newNodes = nodeDAO.copyNodes(nodes, to, principal.getName());
+        newNodes.forEach(n -> webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_ADDED, n.getUniqueId())));
+        return targetNode;
     }
 
     /**
