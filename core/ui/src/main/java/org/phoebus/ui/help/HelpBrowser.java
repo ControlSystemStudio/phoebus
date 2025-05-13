@@ -64,35 +64,9 @@ public class HelpBrowser implements AppInstance
 
     private void loadHelp(final JobMonitor monitor)
     {
-        final String location = determineHelpLocation();
+        final String location = OpenHelp.determineHelpLocation();
         logger.log(Level.CONFIG, "Showing help from " + location);
         Platform.runLater(() -> browser.getEngine().load(location));
-    }
-
-    public static String determineHelpLocation()
-    {
-        final File phoenix_install = Locations.install();
-
-        // The distribution includes a lib/ and a doc/ folder.
-        // Check for the doc/index.html
-        File loc = new File(phoenix_install, "doc/index.html");
-        if (loc.exists())
-            return loc.toURI().toString();
-
-        // During development,
-        // product is started from IDE as ....../git/phoebus/phoebus-product.
-        // Check for copy of docs in      ....../git/phoebus/docs/build/html
-        loc = new File(phoenix_install, "docs");
-        if (loc.exists())
-        {
-            loc = new File(loc, "build/html/index.html");
-            if (loc.exists())
-                return loc.toURI().toString();
-            logger.log(Level.WARNING, "Found phoebus-doc repository, but no build/html/index.html. Run 'make html'");
-        }
-
-        // Fall back to online copy of the manual
-        return "https://control-system-studio.readthedocs.io";
     }
 
     @Override
