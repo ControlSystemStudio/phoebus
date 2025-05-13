@@ -31,7 +31,7 @@ public class OpenHelp implements MenuEntry
     @Override
     public String getName()
     {
-        return HelpApplication.DISPLAY_NAME;
+        return Messages.Help;
     }
 
     @Override
