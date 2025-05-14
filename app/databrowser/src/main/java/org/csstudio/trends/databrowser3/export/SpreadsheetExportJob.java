@@ -66,7 +66,7 @@ public class SpreadsheetExportJob extends PlainExportJob
             out.print(Messages.Export_Delimiter + item.getResolvedName() + " " + formatter.getHeader());
         out.println();
 
-        // Create speadsheet interpolation
+        // Create spreadsheet interpolation
         final List<ValueIterator> iters = new ArrayList<>();
         for (ModelItem item : model.getItems())
         {

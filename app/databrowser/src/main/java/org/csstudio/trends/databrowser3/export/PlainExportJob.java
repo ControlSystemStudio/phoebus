@@ -45,15 +45,13 @@ public class PlainExportJob extends ExportJob
             final String filename,
             final Consumer<Exception> error_handler,
             final boolean unixTimeStamp)
-    {   // MS Excel fails to recognize tab-separated data columns
-    	// unless the initial header rows also contain at least one tab per row,
-    	// so add that to comment
-        super("#\t", model, start, end, source, optimize_parameter, filename, error_handler, unixTimeStamp);
+    {
+        super("# ", model, start, end, source, optimize_parameter, filename, error_handler, unixTimeStamp);
         this.formatter = formatter;
     }
 
     @Override
-    protected void printExportInfo(final PrintStream out)
+    protected void printExportInfo(final PrintStream out) throws Exception
     {
         super.printExportInfo(out);
         out.println(comment + "Format     : " + formatter.toString());
