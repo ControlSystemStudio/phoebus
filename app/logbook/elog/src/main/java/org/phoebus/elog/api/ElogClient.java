@@ -271,6 +271,11 @@ public class ElogClient implements LogClient{
 
     @Override
     public List<LogEntry> findLogs(Map<String, String> map) {
+        throw new RuntimeException(new UnsupportedOperationException());
+    }
+
+
+    public SearchResult findLogsWithPagination(Map<String, String> map) {
         Map<String, String> query = new HashMap<>(map);
         DateTimeFormatter simple_datetime_formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS", Locale.ENGLISH);
 
@@ -330,9 +335,30 @@ public class ElogClient implements LogClient{
             query.remove("tag");
         }
 
+        Integer from = null;
+        Integer size = null;
+
+        if(map.containsKey("from")) {
+            try {
+                from = Integer.parseInt(map.get("from"));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(map.containsKey("size")) {
+            try {
+                size = Integer.parseInt(map.get("size"));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+
         List<LogEntry> entries = new ArrayList<>();
+        ElogSearchResult result = null;
         try {
-            for( ElogEntry entry : service.search( query ) ) {
+            result = service.search( query, from, size );
+            for( ElogEntry entry : result.getLogs() ) {
                 LogEntryBuilder logBuilder = LogEntryImpl.LogEntryBuilder.log();
                 logBuilder.id( Long.valueOf( entry.getAttribute("$@MID@$") ));
                 logBuilder.description( entry.getAttribute("Text") );
@@ -372,7 +398,7 @@ public class ElogClient implements LogClient{
         } catch(LogbookException e){
             e.printStackTrace();
         }
-        return entries;
+        return SearchResult.of(entries, result.getHitCount());
     }
 
 
@@ -532,7 +558,8 @@ public class ElogClient implements LogClient{
 
         List<LogEntry> entries = new ArrayList<>();
         try{
-            for( ElogEntry entry : service.search( query ) ) {
+            ElogSearchResult result = service.search( query, null, null );
+            for( ElogEntry entry : result.getLogs() ) {
                 LogEntryBuilder logBuilder = LogEntryImpl.LogEntryBuilder.log();
                 logBuilder.id( Long.valueOf( entry.getAttribute("$@MID@$") ));
                 logBuilder.description( entry.getAttribute("Text") );
@@ -583,7 +610,8 @@ public class ElogClient implements LogClient{
 
         List<LogEntry> entries = new ArrayList<>();
         try{
-            for( ElogEntry entry : service.search( query ) ) {
+            ElogSearchResult result = service.search( query, null, null );
+            for( ElogEntry entry : result.getLogs() ) {
                 LogEntryBuilder logBuilder = LogEntryImpl.LogEntryBuilder.log();
                 logBuilder.id( Long.valueOf( entry.getAttribute("$@MID@$") ));
                 logBuilder.description( entry.getAttribute("Text") );
@@ -634,7 +662,8 @@ public class ElogClient implements LogClient{
 
         List<LogEntry> entries = new ArrayList<>();
         try{
-            for( ElogEntry entry : service.search( query ) ) {
+            ElogSearchResult result = service.search( query, null, null );
+            for( ElogEntry entry : result.getLogs() ) {
                 LogEntryBuilder logBuilder = LogEntryImpl.LogEntryBuilder.log();
                 logBuilder.id( Long.valueOf( entry.getAttribute("$@MID@$") ));
                 logBuilder.description( entry.getAttribute("Text") );
@@ -695,6 +724,12 @@ public class ElogClient implements LogClient{
         for( LogEntry entry : logIds ) {
             service.delete( entry.getId() );
         }
+    }
+
+
+    @Override
+    public SearchResult search(Map<String, String> map) {
+        return findLogsWithPagination(map);
     }
 
 }
