@@ -1,19 +1,5 @@
 /*
- * Copyright (C) 2023 European Spallation Source ERIC.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2025 European Spallation Source ERIC.
  *
  */
 
@@ -24,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
@@ -33,7 +20,11 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import javax.annotation.PreDestroy;
 import java.io.EOFException;
+import java.net.InetSocketAddress;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -41,6 +32,15 @@ import java.util.logging.Logger;
 
 /**
  * Single web socket end-point routing messages to active {@link WebSocket} instances.
+ *
+ * <p>
+ *     In some cases web socket clients may become stale/disconnected for various reasons, e.g. network issues. The
+ *     {@link #afterConnectionClosed(WebSocketSession, CloseStatus)} is not necessarily called in those case.
+ *     To make sure the {@link #sockets} collection does not contain stale clients, a scheduled job runs once per hour to
+ *     ping all clients, and set the time when the pong response was received. Another scheduled job will check
+ *     the last received pong message timestamp and - if older than 70 minutes - consider the client session dead
+ *     and dispose of it.
+ * </p>
  */
 @Component
 public class WebSocketHandler extends TextWebSocketHandler {
@@ -49,7 +49,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
      * List of active {@link WebSocket}
      */
     @SuppressWarnings("unused")
-    private List<WebSocket> sockets = new ArrayList<>();
+    private List<WebSocket> sockets = Collections.synchronizedList(new ArrayList<>());
 
     @SuppressWarnings("unused")
     @Autowired
@@ -87,7 +87,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
-        logger.log(Level.INFO, "Opening web socket session from remote " + session.getRemoteAddress().getAddress());
+        InetSocketAddress inetSocketAddress = session.getRemoteAddress();
+        logger.log(Level.INFO, "Opening web socket session from remote " + (inetSocketAddress != null ? inetSocketAddress.getAddress().toString() : "<unknown IP address>"));
         WebSocket webSocket = new WebSocket(objectMapper, session);
         sockets.add(webSocket);
     }
@@ -104,7 +105,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         Optional<WebSocket> webSocketOptional =
                 sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
         if (webSocketOptional.isPresent()) {
-            logger.log(Level.INFO, "Closing web socket session from remote " + session.getRemoteAddress().getAddress());
+            logger.log(Level.INFO, "Closing web socket session " + webSocketOptional.get().getDescription());
             webSocketOptional.get().dispose();
             sockets.remove(webSocketOptional.get());
         }
@@ -126,7 +127,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     /**
-     * Called when client sends ping message, i.e. a pong message is sent and time for last message
+     * Called when client sends ping message, i.e. a pong message is sent and time for last pong response message
      * in the {@link WebSocket} instance is refreshed.
      *
      * @param session Associated {@link WebSocketSession}
@@ -134,12 +135,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     protected void handlePongMessage(@NonNull WebSocketSession session, @NonNull PongMessage message) {
-        logger.log(Level.INFO, "Got pong");
+        logger.log(Level.FINE, "Got pong for session " + session.getId());
         // Find the WebSocket instance associated with this WebSocketSession
         Optional<WebSocket> webSocketOptional =
                 sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
-        if (webSocketOptional.isEmpty()) {
-            return; // Should only happen in case of timing issues?
+        if (webSocketOptional.isPresent()) {
+            webSocketOptional.get().setLastPinged(Instant.now());
         }
     }
 
@@ -156,7 +157,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @PreDestroy
     public void cleanup() {
         sockets.forEach(s -> {
-            logger.log(Level.INFO, "Disposing socket " + s.getId());
+            logger.log(Level.INFO, "Disposing socket " + s.getDescription());
             s.dispose();
         });
     }
@@ -168,6 +169,43 @@ public class WebSocketHandler extends TextWebSocketHandler {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
+        });
+    }
+
+    /**
+     * Sends a ping message to all clients contained in {@link #sockets}.
+     * <p>
+     *     This is scheduled to run at the top of each hour, i.e. 00.00, 01.00...23.00
+     * </p>
+     *
+     */
+    @SuppressWarnings("unused")
+    @Scheduled(cron = "* 0 * * * *")
+    public void pingClients(){
+        sockets.forEach(WebSocket::sendPing);
+    }
+
+    /**
+     * For each client in {@link #sockets}, checks the timestamp of last received pong message. If this is older
+     * than 70 minutes, the socket is considered dead, and then disposed.
+     * <p>
+     *     This is scheduled to run 5 minutes past each hour, i.e. 00.05, 01.05...23.05
+     * </p>
+     *
+     */
+    @SuppressWarnings("unused")
+    @Scheduled(cron = "* 5 * * * *")
+    public void cleanUpDeadSockets(){
+        List<WebSocket> deadSockets = new ArrayList<>();
+        Instant now = Instant.now();
+        sockets.forEach(s -> {
+            if(s.getLastPinged() != null && s.getLastPinged().isBefore(now.minus(70, ChronoUnit.MINUTES))){
+                deadSockets.add(s);
+            }
+        });
+        deadSockets.forEach(d -> {
+            sockets.remove(d);
+            d.dispose();
         });
     }
 }
