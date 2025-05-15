@@ -69,8 +69,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
     public void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) {
         try {
             // Find the WebSocket instance associated with the WebSocketSession
-            Optional<WebSocket> webSocketOptional =
-                    sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
+            Optional<WebSocket> webSocketOptional;
+            synchronized (sockets){
+                webSocketOptional =
+                        sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
+            }
             if (webSocketOptional.isEmpty()) {
                 return; // Should only happen in case of timing issues?
             }
@@ -102,8 +105,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
-        Optional<WebSocket> webSocketOptional =
-                sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
+        Optional<WebSocket> webSocketOptional;
+        synchronized (sockets){
+                webSocketOptional = sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
+        }
         if (webSocketOptional.isPresent()) {
             logger.log(Level.INFO, "Closing web socket session " + webSocketOptional.get().getDescription());
             webSocketOptional.get().dispose();
@@ -137,8 +142,10 @@ public class WebSocketHandler extends TextWebSocketHandler {
     protected void handlePongMessage(@NonNull WebSocketSession session, @NonNull PongMessage message) {
         logger.log(Level.FINE, "Got pong for session " + session.getId());
         // Find the WebSocket instance associated with this WebSocketSession
-        Optional<WebSocket> webSocketOptional =
-                sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
+        Optional<WebSocket> webSocketOptional;
+        synchronized (sockets) {
+            webSocketOptional = sockets.stream().filter(webSocket -> webSocket.getId().equals(session.getId())).findFirst();
+        }
         if (webSocketOptional.isPresent()) {
             webSocketOptional.get().setLastPinged(Instant.now());
         }
@@ -156,20 +163,24 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @PreDestroy
     public void cleanup() {
-        sockets.forEach(s -> {
-            logger.log(Level.INFO, "Disposing socket " + s.getDescription());
-            s.dispose();
-        });
+        synchronized (sockets) {
+            sockets.forEach(s -> {
+                logger.log(Level.INFO, "Disposing socket " + s.getDescription());
+                s.dispose();
+            });
+        }
     }
 
     public void sendMessage(SaveAndRestoreWebSocketMessage webSocketMessage) {
-        sockets.forEach(ws -> {
-            try {
-                ws.queueMessage(objectMapper.writeValueAsString(webSocketMessage));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        synchronized (sockets) {
+            sockets.forEach(ws -> {
+                try {
+                    ws.queueMessage(objectMapper.writeValueAsString(webSocketMessage));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
     }
 
     /**
@@ -180,9 +191,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
      *
      */
     @SuppressWarnings("unused")
-    @Scheduled(cron = "* 0 * * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void pingClients(){
-        sockets.forEach(WebSocket::sendPing);
+        synchronized (sockets) {
+            sockets.forEach(WebSocket::sendPing);
+        }
     }
 
     /**
@@ -194,18 +207,21 @@ public class WebSocketHandler extends TextWebSocketHandler {
      *
      */
     @SuppressWarnings("unused")
-    @Scheduled(cron = "* 5 * * * *")
+    @Scheduled(cron = "10 * * * * *")
     public void cleanUpDeadSockets(){
         List<WebSocket> deadSockets = new ArrayList<>();
         Instant now = Instant.now();
-        sockets.forEach(s -> {
-            if(s.getLastPinged() != null && s.getLastPinged().isBefore(now.minus(70, ChronoUnit.MINUTES))){
-                deadSockets.add(s);
-            }
-        });
-        deadSockets.forEach(d -> {
-            sockets.remove(d);
-            d.dispose();
-        });
+        synchronized (sockets) {
+            sockets.forEach(s -> {
+                Instant lastPinged = s.getLastPinged();
+                if (lastPinged != null && lastPinged.isBefore(now.minus(70, ChronoUnit.MINUTES))) {
+                    deadSockets.add(s);
+                }
+            });
+            deadSockets.forEach(d -> {
+                sockets.remove(d);
+                d.dispose();
+            });
+        }
     }
 }

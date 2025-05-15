@@ -187,7 +187,7 @@ public class WebSocket {
      * Sets the time of last received pong message.
      * @param instant Time of last received pong message.
      */
-    public void setLastPinged(Instant instant) {
+    public synchronized void setLastPinged(Instant instant) {
         this.lastPinged = instant;
     }
 
@@ -195,7 +195,7 @@ public class WebSocket {
      *
      * @return The time of last received pong message.
      */
-    public Instant getLastPinged() {
+    public synchronized Instant getLastPinged() {
         return lastPinged;
     }
 
