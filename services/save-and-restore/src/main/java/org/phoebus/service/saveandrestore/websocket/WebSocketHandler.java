@@ -191,7 +191,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
      *
      */
     @SuppressWarnings("unused")
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "* 0 * * * *")
     public void pingClients(){
         synchronized (sockets) {
             sockets.forEach(WebSocket::sendPing);
@@ -207,7 +207,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
      *
      */
     @SuppressWarnings("unused")
-    @Scheduled(cron = "10 * * * * *")
+    @Scheduled(cron = "* 5 * * * *")
     public void cleanUpDeadSockets(){
         List<WebSocket> deadSockets = new ArrayList<>();
         Instant now = Instant.now();
