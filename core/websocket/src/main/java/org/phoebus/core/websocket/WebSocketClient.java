@@ -35,6 +35,7 @@ public class WebSocketClient implements WebSocket.Listener {
     private final Consumer<CharSequence> onTextCallback;
 
     private final AtomicBoolean attemptReconnect = new AtomicBoolean();
+    private final AtomicBoolean keepPinging = new AtomicBoolean();
     private CountDownLatch pingCountdownLatch;
 
     /**
@@ -90,6 +91,7 @@ public class WebSocketClient implements WebSocket.Listener {
             connectCallback.run();
         }
         logger.log(Level.INFO, "Connected to " + uri);
+        keepPinging.set(true);
         new Thread(new PingRunnable()).start();
     }
 
@@ -134,7 +136,7 @@ public class WebSocketClient implements WebSocket.Listener {
      * is called.
      */
     public void sendPing() {
-        logger.log(Level.FINE, "Sending ping");
+        logger.log(Level.FINE, Thread.currentThread().getName() + " Sending ping");
         webSocket.sendPing(ByteBuffer.allocate(0));
     }
 
@@ -175,6 +177,7 @@ public class WebSocketClient implements WebSocket.Listener {
      * @param reason Custom reason text.
      */
     public void close(String reason) {
+        keepPinging.set(false);
         webSocket.sendClose(1000, reason);
     }
 
@@ -197,7 +200,7 @@ public class WebSocketClient implements WebSocket.Listener {
 
         @Override
         public void run() {
-            while (true) {
+            while (keepPinging.get()) {
                 pingCountdownLatch = new CountDownLatch(1);
                 sendPing();
                 try {
