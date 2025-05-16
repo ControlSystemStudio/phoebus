@@ -8,17 +8,20 @@ package org.phoebus.service.saveandrestore.websocket;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Utility class for handling web socket messages. In the context of the save-and-restore service,
- * only messages from server are expected. Client messages are logged, but do not invoke any behavior.
+ * Utility class for handling web socket messages.
  */
 @SuppressWarnings("nls")
 public class WebSocket {
@@ -41,10 +44,15 @@ public class WebSocket {
 
     private final WebSocketSession session;
     private final String id;
-
+    private final String description;
     private final Logger logger = Logger.getLogger(WebSocket.class.getName());
-
     private final ObjectMapper objectMapper;
+
+    /**
+     * Keeps track of when this session was used for a ping/pong exchange. Should be set to non-null value ONLY
+     * when an actual pong was received by {@link WebSocketHandler}.
+     */
+    private Instant lastPinged;
 
     /**
      * Constructor
@@ -58,6 +66,8 @@ public class WebSocket {
         writeThread.setName("Web Socket Write Thread " + this.id);
         writeThread.setDaemon(true);
         writeThread.start();
+        InetSocketAddress inetSocketAddress = webSocketSession.getRemoteAddress();
+        this.description = this.id + "/" + (inetSocketAddress != null ? inetSocketAddress.getAddress().toString() : "IP address unknown");
     }
 
     /**
@@ -68,6 +78,14 @@ public class WebSocket {
             return "(" + id + ")";
         else
             return id;
+    }
+
+    /**
+     *
+     * @return A description containing the session ID and - if available - the associated IP address.
+     */
+    public String getDescription() {
+        return description;
     }
 
     /**
@@ -137,7 +155,7 @@ public class WebSocket {
     }
 
     /**
-     * Called when client sends a general message
+     * Called when client sends a generic message
      *
      * @param message {@link TextMessage}, its payload is expected to be JSON.
      */
@@ -150,12 +168,6 @@ public class WebSocket {
         logger.log(Level.INFO, "Client message type: " + type);
     }
 
-    /**
-     * Clears all PVs
-     *
-     * <p>Web socket calls this onClose(),
-     * but context may also call this again just in case
-     */
     public void dispose() {
         // Exit write thread
         try {
@@ -166,8 +178,35 @@ public class WebSocket {
             // TODO: is this needed?
             session.close();
         } catch (Throwable ex) {
-            logger.log(Level.WARNING, "Error disposing " + getId(), ex);
+            logger.log(Level.WARNING, "Error disposing " + description, ex);
         }
-        logger.log(Level.INFO, () -> "Web socket " + session.getId() + " closed");
+        logger.log(Level.INFO, () -> "Web socket " + description + " closed");
+    }
+
+    /**
+     * Sets the time of last received pong message.
+     * @param instant Time of last received pong message.
+     */
+    public synchronized void setLastPinged(Instant instant) {
+        this.lastPinged = instant;
+    }
+
+    /**
+     *
+     * @return The time of last received pong message.
+     */
+    public synchronized Instant getLastPinged() {
+        return lastPinged;
+    }
+
+    /**
+     * Sends a {@link PingMessage} to peer.
+     */
+    public void sendPing() {
+        try {
+            session.sendMessage(new PingMessage());
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to send ping message", e);
+        }
     }
 }
