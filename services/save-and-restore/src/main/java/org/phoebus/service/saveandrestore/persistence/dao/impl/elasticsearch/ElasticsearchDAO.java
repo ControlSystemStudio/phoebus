@@ -671,7 +671,6 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
-
         ConfigurationData sanitizedConfigurationData = removeDuplicatePVNames(configuration.getConfigurationData());
         configuration.setConfigurationData(sanitizedConfigurationData);
 
@@ -901,6 +900,7 @@ public class ElasticsearchDAO implements NodeDAO {
         SnapshotData sanitizedSnapshotData = new SnapshotData();
         List<SnapshotItem> sanitizedList = new ArrayList<>(sanitizedMap.values());
         sanitizedSnapshotData.setSnapshotItems(sanitizedList);
+        sanitizedSnapshotData.setUniqueId(snapshotData.getUniqueId());
         return sanitizedSnapshotData;
     }
 
