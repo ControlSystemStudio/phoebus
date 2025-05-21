@@ -138,12 +138,14 @@ class ContextMenuSupport {
         final Optional<WidgetProperty<Boolean>> prompt = widget.checkProperty(propConfirmDialog);
         final Optional<WidgetProperty<ConfirmDialog>> promptOptions = widget.checkProperty(propConfirmDialogOptions);
         Boolean promptBool = false;
-        if (promptOptions.get().getValue() instanceof ConfirmDialog) {
-            if (((ConfirmDialog) promptOptions.get().getValue()) != ConfirmDialog.NONE) {
-                promptBool = true;
+        if (prompt.isPresent() && promptOptions.isPresent()) {
+            if (promptOptions.get().getValue() instanceof ConfirmDialog) {
+                if (((ConfirmDialog) promptOptions.get().getValue()) != ConfirmDialog.NONE) {
+                    promptBool = true;
+                }
+            } else {
+                promptBool = prompt.get().getValue();
             }
-        } else {
-            promptBool = prompt.get().getValue();
         }
         final boolean need_dialog = (pass.isPresent()  &&  !pass.get().getValue().isBlank())  ||
                                   (prompt.isPresent()  &&  promptBool );
