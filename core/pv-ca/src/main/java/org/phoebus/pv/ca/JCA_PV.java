@@ -12,6 +12,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.epics.vtype.VBoolean;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VFloat;
+import org.epics.vtype.VInt;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VShort;
+import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
 
@@ -460,8 +468,36 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
         return result;
     }
 
-    private void performWrite(final Object new_value, final PutListener put_listener) throws Exception
+    private void performWrite(final Object newvalue, final PutListener put_listener) throws Exception
     {
+        //Manage type of PV to convert the value in good format
+        VType vType = read();
+        Object new_value = newvalue;
+        if(vType instanceof VString) {
+            new_value = newvalue.toString();
+        }
+        else if(vType instanceof VDouble) {
+            new_value = Double.valueOf(new_value.toString());
+        }
+        else if(vType instanceof VLong) {
+            new_value = Double.valueOf(new_value.toString()).longValue();
+        }
+        else if(vType instanceof VFloat) {
+            new_value = Double.valueOf(new_value.toString()).floatValue();
+        }
+        else if(vType instanceof VInt) {
+            new_value = Double.valueOf(new_value.toString()).intValue();
+        }
+        else if(vType instanceof VShort) {
+            new_value = Double.valueOf(new_value.toString()).shortValue();
+        }
+        else if(vType instanceof VEnum) {
+            new_value = Double.valueOf(new_value.toString()).intValue();
+        }
+        else if(vType instanceof VBoolean) {
+            new_value = Boolean.parseBoolean(new_value.toString());
+        }
+        
         if (new_value instanceof String)
         {
             if (channel.getFieldType().isBYTE()  &&  channel.getElementCount() > 1)
@@ -551,6 +587,14 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
                 else
                     channel.put(val);
             }
+        }
+        else if (new_value instanceof Boolean)
+        {
+            final short val = ((Boolean)new_value) ? (short)1 : (short)0;
+            if (put_listener != null)
+                channel.put(val, put_listener);
+            else
+                channel.put(val);
         }
         else if (new_value instanceof Long [])
         {   // Channel only supports put(int[]), not long[]
