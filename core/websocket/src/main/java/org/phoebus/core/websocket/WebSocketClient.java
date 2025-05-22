@@ -178,7 +178,11 @@ public class WebSocketClient implements WebSocket.Listener {
      */
     public void close(String reason) {
         keepPinging.set(false);
-        webSocket.sendClose(1000, reason);
+        attemptReconnect.set(false);
+        // webSocket is null if never connected
+        if(webSocket != null){
+            webSocket.sendClose(1000, reason);
+        }
     }
 
     /**
