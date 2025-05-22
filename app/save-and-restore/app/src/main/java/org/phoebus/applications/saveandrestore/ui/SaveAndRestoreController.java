@@ -1348,10 +1348,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 });
                 return;
             }
-            if (node.getNodeType().equals(NodeType.FOLDER)) {
-                logger.log(Level.WARNING, "Requested to open node, but node must not be folder node");
-                return;
-            }
             Stack<Node> copiedStack = new Stack<>();
             Platform.runLater(() -> {
                 DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
