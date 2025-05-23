@@ -42,6 +42,7 @@ blockquote{
 
 p{
     margin-top: 5px;
+    white-space: pre-wrap;
 }
 
 .olog-table {
