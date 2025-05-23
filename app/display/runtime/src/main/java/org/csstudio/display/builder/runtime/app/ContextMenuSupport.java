@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.runtime.app;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialog;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialogOptions;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 
 import javafx.collections.ObservableList;
@@ -21,6 +22,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
@@ -134,8 +136,19 @@ class ContextMenuSupport {
         // because in here we would invoke actions without those constraints
         final Optional<WidgetProperty<String>> pass = widget.checkProperty(propPassword);
         final Optional<WidgetProperty<Boolean>> prompt = widget.checkProperty(propConfirmDialog);
+        final Optional<WidgetProperty<ConfirmDialog>> promptOptions = widget.checkProperty(propConfirmDialogOptions);
+        Boolean promptBool = false;
+        if (prompt.isPresent() && promptOptions.isPresent()) {
+            if (promptOptions.get().getValue() instanceof ConfirmDialog) {
+                if (((ConfirmDialog) promptOptions.get().getValue()) != ConfirmDialog.NONE) {
+                    promptBool = true;
+                }
+            } else {
+                promptBool = prompt.get().getValue();
+            }
+        }
         final boolean need_dialog = (pass.isPresent()  &&  !pass.get().getValue().isBlank())  ||
-                                  (prompt.isPresent()  &&   prompt.get().getValue());
+                                  (prompt.isPresent()  &&  promptBool );
 
         if (! need_dialog)
             for (ActionInfo info : widget.propActions().getValue().getActions()) {
