@@ -198,7 +198,13 @@ public class ElogApi {
         attributes.put( data[0], data[1] );
       }
     }
-    attributes.put( "Text", String.join("\n", returned_msg.subList( delimiter_idx + 1, returned_msg.size() ) ) );
+
+    // Wrap text inside <p> tag if Encoding is "plain"
+    String textContent = String.join("\n", returned_msg.subList(delimiter_idx + 1, returned_msg.size()));
+    if( "plain".equalsIgnoreCase(attributes.get("Encoding")) ) {
+        textContent = "<p style=\"white-space: pre-wrap;\">" + textContent + "</p>";
+    }
+    attributes.put("Text", textContent);
 
     return new ElogEntry( attributes, attachments );
   }
