@@ -9,6 +9,7 @@ package org.csstudio.display.builder.model.persist;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -133,6 +134,15 @@ public class NamedWidgetColors extends ConfigFileParser
         colors.put(color.getName(), color);
     }
 
+    /** Define a name to point to a named color
+     *  @param name Name of the color
+     *  @param color Named color
+     */
+    void define(String name, final NamedWidgetColor color)
+    {
+        colors.put(name, color);
+    }
+
     /** Get named color
      *  @param name Name of the color
      *  @return Named color, if known
@@ -156,7 +166,7 @@ public class NamedWidgetColors extends ConfigFileParser
      */
     public Collection<NamedWidgetColor> getColors()
     {
-        return Collections.unmodifiableCollection(colors.values());
+        return Collections.unmodifiableSet(new HashSet<>(colors.values()));
     }
 
     @Override
@@ -168,7 +178,7 @@ public class NamedWidgetColors extends ConfigFileParser
 
             NamedWidgetColor namedColor = optionalColor.get();
 
-            define(new NamedWidgetColor(name, namedColor.getRed(), namedColor.getGreen(), namedColor.getBlue(), namedColor.getAlpha()));
+            define(name, namedColor);
 
         } else {
 
