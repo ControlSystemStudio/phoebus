@@ -20,8 +20,10 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -70,10 +72,13 @@ public class ConfigurationControllerPermitAllTest {
     @Autowired
     private String demoUser;
 
+    @AfterEach
+    public void resetMocks(){
+        reset(nodeDAO);
+    }
+
     @Test
     public void testCreateConfiguration() throws Exception {
-
-        reset(nodeDAO);
 
         Configuration configuration = new Configuration();
         configuration.setConfigurationNode(Node.builder().build());
@@ -83,6 +88,9 @@ public class ConfigurationControllerPermitAllTest {
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        when(nodeDAO.createConfiguration(Mockito.anyString(), Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
 
         mockMvc.perform(request).andExpect(status().isOk());
 
@@ -107,6 +115,8 @@ public class ConfigurationControllerPermitAllTest {
         configuration.setConfigurationNode(configurationNode);
 
         when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
+        when(nodeDAO.updateConfiguration(Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
 
         MockHttpServletRequestBuilder request = post("/config")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
