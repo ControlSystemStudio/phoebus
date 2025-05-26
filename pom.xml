@@ -92,8 +92,6 @@
     <maven.compiler.target>17</maven.compiler.target>
     <activemq.client.version>5.18.4</activemq.client.version>
     <commons.compress.version>1.26.1</commons.compress.version>
-    <!--suppress UnresolvedMavenProperty -->
-    <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
   </properties>
   <build>
     <plugins>
@@ -164,33 +162,6 @@
         <!-- Use a version > 3.2.0 by default for reproducible builds.
           See: https://maven.apache.org/guides/mini/guide-reproducible-builds.html -->
         <version>3.3.0</version>
-      </plugin>
-      <!-- Include the git properties to ensure reproducible builds -->
-      <plugin>
-        <groupId>io.github.git-commit-id</groupId>
-        <artifactId>git-commit-id-maven-plugin</artifactId>
-        <version>9.0.1</version>
-        <executions>
-          <execution>
-            <id>get-the-git-infos</id>
-            <goals>
-              <goal>revision</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <failOnNoGitDirectory>false</failOnNoGitDirectory>
-          <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-          <prefix>git</prefix>
-          <verbose>false</verbose>
-          <generateGitPropertiesFile>true</generateGitPropertiesFile>
-          <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
-          <format>json</format>
-          <excludeProperties>
-            <excludeProperty>^git.build.*$</excludeProperty>
-            <excludeProperty>^git.local.branch.*$</excludeProperty>
-          </excludeProperties>
-        </configuration>
       </plugin>
     </plugins>
   </build>
