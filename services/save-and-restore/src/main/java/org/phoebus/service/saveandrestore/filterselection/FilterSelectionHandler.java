@@ -12,16 +12,16 @@ import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-
+/**
+ * {@link Component} responsible for managing {@link FilterSelector}s and expose methods
+ * interacting with these from (for instance) {@link org.springframework.stereotype.Controller}s.
+ */
 @Component
 public class FilterSelectionHandler {
 
@@ -31,18 +31,18 @@ public class FilterSelectionHandler {
     @Autowired
     private NodeDAO nodeDAO;
 
-    private List<FilterSelector> filterSelectors;
+    private final List<FilterSelector> filterSelectors;
 
     private Set<String> autoSelectFilterNames;
 
-    public FilterSelectionHandler(List<FilterSelector> filterSelectors){
+    public FilterSelectionHandler(List<FilterSelector> filterSelectors) {
         this.filterSelectors = filterSelectors;
 
     }
 
     @SuppressWarnings("unused")
     @PostConstruct
-    public void initialize(){
+    public void initialize() {
         autoSelectFilterNames = new HashSet<>();
         this.filterSelectors.forEach(s -> {
             s.setFilterSelectedCallback(this::filterSelected);
@@ -52,13 +52,12 @@ public class FilterSelectionHandler {
     }
 
     /**
-     *
      * @return A {@link Set} of unique {@link Filter} names supported
      * by all {@link FilterSelector} implementations known to the service.
      * Note that a {@link Filter} may be supported by multiple {@link FilterSelector}s,
      * but the list of names should not contain duplicates.
      */
-    public Set<String> getSelectorFilterNames(){
+    public Set<String> getSelectorFilterNames() {
         return autoSelectFilterNames;
     }
 
@@ -68,29 +67,25 @@ public class FilterSelectionHandler {
      * Note that if multiple {@link FilterSelector}s select a {@link Filter}, then this method will return
      * the first one encountered.
      */
-    public String getSelectedFilter(){
-        for(FilterSelector filterSelector : filterSelectors){
-            if(filterSelector.getSelectedFilter() != null){
+    public String getSelectedFilter() {
+        for (FilterSelector filterSelector : filterSelectors) {
+            if (filterSelector.getSelectedFilter() != null) {
                 return filterSelector.getSelectedFilter();
             }
         }
         return null;
     }
 
-    private void filterSelected(String filterName){
+    private void filterSelected(String filterName) {
         List<Filter> allFilters = nodeDAO.getAllFilters();
         Optional<Filter> filterOptional = allFilters.stream().filter(f -> f.getName().equals(filterName)).findFirst();
-        if(filterOptional.isPresent()){
-            webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_SELECTED, filterOptional.get()));
-        }
+        filterOptional.ifPresent(filter -> webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_SELECTED, filter)));
     }
 
-    private void filterUnselected(String filterName){
+    private void filterUnselected(String filterName) {
         List<Filter> allFilters = nodeDAO.getAllFilters();
         Optional<Filter> filterOptional = allFilters.stream().filter(f -> f.getName().equals(filterName)).findFirst();
-        if(filterOptional.isPresent()) {
-            webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_UNSELECTED, filterOptional.get()));
-        }
+        filterOptional.ifPresent(filter -> webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_UNSELECTED, filter)));
     }
 
 }

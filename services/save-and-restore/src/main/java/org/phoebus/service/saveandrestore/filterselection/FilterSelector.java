@@ -15,6 +15,11 @@ import java.util.function.Consumer;
  * {@link org.phoebus.applications.saveandrestore.model.search.Filter}, a registered callback is invoked.
  *
  * <p>
+ *     Implementations must be Spring {@link org.springframework.stereotype.Component}s such that the {@link FilterSelectionHandler}
+ *     can discover them. The Java SPI approach is <b>not</b> used.
+ * </p>
+ *
+ * <p>
  *     <b>NOTE:</b> Implementations must make sure to not select {@link org.phoebus.applications.saveandrestore.model.search.Filter}s
  *     at the same time. Only one implementation at a given point in time should select a {@link org.phoebus.applications.saveandrestore.model.search.Filter}.
  * </p>
