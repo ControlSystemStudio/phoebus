@@ -22,15 +22,22 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.service.saveandrestore.filterselection.FilterSelectionHandler;
+import org.phoebus.service.saveandrestore.filterselection.FilterSelector;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 /**
  * Controller class for {@link Filter} endpoints.
@@ -44,6 +51,9 @@ public class FilterController extends BaseController {
 
     @Autowired
     private WebSocketHandler webSocketHandler;
+
+    @Autowired
+    private FilterSelectionHandler filterSelectionHandler;
 
     /**
      * Saves a new or updated {@link Filter}.
@@ -64,7 +74,6 @@ public class FilterController extends BaseController {
     }
 
     /**
-     *
      * @return A {@link List} of all persisted {@link Filter} objects. Empty if none are found.
      */
     @SuppressWarnings("unused")
@@ -75,7 +84,8 @@ public class FilterController extends BaseController {
 
     /**
      * Deletes a {@link Filter}
-     * @param name Unique name of the {@link Filter}
+     *
+     * @param name      Unique name of the {@link Filter}
      * @param principal User {@link Principal} as injected by Spring.
      */
     @SuppressWarnings("unused")
@@ -84,5 +94,28 @@ public class FilterController extends BaseController {
     public void deleteFilter(@PathVariable final String name, Principal principal) {
         nodeDAO.deleteFilter(name);
         webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_REMOVED, name));
+    }
+
+    /**
+     *
+     * @return A {@link List} of {@link Filter} names currently being selected by all {@link FilterSelector} implementations.
+     * Note however that if multiple {@link FilterSelector}s select a {@link Filter}, then the client behavior
+     * is affected as it will select them sequentially.
+     */
+    @SuppressWarnings("unused")
+    @GetMapping(value = "/filter/selected")
+    public String getSelectedFilter() {
+        return filterSelectionHandler.getSelectedFilter();
+    }
+
+    /**
+     *
+     * @return A {@link Set} of unique {@link Filter} names supported by all {@link FilterSelector}
+     * implementations know to the service.
+     */
+    @SuppressWarnings("unused")
+    @GetMapping(value = "/filter/selectors", produces = JSON)
+    public Set<String> getFilterSelectorNames(){
+        return filterSelectionHandler.getSelectorFilterNames();
     }
 }

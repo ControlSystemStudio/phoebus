@@ -24,7 +24,9 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Implementations of this interface shall handle the communication to the save-and-restore service.
@@ -77,13 +79,6 @@ public interface SaveAndRestoreClient {
      */
     Node createNewNode(String parentsUniqueId, Node node);
 
-    /**
-     * Updates a node, e.g. if user wishes to add or remove tags from a snapshot {@link Node}
-     *
-     * @param nodeToUpdate The {@link Node} subject to update.
-     * @return The updated {@link Node}.
-     */
-    Node updateNode(Node nodeToUpdate);
 
     /**
      * Updates a node, e.g. if user wishes to add or remove tags from a snapshot {@link Node}
@@ -208,7 +203,7 @@ public interface SaveAndRestoreClient {
 
     /**
      * Deletes a {@link Filter} based on its name.
-     * @param name
+     * @param name Unique name of a {@link Filter}
      */
     void deleteFilter(String name);
 
@@ -257,4 +252,12 @@ public interface SaveAndRestoreClient {
      * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
      */
     List<SnapshotItem> takeSnapshot(String configurationNodeId);
+
+    default String getAutoSelectedFilter(){
+        return null;
+    }
+
+    default Set<String> getAutoFilterSelectorNames(){
+        return Collections.emptySet();
+    }
 }

@@ -14,15 +14,11 @@
                 </VBox>
                 <VBox fx:id="treeViewPane">
                     <HBox HBox.hgrow="ALWAYS">
-
-                        <CheckBox fx:id="enableFilterCheckBox" text="%filter">
+                        <Label text="%filter">
                             <HBox.margin>
-                                <Insets left="4.0" top="5.0" />
+                               <Insets left="8.0" right="8.0" top="10.0" />
                             </HBox.margin>
-                            <padding>
-                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                            </padding>
-                        </CheckBox>
+                        </Label>
                         <ComboBox fx:id="filtersComboBox" prefHeight="25.0" prefWidth="230.0">
                             <tooltip>
                                 <Tooltip fx:id="filterToolTip" />
@@ -31,13 +27,28 @@
                                 <Insets bottom="3.0" top="6.0" />
                             </HBox.margin>
                         </ComboBox>
+                        <HBox fx:id="filterSelectionButtons">
+                            <RadioButton fx:id="autoFilter" text="%filterAuto">
+                                <HBox.margin>
+                                   <Insets right="5.0" top="2.0" />
+                                </HBox.margin>
+                            </RadioButton>
+                            <RadioButton fx:id="manualFilter" selected="true" text="%filterManual">
+                                <HBox.margin>
+                                   <Insets top="2.0" />
+                                </HBox.margin>
+                            </RadioButton>
+                             <HBox.margin>
+                                <Insets bottom="5.0" left="8.0" right="8.0" top="8.0" />
+                             </HBox.margin>
+                        </HBox>
                         <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                         <Button fx:id="searchButton" alignment="CENTER_RIGHT" nodeOrientation="LEFT_TO_RIGHT" onAction="#openSearchWindow">
                             <tooltip>
                                 <Tooltip text="%openSearchView" />
                             </tooltip>
                             <HBox.margin>
-                                <Insets bottom="5.0" right="5.0" top="5.0" />
+                                <Insets bottom="5.0" right="5.0" top="6.0" />
                             </HBox.margin>
                         </Button>
                     </HBox>

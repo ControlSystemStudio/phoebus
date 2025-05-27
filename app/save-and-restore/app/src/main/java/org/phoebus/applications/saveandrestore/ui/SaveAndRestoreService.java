@@ -50,6 +50,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -426,5 +427,14 @@ public class SaveAndRestoreService {
         } catch (Exception e) {
             return VDisconnectedData.INSTANCE;
         }
+    }
+
+    public Set<String> getAutoFilterSelectorNames(){
+        return saveAndRestoreClient.getAutoFilterSelectorNames();
+    }
+
+    public String getAutoSelectedFilter(){
+        String selectedFilter = saveAndRestoreClient.getAutoSelectedFilter();
+        return selectedFilter.isEmpty() ? null : selectedFilter;
     }
 }

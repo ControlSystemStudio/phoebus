@@ -139,3 +139,12 @@
     -fx-alignment: center-left;
     -fx-padding: 0 0 0 2;
 }
+
+.combo-box-base:disabled{
+    -fx-opacity: 1.0;
+    -fx-font-weight: bold;
+}
+
+.combo-box > .list-cell:disabled{
+    -fx-opacity: 1.0;
+}

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -34,7 +35,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
@@ -42,12 +42,14 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -58,6 +60,7 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
@@ -160,7 +163,16 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     @SuppressWarnings("unused")
     @FXML
-    private CheckBox enableFilterCheckBox;
+    private RadioButton autoFilter;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private HBox filterSelectionButtons;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private RadioButton manualFilter;
+
 
     @SuppressWarnings("unused")
     @FXML
@@ -173,8 +185,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     protected static final Logger LOG = Logger.getLogger(SaveAndRestoreController.class.getName());
     protected Comparator<TreeItem<Node>> treeNodeComparator;
     protected SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
-    private final SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
+    //private final SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
     private static final Logger logger = Logger.getLogger(SaveAndRestoreController.class.getName());
+    private final ObjectProperty<Filter> currentFilterProperty = new SimpleObjectProperty<>(null);
+    private final ObjectProperty<FilterOperationMode> filterSelectionModeProperty =
+            new SimpleObjectProperty<>(FilterOperationMode.MANUAL);
 
     @SuppressWarnings("unused")
     @FXML
@@ -186,6 +201,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private final ObservableList<Node> searchResultNodes = FXCollections.observableArrayList();
     private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
+    private final ObservableList<String> autoFilterSelectorNames = FXCollections.observableArrayList();
 
     private final CountDownLatch treeInitializationCountDownLatch = new CountDownLatch(1);
     private final ObservableList<Node> selectedItemsProperty = FXCollections.observableArrayList();
@@ -197,7 +213,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private final MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/compare.png"));
     private final MenuItem deleteNodeMenuItem = new MenuItem(Messages.contextMenuDelete, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
     private final MenuItem pasteMenuItem = new MenuItem(Messages.paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
-
 
     List<MenuItem> menuItems = Arrays.asList(
             new LoginMenuItem(this, selectedItemsProperty,
@@ -241,7 +256,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        treeView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
+        treeViewPane.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
         browserSelectionModel = treeView.getSelectionModel();
 
@@ -250,9 +265,33 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         searchButtonImageView.setFitHeight(20);
         searchButton.setGraphic(searchButtonImageView);
 
-        enableFilterCheckBox.selectedProperty().bindBidirectional(filterEnabledProperty);
-        filtersComboBox.disableProperty().bind(filterEnabledProperty.not());
-        filterEnabledProperty.addListener((observable, oldValue, newValue) -> filterEnabledChanged(newValue));
+        manualFilter.setUserData(FilterOperationMode.MANUAL);
+        autoFilter.setUserData(FilterOperationMode.AUTO);
+
+        ToggleGroup toggleGroup = new ToggleGroup();
+        toggleGroup.getToggles().addAll(autoFilter, manualFilter);
+        toggleGroup.selectedToggleProperty().addListener((obs, o, n) ->
+                filterSelectionModeProperty.set((FilterOperationMode) n.getUserData()));
+        filterSelectionModeProperty.addListener((obs, o, n) -> {
+            if (n != null && n.equals(FilterOperationMode.AUTO)) {
+                // Check if a filter selection is active on service side
+                JobManager.schedule("Get and set auto filter", monitor -> {
+                    String autoSelectedFilter = saveAndRestoreService.getAutoSelectedFilter();
+                    if (autoSelectedFilter != null) {
+                        Optional<Filter> filterOptional =
+                                saveAndRestoreService.getAllFilters().stream().filter(f -> autoSelectedFilter.equals(f.getName())).findFirst();
+                        filterOptional.ifPresent(this::selectFilter);
+                    }
+                });
+            }
+        });
+
+        filterSelectionButtons.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+                !filtersList.isEmpty() && !autoFilterSelectorNames.isEmpty(), filtersList, autoFilterSelectorNames));
+
+        filtersComboBox.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                filterSelectionModeProperty.get().equals(FilterOperationMode.AUTO), filterSelectionModeProperty));
+        filtersComboBox.valueProperty().bindBidirectional(currentFilterProperty);
 
         treeView.setEditable(true);
 
@@ -279,8 +318,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     public void updateItem(org.phoebus.applications.saveandrestore.model.search.Filter item,
                                            boolean empty) {
                         super.updateItem(item, empty);
-                        if (!empty && item != null) {
-                            setText(item.getName());
+                        if (!empty) {
+                            setText(item == null ? Messages.noFilter : item.getName());
                         }
                     }
                 };
@@ -292,7 +331,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     @Override
                     public String toString(Filter filter) {
                         if (filter == null) {
-                            return "";
+                            return Messages.noFilter;
                         } else {
                             return filter.getName();
                         }
@@ -310,12 +349,14 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 if (!newValue.equals(oldValue)) {
                     applyFilter(newValue);
                 }
+            } else {
+                clearFilter();
             }
         });
 
         filtersComboBox.itemsProperty().bind(new SimpleObjectProperty<>(filtersList));
 
-        enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(filtersList::isEmpty, filtersList));
+        //enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(filtersList::isEmpty, filtersList));
 
         // Clear clipboard to make sure that only custom data format is
         // considered in paste actions.
@@ -350,16 +391,17 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Loads the data for the tree root as provided (persisted) by the current
+     * Pulls initial data from the service in order to configure the UI and render the {@link TreeView}.
      * {@link org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient}.
      */
-    public void loadTreeData() {
+    public void loadInitialData() {
 
         JobManager.schedule("Load save-and-restore tree data", monitor -> {
             Node rootNode = saveAndRestoreService.getRootNode();
             treeInitializationCountDownLatch.countDown();
             TreeItem<Node> rootItem = createTreeItem(rootNode);
             List<String> savedTreeViewStructure = getSavedTreeStructure();
+
             // Check if there is a save tree structure. Also check that the first node id (=tree root)
             // has the same unique id as the actual root node retrieved from the remote service. This check
             // is needed to handle the case when the client connects to a different save-and-restore service.
@@ -379,15 +421,27 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 List<TreeItem<Node>> childItems = childNodes.stream().map(this::createTreeItem).sorted(treeNodeComparator).toList();
                 rootItem.getChildren().addAll(childItems);
             }
+
+            // Get all filters from service
+            List<Filter> filters = saveAndRestoreService.getAllFilters();
+            // Get all auto select filter names
+            autoFilterSelectorNames.setAll(saveAndRestoreService.getAutoFilterSelectorNames());
+
             Platform.runLater(() -> {
                 treeView.setRoot(rootItem);
                 expandNodes(treeView.getRoot());
                 // Event handler for expanding nodes
                 treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
                 treeInitializationCountDownLatch.countDown();
-            });
 
-            loadFilters();
+                filtersList.setAll(filters);
+                filtersList.add(0, null);
+                String savedFilterName = getSavedFilterName();
+                if (savedFilterName != null) {
+                    Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
+                    f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
+                }
+            });
         });
     }
 
@@ -898,7 +952,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         findExpandedNodes(expandedNodes, treeView.getRoot());
         try {
             PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
-            if (filterEnabledProperty.get() && filtersComboBox.getSelectionModel().getSelectedItem() != null) {
+            if (/*filterEnabledProperty.get() &&*/ filtersComboBox.getSelectionModel().getSelectedItem() != null) {
                 PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME,
                         objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
             }
@@ -1073,34 +1127,16 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * disabled, then all items match as we have a "no filter".
      */
     public boolean matchesFilter(Node node) {
-        if (!filterEnabledProperty.get()) {
+        if (currentFilterProperty.isNull().get()) {
             return true;
         }
+
         TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
         if (selectedItem == null) {
             return searchResultNodes.contains(node);
         } else {
             return searchResultNodes.contains(node) &&
                     !selectedItem.getValue().getUniqueId().equals(node.getUniqueId());
-        }
-    }
-
-    /**
-     * Retrieves all {@link Filter}s from service and populates the filter combo box.
-     */
-    private void loadFilters() {
-        try {
-            List<Filter> filters = saveAndRestoreService.getAllFilters();
-            Platform.runLater(() -> {
-                filtersList.setAll(filters);
-                String savedFilterName = getSavedFilterName();
-                if (savedFilterName != null) {
-                    Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
-                    f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
-                }
-            });
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to load filters", e);
         }
     }
 
@@ -1130,16 +1166,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         });
     }
 
-    private void filterEnabledChanged(boolean enabled) {
-        if (!enabled) {
-            searchResultNodes.clear();
-            treeView.refresh();
-        } else {
-            Filter filter = filtersComboBox.getSelectionModel().getSelectedItem();
-            if (filter != null) {
-                applyFilter(filter);
-            }
-        }
+    private void clearFilter() {
+        searchResultNodes.clear();
+        treeView.refresh();
     }
 
     /**
@@ -1168,17 +1197,24 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
     }
 
+    /**
+     * Handles removal of a {@link Filter}.
+     * <p>
+     * If the name matches the {@link Filter} currently being loaded, the filter selection is cleared, i.e.
+     * it switches to "no filter".
+     * </p>
+     *
+     * @param name The name of a {@link Filter}
+     */
     private void filterRemoved(String name) {
-        Optional<Filter> filterOptional = filtersList.stream().filter(f -> f.getName().equals(name)).findFirst();
+        Optional<Filter> filterOptional = filtersList.stream().filter(f -> f != null && f.getName().equals(name)).findFirst();
         if (filterOptional.isPresent()) {
             Filter filterToRemove = new Filter();
             filterToRemove.setName(name);
-            filtersList.remove(filterToRemove);
-            // If this is the active filter, unselect it
-            filterEnabledProperty.set(false);
-            filtersComboBox.getSelectionModel().select(null);
-            // And refresh tree view
-            Platform.runLater(() -> treeView.refresh());
+            Platform.runLater(() -> {
+                filtersList.remove(filterToRemove);
+                currentFilterProperty.set(null);
+            });
         }
     }
 
@@ -1425,16 +1461,44 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             case NODE_UPDATED -> nodeChanged((Node) saveAndRestoreWebSocketMessage.payload());
             case FILTER_ADDED_OR_UPDATED -> filterAddedOrUpdated((Filter) saveAndRestoreWebSocketMessage.payload());
             case FILTER_REMOVED -> filterRemoved((String) saveAndRestoreWebSocketMessage.payload());
+            case FILTER_SELECTED -> selectFilter((Filter) saveAndRestoreWebSocketMessage.payload());
+            case FILTER_UNSELECTED -> unselectFilter((Filter) saveAndRestoreWebSocketMessage.payload());
+        }
+    }
+
+    /**
+     * Selects a {@link Filter} by
+     *
+     * @param filter The {@link Filter} to select.
+     */
+    private void selectFilter(Filter filter) {
+        if (filterSelectionModeProperty.get().equals(FilterOperationMode.AUTO)) {
+            Platform.runLater(() -> filtersComboBox.getSelectionModel().select(filter));
+        }
+        //filterEnabledProperty.setValue(true);
+    }
+
+    private void unselectFilter(Filter filter) {
+        if (filterSelectionModeProperty.get().equals(FilterOperationMode.AUTO)) {
+            Filter currentlySelectedFilter = filtersComboBox.getSelectionModel().getSelectedItem();
+            if (currentlySelectedFilter != null && currentlySelectedFilter.equals(filter)) {
+                Platform.runLater(() -> filtersComboBox.getSelectionModel().select(null));
+            }
         }
     }
 
     private void handleWebSocketConnected() {
         serviceConnected.setValue(true);
-        loadTreeData();
+        loadInitialData();
     }
 
     private void handleWebSocketDisconnected() {
         serviceConnected.setValue(false);
         saveLocalState();
+    }
+
+    private enum FilterOperationMode {
+        MANUAL,
+        AUTO
     }
 }
