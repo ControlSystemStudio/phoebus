@@ -26,14 +26,17 @@ import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.WidgetRepresentation;
+import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.ui.dnd.DataFormats;
+import org.phoebus.ui.javafx.Styles;
 
 /** Base class for all JavaFX widget representations
  *  @param <JFX> JFX Widget
@@ -354,6 +357,24 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
             // Cannot use Collections.swap() because it results in an IllegalArgumentException: Children: duplicate children added
             JFXRepresentation.getChildren(parent).remove(jfx_node);
             addToParent(parent);
+        }
+    }
+
+    /**
+     * We do not want to disable widgets if they cannot be written to as this
+     * removes the context menu. Instead we replicate the disabled look from Java FX
+     * and set the cursor to the 'NO_WRITE' cursor to indicate this.
+     * 
+     * @param enabled  boolean as to whether widget interaction is allowed
+     * @param children list of children nodes under the parent widget
+     */
+    public void setDisabledLook(Boolean enabled, ObservableList<Node> children) {
+        jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+        if (children != null) {
+            for (Node node : children)
+            {
+                Styles.update(node, Styles.NOT_ENABLED, !enabled);
+            }   
         }
     }
 }
