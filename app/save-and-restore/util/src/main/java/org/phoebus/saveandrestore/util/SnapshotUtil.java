@@ -43,7 +43,7 @@ public class SnapshotUtil {
 
     private final int connectionTimeout = Preferences.connectionTimeout;
 
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     public SnapshotUtil() {
         final File site_settings = new File("settings.ini");
