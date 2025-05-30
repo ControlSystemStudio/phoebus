@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 /**
  * Base controller that should be extended to make sure exceptions are handled
  * properly, i.e. make the service return suitable HTTP status codes.
+ *
  * @author georgweiss
  * Created 23 Nov 2018
  */
@@ -43,6 +44,9 @@ public abstract class BaseController {
     protected static final String JSON = "application/json";
 
     private final Logger logger = Logger.getLogger(BaseController.class.getName());
+
+    @Autowired
+    public long connectionTimeout;
 
     /**
      * Identity of the admin role
@@ -59,7 +63,8 @@ public abstract class BaseController {
 
     /**
      * Intercepts {@link SnapshotNotFoundException} and triggers a {@link HttpStatus#NOT_FOUND}.
-     * @param req The servlet request
+     *
+     * @param req       The servlet request
      * @param exception The exception to intercept
      * @return A {@link ResponseEntity} carrying the underlying exception message.
      */
@@ -72,7 +77,8 @@ public abstract class BaseController {
 
     /**
      * Intercepts {@link IllegalArgumentException} and triggers a {@link HttpStatus#BAD_REQUEST}.
-     * @param req The servlet request
+     *
+     * @param req       The servlet request
      * @param exception The exception to intercept
      * @return A {@link ResponseEntity} carrying the underlying exception message.
      */
@@ -85,7 +91,8 @@ public abstract class BaseController {
 
     /**
      * Intercepts {@link NodeNotFoundException} and triggers a {@link HttpStatus#NOT_FOUND}.
-     * @param req The {@link HttpServlet} request
+     *
+     * @param req       The {@link HttpServlet} request
      * @param exception The exception to intercept
      * @return A {@link ResponseEntity} carrying the underlying exception message.
      */
