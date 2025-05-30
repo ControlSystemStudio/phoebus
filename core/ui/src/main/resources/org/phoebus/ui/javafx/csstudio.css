@@ -17,6 +17,9 @@
 .not_enabled
 {
     -fx-opacity: 0.4;
+    -fx-background-insets: 0;
+    -fx-color: -fx-base;
+    -fx-focus-color: -fx-base;
 }
 
 /** Tracker */

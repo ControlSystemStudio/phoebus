@@ -296,8 +296,7 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
             // and the cursor will be ignored
             //  jfx_node.setDisable(! enabled);
             // So keep enabled, but indicate that trying to operate the widget is futile
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
-            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+            setDisabledLook(enabled, jfx_node.getChildrenUnmodifiable());
             if (model_widget.propEditable().getValue())
             {
                 jfx_node.getEditor().setEditable(enabled ? model_widget.propEditable().getValue() : false);

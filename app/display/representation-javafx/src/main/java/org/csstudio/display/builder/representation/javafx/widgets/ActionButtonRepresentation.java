@@ -166,9 +166,17 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             final Button button = new Button();
             button.setOnAction(event -> confirm(() -> handleActions(actions.getActions())));
             result = button;
+            if (actions.getActions().size() == 1) {
+                // If the ActionButton only has a single action and that is to 
+                // write to a PV then is_writePV should be true.
+                // This means that if the PV is non-writable then the
+                // ActionButton will be disabled.
+                if (actions.getActions().get(0).getType().equals("write_pv"))
+                    is_writePV = true;
+            }
         } else {
             // If there is at least one non-WritePVAction then is_writePV should be false
-            is_writePV = !has_non_writePVAction;
+            is_writePV = has_non_writePVAction;
 
             final MenuButton button = new MenuButton();
 
@@ -461,11 +469,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             // Don't disable the widget, because that would also remove the
             // tooltip
             // Just apply a style that matches the disabled look.
-            Styles.update(base, Styles.NOT_ENABLED, !enabled);
-            // Apply the cursor to the pane and not to the button
-            if (!toolkit.isEditMode()) {
-                jfx_node.setCursor(enabled ? Cursor.HAND : Cursors.NO_WRITE);
-            }
+            setDisabledLook(enabled, jfx_node.getChildren());
         }
     }
 }

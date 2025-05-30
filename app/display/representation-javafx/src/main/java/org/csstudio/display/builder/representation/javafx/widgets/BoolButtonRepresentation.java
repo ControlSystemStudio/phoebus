@@ -83,6 +83,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
     private volatile String value_label;
     private volatile ImageView[] state_images;
     private volatile ImageView value_image;
+    protected volatile boolean enabled = true;
 
     private final UntypedWidgetPropertyListener imagesChangedListener = this::imagesChanged;
     private final UntypedWidgetPropertyListener representationChangedListener = this::representationChanged;
@@ -138,8 +139,10 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
      */
     private void handlePress(final boolean pressed)
     {
-        logger.log(Level.FINE, "{0} pressed", model_widget);
-        Platform.runLater(() -> confirm(pressed));
+        if (enabled) {
+            logger.log(Level.FINE, "{0} pressed", model_widget);
+            Platform.runLater(() -> confirm(pressed));
+        }
     }
 
     /** Check for confirmation, then perform the button action
@@ -403,10 +406,9 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         }
         if (dirty_enablement.checkAndClear())
         {
-            final boolean enabled = model_widget.propEnabled().getValue()  &&
+            enabled = model_widget.propEnabled().getValue()  &&
                                     model_widget.runtimePropPVWritable().getValue();
-            button.setDisable(! enabled);
-            Styles.update(button, Styles.NOT_ENABLED, !enabled);
+            setDisabledLook(enabled, jfx_node.getChildren());        
         }
         if (update_value)
         {

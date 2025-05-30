@@ -407,8 +407,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     public void updateChanges()
     {
         super.updateChanges();
-        if (dirty_enablement.checkAndClear())
+        if (dirty_enablement.checkAndClear()) {
             slider.setDisable(!enabled);
+            setDisabledLook(enabled, jfx_node.getChildrenUnmodifiable());
+        }
+
         if (dirty_layout.checkAndClear())
         {
             final boolean horizontal = model_widget.propHorizontal().getValue();

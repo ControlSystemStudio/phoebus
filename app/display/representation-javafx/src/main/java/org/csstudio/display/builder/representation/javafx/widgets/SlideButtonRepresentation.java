@@ -99,7 +99,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
             // Just apply a style that matches the disabled look.
             enabled = model_widget.propEnabled().getValue() && model_widget.runtimePropPVWritable().getValue();
 
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            setDisabledLook(enabled, jfx_node.getChildren());
 
             // Since jfx_node.isManaged() == false, need to trigger layout
             jfx_node.layout();
