@@ -4,3 +4,4 @@ org.csstudio.display.actions.ExecuteScriptAction
 org.csstudio.display.actions.ExecuteCommandAction
 org.csstudio.display.actions.OpenFileAction
 org.csstudio.display.actions.OpenWebPageAction
+org.csstudio.display.actions.CloseDisplayAction
