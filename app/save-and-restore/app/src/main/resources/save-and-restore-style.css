@@ -139,3 +139,13 @@
     -fx-alignment: center-left;
     -fx-padding: 0 0 0 2;
 }
+
+.action-failed-font-size{
+    -fx-font-size: 18px;
+}
+
+.action-failed {
+    -fx-text-fill: #FF0000FF;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}

@@ -202,8 +202,6 @@ public abstract class BaseSnapshotTableViewController {
             }
         });
 
-        //selectedColumn.configure(snapshotTableView);
-
         int width = measureStringWidth("000", Font.font(20));
         idColumn.setPrefWidth(width);
         idColumn.setMinWidth(width);
@@ -222,8 +220,6 @@ public abstract class BaseSnapshotTableViewController {
         });
 
         liveValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
-        // TODO: uncomment!
-        //baseSnapshotValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
     }
 
     private int measureStringWidth(String text, Font font) {
@@ -283,9 +279,8 @@ public abstract class BaseSnapshotTableViewController {
             tableEntryItems.put(key, tableEntry);
         });
 
-        connectPVs();
-
         updateTable(null);
+        connectPVs();
     }
 
     /**
@@ -325,6 +320,6 @@ public abstract class BaseSnapshotTableViewController {
                     pv.setSnapshotTableEntry(e);
                 }
             });
-        });
+       });
     }
 }

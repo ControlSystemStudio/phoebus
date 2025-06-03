@@ -42,6 +42,7 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
+import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -57,7 +58,6 @@ import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * This controller is for the use case of loading a configuration {@link Node} to take a new snapshot.
@@ -168,7 +168,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             snapshot.setSnapshotData(snapshotData);
             snapshotProperty.set(snapshot);
             setTabImage(snapshot.getSnapshotNode());
-            Platform.runLater(() -> snapshotTableViewController.showSnapshotInTable(snapshot));
+            //Platform.runLater(() -> snapshotTableViewController.showSnapshotInTable(snapshot));
         });
     }
 
@@ -182,6 +182,15 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             if (snapshot.isPresent()) {
                 snapshotProperty.set(snapshot.get());
                 snapshotTableViewController.showSnapshotInTable(snapshot.get());
+                if (snapshot.get().getSnapshotData().getSnapshotItems().stream()
+                        .filter(i -> i.getValue().equals(VDisconnectedData.INSTANCE) ||
+                                (i.getConfigPv().getReadbackPvName() != null &&
+                                        i.getReadbackValue().equals(VDisconnectedData.INSTANCE))).findFirst().isPresent()) {
+                    snapshotControlsViewController.setActionResult(SnapshotControlsViewController.ActionResult.TAKE_SNAPSHOT_DISCONNECTED_PV,
+                            snapshot.get().getSnapshotData().getSnapshotItems());
+                } else {
+                    snapshotControlsViewController.setActionResult(SnapshotControlsViewController.ActionResult.TAKE_SNAPSHOT_OK);
+                }
             }
         });
     }
@@ -224,6 +233,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     alert.showAndWait();
                 });
             } finally {
+
                 disabledUi.set(false);
             }
         });
@@ -280,7 +290,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * @return <code>true</code> if content is not dirty or user chooses to close anyway,
      * otherwise <code>false</code>.
      */
-    public boolean handleSnapshotTabClosed() {
+    @Override
+    public boolean handleTabClosed() {
         if (snapshotControlsViewController.snapshotDataDirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle(Messages.closeTabPrompt);
@@ -395,26 +406,14 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreResultList, this::showLoggingError));
             }
             if (restoreResultList != null && !restoreResultList.isEmpty()) {
-                showAndLogFailedRestoreResult(snapshotProperty.get(), restoreResultList);
+                List<SnapshotItem> snapshotItems =
+                        restoreResultList.stream().map(RestoreResult::getSnapshotItem).toList();
+                snapshotControlsViewController.setActionResult(SnapshotControlsViewController.ActionResult.RESTORE_FAILED, snapshotItems);
             } else {
+                snapshotControlsViewController.setActionResult(SnapshotControlsViewController.ActionResult.RESTORE_OK);
                 LOGGER.log(Level.INFO, "Successfully restored snapshot \"" + snapshotProperty.get().getSnapshotNode().getName() + "\"");
             }
         });
-    }
-
-    private void showAndLogFailedRestoreResult(Snapshot snapshot, List<RestoreResult> restoreResultList) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(restoreResultList.stream()
-                .map(r -> r.getSnapshotItem().getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle(Messages.restoreFailedPVs);
-            alert.setContentText(stringBuilder.toString());
-            alert.show();
-        });
-        LOGGER.log(Level.WARNING,
-                "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
-                new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), stringBuilder.toString()});
     }
 
     /**

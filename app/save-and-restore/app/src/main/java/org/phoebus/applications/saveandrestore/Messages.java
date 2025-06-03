@@ -22,6 +22,8 @@ import org.phoebus.framework.nls.NLS;
 @SuppressWarnings("unused")
 public class Messages {
 
+    public static String actionFailedDisconnectedPV;
+    public static String actionFailedInteractionFailed;
     public static String actionOpenFilterDescription;
     public static String actionOpenNodeDescription;
     public static String alertContinue;

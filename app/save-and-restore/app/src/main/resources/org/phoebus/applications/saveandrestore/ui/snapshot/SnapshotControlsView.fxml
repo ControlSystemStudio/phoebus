@@ -4,32 +4,17 @@
   ~ Copyright (C) 2024 European Spallation Source ERIC.
   -->
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.Spinner?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.control.ToolBar?>
-<?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<VBox maxHeight="1.7976931348623157E308" prefWidth="1188.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotControlsViewController">
+<VBox fx:id="root" maxHeight="1.7976931348623157E308" prefWidth="1188.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotControlsViewController">
     <ToolBar prefHeight="40.0">
         <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false">
             <tooltip>
                 <Tooltip text="%toolTipShowLiveReadback" />
             </tooltip>
         </ToggleButton>
-        <Pane HBox.hgrow="ALWAYS" />
         <ToggleButton fx:id="showDeltaPercentageButton" mnemonicParsing="false">
             <tooltip>
                 <Tooltip text="%toolTipShowHideDeltaPercentageToggleButton" />
@@ -40,15 +25,16 @@
                 <Tooltip text="%toolTipShowHideEqualToggleButton" />
             </tooltip>
         </ToggleButton>
+        <Label fx:id="actionResultLabel" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" styleClass="action-failed-font-size" HBox.hgrow="always" />
     </ToolBar>
     <GridPane fx:id="controlsPane" hgap="5.0">
         <columnConstraints>
             <ColumnConstraints />
             <ColumnConstraints />
-            <ColumnConstraints />
-            <ColumnConstraints />
+            <ColumnConstraints prefWidth="80.0" />
+            <ColumnConstraints maxWidth="250.0" />
             <ColumnConstraints maxWidth="125.0" minWidth="120.0" prefWidth="125.0" />
-            <ColumnConstraints maxWidth="300.0" minWidth="154.0" prefWidth="300.0" />
+            <ColumnConstraints maxWidth="300.0" minWidth="154.0" />
 
         </columnConstraints>
         <rowConstraints>
@@ -65,7 +51,7 @@
                 <Insets left="8.0" />
             </GridPane.margin>
         </Label>
-        <TextField fx:id="snapshotName" minWidth="150.0" prefWidth="200.0" promptText="%snapshotNameFieldHint" GridPane.columnIndex="1" GridPane.rowIndex="0">
+        <TextField fx:id="snapshotName" maxWidth="250.0" minWidth="150.0" promptText="%snapshotNameFieldHint" GridPane.columnIndex="1" GridPane.rowIndex="0">
             <GridPane.margin>
                 <Insets />
             </GridPane.margin>
@@ -153,7 +139,6 @@
             <Insets bottom="5.0" left="5.0" top="5.0" />
          </GridPane.margin>
       </HBox>
-
     </GridPane>
     <ToolBar fx:id="filterToolbar" maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="1188.0">
         <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="%preserveSelection" />
