@@ -335,8 +335,7 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
             // Don't disable the widget, because that would also remove the
             // context menu etc.
             // Just apply a style that matches the disabled look.
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
-            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+            setDisabledLook(enabled, jfx_node.getChildrenUnmodifiable());
         }
         if (dirty_size.checkAndClear())
         {
