@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -117,7 +117,7 @@ class ClientTCPHandler extends TCPHandler
         this.guid = guid;
 
         // For TLS, check if the socket has a name that's used to authenticate
-        x509_name = tls ? SecureSockets.getLocalPrincipalName((SSLSocket) socket) : null;
+        x509_name = tls ? SecureSockets.getPrincipalCN(((SSLSocket) socket).getSession().getLocalPrincipal()) : null;
 
         // For default EPICS_CA_CONN_TMO: 30 sec, send echo at ~15 sec:
         // Check every ~3 seconds
