@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.net.StandardProtocolFamily;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.Arrays;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
@@ -337,7 +338,15 @@ class ClientUDPHandler extends UDPHandler
 
             // Server may reply with list of PVs that it does _not_ have...
             if (! response.found)
-                search_response.handleSearchResponse(-1, server, version, response.guid, response.tls);
+            {
+                // Did server provide list of channels that it _doesn't_ know?!
+                if (response.cid.length > 0)
+                    logger.log(Level.FINE,
+                               "Server " + from + " sent search reply for not-found channels " +
+                               Arrays.toString(response.cid));
+                else // Server simply indicates its presence, no channel detail
+                    search_response.handleSearchResponse(-1, server, version, response.guid, response.tls);
+            }
             else
                 for (int cid : response.cid)
                     search_response.handleSearchResponse(cid, server, version, response.guid, response.tls);
