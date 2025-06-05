@@ -98,7 +98,8 @@ class ClientTCPHandler extends TCPHandler
     /** Time [ms] when this client sent last message to server */
     private volatile long last_message_sent;
 
-    private static final RequestEncoder echo_request = new EchoRequest();
+    /** Creates echo requests, tracks the counter for this TCP connection */
+    private final EchoRequest echo_request = new EchoRequest();
 
     /** Indicates completion of the connection validation:
      *  Server sent connection validation request,
@@ -112,7 +113,7 @@ class ClientTCPHandler extends TCPHandler
     public ClientTCPHandler(final PVAClient client, final InetSocketAddress address, final Guid guid, final boolean tls) throws Exception
     {
         super(createSocket(address, tls), true);
-        logger.log(Level.FINE, () -> "TCPHandler " + guid + " for " + address + " created ============================");
+        logger.log(Level.FINE, () -> "TCPHandler " + (tls ? "(TLS) " : "") + guid + " for " + address + " created ============================");
         this.client = client;
         this.guid = guid;
 
@@ -248,7 +249,7 @@ class ClientTCPHandler extends TCPHandler
         if (idle > PVASettings.EPICS_PVA_CONN_TMO * 1000)
         {
             // If silent for full EPICS_CA_CONN_TMO, disconnect and start over
-            logger.log(Level.FINE, () -> this + " silent for " + idle + "ms, closing");
+            logger.log(Level.FINE, () -> this + " idle for " + idle + "ms, closing");
             client.shutdownConnection(this);
             return;
         }
@@ -268,13 +269,13 @@ class ClientTCPHandler extends TCPHandler
             request_echo = true;
         }
 
-        // How long have we been silent, which could case the server to close connection?
+        // How long have we been silent, which could cause the server to close connection?
         final long silent = now - last_message_sent;
         if (! request_echo  &&  silent >= PVASettings.EPICS_PVA_CONN_TMO * 1000 / 2)
         {
             // With default EPICS_CA_CONN_TMO of 30 seconds,
-            // Echo requested every 15 seconds.
-            logger.log(Level.FINE, () -> "Client to " + this + " silent for " + silent + "ms, requesting echo");
+            // Echo sent every 15 seconds to inform server that this client is still alive.
+            logger.log(Level.FINE, () -> "Client to " + this + " silent for " + silent + "ms, sending echo");
             request_echo = true;
         }
 
@@ -287,6 +288,12 @@ class ClientTCPHandler extends TCPHandler
             else
                 logger.log(Level.FINE, () -> "Skipping echo, send queue already has items to send");
         }
+    }
+
+    /** @return Most recently sent echo request */
+    String getActiveEchoRequest()
+    {
+        return echo_request.getActiveRequest();
     }
 
     /** Called whenever e.g. value is received and server is thus alive */
