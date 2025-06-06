@@ -41,6 +41,7 @@ import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.SymbolWidget;
+import org.csstudio.display.builder.representation.javafx.JFXPreferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.SVGHelper;
 import org.epics.util.array.ListNumber;
@@ -477,6 +478,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private void enableRunActionsOnMouseClick() {
         imageView.focusTraversableProperty().set(true);
         imageView.setStyle("-fx-cursor: hand;");
+        imageView.setPickOnBounds(JFXPreferences.pick_on_bounds);
 
         ColorAdjust[] clickEffect = { null }; // Values are wrapped in arrays as a workaround of the fact that Java doesn't allow non-final variables to be captured by closures.
         DropShadow[] focusEffect = { null };

@@ -22,6 +22,8 @@ public class JFXPreferences
     @Preference public static int tooltip_delay_ms;
     /** Tooltip duration */
     @Preference public static int tooltip_display_sec;
+    /** make the transparent parts of symbols clickable */
+    @Preference public static boolean pick_on_bounds;
 
     static
     {
