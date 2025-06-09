@@ -40,7 +40,7 @@ public class PVASearchMonitorMain
         /** How often some client has searched for it */
         final AtomicLong count = new AtomicLong();
 
-        /** Client that searched most recently */
+        /** Client that searched for the PV */
         final InetSocketAddress client;
 
         /** Time of last search */
