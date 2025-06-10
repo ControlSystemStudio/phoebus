@@ -276,7 +276,7 @@ class ChannelSearch
             int bucket = current_search_bucket.get();
             if (!now)
                 bucket = (bucket + SEARCH_SOON_DELAY) % search_buckets.size();
-            search_buckets.get(bucket).add(sc);            
+            search_buckets.get(bucket).add(sc);
         }
 
         // Jumpstart search instead of waiting up to ~1 second for current bucket to be handled
@@ -454,9 +454,8 @@ class ChannelSearch
             // This is configured in EPICS_PVA_NAME_SERVERS via prefix pvas://
             final ClientTCPHandler tcp = tcp_provider.apply(name_server.getAddress(), name_server.isTLS());
 
-            // In case of connection errors (TCP connection blocked by firewall),
-            // tcp will be null
-            // TODO CHECK THAT with updated ClientTCPHandler that connects on receive thread
+            // In older implementation, tcp was null in case of connection errors (TCP connection blocked by firewall).
+            // No longer expected to happen but check anyway
             if (tcp != null)
             {
                 final RequestEncoder search_request = (version, buffer) ->
