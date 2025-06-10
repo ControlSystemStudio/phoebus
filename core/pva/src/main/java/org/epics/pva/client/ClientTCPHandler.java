@@ -131,11 +131,19 @@ class ClientTCPHandler extends TCPHandler
     }
 
     @Override
-    protected void initializeSocket() throws Exception
+    protected boolean initializeSocket()
     {
-        socket = SecureSockets.createClientSocket(server_address, tls);
-        socket.setTcpNoDelay(true);
-        socket.setKeepAlive(true);
+        try
+        {
+            socket = SecureSockets.createClientSocket(server_address, tls);
+            socket.setTcpNoDelay(true);
+            socket.setKeepAlive(true);
+        }
+        catch (Exception ex)
+        {   
+            logger.log(Level.WARNING, "PVA client cannot connect to " + server_address, ex);
+            return false;
+        }
 
         // For TLS, check if the socket has a name that's used to authenticate
         x509_name = tls ? SecureSockets.getPrincipalCN(((SSLSocket) socket).getSession().getLocalPrincipal()) : null;
@@ -145,6 +153,8 @@ class ClientTCPHandler extends TCPHandler
         last_life_sign = last_message_sent = System.currentTimeMillis();
         final long period = Math.max(1, PVASettings.EPICS_PVA_CONN_TMO * 1000L / 30 * 3);
         alive_check = timer.scheduleWithFixedDelay(this::checkResponsiveness, period, period, TimeUnit.MILLISECONDS);
+
+        return true;
     }
 
     /** @return Client context */

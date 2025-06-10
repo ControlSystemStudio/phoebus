@@ -138,9 +138,11 @@ abstract public class TCPHandler
     /** Initialize the {@link #socket}. Called by receiver.
      *
      *  Server received socket from `accept` during construction and this may be a NOP.
-     *  Client will have to create socket and connect to server's address in here
+     *  Client will have to create socket and connect to server's address in here.
+     *
+     *  @return Success?
      */
-    abstract protected void initializeSocket() throws Exception;
+    abstract protected boolean initializeSocket();
 
     /** Start receiving data
      *  To be called by Client/ServerTCPHandler when fully constructed
@@ -267,10 +269,20 @@ abstract public class TCPHandler
     /** Receiver */
     private Void receiver()
     {
+        // Establish connection
+        Thread.currentThread().setName("TCP receiver");
+        while (! initializeSocket())
+            try
+            {   // Delay for (another) connection timeout, at least 1 sec
+                Thread.sleep(Math.max(1, PVASettings.EPICS_PVA_TCP_SOCKET_TMO) * 1000);
+            }
+            catch (Exception ignore)
+            {
+                // NOP
+            }
+        // Listen on the connection
         try
         {
-            Thread.currentThread().setName("TCP receiver");
-            initializeSocket();
             Thread.currentThread().setName("TCP receiver " + socket.getLocalSocketAddress());
             logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started for " + socket.getRemoteSocketAddress());
             logger.log(Level.FINER, "Native byte order " + receive_buffer.order());

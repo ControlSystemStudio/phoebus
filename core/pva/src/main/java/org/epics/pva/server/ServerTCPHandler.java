@@ -116,9 +116,10 @@ class ServerTCPHandler extends TCPHandler
     }
 
     @Override
-    protected void initializeSocket() throws Exception
+    protected boolean initializeSocket()
     {
         // Nothing to do, received client socket on construction
+        return true;
     }
 
     PVAServer getServer()
