@@ -10,7 +10,6 @@ package org.epics.pva.client;
 import static org.epics.pva.PVASettings.logger;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,6 +54,12 @@ class ClientTCPHandler extends TCPHandler
                               new MonitorHandler(),
                               new GetTypeHandler(),
                               new RPCHandler());
+
+    /** Address of server to which this client will connect */
+    private final InetSocketAddress server_address;
+
+    /** Is this a TLS connection or plain TCP? */
+    private final boolean tls;
 
     /** Client context */
     private final PVAClient client;
@@ -112,10 +117,33 @@ class ClientTCPHandler extends TCPHandler
 
     public ClientTCPHandler(final PVAClient client, final InetSocketAddress address, final Guid guid, final boolean tls) throws Exception
     {
-        super(createSocket(address, tls), true);
+        super(true);
         logger.log(Level.FINE, () -> "TCPHandler " + (tls ? "(TLS) " : "") + guid + " for " + address + " created ============================");
+        this.server_address = address;
+        this.tls = tls;
         this.client = client;
         this.guid = guid;
+
+        // Start receiver, but not the send thread, yet.
+        // To prevent sending messages before the server is ready,
+        // it's started when server confirms the connection.
+        startReceiver();
+    }
+
+    @Override
+    protected boolean initializeSocket()
+    {
+        try
+        {
+            socket = SecureSockets.createClientSocket(server_address, tls);
+            socket.setTcpNoDelay(true);
+            socket.setKeepAlive(true);
+        }
+        catch (Exception ex)
+        {   
+            logger.log(Level.WARNING, "PVA client cannot connect to " + server_address, ex);
+            return false;
+        }
 
         // For TLS, check if the socket has a name that's used to authenticate
         x509_name = tls ? SecureSockets.getPrincipalCN(((SSLSocket) socket).getSession().getLocalPrincipal()) : null;
@@ -126,18 +154,7 @@ class ClientTCPHandler extends TCPHandler
         final long period = Math.max(1, PVASettings.EPICS_PVA_CONN_TMO * 1000L / 30 * 3);
         alive_check = timer.scheduleWithFixedDelay(this::checkResponsiveness, period, period, TimeUnit.MILLISECONDS);
 
-        // Start receiver, but not the send thread, yet.
-        // To prevent sending messages before the server is ready,
-        // it's started when server confirms the connection.
-        startReceiver();
-    }
-
-    private static Socket createSocket(final InetSocketAddress address, final boolean tls) throws Exception
-    {
-        final Socket socket = SecureSockets.createClientSocket(address, tls);
-        socket.setTcpNoDelay(true);
-        socket.setKeepAlive(true);
-        return socket;
+        return true;
     }
 
     /** @return Client context */

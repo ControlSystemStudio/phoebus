@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,7 +16,6 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,10 +62,15 @@ abstract public class TCPHandler
 
     /** TCP socket to PVA peer
      *
+     *  Server got this client socket from `accept`.
+     *  Client needs to create the socket and connect to server's address.
+     *
      *  Reading and writing is handled by receive and send threads,
      *  but 'protected' so that derived classes may peek at socket properties.
+     *
+     *  @see {@link #initializeSocket()}
      */
-    protected final Socket socket;
+    protected Socket socket = null;
 
     /** Flag to indicate that 'close' was called to close the 'socket' */
     protected volatile boolean running = true;
@@ -117,13 +121,11 @@ abstract public class TCPHandler
      *  but will only start sending them when the
      *  send thread is running
      *
-     *  @param socket Socket to read/write
      *  @param client_mode Is this the client, expecting to receive messages from server?
      *  @see #startSender()
      */
-    public TCPHandler(final Socket socket, final boolean client_mode)
+    public TCPHandler(final boolean client_mode)
     {
-        this.socket = Objects.requireNonNull(socket);
         this.client_mode = client_mode;
 
         // Receive buffer byte order is set based on header flag of each received message.
@@ -132,6 +134,15 @@ abstract public class TCPHandler
         // For client, order is updated during connection validation (PVAHeader.CTRL_SET_BYTE_ORDER)
         send_buffer.order(ByteOrder.nativeOrder());
     }
+
+    /** Initialize the {@link #socket}. Called by receiver.
+     *
+     *  Server received socket from `accept` during construction and this may be a NOP.
+     *  Client will have to create socket and connect to server's address in here.
+     *
+     *  @return Success?
+     */
+    abstract protected boolean initializeSocket();
 
     /** Start receiving data
      *  To be called by Client/ServerTCPHandler when fully constructed
@@ -258,6 +269,18 @@ abstract public class TCPHandler
     /** Receiver */
     private Void receiver()
     {
+        // Establish connection
+        Thread.currentThread().setName("TCP receiver");
+        while (! initializeSocket())
+            try
+            {   // Delay for (another) connection timeout, at least 1 sec
+                Thread.sleep(Math.max(1, PVASettings.EPICS_PVA_TCP_SOCKET_TMO) * 1000);
+            }
+            catch (Exception ignore)
+            {
+                // NOP
+            }
+        // Listen on the connection
         try
         {
             Thread.currentThread().setName("TCP receiver " + socket.getLocalSocketAddress());
