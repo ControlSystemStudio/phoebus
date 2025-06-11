@@ -144,6 +144,9 @@ abstract public class TCPHandler
      */
     abstract protected boolean initializeSocket();
 
+    /** @return Remote address of the TCP socket */
+    abstract public InetSocketAddress getRemoteAddress();
+
     /** Start receiving data
      *  To be called by Client/ServerTCPHandler when fully constructed
      */
@@ -165,12 +168,6 @@ abstract public class TCPHandler
             send_thread = thread_pool.submit(this::sender);
         else
             throw new Exception("Send thread already running");
-    }
-
-    /** @return Remote address of this end of the TCP socket */
-    public InetSocketAddress getRemoteAddress()
-    {
-        return new InetSocketAddress(socket.getInetAddress(), socket.getPort());
     }
 
     /** @return Is the send queue idle/empty? */
@@ -269,20 +266,14 @@ abstract public class TCPHandler
     /** Receiver */
     private Void receiver()
     {
-        // Establish connection
-        Thread.currentThread().setName("TCP receiver");
-        while (! initializeSocket())
-            try
-            {   // Delay for (another) connection timeout, at least 1 sec
-                Thread.sleep(Math.max(1, PVASettings.EPICS_PVA_TCP_SOCKET_TMO) * 1000);
-            }
-            catch (Exception ignore)
-            {
-                // NOP
-            }
-        // Listen on the connection
         try
         {
+            // Establish connection
+            Thread.currentThread().setName("TCP receiver");
+            if (! initializeSocket())
+                return null;
+
+            // Listen on the connection
             Thread.currentThread().setName("TCP receiver " + socket.getLocalSocketAddress());
             logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started for " + socket.getRemoteSocketAddress());
             logger.log(Level.FINER, "Native byte order " + receive_buffer.order());
@@ -348,8 +339,8 @@ abstract public class TCPHandler
         }
         finally
         {
-            onReceiverExited(running);
             logger.log(Level.FINER, Thread.currentThread().getName() + " done.");
+            onReceiverExited(running);
         }
         return null;
     }

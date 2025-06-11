@@ -122,6 +122,12 @@ class ServerTCPHandler extends TCPHandler
         return true;
     }
 
+    @Override
+    public InetSocketAddress getRemoteAddress()
+    {
+        return new InetSocketAddress(socket.getInetAddress(), socket.getPort());
+    }
+
     PVAServer getServer()
     {
         return server;

@@ -140,7 +140,7 @@ class ClientTCPHandler extends TCPHandler
             socket.setKeepAlive(true);
         }
         catch (Exception ex)
-        {   
+        {
             logger.log(Level.WARNING, "PVA client cannot connect to " + server_address, ex);
             return false;
         }
@@ -155,6 +155,13 @@ class ClientTCPHandler extends TCPHandler
         alive_check = timer.scheduleWithFixedDelay(this::checkResponsiveness, period, period, TimeUnit.MILLISECONDS);
 
         return true;
+    }
+
+    @Override
+    public InetSocketAddress getRemoteAddress()
+    {
+        // socket may not be connected or null, return address to which we want to connect
+        return new InetSocketAddress(server_address.getAddress(), server_address.getPort());
     }
 
     /** @return Client context */
