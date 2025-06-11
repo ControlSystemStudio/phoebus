@@ -87,7 +87,6 @@ class ClientUDPHandler extends UDPHandler
     // with the understanding that it will only receive broadcasts;
     // since they are often blocked by firewall, may receive nothing, ever.
     private final DatagramChannel udp_beacon;
-    private final ByteBuffer beacon_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
 
     private volatile Thread search_thread4, search_thread6, beacon_thread;
 
@@ -107,13 +106,15 @@ class ClientUDPHandler extends UDPHandler
 
         // IPv6 sockets
         // Beacon socket only receives, does not send broadcasts
-        if (PVASettings.EPICS_PVA_ENABLE_IPV6) {
+        if (PVASettings.EPICS_PVA_ENABLE_IPV6)
+        {
             udp_search6 = Network.createUDP(StandardProtocolFamily.INET6, null, 0);
             udp_localaddr6 = (InetSocketAddress) udp_search6.getLocalAddress();
             ipV6Msg = String.format(" and %s", udp_localaddr6);
             udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
         }
-        else {
+        else
+        {
             udp_search6 = null;
             udp_beacon = Network.createUDP(StandardProtocolFamily.INET, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
             udp_localaddr6 = null;
@@ -150,11 +151,8 @@ class ClientUDPHandler extends UDPHandler
         }
         else
         {
-            if (!PVASettings.EPICS_PVA_ENABLE_IPV6) {
-                throw new Exception(
-                    "EPICS_PVA_ENABLE_IPV6 must be enabled to use IPv6 address!"
-                );
-            }
+            if (!PVASettings.EPICS_PVA_ENABLE_IPV6)
+                throw new Exception("EPICS_PVA_ENABLE_IPV6 must be enabled to use IPv6 address!");
 
             synchronized (udp_search6)
             {
@@ -177,13 +175,15 @@ class ClientUDPHandler extends UDPHandler
         search_thread4.setDaemon(true);
         search_thread4.start();
 
-        if (PVASettings.EPICS_PVA_ENABLE_IPV6) {
+        if (PVASettings.EPICS_PVA_ENABLE_IPV6)
+        {
             final ByteBuffer receive_buffer6 = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
             search_thread6 = new Thread(() -> listen(udp_search6, receive_buffer6), "UDP6-receiver " + Network.getLocalAddress(udp_search6));
             search_thread6.setDaemon(true);
             search_thread6.start();
         }
 
+        final ByteBuffer beacon_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
         beacon_thread = new Thread(() -> listen(udp_beacon, beacon_buffer), "UDP-beacon-receiver " + Network.getLocalAddress(udp_beacon));
         beacon_thread.setDaemon(true);
         beacon_thread.start();

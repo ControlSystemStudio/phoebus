@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,8 +26,12 @@ public class PVAHeader
     /** PVA protocol magic */
     public static final byte PVA_MAGIC = (byte)0xCA;
 
-    /** PVA protocol revision (implemented by this library) */
-    public static final byte PVA_PROTOCOL_REVISION = 2;
+    /** PVA protocol revision (implemented by this library)
+     * 
+     *  <br>v2: Server's Echo reply includes the request payload
+     *  <br>v3: SearchRequest FLAG_REPLY_SRC_PORT
+     */
+    public static final byte PVA_PROTOCOL_REVISION = 3;
 
     /** Oldest PVA protocol revision handled by this library */
     public static final byte REQUIRED_PVA_PROTOCOL_REVISION = 1;

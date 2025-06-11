@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -63,12 +63,29 @@ public class SearchRequest
         }
     };
 
+    /** Server should reply with its GUID and empty CID list
+     *  even if it does not host any of the searched channels
+     */
+    public static final byte FLAG_SEARCH_MUST_REPLY = 0x01;
+
+    /** Client should ignore the 'port' in the reply and
+     *  simply use the port of the 'source', that is the peer port
+     *  of the UDP message or TCP connection
+     *  @since Version 3
+     */
+    public static final byte FLAG_REPLY_SRC_PORT = 0x02;
+
+    /** Indicates that search message was unicast */
+    public static final byte FLAG_SEARCH_UNICAST    = (byte)0x80;
+
     /** Sequence number */
     public int seq;
     /** Is it a unicast? */
     public boolean unicast;
     /** Is reply required? */
     public boolean reply_required;
+    /** Reply to source port instead of port listed in the search request? */
+    public boolean reply_to_src_port;
     /** Address of client */
     public InetSocketAddress client;
     /** Use TLS, or plain TCP? */
@@ -106,10 +123,10 @@ public class SearchRequest
         // Search Sequence ID
         search.seq = buffer.getInt();
 
-        // 0-bit for replyRequired, 7-th bit for "sent as unicast" (1)/"sent as broadcast/multicast" (0)
         final byte flags = buffer.get();
-        search.unicast = (flags & 0x80) == 0x80;
-        search.reply_required = (flags & 0x01) == 0x01;
+        search.unicast           = (flags & FLAG_SEARCH_UNICAST)    == FLAG_SEARCH_UNICAST;
+        search.reply_required    = (flags & FLAG_SEARCH_MUST_REPLY) == FLAG_SEARCH_MUST_REPLY;
+        search.reply_to_src_port = (flags & FLAG_REPLY_SRC_PORT)    == FLAG_REPLY_SRC_PORT;
 
         // reserved
         buffer.get();
@@ -127,7 +144,13 @@ public class SearchRequest
             logger.log(Level.WARNING, "PVA Client " + from + " sent search #" + search.seq + " with invalid address");
             return null;
         }
-        final int port = Short.toUnsignedInt(buffer.getShort());
+        int port = Short.toUnsignedInt(buffer.getShort());
+        // Since version 3, flag can ask us to ignore the reply port in the message
+        // and instead use the peer's port.
+        // This should help with NAT where we get the message from an intermediate
+        // and need to reply via that same intermediate
+        if (version >= 3  &&  search.reply_to_src_port)
+            port = from.getPort();
 
         // Use address from message unless it's a generic local address
         if (addr.isAnyLocalAddress() || port <= 0)
@@ -201,8 +224,9 @@ public class SearchRequest
         // only the one started last will see the unicast.
         // Mark search message as unicast so that receiver will forward
         // it via local broadcast to other local listeners.
-        // 0-bit for replyRequired, 7-th bit for "sent as unicast" (1)/"sent as broadcast/multicast" (0)
-        buffer.put((byte) ((unicast ? 0x80 : 0x00) | (channels == null ? 0x01 : 0x00)));
+        buffer.put((byte) ((unicast ? FLAG_SEARCH_UNICAST : 0x00) |
+                           ((channels == null || channels.isEmpty()) ? FLAG_SEARCH_MUST_REPLY : 0x00) |
+                           FLAG_REPLY_SRC_PORT));
 
         // reserved
         buffer.put((byte) 0);
