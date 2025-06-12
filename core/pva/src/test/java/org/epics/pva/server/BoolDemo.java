@@ -12,6 +12,7 @@ import java.util.BitSet;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.TCPHandler;
@@ -29,8 +30,23 @@ public class BoolDemo
     {
         // Log everything
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
-        PVASettings.logger.setLevel(Level.FINE);
+        PVASettings.logger.setLevel(Level.ALL);
+        Logger.getLogger("jdk.event.security").setLevel(PVASettings.logger.getLevel());
 
+
+        String prefix = "";
+        for (String arg : args)
+        {
+            if (arg.startsWith("-h"))
+            {
+                System.out.println("Usage: BoolDemo [-h] [Prefix]");
+                System.out.println();
+                System.out.println("Prefix is added to PV names");
+                return;
+            }
+            else
+                prefix = arg;
+        }
         try
         (
             // Create PVA Server (auto-closed)
@@ -53,8 +69,8 @@ public class BoolDemo
 
 
             // Create PVs
-            final ServerPV pv1 = server.createPV("bool", data);
-            final ServerPV pv2 = server.createPV("struct", struct, (TCPHandler tcp, ServerPV pv, BitSet changes, PVAStructure written) ->
+            final ServerPV pv1 = server.createPV(prefix + "bool", data);
+            final ServerPV pv2 = server.createPV(prefix + "struct", struct, (TCPHandler tcp, ServerPV pv, BitSet changes, PVAStructure written) ->
             {
                 System.out.println("Somebody wrote this to '" + pv.getName() + "':\n" + written);
                 pv.update(written);
