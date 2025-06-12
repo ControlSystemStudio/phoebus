@@ -69,6 +69,7 @@ public class MulticastDemo
     private static final String MCAST_GROUP6 = "ff02::42:1";
     // Non-default port
     private static int PORT = 9876;
+    private static boolean use_v6 = false;
 
     private static DatagramChannel createUDPChannel(final ProtocolFamily family, final int port) throws Exception
     {
@@ -138,6 +139,8 @@ public class MulticastDemo
                 do_send = true;
             else if ("-r".equals(arg))
                 do_receive = true;
+            else if ("-6".equals(arg))
+                use_v6 = true;
             else if ("-p".equals(arg))
             {
                 if (i < args.length - 1)
@@ -164,6 +167,7 @@ public class MulticastDemo
             System.out.println("Options:");
             System.out.println(" -s      Run sender");
             System.out.println(" -r      Run receiver (may run both sender and receiver)");
+            System.out.println(" -6      Send also via IPv6");
             System.out.println(" -p " + PORT + " Set port");
             System.out.println(" interface: 'lo' or 'lo0' depending on OS");
             System.out.println();
@@ -202,7 +206,8 @@ public class MulticastDemo
                     if (receiver.isDone())
                         break;
                     send(udp4, group4, text);
-                    send(udp6, group6, text);
+                    if (use_v6)
+                        send(udp6, group6, text);
                 }
 
             udp6.close();
