@@ -99,7 +99,7 @@ class ClientUDPHandler extends UDPHandler
         // IPv4 socket, also used to send broadcasts and for the local re-sending
         udp_search4 = Network.createUDP(StandardProtocolFamily.INET, null, 0);
         udp_search4.socket().setBroadcast(true);
-        local_multicast = Network.configureLocalIPv4Multicast(udp_search4, PVASettings.EPICS_PVA_BROADCAST_PORT);
+        local_multicast = Network.getLocalMulticastGroup(udp_search4, PVASettings.EPICS_PVA_BROADCAST_PORT);
         udp_localaddr4 = (InetSocketAddress) udp_search4.getLocalAddress();
 
         String ipV6Msg;
@@ -300,7 +300,7 @@ class ClientUDPHandler extends UDPHandler
                     if (search.reply_required)
                     {
                         forward_buffer.clear();
-                        SearchRequest.encode(false, 0, null, search.client, search.tls, forward_buffer);
+                        SearchRequest.encode(false, false, 0, null, search.client, search.tls, forward_buffer);
                         forward_buffer.flip();
                         logger.log(Level.FINER, () -> "Forward search to list servers to " + local_multicast + "\n" + Hexdump.toHexdump(forward_buffer));
                         send(forward_buffer, local_multicast);
@@ -309,7 +309,7 @@ class ClientUDPHandler extends UDPHandler
                 else
                 {
                     forward_buffer.clear();
-                    SearchRequest.encode(false, search.seq, search.channels, search.client, search.tls, forward_buffer);
+                    SearchRequest.encode(false, false, search.seq, search.channels, search.client, search.tls, forward_buffer);
                     forward_buffer.flip();
                     logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(forward_buffer));
                     send(forward_buffer, local_multicast);

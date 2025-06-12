@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.StandardProtocolFamily;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.ArrayList;
@@ -89,13 +90,16 @@ class ServerUDPHandler extends UDPHandler
             }
             else
             {
-                // Have channel (which must already exist) join multicast group
+                // Have socket channel (which must already exist) join multicast group
                 if (info.getInterface() == null)
                     throw new Exception("EPICS_PVAS_INTF_ADDR_LIST contains multicast group without interface");
                 if (info.isIPv4())
                 {
                     if (udp4 == null)
                         throw new Exception("EPICS_PVAS_INTF_ADDR_LIST lacks IPv4 address, cannot add multicast");
+                    // Configure interface to send multicasts out via this interface
+                    udp4.setOption(StandardSocketOptions.IP_MULTICAST_IF, info.getInterface());
+                    // Configure socket channel to receive from the multicast group
                     udp4.join(info.getAddress().getAddress(), info.getInterface());
                     logger.log(Level.FINE, "Listening to UDP multicast " + info);
                     local_multicast = info;
@@ -235,7 +239,7 @@ class ServerUDPHandler extends UDPHandler
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            SearchRequest.encode(false, seq, channels, address, tls, send_buffer);
+            SearchRequest.encode(false, false, seq, channels, address, tls, send_buffer);
             send_buffer.flip();
             logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(send_buffer));
             try

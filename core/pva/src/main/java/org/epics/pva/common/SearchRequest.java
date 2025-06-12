@@ -145,6 +145,7 @@ public class SearchRequest
             return null;
         }
         int port = Short.toUnsignedInt(buffer.getShort());
+        final InetSocketAddress orig_response_addr = new InetSocketAddress(addr, port);
         // Since version 3, flag can ask us to ignore the reply port in the message
         // and instead use the peer's port.
         // This should help with NAT where we get the message from an intermediate
@@ -193,7 +194,13 @@ public class SearchRequest
             {
                 final int cid = buffer.getInt();
                 final String name = PVAString.decodeString(buffer);
-                logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " for " + name + " [cid " + cid + "]");
+                logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " for " + name + " [cid " + cid + "]"
+                                            + ", reply addr " + orig_response_addr
+                                            + (orig_response_addr.equals(search.client) ? "" : ", using " + search.client)
+                                            + (search.tls               ? " (TLS)" : "")
+                                            + (search.unicast           ? " (unicast)" : "")
+                                            + (search.reply_required    ? " (reply required)" : "")
+                                            + (search.reply_to_src_port ? " (reply to source port)" : ""));
                 search.channels.add(new Channel(cid, name));
             }
         }
@@ -202,13 +209,17 @@ public class SearchRequest
     }
 
     /** @param unicast Unicast?
+     *  @param use_src_port Reply to 'peer port' of message (which will be our port) instead of port in 'address'?
      *  @param seq Sequence number
      *  @param channels Channels to search, <code>null</code> for 'list'
      *  @param address client's address
      *  @param tls Use TLS?
      *  @param buffer Buffer into which to encode
      */
-    public static void encode(final boolean unicast, final int seq, final Collection<Channel> channels, final InetSocketAddress address, final boolean tls, final ByteBuffer buffer)
+    public static void encode(final boolean unicast, final boolean use_src_port,
+                              final int seq, final Collection<Channel> channels,
+                              final InetSocketAddress address, final boolean tls,
+                              final ByteBuffer buffer)
     {
         // Create with zero payload size, to be patched later
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_SEARCH, 0);
@@ -222,11 +233,14 @@ public class SearchRequest
 
         // If a host has multiple listeners on the UDP search port,
         // only the one started last will see the unicast.
-        // Mark search message as unicast so that receiver will forward
+        // Identify unicast search message so that receiver will forward
         // it via local broadcast to other local listeners.
+        // If there are no channels, force a "list all servers" reply.
+        // Typically use src port unless this is a forwarded message
+        // where the original source port is in the 'address'.
         buffer.put((byte) ((unicast ? FLAG_SEARCH_UNICAST : 0x00) |
                            ((channels == null || channels.isEmpty()) ? FLAG_SEARCH_MUST_REPLY : 0x00) |
-                           FLAG_REPLY_SRC_PORT));
+                           (use_src_port ? FLAG_REPLY_SRC_PORT : 0x00)));
 
         // reserved
         buffer.put((byte) 0);
