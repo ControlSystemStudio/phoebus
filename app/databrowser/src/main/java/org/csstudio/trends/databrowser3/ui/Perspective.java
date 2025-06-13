@@ -11,16 +11,10 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.internal.YAxisImpl;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
@@ -32,16 +26,12 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.ui.export.ExportView;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
-import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
-import org.csstudio.trends.databrowser3.ui.properties.AddPVsFromTheClipboardMenuItem;
-import org.csstudio.trends.databrowser3.ui.properties.DeleteAxes;
-import org.csstudio.trends.databrowser3.ui.properties.MoveAxisToTheLeft;
-import org.csstudio.trends.databrowser3.ui.properties.MoveAxisToTheRight;
-import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
-import org.csstudio.trends.databrowser3.ui.properties.RemoveUnusedAxes;
+import org.csstudio.trends.databrowser3.ui.properties.*;
 import org.csstudio.trends.databrowser3.ui.sampleview.SampleView;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.csstudio.trends.databrowser3.ui.selection.DatabrowserSelection;
+import org.csstudio.trends.databrowser3.ui.smoothview.SmoothView;
+import org.csstudio.trends.databrowser3.ui.waveformoverlapview.WaveformOverlapView;
 import org.csstudio.trends.databrowser3.ui.waveformview.WaveformView;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
@@ -64,40 +54,45 @@ import java.util.stream.Collectors;
 
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
-/** Combined layout of all data browser components
- *  @author Kay Kasemir
+/**
+ * Combined layout of all data browser components
+ *
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Perspective extends SplitPane
-{
-    /** Memento tags */
+public class Perspective extends SplitPane {
+    /**
+     * Memento tags
+     */
     private static final String LEFT_RIGHT_SPLIT = "left_right_split",
-                                PLOT_TABS_SPLIT = "plot_tabs_split",
-                                SHOW_SEARCH = "show_search",
-                                SHOW_PROPERTIES = "show_properties",
-                                SHOW_EXPORT = "show_export",
-                                SHOW_WAVEFORM = "show_waveform";
+            PLOT_TABS_SPLIT = "plot_tabs_split",
+            SHOW_SEARCH = "show_search",
+            SHOW_PROPERTIES = "show_properties",
+            SHOW_EXPORT = "show_export",
+            SHOW_WAVEFORM = "show_waveform";
 
     private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(Perspective.class);
 
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
+    private final Controller controller;
+    private final TabPane left_tabs = new TabPane(),
+            bottom_tabs = new TabPane();
+    private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), bottom_tabs);
     private SearchView search;
     private ExportView export = null;
     private SampleView inspect = null;
+    private SmoothView smooth = null;
     private WaveformView waveform = null;
-
-    private final Controller controller;
-    private final TabPane left_tabs = new TabPane(),
-                          bottom_tabs = new TabPane();
-    private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), bottom_tabs);
+    private WaveformOverlapView overlap = null;
     private PropertyPanel property_panel;
-    private Tab search_tab, properties_tab, export_tab, inspect_tab, waveform_tab = null;
+    private Tab search_tab, properties_tab, export_tab, inspect_tab, smooth_tab, waveform_tab, overlap_tab = null;
 
 
-    /** @param minimal Only show the essentials? */
-    public Perspective(final boolean minimal)
-    {
+    /**
+     * @param minimal Only show the essentials?
+     */
+    public Perspective(final boolean minimal) {
         property_panel = new PropertyPanel(model, plot.getPlot().getUndoableActionManager());
         properties_tab = new Tab(Messages.PropertiesTabName, property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
@@ -108,8 +103,7 @@ public class Perspective extends SplitPane
             autoMinimizeBottom();
         });
 
-        if (! minimal)
-        {
+        if (!minimal) {
             // Check preferences
             if (prefs.getBoolean(SHOW_PROPERTIES, true))
                 bottom_tabs.getTabs().setAll(properties_tab);
@@ -125,12 +119,9 @@ public class Perspective extends SplitPane
         setupDrop();
 
         controller = new Controller(model, plot);
-        try
-        {
+        try {
             controller.start();
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.log(Level.SEVERE, "Cannot start data browser", ex);
         }
 
@@ -141,14 +132,14 @@ public class Perspective extends SplitPane
         plot.setConfigDialogSupported(org.csstudio.trends.databrowser3.preferences.Preferences.config_dialog_supported);
     }
 
-    /** @return {@link Model} */
-    public Model getModel()
-    {
+    /**
+     * @return {@link Model}
+     */
+    public Model getModel() {
         return model;
     }
 
-    private void createContextMenu()
-    {
+    private void createContextMenu() {
         final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
 
         final List<MenuItem> add_data = new ArrayList<>();
@@ -184,11 +175,24 @@ public class Perspective extends SplitPane
             showBottomTab(inspect_tab);
         });
 
+        final MenuItem show_smooth = new MenuItem(Messages.SmoothView, Activator.getIcon("smooth"));
+        show_smooth.setOnAction(event ->
+        {
+            createSmoothab();
+            showBottomTab(smooth_tab);
+        });
+
         final MenuItem show_waveform = new MenuItem(Messages.OpenWaveformView, Activator.getIcon("wavesample"));
         show_waveform.setOnAction(event ->
         {
             createWaveformTab();
             showBottomTab(waveform_tab);
+        });
+        final MenuItem show_overlap = new MenuItem(Messages.OpenWaveformOverlapView, Activator.getIcon("overlap"));
+        show_overlap.setOnAction(event ->
+        {
+            createWaveformOverlapTab();
+            showBottomTab(overlap_tab);
         });
         final MenuItem refresh = new MenuItem(Messages.Refresh, Activator.getIcon("refresh_remote"));
         refresh.setOnAction(event -> controller.refresh());
@@ -216,7 +220,8 @@ public class Perspective extends SplitPane
                     try {
                         action.call(plot.getPlot(), SelectionService.getInstance().getSelection());
                     } catch (Exception ex) {
-                        logger.log(Level.WARNING, "Failed to exectute " + action.getName() + " from databrowser plot.", ex);
+                        logger.log(Level.WARNING, "Failed to exectute " + action.getName() + " from databrowser plot" +
+                                ".", ex);
                     }
                 });
                 items.add(menuItem);
@@ -225,8 +230,7 @@ public class Perspective extends SplitPane
             {
                 boolean separatorForAxisOptionsAdded = false;
 
-                if (model.getEmptyAxis().isPresent())
-                {
+                if (model.getEmptyAxis().isPresent()) {
                     items.add(new SeparatorMenuItem());
                     separatorForAxisOptionsAdded = true;
                     items.add(new RemoveUnusedAxes(model, undo));
@@ -235,7 +239,7 @@ public class Perspective extends SplitPane
                 var yAxes = plot.getPlot().getYAxes();
                 int numberOfYAxes = yAxes.size();
 
-                for (int i=0; i<numberOfYAxes; i++) {
+                for (int i = 0; i < numberOfYAxes; i++) {
                     var yAxis = yAxes.get(i);
                     if (yAxis instanceof YAxisImpl<?>) {
                         YAxisImpl<?> yAxisImpl = (YAxisImpl<?>) yAxis;
@@ -266,16 +270,15 @@ public class Perspective extends SplitPane
                 }
             }
 
-            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform, refresh);
+            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples,
+                    show_smooth, show_waveform, show_overlap, refresh);
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
 
-    private void createSearchTab()
-    {
-        if (search_tab == null)
-        {
+    private void createSearchTab() {
+        if (search_tab == null) {
             search = new SearchView(model, plot.getPlot().getUndoableActionManager());
             search_tab = new Tab(Messages.Search, search);
             search_tab.setGraphic(Activator.getIcon("search"));
@@ -283,10 +286,8 @@ public class Perspective extends SplitPane
         }
     }
 
-    private void createExportTab()
-    {
-        if (export_tab == null)
-        {
+    private void createExportTab() {
+        if (export_tab == null) {
             export = new ExportView(model);
             export_tab = new Tab(Messages.Export, export);
             export_tab.setGraphic(Activator.getIcon("export"));
@@ -294,10 +295,8 @@ public class Perspective extends SplitPane
         }
     }
 
-    private void createInspectionTab()
-    {
-        if (inspect_tab == null)
-        {
+    private void createInspectionTab() {
+        if (inspect_tab == null) {
             inspect = new SampleView(model);
             inspect_tab = new Tab(Messages.InspectSamples, inspect);
             inspect_tab.setGraphic(Activator.getIcon("search"));
@@ -305,10 +304,17 @@ public class Perspective extends SplitPane
         }
     }
 
-    private void createWaveformTab()
-    {
-        if (waveform_tab == null)
-        {
+    private void createSmoothab() {
+        if (smooth_tab == null) {
+            smooth = new SmoothView(model);
+            smooth_tab = new Tab(Messages.SmoothView, smooth);
+            smooth_tab.setGraphic(Activator.getIcon("smooth"));
+            smooth_tab.setOnClosed(evt -> autoMinimizeBottom());
+        }
+    }
+
+    private void createWaveformTab() {
+        if (waveform_tab == null) {
             waveform = new WaveformView(model);
             waveform_tab = new Tab(Messages.OpenWaveformView, waveform);
             waveform_tab.setGraphic(Activator.getIcon("wavesample"));
@@ -316,15 +322,22 @@ public class Perspective extends SplitPane
         }
     }
 
-    private void setupDrop()
-    {
+    private void createWaveformOverlapTab() {
+        if (overlap_tab == null) {
+            overlap = new WaveformOverlapView(model);
+            overlap_tab = new Tab(Messages.OpenWaveformOverlapView, overlap);
+            overlap_tab.setGraphic(Activator.getIcon("overlap"));
+            overlap_tab.setOnClosed(evt -> autoMinimizeBottom());
+        }
+    }
+
+    private void setupDrop() {
         final Node node = plot.getPlot();
         node.setOnDragOver(event ->
         {
             final Dragboard db = event.getDragboard();
-            if (db.hasString()  ||
-                db.hasContent(SearchView.CHANNEL_INFOS))
-            {
+            if (db.hasString() ||
+                    db.hasContent(SearchView.CHANNEL_INFOS)) {
                 event.acceptTransferModes(TransferMode.COPY);
             }
             event.consume();
@@ -338,30 +351,23 @@ public class Perspective extends SplitPane
             final Dragboard db = event.getDragboard();
 
             // Notify lst in next UI tick...
-            if (db.hasContent(SearchView.CHANNEL_INFOS))
-            {
-                @SuppressWarnings("unchecked")
-                final List<ChannelInfo> channels = (List<ChannelInfo>) db.getContent(SearchView.CHANNEL_INFOS);
+            if (db.hasContent(SearchView.CHANNEL_INFOS)) {
+                @SuppressWarnings("unchecked") final List<ChannelInfo> channels =
+                        (List<ChannelInfo>) db.getContent(SearchView.CHANNEL_INFOS);
                 final List<ProcessVariable> pvs = new ArrayList<>(channels);
-                final List<ArchiveDataSource> archives = channels.stream().map(ChannelInfo::getArchiveDataSource).collect(Collectors.toList());
+                final List<ArchiveDataSource> archives =
+                        channels.stream().map(ChannelInfo::getArchiveDataSource).collect(Collectors.toList());
                 Platform.runLater(() -> lst.droppedPVNames(pvs, archives));
-            }
-            else if (db.hasString())
-            {
+            } else if (db.hasString()) {
                 final String dropped = db.getString();
-                try
-                {
+                try {
                     final List<String> pvs = DroppedPVNameParser.parseDroppedPVs(dropped);
                     if (pvs.size() > 0)
                         Platform.runLater(() -> lst.droppedNames(pvs));
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     logger.log(Level.WARNING, "Cannot parse PV names from dropped text " + dropped, ex);
                 }
-            }
-            else if (db.hasFiles())
-            {
+            } else if (db.hasFiles()) {
                 for (File file : db.getFiles())
                     Platform.runLater(() -> lst.droppedFilename(file));
             }
@@ -373,43 +379,41 @@ public class Perspective extends SplitPane
         });
     }
 
-    private void autoMinimizeLeft()
-    {
+    private void autoMinimizeLeft() {
         autoMinimize(left_tabs, this, 0.0);
     }
 
-    private void autoMinimizeBottom()
-    {
+    private void autoMinimizeBottom() {
         autoMinimize(bottom_tabs, plot_and_tabs, 1.0);
     }
 
-    /** If there are no tabs, minimize that part of the split pane
-     *  @param tabs TabPane to check if it's empty
-     *  @param pane SplitPane to adjust if there are no tabs
-     *  @param pos Divider position to use if there are no tabs
+    /**
+     * If there are no tabs, minimize that part of the split pane
+     *
+     * @param tabs TabPane to check if it's empty
+     * @param pane SplitPane to adjust if there are no tabs
+     * @param pos  Divider position to use if there are no tabs
      */
-    private void autoMinimize(final TabPane tabs, final SplitPane pane, final double pos)
-    {
+    private void autoMinimize(final TabPane tabs, final SplitPane pane, final double pos) {
         if (tabs.getTabs().isEmpty())
             pane.getItems().remove(tabs);
     }
 
-    /** Show search tab:
-     *  Assert it's there, select it,
-     *  make lower split pane large enough
+    /**
+     * Show search tab:
+     * Assert it's there, select it,
+     * make lower split pane large enough
      */
-    private void showSearchTab()
-    {
+    private void showSearchTab() {
         createSearchTab();
 
-        if (! getItems().contains(left_tabs))
-        {
+        if (!getItems().contains(left_tabs)) {
             getItems().add(0, left_tabs);
             setDividerPositions(0.2);
         }
 
         // If tab not on screen, add it
-        if (! left_tabs.getTabs().contains(search_tab))
+        if (!left_tabs.getTabs().contains(search_tab))
             left_tabs.getTabs().add(search_tab);
 
         // Select the requested tab
@@ -421,17 +425,17 @@ public class Perspective extends SplitPane
 
         // If tab was just added, its header won't show
         // correctly unless we schedule a re-layout
-        Platform.runLater(() -> layout() );
+        Platform.runLater(() -> layout());
     }
 
-    /** @param tab Tab to show:
-     *             Assert it's there, select it,
-     *             make lower split pane large enough
+    /**
+     * @param tab Tab to show:
+     *            Assert it's there, select it,
+     *            make lower split pane large enough
      */
-    private void showBottomTab(final Tab tab)
-    {
+    private void showBottomTab(final Tab tab) {
         // If tab not on screen, add it
-        if (! bottom_tabs.getTabs().contains(tab))
+        if (!bottom_tabs.getTabs().contains(tab))
             if (tab == properties_tab)
                 bottom_tabs.getTabs().add(0, tab);
             else
@@ -441,8 +445,7 @@ public class Perspective extends SplitPane
         bottom_tabs.getSelectionModel().select(tab);
 
         // Assert that the tabs section is visible
-        if (! plot_and_tabs.getItems().contains(bottom_tabs))
-        {
+        if (!plot_and_tabs.getItems().contains(bottom_tabs)) {
             plot_and_tabs.getItems().add(bottom_tabs);
             plot_and_tabs.setDividerPositions(0.8);
         }
@@ -451,28 +454,30 @@ public class Perspective extends SplitPane
 
         // If tab was just added, its header won't show
         // correctly unless we schedule a re-layout
-        Platform.runLater(() -> plot_and_tabs.layout() );
+        Platform.runLater(() -> plot_and_tabs.layout());
     }
 
-    /** @param memento From where to restore previously saved settings */
-    public void restore(final Memento memento)
-    {
+    /**
+     * @param memento From where to restore previously saved settings
+     */
+    public void restore(final Memento memento) {
         property_panel.restore(memento);
 
         memento.getBoolean(SHOW_SEARCH).ifPresent(show ->
         {
-            if (show)
-            {
+            if (show) {
                 createSearchTab();
                 search.restore(memento);
                 left_tabs.getTabs().add(search_tab);
             }
         });
-        memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> { if (! show) bottom_tabs.getTabs().remove(properties_tab); });
+        memento.getBoolean(SHOW_PROPERTIES).ifPresent(show -> {
+            if (!show)
+                bottom_tabs.getTabs().remove(properties_tab);
+        });
         memento.getBoolean(SHOW_EXPORT).ifPresent(show ->
         {
-            if (show)
-            {
+            if (show) {
                 createExportTab();
                 export.restore(memento);
                 bottom_tabs.getTabs().add(export_tab);
@@ -480,8 +485,7 @@ public class Perspective extends SplitPane
         });
         memento.getBoolean(SHOW_WAVEFORM).ifPresent(show ->
         {
-            if (show)
-            {
+            if (show) {
                 createWaveformTab();
                 bottom_tabs.getTabs().add(waveform_tab);
             }
@@ -498,9 +502,10 @@ public class Perspective extends SplitPane
         });
     }
 
-    /** @param memento Where to store current settings */
-    public void save(final Memento memento)
-    {
+    /**
+     * @param memento Where to store current settings
+     */
+    public void save(final Memento memento) {
         if (search != null)
             search.save(memento);
 
@@ -518,7 +523,7 @@ public class Perspective extends SplitPane
         if (left_tabs.getTabs().contains(search_tab))
             memento.setBoolean(SHOW_SEARCH, true);
 
-        if (! bottom_tabs.getTabs().contains(properties_tab))
+        if (!bottom_tabs.getTabs().contains(properties_tab))
             memento.setBoolean(SHOW_PROPERTIES, false);
 
         if (bottom_tabs.getTabs().contains(export_tab))
@@ -528,15 +533,13 @@ public class Perspective extends SplitPane
             memento.setBoolean(SHOW_WAVEFORM, true);
     }
 
-    /** Reclaim resources */
-    public void dispose()
-    {
-        try
-        {
+    /**
+     * Reclaim resources
+     */
+    public void dispose() {
+        try {
             prefs.flush();
-        }
-        catch (BackingStoreException ex)
-        {
+        } catch (BackingStoreException ex) {
             logger.log(Level.WARNING, "Unable to flush preferences", ex);
         }
         // Stop PVs etc. ASAP
