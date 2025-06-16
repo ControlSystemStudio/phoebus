@@ -23,6 +23,15 @@ import org.epics.pva.data.PVAAddress;
  *  the local 224.0.0.128 multicast are prefixed
  *  with CMD_ORIGIN_TAG.
  *
+ *  <p>According to
+ *  https://github.com/epics-docs/epics-docs/blob/master/pv-access/Protocol-Messages.md,
+ *  the address listed in the origin tag should be
+ *  "the address to which the receiving socket was bound. This may be 0.0.0.0".
+ *
+ *  <p>By default, we have EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0 [::] 224.0.0.128,1@127.0.0.1 [ff02::42:1],1@::1".
+ *  The IPv4 UDP socket will be bound to 0.0.0.0, and the origin tags will show 0.0.0.0.
+ *  Replacing "0.0.0.0" with the IP address of a network interface will cause it to show in the origin tags.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
