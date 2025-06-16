@@ -19,6 +19,7 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
@@ -44,6 +45,7 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.types.TimeStampedProcessVariable;
+import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -253,9 +255,6 @@ public abstract class BaseSnapshotTableViewController {
         selectedColumn.visibleProperty().set(visible);
     }
 
-    protected String getPVKey(String pvName, boolean isReadonly) {
-        return pvName + "_" + isReadonly;
-    }
 
     protected void showSnapshotInTable(Snapshot snapshot) {
         if (snapshots.isEmpty()) {
@@ -273,10 +272,17 @@ public abstract class BaseSnapshotTableViewController {
             tableEntry.setSnapshotValue(entry.getValue(), 0);
             tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
             tableEntry.setReadbackValue(entry.getReadbackValue());
-            String key = getPVKey(name, entry.getConfigPv().isReadOnly());
+            if (entry.getValue() == null || entry.getValue().equals(VDisconnectedData.INSTANCE)) {
+                tableEntry.setActionResult(ActionResult.FAILED);
+            } else if (entry.getConfigPv().getReadbackPvName() != null &&
+                    (entry.getReadbackValue() == null || entry.getReadbackValue().equals(VDisconnectedData.INSTANCE))) {
+                tableEntry.setActionResult(ActionResult.FAILED);
+            } else {
+                tableEntry.setActionResult(ActionResult.OK);
+            }
             tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
             tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
-            tableEntryItems.put(key, tableEntry);
+            tableEntryItems.put(name, tableEntry);
         });
 
         updateTable(null);
@@ -291,35 +297,37 @@ public abstract class BaseSnapshotTableViewController {
     public void updateTable(List<TableEntry> entries) {
         final ObservableList<TableEntry> items = snapshotTableView.getItems();
         final boolean notHide = !snapshotController.isHideEqualItems();
-        items.clear();
-        tableEntryItems.forEach((key, value) -> {
-            // there is no harm if this is executed more than once, because only one line is allowed for these
-            // two properties (see SingleListenerBooleanProperty for more details)
-            value.liveStoredEqualProperty().addListener((a, o, n) -> {
-                if (snapshotController.isHideEqualItems()) {
-                    if (n) {
-                        snapshotTableView.getItems().remove(value);
-                    } else {
-                        snapshotTableView.getItems().add(value);
+        Platform.runLater(() -> {
+            items.clear();
+            tableEntryItems.forEach((key, value) -> {
+                // there is no harm if this is executed more than once, because only one line is allowed for these
+                // two properties (see SingleListenerBooleanProperty for more details)
+                value.liveStoredEqualProperty().addListener((a, o, n) -> {
+                    if (snapshotController.isHideEqualItems()) {
+                        if (n) {
+                            snapshotTableView.getItems().remove(value);
+                        } else {
+                            snapshotTableView.getItems().add(value);
+                        }
                     }
+                });
+                if (notHide || !value.liveStoredEqualProperty().get()) {
+                    items.add(value);
                 }
             });
-            if (notHide || !value.liveStoredEqualProperty().get()) {
-                items.add(value);
-            }
         });
     }
 
     protected void connectPVs() {
         JobManager.schedule("Connect PVs", monitor -> {
             tableEntryItems.values().forEach(e -> {
-                SaveAndRestorePV pv = pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()));
+                SaveAndRestorePV pv = pvs.get(e.getConfigPv().getPvName());
                 if (pv == null) {
-                    pvs.put(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()), new SaveAndRestorePV(e));
+                    pvs.put(e.getConfigPv().getPvName(), new SaveAndRestorePV(e));
                 } else {
                     pv.setSnapshotTableEntry(e);
                 }
             });
-       });
+        });
     }
 }

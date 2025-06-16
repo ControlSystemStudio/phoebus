@@ -1,22 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (C) 2020 European Spallation Source ERIC.
-  ~
-  ~  This program is free software; you can redistribute it and/or
-  ~  modify it under the terms of the GNU General Public License
-  ~  as published by the Free Software Foundation; either version 2
-  ~  of the License, or (at your option) any later version.
-  ~  
-  ~  This program is distributed in the hope that it will be useful,
-  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~  GNU General Public License for more details.
-  ~  
-  ~  You should have received a copy of the GNU General Public License
-  ~  along with this program; if not, write to the Free Software
-  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-  ~  
+  ~ Copyright (C) 2025 European Spallation Source ERIC.
   -->
 
 <?import java.lang.*?>
@@ -25,9 +10,15 @@
 <?import javafx.scene.layout.*?>
 <?import org.phoebus.applications.saveandrestore.ui.snapshot.*?>
 
-<TableView fx:id="snapshotTableView" editable="true" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTableViewController">
+<TableView fx:id="snapshotTableView" editable="true" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTableViewController">
     <columns>
-        <TableColumn fx:id="selectedColumn" maxWidth="-1.0" minWidth="30" prefWidth="30" resizable="false" sortable="false" visible="false">
+        <TableColumn fx:id="actionSucceededColumn" visible="false" editable="false" maxWidth="40" prefWidth="40" resizable="false" style="-fx-alignment: TOP-CENTER;" >
+            <cellValueFactory>
+                <PropertyValueFactory property="actionResult" />
+            </cellValueFactory>
+        </TableColumn>
+
+        <TableColumn fx:id="selectedColumn" maxWidth="30" minWidth="30" prefWidth="30" resizable="false" sortable="false" visible="false">
             <cellValueFactory>
                 <PropertyValueFactory property="selected" />
             </cellValueFactory>

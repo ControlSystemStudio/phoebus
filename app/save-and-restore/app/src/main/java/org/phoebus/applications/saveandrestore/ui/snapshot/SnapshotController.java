@@ -29,7 +29,6 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
@@ -42,7 +41,6 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
-import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -168,7 +166,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             snapshot.setSnapshotData(snapshotData);
             snapshotProperty.set(snapshot);
             setTabImage(snapshot.getSnapshotNode());
-            //Platform.runLater(() -> snapshotTableViewController.showSnapshotInTable(snapshot));
         });
     }
 
@@ -181,23 +178,12 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             disabledUi.set(false);
             if (snapshot.isPresent()) {
                 snapshotProperty.set(snapshot.get());
-                snapshotTableViewController.showSnapshotInTable(snapshot.get());
-                if (snapshot.get().getSnapshotData().getSnapshotItems().stream()
-                        .filter(i -> i.getValue().equals(VDisconnectedData.INSTANCE) ||
-                                (i.getConfigPv().getReadbackPvName() != null &&
-                                        i.getReadbackValue().equals(VDisconnectedData.INSTANCE))).findFirst().isPresent()) {
-                    snapshotControlsViewController.setActionResult(SnapshotControlsViewController.ActionResult.TAKE_SNAPSHOT_DISCONNECTED_PV,
-                            snapshot.get().getSnapshotData().getSnapshotItems());
-                } else {
-                    snapshotControlsViewController.setActionResult(SnapshotControlsViewController.ActionResult.TAKE_SNAPSHOT_OK);
-                }
             }
         });
     }
 
     @SuppressWarnings("unused")
     public void saveSnapshot(ActionEvent actionEvent) {
-
         disabledUi.set(true);
         JobManager.schedule("Save Snapshot", monitor -> {
             List<SnapshotItem> snapshotItems = snapshotProperty.get().getSnapshotData().getSnapshotItems();
@@ -396,22 +382,16 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         snapshotControlsViewController.setSnapshotNode(snapshotNode);
         snapshotControlsViewController.setSnapshotRestorableProperty(true);
         snapshotTableViewController.setSelectionColumnVisible(true);
-
+        snapshotTableViewController.setActionResult(ActionResult.PENDING);
         loadSnapshotInternal(snapshotNode);
     }
 
     public void restore() {
+        disabledUi.setValue(true);
         snapshotTableViewController.restore(snapshotControlsViewController.getRestoreMode(), snapshotProperty.get(), restoreResultList -> {
+            disabledUi.setValue(false);
             if (snapshotControlsViewController.logAction()) {
                 eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreResultList, this::showLoggingError));
-            }
-            if (restoreResultList != null && !restoreResultList.isEmpty()) {
-                List<SnapshotItem> snapshotItems =
-                        restoreResultList.stream().map(RestoreResult::getSnapshotItem).toList();
-                snapshotControlsViewController.setActionResult(SnapshotControlsViewController.ActionResult.RESTORE_FAILED, snapshotItems);
-            } else {
-                snapshotControlsViewController.setActionResult(SnapshotControlsViewController.ActionResult.RESTORE_OK);
-                LOGGER.log(Level.INFO, "Successfully restored snapshot \"" + snapshotProperty.get().getSnapshotNode().getName() + "\"");
             }
         });
     }

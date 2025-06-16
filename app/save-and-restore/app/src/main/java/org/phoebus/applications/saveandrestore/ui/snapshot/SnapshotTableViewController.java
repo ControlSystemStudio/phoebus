@@ -8,6 +8,7 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -15,11 +16,13 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
@@ -44,15 +47,18 @@ import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.time.DateTimePane;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -76,13 +82,15 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     @SuppressWarnings("unused")
     @FXML
     private TableColumn<TableEntry, ?> readbackColumn;
+    @SuppressWarnings("unused")
+    @FXML
+    private TableColumn<TableEntry, ActionResult> actionSucceededColumn;
 
     private final SimpleBooleanProperty selectionInverted = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty showReadbacks = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty showDeltaPercentage = new SimpleBooleanProperty(false);
-    private final SimpleBooleanProperty hideEqualItems = new SimpleBooleanProperty(false);
-
     private final SimpleBooleanProperty compareViewEnabled = new SimpleBooleanProperty(false);
+    private final SimpleObjectProperty<ActionResult> actionResultProperty = new SimpleObjectProperty<>(ActionResult.PENDING);
 
     private SnapshotUtil snapshotUtil;
 
@@ -133,10 +141,38 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             return vDeltaCellEditor;
         }));
 
-
-        hideEqualItems.addListener((ob, o, n) -> {
-
+        actionSucceededColumn.setCellFactory(e -> new TableCell<>() {
+            @Override
+            public void updateItem(ActionResult actionResult, boolean empty) {
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    switch (actionResult) {
+                        case PENDING -> setGraphic(null);
+                        case OK ->
+                                setGraphic(new ImageView(ImageCache.getImage(SnapshotTableViewController.class, "/icons/ok.png")));
+                        case FAILED ->
+                                setGraphic(new ImageView(ImageCache.getImage(SnapshotTableViewController.class, "/icons/error.png")));
+                    }
+                }
+            }
         });
+        actionResultProperty.addListener((obs, o, n) -> {
+            if (n != null) {
+                switch (n) {
+                    case PENDING -> actionSucceededColumn.visibleProperty().set(false);
+                    case OK -> {
+                        actionSucceededColumn.visibleProperty().set(true);
+                        actionSucceededColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotTableViewController.class, "/icons/ok.png")));
+                    }
+                    case FAILED -> {
+                        actionSucceededColumn.visibleProperty().set(true);
+                        actionSucceededColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotTableViewController.class, "/icons/error.png")));
+                    }
+                }
+            }
+        });
+
 
         liveReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
         storedReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
@@ -176,7 +212,15 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         }
     }
 
+    /**
+     * Takes a snapshot in either of the {@link SnapshotMode}s. Regardless of {@link SnapshotMode}, the
+     * work is delegated to the {@link JobManager}, which then calls the <code>consumer</code> function upon completion.
+     *
+     * @param snapshotMode Specifies how to take the snapshot, see {@link SnapshotMode}
+     * @param consumer     The callback method called when a result is available.
+     */
     public void takeSnapshot(SnapshotMode snapshotMode, Consumer<Optional<Snapshot>> consumer) {
+        actionResultProperty.set(ActionResult.PENDING);
         switch (snapshotMode) {
             case READ_PVS -> takeSnapshot(consumer);
             case FROM_ARCHIVER -> takeSnapshotFromArchiver(consumer);
@@ -209,6 +253,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                 LOGGER.log(Level.WARNING, "Failed to query archiver for data", e);
                 return;
             }
+            analyzeTakeSnapshotResult(snapshotItems);
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(Messages.archiver).created(new Date(time.get().toEpochMilli())).build());
             SnapshotData snapshotData = new SnapshotData();
@@ -227,39 +272,71 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             try {
                 snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(snapshotController.getConfigurationNode().getUniqueId());
             } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError(snapshotTableView, Messages.errorGeneric, Messages.takeSnapshotFailed, e);
+                Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(snapshotTableView, Messages.errorGeneric, Messages.takeSnapshotFailed, e));
                 consumer.accept(Optional.empty());
                 return;
             }
-            // Service can only return nulls for disconnected PVs, but UI expects VDisonnectedData
+
+            // Service can only return nulls for disconnected PVs, but UI expects VDisconnectedData or VNoData
             snapshotItems.forEach(si -> {
                 if (si.getValue() == null) {
                     si.setValue(VDisconnectedData.INSTANCE);
                 }
                 if (si.getReadbackValue() == null) {
-                    si.setReadbackValue(VDisconnectedData.INSTANCE);
+                    // If read-back PV name is not set, then VNoData.INSTANCE is the proper value
+                    if (si.getConfigPv().getReadbackPvName() == null) {
+                        si.setReadbackValue(VNoData.INSTANCE);
+                    } else {
+                        si.setReadbackValue(VDisconnectedData.INSTANCE);
+                    }
                 }
             });
+            analyzeTakeSnapshotResult(snapshotItems);
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).build());
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(snapshotItems);
             snapshot.setSnapshotData(snapshotData);
-            showSnapshotInTable(snapshot);
             if (!Preferences.default_snapshot_name_date_format.isEmpty()) {
                 String dateFormat = Preferences.default_snapshot_name_date_format;
                 try {
                     //The format could be not correct
                     SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
                     snapshot.getSnapshotNode().setName(formatter.format(new Date()));
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     LOGGER.log(Level.WARNING, dateFormat + " is not a valid date format please check 'default_snapshot_name_date_format' preference ", e);
                 }
             }
             consumer.accept(Optional.of(snapshot));
         });
+    }
 
+    /**
+     * Checks if any of the PVs or read-back PVs (where specified) are equal to {@link VDisconnectedData#INSTANCE}.
+     * If so, then UI is updated to indicate this.
+     *
+     * @param snapshotItems {@link List} of {@link SnapshotItem} as created in a read operation (by service or from archiver).
+     */
+    private void analyzeTakeSnapshotResult(List<SnapshotItem> snapshotItems) {
+        AtomicBoolean disconnectedPvEncountered = new AtomicBoolean(false);
+        for (SnapshotItem snapshotItem : snapshotItems) {
+            if (snapshotItem.getValue().equals(VDisconnectedData.INSTANCE)) {
+                disconnectedPvEncountered.set(true);
+                break;
+            }
+            if (snapshotItem.getConfigPv().getReadbackPvName() != null &&
+                    snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
+                disconnectedPvEncountered.set(true);
+                break;
+            }
+        }
+        Platform.runLater(() -> {
+            if (disconnectedPvEncountered.get()) {
+                actionResultProperty.set(ActionResult.FAILED);
+            } else {
+                actionResultProperty.set(ActionResult.OK);
+            }
+        });
     }
 
     public void updateThreshold(Snapshot snapshot, double threshold) {
@@ -269,9 +346,9 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
 
             double ratio = threshold / 100;
 
-            TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getConfigPv().getPvName(), item.getConfigPv().isReadOnly()));
+            TableEntry tableEntry = tableEntryItems.get(item.getConfigPv().getPvName());
             if (tableEntry == null) {
-                tableEntry = tableEntryItems.get(getPVKey(item.getConfigPv().getPvName(), !item.getConfigPv().isReadOnly()));
+                tableEntry = tableEntryItems.get(item.getConfigPv().getPvName());
             }
 
             if (!item.getConfigPv().equals(tableEntry.getConfigPv())) {
@@ -297,7 +374,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     public void updateSnapshotValues(Snapshot snapshot, double multiplier) {
         snapshot.getSnapshotData().getSnapshotItems()
                 .forEach(item -> {
-                    TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getConfigPv().getPvName(), item.getConfigPv().isReadOnly()));
+                    TableEntry tableEntry = tableEntryItems.get(item.getConfigPv().getPvName());
                     VType vtype = tableEntry.storedSnapshotValue().get();
                     VType newVType;
 
@@ -384,6 +461,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
      * @param completion  Callback to handle a potentially empty list of {@link RestoreResult}s.
      */
     public void restore(RestoreMode restoreMode, Snapshot snapshot, Consumer<List<RestoreResult>> completion) {
+        actionResultProperty.set(ActionResult.PENDING);
         JobManager.schedule("Restore snapshot " + snapshot.getSnapshotNode().getName(), monitor -> {
             List<RestoreResult> restoreResultList = null;
             try {
@@ -402,10 +480,36 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                     DialogHelper.positionDialog(alert, snapshotTableView, -150, -150);
                     alert.showAndWait();
                 });
+                completion.accept(Collections.emptyList());
                 return;
             }
+            analyzeRestoreResult(restoreResultList);
             completion.accept(restoreResultList);
         });
+    }
+
+    /**
+     * Analyzes the result from a restore operation (by service or by client). If any PV is found to be
+     * {@link VDisconnectedData#INSTANCE}, then the UI is updated to indicate this.
+     *
+     * @param restoreResultList Data created through a restore operation.
+     */
+    private void analyzeRestoreResult(List<RestoreResult> restoreResultList) {
+        List<TableEntry> tableEntries = snapshotTableView.getItems();
+        AtomicBoolean disconnectEncountered = new AtomicBoolean(false);
+        for (TableEntry tableEntry : tableEntries) {
+            Optional<RestoreResult> tableEntryOptional = restoreResultList.stream().filter(r -> r.getSnapshotItem().getConfigPv().getPvName().equals(tableEntry.getConfigPv().getPvName())).findFirst();
+            if (tableEntryOptional.isPresent()) {
+                disconnectEncountered.set(true);
+                tableEntry.setActionResult(ActionResult.FAILED);
+            } else if (tableEntry.selectedProperty().not().get() || tableEntry.storedSnapshotValue().get().equals(VDisconnectedData.INSTANCE)) {
+                tableEntry.setActionResult(ActionResult.PENDING);
+            } else {
+                tableEntry.setActionResult(ActionResult.OK);
+            }
+        }
+
+        Platform.runLater(() -> actionResultProperty.setValue(disconnectEncountered.get() ? ActionResult.FAILED : ActionResult.OK));
     }
 
     /**
@@ -419,7 +523,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         List<SnapshotItem> itemsToRestore = new ArrayList<>();
 
         for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
-            TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
+            TableEntry e = tableEntryItems.get(entry.getConfigPv().getPvName());
 
             boolean restorable = e.selectedProperty().get() &&
                     !e.readOnlyProperty().get() &&
@@ -505,15 +609,14 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             for (int i = 0; i < entries.size(); i++) {
                 entry = entries.get(i);
                 nodeName = entry.getConfigPv().getPvName();
-                String key = getPVKey(nodeName, entry.getConfigPv().isReadOnly());
-                tableEntry = tableEntryItems.get(key);
+                tableEntry = tableEntryItems.get(nodeName);
                 // tableEntry is null if the added snapshot has more items than the base snapshot.
                 if (tableEntry == null) {
                     tableEntry = new TableEntry();
                     tableEntry.idProperty().setValue(tableEntryItems.size() + i + 1);
                     tableEntry.pvNameProperty().setValue(nodeName);
                     tableEntry.setConfigPv(entry.getConfigPv());
-                    tableEntryItems.put(key, tableEntry);
+                    tableEntryItems.put(nodeName, tableEntry);
                     tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
                 }
                 tableEntry.setSnapshotValue(entry.getValue(), snapshots.size());
@@ -567,5 +670,9 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
 
         connectPVs();
         updateTable(null);
+    }
+
+    public void setActionResult(ActionResult actionResult) {
+        Platform.runLater(() -> actionResultProperty.setValue(actionResult));
     }
 }

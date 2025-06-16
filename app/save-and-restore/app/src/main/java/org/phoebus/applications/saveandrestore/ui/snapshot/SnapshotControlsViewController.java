@@ -13,7 +13,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -32,19 +31,15 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
 import javafx.util.converter.DoubleStringConverter;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
-import org.phoebus.core.vtypes.VDisconnectedData;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -62,10 +57,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     private static final Logger logger = Logger.getLogger(SnapshotControlsViewController.class.getName());
     private SnapshotController snapshotController;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private VBox root;
 
     @FXML
     protected TextField snapshotName;
@@ -146,10 +137,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     @FXML
     private RadioButton restoreFromService;
 
-    @SuppressWarnings("unused")
-    @FXML
-    private Label actionResultLabel;
-
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
     protected final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
@@ -179,24 +166,12 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     private final SimpleObjectProperty<RestoreMode> restoreModeProperty = new SimpleObjectProperty<>(RestoreMode.CLIENT_RESTORE);
 
-    private final SimpleObjectProperty<ActionResult> actionResultProperty= new SimpleObjectProperty<>(ActionResult.PENDING);
-
-    private static final Logger LOGGER = Logger.getLogger(SnapshotControlsViewController.class.getName());
-
-    /**
-     * Data object for the purpose of showing details of a failed operation, i.e. take or restore snapshot.
-     * When an operation completes successfully, this is set to <code>null</code>.
-     */
-    private List<SnapshotItem> snapshotItems;
-
     public void setSnapshotController(SnapshotController snapshotController) {
         this.snapshotController = snapshotController;
     }
 
     @FXML
     public void initialize() {
-
-        root.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
         snapshotName.disableProperty().bind(userIdentity.isNull());
@@ -218,7 +193,7 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         // TODO: support save (=update) a composite snapshot from the snapshot view. In the meanwhile, disable save button.
                         snapshotNodeProperty.isNull().get() ||
-                        snapshotDataDirty.not().get() ||
+                                snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
                                 snapshotCommentProperty.isEmpty().get() ||
                                 userIdentity.isNull().get(),
@@ -363,23 +338,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         restoreToggleGroup.selectedToggleProperty().addListener((obs, o, n) -> {
             restoreModeProperty.set((RestoreMode) n.getUserData());
         });
-
-        actionResultProperty.addListener((obs, o, n) -> {
-            Platform.runLater(() -> {
-                switch (n){
-                    case TAKE_SNAPSHOT_DISCONNECTED_PV, RESTORE_FAILED -> {
-                        actionResultLabel.setText(Messages.actionFailedDisconnectedPV);
-                        actionResultLabel.getStyleClass().add("action-failed");
-                    }
-                    default -> {
-                        actionResultLabel.setText("");
-                        actionResultLabel.getStyleClass().remove("action-failed");
-                    }
-                }
-            });
-        });
-
-        actionResultLabel.setOnMouseClicked(e -> showFailResultData());
     }
 
     public SimpleStringProperty getSnapshotNameProperty() {
@@ -393,7 +351,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     @SuppressWarnings("unused")
     @FXML
     public void takeSnapshot() {
-        actionResultProperty.set(ActionResult.PENDING);
         snapshotDataDirty.set(true);
         snapshotRestorableProperty.set(false);
         snapshotController.takeSnapshot();
@@ -402,13 +359,11 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     @SuppressWarnings("unused")
     @FXML
     public void saveSnapshot(ActionEvent event) {
-        actionResultProperty.set(ActionResult.PENDING);
         snapshotController.saveSnapshot(event);
     }
 
     @FXML
     public void restore() {
-        actionResultProperty.set(ActionResult.PENDING);
         snapshotController.restore();
     }
 
@@ -421,7 +376,7 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         updateUi(node);
     }
 
-    private void updateUi(Node node){
+    private void updateUi(Node node) {
         Platform.runLater(() -> {
             snapshotNameProperty.set(node.getName());
             snapshotCommentProperty.set(node.getDescription());
@@ -461,64 +416,12 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     public SnapshotMode getDefaultSnapshotMode() {
         return snapshotModeProperty.get();
     }
+
     public RestoreMode getRestoreMode() {
         return restoreModeProperty.get();
     }
 
     public boolean logAction() {
         return logActionProperty.get();
-    }
-
-    /**
-     * Called when an action (take or restore snapshot) completes successfully.
-     * @param actionResult The {@link ActionResult} of the action.
-     */
-    public void setActionResult(ActionResult actionResult){
-        setActionResult(actionResult, null);
-    }
-
-    /**
-     * Called when an action (take or restore snapshot) completes.
-     * @param actionResult The {@link ActionResult} of the action.
-     * @param snapshotItems Data to be used to show details, if user requests it. Set to <code>null</code> if
-     *                       action completes successfully.
-     */
-    public void setActionResult(ActionResult actionResult, List<SnapshotItem> snapshotItems){
-        actionResultProperty.set(actionResult);
-        this.snapshotItems = snapshotItems;
-    }
-
-    public enum ActionResult{
-        PENDING, // User has not taken any action or action in progress
-        RESTORE_OK,
-        RESTORE_FAILED,
-        TAKE_SNAPSHOT_OK,
-        TAKE_SNAPSHOT_DISCONNECTED_PV
-    }
-
-    /**
-     * Shows a dialog listing setpoint and read-back PVs that failed to connect during
-     * the operation (take snapshot or restore snapshot).
-     */
-    private void showFailResultData(){
-        if(snapshotItems != null){
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(snapshotItems.stream()
-                            .filter(s -> s.getValue().equals(VDisconnectedData.INSTANCE))
-                    .map(r -> r.getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
-            stringBuilder.append(System.lineSeparator());
-            stringBuilder.append(snapshotItems.stream()
-                    .filter(s -> s.getConfigPv().getReadbackPvName() != null && s.getReadbackValue().equals(VDisconnectedData.INSTANCE))
-                    .map(r -> r.getConfigPv().getReadbackPvName()).collect(Collectors.joining(System.lineSeparator())));
-            String message = stringBuilder.toString();
-            LOGGER.log(Level.WARNING, "Failed to read/write the following PVs");
-            LOGGER.log(Level.WARNING, message);
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle(Messages.errorActionFailed);
-            alert.setHeaderText(Messages.actionFailedInteractionFailed);
-            alert.setContentText(message);
-            DialogHelper.positionDialog(alert, root, -200, 200);
-            alert.show();
-        }
     }
 }
