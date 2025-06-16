@@ -30,7 +30,7 @@ class SearchCommandHandler implements CommandHandler<ServerTCPHandler>
         final byte version = buffer.get(PVAHeader.HEADER_OFFSET_VERSION);
         final int payload_size = buffer.getInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE);
 
-        final SearchRequest search = SearchRequest.decode(tcp.getRemoteAddress(), version, payload_size, buffer);
+        final SearchRequest search = SearchRequest.decode(null, tcp.getRemoteAddress(), version, payload_size, buffer);
 
         if (search.channels != null)
             for (SearchRequest.Channel channel : search.channels)

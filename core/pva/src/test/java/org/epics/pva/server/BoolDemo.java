@@ -23,6 +23,8 @@ import org.epics.pva.data.nt.PVATimeStamp;
 /** PVA Server Demo for "bool" PV
  *  @author Kay Kasemir
  */
+// mvn test-compile
+// java -cp target/classes:target/test-classes org.epics.pva.server.BoolDemo
 @SuppressWarnings("nls")
 public class BoolDemo
 {

@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
+import org.epics.pva.common.OriginTag;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.SearchRequest;
 import org.epics.pva.common.SearchResponse;
@@ -197,6 +198,9 @@ class ClientUDPHandler extends UDPHandler
         {
         case PVAHeader.CMD_BEACON:
             return handleBeacon(from, version, payload, buffer);
+        case PVAHeader.CMD_ORIGIN_TAG:
+            // Will be decoded with CMD_SEARCH
+            break;
         case PVAHeader.CMD_SEARCH:
             return handleSearchRequest(from, version, payload, buffer);
         case PVAHeader.CMD_SEARCH_RESPONSE:
@@ -290,7 +294,8 @@ class ClientUDPHandler extends UDPHandler
     private boolean handleSearchRequest(final InetSocketAddress from, final byte version,
                                         final int payload, final ByteBuffer buffer)
     {
-        final SearchRequest search = SearchRequest.decode(from, version, payload, buffer);
+        final OriginTag origin = OriginTag.testForOriginOfSearch(from, buffer);
+        final SearchRequest search = SearchRequest.decode(origin, from, version, payload, buffer);
         try
         {
             if (local_multicast != null  &&  search != null  &&  search.unicast)
@@ -300,7 +305,8 @@ class ClientUDPHandler extends UDPHandler
                     if (search.reply_required)
                     {
                         forward_buffer.clear();
-                        SearchRequest.encode(false, false, 0, null, search.client, search.tls, forward_buffer);
+                        OriginTag.encode(udp_search4, forward_buffer);
+                        SearchRequest.encode(false, search.reply_to_src_port, 0, null, search.client, search.tls, forward_buffer);
                         forward_buffer.flip();
                         logger.log(Level.FINER, () -> "Forward search to list servers to " + local_multicast + "\n" + Hexdump.toHexdump(forward_buffer));
                         send(forward_buffer, local_multicast);
@@ -309,7 +315,8 @@ class ClientUDPHandler extends UDPHandler
                 else
                 {
                     forward_buffer.clear();
-                    SearchRequest.encode(false, false, search.seq, search.channels, search.client, search.tls, forward_buffer);
+                    OriginTag.encode(udp_search4, forward_buffer);
+                    SearchRequest.encode(false, search.reply_to_src_port, search.seq, search.channels, search.client, search.tls, forward_buffer);
                     forward_buffer.flip();
                     logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(forward_buffer));
                     send(forward_buffer, local_multicast);

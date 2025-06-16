@@ -70,7 +70,17 @@ public class SearchRequest
 
     /** Client should ignore the 'port' in the reply and
      *  simply use the port of the 'source', that is the peer port
-     *  of the UDP message or TCP connection
+     *  of the UDP message or TCP connection.
+     *
+     *  <p>In a forwarded message, the 'client' (reply-to)
+     *  address has been updated to reflect the original client.
+     *  The 'reply_to_src_port' flag is copied, but server
+     *  must NOT reply to the source port because that would
+     *  be the port of the forwarder, not the real client.
+     *  The presence of an {@link OriginTag} will indicate
+     *  that the 'reply_to_src_port' flag is copied and needs
+     *  to be ignored.
+     *
      *  @since Version 3
      */
     public static final byte FLAG_REPLY_SRC_PORT = 0x02;
@@ -94,14 +104,14 @@ public class SearchRequest
     public List<Channel> channels;
 
     /** Check search request
-     *
+     *  @param origin Optional CMD_ORIGIN_TAG that preceded the search message
      *  @param from Peer address
      *  @param version Message version
      *  @param payload Payload size
      *  @param buffer Buffer positioned on payload
      *  @return Decoded search request or <code>null</code> if not a valid search request
      */
-    public static SearchRequest decode(final InetSocketAddress from, final byte version,
+    public static SearchRequest decode(final OriginTag origin, final InetSocketAddress from, final byte version,
                                        final int payload, final ByteBuffer buffer)
     {
         // pvinfo sends 0x1D=29 bytes:
@@ -150,12 +160,12 @@ public class SearchRequest
         // and instead use the peer's port.
         // This should help with NAT where we get the message from an intermediate
         // and need to reply via that same intermediate
-        if (version >= 3  &&  search.reply_to_src_port)
+        if (version >= 3  &&  search.reply_to_src_port  &&  origin == null)
             port = from.getPort();
 
         // Use address from message unless it's a generic local address
         if (addr.isAnyLocalAddress() || port <= 0)
-            search.client = from;
+            search.client = new InetSocketAddress(from.getAddress(), port);
         else
             search.client = new InetSocketAddress(addr, port);
 
@@ -200,7 +210,7 @@ public class SearchRequest
                                             + (search.tls               ? " (TLS)" : "")
                                             + (search.unicast           ? " (unicast)" : "")
                                             + (search.reply_required    ? " (reply required)" : "")
-                                            + (search.reply_to_src_port ? " (reply to source port)" : ""));
+                                            + (search.reply_to_src_port ? (origin == null ?  " (reply to source port)"  : " (reply to source port ignored because of origin tag)") : ""));
                 search.channels.add(new Channel(cid, name));
             }
         }
@@ -221,10 +231,11 @@ public class SearchRequest
                               final InetSocketAddress address, final boolean tls,
                               final ByteBuffer buffer)
     {
+        final int start = buffer.position();
         // Create with zero payload size, to be patched later
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_SEARCH, 0);
 
-        final int payload_start = buffer.position();
+        final int payload_start = start + PVAHeader.HEADER_SIZE;
 
         // SEARCH message sequence
         // PVXS sends "find".getBytes() instead
@@ -282,6 +293,6 @@ public class SearchRequest
         }
 
         // Update payload size
-        buffer.putInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE, buffer.position() - payload_start);
+        buffer.putInt(start + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE, buffer.position() - payload_start);
     }
 }
