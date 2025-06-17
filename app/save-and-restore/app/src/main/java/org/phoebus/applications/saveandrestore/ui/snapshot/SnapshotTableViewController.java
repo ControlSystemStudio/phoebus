@@ -7,8 +7,10 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -16,19 +18,28 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SafeMultiply;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
@@ -39,14 +50,18 @@ import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
+import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.saveandrestore.util.Threshold;
 import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
+import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.time.DateTimePane;
 import org.phoebus.util.time.TimestampFormats;
@@ -56,16 +71,23 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-
-public class SnapshotTableViewController extends BaseSnapshotTableViewController {
+/**
+ * Controller for the {@link TableView} part of a snapshot view.
+ */
+public class SnapshotTableViewController {
 
     @SuppressWarnings("unused")
     @FXML
@@ -86,6 +108,61 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     @FXML
     private TableColumn<TableEntry, ActionResult> actionSucceededColumn;
 
+    @FXML
+    protected TableView<TableEntry> snapshotTableView;
+
+    @FXML
+    protected TableColumn<TableEntry, Boolean> selectedColumn;
+
+    @FXML
+    protected TooltipTableColumn<Integer> idColumn;
+
+    @FXML
+    protected TooltipTableColumn<VType> storedValueColumn;
+
+    @FXML
+    protected TooltipTableColumn<VType> liveValueColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, VTypePair> deltaColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, VTypePair> deltaReadbackColumn;
+
+    protected SnapshotController snapshotController;
+
+    protected static final Logger LOGGER = Logger.getLogger(SnapshotTableViewController.class.getName());
+
+    @FXML
+    protected TableColumn<TableEntry, ?> statusColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, ?> severityColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, ?> valueColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, ?> firstDividerColumn;
+
+    //@FXML
+    protected TableColumn<TableEntry, ?> compareColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, ?> baseSnapshotColumn;
+
+    @FXML
+    protected TooltipTableColumn<VType> baseSnapshotValueColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, VTypePair> baseSnapshotDeltaColumn;
+
+    /**
+     * List of snapshots used managed in this controller. Index 0 is always the base snapshot,
+     * all others are snapshots added in the compare use-case.
+     */
+    protected List<Snapshot> snapshots = new ArrayList<>();
+
     private final SimpleBooleanProperty selectionInverted = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty showReadbacks = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty showDeltaPercentage = new SimpleBooleanProperty(false);
@@ -94,10 +171,108 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
 
     private SnapshotUtil snapshotUtil;
 
+
+    /**
+     * {@link Map} of {@link TableEntry} items corresponding to the snapshot data, i.e.
+     * one per PV as defined in the snapshot's configuration. This map is used to
+     * populate the {@link TableView}, but other parameters (e.g. hideEqualItems) may
+     * determine which elements in the {@link Map} to actually represent.
+     */
+    protected final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
+    protected final Map<String, SaveAndRestorePV> pvs = new HashMap<>();
+
+
     @FXML
     public void initialize() {
 
-        super.initialize();
+        snapshotTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        snapshotTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        snapshotTableView.getStylesheets().add(SnapshotTableViewController.class.getResource("/save-and-restore-style.css").toExternalForm());
+
+        CheckBoxTableCell<TableEntry, Boolean> checkBoxTableCell = new CheckBoxTableCell<>();
+        checkBoxTableCell.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> System.out.println(snapshotTableView.getItems().get(0).selectedProperty()));
+        selectedColumn.setCellFactory(col -> checkBoxTableCell);
+
+        snapshotTableView.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.SPACE) {
+                return;
+            }
+
+            ObservableList<TableEntry> selections = snapshotTableView.getSelectionModel().getSelectedItems();
+
+            if (selections == null) {
+                return;
+            }
+
+            selections.stream().filter(item -> !item.readOnlyProperty().get()).forEach(item -> item.selectedProperty().setValue(!item.selectedProperty().get()));
+
+            // Somehow JavaFX TableView handles SPACE pressed event as going into edit mode of the cell.
+            // Consuming event prevents NullPointerException.
+            event.consume();
+        });
+
+        snapshotTableView.setRowFactory(tableView -> new TableRow<>() {
+            final ContextMenu contextMenu = new ContextMenu();
+
+            @Override
+            protected void updateItem(TableEntry item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setOnContextMenuRequested(null);
+                } else {
+                    setOnContextMenuRequested(event -> {
+                        List<TimeStampedProcessVariable> selectedPVList = snapshotTableView.getSelectionModel().getSelectedItems().stream()
+                                .map(tableEntry -> {
+                                    Instant time = Instant.now();
+                                    if (tableEntry.timestampProperty().getValue() != null) {
+                                        time = tableEntry.timestampProperty().getValue();
+                                    }
+                                    return new TimeStampedProcessVariable(tableEntry.pvNameProperty().get(), time);
+                                })
+                                .collect(Collectors.toList());
+
+                        contextMenu.hide();
+                        contextMenu.getItems().clear();
+                        SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
+
+                        ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(this), contextMenu);
+                        contextMenu.getItems().add(new SeparatorMenuItem());
+                        MenuItem toggle = new MenuItem();
+                        toggle.setText(item.readOnlyProperty().get() ? Messages.makeRestorable : Messages.makeReadOnly);
+                        CheckBox toggleIcon = new CheckBox();
+                        toggleIcon.setFocusTraversable(false);
+                        toggleIcon.setSelected(item.readOnlyProperty().get());
+                        toggle.setGraphic(toggleIcon);
+                        toggle.setOnAction(actionEvent -> {
+                            item.readOnlyProperty().setValue(!item.readOnlyProperty().get());
+                            item.selectedProperty().set(!item.readOnlyProperty().get());
+                        });
+                        contextMenu.getItems().add(toggle);
+                        contextMenu.show(this, event.getScreenX(), event.getScreenY());
+                        disableProperty().set(item.readOnlyProperty().get());
+                    });
+                }
+            }
+        });
+
+        int width = measureStringWidth("000", Font.font(20));
+        idColumn.setPrefWidth(width);
+        idColumn.setMinWidth(width);
+        idColumn.setCellValueFactory(cell -> {
+            int idValue = cell.getValue().idProperty().get();
+            idColumn.setPrefWidth(Math.max(idColumn.getWidth(), measureStringWidth(String.valueOf(idValue), Font.font(20))));
+            return new ReadOnlyObjectWrapper<>(idValue);
+        });
+
+        storedValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
+        storedValueColumn.setOnEditCommit(e -> {
+            VType updatedValue = e.getRowValue().readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
+            ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
+            value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
+            snapshotController.updateLoadedSnapshot(e.getRowValue(), updatedValue);
+        });
+
+        liveValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
 
         selectedColumn.setCellFactory(column -> new SelectionCell());
 
@@ -649,7 +824,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                     "", minWidth);
             deltaCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshots.size()));
             deltaCol.setCellFactory(e -> {
-                VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
+                VDeltaCellEditor<VTypePair> vDeltaCellEditor = new VDeltaCellEditor<>();
                 vDeltaCellEditor.setShowDeltaPercentage(showDeltaPercentage.get());
                 return vDeltaCellEditor;
             });
@@ -675,4 +850,112 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     public void setActionResult(ActionResult actionResult) {
         Platform.runLater(() -> actionResultProperty.setValue(actionResult));
     }
+
+    public void showSnapshotInTable(Snapshot snapshot) {
+        if (snapshots.isEmpty()) {
+            snapshots.add(snapshot);
+        } else {
+            snapshots.set(0, snapshot);
+        }
+        AtomicInteger counter = new AtomicInteger(0);
+        snapshot.getSnapshotData().getSnapshotItems().forEach(entry -> {
+            TableEntry tableEntry = new TableEntry();
+            String name = entry.getConfigPv().getPvName();
+            tableEntry.idProperty().setValue(counter.incrementAndGet());
+            tableEntry.pvNameProperty().setValue(name);
+            tableEntry.setConfigPv(entry.getConfigPv());
+            tableEntry.setSnapshotValue(entry.getValue(), 0);
+            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
+            tableEntry.setReadbackValue(entry.getReadbackValue());
+            if (entry.getValue() == null || entry.getValue().equals(VDisconnectedData.INSTANCE)) {
+                tableEntry.setActionResult(ActionResult.FAILED);
+            } else if (entry.getConfigPv().getReadbackPvName() != null &&
+                    (entry.getReadbackValue() == null || entry.getReadbackValue().equals(VDisconnectedData.INSTANCE))) {
+                tableEntry.setActionResult(ActionResult.FAILED);
+            } else {
+                tableEntry.setActionResult(ActionResult.OK);
+            }
+            tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
+            tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
+            tableEntryItems.put(name, tableEntry);
+        });
+
+        updateTable(null);
+        connectPVs();
+    }
+
+    /**
+     * Sets new table entries for this table, but do not change the structure of the table.
+     *
+     * @param entries the entries to set
+     */
+    public void updateTable(List<TableEntry> entries) {
+        final ObservableList<TableEntry> items = snapshotTableView.getItems();
+        final boolean notHide = !snapshotController.isHideEqualItems();
+        Platform.runLater(() -> {
+            items.clear();
+            tableEntryItems.forEach((key, value) -> {
+                // there is no harm if this is executed more than once, because only one line is allowed for these
+                // two properties (see SingleListenerBooleanProperty for more details)
+                value.liveStoredEqualProperty().addListener((a, o, n) -> {
+                    if (snapshotController.isHideEqualItems()) {
+                        if (n) {
+                            snapshotTableView.getItems().remove(value);
+                        } else {
+                            snapshotTableView.getItems().add(value);
+                        }
+                    }
+                });
+                if (notHide || !value.liveStoredEqualProperty().get()) {
+                    items.add(value);
+                }
+            });
+        });
+    }
+
+    public void setSelectionColumnVisible(boolean visible) {
+        selectedColumn.visibleProperty().set(visible);
+    }
+
+    private int measureStringWidth(String text, Font font) {
+        Text mText = new Text(text);
+        if (font != null) {
+            mText.setFont(font);
+        }
+        return (int) mText.getLayoutBounds().getWidth();
+    }
+
+
+    protected void connectPVs() {
+        JobManager.schedule("Connect PVs", monitor -> {
+            tableEntryItems.values().forEach(e -> {
+                SaveAndRestorePV pv = pvs.get(e.getConfigPv().getPvName());
+                if (pv == null) {
+                    pvs.put(e.getConfigPv().getPvName(), new SaveAndRestorePV(e));
+                } else {
+                    pv.setSnapshotTableEntry(e);
+                }
+            });
+        });
+    }
+
+    /**
+     * <code>TimestampTableCell</code> is a table cell for rendering the {@link Instant} objects in the table.
+     *
+     * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
+     */
+    protected static class TimestampTableCell extends TableCell<TableEntry, Instant> {
+        @Override
+        protected void updateItem(Instant item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty) {
+                setText(null);
+            } else if (item == null) {
+                setText("---");
+            } else {
+                setText(TimestampFormats.SECONDS_FORMAT.format((item)));
+            }
+        }
+    }
+
 }

@@ -621,7 +621,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             compositeSnapshotTab.addToCompositeSnapshot(snapshotNodes);
         } else {
             compositeSnapshotTab = new CompositeSnapshotTab(this);
-            compositeSnapshotTab.editCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
+            compositeSnapshotTab.editCompositeSnapshot(compositeSnapshotNode);
             tabPane.getTabs().add(compositeSnapshotTab);
         }
         tabPane.getSelectionModel().select(compositeSnapshotTab);
