@@ -150,15 +150,18 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         tabTitleProperty.setValue(Messages.unnamedSnapshot);
         tabIdProperty.setValue(null);
         JobManager.schedule("Get configuration", monitor -> {
-            ConfigurationData configuration;
+            ConfigurationData configurationData;
             try {
-                configuration = SaveAndRestoreService.getInstance().getConfiguration(configurationNode.getUniqueId());
+                configurationData = SaveAndRestoreService.getInstance().getConfiguration(configurationNode.getUniqueId());
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(borderPane, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
                 LOGGER.log(Level.INFO, "Error loading configuration", e);
                 return;
             }
-            List<ConfigPv> configPvs = configuration.getPvList();
+            Optional<ConfigPv> configPvOptional =
+                    configurationData.getPvList().stream().filter(cp -> cp.getReadbackPvName() != null).findFirst();
+            snapshotControlsViewController.showLiveReadbackButton.setSelected(configPvOptional.isPresent());
+            List<ConfigPv> configPvs = configurationData.getPvList();
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).build());
             SnapshotData snapshotData = new SnapshotData();
@@ -354,14 +357,25 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         snapshotTableViewController.hideEqualItems();
     }
 
-
-    private void loadSnapshotInternal(Node snapshotNode) {
+    /**
+     * Loads a persisted snapshot {@link Node} for restore.
+     *
+     * @param snapshotNode An existing {@link Node} of type {@link NodeType#SNAPSHOT} or
+     *                     of type {@link NodeType#COMPOSITE_SNAPSHOT}.
+     */
+    public void loadSnapshot(Node snapshotNode) {
         disabledUi.set(true);
         JobManager.schedule("Load snapshot items", monitor -> {
             try {
                 Snapshot snapshot = getSnapshotFromService(snapshotNode);
                 snapshotProperty.set(snapshot);
+                Optional<SnapshotItem> snapshotItemOptional =
+                        snapshot.getSnapshotData().getSnapshotItems().stream().filter(si -> si.getConfigPv().getReadbackPvName() != null).findFirst();
                 Platform.runLater(() -> {
+                    snapshotControlsViewController.showLiveReadbackButton.setSelected(snapshotItemOptional.isPresent());
+                    snapshotControlsViewController.setSnapshotRestorableProperty(true);
+                    snapshotTableViewController.setSelectionColumnVisible(true);
+                    snapshotTableViewController.setActionResult(ActionResult.PENDING);
                     tabTitleProperty.setValue(snapshotNode.getName());
                     tabIdProperty.setValue(snapshotNode.getUniqueId());
                     snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
@@ -371,19 +385,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 disabledUi.set(false);
             }
         });
-    }
-
-    /**
-     * Loads a snapshot {@link Node} for restore.
-     *
-     * @param snapshotNode An existing {@link Node} of type {@link NodeType#SNAPSHOT}
-     */
-    public void loadSnapshot(Node snapshotNode) {
-        snapshotControlsViewController.setSnapshotNode(snapshotNode);
-        snapshotControlsViewController.setSnapshotRestorableProperty(true);
-        snapshotTableViewController.setSelectionColumnVisible(true);
-        snapshotTableViewController.setActionResult(ActionResult.PENDING);
-        loadSnapshotInternal(snapshotNode);
     }
 
     public void restore() {
@@ -442,10 +443,13 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             if (snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
                 this.configurationNode = SaveAndRestoreService.getInstance().getParentNode(snapshotNode.getUniqueId());
                 snapshotData = SaveAndRestoreService.getInstance().getSnapshot(snapshotNode.getUniqueId());
-            } else {
+            } else if (snapshotNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
                 List<SnapshotItem> snapshotItems = SaveAndRestoreService.getInstance().getCompositeSnapshotItems(snapshotNode.getUniqueId());
                 snapshotData = new SnapshotData();
                 snapshotData.setSnapshotItems(snapshotItems);
+            }
+            else{
+                throw new RuntimeException("Node type " + snapshotNode.getNodeType() + " not recognized as a valid snapshot type");
             }
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(borderPane, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);

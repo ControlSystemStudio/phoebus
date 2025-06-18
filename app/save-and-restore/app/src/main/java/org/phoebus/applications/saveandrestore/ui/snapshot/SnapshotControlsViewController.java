@@ -145,13 +145,8 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     private final SimpleStringProperty createdDateTextProperty = new SimpleStringProperty();
     private final SimpleStringProperty lastModifiedDateTextProperty = new SimpleStringProperty();
     private final SimpleBooleanProperty snapshotRestorableProperty = new SimpleBooleanProperty(false);
-
-    protected final SimpleBooleanProperty showLiveReadbackProperty = new SimpleBooleanProperty(false);
-
     protected final SimpleBooleanProperty showDeltaPercentageProperty = new SimpleBooleanProperty(false);
-
     private final SimpleBooleanProperty hideEqualItemsProperty = new SimpleBooleanProperty(false);
-
     private final SimpleBooleanProperty logActionProperty = new SimpleBooleanProperty(false);
 
     /**
@@ -265,10 +260,9 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         preserveSelectionCheckBox.selectedProperty().addListener((observableValue, aBoolean, isSelected) -> snapshotController.applyPreserveSelection(isSelected));
 
         showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
-        showLiveReadbackProperty.bind(showLiveReadbackButton.selectedProperty());
         showLiveReadbackButton.selectedProperty()
                 .addListener((a, o, n) ->
-                        snapshotController.showReadback(showLiveReadbackProperty.get()));
+                        snapshotController.showReadback(n));
 
         ImageView showHideDeltaPercentageButtonImageView = new ImageView(new Image(getClass().getResourceAsStream("/icons/show_hide_delta_percentage.png")));
         showHideDeltaPercentageButtonImageView.setFitWidth(16);
@@ -373,7 +367,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     public void setSnapshotNode(Node node) {
         snapshotNodeProperty.set(node);
-        updateUi(node);
     }
 
     private void updateUi(Node node) {

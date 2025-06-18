@@ -30,7 +30,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.epics.vtype.VNumber;
@@ -188,10 +187,6 @@ public class SnapshotTableViewController {
         snapshotTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         snapshotTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         snapshotTableView.getStylesheets().add(SnapshotTableViewController.class.getResource("/save-and-restore-style.css").toExternalForm());
-
-        CheckBoxTableCell<TableEntry, Boolean> checkBoxTableCell = new CheckBoxTableCell<>();
-        checkBoxTableCell.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> System.out.println(snapshotTableView.getItems().get(0).selectedProperty()));
-        selectedColumn.setCellFactory(col -> checkBoxTableCell);
 
         snapshotTableView.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() != KeyCode.SPACE) {
