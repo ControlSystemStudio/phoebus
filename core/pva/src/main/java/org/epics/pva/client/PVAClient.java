@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -124,9 +124,9 @@ public class PVAClient implements AutoCloseable
         return list_replies.values();
     }
 
-    private void handleListResponse(final InetSocketAddress server, final int version, final Guid guid)
+    private void handleListResponse(final InetSocketAddress server, final int version, final Guid guid, final boolean tls)
     {
-        logger.log(Level.FINE, () -> guid + " version " + version + ": tcp@" + server);
+        logger.log(Level.FINE, () -> "Server list response: " + guid + " version " + version + ", tcp@" + server + (tls ? " (TLS)" : ""));
         final ServerInfo info = list_replies.computeIfAbsent(guid, g -> new ServerInfo(g));
         info.version = version;
         info.addresses.add(server);
@@ -221,7 +221,7 @@ public class PVAClient implements AutoCloseable
         // Generic server 'list' response?
         if (channel_id < 0)
         {
-            handleListResponse(server, version, guid);
+            handleListResponse(server, version, guid, tls);
             return;
         }
 

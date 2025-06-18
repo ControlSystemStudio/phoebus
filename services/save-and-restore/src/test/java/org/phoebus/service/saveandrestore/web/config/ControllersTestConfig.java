@@ -142,4 +142,9 @@ public class ControllersTestConfig {
         return Mockito.mock(WebSocketHandler.class);
     }
 
+    @Bean
+    public long connectionTimeout(){
+        return 5000;
+    }
+
 }

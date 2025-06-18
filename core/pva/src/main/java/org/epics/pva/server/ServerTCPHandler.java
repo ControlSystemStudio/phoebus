@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -62,7 +62,9 @@ class ServerTCPHandler extends TCPHandler
 
     public ServerTCPHandler(final PVAServer server, final Socket client, final TLSHandshakeInfo tls_info) throws Exception
     {
-        super(client, false);
+        super(false);
+        // Server received the client socket from `accept`
+        this.socket = Objects.requireNonNull(client);
         this.server = Objects.requireNonNull(server);
         this.tls_info = tls_info;
 
@@ -111,6 +113,19 @@ class ServerTCPHandler extends TCPHandler
 
             buffer.putInt(size_offset, buffer.position() - payload_start);
         });
+    }
+
+    @Override
+    protected boolean initializeSocket()
+    {
+        // Nothing to do, received client socket on construction
+        return true;
+    }
+
+    @Override
+    public InetSocketAddress getRemoteAddress()
+    {
+        return new InetSocketAddress(socket.getInetAddress(), socket.getPort());
     }
 
     PVAServer getServer()

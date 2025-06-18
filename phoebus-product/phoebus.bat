@@ -2,17 +2,22 @@
 @REM Uses a JDK that's located next to this folder,
 @REM otherwise assumes JDK is on the PATH
 
-@cd %~P0
+set TOP=%~P0
 setlocal ENABLEDELAYEDEXPANSION
 
-@IF EXIST "%~P0%..\jdk" (
-    set JAVA_HOME=%~P0%..\jdk
+@IF EXIST "%TOP%target" (
+    set TOP=%TOP%target\
+)
+
+@IF EXIST "%TOP%..\jdk" (
+    set JAVA_HOME=%TOP%..\jdk
     @path !JAVA_HOME!\bin
     @ECHO Found JDK !JAVA_HOME!
 )
 
-@if EXIST "update" (
+@IF EXIST "%TOP%update" (
     @ECHO Installing update...
+    @cd "%TOP%"
     @rd /S/Q doc
     @rd /S/Q lib
     @del product*.jar
@@ -25,10 +30,10 @@ setlocal ENABLEDELAYEDEXPANSION
 
 @java -version
 echo off
-FOR /F "tokens=* USEBACKQ" %%F IN (`dir /B product*.jar`) DO (SET JAR=%%F)
+FOR /F "tokens=* USEBACKQ" %%F IN (`dir /B /S "%TOP%product*.jar"`) DO (SET JAR=%%F)
 echo on
 
 @REM CA_DISABLE_REPEATER=true: Don't start CA repeater (#494)
 @REM To get one instance, use server mode by adding `-server 4918`
-@java -DCA_DISABLE_REPEATER=true -Dfile.encoding=UTF-8 -jar %JAR%  %*
+@java -DCA_DISABLE_REPEATER=true -Dfile.encoding=UTF-8 -jar "%JAR%" %*
 

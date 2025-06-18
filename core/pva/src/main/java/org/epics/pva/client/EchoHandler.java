@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,11 +37,12 @@ class EchoHandler implements CommandHandler<ClientTCPHandler>
         {
             final byte[] payload = new byte[payload_size];
             buffer.get(payload);
-            if (Arrays.equals(payload, EchoRequest.CHECK))
+            final String expected = tcp.getActiveEchoRequest();
+            if (Arrays.equals(payload, expected.getBytes()))
                 logger.log(Level.FINE, () -> "Received ECHO:\n" + Hexdump.toHexdump(payload));
             else
             {
-                logger.log(Level.WARNING, this + " received invalid echo reply:\n" +
+                logger.log(Level.WARNING, this + " received invalid echo reply, expected " + expected + ":\n" +
                                           Hexdump.toHexdump(payload));
                 return;
             }

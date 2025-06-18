@@ -92,8 +92,6 @@
     <maven.compiler.target>17</maven.compiler.target>
     <activemq.client.version>5.18.4</activemq.client.version>
     <commons.compress.version>1.26.1</commons.compress.version>
-    <!--suppress UnresolvedMavenProperty -->
-    <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
   </properties>
   <build>
     <plugins>
@@ -186,10 +184,10 @@
           <generateGitPropertiesFile>true</generateGitPropertiesFile>
           <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
           <format>json</format>
-          <excludeProperties>
-            <excludeProperty>^git.build.*$</excludeProperty>
-            <excludeProperty>^git.local.branch.*$</excludeProperty>
-          </excludeProperties>
+          <includeOnlyProperties>
+            <includeOnlyProperty>^git.commit.id$</includeOnlyProperty>
+            <includeOnlyProperty>^git.commit.id.abbrev$</includeOnlyProperty>
+          </includeOnlyProperties>
         </configuration>
       </plugin>
     </plugins>
