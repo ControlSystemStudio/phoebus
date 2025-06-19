@@ -1,4 +1,4 @@
-package org.csstudio.trends.databrowser3.ui.sampleview;
+package org.csstudio.trends.databrowser3.ui.smoothview;
 
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.javafx.rtplot.data.PlotDataProvider;
