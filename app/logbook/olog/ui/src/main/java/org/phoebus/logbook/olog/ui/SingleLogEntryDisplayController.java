@@ -33,6 +33,7 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.web.HyperLinkRedirectListener;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
@@ -260,8 +261,11 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
                 File attachmentFile = new File(attachmentsDirectory, attachment.getId() + fileExtension);
                 if (!attachmentFile.exists()) {
-                    Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), attachmentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    attachmentFile.deleteOnExit();
+                    InputStream stream = logClient.getAttachment(logEntry.getId(), attachment.getName());
+                    if(stream != null) {
+                        Files.copy(stream, attachmentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        attachmentFile.deleteOnExit();
+                    }
                 }
                 fileAttachment.setFile(attachmentFile);
                 attachmentList.add(fileAttachment);

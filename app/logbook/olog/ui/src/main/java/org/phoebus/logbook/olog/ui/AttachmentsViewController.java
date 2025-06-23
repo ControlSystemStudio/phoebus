@@ -278,7 +278,7 @@ public class AttachmentsViewController {
      * @param attachment The image {@link Attachment} selected by user.
      */
     private void showImagePreview(Attachment attachment) {
-        if (attachment.getFile() != null) {
+        if (attachment.getFile() != null && attachment.getFile().exists()) {
             // Load image data off UI thread...
             JobManager.schedule("Show image attachment", monitor -> {
                 try {
