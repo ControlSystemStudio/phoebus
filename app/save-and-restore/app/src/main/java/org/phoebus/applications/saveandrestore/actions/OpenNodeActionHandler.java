@@ -9,6 +9,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.spi.ActionHandler;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.workbench.ApplicationService;
 
 import java.net.URI;
@@ -27,8 +28,11 @@ public class OpenNodeActionHandler implements ActionHandler {
 
         Platform.runLater(() -> {
             try {
+                String nodeId = openNodeActionInfo.getNodeId();
+                final String expanded = MacroHandler.replace(sourceWidget.getMacrosOrProperties(), nodeId);
+
                 ApplicationService.createInstance(SaveAndRestoreApplication.NAME, URI.create("file:/" +
-                        URLEncoder.encode(openNodeActionInfo.getNodeId(), StandardCharsets.UTF_8) + "?app=saveandrestore&action=" + OpenNodeAction.OPEN_SAR_NODE));
+                        URLEncoder.encode(expanded, StandardCharsets.UTF_8) + "?app=saveandrestore&action=" + OpenNodeAction.OPEN_SAR_NODE));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
