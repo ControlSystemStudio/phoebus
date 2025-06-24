@@ -834,7 +834,7 @@ public class LogEntryEditorController {
                defaultLevel = optionalLevel.get().name();
             }
             selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : defaultLevel);
-            levelSelector.getSelectionModel().select(selectedLevelProperty.get());
+            Platform.runLater(() -> levelSelector.getSelectionModel().select(selectedLevelProperty.get()));
         });
     }
 
