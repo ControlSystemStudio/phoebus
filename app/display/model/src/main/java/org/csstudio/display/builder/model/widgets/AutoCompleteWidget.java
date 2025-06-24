@@ -66,36 +66,31 @@ public class AutoCompleteWidget extends WritablePVWidget {
      * 'items' property: list of items (string properties) for auto-completion
      */
     public static final WidgetPropertyDescriptor<String> propItems =
-        newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "testitems",
-            "AutoComplete Item");
+        newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "testitems", "Suggestions");
 
     /**
      * 'max_suggestions' property: maximum number of suggestions to display
      */
     private static final WidgetPropertyDescriptor<Integer> propMaxSuggestions =
-        newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "max_suggestions",
-            "Max Suggestions");
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "max_suggestions", "Max Suggestions");
 
     /**
      * 'min_chars' property: minimum characters to trigger autocomplete
      */
     private static final WidgetPropertyDescriptor<Integer> propMinCharacters =
-        newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "min_characters",
-            "Min Characters");
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "min_characters", "Min Characters");
 
     /**
      * 'case_sensitive' property: whether matching is case sensitive
      */
     private static final WidgetPropertyDescriptor<Boolean> propCaseSensitive =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "case_sensitive",
-            "Case Sensitive");
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "case_sensitive", "Case Sensitive");
 
     /**
      * 'placeholder' property: placeholder text when empty
      */
     private static final WidgetPropertyDescriptor<String> propPlaceholder =
-        newStringPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "placeholder",
-            "Placeholder Text");
+        newStringPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "placeholder", "Placeholder Text");
 
     /**
      * 'filter_mode' property: how to filter suggestions (starts_with, contains, fuzzy)

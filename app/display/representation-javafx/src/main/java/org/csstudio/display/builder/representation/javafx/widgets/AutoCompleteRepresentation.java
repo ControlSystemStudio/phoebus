@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
+
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -263,7 +266,7 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
                 suggestionsPopup.hide();
             }
             String text = textField.getText();
-            if (text != null && !text.trim().isEmpty()) {
+            if (text != null) {
                 confirmValue(text);
             }
         });
@@ -452,8 +455,7 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
             Object mappedValue;
 
             if (currentPvValue instanceof VEnum) {
-                mappedValue = FormatOptionHandler.parse(currentPvValue, value,
-                    FormatOption.DEFAULT);
+                mappedValue = FormatOptionHandler.parse(currentPvValue, value, FormatOption.DEFAULT);
             } else {
                 try {
                     if (value.contains(".")) {
@@ -462,6 +464,7 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
                         mappedValue = Integer.parseInt(value);
                     }
                 } catch (NumberFormatException e) {
+                    // This will handle String PVs, which are expected to be most likely
                     VType convertedValue = VType.toVType(value);
                     mappedValue = (convertedValue != null) ? convertedValue : value;
                 }
@@ -469,8 +472,7 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
 
             toolkit.fireWrite(model_widget, mappedValue);
         } catch (Exception e) {
-            System.err.println("Error writing to PV: " + e.getMessage());
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Error writing to PV", e);
         }
     }
 
