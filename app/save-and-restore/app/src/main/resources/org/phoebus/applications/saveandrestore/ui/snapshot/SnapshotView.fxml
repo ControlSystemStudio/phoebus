@@ -183,7 +183,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
         <center>
             <TableView fx:id="snapshotTableView" editable="true" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="actionSucceededColumn" visible="false" editable="false" maxWidth="40" prefWidth="40" resizable="false" style="-fx-alignment: TOP-CENTER;" >
+                    <TableColumn fx:id="actionResultColumn" visible="false" editable="false" maxWidth="40" prefWidth="40" resizable="false" style="-fx-alignment: TOP-CENTER;" >
                         <cellValueFactory>
                             <PropertyValueFactory property="actionResult" />
                         </cellValueFactory>
@@ -264,6 +264,11 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 
                     <TableColumn fx:id="readbackColumn" minWidth="300.0" prefWidth="500.0" sortable="false" styleClass="snapshot-table-centered" text="%tableColumnReadback">
                         <columns>
+                            <TableColumn fx:id="actionResultReadbackColumn" visible="false" editable="false" maxWidth="40" prefWidth="40" resizable="false" style="-fx-alignment: TOP-CENTER;" >
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="actionResultReadback" />
+                                </cellValueFactory>
+                            </TableColumn>
                             <TooltipTableColumn labelText="%tableColumnPVName" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnReadbackPVName">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="readbackName" />

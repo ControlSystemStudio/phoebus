@@ -226,7 +226,11 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     private TableColumn<TableEntry, ?> readbackColumn;
     @SuppressWarnings("unused")
     @FXML
-    private TableColumn<TableEntry, ActionResult> actionSucceededColumn;
+    private TableColumn<TableEntry, ActionResult> actionResultColumn;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private TableColumn<TableEntry, ActionResult> actionResultReadbackColumn;
 
     @FXML
     protected TableView<TableEntry> snapshotTableView;
@@ -299,7 +303,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     protected final SimpleBooleanProperty showDeltaPercentageProperty = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty hideEqualItemsProperty = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty logActionProperty = new SimpleBooleanProperty(false);
-
     /**
      * Property used to indicate if there is new snapshot data to save, or if snapshot metadata
      * has changed (e.g. user wants to rename the snapshot or update the comment).
@@ -318,7 +321,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     private final SimpleBooleanProperty showReadbacks = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty showDeltaPercentage = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty compareViewEnabled = new SimpleBooleanProperty(false);
-    private final SimpleObjectProperty<ActionResult> actionResultProperty = new SimpleObjectProperty<>(ActionResult.PENDING);
     /**
      * Used to control the disable state on the Take Snapshot button.
      */
@@ -466,8 +468,10 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
         showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
         showLiveReadbackButton.selectedProperty()
-                .addListener((a, o, n) ->
-                        this.showReadbacks.set(n));
+                .addListener((a, o, n) ->{
+                    this.showReadbacks.set(n);
+                    actionResultReadbackColumn.visibleProperty().setValue(actionResultReadbackColumn.getGraphic() != null);
+                });
 
         ImageView showHideDeltaPercentageButtonImageView = new ImageView(new Image(getClass().getResourceAsStream("/icons/show_hide_delta_percentage.png")));
         showHideDeltaPercentageButtonImageView.setFitWidth(16);
@@ -657,38 +661,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             return vDeltaCellEditor;
         }));
 
-        actionSucceededColumn.setCellFactory(e -> new TableCell<>() {
-            @Override
-            public void updateItem(ActionResult actionResult, boolean empty) {
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    switch (actionResult) {
-                        case PENDING -> setGraphic(null);
-                        case OK ->
-                                setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
-                        case FAILED ->
-                                setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
-                    }
-                }
-            }
-        });
-        actionResultProperty.addListener((obs, o, n) -> {
-            if (n != null) {
-                switch (n) {
-                    case PENDING -> actionSucceededColumn.visibleProperty().set(false);
-                    case OK -> {
-                        actionSucceededColumn.visibleProperty().set(true);
-                        actionSucceededColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
-                    }
-                    case FAILED -> {
-                        actionSucceededColumn.visibleProperty().set(true);
-                        actionSucceededColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
-                    }
-                }
-            }
-        });
-
+        actionResultColumn.setCellFactory(c -> new ActionResultTableCell());
+        actionResultReadbackColumn.setCellFactory(c -> new ActionResultTableCell());
 
         liveReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
         storedReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
@@ -759,6 +733,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             snapshotData.setSnapshotItems(configurationToSnapshotItems(configPvs));
             this.snapshot.setSnapshotData(snapshotData);
             updateUi();
+            Platform.runLater(() -> actionResultReadbackColumn.visibleProperty().setValue(false));
             setTabImage(snapshot.getSnapshotNode());
         });
     }
@@ -767,21 +742,34 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     @SuppressWarnings("unused")
     public void takeSnapshot() {
         disabledUi.set(true);
+        resetMetaData();
+        takeSnapshot(snapshotModeProperty.get(), snapshot -> {
+            disabledUi.set(false);
+            if (snapshot.isPresent()) {
+                snapshotDataDirty.set(true);
+                snapshotRestorableProperty.set(false);
+                Platform.runLater(() -> {
+                    actionResultColumn.visibleProperty().set(true);
+                    actionResultReadbackColumn.visibleProperty().set(true);
+                });
+                this.snapshot.setSnapshotNode(snapshot.get().getSnapshotNode());
+                this.snapshot.setSnapshotData(snapshot.get().getSnapshotData());
+                updateUi();
+            }
+        });
+    }
+
+    /**
+     * Restores snapshot meta-data properties to indicate that the UI
+     * is not showing persisted {@link Snapshot} data.
+     */
+    private void resetMetaData(){
         tabTitleProperty.setValue(Messages.unnamedSnapshot);
         snapshotNameProperty.setValue(null);
         snapshotCommentProperty.setValue(null);
         createdDateTextProperty.setValue(null);
         lastModifiedDateTextProperty.setValue(null);
         createdByTextProperty.setValue(null);
-        takeSnapshot(snapshotModeProperty.get(), snapshot -> {
-            disabledUi.set(false);
-            if (snapshot.isPresent()) {
-                snapshotDataDirty.set(true);
-                this.snapshot.setSnapshotNode(snapshot.get().getSnapshotNode());
-                this.snapshot.setSnapshotData(snapshot.get().getSnapshotData());
-                updateUi();
-            }
-        });
     }
 
     @SuppressWarnings("unused")
@@ -915,12 +903,14 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 Snapshot snapshot = getSnapshotFromService(snapshotNode);
                 this.snapshot.setSnapshotNode(snapshot.getSnapshotNode());
                 this.snapshot.setSnapshotData(snapshot.getSnapshotData());
+                boolean configurationHasReadbacks = configurationHasReadbackPvs(snapshot.getSnapshotData());
                 Platform.runLater(() -> {
                     nodeTypeProperty.set(snapshot.getSnapshotNode().getNodeType());
-                    showLiveReadbackButton.setSelected(configurationHasReadbackPvs(snapshot.getSnapshotData()));
+                    showLiveReadbackButton.setSelected(configurationHasReadbacks);
+                    actionResultColumn.visibleProperty().setValue(false);
+                    actionResultReadbackColumn.visibleProperty().setValue(false);
                     snapshotRestorableProperty.set(true);
                     selectedColumn.visibleProperty().set(true);
-                    actionResultProperty.setValue(ActionResult.PENDING);
                     tabTitleProperty.setValue(snapshotNode.getName());
                     tabIdProperty.setValue(snapshotNode.getUniqueId());
                     snapshotRestorableProperty.set(true);
@@ -1052,7 +1042,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     private void takeSnapshotFromArchiver(Consumer<Optional<Snapshot>> consumer) {
-        actionResultProperty.set(ActionResult.PENDING);
         DateTimePane dateTimePane = new DateTimePane();
         Dialog<Instant> timePickerDialog = new Dialog<>();
         timePickerDialog.setTitle(Messages.dateTimePickerTitle);
@@ -1077,7 +1066,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 LOGGER.log(Level.WARNING, "Failed to query archiver for data", e);
                 return;
             }
-            analyzeTakeSnapshotResult(snapshotItems);
+            showTakeSnapshotResult(snapshotItems);
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(Node.builder().name(Messages.archiver).nodeType(NodeType.SNAPSHOT).created(new Date(time.get().toEpochMilli())).build());
             SnapshotData snapshotData = new SnapshotData();
@@ -1089,7 +1078,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     private void takeSnapshotReadPVs(Consumer<Optional<Snapshot>> consumer) {
-        actionResultProperty.set(ActionResult.PENDING);
         JobManager.schedule("Take snapshot", monitor -> {
             // Clear snapshots array
             snapshots.clear();
@@ -1116,7 +1104,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     }
                 }
             });
-            analyzeTakeSnapshotResult(snapshotItems);
+            showTakeSnapshotResult(snapshotItems);
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).build());
             SnapshotData snapshotData = new SnapshotData();
@@ -1137,29 +1125,38 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     /**
-     * Checks if any of the PVs or read-back PVs (where specified) are equal to {@link VDisconnectedData#INSTANCE}.
-     * If so, then UI is updated to indicate this.
+     * Updates the UI to indicate potential issues reading PVs.
      *
      * @param snapshotItems {@link List} of {@link SnapshotItem} as created in a read operation (by service or from archiver).
      */
-    private void analyzeTakeSnapshotResult(List<SnapshotItem> snapshotItems) {
+    private void showTakeSnapshotResult(List<SnapshotItem> snapshotItems) {
         AtomicBoolean disconnectedPvEncountered = new AtomicBoolean(false);
+        AtomicBoolean disconnectedReadbackPvEncountered = new AtomicBoolean(false);
         for (SnapshotItem snapshotItem : snapshotItems) {
             if (snapshotItem.getValue().equals(VDisconnectedData.INSTANCE)) {
                 disconnectedPvEncountered.set(true);
+                Platform.runLater(() -> {
+                    actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
+                });
                 break;
             }
-            if (snapshotItem.getConfigPv().getReadbackPvName() != null &&
+        }
+        for(SnapshotItem snapshotItem : snapshotItems){
+            if (snapshotItem.getConfigPv().getReadbackPvName() != null && snapshotItem.getReadbackValue() != null &&
                     snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
-                disconnectedPvEncountered.set(true);
+                disconnectedReadbackPvEncountered.set(true);
+                Platform.runLater(() -> {
+                    actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
+                });
                 break;
             }
         }
         Platform.runLater(() -> {
-            if (disconnectedPvEncountered.get()) {
-                actionResultProperty.set(ActionResult.FAILED);
-            } else {
-                actionResultProperty.set(ActionResult.OK);
+            if (!disconnectedPvEncountered.get()) {
+                actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
+            }
+            if(!disconnectedReadbackPvEncountered.get()){
+                actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
             }
         });
     }
@@ -1280,7 +1277,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * @param completion  Callback to handle a potentially empty list of {@link RestoreResult}s.
      */
     private void restore(RestoreMode restoreMode, Consumer<List<RestoreResult>> completion) {
-        actionResultProperty.set(ActionResult.PENDING);
+        actionResultColumn.setGraphic(null);
+        actionResultReadbackColumn.setGraphic(null);
         JobManager.schedule("Restore snapshot " + snapshot.getSnapshotNode().getName(), monitor -> {
             List<RestoreResult> restoreResultList = null;
             try {
@@ -1302,7 +1300,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 completion.accept(Collections.emptyList());
                 return;
             }
-            analyzeRestoreResult(restoreResultList);
+            Platform.runLater(() -> actionResultColumn.visibleProperty().setValue(true));
+            showRestoreResult(restoreResultList);
             completion.accept(restoreResultList);
         });
     }
@@ -1313,13 +1312,13 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      *
      * @param restoreResultList Data created through a restore operation.
      */
-    private void analyzeRestoreResult(List<RestoreResult> restoreResultList) {
+    private void showRestoreResult(List<RestoreResult> restoreResultList) {
         List<TableEntry> tableEntries = snapshotTableView.getItems();
-        AtomicBoolean disconnectEncountered = new AtomicBoolean(false);
+        AtomicBoolean disconnectedPvEncountered = new AtomicBoolean(false);
         for (TableEntry tableEntry : tableEntries) {
             Optional<RestoreResult> tableEntryOptional = restoreResultList.stream().filter(r -> r.getSnapshotItem().getConfigPv().getPvName().equals(tableEntry.getConfigPv().getPvName())).findFirst();
             if (tableEntryOptional.isPresent()) {
-                disconnectEncountered.set(true);
+                disconnectedPvEncountered.set(true);
                 tableEntry.setActionResult(ActionResult.FAILED);
             } else if (tableEntry.selectedProperty().not().get() || tableEntry.storedSnapshotValue().get().equals(VDisconnectedData.INSTANCE)) {
                 tableEntry.setActionResult(ActionResult.PENDING);
@@ -1327,8 +1326,14 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 tableEntry.setActionResult(ActionResult.OK);
             }
         }
-
-        Platform.runLater(() -> actionResultProperty.setValue(disconnectEncountered.get() ? ActionResult.FAILED : ActionResult.OK));
+        Platform.runLater(() -> {
+            if (!disconnectedPvEncountered.get()) {
+                actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
+            }
+            else{
+                actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
+            }
+        });
     }
 
     /**
@@ -1504,11 +1509,17 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             tableEntry.setReadbackValue(entry.getReadbackValue());
             if (entry.getValue() == null || entry.getValue().equals(VDisconnectedData.INSTANCE)) {
                 tableEntry.setActionResult(ActionResult.FAILED);
-            } else if (entry.getConfigPv().getReadbackPvName() != null &&
-                    (entry.getReadbackValue() == null || entry.getReadbackValue().equals(VDisconnectedData.INSTANCE))) {
-                tableEntry.setActionResult(ActionResult.FAILED);
-            } else {
+            }
+            else {
                 tableEntry.setActionResult(ActionResult.OK);
+            }
+            if (entry.getConfigPv().getReadbackPvName() != null){
+                if(entry.getReadbackValue() == null || entry.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
+                    tableEntry.setActionResultReadback(ActionResult.FAILED);
+                }
+                else{
+                    tableEntry.setActionResultReadback(ActionResult.OK);
+                }
             }
             tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
             tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
@@ -1617,7 +1628,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      *
      * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
      */
-    protected static class TimestampTableCell extends TableCell<TableEntry, Instant> {
+    private static class TimestampTableCell extends TableCell<TableEntry, Instant> {
         @Override
         protected void updateItem(Instant item, boolean empty) {
             super.updateItem(item, empty);
@@ -1627,6 +1638,26 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 setText("---");
             } else {
                 setText(TimestampFormats.SECONDS_FORMAT.format((item)));
+            }
+        }
+    }
+
+    /**
+     * {@link TableCell} implementation for the action result columns.
+     */
+    private class ActionResultTableCell extends TableCell<TableEntry, ActionResult> {
+        @Override
+        public void updateItem(org.phoebus.applications.saveandrestore.ui.snapshot.ActionResult actionResult, boolean empty) {
+            if (empty) {
+                setGraphic(null);
+            } else {
+                switch (actionResult) {
+                    case PENDING -> setGraphic(null);
+                    case OK ->
+                            setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
+                    case FAILED ->
+                            setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
+                }
             }
         }
     }
