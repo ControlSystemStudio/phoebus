@@ -168,7 +168,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     @FXML
     public void initialize() {
 
-        snapshotTable.getStylesheets().add(CompareSnapshotsController.class.getResource("/save-and-restore-style.css").toExternalForm());
+        snapshotTable.getStylesheets().add(CompositeSnapshotController.class.getResource("/save-and-restore-style.css").toExternalForm());
 
         snapshotTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         snapshotTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
@@ -343,7 +343,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     @FXML
     public void save() {
         doSave(compositeSnapshot ->
-                loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode(), Collections.emptyList()));
+                loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode()));
     }
 
     private void doSave(Consumer<CompositeSnapshot> completion) {
@@ -387,7 +387,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
      *
      * @param node An existing {@link Node} of type {@link NodeType#COMPOSITE_SNAPSHOT}.
      */
-    public void loadCompositeSnapshot(final Node node, final List<Node> snapshotNodes) {
+    public void loadCompositeSnapshot(final Node node) {
         compositeSnapshotNode = node;
         disabledUi.set(true);
         removeListeners();
@@ -544,7 +544,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
         if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
             Node node = (Node) saveAndRestoreWebSocketMessage.payload();
             if (tabIdProperty.get() != null && node.getUniqueId().equals(tabIdProperty.get())) {
-                loadCompositeSnapshot(node, Collections.emptyList());
+                loadCompositeSnapshot(node);
             }
         }
     }

@@ -75,10 +75,6 @@ public class SnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHa
                 if (clazz.isAssignableFrom(SnapshotController.class)) {
                     return clazz.getConstructor(SnapshotTab.class)
                             .newInstance(this);
-                } else if (clazz.isAssignableFrom(SnapshotTableViewController.class)) {
-                    return clazz.getConstructor().newInstance();
-                } else if (clazz.isAssignableFrom(SnapshotControlsViewController.class)) {
-                    return clazz.getConstructor().newInstance();
                 }
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError("Error",

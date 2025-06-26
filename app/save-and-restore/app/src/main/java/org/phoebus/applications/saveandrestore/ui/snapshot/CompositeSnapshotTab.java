@@ -98,8 +98,8 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocket
      * @param snapshotNodes         A potentially empty (but non-null) list of snapshot nodes that should
      *                              be added to the list of references snapshots.
      */
-    public void editCompositeSnapshot(Node compositeSnapshotNode, List<Node> snapshotNodes) {
-        ((CompositeSnapshotController) controller).loadCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
+    public void editCompositeSnapshot(Node compositeSnapshotNode) {
+        ((CompositeSnapshotController) controller).loadCompositeSnapshot(compositeSnapshotNode);
     }
 
     /**
