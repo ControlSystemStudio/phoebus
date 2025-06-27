@@ -43,7 +43,13 @@ public enum Comparison
     INCREASE_BY("to increase by"),
 
     /** Value has decreased by some amount */
-    DECREASE_BY("to decrease by");
+    DECREASE_BY("to decrease by"),
+
+    /** (Discrete) value has to be included in some list (only for TextValueConditions) */
+    IN("in"),
+
+    /** (Discrete) value has to NOT be included in some list (only for TextValueConditions) */
+    NOT_IN("not in");
 
     final private String label;
 
