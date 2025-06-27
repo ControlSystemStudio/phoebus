@@ -16,6 +16,7 @@
 package org.csstudio.scan.server.condition;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
 import org.csstudio.scan.command.Comparison;
@@ -119,6 +120,12 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
         }
     }
 
+    private boolean containsValue(String value) {
+        return Arrays.stream(desired_value.split(",")).anyMatch(
+                v -> v.strip().equals(value.strip())  // strip input value just to be sure
+        );
+    }
+
     /** Determine if the condition is currently met
      *  @return <code>true</code> if condition is met
      *  @throws Exception on error reading from the device
@@ -140,6 +147,10 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
             return value.compareTo(desired_value) <= 0;
         case BELOW:
             return value.compareTo(desired_value) < 0;
+        case IN:
+            return containsValue(value);
+        case NOT_IN:
+            return !containsValue(value);
         default:
             throw new Error("Condition not implemented for strings: " + comparison);
         }
