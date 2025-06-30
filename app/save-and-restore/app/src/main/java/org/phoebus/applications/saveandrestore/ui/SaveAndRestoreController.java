@@ -208,7 +208,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * Potentially empty list of {@link FilterActivator}s implementing auto selection of {@link Filter}s.
      */
-    private final List<FilterActivator> filterActivators = new ArrayList<>();
+    private final ObservableList<FilterActivator> filterActivators = FXCollections.observableArrayList();
 
 
     List<MenuItem> menuItems = Arrays.asList(
@@ -269,7 +269,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         });
 
         autoFilterCheckbox.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-                !filtersList.isEmpty(), filtersList));
+                !filterActivators.isEmpty(), filterActivators));
 
         filtersComboBox.disableProperty().bind(Bindings.createBooleanBinding(autoFilterActive::get, autoFilterActive));
         filtersComboBox.valueProperty().bindBidirectional(currentFilterProperty);
