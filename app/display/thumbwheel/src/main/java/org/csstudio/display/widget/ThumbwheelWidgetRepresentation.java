@@ -109,7 +109,7 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     public void updateChanges() {
         super.updateChanges();
         if (dirty_enablement.checkAndClear()) {
-            jfx_node.setDisable(!enabled);
+            setDisabledLook(enabled, jfx_node.getChildren());
         }
         if (dirty_style.checkAndClear()) {
 
@@ -150,7 +150,8 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     // decrementing the values via buttons
     private void writeValueToPV(final Number new_value)
     {
-        toolkit.fireWrite(model_widget, new_value);
+        if (enabled)
+            toolkit.fireWrite(model_widget, new_value);
     }
 
     // Value change is triggered when the PV value changes

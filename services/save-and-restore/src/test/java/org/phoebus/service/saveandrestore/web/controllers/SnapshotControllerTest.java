@@ -184,6 +184,9 @@ public class SnapshotControllerTest {
 
         String snapshotString = objectMapper.writeValueAsString(snapshot);
 
+        when(nodeDAO.createSnapshot(Mockito.anyString(), Mockito.any(Snapshot.class)))
+                .thenReturn(snapshot);
+
         MockHttpServletRequestBuilder request = put("/snapshot?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON)
@@ -262,6 +265,9 @@ public class SnapshotControllerTest {
         snapshot.setSnapshotNode(node);
 
         String snapshotString = objectMapper.writeValueAsString(snapshot);
+
+        when(nodeDAO.updateSnapshot(Mockito.any(Snapshot.class)))
+                .thenReturn(snapshot);
 
         MockHttpServletRequestBuilder request = post("/snapshot")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)

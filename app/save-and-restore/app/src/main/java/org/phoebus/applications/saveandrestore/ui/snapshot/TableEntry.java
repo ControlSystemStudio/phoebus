@@ -47,9 +47,14 @@ import java.util.Optional;
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  * <p>
  * This code has been modified at the European Spallation Source (ESS), Lund, Sweden.
+ * </p>
  */
 public class TableEntry {
 
+    /**
+     * Holds result of a take snapshot or restore action for the PV.
+     */
+    private final ObjectProperty<ActionResult> actionResult = new SimpleObjectProperty<>(this, "actionResult", ActionResult.PENDING);
     private final IntegerProperty id = new SimpleIntegerProperty(this, "id");
     private final SingleListenerBooleanProperty selected = new SingleListenerBooleanProperty(this, "selected", true);
     private final StringProperty pvName = new SimpleStringProperty(this, "pvName");
@@ -89,6 +94,12 @@ public class TableEntry {
     private final List<ObjectProperty<VTypePair>> compareStoredReadbacks = new ArrayList<>();
     private Optional<Threshold<?>> threshold = Optional.empty();
     private final BooleanProperty readOnly = new SimpleBooleanProperty(this, "readOnly", false);
+
+    /**
+     * Holds result of a take snapshot for the read-back PV. Unlike the <code>actionResult</code> field this only
+     * applies to tale snapshot action as read-back PVs are not subject to restore.
+     */
+    private final ObjectProperty<ActionResult> actionResultReadback = new SimpleObjectProperty<>(this, "actionResultReadback", ActionResult.PENDING);
 
 
     private ConfigPv configPv;
@@ -425,5 +436,22 @@ public class TableEntry {
     public ObjectProperty<VType> getSnapshotVal() {
         return snapshotVal;
     }
+
+    public ObjectProperty<ActionResult> actionResultProperty(){
+        return actionResult;
+    }
+
+    public void setActionResult(ActionResult actionResult){
+        this.actionResult.set(actionResult);
+    }
+
+    public ObjectProperty<ActionResult> actionResultReadbackProperty(){
+        return actionResultReadback;
+    }
+
+    public void setActionResultReadback(ActionResult actionResult){
+        this.actionResultReadback.set(actionResult);
+    }
+
 
 }

@@ -615,14 +615,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 tab = new ConfigurationTab();
                 ((ConfigurationTab) tab).editConfiguration(node);
                 break;
-            case SNAPSHOT:
+            case SNAPSHOT, COMPOSITE_SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
                 ((SnapshotTab) tab).loadSnapshot(node);
-                break;
-            case COMPOSITE_SNAPSHOT:
-                TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
-                tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
-                ((SnapshotTab) tab).loadSnapshot(treeItem.getValue());
                 break;
             case FOLDER:
             default:
@@ -658,7 +653,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             compositeSnapshotTab.addToCompositeSnapshot(snapshotNodes);
         } else {
             compositeSnapshotTab = new CompositeSnapshotTab(this);
-            compositeSnapshotTab.editCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
+            compositeSnapshotTab.editCompositeSnapshot(compositeSnapshotNode);
             tabPane.getTabs().add(compositeSnapshotTab);
         }
         tabPane.getSelectionModel().select(compositeSnapshotTab);

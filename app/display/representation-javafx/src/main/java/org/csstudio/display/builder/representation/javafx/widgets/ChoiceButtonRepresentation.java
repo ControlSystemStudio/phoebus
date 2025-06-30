@@ -181,6 +181,14 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
             {
                 active = false;
             }
+        } 
+        else if (!enabled && newval == null) 
+        {
+            // If the choice button is not enabled (no write allowed)
+            // we still have to ensure the 'oldval' stays selected
+            // as otherwise clicking on the same value will set an 
+            // unselected look on the ChoiceButton.
+        	toggle.selectToggle(oldval);
         }
     }
 
@@ -332,8 +340,7 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
             // Just apply a style that matches the disabled look.
             enabled = model_widget.propEnabled().getValue() &&
                       model_widget.runtimePropPVWritable().getValue();
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
-            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+            setDisabledLook(enabled, jfx_node.getChildren());
             for (Node node : jfx_node.getChildren())
             {
                 final ButtonBase b = (ButtonBase) node;
