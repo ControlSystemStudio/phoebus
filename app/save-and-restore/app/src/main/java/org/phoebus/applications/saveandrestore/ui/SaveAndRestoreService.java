@@ -428,13 +428,4 @@ public class SaveAndRestoreService {
             return VDisconnectedData.INSTANCE;
         }
     }
-
-    public Set<String> getAutoFilterSelectorNames(){
-        return saveAndRestoreClient.getAutoFilterSelectorNames();
-    }
-
-    public String getAutoSelectedFilter(){
-        String selectedFilter = saveAndRestoreClient.getAutoSelectedFilter();
-        return selectedFilter.isEmpty() ? null : selectedFilter;
-    }
 }

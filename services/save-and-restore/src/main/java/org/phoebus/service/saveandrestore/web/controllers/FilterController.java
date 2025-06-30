@@ -22,8 +22,6 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
-import org.phoebus.service.saveandrestore.filterselection.FilterSelectionHandler;
-import org.phoebus.service.saveandrestore.filterselection.FilterSelector;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Controller class for {@link Filter} endpoints.
@@ -51,9 +48,6 @@ public class FilterController extends BaseController {
 
     @Autowired
     private WebSocketHandler webSocketHandler;
-
-    @Autowired
-    private FilterSelectionHandler filterSelectionHandler;
 
     /**
      * Saves a new or updated {@link Filter}.
@@ -94,28 +88,5 @@ public class FilterController extends BaseController {
     public void deleteFilter(@PathVariable final String name, Principal principal) {
         nodeDAO.deleteFilter(name);
         webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_REMOVED, name));
-    }
-
-    /**
-     *
-     * @return A {@link List} of {@link Filter} names currently being selected by all {@link FilterSelector} implementations.
-     * Note however that if multiple {@link FilterSelector}s select a {@link Filter}, then the client behavior
-     * is affected as it will select them sequentially.
-     */
-    @SuppressWarnings("unused")
-    @GetMapping(value = "/filter/selected")
-    public String getSelectedFilter() {
-        return filterSelectionHandler.getSelectedFilter();
-    }
-
-    /**
-     *
-     * @return A {@link Set} of unique {@link Filter} names supported by all {@link FilterSelector}
-     * implementations know to the service.
-     */
-    @SuppressWarnings("unused")
-    @GetMapping(value = "/filter/selectors", produces = JSON)
-    public Set<String> getFilterSelectorNames(){
-        return filterSelectionHandler.getSelectorFilterNames();
     }
 }

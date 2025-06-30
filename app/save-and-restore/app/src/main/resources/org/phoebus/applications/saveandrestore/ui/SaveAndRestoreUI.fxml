@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
@@ -27,23 +28,23 @@
                                 <Insets bottom="3.0" top="6.0" />
                             </HBox.margin>
                         </ComboBox>
-                        <HBox fx:id="filterSelectionButtons">
-                            <RadioButton fx:id="autoFilter" text="%filterAuto">
-                                <HBox.margin>
-                                   <Insets right="5.0" top="2.0" />
-                                </HBox.margin>
-                            </RadioButton>
-                            <RadioButton fx:id="manualFilter" selected="true" text="%filterManual">
-                                <HBox.margin>
-                                   <Insets top="2.0" />
-                                </HBox.margin>
-                            </RadioButton>
-                             <HBox.margin>
-                                <Insets bottom="5.0" left="8.0" right="8.0" top="8.0" />
-                             </HBox.margin>
-                        </HBox>
+                        <CheckBox fx:id="autoFilterCheckbox" maxHeight="1.7976931348623157E308" text="%filterAuto">
+                            <tooltip>
+                                <Tooltip text="%filterAutoTooltip" />
+                            </tooltip>
+                            <HBox.margin>
+                               <Insets bottom="2.0" left="8.0" right="8.0" />
+                            </HBox.margin>
+                        </CheckBox>
                         <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                         <Button fx:id="searchButton" alignment="CENTER_RIGHT" nodeOrientation="LEFT_TO_RIGHT" onAction="#openSearchWindow">
+                            <graphic>
+                                <ImageView fitHeight="20.0" fitWidth="20.0">
+                                    <image>
+                                        <Image url="@/icons/sar-search.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
                             <tooltip>
                                 <Tooltip text="%openSearchView" />
                             </tooltip>

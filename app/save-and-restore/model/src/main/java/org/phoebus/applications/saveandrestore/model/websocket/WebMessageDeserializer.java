@@ -49,7 +49,7 @@ public class WebMessageDeserializer extends StdDeserializer<SaveAndRestoreWebSoc
                     });
                     return saveAndRestoreWebSocketMessage;
                 }
-                case FILTER_ADDED_OR_UPDATED, FILTER_SELECTED, FILTER_UNSELECTED -> {
+                case FILTER_ADDED_OR_UPDATED -> {
                     SaveAndRestoreWebSocketMessage<Filter> saveAndRestoreWebSocketMessage = objectMapper.readValue(rootNode.toString(), new TypeReference<>() {
                     });
                     return saveAndRestoreWebSocketMessage;

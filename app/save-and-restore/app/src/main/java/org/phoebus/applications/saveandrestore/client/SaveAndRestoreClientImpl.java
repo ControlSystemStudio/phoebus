@@ -694,16 +694,4 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
             throw new RuntimeException(e);
         }
     }
-
-    @Override
-    public String getAutoSelectedFilter(){
-        HttpResponse<String> response = getCall("/filter/selected");
-        return response.body();
-    }
-
-    @Override
-    public Set<String> getAutoFilterSelectorNames(){
-        return getCall("/filter/selectors", new TypeReference<>() {
-        });
-    }
 }
