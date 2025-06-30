@@ -119,12 +119,11 @@
     -fx-padding: 0 0 0 2;
 }
 
-.action-failed-font-size{
-    -fx-font-size: 18px;
+.combo-box-base:disabled{
+    -fx-opacity: 1.0;
+    -fx-font-weight: bold;
 }
 
-.action-failed {
-    -fx-text-fill: #FF0000FF;
-    -fx-font-weight: bold;
-    -fx-cursor: hand;
+.combo-box > .list-cell:disabled{
+    -fx-opacity: 1.0;
 }

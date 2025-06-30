@@ -19,7 +19,18 @@
 package org.phoebus.applications.saveandrestore.client;
 
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
-import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
@@ -77,13 +88,6 @@ public interface SaveAndRestoreClient {
      */
     Node createNewNode(String parentsUniqueId, Node node);
 
-    /**
-     * Updates a node, e.g. if user wishes to add or remove tags from a snapshot {@link Node}
-     *
-     * @param nodeToUpdate The {@link Node} subject to update.
-     * @return The updated {@link Node}.
-     */
-    Node updateNode(Node nodeToUpdate);
 
     /**
      * Updates a node, e.g. if user wishes to add or remove tags from a snapshot {@link Node}
@@ -128,6 +132,7 @@ public interface SaveAndRestoreClient {
 
     /**
      * Constructs a path like string to facilitate location of a {@link Node} in the tree structure.
+     *
      * @param uniqueNodeId Unique id
      * @return Path like /Root folder/foo/bar/my/favourite/node
      */
@@ -138,8 +143,9 @@ public interface SaveAndRestoreClient {
     /**
      * Creates a new {@link Node} of type {@link NodeType#CONFIGURATION} in the remote
      * service.
-     * @param parentNodeId Non-null and non-empty unique id of an existing parent {@link Node},
-     *                     which must be of type {@link NodeType#FOLDER}.
+     *
+     * @param parentNodeId  Non-null and non-empty unique id of an existing parent {@link Node},
+     *                      which must be of type {@link NodeType#FOLDER}.
      * @param configuration {@link ConfigurationData} object
      * @return A representation of the persisted {@link Configuration}.
      */
@@ -152,8 +158,9 @@ public interface SaveAndRestoreClient {
 
     /**
      * Creates a {@link Snapshot}
+     *
      * @param parentNodeId The unique id of the configuration {@link Node} associated with the {@link Snapshot}
-     * @param snapshot The {@link Snapshot} data object.
+     * @param snapshot     The {@link Snapshot} data object.
      * @return The new {@link Snapshot} as persisted by the service
      */
     Snapshot createSnapshot(String parentNodeId, Snapshot snapshot);
@@ -162,7 +169,8 @@ public interface SaveAndRestoreClient {
 
     /**
      * Creates a new {@link CompositeSnapshot}.
-     * @param parentNodeId The parent {@link Node} for the new {@link CompositeSnapshot}
+     *
+     * @param parentNodeId      The parent {@link Node} for the new {@link CompositeSnapshot}
      * @param compositeSnapshot The data object
      * @return A {@link CompositeSnapshot} as persisted by the service.
      */
@@ -172,8 +180,9 @@ public interface SaveAndRestoreClient {
      * Utility for the purpose of checking whether a set of snapshots contain duplicate PV names.
      * The input snapshot ids may refer to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
      * and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     *
      * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
-     *      and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     *                        and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
      * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
      * to the input. Empty if no duplicates are found.
      */
@@ -182,6 +191,7 @@ public interface SaveAndRestoreClient {
     /**
      * Updates a composite snapshot. Note that the list of referenced snapshots must be the full list of wanted
      * snapshots, i.e. there is no way to only add new references, or only remove unwanted references.
+     *
      * @param compositeSnapshot A {@link CompositeSnapshot} object hold data.
      * @return The updates {@link CompositeSnapshot} object.
      */
@@ -189,6 +199,7 @@ public interface SaveAndRestoreClient {
 
     /**
      * Search for {@link Node}s based on the specified search parameters.
+     *
      * @param searchParams {@link MultivaluedMap} holding search parameters.
      * @return A {@link SearchResult} with potentially empty list of matching {@link Node}s
      */
@@ -196,6 +207,7 @@ public interface SaveAndRestoreClient {
 
     /**
      * Save a new or updated {@link Filter}
+     *
      * @param filter The {@link Filter} to save
      * @return The saved {@link Filter}
      */
@@ -208,12 +220,14 @@ public interface SaveAndRestoreClient {
 
     /**
      * Deletes a {@link Filter} based on its name.
-     * @param name
+     *
+     * @param name Unique name of a {@link Filter}
      */
     void deleteFilter(String name);
 
     /**
      * Adds a tag to a list of unique node ids, see {@link TagData}
+     *
      * @param tagData see {@link TagData}
      * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
      * passed in the <code>tagData</code> parameter.
@@ -222,6 +236,7 @@ public interface SaveAndRestoreClient {
 
     /**
      * Deletes a tag from a list of unique node ids, see {@link TagData}
+     *
      * @param tagData see {@link TagData}
      * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
      * passed in the <code>tagData</code> parameter.
@@ -230,6 +245,7 @@ public interface SaveAndRestoreClient {
 
     /**
      * For the purpose of login and authentication in the service.
+     *
      * @param userName User's account name
      * @param password User's password
      * @return A {@link UserData} object if login is successful, otherwise implementation should throw
@@ -239,6 +255,7 @@ public interface SaveAndRestoreClient {
 
     /**
      * Requests service to restore the specified {@link SnapshotItem}s
+     *
      * @param snapshotItems A {@link List} of {@link SnapshotItem}s
      * @return A @{@link List} of {@link RestoreResult}s with information on potentially failed {@link SnapshotItem}s.
      */
@@ -246,6 +263,7 @@ public interface SaveAndRestoreClient {
 
     /**
      * Requests service to restore the specified snapshot.
+     *
      * @param snapshotNodeId Unique id of a snapshot
      * @return A @{@link List} of {@link RestoreResult}s with information on potentially failed {@link SnapshotItem}s.
      */
@@ -253,6 +271,7 @@ public interface SaveAndRestoreClient {
 
     /**
      * Requests service to take a snapshot.
+     *
      * @param configurationNodeId The unique id of the {@link Configuration} for which to take the snapshot
      * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
      */

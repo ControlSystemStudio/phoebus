@@ -23,6 +23,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -73,6 +75,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.search.FilterActivator;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
@@ -124,6 +127,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.ServiceLoader;
 import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -160,7 +164,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     @SuppressWarnings("unused")
     @FXML
-    private CheckBox enableFilterCheckBox;
+    private CheckBox autoFilterCheckbox;
 
     @SuppressWarnings("unused")
     @FXML
@@ -173,8 +177,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     protected static final Logger LOG = Logger.getLogger(SaveAndRestoreController.class.getName());
     protected Comparator<TreeItem<Node>> treeNodeComparator;
     protected SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
-    private final SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
     private static final Logger logger = Logger.getLogger(SaveAndRestoreController.class.getName());
+    private final ObjectProperty<Filter> currentFilterProperty = new SimpleObjectProperty<>(null);
+
 
     @SuppressWarnings("unused")
     @FXML
@@ -197,6 +202,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private final MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/compare.png"));
     private final MenuItem deleteNodeMenuItem = new MenuItem(Messages.contextMenuDelete, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
     private final MenuItem pasteMenuItem = new MenuItem(Messages.paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
+
+    private final BooleanProperty autoFilterActive = new SimpleBooleanProperty();
+
+    /**
+     * Potentially empty list of {@link FilterActivator}s implementing auto selection of {@link Filter}s.
+     */
+    private final ObservableList<FilterActivator> filterActivators = FXCollections.observableArrayList();
 
 
     List<MenuItem> menuItems = Arrays.asList(
@@ -241,18 +253,26 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        treeView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
+        treeViewPane.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
         browserSelectionModel = treeView.getSelectionModel();
 
-        ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
-        searchButtonImageView.setFitWidth(20);
-        searchButtonImageView.setFitHeight(20);
-        searchButton.setGraphic(searchButtonImageView);
+        autoFilterCheckbox.selectedProperty().bindBidirectional(autoFilterActive);
 
-        enableFilterCheckBox.selectedProperty().bindBidirectional(filterEnabledProperty);
-        filtersComboBox.disableProperty().bind(filterEnabledProperty.not());
-        filterEnabledProperty.addListener((observable, oldValue, newValue) -> filterEnabledChanged(newValue));
+        autoFilterActive.addListener((obs, o, n) -> {
+            if (n) {
+                // Check if a filter selection is active in any implementation. Match on first found.
+                Optional<FilterActivator> filterActivatorOptional =
+                        filterActivators.stream().filter(a -> a.getActivatedFilter() != null).findFirst();
+                filterActivatorOptional.ifPresent(filterActivator -> activateFilter(filterActivator.getActivatedFilter()));
+            }
+        });
+
+        autoFilterCheckbox.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+                !filterActivators.isEmpty(), filterActivators));
+
+        filtersComboBox.disableProperty().bind(Bindings.createBooleanBinding(autoFilterActive::get, autoFilterActive));
+        filtersComboBox.valueProperty().bindBidirectional(currentFilterProperty);
 
         treeView.setEditable(true);
 
@@ -279,8 +299,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     public void updateItem(org.phoebus.applications.saveandrestore.model.search.Filter item,
                                            boolean empty) {
                         super.updateItem(item, empty);
-                        if (!empty && item != null) {
-                            setText(item.getName());
+                        if (!empty) {
+                            setText(item == null ? Messages.noFilter : item.getName());
                         }
                     }
                 };
@@ -292,7 +312,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     @Override
                     public String toString(Filter filter) {
                         if (filter == null) {
-                            return "";
+                            return Messages.noFilter;
                         } else {
                             return filter.getName();
                         }
@@ -310,12 +330,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 if (!newValue.equals(oldValue)) {
                     applyFilter(newValue);
                 }
+            } else {
+                clearFilter();
             }
         });
 
         filtersComboBox.itemsProperty().bind(new SimpleObjectProperty<>(filtersList));
 
-        enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(filtersList::isEmpty, filtersList));
 
         // Clear clipboard to make sure that only custom data format is
         // considered in paste actions.
@@ -347,19 +368,21 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         webSocketClientService.setConnectCallback(this::handleWebSocketConnected);
         webSocketClientService.setDisconnectCallback(this::handleWebSocketDisconnected);
         webSocketClientService.connect();
+
     }
 
     /**
-     * Loads the data for the tree root as provided (persisted) by the current
+     * Pulls initial data from the service in order to configure the UI and render the {@link TreeView}.
      * {@link org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient}.
      */
-    public void loadTreeData() {
+    public void loadInitialData() {
 
         JobManager.schedule("Load save-and-restore tree data", monitor -> {
             Node rootNode = saveAndRestoreService.getRootNode();
             treeInitializationCountDownLatch.countDown();
             TreeItem<Node> rootItem = createTreeItem(rootNode);
             List<String> savedTreeViewStructure = getSavedTreeStructure();
+
             // Check if there is a save tree structure. Also check that the first node id (=tree root)
             // has the same unique id as the actual root node retrieved from the remote service. This check
             // is needed to handle the case when the client connects to a different save-and-restore service.
@@ -379,15 +402,24 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 List<TreeItem<Node>> childItems = childNodes.stream().map(this::createTreeItem).sorted(treeNodeComparator).toList();
                 rootItem.getChildren().addAll(childItems);
             }
+
+            // Get all filters from service
+            filtersList.addAll(saveAndRestoreService.getAllFilters());
+
             Platform.runLater(() -> {
                 treeView.setRoot(rootItem);
                 expandNodes(treeView.getRoot());
                 // Event handler for expanding nodes
                 treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
                 treeInitializationCountDownLatch.countDown();
+                filtersList.add(0, null);
+                String savedFilterName = getSavedFilterName();
+                if (savedFilterName != null) {
+                    Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
+                    f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
+                }
+                setupFilterActivators();
             });
-
-            loadFilters();
         });
     }
 
@@ -893,7 +925,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         findExpandedNodes(expandedNodes, treeView.getRoot());
         try {
             PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
-            if (filterEnabledProperty.get() && filtersComboBox.getSelectionModel().getSelectedItem() != null) {
+            if (filtersComboBox.getSelectionModel().getSelectedItem() != null) {
                 PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME,
                         objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
             }
@@ -906,6 +938,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     public boolean handleTabClosed() {
         saveLocalState();
         webSocketClientService.closeWebSocket();
+        filterActivators.forEach(FilterActivator::stop);
         return true;
     }
 
@@ -1028,7 +1061,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * </ul>
      *
      * @param uri An {@link URI} on the form file:/unique-id?action=[open_sar_node|open_sar_filter]&app=saveandrestore, where unique-id is the
-     *            unique id of a {@link Node} or the unique id (name) of a {@link Filter}. If action is not sepcified,
+     *            unique id of a {@link Node} or the unique id (name) of a {@link Filter}. If action is not specified,
      *            it defaults to open-node.
      */
     public void openResource(URI uri) {
@@ -1068,34 +1101,16 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * disabled, then all items match as we have a "no filter".
      */
     public boolean matchesFilter(Node node) {
-        if (!filterEnabledProperty.get()) {
+        if (currentFilterProperty.isNull().get()) {
             return true;
         }
+
         TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
         if (selectedItem == null) {
             return searchResultNodes.contains(node);
         } else {
             return searchResultNodes.contains(node) &&
                     !selectedItem.getValue().getUniqueId().equals(node.getUniqueId());
-        }
-    }
-
-    /**
-     * Retrieves all {@link Filter}s from service and populates the filter combo box.
-     */
-    private void loadFilters() {
-        try {
-            List<Filter> filters = saveAndRestoreService.getAllFilters();
-            Platform.runLater(() -> {
-                filtersList.setAll(filters);
-                String savedFilterName = getSavedFilterName();
-                if (savedFilterName != null) {
-                    Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
-                    f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
-                }
-            });
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to load filters", e);
         }
     }
 
@@ -1125,16 +1140,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         });
     }
 
-    private void filterEnabledChanged(boolean enabled) {
-        if (!enabled) {
-            searchResultNodes.clear();
-            treeView.refresh();
-        } else {
-            Filter filter = filtersComboBox.getSelectionModel().getSelectedItem();
-            if (filter != null) {
-                applyFilter(filter);
-            }
-        }
+    private void clearFilter() {
+        searchResultNodes.clear();
+        treeView.refresh();
     }
 
     /**
@@ -1163,17 +1171,24 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
     }
 
+    /**
+     * Handles removal of a {@link Filter}.
+     * <p>
+     * If the name matches the {@link Filter} currently being loaded, the filter selection is cleared, i.e.
+     * it switches to "no filter".
+     * </p>
+     *
+     * @param name The name of a {@link Filter}
+     */
     private void filterRemoved(String name) {
-        Optional<Filter> filterOptional = filtersList.stream().filter(f -> f.getName().equals(name)).findFirst();
+        Optional<Filter> filterOptional = filtersList.stream().filter(f -> f != null && f.getName().equals(name)).findFirst();
         if (filterOptional.isPresent()) {
             Filter filterToRemove = new Filter();
             filterToRemove.setName(name);
-            filtersList.remove(filterToRemove);
-            // If this is the active filter, unselect it
-            filterEnabledProperty.set(false);
-            filtersComboBox.getSelectionModel().select(null);
-            // And refresh tree view
-            Platform.runLater(() -> treeView.refresh());
+            Platform.runLater(() -> {
+                filtersList.remove(filterToRemove);
+                currentFilterProperty.set(null);
+            });
         }
     }
 
@@ -1423,9 +1438,50 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         }
     }
 
+    private void setupFilterActivators() {
+        filterActivators.addAll(
+                ServiceLoader.load(FilterActivator.class).stream().map(ServiceLoader.Provider::get).toList());
+        filterActivators.forEach(a -> a.setCallbacks(this::activateFilter, this::deactivateFilter));
+    }
+
+    private Optional<Filter> findFilter(String filterName) {
+        return filtersList.stream().filter(f -> f != null && f.getName().equals(filterName)).findFirst();
+    }
+
+    /**
+     * Activates a {@link Filter}. If <code>filterName</code> does not match any of the available {@link Filter}s,
+     * nothing happens except logging of the inconsistency.
+     *
+     * @param filterName The name of the {@link Filter} to select.
+     */
+    public void activateFilter(String filterName) {
+        if (autoFilterActive.get()) {
+            Optional<Filter> filterOptional = findFilter(filterName);
+            if (filterOptional.isPresent()) {
+                Platform.runLater(() -> filtersComboBox.getSelectionModel().select(filterOptional.get()));
+            } else {
+                logger.log(Level.WARNING, "Cannot activate filter as filter named \"" + filterName + "\" was not found.");
+            }
+        }
+    }
+
+    /**
+     * If auto {@link Filter} activation is enabled and the active filter matches <code>filterName</code>, then
+     * this method will switch to <code>no filter</code> but maintain auto activation.
+     * @param filterName Name/id of the de-activated filter.
+     */
+    public void deactivateFilter(String filterName) {
+        if (autoFilterActive.get()) {
+            Filter currentlySelectedFilter = filtersComboBox.getSelectionModel().getSelectedItem();
+            if (currentlySelectedFilter != null && currentlySelectedFilter.getName().equals(filterName)) {
+                Platform.runLater(() -> filtersComboBox.getSelectionModel().select(null));
+            }
+        }
+    }
+
     private void handleWebSocketConnected() {
         serviceConnected.setValue(true);
-        loadTreeData();
+        loadInitialData();
     }
 
     private void handleWebSocketDisconnected() {
