@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.phoebus</groupId>
         <artifactId>app-alarm</artifactId>
-        <version>5.0.1</version>
+        <version>5.0.2-SNAPSHOT</version>
     </parent>
     <artifactId>app-alarm-audio-annunciator</artifactId>
 
@@ -17,7 +17,7 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-alarm-ui</artifactId>
-            <version>5.0.1</version>
+            <version>5.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
