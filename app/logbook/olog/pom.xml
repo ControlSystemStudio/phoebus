@@ -12,4 +12,5 @@
     <version>5.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>app-logbook-olog</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
 </project>

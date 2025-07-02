@@ -6,6 +6,7 @@
     <version>5.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>app-email</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
   <packaging>pom</packaging>
   <modules>
     <module>ui</module>

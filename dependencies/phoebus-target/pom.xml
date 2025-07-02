@@ -6,7 +6,7 @@
     <version>5.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>phoebus-target</artifactId>
-
+  <name>${project.groupId}:${project.artifactId}</name>
   <properties>
     <spring.boot-version>2.7.3</spring.boot-version>
     <preReleaseScripts>${project.basedir}/release_classpath.py</preReleaseScripts>
