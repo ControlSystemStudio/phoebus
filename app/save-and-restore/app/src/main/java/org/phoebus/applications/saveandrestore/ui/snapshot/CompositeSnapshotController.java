@@ -73,6 +73,7 @@ import org.phoebus.util.time.TimestampFormats;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -172,6 +173,8 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
 
         snapshotTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         snapshotTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
+
+        snapshotNameColumn.setComparator(Comparator.comparing(Node::getName));
 
         MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
                 new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
