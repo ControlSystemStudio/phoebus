@@ -11,7 +11,7 @@
     <elasticsearch.version>8.2.0</elasticsearch.version>
   </properties>
   <artifactId>service-alarm-logger</artifactId>
-
+  <name>${project.groupId}:${project.artifactId}</name>
   <dependencyManagement>
     <dependencies>
       <!-- Spring Boot BOM -->

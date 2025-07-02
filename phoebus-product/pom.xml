@@ -1,9 +1,8 @@
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>product</artifactId>
-
-    <properties>
+  <name>${project.groupId}:${project.artifactId}</name>
+  <properties>
         <diirt.version>3.0.0</diirt.version>
     </properties>
 
@@ -337,8 +336,8 @@
                         <configuration>
                             <failOnError>true</failOnError>
                             <target>
-                                <echo message="Copying doc/" />
-                                <ant antfile="build.xml" target="copy-doc" />
+                              <echo message="Copying doc/"/>
+                              <ant antfile="build.xml" target="copy-doc"/>
                             </target>
                         </configuration>
                         <goals>

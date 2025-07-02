@@ -10,7 +10,7 @@
     <java.version>17</java.version>
   </properties>
   <artifactId>service-alarm-config-logger</artifactId>
-
+  <name>${project.groupId}:${project.artifactId}</name>
   <dependencyManagement>
     <dependencies>
       <!-- Spring Boot BOM -->

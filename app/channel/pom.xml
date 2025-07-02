@@ -6,6 +6,7 @@
     <version>5.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>app-channel</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
   <packaging>pom</packaging>
   <description>Support for pvs with properties and tags as used by directory services</description>
   <modules>

@@ -8,8 +8,8 @@
 	</parent>
 
 	<artifactId>save-and-restore</artifactId>
-
-	<properties>
+  <name>${project.groupId}:${project.artifactId}</name>
+  <properties>
 		<skipITs>true</skipITs>
 	</properties>
 
