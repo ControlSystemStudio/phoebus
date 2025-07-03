@@ -130,11 +130,11 @@ public class ActionsDialogController {
                 .forEach(actionInfoProvider -> {
                     ActionInfo actionInfo = actionInfoProvider.get();
                     try {
-                        ActionsDialogActionItem actionsDialogActionItem = new ActionsDialogActionItem(widget, actionInfo);
                         final ImageView icon = new ImageView(actionInfo.getImage());
                         final MenuItem item = new MenuItem(actionInfo.toString(), icon);
                         item.setOnAction(event ->
                         {
+                            ActionsDialogActionItem actionsDialogActionItem = new ActionsDialogActionItem(widget, actionInfo);
                             actionList.add(actionsDialogActionItem);
                             actionsListView.setItems(actionList);
                             actionsListView.getSelectionModel().select(actionsDialogActionItem);
