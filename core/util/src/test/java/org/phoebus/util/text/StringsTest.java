@@ -18,8 +18,9 @@ package org.phoebus.util.text;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit test for {@link Strings}.
@@ -36,4 +37,35 @@ public class StringsTest {
     assertFalse(Strings.isNullOrEmpty("a"));
   }
 
+  @Test
+  void testParseStringList() {
+    assertEquals(
+            List.of("A", "B", "C"),
+            Strings.parseStringList("A, B, C")
+    );
+    assertEquals(
+            List.of("An apple", "an orange", "banana"),
+            Strings.parseStringList("An apple, an orange, banana")
+    );
+
+    assertEquals(
+            List.of("An apple", "an orange", "banana"),
+            Strings.parseStringList("'An apple', an orange, banana")
+    );
+
+    assertEquals(
+            List.of("INVALID", "ERROR"),
+            Strings.parseStringList("\"INVALID\", \"ERROR\"")
+    );
+
+    assertEquals(
+            List.of("    item with leading and trailing spaces that are not removed    "),
+            Strings.parseStringList("'    item with leading and trailing spaces that are not removed    '")
+    );
+
+    assertEquals(
+            List.of("Hello, Dolly", "Goodbye, cruel world"),
+            Strings.parseStringList("\"Hello, Dolly\", \"Goodbye, cruel world\"")
+    );
+  }
 }
