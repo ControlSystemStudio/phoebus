@@ -71,7 +71,6 @@ public class Screenshot {
                 (int) jfx.getHeight(),
                 BufferedImage.TYPE_INT_ARGB);
         SwingFXUtils.fromFXImage(jfx, img);
-
         return img;
     }
 
@@ -152,6 +151,12 @@ public class Screenshot {
 
     /**
      * Puts the {@link Node} as image data onto the clipboard.
+     *
+     * <p>
+     *     <b>NOTE:</b> on Windows calling this will throw an {@link java.io.IOException}, but screenshot will still be available on
+     *     the clipboard. <a href='https://stackoverflow.com/questions/59140881/error-copying-an-image-object-to-the-clipboard'>This Stackoverflow post</a>
+     *     suggests the printed stack trace is in fact debug information.
+     * </p>
      *
      * @param node Node from which to take a screenshot.
      */
