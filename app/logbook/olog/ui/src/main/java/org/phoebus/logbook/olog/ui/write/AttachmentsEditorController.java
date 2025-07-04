@@ -291,9 +291,16 @@ public class AttachmentsEditorController {
         this.textArea = textArea;
     }
 
+    /**
+     * Add
+     * @param files
+     */
     private void addFiles(List<File> files) {
         Platform.runLater(() -> sizesErrorMessage.set(null));
         if (!checkFileSizes(files)) {
+            return;
+        }
+        if(!checkForHeicFiles(files)){
             return;
         }
         MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
@@ -402,5 +409,32 @@ public class AttachmentsEditorController {
      */
     public void clearAttachments(){
         getAttachments().clear();
+    }
+
+    /**
+     * Checks if any of the attached files uses extension heic or heics, which are unsupported. If a heic file
+     * is detected, an error dialog is shown.
+     * @param files List of {@link File}s to check.
+     * @return <code>true</code> if all is well, i.e. no heic files deyected, otherwise <code>false</code>.
+     */
+    private boolean checkForHeicFiles(List<File> files){
+        if(hasHeicFiles(files)){
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setHeaderText(Messages.HeicFilesNotSupported);
+            DialogHelper.positionDialog(alert, textArea, -200, -100);
+            alert.show();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Checks for heic(s) file extension. Ideally Apache Tika should be used to detect heic content.
+     * @param files List of {@link File}s to check.
+     * @return <code>true</code> if all is well, i.e. no heic files deyected, otherwise <code>false</code>.
+     */
+    private boolean hasHeicFiles(List<File> files){
+        return files.stream().filter(f ->
+                (f.getName().toLowerCase().endsWith(".heic") || f.getName().toLowerCase().endsWith(".heics"))).findFirst().isPresent();
     }
 }
