@@ -431,7 +431,7 @@ public class AttachmentsEditorController {
     /**
      * Checks for heic(s) file extension. Ideally Apache Tika should be used to detect heic content.
      * @param files List of {@link File}s to check.
-     * @return <code>true</code> if all is well, i.e. no heic files deyected, otherwise <code>false</code>.
+     * @return <code>false</code> if heic(s) file is detected, otherwise <code>false</code>.
      */
     private boolean hasHeicFiles(List<File> files){
         return files.stream().filter(f ->
