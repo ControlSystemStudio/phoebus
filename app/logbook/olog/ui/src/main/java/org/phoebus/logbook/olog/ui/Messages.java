@@ -40,6 +40,7 @@ public class Messages
             GroupingFailed,
             GroupSelectedEntries,
             JumpToLogEntry,
+            HeicFilesNotSupported,
             Level,
             Logbook,
             LogbookNotSupported,
