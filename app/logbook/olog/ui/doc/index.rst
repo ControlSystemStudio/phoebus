@@ -79,8 +79,7 @@ the log viewer may incur delays in terms of UI updates.
 
 **NOTE**: Since iOS 11 the default camera image format is HEIC/HEIF (High-Efficiency Image Format). This type of
 image file is not supported. Consequently upload of HEIC files is blocked by the application. Moreover, HEIC files converted to JPEG
-in native Mac OS applications (e.g. Preview) may also fail to render. Users are hence advised to ensure
-that all attached image files are shown as expected in the attachment editor preview pane.
+in native Mac OS applications (e.g. Preview) may also fail to render and are also blocked from upload.
 
 Embedded images
 ---------------
