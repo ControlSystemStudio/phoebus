@@ -40,7 +40,6 @@ public class Messages
             GroupingFailed,
             GroupSelectedEntries,
             JumpToLogEntry,
-            HeicFilesNotSupported,
             Level,
             Logbook,
             LogbookNotSupported,
@@ -60,6 +59,7 @@ public class Messages
             SelectFolder,
             ShowHideDetails,
             SizeLimitsText,
+            UnsupportedFileType,
             UpdateLogEntry;
 
     static
