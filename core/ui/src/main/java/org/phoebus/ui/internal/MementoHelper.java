@@ -309,6 +309,7 @@ public class MementoHelper
                     instance = existing.getApplication();
                     existing.getDockPane().getTabs().remove(existing);
                     pane.getTabs().add(existing);
+                    existing.select();
                 }
                 else {
                     instance = ((AppResourceDescriptor) app).create(inputURI);
