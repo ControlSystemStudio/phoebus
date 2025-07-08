@@ -1506,7 +1506,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             tableEntry.setConfigPv(entry.getConfigPv());
             tableEntry.setSnapshotValue(entry.getValue(), 0);
             tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
-            tableEntry.setReadbackValue(entry.getReadbackValue());
             if (entry.getValue() == null || entry.getValue().equals(VDisconnectedData.INSTANCE)) {
                 tableEntry.setActionResult(ActionResult.FAILED);
             }
