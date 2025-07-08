@@ -280,7 +280,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     @FXML
     protected VBox progressIndicator;
 
-    protected final Map<String, SaveAndRestorePV> pvs = new HashMap<>();
+    //protected final Map<String, SaveAndRestorePV> pvs = new HashMap<>();
 
     protected Node configurationNode;
 
@@ -347,6 +347,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * determine which elements in the {@link Map} to actually represent.
      */
     protected final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
+    //protected final List<TableEntry> tableEntries = new ArrayList<>();
 
     public SnapshotController(SnapshotTab snapshotTab) {
         snapshotTab.textProperty().bind(tabTitleProperty);
@@ -484,10 +485,17 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                         this.showDeltaPercentage.set(n));
 
         hideEqualItemsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/hide_show_equal_items.png"))));
+        hideEqualItemsButton.selectedProperty().bindBidirectional(hideEqualItemsProperty);
+        hideEqualItemsProperty.addListener((obs, o, n) -> updateTable());
+        /*
         hideEqualItemsProperty.bind(hideEqualItemsButton.selectedProperty());
         hideEqualItemsButton.selectedProperty()
                 .addListener((a, o, n) ->
+
+
                         hideEqualItems());
+                        
+         */
 
         logAction.selectedProperty().bindBidirectional(logActionProperty);
 
@@ -876,7 +884,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * Releases PV resources.
      */
     private void dispose() {
-        pvs.values().forEach(SaveAndRestorePV::dispose);
+        //pvs.values().forEach(SaveAndRestorePV::dispose);
+        tableEntryItems.values().forEach(tableEntry -> tableEntry.getSaveAndRestorePV().dispose());
     }
 
     private void showLoggingError(String cause) {
@@ -1265,10 +1274,13 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         }
     }
 
+    /*
     private void hideEqualItems() {
         ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
         Platform.runLater(() -> updateTable(arrayList));
     }
+
+     */
 
     /**
      * Restores a snapshot from client or service.
@@ -1418,29 +1430,28 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         for (int s = 1; s < snapshots.size(); s++) {
             Node snapshotNode = snapshots.get(s).getSnapshotNode();
             String snapshotName = snapshotNode.getName();
-
             List<SnapshotItem> entries = snapshot.getSnapshotData().getSnapshotItems();
             String nodeName;
             TableEntry tableEntry;
             // Base snapshot data
             List<TableEntry> baseSnapshotTableEntries = new ArrayList<>(tableEntryItems.values());
-            SnapshotItem entry;
+            SnapshotItem snpshotItem;
             for (int i = 0; i < entries.size(); i++) {
-                entry = entries.get(i);
-                nodeName = entry.getConfigPv().getPvName();
+                snpshotItem = entries.get(i);
+                nodeName = snpshotItem.getConfigPv().getPvName();
                 tableEntry = tableEntryItems.get(nodeName);
                 // tableEntry is null if the added snapshot has more items than the base snapshot.
                 if (tableEntry == null) {
-                    tableEntry = new TableEntry();
+                    tableEntry = new TableEntry(snpshotItem);
                     tableEntry.idProperty().setValue(tableEntryItems.size() + i + 1);
-                    tableEntry.pvNameProperty().setValue(nodeName);
-                    tableEntry.setConfigPv(entry.getConfigPv());
+                    //tableEntry.pvNameProperty().setValue(nodeName);
+                    //tableEntry.setConfigPv(snpshotItem.getConfigPv());
                     tableEntryItems.put(nodeName, tableEntry);
-                    tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
+                    //tableEntry.readbackNameProperty().set(snpshotItem.getConfigPv().getReadbackPvName());
                 }
-                tableEntry.setSnapshotValue(entry.getValue(), snapshots.size());
-                tableEntry.setStoredReadbackValue(entry.getReadbackValue(), snapshots.size());
-                tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
+                tableEntry.setSnapshotValue(snpshotItem.getValue(), snapshots.size());
+                tableEntry.setStoredReadbackValue(snpshotItem.getReadbackValue(), snapshots.size());
+                //tableEntry.readOnlyProperty().set(snpshotItem.getConfigPv().isReadOnly());
                 baseSnapshotTableEntries.remove(tableEntry);
             }
             // If added snapshot has more items than base snapshot, the base snapshot's values for those
@@ -1487,8 +1498,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
         snapshotTableView.getColumns().addAll(columns);
 
-        connectPVs();
-        updateTable(null);
+        //connectPVs();
+        updateTable();
     }
 
     private void showSnapshotInTable() {
@@ -1498,36 +1509,43 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             snapshots.set(0, snapshot);
         }
         AtomicInteger counter = new AtomicInteger(0);
-        snapshot.getSnapshotData().getSnapshotItems().forEach(entry -> {
-            TableEntry tableEntry = new TableEntry();
-            String name = entry.getConfigPv().getPvName();
+        snapshot.getSnapshotData().getSnapshotItems().forEach(snapshotItem -> {
+            TableEntry tableEntry = new TableEntry(snapshotItem);
+            String name = snapshotItem.getConfigPv().getPvName();
             tableEntry.idProperty().setValue(counter.incrementAndGet());
-            tableEntry.pvNameProperty().setValue(name);
-            tableEntry.setConfigPv(entry.getConfigPv());
-            tableEntry.setSnapshotValue(entry.getValue(), 0);
-            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
-            tableEntry.setReadbackValue(entry.getReadbackValue());
-            if (entry.getValue() == null || entry.getValue().equals(VDisconnectedData.INSTANCE)) {
+            //tableEntry.pvNameProperty().setValue(name);
+            //tableEntry.setConfigPv(snapshotItem.getConfigPv());
+            tableEntry.setSnapshotValue(snapshotItem.getValue(), 0);
+            tableEntry.setStoredReadbackValue(snapshotItem.getReadbackValue(), 0);
+            //tableEntry.setReadbackValue(snapshotItem.getReadbackValue());
+            /*
+            if (snapshotItem.getValue() == null || snapshotItem.getValue().equals(VDisconnectedData.INSTANCE)) {
                 tableEntry.setActionResult(ActionResult.FAILED);
             }
             else {
                 tableEntry.setActionResult(ActionResult.OK);
             }
-            if (entry.getConfigPv().getReadbackPvName() != null){
-                if(entry.getReadbackValue() == null || entry.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
+            if (snapshotItem.getConfigPv().getReadbackPvName() != null){
+                if(snapshotItem.getReadbackValue() == null || snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
                     tableEntry.setActionResultReadback(ActionResult.FAILED);
                 }
                 else{
                     tableEntry.setActionResultReadback(ActionResult.OK);
                 }
             }
-            tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
-            tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
+
+             */
+            //tableEntry.readbackNameProperty().set(snapshotItem.getConfigPv().getReadbackPvName());
+            //tableEntry.readOnlyProperty().set(snapshotItem.getConfigPv().isReadOnly());
             tableEntryItems.put(name, tableEntry);
         });
 
-        updateTable(null);
-        connectPVs();
+        updateTable();
+        //connectPVs();
+    }
+
+    private void updateTable(){
+        updateTable(tableEntryItems.values().stream().toList());
     }
 
     /**
@@ -1540,7 +1558,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         final boolean notHide = hideEqualItemsProperty.not().get();
         Platform.runLater(() -> {
             items.clear();
-            tableEntryItems.forEach((key, value) -> {
+            entries.forEach(value -> {
                 // there is no harm if this is executed more than once, because only one line is allowed for these
                 // two properties (see SingleListenerBooleanProperty for more details)
                 value.liveStoredEqualProperty().addListener((a, o, n) -> {
@@ -1579,6 +1597,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * Attempts to connect to all the PVs of the configuration/snapshot and binds the created {@link SaveAndRestorePV} objects
      * to the {@link TableEntry} objects matched on PV name.
      */
+    /*
     private void connectPVs() {
         JobManager.schedule("Connect PVs", monitor -> tableEntryItems.values().forEach(e -> {
             SaveAndRestorePV pv = pvs.get(e.getConfigPv().getPvName());
@@ -1589,6 +1608,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             }
         }));
     }
+
+     */
 
     /**
      *

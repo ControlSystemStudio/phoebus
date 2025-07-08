@@ -28,6 +28,7 @@ import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
 import org.phoebus.saveandrestore.util.Threshold;
 import org.phoebus.saveandrestore.util.Utilities;
@@ -101,13 +102,13 @@ public class TableEntry {
      */
     private final ObjectProperty<ActionResult> actionResultReadback = new SimpleObjectProperty<>(this, "actionResultReadback", ActionResult.PENDING);
 
-
+    private SaveAndRestorePV saveAndRestorePV;
     private ConfigPv configPv;
 
     /**
      * Construct a new table entry.
      */
-    public TableEntry() {
+    public TableEntry(SnapshotItem snapshotItem) {
         //when read only is set to true, unselect this PV
         readOnly.addListener((a, o, n) -> {
             if (n) {
@@ -120,13 +121,40 @@ public class TableEntry {
                 selected.set(false);
             }
         });
+        readOnlyProperty().setValue(snapshotItem.getConfigPv().isReadOnly());
+        pvNameProperty().set(snapshotItem.getConfigPv().getPvName());
+        readbackNameProperty().set(snapshotItem.getConfigPv().getReadbackPvName());
+        setReadbackValue(snapshotItem.getReadbackValue());
+        if (snapshotItem.getValue() == null || snapshotItem.getValue().equals(VDisconnectedData.INSTANCE)) {
+            setActionResult(ActionResult.FAILED);
+        }
+        else {
+            setActionResult(ActionResult.OK);
+        }
+        if (snapshotItem.getConfigPv().getReadbackPvName() != null){
+            if(snapshotItem.getReadbackValue() == null || snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
+                setActionResultReadback(ActionResult.FAILED);
+            }
+            else{
+                setActionResultReadback(ActionResult.OK);
+            }
+        }
+        this.configPv = snapshotItem.getConfigPv();
+        this.saveAndRestorePV = new SaveAndRestorePV(this);
     }
 
+    public SaveAndRestorePV getSaveAndRestorePV(){
+        return saveAndRestorePV;
+    }
+
+    /*
     public void setConfigPv(ConfigPv configPv) {
         this.configPv = configPv;
         pvName.setValue(configPv.getPvName());
         readbackName.setValue(configPv.getReadbackPvName());
     }
+
+     */
 
     public ConfigPv getConfigPv() {
         return configPv;

@@ -45,7 +45,7 @@ public class SaveAndRestorePV {
     private PV readbackPv;
     private VType pvValue = VDisconnectedData.INSTANCE;
     private VType readbackValue = VDisconnectedData.INSTANCE;
-    private TableEntry snapshotTableEntry;
+    //private TableEntry snapshotTableEntry;
 
     /**
      * The time between updates of dynamic data in the table, in ms.
@@ -53,7 +53,7 @@ public class SaveAndRestorePV {
     private static final long TABLE_UPDATE_INTERVAL = 500;
 
     protected SaveAndRestorePV(TableEntry snapshotTableEntry) {
-        this.snapshotTableEntry = snapshotTableEntry;
+        //this.snapshotTableEntry = snapshotTableEntry;
         this.pvName = patchPvName(snapshotTableEntry.pvNameProperty().get());
         this.readbackPvName = patchPvName(snapshotTableEntry.readbackNameProperty().get());
 
@@ -61,7 +61,7 @@ public class SaveAndRestorePV {
             pv = PVPool.getPV(pvName);
             pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS).subscribe(value -> {
                 pvValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
-                this.snapshotTableEntry.setLiveValue(pvValue);
+                snapshotTableEntry.setLiveValue(pvValue);
             });
 
             if (readbackPvName != null && !readbackPvName.isEmpty()) {
@@ -70,11 +70,11 @@ public class SaveAndRestorePV {
                         .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
                         .subscribe(value -> {
                             this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
-                            this.snapshotTableEntry.setReadbackValue(this.readbackValue);
+                            snapshotTableEntry.setReadbackValue(this.readbackValue);
                         });
             } else {
                 // If configuration does not define read-back PV, then UI should show "no data" rather than "disconnected"
-                this.snapshotTableEntry.setReadbackValue(VNoData.INSTANCE);
+                snapshotTableEntry.setReadbackValue(VNoData.INSTANCE);
             }
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestorePV.class.getName()).log(Level.INFO, "Error connecting to PV", e);
@@ -99,10 +99,13 @@ public class SaveAndRestorePV {
         this.countDownLatch.countDown();
     }
 
+    /*
     public void setSnapshotTableEntry(TableEntry snapshotTableEntry) {
         this.snapshotTableEntry = snapshotTableEntry;
         this.snapshotTableEntry.setLiveValue(pv.read());
     }
+
+     */
 
     void dispose() {
         if (pv != null) {
