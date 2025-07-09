@@ -286,7 +286,7 @@ public class Perspective extends SplitPane
                 }
             }
 
-            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform, refresh);
+            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform,show_smooth, show_overlap, refresh);
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
