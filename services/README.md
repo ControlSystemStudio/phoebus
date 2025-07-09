@@ -41,9 +41,9 @@ MONGO_HOST_IP_ADDRESS=<host IP address>
 ```
 
 Where
-```<host IP address>```: the IP address where docker is launched.
-```<path-to>/Accelerator.xml```: absolute path to the ```Accelerator.xml``` alarm config file.
-```<path-to>/settings.properties```: absolute path to the ```settings.properties``` file. 
+* ```<host IP address>```: the IP address where docker is launched.
+* ```<path-to>/Accelerator.xml```: absolute path to the ```Accelerator.xml``` alarm config file.
+* ```<path-to>/settings.properties```: absolute path to the ```settings.properties``` file. 
 
 The ```settings.properties``` file is needed to define the default EPICS protocol like so:
 ```org.phoebus.pv/default=pva```
@@ -51,3 +51,6 @@ The ```settings.properties``` file is needed to define the default EPICS protoco
 To launch docker, use:
 
 ```>docker compose --env-file <path-to-environment-file> -f docker-compose-kafka-elastic-mongodb.yml up```
+
+The ```--env-file <path-to-environment-file>``` can be omitted if the file resides in current directory and is named
+exactly ```.env```.
