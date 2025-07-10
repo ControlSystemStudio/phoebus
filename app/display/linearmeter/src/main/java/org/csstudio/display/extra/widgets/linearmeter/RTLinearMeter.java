@@ -577,6 +577,11 @@ public class RTLinearMeter extends ImageView
     }
 
     private boolean showWarnings = true;
+
+    public void setShowWarnings(boolean showWarnings) {
+        runOnJavaFXThread(() -> { this.showWarnings = showWarnings; });
+    }
+
     private boolean lag = false;
     private Boolean isValueWaitingToBeDrawn = false;
     private double valueWaitingToBeDrawn;
