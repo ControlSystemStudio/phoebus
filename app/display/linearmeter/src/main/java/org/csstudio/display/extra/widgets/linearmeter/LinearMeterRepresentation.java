@@ -84,7 +84,8 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                                   model_widget.propNeedleWidth().getValue(),
                                   widgetColorToAWTColor(model_widget.propNeedleColor().getValue()),
                                   model_widget.propKnobSize().getValue(),
-                                  widgetColorToAWTColor(model_widget.propKnobColor().getValue()));
+                                  widgetColorToAWTColor(model_widget.propKnobColor().getValue()),
+                                  model_widget.propShowWarnings().getValue());
         meter.setSize(model_widget.propWidth().getValue(),model_widget.propHeight().getValue());
         meter.setHorizontal(model_widget.propDisplayHorizontal().getValue());
         meter.setManaged(false);

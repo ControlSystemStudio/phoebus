@@ -21,8 +21,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 
 import javafx.application.Platform;
@@ -76,7 +74,8 @@ public class RTLinearMeter extends ImageView
                          int needleWidth,
                          Color needleColor,
                          int knobSize,
-                         Color knobColor)
+                         Color knobColor,
+                         boolean showWarnings)
     {
         if (warningTriangle == null) {
             try {
@@ -109,6 +108,7 @@ public class RTLinearMeter extends ImageView
         this.hiHi = hiHi;
         this.showUnits = showUnits;
         this.showLimits = showLimits;
+        this.showWarnings = showWarnings;
 
         layout();
 
@@ -576,7 +576,7 @@ public class RTLinearMeter extends ImageView
         });
     }
 
-
+    private boolean showWarnings = true;
     private boolean lag = false;
     private Boolean isValueWaitingToBeDrawn = false;
     private double valueWaitingToBeDrawn;
@@ -633,7 +633,10 @@ public class RTLinearMeter extends ImageView
     }
 
     private WARNING determineWarning() {
-        if (lag) {
+        if (!showWarnings) {
+            return WARNING.NONE;
+        }
+        else if (lag) {
             return WARNING.LAG;
         }
         else if (showUnits && units.equals("")) {
