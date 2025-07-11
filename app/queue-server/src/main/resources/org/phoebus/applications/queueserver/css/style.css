@@ -1,0 +1,10 @@
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-opacity: 0;
+}
+
+.tab-pane .tab-content-area {
+    -fx-border-color: #b0b0b0;
+    -fx-border-width: 1;
+    -fx-background-color: #ffffff;
+    -fx-padding: 8;
+}
