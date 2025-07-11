@@ -324,12 +324,25 @@ Prior to restore user has the option to:
 
 Restoring from a composite snapshot works in the same manner as the restore operation from a single-snapshot.
 
+Filter PV items in list
+^^^^^^^^^^^^^^^^^^^^^^^
+The list of items in the snapshot view can be filtered based on the PV name. See screenshot for highlighted UI element
+where user may specify a string pattern to match PV names. Non-matching items will be hidden from the list view and
+**also excluded from a restore operation**.
+
+To filter the view without excluding PV items from a restore operation, user needs to tick the “Preserve selection…” checkbox.
+
+.. image:: images/filter-pv-items.png
+   :width: 80%
+
+
 Restore from context menu
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 User may invoke a restore operation (from client or from service) from context menu items in the tree
-view or in the search-and-filer view. In this case user will not have the possibility to unselect specific PVs.
-However, PV items configured as read-only will not be restored.
+view or in the search-and-filer view. In this case user will not have the possibility to deselect specific PVs.
+Filtering/exclusion based on PV name will also not be possible.
+However, PV items configured as read-only will always be excluded from a restore operation.
 
 Restore result
 ^^^^^^^^^^^^^^
