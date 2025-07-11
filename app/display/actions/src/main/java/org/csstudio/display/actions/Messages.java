@@ -19,7 +19,8 @@ public class Messages {
     /**
      * Externalized Strings
      */
-    public static String ActionExecuteCommand,
+    public static String ActionCloseDisplay,
+            ActionExecuteCommand,
             ActionExecuteScript,
             ActionOpenDisplay,
             ActionOpenFile,
