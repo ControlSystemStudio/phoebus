@@ -30,6 +30,8 @@ import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 import org.phoebus.saveandrestore.util.Threshold;
 import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
@@ -40,6 +42,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <code>TableEntry</code> represents a single line in the snapshot viewer table. It provides values for all columns in
@@ -102,13 +107,21 @@ public class TableEntry {
      */
     private final ObjectProperty<ActionResult> actionResultReadback = new SimpleObjectProperty<>(this, "actionResultReadback", ActionResult.PENDING);
 
-    private SaveAndRestorePV saveAndRestorePV;
-    private ConfigPv configPv;
+    private final ConfigPv configPv;
+    private final SnapshotItem snapshotItem;
+
+    private PV pv;
+    private PV readbackPv;
+    /**
+     * The time between updates of dynamic data in the table, in ms.
+     */
+    private static final long TABLE_UPDATE_INTERVAL = 500;
 
     /**
      * Construct a new table entry.
      */
     public TableEntry(SnapshotItem snapshotItem) {
+        this.snapshotItem = snapshotItem;
         //when read only is set to true, unselect this PV
         readOnly.addListener((a, o, n) -> {
             if (n) {
@@ -140,21 +153,12 @@ public class TableEntry {
             }
         }
         this.configPv = snapshotItem.getConfigPv();
-        this.saveAndRestorePV = new SaveAndRestorePV(this);
+        connect();
     }
 
-    public SaveAndRestorePV getSaveAndRestorePV(){
-        return saveAndRestorePV;
+    public SnapshotItem getSnapshotItem(){
+        return snapshotItem;
     }
-
-    /*
-    public void setConfigPv(ConfigPv configPv) {
-        this.configPv = configPv;
-        pvName.setValue(configPv.getPvName());
-        readbackName.setValue(configPv.getReadbackPvName());
-    }
-
-     */
 
     public ConfigPv getConfigPv() {
         return configPv;
@@ -481,5 +485,32 @@ public class TableEntry {
         this.actionResultReadback.set(actionResult);
     }
 
+    private void connect(){
+        try {
+            pv = PVPool.getPV(pvNameProperty().get());
+            pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
+                    .subscribe(value -> setLiveValue(PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value));
 
+            if (readbackName.isNotNull().get() && !readbackName.get().isEmpty()) {
+                readbackPv = PVPool.getPV(readbackName.get());
+                readbackPv.onValueEvent()
+                        .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
+                        .subscribe(value -> setReadbackValue(PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value));
+            } else {
+                // If configuration does not define read-back PV, then UI should show "no data" rather than "disconnected"
+                setReadbackValue(VNoData.INSTANCE);
+            }
+        } catch (Exception e) {
+            Logger.getLogger(TableEntry.class.getName()).log(Level.INFO, "Error connecting to PV", e);
+        }
+    }
+
+    void dispose() {
+        if (pv != null) {
+            PVPool.releasePV(pv);
+        }
+        if (readbackPv != null) {
+            PVPool.releasePV(readbackPv);
+        }
+    }
 }
