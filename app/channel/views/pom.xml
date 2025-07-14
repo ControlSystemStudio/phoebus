@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-channel</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>5.0.2</version>
   </parent>
   <artifactId>app-channel-views</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
@@ -11,32 +11,32 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-channelfinder</artifactId>
-      <version>5.0.2-SNAPSHOT</version>
+      <version>5.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-utility</artifactId>
-      <version>5.0.2-SNAPSHOT</version>
+      <version>5.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>5.0.2-SNAPSHOT</version>
+      <version>5.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>5.0.2-SNAPSHOT</version>
+      <version>5.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>5.0.2-SNAPSHOT</version>
+      <version>5.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>5.0.2-SNAPSHOT</version>
+      <version>5.0.2</version>
     </dependency>
   </dependencies>
 </project>

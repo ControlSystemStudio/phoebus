@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.phoebus</groupId>
         <artifactId>app-alarm</artifactId>
-        <version>5.0.2-SNAPSHOT</version>
+        <version>5.0.2</version>
     </parent>
     <artifactId>app-alarm-freetts-annunciator</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-alarm-ui</artifactId>
-            <version>5.0.2-SNAPSHOT</version>
+            <version>5.0.2</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
