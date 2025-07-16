@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -85,6 +85,9 @@ public class PVAClientMain
                     final PVAChannel pv = iter.next();
                     if (pv.getState() == ClientChannelState.CONNECTED)
                     {
+                        PVASettings.logger.log(Level.INFO, "Server: " + pv.getTCP().getServerX509Name());
+                        PVASettings.logger.log(Level.INFO, "Client: " + pv.getTCP().getClientX509Name());
+
                         final PVAData data = pv.info(request).get(timeout_ms, TimeUnit.MILLISECONDS);
                         System.out.println(pv.getName() + " = " + data.formatType());
                         pv.close();
@@ -127,6 +130,9 @@ public class PVAClientMain
                     final PVAChannel pv = iter.next();
                     if (pv.getState() == ClientChannelState.CONNECTED)
                     {
+                        PVASettings.logger.log(Level.INFO, "Server: " + pv.getTCP().getServerX509Name());
+                        PVASettings.logger.log(Level.INFO, "Client: " + pv.getTCP().getClientX509Name());
+
                         final PVAData data = pv.read(request).get(timeout_ms, TimeUnit.MILLISECONDS);
                         System.out.println(pv.getName() + " = " + data);
                         pv.close();
@@ -170,6 +176,8 @@ public class PVAClientMain
                     {
                         try
                         {
+                            PVASettings.logger.log(Level.INFO, "Server: " + ch.getTCP().getServerX509Name());
+                            PVASettings.logger.log(Level.INFO, "Client: " + ch.getTCP().getClientX509Name());
                             ch.subscribe(request, listener);
                         }
                         catch (Exception ex)
