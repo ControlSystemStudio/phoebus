@@ -658,13 +658,18 @@ public class WidgetInfoDialog extends Dialog<Boolean> {
         }
         // Prepend "archiver://"
         pvName = "archive://" + pvName + "(" + TimestampFormats.SECONDS_FORMAT.format(Instant.now()) + ")";
+        PV pv = null;
         try {
-            PV pv = PVPool.getPV(pvName);
+            pv = PVPool.getPV(pvName);
             VType pvValue = pv.read();
-            PVPool.releasePV(pv);
             return pvValue == null ? ArchivedStatus.NO : ArchivedStatus.YES;
         } catch (Exception e) {
             return ArchivedStatus.UNKNOWN;
+        }
+        finally {
+            if(pv != null){
+                PVPool.releasePV(pv);
+            }
         }
     }
 

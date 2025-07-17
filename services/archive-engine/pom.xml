@@ -3,10 +3,10 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.0.3-SNAPSHOT</version>
   </parent>
   <artifactId>service-archive-engine</artifactId>
-
+  <name>${project.groupId}:${project.artifactId}</name>
   <profiles>
     <!-- When Oracle support is needed, set environment variable ORACLE_JDBC_JAR=/path/to/ojdbc8-12.2.0.1.jar -->
     <profile>
@@ -82,27 +82,27 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv-ca</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv-pva</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

@@ -59,6 +59,7 @@ public class Messages
             SelectFolder,
             ShowHideDetails,
             SizeLimitsText,
+            UnsupportedFileType,
             UpdateLogEntry;
 
     static

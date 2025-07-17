@@ -42,6 +42,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -153,11 +154,6 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public Node updateNode(Node nodeToUpdate) {
-        return updateNode(nodeToUpdate, false);
     }
 
     @Override

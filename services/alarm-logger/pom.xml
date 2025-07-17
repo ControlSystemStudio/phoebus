@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.0.3-SNAPSHOT</version>
   </parent>
   <properties>
     <java.version>17</java.version>
@@ -11,7 +11,7 @@
     <elasticsearch.version>8.2.0</elasticsearch.version>
   </properties>
   <artifactId>service-alarm-logger</artifactId>
-
+  <name>${project.groupId}:${project.artifactId}</name>
   <dependencyManagement>
     <dependencies>
       <!-- Spring Boot BOM -->
@@ -95,12 +95,12 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
 
     <!--log4j2 to slf4j adapter-->

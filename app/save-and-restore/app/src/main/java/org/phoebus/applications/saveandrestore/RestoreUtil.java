@@ -92,12 +92,6 @@ public class RestoreUtil {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(restoreResultList.stream()
                     .map(r -> r.getSnapshotItem().getConfigPv().getPvName()).collect(Collectors.joining(System.lineSeparator())));
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText(Messages.restoreFailedPVs);
-                alert.setContentText(stringBuilder.toString());
-                alert.show();
-            });
             Logger.getLogger(RestoreUtil.class.getName()).log(Level.WARNING,
                     "Not all PVs could be restored for \"{0}\": . " + Messages.restoreFailedPVs + "\n{1}",
                     new Object[]{node.getName(), stringBuilder.toString()});

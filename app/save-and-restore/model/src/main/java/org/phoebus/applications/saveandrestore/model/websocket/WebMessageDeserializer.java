@@ -33,8 +33,8 @@ public class WebMessageDeserializer extends StdDeserializer<SaveAndRestoreWebSoc
      * @return A {@link SaveAndRestoreWebSocketMessage} object, or <code>null</code> if deserialization fails.
      */
     @Override
-    public SaveAndRestoreWebSocketMessage<? extends Object> deserialize(JsonParser jsonParser,
-                                                                        DeserializationContext context) {
+    public SaveAndRestoreWebSocketMessage<?> deserialize(JsonParser jsonParser,
+                                                         DeserializationContext context) {
         try {
             JsonNode rootNode = jsonParser.getCodec().readTree(jsonParser);
             String messageType = rootNode.get("messageType").asText();
