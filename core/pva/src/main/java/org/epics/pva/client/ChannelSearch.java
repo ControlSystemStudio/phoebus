@@ -482,7 +482,7 @@ class ChannelSearch
                     // Use 'any' reply address since reply will be via this TCP socket
                     final InetSocketAddress response_address = new InetSocketAddress(0);
 
-                    SearchRequest.encode(true, seq, channels, response_address, tls , buffer);
+                    SearchRequest.encode(true, true, seq, channels, response_address, tls , buffer);
                 };
                 tcp.submit(search_request);
             }
@@ -517,7 +517,7 @@ class ChannelSearch
         {
             send_buffer.clear();
             final InetSocketAddress response = udp.getResponseAddress(addr);
-            SearchRequest.encode(true, seq, channels, response, tls, send_buffer);
+            SearchRequest.encode(true, true, seq, channels, response, tls, send_buffer);
             send_buffer.flip();
             try
             {
@@ -535,7 +535,7 @@ class ChannelSearch
         {
             send_buffer.clear();
             final InetSocketAddress response = udp.getResponseAddress(addr);
-            SearchRequest.encode(false, seq, channels, response, tls, send_buffer);
+            SearchRequest.encode(false, true, seq, channels, response, tls, send_buffer);
             send_buffer.flip();
             try
             {

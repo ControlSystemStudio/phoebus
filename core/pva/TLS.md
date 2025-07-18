@@ -39,7 +39,7 @@ This is an example recipe for getting started.
    Note its "Certificate identifier":
 
    ```
-   $ authnstd --name ioc --cert-usage hybrid
+   $ authnstd --name ioc --cert-usage ioc
    Keychain file created   : /home/user/.config/pva/1.3/server.p12
    Certificate identifier  : e53ed409:15273288300286014953
    ```

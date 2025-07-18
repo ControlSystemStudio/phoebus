@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -52,7 +52,7 @@ class ValidationHandler implements CommandHandler<ClientTCPHandler>
         // Support "x509" or "ca" authorization, fall back to any-no-mouse
         final ClientAuthentication authentication;
         // Even if server suggests x509, check that we have a certificate with name
-        if (tcp.getX509Name() != null  &&  auth.contains(PVAAuth.X509))
+        if (tcp.getClientX509Name() != null  &&  auth.contains(PVAAuth.X509))
             authentication = ClientAuthentication.X509;
         else if (auth.contains(PVAAuth.CA))
             authentication = ClientAuthentication.CA;

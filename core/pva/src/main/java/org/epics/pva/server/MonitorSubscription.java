@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -77,8 +77,13 @@ class MonitorSubscription
         tcp.submit(this::encodeMonitor);
     }
 
+    /** @param tcp TCP connection
+     *  @param req Client's monitor request ID, -1 for any client request ID
+     *  @return Is this subscription for that TCP connection and client's request ID?
+     */
     boolean isFor(final ServerTCPHandler tcp, final int req)
     {
+        // Check for identity, not equal IP address.
         return this.tcp == tcp  &&  (req == -1 || this.req == req);
     }
 
