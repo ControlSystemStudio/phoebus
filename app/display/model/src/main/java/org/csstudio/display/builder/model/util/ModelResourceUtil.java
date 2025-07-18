@@ -304,8 +304,7 @@ public class ModelResourceUtil
         return null;
     }
 
-    /** Check if a resource doesn't just look like a URL
-     *  but can actually be opened
+    /** Check if a resource can be opened as a URL
      *  @param resource_name Path to resource, presumably "http://.."
      *  @return <code>true</code> if indeed an exiting URL
      */
@@ -327,7 +326,6 @@ public class ModelResourceUtil
         }
 
         if (! isURL(resource_name)) {
-            logger.log(Level.WARNING, "URL {0} is not a URL", new Object[] { resource_name });
             return false;
         }
 
