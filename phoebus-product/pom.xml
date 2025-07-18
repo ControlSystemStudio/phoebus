@@ -237,11 +237,6 @@
             <artifactId>app-eslog</artifactId>
             <version>5.0.3-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>org.phoebus</groupId>
-            <artifactId>app-queue-monitor</artifactId>
-            <version>5.0.3-SNAPSHOT</version>
-        </dependency>
 
         <!-- A default implementation of contribututions db context menu -->
         <dependency>
