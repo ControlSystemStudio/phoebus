@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>pv-pvws</artifactId>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <parent>
+        <groupId>org.phoebus</groupId>
+        <artifactId>core</artifactId>
+        <version>5.0.3-SNAPSHOT</version>
+    </parent>
+
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.epics</groupId>
+            <artifactId>vtype</artifactId>
+            <version>${vtype.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-framework</artifactId>
+            <version>5.0.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv</artifactId>
+            <version>5.0.3-SNAPSHOT</version>
+        </dependency>
+
+    </dependencies>
+</project>
