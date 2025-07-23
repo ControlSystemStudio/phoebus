@@ -43,7 +43,7 @@ import org.epics.pva.data.PVAStructure;
 
 /**
  * Normative scalar and scaler[] type
- * 
+ *
  * NTScalar :=
  * <ul>
  * <li>structure
@@ -56,7 +56,7 @@ import org.epics.pva.data.PVAStructure;
  * <li>control_t control :opt
  * </ul>
  * </ul>
- * 
+ *
  * @param <S> can be from scalar_t or scalar_t[] as specified by:
  *            where scalar_t can be:
  *            <ul>
@@ -69,7 +69,7 @@ import org.epics.pva.data.PVAStructure;
  *            <li>{@link PVADouble}
  *            <li>{@link PVAString}
  *            </ul>
- * 
+ *
  *            and scalar_t[] can be:
  *            <ul>
  *            <li>{@link PVABoolArray}
@@ -84,15 +84,16 @@ import org.epics.pva.data.PVAStructure;
  */
 public class PVAScalar<S extends PVAData> extends PVAStructure {
     public static final String SCALAR_STRUCT_NAME_STRING = "epics:nt/NTScalar:1.0";
+    public static final String ENUM_STRUCT_NAME_STRING = "epics:nt/NTEnum:1.0";
     public static final String ARRAY_STRUCT_NAME_STRING = "epics:nt/NTScalarArray:1.0";
     public static final String VALUE_NAME_STRING = "value";
     public static final String DESCRIPTION_NAME_STRING = "description";
 
     /**
      * Builder for the PVAScalar class
-     * 
+     *
      * @param <S> is in the {@link PVAScalar} list
-     * 
+     *
      *            The description element must be named description
      *            otherwise a PVAScalarDescriptionNameException will be thrown
      *            The value element must be named value
@@ -113,9 +114,10 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
         }
 
         String determineStructName(S value) {
-            if (value instanceof PVAArray) {
+            if (value instanceof PVAArray)
                 return ARRAY_STRUCT_NAME_STRING;
-            }
+            else if (value instanceof PVAEnum)
+                return ENUM_STRUCT_NAME_STRING;
             return SCALAR_STRUCT_NAME_STRING;
         }
 
@@ -260,7 +262,7 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
 
     /**
      * Converts from generic PVAStructure to PVAScalar
-     * 
+     *
      * @param structure
      * @return
      * @throws PVAScalarValueNameException
