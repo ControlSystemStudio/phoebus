@@ -394,14 +394,14 @@ abstract public class TCPHandler
      */
     private void handleMessage(final ByteBuffer buffer) throws Exception
     {
-        final byte flags = buffer.get(2);
+        final byte flags = buffer.get(PVAHeader.HEADER_OFFSET_FLAGS);
         final byte segemented = (byte) (flags & PVAHeader.FLAG_SEGMENT_MASK);
         if (segemented != 0)
             handleSegmentedMessage(segemented, buffer);
         else
         {
             final boolean control = (flags & PVAHeader.FLAG_CONTROL) != 0;
-            final byte command = buffer.get(3);
+            final byte command = buffer.get(PVAHeader.HEADER_OFFSET_COMMAND);
             // Move to start of potential payload
             if (buffer.limit() >= 8)
                 buffer.position(8);
@@ -462,11 +462,11 @@ abstract public class TCPHandler
             if (segments == null  ||  segments.position() <= 0)
                 throw new Exception("Received " + (last ? "last" : "middle") + " message segment without first segment");
             // Check if command matches the one in first segment
-            final byte seg_command = segments.get(3);
-            if (seg_command != buffer.get(3))
+            final byte seg_command = segments.get(PVAHeader.HEADER_OFFSET_COMMAND);
+            if (seg_command != buffer.get(PVAHeader.HEADER_OFFSET_COMMAND))
                 throw new Exception(String.format("Received " + (last ? "last" : "middle") +
                                                   " message segment for command 0x%02X after first segment for command 0x%02X",
-                                                  buffer.get(3), seg_command));
+                                                  buffer.get(PVAHeader.HEADER_OFFSET_COMMAND), seg_command));
 
             // Size of segments accumulated so far..
             final int seg_size = segments.getInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE);

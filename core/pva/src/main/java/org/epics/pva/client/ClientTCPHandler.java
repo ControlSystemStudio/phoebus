@@ -64,13 +64,6 @@ class ClientTCPHandler extends TCPHandler
     /** Client context */
     private final PVAClient client;
 
-    /** When using TLS, the socket may come with a local certificate
-     *  that TLS uses to authenticate to the server,
-     *  and this is the name from that certificate.
-     *  Otherwise <code>null</code>
-     */
-    private String x509_name;
-
     /** Channels that use this connection */
     private final CopyOnWriteArrayList<PVAChannel> channels = new CopyOnWriteArrayList<>();
 
@@ -145,9 +138,6 @@ class ClientTCPHandler extends TCPHandler
             return false;
         }
 
-        // For TLS, check if the socket has a name that's used to authenticate
-        x509_name = tls ? SecureSockets.getPrincipalCN(((SSLSocket) socket).getSession().getLocalPrincipal()) : null;
-
         // For default EPICS_CA_CONN_TMO: 30 sec, send echo at ~15 sec:
         // Check every ~3 seconds
         last_life_sign = last_message_sent = System.currentTimeMillis();
@@ -170,10 +160,30 @@ class ClientTCPHandler extends TCPHandler
         return client;
     }
 
-    /** @return Name used by TLS socket's certificate, or <code>null</code> */
-    String getX509Name()
+    /** When using TLS, the socket has a peer (server, IOC) certificate
+     *  @return Name from server's certificate, or <code>null</code>
+     */
+    String getServerX509Name()
     {
-        return x509_name;
+        try
+        {
+            if (tls)
+                return SecureSockets.getPrincipalCN(((SSLSocket) socket).getSession().getPeerPrincipal());
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot get server principal", ex);
+        }
+        return null;
+    }
+
+    /** When using TLS, the socket may come with a local (client) certificate
+     *  that TLS uses to authenticate to the server.
+     *  @return Name from client's certificate, or <code>null</code> */
+    String getClientX509Name()
+    {
+        return tls ? SecureSockets.getPrincipalCN(((SSLSocket) socket).getSession().getLocalPrincipal())
+                   : null;
     }
 
     /** @param channel Channel that uses this TCP connection */
