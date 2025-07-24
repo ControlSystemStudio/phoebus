@@ -105,7 +105,7 @@ public class TooltipSupport
 
             // If 'vtype' supports it (i.e., it is an instance of "DisplayProvider"),
             // append the alarm limits to $(pv_value):
-            if (vtype instanceof DisplayProvider) {
+            if (vtype instanceof DisplayProvider && !Alarm.alarmOf(vtype).equals(Alarm.disconnected()) ) {
 
                 Range alarmRange = display.getAlarmRange();
                 double lolo = alarmRange.getMinimum();

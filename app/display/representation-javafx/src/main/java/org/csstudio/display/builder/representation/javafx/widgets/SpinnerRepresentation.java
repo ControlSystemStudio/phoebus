@@ -24,6 +24,7 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
@@ -374,7 +375,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
      */
     private String computeText(final VType value)
     {
-        if (value == null)
+        Alarm alarm = Alarm.alarmOf(value);
+        if (value == null || alarm.equals(Alarm.disconnected()))
             return "<" + model_widget.propPVName().getValue() + ">";
         return FormatOptionHandler.format(value,
                                           model_widget.propFormat().getValue(),
