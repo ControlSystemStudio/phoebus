@@ -1,6 +1,7 @@
 package org.csstudio.display.builder.runtime.test;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class WidgetRuntimeTest {
            //PVUtil.writePV(pv_name, initValue, 0);
            double readValue = PVUtil.getDouble(pv);
            //Test in standard way
-           assertTrue("Write succeed", readValue == initValue);
+           assertThat(readValue, equalTo(initValue));
            
            //Test with WidgetRuntime (write Action)
            ActionButtonWidget widget = new ActionButtonWidget();
@@ -63,7 +64,8 @@ public class WidgetRuntimeTest {
            //Test the new value
            readValue = PVUtil.getDouble(pv);
            //Test if the new value is ok
-           assertTrue("Write succeed", readValue == newValue);
+           assertThat(readValue, equalTo(newValue));
+           
        } catch (Exception e) {
            e.printStackTrace();
            fail(e);
