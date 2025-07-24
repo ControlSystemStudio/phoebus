@@ -269,9 +269,6 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
                 else if (value instanceof VType)
                     // VType that doesn't provide alarm, always OK
                     severity = AlarmSeverity.NONE;
-                else if (value != null)
-                    // Not a vtype, but non-null, assume OK
-                    severity = AlarmSeverity.NONE;
                 else // null
                     severity = AlarmSeverity.UNDEFINED;
             }
