@@ -255,14 +255,14 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         AlarmSeverity severity = AlarmSeverity.NONE;
 
         // Ignore custom border and value of primary PV, show disconnected
-        if (! model_widget.runtimePropConnected().getValue())
+        final VType value = value_prop.getValue();
+        final Alarm alarm = Alarm.alarmOf(value);
+        if (! model_widget.runtimePropConnected().getValue() || alarm.equals(Alarm.disconnected()))
             severity = AlarmSeverity.UNDEFINED;
         else
         {   // Reflect severity of primary PV's value
             if (value_prop != null  && alarm_sensitive_border_prop.getValue())
             {
-                final Object value = value_prop.getValue();
-                final Alarm alarm = Alarm.alarmOf(value);
                 if (alarm != null  &&  alarm.getSeverity() != AlarmSeverity.NONE)
                     // Have alarm info
                     severity = alarm.getSeverity();
