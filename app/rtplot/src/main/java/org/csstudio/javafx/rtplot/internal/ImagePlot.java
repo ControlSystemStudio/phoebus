@@ -37,6 +37,7 @@ import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.csstudio.javafx.rtplot.internal.util.LinearScreenTransform;
 import org.csstudio.javafx.rtplot.internal.util.Log10;
 import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayUByte;
 import org.epics.util.array.ArrayInteger;
 import org.epics.util.array.ArrayShort;
 import org.epics.util.array.IteratorNumber;
@@ -566,7 +567,7 @@ public class ImagePlot extends PlotCanvasBase
                 }
                 else
                 {
-                    if (!(numbers instanceof ArrayByte))
+                    if (!(numbers instanceof ArrayByte || numbers instanceof ArrayUByte))
                         logger.log(Level.WARNING, "Cannot handle rgb1 image data of type " + numbers.getClass().getName());
                     if (unsigned)
                     {
