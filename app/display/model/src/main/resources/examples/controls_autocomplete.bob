@@ -200408,6 +200408,7 @@ test_99999</autocompleteitems>
     </widget>
     <widget type="autocomplete" version="2.0.0">
       <name>Auto Complete_7</name>
+      <pv_name>loc://case_sensitivity&lt;VString&gt;</pv_name>
       <x>282</x>
       <y>43</y>
       <width>260</width>

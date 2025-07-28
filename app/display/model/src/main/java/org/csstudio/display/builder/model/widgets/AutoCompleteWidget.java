@@ -54,7 +54,7 @@ public class AutoCompleteWidget extends WritablePVWidget {
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("autocomplete", WidgetCategory.CONTROL,
             "Auto Complete",
-            "/icons/textentry.png",
+            "/icons/autocomplete.png",
             "Text input with auto-completion from a large list of options",
             List.of("org.csstudio.opibuilder.widgets.AutoComplete")) {
             @Override
@@ -67,7 +67,7 @@ public class AutoCompleteWidget extends WritablePVWidget {
      * 'items' property: list of items (string properties) for auto-completion
      */
     public static final WidgetPropertyDescriptor<String> propItems =
-        newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "testitems", "Suggestions");
+        newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "autocompleteitems", "Suggestions");
 
     /**
      * 'max_suggestions' property: maximum number of suggestions to display

@@ -23,7 +23,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </font>
     </font>
     <foreground_color use_class="true">
-      <color name="Text" red="204" green="204" blue="204">
+      <color name="Text" red="0" green="0" blue="0">
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>
@@ -42,7 +42,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </font>
     </font>
     <foreground_color use_class="true">
-      <color name="Text" red="204" green="204" blue="204">
+      <color name="Text" red="0" green="0" blue="0">
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>
@@ -581,7 +581,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>470</x>
-    <y>440</y>
+    <y>480</y>
     <width>120</width>
     <height>26</height>
     <scripts>
@@ -601,7 +601,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>470</x>
-    <y>480</y>
+    <y>520</y>
     <width>120</width>
     <height>26</height>
     <scripts>
@@ -857,14 +857,9 @@ then press &lt;SPACE&gt; to activate button.</text>
       </action>
     </actions>
     <x>470</x>
-    <y>520</y>
+    <y>440</y>
     <width>120</width>
     <height>26</height>
-    <scripts>
-      <script file="scripts/disable_missing.py">
-        <pv_name>loc://thumb("thumbwheel")</pv_name>
-      </script>
-    </scripts>
     <tooltip>$(actions)</tooltip>
   </widget>
 </display>
