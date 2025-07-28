@@ -1,6 +1,7 @@
 /*******************************************************************************
  * Copyright (C) 2025 Thales.
- * All rights reserved. This program and the accompanying materials
+ * All rights reserved.
+ * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
@@ -93,6 +94,14 @@ public class AutoCompleteWidget extends WritablePVWidget {
         newStringPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "placeholder", "Placeholder Text");
 
     /**
+     * 'allowcustom' property: allow custom values
+     */
+    private static final WidgetPropertyDescriptor<Boolean> propCustom =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "allow_custom",
+            "Allow custom values");
+
+
+    /**
      * 'filter_mode' property: how to filter suggestions (starts_with, contains, fuzzy)
      */
     private static final WidgetPropertyDescriptor<String> propFilterMode =
@@ -112,6 +121,7 @@ public class AutoCompleteWidget extends WritablePVWidget {
     private volatile WidgetProperty<Boolean> case_sensitive;
     private volatile WidgetProperty<String> placeholder;
     private volatile WidgetProperty<String> filter_mode;
+    private volatile WidgetProperty<Boolean> allow_custom;
     private volatile List<String> itemsList = List.of();
 
     /**
@@ -144,13 +154,14 @@ public class AutoCompleteWidget extends WritablePVWidget {
         properties.add(case_sensitive = propCaseSensitive.createProperty(this, false));
         properties.add(placeholder = propPlaceholder.createProperty(this, "Type to search..."));
         properties.add(filter_mode = propFilterMode.createProperty(this,
-            "contains"));
+            "fuzzy"));
 
         properties.add(enabled = propEnabled.createProperty(this, true));
         properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
         properties.add(confirm_message = propConfirmMessage.createProperty(this,
             "Are you sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
+        properties.add(allow_custom = propCustom.createProperty(this, false));
     }
 
     /**
@@ -270,6 +281,13 @@ public class AutoCompleteWidget extends WritablePVWidget {
     }
 
     /**
+     * @return 'allow_custom' property
+     */
+    public WidgetProperty<Boolean> propCustom() {
+        return allow_custom;
+    }
+
+    /**
      * Filter items based on input text and return top N matches
      *
      * @param inputText Text to filter by
@@ -286,15 +304,11 @@ public class AutoCompleteWidget extends WritablePVWidget {
         return getItems().stream()
             .filter(item -> {
                 final String itemText = case_sensitive.getValue() ? item : item.toLowerCase();
-                switch (mode) {
-                    case "starts_with":
-                        return itemText.startsWith(searchText);
-                    case "fuzzy":
-                        return fuzzyMatch(itemText, searchText);
-                    case "contains":
-                    default:
-                        return itemText.contains(searchText);
-                }
+                return switch (mode) {
+                    case "starts_with" -> itemText.startsWith(searchText);
+                    case "fuzzy" -> fuzzyMatch(itemText, searchText);
+                    default -> itemText.contains(searchText);
+                };
             })
             .collect(Collectors.toList());
     }

@@ -9,15 +9,6 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
-import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -28,6 +19,15 @@ import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
+
+import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -41,7 +41,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.stage.Popup;
-import javafx.util.Callback;
 import org.phoebus.ui.vtype.FormatOption;
 import org.phoebus.ui.vtype.FormatOptionHandler;
 
@@ -61,7 +60,6 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
     private final UntypedWidgetPropertyListener enableChangedListener = this::enableChanged;
     private final UntypedWidgetPropertyListener styleChangedListener = this::styleChanged;
 
-    private volatile boolean isUserTyping = false;
     private volatile List<String> items = Collections.emptyList();
     private volatile String currentValue = "";
 
@@ -176,24 +174,26 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
 
         enableChanged(null, null, null);
         contentChanged(null, null, null);
+
         return textField;
     }
 
+    /**
+     * Suggestion popup initialization.
+     *
+     * @param textField AutoComplete JavaFX TextField.
+     */
     private void initializePopup(TextField textField) {
         suggestionsPopup = new Popup();
         suggestionsPopup.setAutoHide(true);
         suggestionsPopup.setAutoFix(true);
         suggestionsPopup.setHideOnEscape(true);
+        suggestionsPopup.setConsumeAutoHidingEvents(false);
 
         suggestionsData = FXCollections.observableArrayList();
         suggestionsListView = new ListView<>(suggestionsData);
 
-        suggestionsListView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
-            @Override
-            public ListCell<String> call(ListView<String> listView) {
-                return new SuggestionCell();
-            }
-        });
+        suggestionsListView.setCellFactory(listView -> new SuggestionCell());
 
         suggestionsListView.setStyle(
             "-fx-background-color: white; " +
@@ -212,16 +212,6 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
             }
         });
 
-        suggestionsListView.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                String selectedItem = suggestionsListView.getSelectionModel().getSelectedItem();
-                if (selectedItem != null) {
-                    selectSuggestion(selectedItem);
-                }
-                event.consume();
-            }
-        });
-
         suggestionsPopup.getContent().add(suggestionsListView);
 
         textField.widthProperty().addListener((obs, oldWidth, newWidth) -> {
@@ -229,15 +219,27 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
                 updatePopupSize(suggestionsData.size());
             }
         });
+
+        suggestionsListView.setFocusTraversable(false);
+        suggestionsListView.setMouseTransparent(false);
     }
 
+    /**
+     * Method to set up once all listeners and actions on the TextField.
+     *
+     * @param textField AutoComplete JavaFX TextField.
+     */
     private void setupTextFieldEventHandlers(TextField textField) {
         ChangeListener<String> textChangeListener = (observable, oldValue, newValue) -> {
             if (active || updating_suggestions) {
                 return;
             }
-            isUserTyping = true;
+
             updateSuggestions(newValue);
+
+            if (!model_widget.propCustom().getValue() && newValue != null && !newValue.isEmpty()) {
+                validateInput(newValue);
+            }
         };
         textField.textProperty().addListener(textChangeListener);
 
@@ -247,26 +249,14 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
             }
         });
 
-        textField.setOnKeyPressed(event -> {
-            if (!suggestionsPopup.isShowing() ||
-                (event.getCode() != KeyCode.UP &&
-                    event.getCode() != KeyCode.DOWN &&
-                    event.getCode() != KeyCode.ENTER &&
-                    event.getCode() != KeyCode.TAB &&
-                    event.getCode() != KeyCode.ESCAPE)) {
-                isUserTyping = true;
-            }
-
-            handleKeyPressed(event);
-        });
+        textField.setOnKeyPressed(this::handleKeyPressed);
 
         textField.setOnAction(event -> {
-            isUserTyping = false;
             if (suggestionsPopup.isShowing()) {
                 suggestionsPopup.hide();
             }
             String text = textField.getText();
-            if (text != null) {
+            if (text != null && !text.trim().isEmpty()) {
                 confirmValue(text);
             }
         });
@@ -275,9 +265,13 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
             if (newVal && enabled) {
                 Platform.runLater(this::showAllSuggestions);
             } else if (!newVal) {
-                isUserTyping = false;
                 if (suggestionsPopup.isShowing()) {
                     Platform.runLater(() -> suggestionsPopup.hide());
+                }
+
+                String currentText = textField.getText();
+                if (currentText != null && !currentText.equals(currentValue)) {
+                    Platform.runLater(() -> textField.setText(currentValue));
                 }
             }
         });
@@ -290,15 +284,36 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
     }
 
     /**
+     * Method to validate user input when
+     *
+     * @param input User input.
+     */
+    private void validateInput(String input) {
+        if (!model_widget.propCustom().getValue()) {
+            return;
+        }
+
+        boolean isValidItem = items.stream()
+            .anyMatch(item -> {
+                if (model_widget.propCaseSensitive().getValue()) {
+                    return item.startsWith(input);
+                } else {
+                    return item.toLowerCase().startsWith(input.toLowerCase()) ||
+                        item.equalsIgnoreCase(input);
+                }
+            });
+
+        if (isValidItem || input.isEmpty()) {
+            Platform.runLater(() -> styleChanged(null, null, null));
+        }
+    }
+
+    /**
      * Method to handle user interactions with text field.
      *
      * @param event Key input event.
      */
     private void handleKeyPressed(KeyEvent event) {
-        if (!suggestionsPopup.isShowing()) {
-            return;
-        }
-
         switch (event.getCode()) {
             case UP -> {
                 int currentIndex = suggestionsListView.getSelectionModel().getSelectedIndex();
@@ -319,13 +334,6 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
                 } else if (currentIndex == -1 && !suggestionsData.isEmpty()) {
                     suggestionsListView.getSelectionModel().select(0);
                     suggestionsListView.scrollTo(0);
-                }
-                event.consume();
-            }
-            case ENTER, TAB -> {
-                String selectedItem = suggestionsListView.getSelectionModel().getSelectedItem();
-                if (selectedItem != null) {
-                    selectSuggestion(selectedItem);
                 }
                 event.consume();
             }
@@ -363,7 +371,7 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
      */
     private void selectSuggestion(String suggestion) {
         active = true;
-        isUserTyping = false;
+
         try {
             jfx_node.setText(suggestion);
             suggestionsPopup.hide();
@@ -402,6 +410,7 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
         model_widget.propItems().addUntypedPropertyListener(contentChangedListener);
         model_widget.propEnabled().addUntypedPropertyListener(enableChangedListener);
         model_widget.runtimePropPVWritable().addUntypedPropertyListener(enableChangedListener);
+        model_widget.propCustom().addUntypedPropertyListener(contentChangedListener);
 
         styleChanged(null, null, null);
         contentChanged(null, null, null);
@@ -423,6 +432,8 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
         model_widget.propItems().removePropertyListener(contentChangedListener);
         model_widget.propEnabled().removePropertyListener(enableChangedListener);
         model_widget.runtimePropPVWritable().removePropertyListener(enableChangedListener);
+        model_widget.propCustom().removePropertyListener(contentChangedListener);
+
         super.unregisterListeners();
     }
 
@@ -436,12 +447,26 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
             return;
         }
 
-        isUserTyping = false;
+        if (!model_widget.propCustom().getValue()) {
+            boolean isValidItem = items.stream()
+                .anyMatch(item -> {
+                    if (model_widget.propCaseSensitive().getValue()) {
+                        return item.equals(value);
+                    } else {
+                        return item.equalsIgnoreCase(value);
+                    }
+                });
+
+            if (!isValidItem) {
+                Platform.runLater(() -> jfx_node.setText(currentValue));
+                return;
+            }
+        }
 
         if (model_widget.propConfirmDialog().getValue()) {
             final String message = model_widget.propConfirmMessage().getValue();
             final String password = model_widget.propPassword().getValue();
-            if (password.length() > 0) {
+            if (!password.isEmpty()) {
                 if (toolkit.showPasswordDialog(model_widget, message, password) == null) {
                     return;
                 }
@@ -455,7 +480,8 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
             Object mappedValue;
 
             if (currentPvValue instanceof VEnum) {
-                mappedValue = FormatOptionHandler.parse(currentPvValue, value, FormatOption.DEFAULT);
+                mappedValue = FormatOptionHandler.parse(currentPvValue, value,
+                    FormatOption.DEFAULT);
             } else {
                 try {
                     if (value.contains(".")) {
@@ -580,7 +606,7 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
             try {
                 model_widget.setItems(items);
 
-                if (!isUserTyping && !jfx_node.getText().equals(currentValue)) {
+                if (!jfx_node.getText().equals(currentValue)) {
                     jfx_node.setText(currentValue);
                 }
             } finally {
