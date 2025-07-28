@@ -286,6 +286,11 @@
             <artifactId>core-pv-jackie</artifactId>
             <version>5.0.3-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>pv-pvws</artifactId>
+            <version>5.0.3-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
