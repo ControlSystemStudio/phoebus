@@ -9,6 +9,7 @@ package org.phoebus.ui.application;
 
 import java.io.File;
 
+import javafx.scene.control.Menu;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
@@ -26,17 +27,28 @@ import javafx.stage.Window;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class SaveSnapshotAction extends MenuItem
+public class SaveSnapshotAction extends Menu
 {
     private static final Image icon = ImageCache.getImage(SaveSnapshotAction.class, "/icons/save_edit.png");
+    private static final Image copyIcon = ImageCache.getImage(SaveSnapshotAction.class, "/icons/copy.png");
     private static final ExtensionFilter all_file_extensions = new ExtensionFilter(Messages.AllFiles, "*.*");
     private static final ExtensionFilter image_file_extension = new ExtensionFilter(Messages.ImagePng, "*.png");
+
 
     /** @param node Node in scene of which to take snapshot */
     public SaveSnapshotAction(final Node node)
     {
-        super(Messages.SaveSnapshot, new ImageView(icon));
-        setOnAction(event -> save(node));
+        setText(Messages.SaveSnapshot);
+        setGraphic(new ImageView(icon));
+
+        MenuItem saveToFileMenuItem = new MenuItem(Messages.SaveSnapshotToFile, new ImageView(icon));
+        saveToFileMenuItem.setOnAction(e -> save(node));
+
+        MenuItem copyToClipboard = new MenuItem(Messages.SaveSnapshotToClipboard, new ImageView(copyIcon));
+        copyToClipboard.setOnAction(e -> Screenshot.copyToClipboard(node));
+
+        getItems().addAll(saveToFileMenuItem, copyToClipboard);
+
     }
 
     /** @param node Node of which to save a snapshot */

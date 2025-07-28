@@ -1,22 +1,22 @@
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>dependencies</artifactId>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.0.3-SNAPSHOT</version>
   </parent>
   <artifactId>install-jars</artifactId>
-
-
+  <name>${project.groupId}:${project.artifactId}</name>
   <!-- Note how the configuration is _inside_ an execution,
-       and each exacution has a unique ID.
-       Otherwise the plugin would run once with a mix of setups,
-       like install the ojdbc jar with the pbraw/pom.xml:
+         and each exacution has a unique ID.
+         Otherwise the plugin would run once with a mix of setups,
+         like install the ojdbc jar with the pbraw/pom.xml:
 
- maven-install-plugin:2.5.2:install-file (install-jar-lib) @ install-jars
- Installing dependencies/install-jars/lib/ojdbc/ojdbc8-12.2.0.1.jar to .m2/repository/com/oracle/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar
- Installing dependencies/install-jars/lib/pbraw/pom.xml to .m2/repository/com/oracle/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.pom
-    -->
+   maven-install-plugin:2.5.2:install-file (install-jar-lib) @ install-jars
+   Installing dependencies/install-jars/lib/ojdbc/ojdbc8-12.2.0.1.jar to .m2/repository/com/oracle/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar
+   Installing dependencies/install-jars/lib/pbraw/pom.xml to .m2/repository/com/oracle/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.pom
+      -->
   <profiles>
     <!-- Oracle JDBC is only available from an Oracle.
          If your site uses it, copy it into ${basedir}/lib/ojdbc/ojdbc8-12.2.0.1.jar,

@@ -84,7 +84,8 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                                   model_widget.propNeedleWidth().getValue(),
                                   widgetColorToAWTColor(model_widget.propNeedleColor().getValue()),
                                   model_widget.propKnobSize().getValue(),
-                                  widgetColorToAWTColor(model_widget.propKnobColor().getValue()));
+                                  widgetColorToAWTColor(model_widget.propKnobColor().getValue()),
+                                  model_widget.propShowWarnings().getValue());
         meter.setSize(model_widget.propWidth().getValue(),model_widget.propHeight().getValue());
         meter.setHorizontal(model_widget.propDisplayHorizontal().getValue());
         meter.setManaged(false);
@@ -113,6 +114,11 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
         addUntypedWidgetPropertyListener(model_widget.propScaleVisible(), layoutChangedListener);
         addUntypedWidgetPropertyListener(model_widget.propFont(), layoutChangedListener);
         addUntypedWidgetPropertyListener(model_widget.propNeedleColor(), layoutChangedListener);
+
+        addWidgetPropertyListener(model_widget.propShowWarnings(), (property, oldValue, newValue) -> {
+            meter.setShowWarnings(newValue);
+            layoutChanged(null, null, null);
+        });
 
         addWidgetPropertyListener(model_widget.propShowUnits(), (property, old_value, new_value) -> {
             meter.setShowUnits(new_value);

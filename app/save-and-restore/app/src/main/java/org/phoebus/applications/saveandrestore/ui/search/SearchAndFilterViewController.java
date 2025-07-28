@@ -647,4 +647,12 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
             case FILTER_REMOVED, FILTER_ADDED_OR_UPDATED -> loadFilters();
         }
     }
+
+    public void filterActivated(String filterName){
+
+    }
+
+    public void filterDeactivated(String filterName){
+
+    }
 }

@@ -47,10 +47,12 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
+import org.phoebus.util.MimeTypeDetector;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -291,9 +293,16 @@ public class AttachmentsEditorController {
         this.textArea = textArea;
     }
 
+    /**
+     * Add
+     * @param files
+     */
     private void addFiles(List<File> files) {
         Platform.runLater(() -> sizesErrorMessage.set(null));
         if (!checkFileSizes(files)) {
+            return;
+        }
+        if(!checkForHeicFiles(files)){
             return;
         }
         MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
@@ -402,5 +411,44 @@ public class AttachmentsEditorController {
      */
     public void clearAttachments(){
         getAttachments().clear();
+    }
+
+    /**
+     * Checks if any of the attached files uses extension heic or heics, which are unsupported. If a heic file
+     * is detected, an error dialog is shown.
+     * @param files List of {@link File}s to check.
+     * @return <code>true</code> if all is well, i.e. no heic files deyected, otherwise <code>false</code>.
+     */
+    private boolean checkForHeicFiles(List<File> files){
+        File file = detectHeicFiles(files);
+        if(file != null){
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setHeaderText(MessageFormat.format(Messages.UnsupportedFileType, file.getAbsolutePath()));
+            DialogHelper.positionDialog(alert, textArea, -200, -100);
+            alert.show();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Probes files for heic content, which is not supported.
+     * @param files List of {@link File}s to check.
+     * @return The first {@link File} in the list determined to have heic. If no such file
+     * is detected, <code>null</code> is returned.
+     */
+    private File detectHeicFiles(List<File> files){
+        for(File file : files){
+            try {
+                String mimeType = MimeTypeDetector.determineMimeType(new FileInputStream(file));
+                if(mimeType != null && mimeType.toLowerCase().contains("image/heic")){
+                    return file;
+                }
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Cannot check file " +
+                        file.getAbsolutePath() + " for heic file content", e);
+            }
+        }
+        return null;
     }
 }

@@ -469,6 +469,10 @@ public class OlogHttpClient implements LogClient {
                     .GET()
                     .build();
             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            if(response.statusCode() >= 300) {
+                LOGGER.log(Level.WARNING, "failed to obtain attachment: " + new String(response.body().readAllBytes()));
+                return null;
+            }
             return response.body();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "failed to obtain attachment", e);

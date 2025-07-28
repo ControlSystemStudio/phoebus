@@ -2,10 +2,11 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.0.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>service-alarm-server</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
   <dependencies>
 
     <dependency>
@@ -24,43 +25,43 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv-ca</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv-pva</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-email</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <!--JUL bindings for sfl4j-->
     <dependency> 

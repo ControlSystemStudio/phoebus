@@ -27,6 +27,7 @@ import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.Alarm;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
 import org.phoebus.ui.vtype.FormatOptionHandler;
@@ -345,7 +346,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
      */
     private String computeText(final VType value)
     {
-        if (value == null)
+        Alarm alarm = Alarm.alarmOf(value);
+        if (value == null || alarm.equals(Alarm.disconnected()))
             return "<" + model_widget.propPVName().getValue() + ">";
         if (value == PVWidget.RUNTIME_VALUE_NO_PV)
             return "";

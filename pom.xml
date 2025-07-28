@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>5.0.1-SNAPSHOT</version>
+  <version>5.0.3-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
   <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>
@@ -19,7 +19,7 @@
     <connection>scm:git:git://github.com/ControlSystemStudio/phoebus.git</connection>
     <developerConnection>scm:git:https://github.com/ControlSystemStudio/phoebus</developerConnection>
     <url>https://github.com/ControlSystemStudio/phoebus/tree/master</url>
-    <tag>v4.7.4</tag>
+    <tag>v5.0.2</tag>
   </scm>
 
   <developers>
@@ -64,7 +64,7 @@
   </distributionManagement>
 
   <properties>
-    <project.build.outputTimestamp>2025-04-17T18:26:31Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2025-07-14T19:59:13Z</project.build.outputTimestamp>
     <epics.version>7.0.10</epics.version>
     <epics.util.version>1.0.7</epics.util.version>
     <vtype.version>1.0.7</vtype.version>

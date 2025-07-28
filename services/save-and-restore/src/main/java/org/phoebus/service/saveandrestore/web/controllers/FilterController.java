@@ -26,11 +26,15 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Controller class for {@link Filter} endpoints.
@@ -64,7 +68,6 @@ public class FilterController extends BaseController {
     }
 
     /**
-     *
      * @return A {@link List} of all persisted {@link Filter} objects. Empty if none are found.
      */
     @SuppressWarnings("unused")
@@ -75,7 +78,8 @@ public class FilterController extends BaseController {
 
     /**
      * Deletes a {@link Filter}
-     * @param name Unique name of the {@link Filter}
+     *
+     * @param name      Unique name of the {@link Filter}
      * @param principal User {@link Principal} as injected by Spring.
      */
     @SuppressWarnings("unused")
