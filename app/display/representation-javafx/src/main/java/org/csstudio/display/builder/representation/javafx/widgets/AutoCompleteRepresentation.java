@@ -77,13 +77,24 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
                 setStyle("");
             } else {
                 setText(item);
-                setStyle(
-                    "-fx-padding: 8 12 8 12; " +
+                String baseStyle = "-fx-padding: 8 12 8 12; " +
                         "-fx-alignment: center-left; " +
-                        "-fx-border-color: transparent; " +
-                        "-fx-background-color: transparent;"
-                );
+                        "-fx-border-color: transparent; ";
+                if (isSelected()) {
+                    setStyle(baseStyle + "-fx-background-color: #3498db; " +
+                            "-fx-text-fill: white;");
+                } else {
+                    setStyle(baseStyle +
+                            "-fx-background-color: transparent; " +
+                            "-fx-text-fill: black;");
+                }
             }
+        }
+
+        @Override
+        public void updateSelected(boolean selected) {
+            super.updateSelected(selected);
+            updateItem(getItem(), isEmpty());
         }
     }
 
@@ -196,13 +207,13 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
         suggestionsListView.setCellFactory(listView -> new SuggestionCell());
 
         suggestionsListView.setStyle(
-            "-fx-background-color: white; " +
-                "-fx-border-color: #cccccc; " +
-                "-fx-border-width: 1px; " +
-                "-fx-border-radius: 3px; " +
-                "-fx-background-radius: 3px; " +
-                "-fx-focus-color: transparent; " +
-                "-fx-faint-focus-color: transparent;"
+                "-fx-background-color: white; " +
+                        "-fx-border-color: #cccccc; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: 3px; " +
+                        "-fx-background-radius: 3px; " +
+                        "-fx-faint-focus-color: transparent; " +
+                        "-fx-selection-bar-non-focused: #3498db;"
         );
 
         suggestionsListView.setOnMouseClicked(event -> {
@@ -316,14 +327,22 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
     private void handleKeyPressed(KeyEvent event) {
         switch (event.getCode()) {
             case UP -> {
+                if (!suggestionsPopup.isShowing() || suggestionsData.isEmpty()) {
+                    return;
+                }
+
                 int currentIndex = suggestionsListView.getSelectionModel().getSelectedIndex();
                 if (currentIndex > 0) {
                     suggestionsListView.getSelectionModel().select(currentIndex - 1);
                     suggestionsListView.scrollTo(currentIndex - 1);
                 } else if (currentIndex == -1 && !suggestionsData.isEmpty()) {
-                    suggestionsListView.getSelectionModel().select(0);
-                    suggestionsListView.scrollTo(0);
+                    suggestionsListView.getSelectionModel().select(suggestionsData.size() - 1);
+                    suggestionsListView.scrollTo(suggestionsData.size() - 1);
+                } else if (currentIndex == 0) {
+                    suggestionsListView.getSelectionModel().select(suggestionsData.size() - 1);
+                    suggestionsListView.scrollTo(suggestionsData.size() - 1);
                 }
+                Platform.runLater(() -> suggestionsListView.refresh());
                 event.consume();
             }
             case DOWN -> {
@@ -334,11 +353,27 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
                 } else if (currentIndex == -1 && !suggestionsData.isEmpty()) {
                     suggestionsListView.getSelectionModel().select(0);
                     suggestionsListView.scrollTo(0);
+                } else if (currentIndex == suggestionsData.size() - 1) {
+                    suggestionsListView.getSelectionModel().select(0);
+                    suggestionsListView.scrollTo(0);
+                }
+                Platform.runLater(() -> suggestionsListView.refresh());
+                event.consume();
+            }
+            case ENTER -> {
+                String selectedItem = suggestionsListView.getSelectionModel().getSelectedItem();
+                if (selectedItem != null) {
+                    selectSuggestion(selectedItem);
                 }
                 event.consume();
             }
             case ESCAPE -> {
-                suggestionsPopup.hide();
+                TextField source = (TextField) event.getSource();
+                if (!source.getText().equals(currentValue)) {
+                    ((TextField) event.getSource()).setText(currentValue);
+                } else {
+                    suggestionsPopup.hide();
+                }
                 event.consume();
             }
         }
