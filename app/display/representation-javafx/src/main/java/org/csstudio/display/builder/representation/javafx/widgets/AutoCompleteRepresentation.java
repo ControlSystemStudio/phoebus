@@ -414,6 +414,7 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
         try {
             return value.contains(".") ? Double.parseDouble(value) : Integer.parseInt(value);
         } catch (NumberFormatException e) {
+            // This will handle String PVs, which are expected to be most likely
             VType converted = VType.toVType(value);
             return converted != null ? converted : value;
         }
