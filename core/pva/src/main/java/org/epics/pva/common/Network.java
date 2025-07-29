@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.StandardProtocolFamily;
+import java.net.StandardSocketOptions;
 import java.nio.channels.DatagramChannel;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -302,6 +303,10 @@ public class Network
                 final InetSocketAddress local_multicast = new InetSocketAddress(group, port);
                 logger.log(Level.CONFIG, "Local multicast of IPv4 unicast using group " + local_multicast + " using network interface " + loopback.getDisplayName());
 
+                udp.join(group, loopback);
+                // Default is TRUE anyway?
+                udp.setOption(StandardSocketOptions.IP_MULTICAST_LOOP, true);
+                udp.setOption(StandardSocketOptions.IP_MULTICAST_IF, loopback);
                 return new AddressInfo(false, local_multicast, 1, loopback);
             }
         }
