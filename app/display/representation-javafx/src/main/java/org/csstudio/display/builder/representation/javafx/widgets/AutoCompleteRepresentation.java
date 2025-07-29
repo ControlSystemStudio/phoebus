@@ -179,6 +179,8 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
 
                 if (selected != null) {
                     selectSuggestion(selected);
+                } else {
+                    jfx_node.setText(currentValue);
                 }
 
                 event.consume();
