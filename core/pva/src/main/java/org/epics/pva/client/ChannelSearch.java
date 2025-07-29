@@ -101,19 +101,31 @@ class ChannelSearch
             // to handle it
         }
 
-        // Hash by channel name
+        // Searches are identified by CID because we might have the
+        // same channel name in different searches when we try to access
+        // the same channel with different field(...) qualifiers.
+        // One could try to optimize this by fetching "field()" (everything)
+        // and then picking the subelements in the client,
+        // but in case there's only a single PV for
+        //     pva://GigaBytePV/substruct/double_field
+        // we'd want to use "field(substruct.double_field)"
+        // and avoid fetching the complete structure.
+        // ... unless there is later a PV "pva://GigaBytePV",
+        // but we don't know, yet?
+
+        // Hash by CID
         @Override
         public int hashCode()
         {
-            return channel.getName().hashCode();
+            return channel.getCID();
         }
 
-        // Compare by channel name
+        // Compare by CID
         @Override
         public boolean equals(Object obj)
         {
             if (obj instanceof SearchedChannel other)
-                return other.channel.getName().equals(channel.getName());
+                return other.channel.getCID() == channel.getCID();
             return false;
         }
     }

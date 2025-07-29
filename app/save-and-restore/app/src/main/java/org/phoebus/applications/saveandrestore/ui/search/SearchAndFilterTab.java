@@ -38,8 +38,6 @@ import java.util.logging.Logger;
 public class SearchAndFilterTab extends SaveAndRestoreTab {
     public static final String SEARCH_AND_FILTER_TAB_ID = "SearchAndFilterTab";
 
-    private SearchAndFilterViewController searchAndFilterViewController;
-
     public SearchAndFilterTab(SaveAndRestoreController saveAndRestoreController) {
 
         setId(SEARCH_AND_FILTER_TAB_ID);
@@ -67,8 +65,7 @@ public class SearchAndFilterTab extends SaveAndRestoreTab {
             Node node = loader.load();
             controller = loader.getController();
             setContent(node);
-            searchAndFilterViewController = loader.getController();
-            setOnCloseRequest(event -> searchAndFilterViewController.handleSaveAndFilterTabClosed());
+            setOnCloseRequest(event -> ((SearchAndFilterViewController)controller).handleSaveAndFilterTabClosed());
         } catch (IOException e) {
             Logger.getLogger(SearchAndFilterTab.class.getName())
                     .log(Level.SEVERE, "Unable to load search tab content fxml", e);
@@ -77,5 +74,13 @@ public class SearchAndFilterTab extends SaveAndRestoreTab {
 
         setText(Messages.search);
         setGraphic(new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search_18x18.png")));
+    }
+
+    public void filterActivated(String filterName){
+        ((SearchAndFilterViewController)controller).filterActivated(filterName);
+    }
+
+    public void filterDeactivated(String filterName){
+        ((SearchAndFilterViewController)controller).filterDeactivated(filterName);
     }
 }

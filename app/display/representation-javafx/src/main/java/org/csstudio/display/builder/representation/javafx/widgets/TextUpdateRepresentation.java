@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.Alarm;
 import org.epics.vtype.VType;
 import org.phoebus.ui.vtype.FormatOptionHandler;
 
@@ -167,7 +168,8 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
     private String computeText(final VType value)
     {
         Objects.requireNonNull(model_widget, "No widget");
-        if (value == null)
+        Alarm alarm = Alarm.alarmOf(value);
+        if (value == null || alarm.equals(Alarm.disconnected()))
             return "<" + model_widget.propPVName().getValue() + ">";
         if (value == PVWidget.RUNTIME_VALUE_NO_PV)
             return "";

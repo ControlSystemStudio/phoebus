@@ -47,6 +47,8 @@ public class LogbookUIPreferences {
     public static int query_list_size;
     @Preference
     public static String search_help;
+    @Preference
+    public static boolean show_log_watermark;
 
 
     static {

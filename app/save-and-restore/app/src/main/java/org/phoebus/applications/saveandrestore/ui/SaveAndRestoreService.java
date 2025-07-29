@@ -18,10 +18,6 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClientImpl;
@@ -50,6 +46,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -68,15 +65,10 @@ public class SaveAndRestoreService {
     private static SaveAndRestoreService instance;
 
     private final SaveAndRestoreClient saveAndRestoreClient;
-    private final ObjectMapper objectMapper;
 
     private SaveAndRestoreService() {
         saveAndRestoreClient = new SaveAndRestoreClientImpl();
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-        objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public static SaveAndRestoreService getInstance() {
@@ -396,7 +388,7 @@ public class SaveAndRestoreService {
             snapshotItem.setConfigPv(configPv);
             snapshotItem.setValue(readFromArchiver(configPv.getPvName(), _time));
             if (configPv.getReadbackPvName() != null) {
-                snapshotItem.setValue(readFromArchiver(configPv.getReadbackPvName(), _time));
+                snapshotItem.setReadbackValue(readFromArchiver(configPv.getReadbackPvName(), _time));
             }
             snapshotItems.add(snapshotItem);
         });
@@ -418,13 +410,18 @@ public class SaveAndRestoreService {
         }
         // Prepend "archiver://"
         pvName = "archive://" + pvName + "(" + TimestampFormats.SECONDS_FORMAT.format(time) + ")";
+        PV pv = null;
+        VType pvValue = null;
         try {
-            PV pv = PVPool.getPV(pvName);
-            VType pvValue = pv.read();
-            PVPool.releasePV(pv);
-            return pvValue == null ? VDisconnectedData.INSTANCE : pvValue;
+            pv = PVPool.getPV(pvName);
+            pvValue = pv.read();
         } catch (Exception e) {
-            return VDisconnectedData.INSTANCE;
+            Logger.getLogger(SaveAndRestoreService.class.getName()).log(Level.WARNING, "Failed to read " + pvName, e);
+        } finally {
+            if (pv != null) {
+                PVPool.releasePV(pv);
+            }
         }
+        return pvValue == null ? VDisconnectedData.INSTANCE : pvValue;
     }
 }

@@ -77,6 +77,10 @@ Here user may attach any number of files of arbitrary types:
 can be configured to use a different limit, but users should keep in mind that download of large attachments to
 the log viewer may incur delays in terms of UI updates.
 
+**NOTE**: Since iOS 11 the default camera image format is HEIC/HEIF (High-Efficiency Image Format). This type of
+image file is not supported. Consequently upload of HEIC files is blocked by the application. Moreover, HEIC files converted to JPEG
+in native Mac OS applications (e.g. Preview) may also fail to render and are also blocked from upload.
+
 Embedded images
 ---------------
 Images may be embedded in the body text using markup. The user should consult the quick reference (Markup Help button)

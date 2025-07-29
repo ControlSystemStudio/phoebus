@@ -128,6 +128,8 @@ public class Messages
     public static String SaveLayoutWarningApplicationNoSaveFileTitle;
     public static String SaveSnapshot;
     public static String SaveSnapshotSelectFilename;
+    public static String SaveSnapshotToClipboard;
+    public static String SaveSnapshotToFile;
     public static String Saving;
     public static String SavingAlert;
     public static String SavingAlertTitle;

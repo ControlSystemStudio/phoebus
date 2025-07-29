@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!--
   ~ Copyright (C) 2020 European Spallation Source ERIC.
   ~
@@ -16,27 +16,26 @@
   ~  along with this program; if not, write to the Free Software
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>app</artifactId>
         <groupId>org.phoebus</groupId>
-        <version>5.0.1-SNAPSHOT</version>
+        <version>5.0.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>app-credentials-management</artifactId>
-
-    <dependencies>
+  <name>${project.groupId}:${project.artifactId}</name>
+  <dependencies>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-ui</artifactId>
-            <version>5.0.1-SNAPSHOT</version>
+            <version>5.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-security</artifactId>
-            <version>5.0.1-SNAPSHOT</version>
+            <version>5.0.3-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
