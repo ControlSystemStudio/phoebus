@@ -24,14 +24,14 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
+import java.util.stream.Collectors;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.WidgetCategory;
-import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.WidgetPropertyCategory;
+import org.csstudio.display.builder.model.WidgetDescriptor;
+import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
+import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
@@ -100,7 +100,6 @@ public class AutoCompleteWidget extends WritablePVWidget {
         newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "allow_custom",
             "Allow custom values");
 
-
     /**
      * 'filter_mode' property: how to filter suggestions (starts_with, contains, fuzzy)
      */
@@ -139,29 +138,23 @@ public class AutoCompleteWidget extends WritablePVWidget {
     @Override
     protected void defineProperties(final List<WidgetProperty<?>> properties) {
         super.defineProperties(properties);
-        properties.add(
-            font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
-        properties.add(foreground = propForegroundColor.createProperty(this,
-            WidgetColorService.getColor(NamedWidgetColors.TEXT)));
-        properties.add(background = propBackgroundColor.createProperty(this,
-            WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
+        properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
+        properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
 
         properties.add(items = propItems.createProperty(this, ""));
         properties.add(items_from_pv = propItemsFromPV.createProperty(this, true));
-
         properties.add(max_suggestions = propMaxSuggestions.createProperty(this, 10));
         properties.add(min_characters = propMinCharacters.createProperty(this, 1));
         properties.add(case_sensitive = propCaseSensitive.createProperty(this, false));
         properties.add(placeholder = propPlaceholder.createProperty(this, "Type to search..."));
-        properties.add(filter_mode = propFilterMode.createProperty(this,
-            "fuzzy"));
-
+        properties.add(filter_mode = propFilterMode.createProperty(this, "fuzzy"));
         properties.add(enabled = propEnabled.createProperty(this, true));
-        properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
-        properties.add(confirm_message = propConfirmMessage.createProperty(this,
-            "Are you sure you want to do this?"));
-        properties.add(password = propPassword.createProperty(this, ""));
         properties.add(allow_custom = propCustom.createProperty(this, false));
+
+        properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
+        properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are you sure you want to do this?"));
+        properties.add(password = propPassword.createProperty(this, ""));
     }
 
     /**
