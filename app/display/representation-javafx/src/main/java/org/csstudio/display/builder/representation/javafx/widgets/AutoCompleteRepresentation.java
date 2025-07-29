@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import javafx.application.Platform;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -186,11 +187,8 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
                 event.consume();
             }
             case ESCAPE -> {
-                suggestionsPopup.hide();
-                jfx_node.textProperty().removeListener(textChangeListener);
-                jfx_node.setText(currentValue);
-                jfx_node.textProperty().addListener(textChangeListener);
                 jfx_node.getParent().requestFocus();
+                suggestionsPopup.hide();
                 event.consume();
             }
         }
