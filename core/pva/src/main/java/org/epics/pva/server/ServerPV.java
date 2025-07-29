@@ -147,6 +147,7 @@ public class ServerPV implements AutoCloseable
      */
     void removeClient(final ServerTCPHandler tcp, final int cid)
     {
+        // Stop associating PV with that TCP connection
         final Integer other = cid_by_client.remove(tcp);
         if (cid == -1)
             logger.log(Level.FINE, "Client " + tcp + " released " + this + " [CID was " + other + "]");
@@ -154,6 +155,11 @@ public class ServerPV implements AutoCloseable
             logger.log(Level.FINE, "Client " + tcp + " released " + this + " [CID " + cid + "]");
         else
             logger.log(Level.WARNING, "Client " + tcp + " released " + this + " as CID " + cid + " instead of " + other);
+
+        // Delete all subscriptions to this PV from that TCP connection
+        // A perfect client would separately clear the subscription,
+        // but this asserts they're all gone for sure
+        unregisterSubscription(tcp, -1);
     }
 
     /** @param subscription Subscription that needs to receive value updates */
@@ -169,13 +175,16 @@ public class ServerPV implements AutoCloseable
      */
     void unregisterSubscription(final ServerTCPHandler tcp, final int req)
     {
-        for (MonitorSubscription subscription : subscriptions)
+        subscriptions.removeIf(subscription ->
+        {
             if (subscription.isFor(tcp, req))
             {
                 logger.log(Level.FINER, () -> "Remove " + subscription);
-                subscriptions.remove(subscription);
-                break;
+                return true;
             }
+            return false;
+        });
+        logger.log(Level.FINEST, () -> "There are " + subscriptions.size() + " remaining subscriptions");
     }
 
     /** @return Does the PV have client subscriptions? */

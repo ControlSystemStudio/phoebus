@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -64,9 +64,12 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("nls")
 public class MulticastDemo
 {
-    private static final String MCAST_GROUP4 = "224.0.0.129";
+    // Same as defaults in PVASettings.EPICS_PVAS_INTF_ADDR_LIST
+    private static final String MCAST_GROUP4 = "224.0.0.128";
     private static final String MCAST_GROUP6 = "ff02::42:1";
-    private static final int PORT = 9876;
+    // Non-default port
+    private static int PORT = 9876;
+    private static boolean use_v6 = false;
 
     private static DatagramChannel createUDPChannel(final ProtocolFamily family, final int port) throws Exception
     {
@@ -101,7 +104,7 @@ public class MulticastDemo
                 final byte[] data = new byte[buf.limit()];
                 buf.get(data);
                 final String received = new String(data);
-                System.out.println("Received: " + received + " from " + client);
+                System.out.println("Received: '" + received + "' from " + client);
                 if ("end".equals(received))
                     --awaiting;
             }
@@ -117,7 +120,7 @@ public class MulticastDemo
     private static void send(final DatagramChannel udp, final InetAddress target, final String text) throws Exception
     {
         final InetSocketAddress addr = new InetSocketAddress(target, PORT);
-        System.out.println("Sending to " + addr);
+        System.out.println("Sending '" + text + "' to " + addr);
         final ByteBuffer buf = ByteBuffer.allocate(500);
         buf.put(text.getBytes());
         buf.flip();
@@ -129,22 +132,46 @@ public class MulticastDemo
         NetworkInterface iface = null;
         boolean do_send = false, do_receive = false;
         boolean help = false;
-        for (String arg : args)
+        for (int i=0; i<args.length; ++i)
+        {
+            final String arg = args[i];
             if ("-s".equals(arg))
                 do_send = true;
             else if ("-r".equals(arg))
                 do_receive = true;
+            else if ("-6".equals(arg))
+                use_v6 = true;
+            else if ("-p".equals(arg))
+            {
+                if (i < args.length - 1)
+                    PORT = Integer.valueOf(args[++i].strip());
+                else
+                {
+                    System.out.println("Missing port");
+                    help = true;
+                }
+            }
             else if ("-h".equals(arg))
                 help = true;
             else
+            {
                 iface = NetworkInterface.getByName(arg);
+                if (iface == null)
+                    System.out.println("Cannot get network interface '" + arg + "'");
+            }
+        }
 
         if (help  ||  iface == null)
         {
             System.out.println("USAGE: MulticastDemo [options] interface");
             System.out.println("Options:");
-            System.out.println(" -s   Run sender");
-            System.out.println(" -r   Run receiver (may run both)");
+            System.out.println(" -s      Run sender");
+            System.out.println(" -r      Run receiver (may run both sender and receiver)");
+            System.out.println(" -6      Send also via IPv6");
+            System.out.println(" -p " + PORT + " Set port");
+            System.out.println(" interface: 'lo' or 'lo0' depending on OS");
+            System.out.println();
+            System.out.println(" Example:   -r -s lo0");
             return;
         }
 
@@ -179,7 +206,8 @@ public class MulticastDemo
                     if (receiver.isDone())
                         break;
                     send(udp4, group4, text);
-                    send(udp6, group6, text);
+                    if (use_v6)
+                        send(udp6, group6, text);
                 }
 
             udp6.close();

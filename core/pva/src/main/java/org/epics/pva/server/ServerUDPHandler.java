@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.StandardProtocolFamily;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.ArrayList;
@@ -23,12 +24,12 @@ import java.util.logging.Level;
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
+import org.epics.pva.common.OriginTag;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.SearchRequest;
 import org.epics.pva.common.SearchResponse;
 import org.epics.pva.common.UDPHandler;
 import org.epics.pva.data.Hexdump;
-import org.epics.pva.data.PVAAddress;
 
 /** Listen to search requests, send beacons
  *  @author Kay Kasemir
@@ -89,13 +90,16 @@ class ServerUDPHandler extends UDPHandler
             }
             else
             {
-                // Have channel (which must already exist) join multicast group
+                // Have socket channel (which must already exist) join multicast group
                 if (info.getInterface() == null)
                     throw new Exception("EPICS_PVAS_INTF_ADDR_LIST contains multicast group without interface");
                 if (info.isIPv4())
                 {
                     if (udp4 == null)
                         throw new Exception("EPICS_PVAS_INTF_ADDR_LIST lacks IPv4 address, cannot add multicast");
+                    // Configure interface to send multicasts out via this interface
+                    udp4.setOption(StandardSocketOptions.IP_MULTICAST_IF, info.getInterface());
+                    // Configure socket channel to receive from the multicast group
                     udp4.join(info.getAddress().getAddress(), info.getInterface());
                     logger.log(Level.FINE, "Listening to UDP multicast " + info);
                     local_multicast = info;
@@ -138,7 +142,8 @@ class ServerUDPHandler extends UDPHandler
         switch (command)
         {
         case PVAHeader.CMD_ORIGIN_TAG:
-            return handleOriginTag(from, version, payload, buffer);
+            // Will be decoded with CMD_SEARCH
+            break;
         case PVAHeader.CMD_SEARCH:
             return handleSearch(from, version, payload, buffer);
         case PVAHeader.CMD_BEACON:
@@ -150,25 +155,7 @@ class ServerUDPHandler extends UDPHandler
         return true;
     }
 
-    private boolean handleOriginTag(final InetSocketAddress from, final byte version,
-                                    final int payload, final ByteBuffer buffer)
-    {
-        final InetAddress addr;
-        try
-        {
-            addr = PVAAddress.decode(buffer);
-        }
-        catch (Exception ex)
-        {
-            logger.log(Level.WARNING, "PVA Client " + from + " sent origin tag with invalid address");
-            return false;
-        }
-        logger.log(Level.FINER, () -> "PVA Client " + from + " sent origin tag " + addr);
-
-        return true;
-    }
-
-    /** @param from Origin of search request
+    /** @param from Sender of search request
      *  @param version Client's version
      *  @param payload Size of payload
      *  @param buffer Buffer with search request
@@ -177,7 +164,9 @@ class ServerUDPHandler extends UDPHandler
     private boolean handleSearch(final InetSocketAddress from, final byte version,
                                  final int payload, final ByteBuffer buffer)
     {
-        final SearchRequest search = SearchRequest.decode(from, version, payload, buffer);
+        // Check for optional origin tag.
+        final OriginTag origin = OriginTag.testForOriginOfSearch(from, buffer);
+        final SearchRequest search = SearchRequest.decode(origin, from, version, payload, buffer);
         if (search == null)
             return false;
 
@@ -187,7 +176,7 @@ class ServerUDPHandler extends UDPHandler
             {   // pvlist request
                 final boolean handled = server.handleSearchRequest(0, -1, null, search.client, search.tls, null);
                 if (! handled  &&  search.unicast)
-                    PVAServer.POOL.submit(() -> forwardSearchRequest(0, null, search.client, search.tls));
+                    PVAServer.POOL.submit(() -> forwardSearchRequest(0, null, search.client, search.reply_to_src_port, search.tls));
             }
         }
         else
@@ -207,7 +196,7 @@ class ServerUDPHandler extends UDPHandler
             if (forward != null)
             {
                 final List<SearchRequest.Channel> to_forward = forward;
-                PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, to_forward, search.client, search.tls));
+                PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, to_forward, search.client, search.reply_to_src_port, search.tls));
             }
         }
 
@@ -225,9 +214,10 @@ class ServerUDPHandler extends UDPHandler
      *  @param seq Search sequence or 0
      *  @param channels Channel CIDs and names or <code>null</code> for 'list'
      *  @param address Client's address and port
+     *  @param reply_to_src_port Set flag to use the 'peer' port, ignoring the reply port?
      *  @param tls Use TLS or plain TCP?
      */
-    private void forwardSearchRequest(final int seq, final Collection<SearchRequest.Channel> channels, final InetSocketAddress address, final boolean tls)
+    private void forwardSearchRequest(final int seq, final Collection<SearchRequest.Channel> channels, final InetSocketAddress address, final boolean reply_to_src_port, final boolean tls)
     {
         // TODO Remove the local IPv4 multicast re-send from the protocol, just use multicast from the start as with IPv6
         if (local_multicast == null)
@@ -235,9 +225,10 @@ class ServerUDPHandler extends UDPHandler
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            SearchRequest.encode(false, seq, channels, address, tls, send_buffer);
+            InetAddress origin = OriginTag.encode(udp4, send_buffer);
+            SearchRequest.encode(false, reply_to_src_port, seq, channels, address, tls, send_buffer);
             send_buffer.flip();
-            logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(send_buffer));
+            logger.log(Level.FINER, () -> "Forward search from " + origin + " to " + local_multicast + "\n" + Hexdump.toHexdump(send_buffer));
             try
             {
                 udp4.send(send_buffer, local_multicast.getAddress());
