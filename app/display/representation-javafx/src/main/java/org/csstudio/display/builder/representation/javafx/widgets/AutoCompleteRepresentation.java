@@ -9,7 +9,6 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
-import javafx.application.Platform;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
