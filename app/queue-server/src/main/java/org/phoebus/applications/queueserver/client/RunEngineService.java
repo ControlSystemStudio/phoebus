@@ -34,9 +34,9 @@ public final class RunEngineService {
     /* ---- Ping & status --------------------------------------------------- */
 
     public Envelope<?>          ping()                       throws Exception { return http.call(ApiEndpoint.PING,            NoBody.INSTANCE); }
-    public StatusResponse status() throws Exception { 
+    public StatusResponse status() throws Exception {
         LOG.log(Level.FINEST, "Fetching status");
-        return http.send(ApiEndpoint.STATUS, NoBody.INSTANCE, StatusResponse.class); 
+        return http.send(ApiEndpoint.STATUS, NoBody.INSTANCE, StatusResponse.class);
     }
     public Envelope<?>          configGet()                  throws Exception { return http.call(ApiEndpoint.CONFIG_GET,      NoBody.INSTANCE); }
 
@@ -136,6 +136,22 @@ public final class RunEngineService {
     public Envelope<?>          queueItemAddBatch(QueueItemMoveBatch body ) throws Exception { return http.call(ApiEndpoint.QUEUE_ITEM_ADD_BATCH, body); }
     public Envelope<?>          queueItemGet(Object params ) throws Exception { return http.call(ApiEndpoint.QUEUE_ITEM_GET,  params); }
     public Envelope<?>          queueItemUpdate(Object b   ) throws Exception { return http.call(ApiEndpoint.QUEUE_ITEM_UPDATE, b); }
+
+    public Envelope<?>          queueItemUpdate(QueueItem item) throws Exception {
+        Map<String, Object> updateRequest = Map.of(
+                "item", Map.of(
+                        "item_type", item.itemType(),
+                        "name", item.name(),
+                        "args", item.args(),
+                        "kwargs", item.kwargs(),
+                        "item_uid", item.itemUid()
+                ),
+                "user", item.user() != null ? item.user() : "GUI Client",
+                "user_group", item.userGroup() != null ? item.userGroup() : "primary",
+                "replace", true
+        );
+        return queueItemUpdate(updateRequest);
+    }
     public Envelope<?>          queueItemRemove(Object b   ) throws Exception { return http.call(ApiEndpoint.QUEUE_ITEM_REMOVE, b); }
     public Envelope<?>          queueItemRemoveBatch(Object b) throws Exception {return http.call(ApiEndpoint.QUEUE_ITEM_REMOVE_BATCH,b); }
     public Envelope<?>          queueItemMove(Object b     ) throws Exception { return http.call(ApiEndpoint.QUEUE_ITEM_MOVE,   b); }
@@ -234,9 +250,9 @@ public final class RunEngineService {
     /* ---- Permissions & allowed lists ------------------------------------ */
 
     public Envelope<?>          plansAllowed()               throws Exception { return http.call(ApiEndpoint.PLANS_ALLOWED,   NoBody.INSTANCE); }
-    public Map<String, Object>  plansAllowedRaw()           throws Exception { 
+    public Map<String, Object>  plansAllowedRaw()           throws Exception {
         LOG.log(Level.FINE, "Fetching plans allowed (raw)");
-        return http.send(ApiEndpoint.PLANS_ALLOWED,   NoBody.INSTANCE); 
+        return http.send(ApiEndpoint.PLANS_ALLOWED,   NoBody.INSTANCE);
     }
     public Envelope<?>          devicesAllowed()             throws Exception { return http.call(ApiEndpoint.DEVICES_ALLOWED, NoBody.INSTANCE); }
     public Envelope<?>          plansExisting()              throws Exception { return http.call(ApiEndpoint.PLANS_EXISTING,  NoBody.INSTANCE); }

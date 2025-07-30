@@ -6,6 +6,7 @@ import org.phoebus.applications.queueserver.api.QueueItem;
 import org.phoebus.applications.queueserver.api.StatusResponse;
 import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.util.StatusBus;
+import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -97,7 +98,11 @@ public final class RePlanQueueController implements Initializable {
 
         table.getSelectionModel().getSelectedItems()
                 .addListener((ListChangeListener<Row>) c -> {
-                    if (!ignoreSticky) stickySel = selectedUids();
+                    if (!ignoreSticky) {
+                        stickySel = selectedUids();
+                        // Notify plan viewer of selection change
+                        notifySelectionChange();
+                    }
                 });
 
         ChangeListener<StatusResponse> poll =
@@ -366,4 +371,17 @@ public final class RePlanQueueController implements Initializable {
     }
     private record Row(String uid, String itemType, String name,
                        String params, String user, String group) {}
+
+
+    private void notifySelectionChange() {
+        var selectedItems = table.getSelectionModel().getSelectedItems();
+        QueueItem selectedItem = null;
+
+        if (selectedItems.size() == 1) {
+            Row selectedRow = selectedItems.get(0);
+            selectedItem = uid2item.get(selectedRow.uid());
+        }
+
+        QueueItemSelectionEvent.getInstance().notifySelectionChanged(selectedItem);
+    }
 }
