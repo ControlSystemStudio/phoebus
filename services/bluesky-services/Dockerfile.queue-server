@@ -22,7 +22,7 @@ WORKDIR /app
 # Copy IPython profile from local directory
 COPY ipython-profile/ /root/.ipython/
 
-# Expose port for 0MQ communication
-EXPOSE 60615
+# Expose ports for 0MQ communication
+EXPOSE 60615 60625
 
-CMD ["sh", "-c", "start-re-manager --use-ipython-kernel=ON --zmq-publish-console=ON --startup-profile collection_sim --redis-addr=${REDIS_HOST:-redis}:${REDIS_PORT:-6379}"]
+CMD ["sh", "-c", "start-re-manager --use-ipython-kernel=ON --zmq-publish-console=ON --startup-profile collection_sim --redis-addr=${REDIS_HOST:-redis}:${REDIS_PORT:-6379} --zmq-info-addr=tcp://*:60625"]

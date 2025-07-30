@@ -25,6 +25,7 @@ services:
     container_name: bluesky-queue-server
     ports:
       - "60615:60615"
+      - "60625:60625"
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -50,6 +51,7 @@ services:
     environment:
       - QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY=a
       - QSERVER_ZMQ_CONTROL_ADDRESS=tcp://queue-server:60615
+      - QSERVER_ZMQ_INFO_ADDRESS=tcp://queue-server:60625
     depends_on:
       queue-server:
         condition: service_healthy
