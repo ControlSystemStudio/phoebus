@@ -1,5 +1,7 @@
 package org.phoebus.applications.queueserver.controller;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
@@ -7,6 +9,14 @@ import org.phoebus.applications.queueserver.view.TabSwitchEvent;
 import org.phoebus.applications.queueserver.view.ItemUpdateEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.GridPane;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -903,39 +913,25 @@ public class RePlanEditorController implements Initializable {
     }
 
     private void openBatchUpload() {
-        // Basic file chooser for batch upload
-        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
-        fileChooser.setTitle("Select Spreadsheet File");
-        fileChooser.getExtensionFilters().addAll(
-                new javafx.stage.FileChooser.ExtensionFilter("CSV Files", "*.csv"),
-                new javafx.stage.FileChooser.ExtensionFilter("Excel Files", "*.xlsx", "*.xls")
-        );
-
-        java.io.File file = fileChooser.showOpenDialog(table.getScene().getWindow());
-        if (file != null) {
-            processBatchFile(file);
+        BatchUploadDialog dialog = new BatchUploadDialog(table.getScene().getWindow());
+        Optional<BatchUploadDialog.Result> result = dialog.showAndWait();
+        
+        if (result.isPresent()) {
+            BatchUploadDialog.Result uploadResult = result.get();
+            processBatchFile(uploadResult.getFilePath(), uploadResult.getFileType());
         }
     }
 
-    private void processBatchFile(java.io.File file) {
+    private void processBatchFile(String filePath, String fileType) {
         new Thread(() -> {
             try {
                 List<QueueItem> items = new ArrayList<>();
+                java.io.File file = new java.io.File(filePath);
 
-                // Simple CSV parsing for now - in full implementation would handle Excel too
-                if (file.getName().toLowerCase().endsWith(".csv")) {
+                if ("csv".equals(fileType) || filePath.toLowerCase().endsWith(".csv")) {
                     items = parseCSVFile(file);
-                } else if (file.getName().toLowerCase().endsWith(".xlsx") ||
-                        file.getName().toLowerCase().endsWith(".xls")) {
-                    // Excel parsing would go here
-                    Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Batch Upload");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Excel file support not yet implemented. Use CSV files for now.");
-                        alert.showAndWait();
-                    });
-                    return;
+                } else if ("xls".equals(fileType) || filePath.toLowerCase().endsWith(".xls")) {
+                    items = parseExcelFile(file);
                 }
 
                 if (!items.isEmpty()) {
@@ -969,6 +965,7 @@ public class RePlanEditorController implements Initializable {
                 }
 
             } catch (Exception e) {
+                LOG.log(Level.WARNING, "Batch file processing error", e);
                 Platform.runLater(() -> {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Error");
@@ -1040,6 +1037,203 @@ public class RePlanEditorController implements Initializable {
         return items;
     }
 
+    private List<QueueItem> parseExcelFile(java.io.File file) throws Exception {
+        List<QueueItem> items = new ArrayList<>();
+        
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(file);
+             Workbook workbook = new HSSFWorkbook(fis)) {
+            
+            Sheet sheet = workbook.getSheetAt(0); // Use first sheet
+            
+            if (sheet.getPhysicalNumberOfRows() == 0) {
+                return items;
+            }
+            
+            // Parse header row
+            Row headerRow = sheet.getRow(0);
+            if (headerRow == null) {
+                return items;
+            }
+            
+            List<String> headers = new ArrayList<>();
+            for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+                Cell cell = headerRow.getCell(i);
+                String header = getCellValueAsString(cell);
+                headers.add(header != null ? header.trim() : "");
+            }
+            
+            // Parse data rows
+            for (int rowNum = 1; rowNum <= sheet.getLastRowNum(); rowNum++) {
+                Row row = sheet.getRow(rowNum);
+                if (row == null) continue;
+                
+                // Skip empty rows
+                boolean hasData = false;
+                for (int i = 0; i < Math.min(2, headers.size()); i++) {
+                    Cell cell = row.getCell(i);
+                    if (cell != null && getCellValueAsString(cell) != null && !getCellValueAsString(cell).trim().isEmpty()) {
+                        hasData = true;
+                        break;
+                    }
+                }
+                if (!hasData) continue;
+                
+                String itemType = "";
+                String planName = "";
+                
+                if (headers.size() >= 1) {
+                    Cell cell = row.getCell(0);
+                    itemType = getCellValueAsString(cell);
+                    itemType = itemType != null ? itemType.trim() : "";
+                }
+                
+                if (headers.size() >= 2) {
+                    Cell cell = row.getCell(1);
+                    planName = getCellValueAsString(cell);
+                    planName = planName != null ? planName.trim() : "";
+                }
+                
+                if (planName.isEmpty()) continue;
+                
+                Map<String, Object> kwargs = new HashMap<>();
+                
+                // Parse additional parameters
+                for (int i = 2; i < Math.min(headers.size(), row.getLastCellNum()); i++) {
+                    String paramName = headers.get(i).trim();
+                    if (paramName.isEmpty()) continue;
+                    
+                    Cell cell = row.getCell(i);
+                    Object paramValue = getCellValueAsObject(cell);
+                    
+                    if (paramValue != null) {
+                        kwargs.put(paramName, paramValue);
+                    }
+                }
+                
+                QueueItem item = new QueueItem(
+                        itemType.isEmpty() ? "plan" : itemType,
+                        planName,
+                        List.of(),
+                        kwargs,
+                        null,
+                        currentUser,
+                        currentUserGroup,
+                        null
+                );
+                items.add(item);
+            }
+        }
+        
+        return items;
+    }
+    
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) return null;
+        
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getDateCellValue().toString();
+                } else {
+                    double numValue = cell.getNumericCellValue();
+                    if (numValue == Math.floor(numValue)) {
+                        return String.valueOf((long) numValue);
+                    } else {
+                        return String.valueOf(numValue);
+                    }
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                try {
+                    return cell.getStringCellValue();
+                } catch (Exception e) {
+                    try {
+                        double numValue = cell.getNumericCellValue();
+                        if (numValue == Math.floor(numValue)) {
+                            return String.valueOf((long) numValue);
+                        } else {
+                            return String.valueOf(numValue);
+                        }
+                    } catch (Exception e2) {
+                        return null;
+                    }
+                }
+            case BLANK:
+            case _NONE:
+            default:
+                return null;
+        }
+    }
+    
+    private Object getCellValueAsObject(Cell cell) {
+        if (cell == null) return null;
+        
+        switch (cell.getCellType()) {
+            case STRING:
+                String strValue = cell.getStringCellValue().trim();
+                if (strValue.isEmpty()) return null;
+                
+                // Try to parse as boolean
+                if ("true".equalsIgnoreCase(strValue) || "false".equalsIgnoreCase(strValue)) {
+                    return Boolean.parseBoolean(strValue);
+                }
+                
+                // Try to parse as number
+                try {
+                    if (strValue.contains(".")) {
+                        return Double.parseDouble(strValue);
+                    } else {
+                        return Long.parseLong(strValue);
+                    }
+                } catch (NumberFormatException e) {
+                    return strValue;
+                }
+                
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getDateCellValue();
+                } else {
+                    double numValue = cell.getNumericCellValue();
+                    if (numValue == Math.floor(numValue)) {
+                        return (long) numValue;
+                    } else {
+                        return numValue;
+                    }
+                }
+            case BOOLEAN:
+                return cell.getBooleanCellValue();
+            case FORMULA:
+                try {
+                    // Handle formula cells by trying to get the cached result
+                    CellType cachedType = cell.getCachedFormulaResultType();
+                    switch (cachedType) {
+                        case STRING:
+                            return cell.getStringCellValue();
+                        case NUMERIC:
+                            double numValue = cell.getNumericCellValue();
+                            if (numValue == Math.floor(numValue)) {
+                                return (long) numValue;
+                            } else {
+                                return numValue;
+                            }
+                        case BOOLEAN:
+                            return cell.getBooleanCellValue();
+                        default:
+                            return null;
+                    }
+                } catch (Exception e) {
+                    return null;
+                }
+            case BLANK:
+            case _NONE:
+            default:
+                return null;
+        }
+    }
+
     private void showItemPreview() {
         String selectedItem = choiceBox.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
@@ -1064,6 +1258,102 @@ public class RePlanEditorController implements Initializable {
                 choiceBox.setTooltip(tooltip);
             } else {
                 choiceBox.setTooltip(new Tooltip("Description for '" + itemName + "' was not found..."));
+            }
+        }
+    }
+
+    private static class BatchUploadDialog extends Dialog<BatchUploadDialog.Result> {
+        
+        public static class Result {
+            private final String filePath;
+            private final String fileType;
+            
+            public Result(String filePath, String fileType) {
+                this.filePath = filePath;
+                this.fileType = fileType;
+            }
+            
+            public String getFilePath() { return filePath; }
+            public String getFileType() { return fileType; }
+        }
+        
+        private TextField filePathField;
+        private ComboBox<String> fileTypeCombo;
+        private Button browseButton;
+        private String selectedFilePath;
+        
+        public BatchUploadDialog(javafx.stage.Window owner) {
+            initOwner(owner);
+            setTitle("Batch Upload");
+            setHeaderText("Load Plans from Spreadsheet");
+            
+            // Create content
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+            
+            // File selection
+            browseButton = new Button("...");
+            browseButton.setOnAction(e -> selectFile());
+            
+            filePathField = new TextField();
+            filePathField.setEditable(false);
+            filePathField.setPrefWidth(300);
+            
+            // File type selection
+            fileTypeCombo = new ComboBox<>();
+            fileTypeCombo.getItems().addAll("xls", "csv");
+            fileTypeCombo.setValue("xls");
+            
+            grid.add(browseButton, 0, 0);
+            grid.add(filePathField, 1, 0);
+            grid.add(new Label("Spreadsheet Type:"), 0, 1);
+            grid.add(fileTypeCombo, 1, 1);
+            
+            getDialogPane().setContent(grid);
+            
+            // Add buttons
+            getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+            
+            // Initially disable OK button
+            getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
+            
+            // Enable OK button when file is selected
+            filePathField.textProperty().addListener((obs, oldVal, newVal) -> {
+                getDialogPane().lookupButton(ButtonType.OK).setDisable(newVal == null || newVal.trim().isEmpty());
+            });
+            
+            // Result converter
+            setResultConverter(dialogButton -> {
+                if (dialogButton == ButtonType.OK && selectedFilePath != null) {
+                    return new Result(selectedFilePath, fileTypeCombo.getValue());
+                }
+                return null;
+            });
+        }
+        
+        private void selectFile() {
+            javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+            fileChooser.setTitle("Select Spreadsheet File");
+            fileChooser.getExtensionFilters().addAll(
+                new javafx.stage.FileChooser.ExtensionFilter("Excel Legacy Files (*.xls)", "*.xls"),
+                new javafx.stage.FileChooser.ExtensionFilter("CSV Files (*.csv)", "*.csv"),
+                new javafx.stage.FileChooser.ExtensionFilter("All Files", "*.*")
+            );
+            
+            java.io.File file = fileChooser.showOpenDialog(getDialogPane().getScene().getWindow());
+            if (file != null) {
+                selectedFilePath = file.getAbsolutePath();
+                filePathField.setText(selectedFilePath);
+                
+                // Auto-detect file type based on extension
+                String fileName = file.getName().toLowerCase();
+                if (fileName.endsWith(".xls")) {
+                    fileTypeCombo.setValue("xls");
+                } else if (fileName.endsWith(".csv")) {
+                    fileTypeCombo.setValue("csv");
+                }
             }
         }
     }
