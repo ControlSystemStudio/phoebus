@@ -1,0 +1,28 @@
+# Bluesky Queue Server (RE Manager)
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install bluesky-queueserver and dependencies
+RUN pip install --no-cache-dir \
+    bluesky-queueserver \
+    bluesky \
+    ophyd \
+    ipython \
+    matplotlib \
+    numpy
+
+# Create working directory
+WORKDIR /app
+
+# Copy IPython profile from local directory
+COPY ipython-profile/ /root/.ipython/
+
+# Expose ports for 0MQ communication
+EXPOSE 60615 60625
+
+CMD ["sh", "-c", "start-re-manager --use-ipython-kernel=ON --zmq-publish-console=ON --startup-profile collection_sim --redis-addr=${REDIS_HOST:-redis}:${REDIS_PORT:-6379} --zmq-info-addr=tcp://*:60625"]

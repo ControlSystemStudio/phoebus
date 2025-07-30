@@ -1,0 +1,48 @@
+user_groups:
+  root:  # Defines the rules for preliminary filtering of plan/device/function names for all groups.
+    allowed_plans:
+      - null  # Allow all
+    forbidden_plans:
+      - ":^_"  # All plans with names starting with '_'
+    allowed_devices:
+      - null  # Allow all
+    forbidden_devices:
+      - ":^_:?.*"  # All devices with names starting with '_'
+    allowed_functions:
+      - null  # Allow all
+    forbidden_functions:
+      - ":^_"  # All functions with names starting with '_'
+  primary:  # Default group. The group can be renamed or other groups may be created.
+    allowed_plans:
+      - ":.*"  # Different way to allow all plans.
+    forbidden_plans:
+      - null  # Nothing is forbidden
+    allowed_devices:
+      - ":?.*:depth=5"  # Allow all device and subdevices. Maximum deepth for subdevices is 5.
+    forbidden_devices:
+      - null  # Nothing is forbidden
+    allowed_functions:
+      - "function_sleep"  # Explicitly listed name
+      - ":^func_for_test"
+  test_user:  # Another group used for unit tests.
+    allowed_plans:
+      - ":^count"  # Use regular expression patterns
+      - ":scan$"
+    forbidden_plans:
+      - ":^adaptive_scan$" # Use regular expression patterns
+      - ":^inner_product"
+    allowed_devices:
+      - ":^det:?.*"  # Use regular expression patterns
+      - ":^motor:?.*"
+      - ":^sim_bundle_A:?.*"
+    forbidden_devices:
+      - ":^det[3-5]$:?.*" # Use regular expression patterns
+      - ":^motor\\d+$:?.*"
+    allowed_functions:
+      - ":element$"
+      - ":elements$"
+      - "function_sleep"
+      - "clear_buffer"
+      - ":^unit_test.*$"
+    forbidden_functions:
+      - ":^_"  # All functions with names starting with '_'
