@@ -1,0 +1,25 @@
+# Bluesky HTTP Server
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install bluesky-httpserver and dependencies
+RUN pip install --no-cache-dir \
+    bluesky-httpserver \
+    uvicorn \
+    fastapi \
+    pandas
+
+# Create working directory
+WORKDIR /app
+
+# Expose HTTP port
+EXPOSE 60610
+
+# Set environment variables
+ENV QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY=a
+
+CMD ["uvicorn", "--host", "0.0.0.0", "--port", "60610", "bluesky_httpserver.server:app"]
