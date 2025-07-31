@@ -12,6 +12,7 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.pv.pvws.PVWS_PV;
 import org.phoebus.pv.pvws.models.pv.PvwsData;
 import org.phoebus.pv.pvws.models.pv.PvwsMetadata;
+import org.phoebus.pv.pvws.utils.pv.VArrDecoder;
 import org.phoebus.pv.pvws.utils.pv.toVType;
 
 import java.net.URI;
@@ -55,6 +56,8 @@ public class PVWS_Client extends WebSocketClient {
 
             System.out.println("📨👍👍 Received: " + message);
 
+
+
             try {
                 JsonNode node = mapper.readTree(message);
                 PvwsMetadata pvMeta = mapper.treeToValue(node, PvwsMetadata.class);
@@ -69,6 +72,10 @@ public class PVWS_Client extends WebSocketClient {
                     case "update":
                         PvwsData pvObj = mapper.treeToValue(node, PvwsData.class);
 
+                        if (pvObj.getPv().endsWith(".RTYP")) {
+                            return; // optionally ignore
+                        }
+
                         /* TODO: ADD REFETCH FUNCTIONALITY
                         if (!MetadataHandler.pvMetaMap.containsKey(pvObj.getPv())) {
 
@@ -80,8 +87,7 @@ public class PVWS_Client extends WebSocketClient {
 
 
 
-                        // TODO: REPLACE WITH VArrDecoder
-                        //Base64BufferDeserializer.decodeArrValue(node, pvObj);
+                        VArrDecoder.decodeArrValue(node, pvObj);
 
 
                         //subscribeAttempts.remove(pvObj.getPv()); // reset retry count if we got the meta data
