@@ -17,6 +17,8 @@ import org.phoebus.pv.pvws.utils.pv.toVType;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 
+import org.phoebus.pv.pvws.utils.pv.MetadataHandler;
+
 public class PVWS_Client extends WebSocketClient {
 
         public final ObjectMapper mapper;
@@ -57,11 +59,9 @@ public class PVWS_Client extends WebSocketClient {
                 JsonNode node = mapper.readTree(message);
                 PvwsMetadata pvMeta = mapper.treeToValue(node, PvwsMetadata.class);
 
-                /* NEEDS METADATA MAP CLASS TODO
                 if (pvMeta.getVtype() != null)
-                    metadataHandler.setData(pvMeta); // comment this line out to test missing
+                    MetadataHandler.setData(pvMeta); // comment this line out to test missing
 
-                 */
 
 
                 String type = node.get("type").asText();
@@ -69,17 +69,16 @@ public class PVWS_Client extends WebSocketClient {
                     case "update":
                         PvwsData pvObj = mapper.treeToValue(node, PvwsData.class);
 
-
-                        /* NEEDS METADATA MAP CLASS TODO
-                        if (!metadataHandler.pvMetaMap.containsKey(pvObj.getPv())) {
+                        /* TODO: ADD REFETCH FUNCTIONALITY
+                        if (!MetadataHandler.pvMetaMap.containsKey(pvObj.getPv())) {
 
                             final int MAX_SUBSCRIBE_ATTEMPTS = 5;
-                            metadataHandler.refetch(MAX_SUBSCRIBE_ATTEMPTS, pvObj, this);
+                            MetadataHandler.refetch(MAX_SUBSCRIBE_ATTEMPTS, pvObj, this);
                             return;
 
-                        }
+                        }*/
 
-                         */
+
 
                         // TODO: REPLACE WITH VArrDecoder
                         //Base64BufferDeserializer.decodeArrValue(node, pvObj);
@@ -87,22 +86,21 @@ public class PVWS_Client extends WebSocketClient {
 
                         //subscribeAttempts.remove(pvObj.getPv()); // reset retry count if we got the meta data
 
-                        /* TODO: NEEDS separate class to handle this specific severity data and probably status too
+                        // TODO: NEEDS separate class to handle this specific severity data and probably status too
                         if (node.has("severity"))// if severity changes set it in cached value
                         {
                             String currPV = pvObj.getPv();
                             String currSeverity = pvObj.getSeverity();
-                            metadataHandler.pvMetaMap.get(currPV).setSeverity(currSeverity);
-                        }*/
+                            MetadataHandler.pvMetaMap.get(currPV).setSeverity(currSeverity);
+                        }
 
                         //merges class PV and json node of metadata together
-                        /* TODO: NEEDS METADATA MAP CLASS AND existing toVType class in utils/pv
-                        JsonNode nodeMerge = mapper.valueToTree(metadataHandler.pvMetaMap.get(pvObj.getPv()));
+                        JsonNode nodeMerge = mapper.valueToTree(MetadataHandler.pvMetaMap.get(pvObj.getPv()));
                         mapper.readerForUpdating(pvObj).readValue(nodeMerge);
 
-                        VtypeHandler.processUpdate(pvObj);
+                        //toVType.convert(pvObj);
 
-                         */
+
 
                         VType vVal = toVType.convert(pvObj);
 
