@@ -3,9 +3,12 @@ package org.phoebus.pv.pvws;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.phoebus.pv.pvws.client.PVWS_Client;
+import org.phoebus.pv.pvws.models.temp.SubscribeMessage;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -57,5 +60,16 @@ public class PVWS_Context {
         if (client != null) {
             client.close();
         }
+    }
+
+    public void clientSubscribe(String base_name) throws JsonProcessingException {
+
+        SubscribeMessage message = new SubscribeMessage();
+        message.setType("subscribe");
+
+        List<String> pv = new ArrayList<>(List.of(base_name));
+        message.setPvs(pv);
+        String json = getClient().mapper.writeValueAsString(message);
+        getClient().send(json);
     }
 }

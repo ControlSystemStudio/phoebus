@@ -16,7 +16,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class PVWS_Client extends WebSocketClient {
 
-        private final ObjectMapper mapper;
+        public final ObjectMapper mapper;
         private final CountDownLatch latch;
         /*
         private SubscriptionHandler subHandler;
