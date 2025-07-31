@@ -50,8 +50,6 @@ public class toVType {
         String unitStr = (units != null) ? units : "";
         Display display = Display.of(displayRange, alarmRange, warningRange, controlRange, unitStr, numberFormat, description);
 
-        if (true)
-            return VType.toVType(value);
 
 
         try {
