@@ -1,6 +1,9 @@
 package org.phoebus.pv.pvws;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.phoebus.pv.PV;
+
+import java.net.URISyntaxException;
 
 public class PVWS_PV extends PV {
     /**
@@ -8,7 +11,9 @@ public class PVWS_PV extends PV {
      *
      * @param name PV name
      */
-    protected PVWS_PV(String name) {
+    protected PVWS_PV(String name, String base_name) throws URISyntaxException, InterruptedException, JsonProcessingException {
         super(name);
+        PVWS_Context context = PVWS_Context.getInstance();
+        context.clientSubscribe(base_name);
     }
 }

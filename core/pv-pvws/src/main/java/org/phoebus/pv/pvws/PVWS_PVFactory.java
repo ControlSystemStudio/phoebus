@@ -17,6 +17,8 @@ public class PVWS_PVFactory implements PVFactory {
 
     @Override
     public PV createPV(String name, String base_name) throws Exception {
-        return null;
+
+
+        return new PVWS_PV(name, base_name);
     }
 }

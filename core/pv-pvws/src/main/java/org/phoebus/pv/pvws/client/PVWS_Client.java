@@ -3,20 +3,23 @@ package org.phoebus.pv.pvws.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.epics.vtype.VType;
 import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ServerHandshake;
+import org.phoebus.pv.PVPool;
 import org.phoebus.pv.pvws.PVWS_PV;
 import org.phoebus.pv.pvws.models.pv.PvwsData;
 import org.phoebus.pv.pvws.models.pv.PvwsMetadata;
+import org.phoebus.pv.pvws.utils.pv.toVType;
 
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 
 public class PVWS_Client extends WebSocketClient {
 
-        private final ObjectMapper mapper;
+        public final ObjectMapper mapper;
         private final CountDownLatch latch;
         /*
         private SubscriptionHandler subHandler;
@@ -100,7 +103,15 @@ public class PVWS_Client extends WebSocketClient {
                         VtypeHandler.processUpdate(pvObj);
 
                          */
-                        System.out.println("🧊⛸️🥶: " + pvObj);
+
+                        VType vVal = toVType.convert(pvObj);
+
+                        String pvname = ("pvws://" + pvObj.getPv());
+
+                        PVPool.getPV(pvname).update(vVal);
+
+
+
 
                         break;
                     default:
