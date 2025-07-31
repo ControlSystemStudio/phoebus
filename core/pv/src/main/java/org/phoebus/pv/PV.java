@@ -366,4 +366,8 @@ public class PV
     {
         return getClass().getSimpleName() + " '" + getName() + "' = " + last_value;
     }
+
+    public void update(VType vval) {
+        notifyListenersOfValue(vval);
+    }
 }
