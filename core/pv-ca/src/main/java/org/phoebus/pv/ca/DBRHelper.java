@@ -81,11 +81,11 @@ public class DBRHelper
         if (type.isDOUBLE())
             return plain ? DBRType.DOUBLE : DBRType.CTRL_DOUBLE;
         else if (type.isFLOAT())
-            return plain ? DBRType.FLOAT : DBRType.CTRL_DOUBLE;
+            return plain ? DBRType.FLOAT : DBRType.CTRL_FLOAT;
         else if (type.isINT())
             return plain ? DBRType.INT : DBRType.CTRL_INT;
         else if (type.isSHORT())
-            return plain ? DBRType.SHORT : DBRType.CTRL_INT;
+            return plain ? DBRType.SHORT : DBRType.CTRL_SHORT;
         else if (type.isBYTE())
             return plain ? DBRType.BYTE : DBRType.CTRL_BYTE;
         else if (type.isENUM())
