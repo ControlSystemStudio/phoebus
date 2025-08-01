@@ -13,6 +13,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 
 import java.util.List;
 
+import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 
@@ -57,7 +58,9 @@ public class VisibleWidget extends Widget
     {
         super.defineProperties(properties);
         properties.add(visible = propVisible.createProperty(this, true));
+        visible.setInformativeTooltip(Messages.InformativeTooltipVisible);
         properties.add(tooltip = propTooltip.createProperty(this, getInitialTooltip()));
+        tooltip.setInformativeTooltip(Messages.InformativeTooltipTooltip);
         // Start 'connected', assuming there are no PVs
         properties.add(connected = runtimePropConnected.createProperty(this, true));
     }

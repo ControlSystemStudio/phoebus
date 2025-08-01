@@ -212,7 +212,7 @@ public class PropertyPanelSection extends GridPane {
                 if (widget instanceof DisplayModel) {   // DisplayModel is not registered as a Widget that users can add
                     String text = Messages.Display;
                     Label label = new Label(text, ImageCache.getImageView(ModelPlugin.class, "/icons/display.png"));
-                    Tooltip.install(label, new Tooltip(text));
+                    Tooltip.install(label, new Tooltip(text + possiblyInformativeTooltip(property)));
                     field = label;
                 } else {
                     final String type = widget.getType();
@@ -220,14 +220,14 @@ public class PropertyPanelSection extends GridPane {
                         final ImageView icon = new ImageView(WidgetIcons.getIcon(type));
                         final String name = WidgetFactory.getInstance().getWidgetDescriptor(type).getName();
                         Label label = new Label(name, icon);
-                        Tooltip.install(label, new Tooltip(name));
+                        Tooltip.install(label, new Tooltip(name + possiblyInformativeTooltip(property)));
                         field = label;
                     } catch (Exception ex) {
                         // Even 'unknown' widgets should have an icon,
                         // but fall back to just showing the type name
-                        String text = String.valueOf(property.getValue());
+                        String text = String.valueOf(property.getValue() + possiblyInformativeTooltip(property));
                         Label label = new Label(text);
-                        Tooltip.install(label, new Tooltip(text));
+                        Tooltip.install(label, new Tooltip(text + possiblyInformativeTooltip(property)));
                         field = label;
                     }
                 }
@@ -235,7 +235,7 @@ public class PropertyPanelSection extends GridPane {
                 final TextField text = new TextField();
                 text.setText(String.valueOf(property.getValue()));
                 text.setDisable(true);
-                Tooltip.install(text, new Tooltip(text.getText()));
+                Tooltip.install(text, new Tooltip(text.getText() + possiblyInformativeTooltip(property)));
                 field = text;
             }
         } else if (property instanceof ColorWidgetProperty) {
@@ -246,12 +246,12 @@ public class PropertyPanelSection extends GridPane {
             Function<WidgetColor, Tooltip> widgetColorToTooltip = (widgetColor) ->
             {
                 if (widgetColor instanceof NamedWidgetColor) {
-                    return new Tooltip(((NamedWidgetColor) widgetColor).getName());
+                    return new Tooltip(((NamedWidgetColor) widgetColor).getName() + possiblyInformativeTooltip(property));
                 } else {
                     if (widgetColor.getAlpha() == 255) {
-                        return new Tooltip("RGB(" + widgetColor.getRed() + "," + widgetColor.getGreen() + "," + widgetColor.getBlue() + ")");
+                        return new Tooltip("RGB(" + widgetColor.getRed() + "," + widgetColor.getGreen() + "," + widgetColor.getBlue() + ")" + possiblyInformativeTooltip(property));
                     } else {
-                        return new Tooltip("RGB(" + widgetColor.getRed() + "," + widgetColor.getGreen() + "," + widgetColor.getBlue() + "," + widgetColor.getAlpha() + ")");
+                        return new Tooltip("RGB(" + widgetColor.getRed() + "," + widgetColor.getGreen() + "," + widgetColor.getBlue() + "," + widgetColor.getAlpha() + ")" + possiblyInformativeTooltip(property));
                     }
                 }
             };
@@ -268,8 +268,8 @@ public class PropertyPanelSection extends GridPane {
             font_field.setMnemonicParsing(false);
             font_field.setMaxWidth(Double.MAX_VALUE);
 
-            Tooltip.install(font_field, new Tooltip(font_prop.getValue().toString()));
-            font_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(font_field, new Tooltip(new_value.toString())));
+            Tooltip.install(font_field, new Tooltip(font_prop.getValue().toString() + possiblyInformativeTooltip(property)));
+            font_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(font_field, new Tooltip(new_value.toString() + possiblyInformativeTooltip(property))));
 
             final WidgetFontPropertyBinding binding = new WidgetFontPropertyBinding(undo, font_field, font_prop, other);
             bindings.add(binding);
@@ -283,12 +283,12 @@ public class PropertyPanelSection extends GridPane {
             combo.setMaxWidth(Double.MAX_VALUE);
             combo.setMaxHeight(Double.MAX_VALUE);
 
-            Tooltip.install(combo, new Tooltip(enum_prop.getValue().toString()));
-            enum_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(combo, new Tooltip(new_value.toString())));
+            Tooltip.install(combo, new Tooltip(enum_prop.getValue().toString() + possiblyInformativeTooltip(property)));
+            enum_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(combo, new Tooltip(new_value.toString() + possiblyInformativeTooltip(property))));
 
             final ToggleButton macroButton = new ToggleButton("", ImageCache.getImageView(DisplayEditor.class, "/icons/macro-edit.png"));
             macroButton.getStyleClass().add("macro_button");
-            macroButton.setTooltip(new Tooltip(Messages.MacroEditButton));
+            macroButton.setTooltip(new Tooltip(Messages.MacroEditButton + possiblyInformativeTooltip(property)));
             BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
             BorderPane.setAlignment(macroButton, Pos.CENTER);
 
@@ -338,13 +338,13 @@ public class PropertyPanelSection extends GridPane {
             StackPane.setAlignment(check, Pos.CENTER_LEFT);
             final ToggleButton macroButton = new ToggleButton("", ImageCache.getImageView(DisplayEditor.class, "/icons/macro-edit.png"));
             macroButton.getStyleClass().add("macro_button");
-            macroButton.setTooltip(new Tooltip(Messages.MacroEditButton));
+            macroButton.setTooltip(new Tooltip(Messages.MacroEditButton + possiblyInformativeTooltip(property)));
             BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
             BorderPane.setAlignment(macroButton, Pos.CENTER);
 
             {
-                Tooltip tooltipWhenSetToTrue = new Tooltip("True");
-                Tooltip tooltipWhenSetToFalse = new Tooltip("False");
+                Tooltip tooltipWhenSetToTrue = new Tooltip("True" + possiblyInformativeTooltip(property));
+                Tooltip tooltipWhenSetToFalse = new Tooltip("False" + possiblyInformativeTooltip(property));
 
                 Consumer<Boolean> setToolTip = (bool) -> {
                     if (bool) {
@@ -389,9 +389,9 @@ public class PropertyPanelSection extends GridPane {
             {
                 if (colorMap instanceof PredefinedColorMaps.Predefined) {
                     PredefinedColorMaps.Predefined predefinedColorMap = (PredefinedColorMaps.Predefined) colorMap;
-                    return new Tooltip(predefinedColorMap.getDescription());
+                    return new Tooltip(predefinedColorMap.getDescription() + possiblyInformativeTooltip(property));
                 } else {
-                    return new Tooltip("Color Map");
+                    return new Tooltip("Color Map" + possiblyInformativeTooltip(property));
                 }
             };
 
@@ -413,8 +413,8 @@ public class PropertyPanelSection extends GridPane {
             bindings.add(binding);
             binding.bind();
 
-            Tooltip.install(combo, new Tooltip(widget_class_prop.getValue()));
-            widget_class_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(combo, new Tooltip(new_value)));
+            Tooltip.install(combo, new Tooltip(widget_class_prop.getValue() + possiblyInformativeTooltip(property)));
+            widget_class_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(combo, new Tooltip(new_value + possiblyInformativeTooltip(property))));
 
             field = combo;
         } else if (property instanceof FilenameWidgetProperty) {
@@ -437,9 +437,9 @@ public class PropertyPanelSection extends GridPane {
             bindings.add(binding);
             binding.bind();
 
-            Tooltip.install(select_file, new Tooltip("Select File"));
-            Tooltip.install(text, new Tooltip(file_prop.getValue()));
-            file_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(text, new Tooltip(new_value)));
+            Tooltip.install(select_file, new Tooltip("Select File" + possiblyInformativeTooltip(property)));
+            Tooltip.install(text, new Tooltip(file_prop.getValue() + possiblyInformativeTooltip(property)));
+            file_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(text, new Tooltip(new_value + possiblyInformativeTooltip(property))));
 
             field = new HBox(text, select_file);
             HBox.setHgrow(text, Priority.ALWAYS);
@@ -480,9 +480,9 @@ public class PropertyPanelSection extends GridPane {
             });
 
 
-            Tooltip.install(open_editor, new Tooltip("Open Editor"));
-            Tooltip.install(text, new Tooltip(pv_prop.getValue()));
-            pv_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(text, new Tooltip(new_value)));
+            Tooltip.install(open_editor, new Tooltip("Open Editor" + possiblyInformativeTooltip(property)));
+            Tooltip.install(text, new Tooltip(pv_prop.getValue() + possiblyInformativeTooltip(property)));
+            pv_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(text, new Tooltip(new_value + possiblyInformativeTooltip(property))));
 
             field = new HBox(text, open_editor);
             HBox.setHgrow(text, Priority.ALWAYS);
@@ -496,17 +496,17 @@ public class PropertyPanelSection extends GridPane {
             final MacroizedWidgetProperty<?> macro_prop = (MacroizedWidgetProperty<?>) property;
             final TextField text = new TextField();
             text.setPromptText(macro_prop.getDefaultValue().toString());
-            text.setOnKeyReleased((event) -> Tooltip.install(text, new Tooltip(text.getText())));
+            text.setOnKeyReleased((event) -> Tooltip.install(text, new Tooltip(text.getText() + possiblyInformativeTooltip(property))));
             final MacroizedWidgetPropertyBinding binding = new MacroizedWidgetPropertyBinding(undo, text, macro_prop, other);
             bindings.add(binding);
             binding.bind();
 
-            Tooltip.install(text, new Tooltip(text.getText()));
+            Tooltip.install(text, new Tooltip(text.getText() + possiblyInformativeTooltip(property)));
 
             if (CommonWidgetProperties.propText.getName().equals(property.getName()) ||
                     CommonWidgetProperties.propTooltip.getName().equals(property.getName())) {   // Allow editing multi-line text in dialog
                 final Button open_editor = new Button("...");
-                Tooltip.install(open_editor, new Tooltip("Open Editor"));
+                Tooltip.install(open_editor, new Tooltip("Open Editor" + possiblyInformativeTooltip(property)));
                 open_editor.setOnAction(event ->
                 {
                     final MultiLineInputDialog dialog = new MultiLineInputDialog(open_editor, macro_prop.getSpecification());
@@ -520,7 +520,7 @@ public class PropertyPanelSection extends GridPane {
                         undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, result.get()));
                     }
                     text.setText(result.get().replaceAll("\n", "\\\\n"));
-                    Tooltip.install(text, new Tooltip(result.get()));
+                    Tooltip.install(text, new Tooltip(result.get() + possiblyInformativeTooltip(property)));
                 });
                 field = new HBox(text, open_editor);
                 HBox.setHgrow(text, Priority.ALWAYS);
@@ -540,8 +540,8 @@ public class PropertyPanelSection extends GridPane {
             bindings.add(binding);
             binding.bind();
 
-            Tooltip.install(points_field, new Tooltip(points_prop.getValue().size() + " Points"));
-            points_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(points_field, new Tooltip(new_value.size() + " Points")));
+            Tooltip.install(points_field, new Tooltip(points_prop.getValue().size() + " Points" + possiblyInformativeTooltip(property)));
+            points_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(points_field, new Tooltip(new_value.size() + " Points" + possiblyInformativeTooltip(property))));
 
             field = points_field;
         }
@@ -572,7 +572,7 @@ public class PropertyPanelSection extends GridPane {
         final Label label = new Label(property.getDescription());
         label.setMaxWidth(Double.MAX_VALUE);
         final String tooltip = property.getDescription() + " (" + property.getPath() + ")";
-        label.setTooltip(new Tooltip(tooltip));
+        label.setTooltip(new Tooltip(tooltip + possiblyInformativeTooltip(property)));
 //        setGridLinesVisible(true); // For debugging the layout
 
         Node field = bindSimplePropertyField(undo, bindings, property, other);
@@ -587,8 +587,8 @@ public class PropertyPanelSection extends GridPane {
             bindings.add(binding);
             binding.bind();
 
-            Tooltip.install(macros_field, new Tooltip(macros_field.getText()));
-            macros_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(macros_field, new Tooltip(macros_field.getText())));
+            Tooltip.install(macros_field, new Tooltip(macros_field.getText() + possiblyInformativeTooltip(property)));
+            macros_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(macros_field, new Tooltip(macros_field.getText() + possiblyInformativeTooltip(property))));
 
             field = macros_field;
         } else if (property instanceof ActionsWidgetProperty) {
@@ -600,8 +600,8 @@ public class PropertyPanelSection extends GridPane {
             bindings.add(binding);
             binding.bind();
 
-            Tooltip.install(actions_field, new Tooltip(actions_field.getText()));
-            actions_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(actions_field, new Tooltip(actions_field.getText())));
+            Tooltip.install(actions_field, new Tooltip(actions_field.getText() + possiblyInformativeTooltip(property)));
+            actions_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(actions_field, new Tooltip(actions_field.getText() + possiblyInformativeTooltip(property))));
 
             field = actions_field;
         } else if (property instanceof ScriptsWidgetProperty) {
@@ -613,8 +613,8 @@ public class PropertyPanelSection extends GridPane {
             bindings.add(binding);
             binding.bind();
 
-            Tooltip.install(scripts_field, new Tooltip(scripts_field.getText()));
-            scripts_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(scripts_field, new Tooltip(scripts_field.getText())));
+            Tooltip.install(scripts_field, new Tooltip(scripts_field.getText() + possiblyInformativeTooltip(property)));
+            scripts_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(scripts_field, new Tooltip(scripts_field.getText() + possiblyInformativeTooltip(property))));
 
             field = scripts_field;
         } else if (property instanceof RulesWidgetProperty) {
@@ -625,8 +625,8 @@ public class PropertyPanelSection extends GridPane {
             bindings.add(binding);
             binding.bind();
 
-            Tooltip.install(rules_field, new Tooltip(rules_field.getText()));
-            rules_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(rules_field, new Tooltip(rules_field.getText())));
+            Tooltip.install(rules_field, new Tooltip(rules_field.getText() + possiblyInformativeTooltip(property)));
+            rules_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(rules_field, new Tooltip(rules_field.getText() + possiblyInformativeTooltip(property))));
 
             field = rules_field;
         } else if (property instanceof StructuredWidgetProperty) {
@@ -724,8 +724,8 @@ public class PropertyPanelSection extends GridPane {
             text.setText(String.valueOf(property.getValue()));
             text.setEditable(false);
 
-            Tooltip.install(text, new Tooltip(text.getText()));
-            property.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(text, new Tooltip(text.getText())));
+            Tooltip.install(text, new Tooltip(text.getText() + possiblyInformativeTooltip(property)));
+            property.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(text, new Tooltip(text.getText() + possiblyInformativeTooltip(property))));
 
             field = text;
         }
@@ -845,6 +845,16 @@ public class PropertyPanelSection extends GridPane {
             separator = new Separator();
             separator.getStyleClass().add("property_separator_filler");
             add(separator, 7 - indentationLevel, row + 1, indentationLevel, 1);
+        }
+    }
+
+    private static String possiblyInformativeTooltip(WidgetProperty property) {
+        Optional<String> informativeTooltip = property.getInformativeTooltip();
+        if (informativeTooltip.isPresent()) {
+            return "\n\n" + informativeTooltip.get();
+        }
+        else {
+            return "";
         }
     }
 

@@ -82,9 +82,12 @@ public class PVWidget extends VisibleWidget
     {
         super.defineProperties(properties);
         properties.add(pv_name = propPVName.createProperty(this, ""));
+        pv_name.setInformativeTooltip(Messages.InformativeTooltipPVName);
         pv_name.addPropertyListener((property, oldValue, newValue) -> pv_value.setValue(null));
         properties.add(pv_value = runtimePropPVValue.createProperty(this, null));
         properties.add(alarm_border = propBorderAlarmSensitive.createProperty(this, true));
+        alarm_border.setInformativeTooltip(Messages.InformativeTooltipAlarmBorder);
+        var s = Messages.InformativeTooltipHeight;
     }
 
     @Override
