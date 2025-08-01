@@ -250,19 +250,10 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
      * @param filtered List of filtered suggestions to display.
      */
     private void showFilteredSuggestions(List<String> filtered) {
-        if (filtered.isEmpty()) {
-            suggestionsPopup.hide();
-            return;
-        }
-
         suggestions.setAll(filtered);
 
         if (!suggestionsPopup.isShowing()) {
             showPopup(filtered.size());
-
-            if (jfx_node.isFocused()) {
-                javafx.application.Platform.runLater(() -> jfx_node.requestFocus());
-            }
         } else {
             updatePopupSize(filtered.size());
         }
