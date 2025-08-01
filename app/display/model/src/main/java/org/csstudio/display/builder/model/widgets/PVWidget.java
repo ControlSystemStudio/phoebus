@@ -82,9 +82,11 @@ public class PVWidget extends VisibleWidget
     {
         super.defineProperties(properties);
         properties.add(pv_name = propPVName.createProperty(this, ""));
+        pv_name.setInformativeTooltip("The name of the PV to display in the widget.");
         pv_name.addPropertyListener((property, oldValue, newValue) -> pv_value.setValue(null));
         properties.add(pv_value = runtimePropPVValue.createProperty(this, null));
         properties.add(alarm_border = propBorderAlarmSensitive.createProperty(this, true));
+        alarm_border.setInformativeTooltip("Should an alarm border be shown around the widget when the displayed PV signals an alarm?");
     }
 
     @Override
