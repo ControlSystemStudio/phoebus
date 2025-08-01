@@ -211,23 +211,23 @@ public class Widget {
         // -- Mandatory properties --
         prelim_properties.add(this.type = propType.createProperty(this, type));
         prelim_properties.add(name = propName.createProperty(this, ""));
-        name.setInformativeTooltip("The name of the widget.");
+        name.setInformativeTooltip(Messages.InformativeTooltipName);
         prelim_properties.add(widget_class = propWidgetClass.createProperty(this, WidgetClassSupport.DEFAULT));
-        widget_class.setInformativeTooltip("The style class of the widget.");
+        widget_class.setInformativeTooltip(Messages.InformativeTooltipWidgetClass);
         prelim_properties.add(x = propX.createProperty(this, 0));
-        x.setInformativeTooltip("The x-coordinate of the widget counted in pixels from the left side of the screen.");
+        x.setInformativeTooltip(Messages.InformativeTooltipX);
         prelim_properties.add(y = propY.createProperty(this, 0));
-        y.setInformativeTooltip("The y-coordinate of the widget counted in pixels from the top of the screen.");
+        y.setInformativeTooltip(Messages.InformativeTooltipY);
         prelim_properties.add(width = propWidth.createProperty(this, default_width));
-        width.setInformativeTooltip("The width of the widget in pixels.");
+        width.setInformativeTooltip(Messages.InformativeTooltipWidth);
         prelim_properties.add(height = propHeight.createProperty(this, default_height));
-        height.setInformativeTooltip("The height of the widget in pixels.");
+        height.setInformativeTooltip(Messages.InformativeTooltipHeight);
         prelim_properties.add(actions = propActions.createProperty(this, ActionInfos.EMPTY));
-        actions.setInformativeTooltip("Actions to execute when the widget is clicked on.");
+        actions.setInformativeTooltip(Messages.InformativeTooltipActions);
         prelim_properties.add(rules = propRules.createProperty(this, Collections.emptyList()));
-        rules.setInformativeTooltip("Rules associated with the widget.");
+        rules.setInformativeTooltip(Messages.InformativeTooltipRules);
         prelim_properties.add(scripts = propScripts.createProperty(this, Collections.emptyList()));
-        scripts.setInformativeTooltip("Scripts associated with the widget.");
+        scripts.setInformativeTooltip(Messages.InformativeTooltipScripts);
 
         // -- Widget-specific properties --
         defineProperties(prelim_properties);
