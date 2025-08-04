@@ -23,20 +23,20 @@
                 <Label fx:id="planLabel" text="Plan: -" HBox.hgrow="ALWAYS" />
                 <HBox alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="0.0" spacing="50.0" HBox.hgrow="ALWAYS">
                     <children>
-                  <CheckBox fx:id="paramChk" mnemonicParsing="false" text="All Parameters" />
-                  <Label text="QUEUE ITEM" />
+                        <CheckBox fx:id="paramChk" mnemonicParsing="false" text="All Parameters" />
+                        <Label text="QUEUE ITEM" />
                     </children>
                 </HBox>
             </children>
         </HBox>
-      <HBox fx:id="editBtn" alignment="CENTER_RIGHT" layoutY="194.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-         <children>
-            <Button mnemonicParsing="false" text="Copy to Queue" />
-            <Button mnemonicParsing="false" prefWidth="75.0" text="Edit" />
-         </children>
-         <padding>
-            <Insets top="6.0" />
-         </padding>
-      </HBox>
+        <HBox alignment="CENTER_RIGHT" layoutY="194.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+            <children>
+                <Button fx:id="copyBtn" mnemonicParsing="false" text="Copy to Queue" />
+                <Button fx:id="editBtn" mnemonicParsing="false" prefWidth="75.0" text="Edit" />
+            </children>
+            <padding>
+                <Insets top="6.0" />
+            </padding>
+        </HBox>
     </children>
 </AnchorPane>
