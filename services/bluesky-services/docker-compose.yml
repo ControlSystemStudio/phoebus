@@ -1,0 +1,74 @@
+services:
+  # Optional Redis container - only used if host Redis is not available
+  redis:
+    image: redis:7-alpine
+    container_name: bluesky-redis
+    ports:
+      - "6380:6379"  # Use different external port to avoid conflicts
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - bluesky-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - container-redis  # Only start when explicitly requested
+
+  queue-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.queue-server
+    container_name: bluesky-queue-server
+    ports:
+      - "60615:60615"
+      - "60625:60625"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Allow access to host services
+    networks:
+      - bluesky-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import zmq; c = zmq.Context(); s = c.socket(zmq.REQ); s.connect('tcp://localhost:60615'); s.close(); c.term()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  http-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.http-server
+    container_name: bluesky-http-server
+    ports:
+      - "60610:60610"
+    environment:
+      - QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY=a
+      - QSERVER_ZMQ_CONTROL_ADDRESS=tcp://queue-server:60615
+      - QSERVER_ZMQ_INFO_ADDRESS=tcp://queue-server:60625
+    depends_on:
+      queue-server:
+        condition: service_healthy
+    networks:
+      - bluesky-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:60610/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  bluesky-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local
