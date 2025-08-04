@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAData;
+import org.epics.pva.data.PVAStructure;
 
 /** Command line tool for PVA client
  *
@@ -39,7 +40,7 @@ public class PVAClientMain
 
     private static void help()
     {
-        System.out.println("USAGE: pvaclient info|get|monitor|put|beacons [options] <PV name>...");
+        System.out.println("USAGE: pvaclient info|get|monitor|put|call|beacons [options] <PV name>...");
         System.out.println();
         System.out.println("Options:");
         System.out.println("  -h             Help");
@@ -54,6 +55,7 @@ public class PVAClientMain
         System.out.println("get     <PV name>          Read PV's value");
         System.out.println("monitor <PV name>          Subscribe to PV's value changes");
         System.out.println("put     <PV name> <value>  Write value to PV");
+        System.out.println("call    <PV name>          Call RPC PV (no request params)");
         System.out.println("beacons                    Display received beacons");
     }
 
@@ -240,6 +242,36 @@ public class PVAClientMain
         }
     }
 
+    private static void call(final String name, final PVAStructure request) throws Exception
+    {
+        try (final PVAClient pva = new PVAClient())
+        {
+            final CountDownLatch connected = new CountDownLatch(1);
+            final PVAChannel pv = pva.getChannel(name, (ch, state) ->
+            {
+                if (state == ClientChannelState.CONNECTED)
+                    connected.countDown();
+            });
+            final long timeout_ms = Math.round(seconds*1000);
+            if (! connected.await(timeout_ms, TimeUnit.MILLISECONDS))
+            {
+                System.err.println("Timeout waiting for " + name);
+                return;
+            }
+
+            try
+            {
+                PVAStructure result = pv.invoke(request).get(timeout_ms, TimeUnit.MILLISECONDS);
+                System.out.println(result);
+            }
+            catch (TimeoutException ex)
+            {
+                System.err.println("Call timed out");
+            }
+            pv.close();
+        }
+    }
+
     /** Watch received beacons
      *  @throws Exception on error
      */
@@ -350,6 +382,12 @@ public class PVAClientMain
             if (request.isEmpty())
                 request = "value";
             put(names.get(0), names.get(1));
+        }
+        else if (command.equals("call") && names.size() > 0)
+        {
+            // For now not supporting any request detail from cmdline
+            PVAStructure request = new PVAStructure("", "");
+            call(names.get(0), request);
         }
         else
             help();
