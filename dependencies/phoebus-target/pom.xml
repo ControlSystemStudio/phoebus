@@ -498,6 +498,19 @@
       <version>2.1</version>
     </dependency>
 
+    <!-- required but Qserver applications -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+      <version>2.19.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>5.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+
     <!-- https://mvnrepository.com/artifact/org.apache.activemq/activemq-client -->
     <dependency>
       <groupId>org.apache.activemq</groupId>
