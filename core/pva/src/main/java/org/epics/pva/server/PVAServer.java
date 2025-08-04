@@ -10,6 +10,7 @@ package org.epics.pva.server;
 import static org.epics.pva.PVASettings.logger;
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.ForkJoinPool;
@@ -159,6 +160,26 @@ public class PVAServer implements AutoCloseable
     ServerPV getPV(final int sid)
     {
         return pv_by_sid.get(sid);
+    }
+
+
+    /** Info about a client to the PVA server:
+     *  Network address and authentication info
+     */
+    public static record ClientInfo(InetSocketAddress address,
+                                    ServerAuth authentication)
+    {
+    }
+
+    /** Get information about clients to this PVA server
+     *  @return {@link ClientInfo}s
+     */
+    public Collection<ClientInfo> getClientInfos()
+    {
+        return tcp_handlers.stream()
+                           .map(tcp -> new ClientInfo(tcp.getRemoteAddress(),
+                                                      tcp.getAuth()))
+                           .toList();
     }
 
     /** Special address used in TCP search reply to indicate "Use this TCP connection" */
