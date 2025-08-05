@@ -25,8 +25,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
-import org.csstudio.display.builder.model.*;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.geometry.Point2D;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
+import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
+import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
@@ -47,18 +61,11 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
-import javafx.geometry.Bounds;
-import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -452,46 +459,135 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
      *  @param zoom Zoom level: 1.0 for 100%, 0.5 for 50%, ZOOM_ALL, ZOOM_WIDTH, ZOOM_HEIGHT
      *  @return Zoom level actually used
      */
-    private double setZoom(double zoom)
+    private double setZoom(final double zoom)
     {
+        final double zoom_to_set;
         if (zoom <= 0.0)
-        {   // Determine zoom to fit outline of display into available space
-            final Bounds available = model_root.getLayoutBounds();
-            final Bounds outline = widget_pane.getLayoutBounds();
+        {   // Determine zoom to fit outline of display into available space.
+            // In order to determine the actual bounds within which an OPI
+            // can be displayed, model_root.getViewportBounds() is called
+            // and then the width/height of the scrollbars are added/subtracted
+            // in order to determine the bounds both _with_ and _without_
+            // scrollbars being displayed.
+            boolean hScrollbarVisible = false;
+            boolean vScrollbarVisible = false;
+            double vScrollbarWidth = 0.0;
+            double hHcrollbarHeight = 0.0;
+            {
+                List<ScrollBar> scrollbars = model_root.lookupAll(".scroll-bar").stream().filter(node -> node instanceof ScrollBar).map(node -> (ScrollBar) node).collect(Collectors.toUnmodifiableList());
+                List<ScrollBar> model_root_scrollbars = scrollbars.stream().filter(scrollbar -> scrollbar.getParent() == model_root).collect(Collectors.toUnmodifiableList());
+                for (ScrollBar scrollBar : model_root_scrollbars) {
+                    if (scrollBar.getOrientation() == Orientation.HORIZONTAL) {
+                        hScrollbarVisible = scrollBar.isVisible();
+                        hHcrollbarHeight = scrollBar.getLayoutBounds().getHeight();
+                    }
+                    else if (scrollBar.isVisible() && scrollBar.getOrientation() == Orientation.VERTICAL) {
+                        vScrollbarVisible = scrollBar.isVisible();
+                        vScrollbarWidth = scrollBar.getLayoutBounds().getWidth();
+                    }
+                }
+            }
 
-            // 'outline' will wrap the actual widgets when the display
-            // is larger than the available viewport.
-            // So it can be used to zoom 'out'.
-            // But when the viewport is much larger than the widget,
-            // the JavaFX outline grows to fill the viewport,
-            // so falling back to the self-declared model width and height
-            // to zoom 'in'.
-            // This requires displays to be created with
-            // correct width/height properties.
-            final double zoom_x, zoom_y;
-            if (outline.getWidth() > available.getWidth())
-                zoom_x = available.getWidth()  / outline.getWidth();
-            else if (model.propWidth().getValue() > 0)
-                zoom_x = available.getWidth()  / model.propWidth().getValue();
-            else
-                zoom_x = 1.0;
+            final Bounds viewportBounds = model_root.getViewportBounds();
+            final BoundingBox layoutBoundsWithoutScrollbars = new BoundingBox(viewportBounds.getMinX(),
+                    viewportBounds.getMinY(),
+                    Math.max(0.0, viewportBounds.getWidth() + (vScrollbarVisible ? vScrollbarWidth : 0.0)),
+                    Math.max(0.0, viewportBounds.getHeight() + (hScrollbarVisible ? hHcrollbarHeight : 0.0)));
+            final BoundingBox layoutBoundsWithScrollbars = new BoundingBox(viewportBounds.getMinX(),
+                    viewportBounds.getMinY(),
+                    Math.max(0.0, viewportBounds.getWidth() - (vScrollbarVisible ? 0.0 : vScrollbarWidth)),
+                    Math.max(0.0, viewportBounds.getHeight() - (hScrollbarVisible ? 0.0 : hHcrollbarHeight)));
 
-            if (outline.getHeight() > available.getHeight())
-                zoom_y = available.getHeight() / outline.getHeight();
-            else if (model.propHeight().getValue() > 0)
-                zoom_y = available.getHeight() / model.propHeight().getValue();
-            else
-                zoom_y = 1.0;
+            final double zoom_x_with_scrollbars_rounded;
+            final double zoom_x_without_scrollbars_rounded;
+            final double zoom_y_with_scrollbars_rounded;
+            final double zoom_y_without_scrollbars_rounded;
 
-            if (zoom == ZOOM_WIDTH)
-                zoom = zoom_x;
-            else if (zoom == ZOOM_HEIGHT)
-                zoom = zoom_y;
-            else // Assume ZOOM_ALL
-                zoom = Math.min(zoom_x, zoom_y);
+            {
+                final Bounds outline = widget_pane.getLayoutBounds();
+                // 'outline' will wrap the actual widgets when the display
+                // is larger than the available viewport.
+                // So it can be used to zoom 'out'.
+                // But when the viewport is much larger than the widget,
+                // the JavaFX outline grows to fill the viewport,
+                // so falling back to the self-declared model width and height
+                // to zoom 'in'.
+                // This requires displays to be created with
+                // correct width/height properties.
+                final double zoom_x_without_scrollbars, zoom_y_without_scrollbars;
+                final double zoom_x_with_scrollbars, zoom_y_with_scrollbars;
+                if (outline.getWidth() > layoutBoundsWithScrollbars.getWidth()) {
+                    zoom_x_without_scrollbars = layoutBoundsWithoutScrollbars.getWidth() / outline.getWidth();
+                    zoom_x_with_scrollbars = layoutBoundsWithScrollbars.getWidth() / outline.getWidth();
+                }
+                else if (model.propWidth().getValue() > 0) {
+                    zoom_x_without_scrollbars = layoutBoundsWithoutScrollbars.getWidth() / model.propWidth().getValue();
+                    zoom_x_with_scrollbars = layoutBoundsWithScrollbars.getWidth() / model.propWidth().getValue();
+                }
+                else {
+                    zoom_x_without_scrollbars = 1.0;
+                    zoom_x_with_scrollbars = 1.0;
+                }
+
+                if (outline.getHeight() > layoutBoundsWithScrollbars.getHeight()) {
+                    zoom_y_without_scrollbars = layoutBoundsWithoutScrollbars.getHeight() / outline.getHeight();
+                    zoom_y_with_scrollbars = layoutBoundsWithScrollbars.getHeight() / outline.getHeight();
+                }
+                else if (model.propHeight().getValue() > 0) {
+                    zoom_y_without_scrollbars =layoutBoundsWithoutScrollbars.getHeight() / model.propHeight().getValue();
+                    zoom_y_with_scrollbars = layoutBoundsWithScrollbars.getHeight() / model.propHeight().getValue();
+                }
+                else {
+                    zoom_y_without_scrollbars = 1.0;
+                    zoom_y_with_scrollbars = 1.0;
+                }
+
+                zoom_x_with_scrollbars_rounded = Math.floor(zoom_x_with_scrollbars * 1000.0) / 1000.0;
+                zoom_x_without_scrollbars_rounded = Math.floor(zoom_x_without_scrollbars * 1000.0) / 1000.0;
+                zoom_y_with_scrollbars_rounded = Math.floor(zoom_y_with_scrollbars * 1000.0) / 1000.0;
+                zoom_y_without_scrollbars_rounded = Math.floor(zoom_y_without_scrollbars * 1000.0) / 1000.0;
+            }
+
+            if (zoom == ZOOM_WIDTH) {
+                if (zoom_x_without_scrollbars_rounded * model.propHeight().getValue() > layoutBoundsWithoutScrollbars.getHeight()) {
+                    // Setting zoom_to_set to 'zoom_x_without_scrollbars_rounded'
+                    // would result in the horizontal scrollbar being shown.
+                    // Therefore, set zoom_to_set = zoom_x_with_scrollbars_rounded
+                    zoom_to_set = zoom_x_with_scrollbars_rounded;
+                }
+                else {
+                    zoom_to_set = zoom_x_without_scrollbars_rounded;
+                }
+            }
+            else if (zoom == ZOOM_HEIGHT) {
+                if (zoom_y_without_scrollbars_rounded * model.propWidth().getValue() > layoutBoundsWithoutScrollbars.getWidth()) {
+                    // Setting zoom_to_set to 'zoom_y_without_scrollbars_rounded'
+                    // would result in the vertical scrollbar being shown.
+                    // Therefore, set zoom_to_set = zoom_y_with_scrollbars_rounded:
+                    zoom_to_set = zoom_y_with_scrollbars_rounded;
+                }
+                else {
+                    zoom_to_set = zoom_y_without_scrollbars_rounded;
+                }
+            }
+            else {
+                if (zoom_y_without_scrollbars_rounded * model.propWidth().getValue() > layoutBoundsWithoutScrollbars.getWidth() ||
+                        zoom_x_without_scrollbars_rounded * model.propHeight().getValue() > layoutBoundsWithoutScrollbars.getHeight()) {
+                    // Setting zoom_to_set to 'Math.min(zoom_x_without_scrollbars_rounded, zoom_y_with_scrollbars_rounded)'
+                    // would result in at least either the vertical or the horizontal scrollbar being shown.
+                    // Therefore, set zoom_to_set = Math.min(zoom_x_without_scrollbars_rounded, zoom_y_without_scrollbars_rounded):
+                    zoom_to_set = Math.min(zoom_x_with_scrollbars_rounded, zoom_y_with_scrollbars_rounded); // Assume ZOOM_ALL
+                }
+                else {
+                    zoom_to_set = Math.min(zoom_x_without_scrollbars_rounded, zoom_y_without_scrollbars_rounded); // Assume ZOOM_ALL
+                }
+            }
+        }
+        else {
+            zoom_to_set = zoom;
         }
 
-        widget_pane.getTransforms().setAll(new Scale(zoom, zoom));
+        widget_pane.getTransforms().setAll(new Scale(zoom_to_set, zoom_to_set));
         // Appears similar to using this API:
         //     widget_parent.setScaleX(zoom);
         //     widget_parent.setScaleY(zoom);
@@ -505,7 +601,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         if (isEditMode())
             updateModelSizeIndicators();
 
-        return zoom;
+        return zoom_to_set;
     }
 
     /** @return Zoom factor, 1.0 for 1:1 */
