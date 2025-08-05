@@ -15,6 +15,7 @@ import org.phoebus.pv.pvws.models.pv.PvwsMetadata;
 import org.phoebus.pv.pvws.utils.pv.VArrDecoder;
 import org.phoebus.pv.pvws.utils.pv.toVType;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 
@@ -48,6 +49,7 @@ public class PVWS_Client extends WebSocketClient {
             } catch (Exception e) {
                 System.err.println("Exception in onOpen: " + e.getMessage());
                 e.printStackTrace();
+
             }
         }
 
@@ -60,21 +62,15 @@ public class PVWS_Client extends WebSocketClient {
 
             try {
                 JsonNode node = mapper.readTree(message);
-                PvwsMetadata pvMeta = mapper.treeToValue(node, PvwsMetadata.class);
 
-                if (pvMeta.getVtype() != null)
-                    MetadataHandler.setData(pvMeta); // comment this line out to test missing
-
+                mapMetadata(node);
 
 
                 String type = node.get("type").asText();
                 switch (type) {
                     case "update":
-                        PvwsData pvObj = mapper.treeToValue(node, PvwsData.class);
 
-                        if (pvObj.getPv().endsWith(".RTYP")) {
-                            return; // optionally ignore
-                        }
+                        PvwsData pvObj = mapper.treeToValue(node, PvwsData.class);
 
                         /* TODO: ADD REFETCH FUNCTIONALITY
                         if (!MetadataHandler.pvMetaMap.containsKey(pvObj.getPv())) {
@@ -86,33 +82,31 @@ public class PVWS_Client extends WebSocketClient {
                         }*/
 
 
-
+                        if (pvObj.getPv().endsWith(".RTYP")) {
+                            return;
+                        }
                         VArrDecoder.decodeArrValue(node, pvObj);
 
 
                         //subscribeAttempts.remove(pvObj.getPv()); // reset retry count if we got the meta data
 
                         // TODO: NEEDS separate class to handle this specific severity data and probably status too
-                        if (node.has("severity"))// if severity changes set it in cached value
-                        {
-                            String currPV = pvObj.getPv();
-                            String currSeverity = pvObj.getSeverity();
-                            MetadataHandler.pvMetaMap.get(currPV).setSeverity(currSeverity);
-                        }
+                        updateSeverity(node, pvObj);
 
                         //merges class PV and json node of metadata together
-                        JsonNode nodeMerge = mapper.valueToTree(MetadataHandler.pvMetaMap.get(pvObj.getPv()));
-                        mapper.readerForUpdating(pvObj).readValue(nodeMerge);
+
 
                         //toVType.convert(pvObj);
 
-
+                        mergeMetadata(pvObj);
 
                         VType vVal = toVType.convert(pvObj);
 
                         String pvname = ("pvws://" + pvObj.getPv());
 
-                        PVPool.getPV(pvname).update(vVal);
+
+
+                            PVPool.getPV(pvname).update(vVal);
 
 
 
@@ -127,6 +121,31 @@ public class PVWS_Client extends WebSocketClient {
                 e.printStackTrace();
             }
         }
+
+        private void mapMetadata(JsonNode node) throws JsonProcessingException {
+
+            PvwsMetadata pvMeta = mapper.treeToValue(node, PvwsMetadata.class);
+
+            if (pvMeta.getVtype() != null)
+                MetadataHandler.setData(pvMeta); // comment this line out to test missing
+
+        }
+
+        private void updateSeverity(JsonNode node, PvwsData pvData)
+        {
+            if (node.has("severity"))// if severity changes set it in cached value
+            {
+                String currPV = pvData.getPv();
+                String currSeverity = pvData.getSeverity();
+                MetadataHandler.pvMetaMap.get(currPV).setSeverity(currSeverity);
+            }
+        }
+
+        private void mergeMetadata(PvwsData pvData) throws IOException {
+            JsonNode nodeMerge = mapper.valueToTree(MetadataHandler.pvMetaMap.get(pvData.getPv()));
+            mapper.readerForUpdating(pvData).readValue(nodeMerge);
+        }
+
 
         @Override
         public void onClose(int code, String reason, boolean remote) {
@@ -147,6 +166,7 @@ public class PVWS_Client extends WebSocketClient {
             attemptReconnect();
 
              */
+            this.close();
         }
 
 
