@@ -542,6 +542,9 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                     zoom_y_with_scrollbars = 1.0;
                 }
 
+                // Round down the zoom-level in order to avoid situations where the
+                // zoom-level is instead being rounded up, causing a scrollbar to
+                // be displayed when a scrollbar is not needed.
                 zoom_x_with_scrollbars_rounded = Math.floor(zoom_x_with_scrollbars * 1000.0) / 1000.0;
                 zoom_x_without_scrollbars_rounded = Math.floor(zoom_x_without_scrollbars * 1000.0) / 1000.0;
                 zoom_y_with_scrollbars_rounded = Math.floor(zoom_y_with_scrollbars * 1000.0) / 1000.0;
