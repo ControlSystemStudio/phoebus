@@ -491,7 +491,6 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                 zoom = Math.min(zoom_x, zoom_y);
         }
 
-        widget_parent.getTransforms().setAll(new Scale(zoom, zoom));
         widget_pane.getTransforms().setAll(new Scale(zoom, zoom));
         // Appears similar to using this API:
         //     widget_parent.setScaleX(zoom);
