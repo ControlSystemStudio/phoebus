@@ -520,11 +520,6 @@ public class DockPane extends TabPane
                 throw new IllegalStateException("Expected DockItem, got " + tab);
             stage.titleProperty().bind(((DockItem)tab).labelTextProperty());
         }
-        else
-        {   // Fixed title
-            stage.titleProperty().unbind();
-            stage.setTitle(Messages.FixedTitle);
-        }
     }
 
     /** @param tabs One or more tabs to add */
@@ -533,6 +528,8 @@ public class DockPane extends TabPane
         getTabs().addAll(tabs);
         // Select the newly added tab
         getSelectionModel().select(getTabs().size()-1);
+        // Set this as the active dock pane
+        setActiveDockPane(this);
     }
 
     /** @return All {@link DockItem}s in this pane (safe copy) */
@@ -641,6 +638,9 @@ public class DockPane extends TabPane
             new_pane.setDockParent(split);
             // Place that new split in the border pane
             parent.addItem(first, split);
+
+            // Add callbacks to focus other dock pane when this one is empty
+            removeFocusOnceEmpty(this, new_pane);
         }
         else if (dock_parent instanceof BorderPane)
         {
@@ -655,6 +655,9 @@ public class DockPane extends TabPane
             new_pane.setDockParent(split);
             // Place that new split in the border pane
             parent.setCenter(split);
+
+            // Add callbacks to focus other dock pane when this one is empty
+            removeFocusOnceEmpty(this, new_pane);
         }
         else if (dock_parent instanceof SplitPane) // "dock_parent instanceof SplitPane" is for the case of the ESS-specific Navigator application running
         {
@@ -679,6 +682,9 @@ public class DockPane extends TabPane
             if (dividerPosition.isPresent()) {
                 parent.setDividerPosition(0, dividerPosition.get());
             }
+
+            // Add callbacks to focus other dock pane when this one is empty
+            removeFocusOnceEmpty(this, new_pane);
         }
         else
             throw new IllegalStateException("Cannot split, dock_parent is " + dock_parent);
@@ -726,5 +732,19 @@ public class DockPane extends TabPane
 
     public void removeDockPaneEmptyListener(DockPaneEmptyListener listener){
         dockPaneEmptyListeners.remove(listener);
+    }
+
+    private static void removeFocusOnceEmpty(DockPane first, DockPane second) {
+        // Add callbacks to focus other dock pane when one is empty
+        first.addDockPaneEmptyListener(() -> {
+            if (getActiveDockPane() == first) {
+                setActiveDockPane(second);
+            }
+        });
+        second.addDockPaneEmptyListener(() -> {
+            if (getActiveDockPane() == second) {
+                setActiveDockPane(first);
+            }
+        });
     }
 }
