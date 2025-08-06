@@ -156,6 +156,7 @@ public class PVWS_Client extends WebSocketClient {
             attemptReconnect();
 
              */
+            latch.countDown();
         }
 
         @Override
@@ -166,7 +167,7 @@ public class PVWS_Client extends WebSocketClient {
             attemptReconnect();
 
              */
-            this.close();
+            //this.close();
         }
 
 
