@@ -199,7 +199,7 @@ public class DisplayEditor
     public Parent create ()
     {
         model_root = toolkit.createModelRoot();
-        model_root.getStyleClass().add("widget_pane_unfocused");
+        model_root.getStyleClass().add("widget_pane");
         autoScrollHandler = new AutoScrollHandler(model_root);
 
         final Group scroll_body = (Group) model_root.getContent();
@@ -225,13 +225,6 @@ public class DisplayEditor
         setSnap(prefs.getBoolean(SNAP_WIDGETS, true));
         setCoords(prefs.getBoolean(SHOW_COORDS, true));
 
-        model_root.focusedProperty().addListener((observableValue, aBoolean, focused) -> {
-            if (focused) {
-                model_root.getStyleClass().add("widget_pane_focused");
-            } else {
-                model_root.getStyleClass().remove("widget_pane_focused");
-            }
-        });
         return root;
     }
 
