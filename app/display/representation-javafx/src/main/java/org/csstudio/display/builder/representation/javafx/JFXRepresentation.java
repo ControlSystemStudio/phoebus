@@ -574,6 +574,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                 }
             }
             else {
+                // Assume ZOOM_ALL
                 if (zoom_y_without_scrollbars_rounded * model.propWidth().getValue() > layoutBoundsWithoutScrollbars.getWidth() ||
                         zoom_x_without_scrollbars_rounded * model.propHeight().getValue() > layoutBoundsWithoutScrollbars.getHeight()) {
                     // Setting zoom_to_set to 'Math.min(zoom_x_without_scrollbars_rounded, zoom_y_with_scrollbars_rounded)'
@@ -582,7 +583,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                     zoom_to_set = Math.min(zoom_x_with_scrollbars_rounded, zoom_y_with_scrollbars_rounded); // Assume ZOOM_ALL
                 }
                 else {
-                    zoom_to_set = Math.min(zoom_x_without_scrollbars_rounded, zoom_y_without_scrollbars_rounded); // Assume ZOOM_ALL
+                    zoom_to_set = Math.min(zoom_x_without_scrollbars_rounded, zoom_y_without_scrollbars_rounded);
                 }
             }
         }
