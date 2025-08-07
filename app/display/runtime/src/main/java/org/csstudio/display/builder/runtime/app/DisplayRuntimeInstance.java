@@ -249,8 +249,10 @@ public class DisplayRuntimeInstance implements AppInstance
                 //
                 // Run this inside Platform.runLater(), since
                 // the constructor of ZoomAction also sets the zoom-
-                // level (to 100%) using Platform.runLater().
-                // When restoring an instance of Display Runtime,
+                // level (to the value set by the option
+                // 'default_zoom_factor', which by default is set
+                // to 100%) using Platform.runLater(). When
+                // restoring an instance of Display Runtime,
                 // DisplayRuntime.restore() is called _after_
                 // the constructor of ZoomAction is called and
                 // Platform.runLater() preserves the relative
