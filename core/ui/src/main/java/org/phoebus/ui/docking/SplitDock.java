@@ -184,6 +184,16 @@ public class SplitDock extends SplitPane
             return;
         }
 
+        // If the dock pane that has just been merged is active,
+        // switch the active dock pane to the first pane found in the other child
+        if (empty_dock == DockPane.getActiveDockPane()) {
+            if (child instanceof DockPane dockPane) {
+                DockPane.setActiveDockPane(dockPane);
+            } else if (child instanceof SplitDock splitDock) {
+                splitDock.findAndActivateDockPane();
+            }
+        }
+
         // Tell child about its new dock_parent
         if (child instanceof DockPane)
             ((DockPane)child).setDockParent(dock_parent);
@@ -259,6 +269,18 @@ public class SplitDock extends SplitPane
                 return true;
         }
         return false;
+    }
+
+    private void findAndActivateDockPane() {
+        // switch the active dock pane to the first pane found in this split or in any nested split
+        for (Node child : getItems()) {
+            if (child instanceof DockPane dockPane) {
+                DockPane.setActiveDockPane(dockPane);
+                return;
+            } else if (child instanceof SplitDock splitDock) {
+                splitDock.findAndActivateDockPane();
+            }
+        }
     }
 
     @Override
