@@ -11,7 +11,7 @@ public class PVWS_PV extends PV {
      *
      * @param name PV name
      */
-    protected PVWS_PV(String name, String base_name) throws URISyntaxException, InterruptedException, JsonProcessingException {
+    protected PVWS_PV(String name, String base_name) throws Exception {
         super(name);
         PVWS_Context context = PVWS_Context.getInstance();
         context.clientSubscribe(base_name);
