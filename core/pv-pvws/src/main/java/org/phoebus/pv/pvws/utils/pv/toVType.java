@@ -18,14 +18,19 @@ public class toVType {
         }
 
 
-        //Extract fields
+        //meta data
         String pvName = pvData.getPv();
         String severityStr = pvData.getSeverity();
         String description = pvData.getDescription();
         String units = pvData.getUnits();
+        String vType =  pvData.getVtype();
+
+        //time stamp
         int precision = pvData.getPrecision();
         int seconds = pvData.getSeconds();
         int nanos = pvData.getNanos();
+
+        //alarm data
         double min = pvData.getMin();
         double max = pvData.getMax();
         double warnLow = pvData.getWarn_low();
@@ -33,22 +38,16 @@ public class toVType {
         double alarmLow = pvData.getAlarm_low();
         double alarmHigh = pvData.getAlarm_high();
 
-
+        //PV value that was converted to type by json converter
+        //this value was converted from string to might be incorrect
         Object value = pvData.getValue();
 
-        AlarmSeverity severity = (severityStr != null) ? AlarmSeverity.valueOf(severityStr) : AlarmSeverity.NONE;
-        Alarm alarm = Alarm.of(severity, AlarmStatus.NONE, description != null ? description : "");
+        Alarm alarm = createAlarm(severityStr, description);
+        Time time = createTime(seconds, nanos);
+        Display display = createDisplay(min, max, warnLow, warnHigh, alarmLow, alarmHigh, precision, description, units);
 
-        Instant instant = Instant.ofEpochSecond(seconds, nanos);
-        Time time = Time.of(instant);
 
-        Range displayRange = Range.of(min, max);
-        Range warningRange = Range.of(warnLow, warnHigh);
-        Range alarmRange = Range.of(alarmLow, alarmHigh);
-        Range controlRange = displayRange;
-        NumberFormat numberFormat = NumberFormats.precisionFormat(precision != 0 ? precision : 2);
-        String unitStr = (units != null) ? units : "";
-        Display display = Display.of(displayRange, alarmRange, warningRange, controlRange, unitStr, numberFormat, description);
+
 
 
 
@@ -61,70 +60,36 @@ public class toVType {
         }
     }
 
+    public static Alarm createAlarm(String severityStr,  String description) {
+
+
+        AlarmSeverity severity = (severityStr != null) ? AlarmSeverity.valueOf(severityStr) : AlarmSeverity.NONE;
+        return Alarm.of(severity, AlarmStatus.NONE, description != null ? description : "");
+    }
+
+    public static Time createTime(int seconds, int nanos) {
+        Instant instant = Instant.ofEpochSecond(seconds, nanos);
+        return Time.of(instant);
+    }
+
+    public static Display createDisplay(double min, double max, double warnLow, double warnHigh, double alarmLow, double alarmHigh, int precision, String description, String units)
+    {
+        Range displayRange = Range.of(min, max);
+        Range warningRange = Range.of(warnLow, warnHigh);
+        Range alarmRange = Range.of(alarmLow, alarmHigh);
+        Range controlRange = displayRange;
+        NumberFormat numberFormat = NumberFormats.precisionFormat(precision != 0 ? precision : 2);
+        String unitStr = (units != null) ? units : "";
+        return Display.of(displayRange, alarmRange, warningRange, controlRange, unitStr, numberFormat, description);
 
 
 
-        /*if (vValue == null) {
-            System.out.println("Could not convert PV to VType: " + pvName);
-        } else {
-            System.out.println("Converted to VType: " + vValue);
-        }*/
-
-        // Alarm
-            /*Alarm alarm;
-            try {
-                AlarmSeverity severity = (severityStr != null) ? AlarmSeverity.valueOf(severityStr) : AlarmSeverity.NONE;
-                alarm = Alarm.of(severity, AlarmStatus.NONE, description != null ? description : "");
-            } catch (Exception e) {
-                System.err.println("Alarm.none()");
-                alarm = Alarm.none();
-            }
-
-            // Time
-            Time time;
-            try {
-                Instant instant = Instant.ofEpochSecond(seconds, nanos);
-                time = Time.of(instant);
-            } catch (Exception e) {
-                System.err.println("Time.now()");
-                time = Time.now();
-            }
-
-            // Display
-            Display display;
-            try {
-                Range displayRange = Range.of(min, max);
-                Range warningRange = Range.of(warnLow, warnHigh);
-                Range alarmRange = Range.of(alarmLow, alarmHigh);
-                Range controlRange = displayRange;
-
-                NumberFormat numberFormat = NumberFormats.precisionFormat(precision != 0 ? precision : 2);
-                String unitStr = (units != null) ? units : "";
-
-                display = Display.of(displayRange, alarmRange, warningRange, controlRange, unitStr, numberFormat, description);
-            } catch (Exception e) {
-                System.err.println("Display.none()");
-                display = Display.none();
-            }
-
-            // VType Conversion
-            VType vValue = VType.toVType(value, alarm, time, display);
-            if (vValue == null) {
-                System.out.println("Could not convert PV to VType: " + pvName);
-            } else {
-                System.out.println("Converted to VType: " + vValue);
-            }
-
-            return vValue;
-
-        } catch (Exception e) {
-            System.err.println("Failed to process 'update' message: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }*/
+    }
 
 
-    //}
+
+
+
 
 
 }
