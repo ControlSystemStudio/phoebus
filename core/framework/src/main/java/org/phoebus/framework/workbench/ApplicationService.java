@@ -59,7 +59,7 @@ public class ApplicationService
         }
 
         // External applications, defined in preferences
-        for (String definition : WorkbenchPreferences.external_apps)
+        for (String definition : WorkbenchPreferences.getExternalApps())
         {
             if (definition.isEmpty())
                 continue;
@@ -181,7 +181,7 @@ public class ApplicationService
      */
     public static List<String> getExtensionsHandledByExternalApp(){
         List<String> extensionsHandledByExternalApp = new ArrayList<>();
-        for (String definition : WorkbenchPreferences.external_apps) {
+        for (String definition : WorkbenchPreferences.getExternalApps()) {
             if (definition.isEmpty()) {
                 continue;
             }
