@@ -9,6 +9,8 @@
 package org.phoebus.pv.pvws;
 
 
+import org.phoebus.framework.preferences.PreferencesReader;
+
 /**
  * <p>
  * Preferences used by the {@link PVWS_PV} and {@link PVWS_PVFactory}.
@@ -19,4 +21,37 @@ package org.phoebus.pv.pvws;
 public class PVWS_Preferences {
 
     private static final PVWS_Preferences instance = new PVWS_Preferences();
+
+
+    /**
+     * Prevent direct instantiation
+     */
+    private PVWS_Preferences() {
+    }
+
+
+    public void installPreferences() throws Exception {
+        final PreferencesReader prefs = new PreferencesReader(PVWS_PVFactory.class, "/pv_pvws_preferences.properties");
+
+        for (String setting : new String[]
+                {
+                        "pvws_address"
+                })
+        {
+            final String value = prefs.get(setting);
+            if (value != null && !value.isEmpty()) {
+                final String propname = setting.toUpperCase();
+                System.setProperty(propname, value);
+            }
+        }
+
+    }
+
+
+    /**
+     * @return Singleton instance
+     */
+    public static PVWS_Preferences getInstance() {
+        return instance;
+    }
 }
