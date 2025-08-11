@@ -21,6 +21,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import javafx.application.Platform;
@@ -86,10 +89,10 @@ public class RTLinearMeter extends ImageView
         }
 
         if (Double.isFinite(min) && Double.isFinite(max)) {
-            validRange = true;
+            validRange.set(true);
         }
         else {
-            validRange = false;
+            validRange.set(false);
             min = 0.0;
             max = 100.0;
         }
@@ -101,25 +104,25 @@ public class RTLinearMeter extends ImageView
                                                 min,
                                                 max);
 
-        this.minMaxTolerance = minMaxTolerance;
-        this.loLo = loLo;
-        this.low = low;
-        this.high = high;
-        this.hiHi = hiHi;
-        this.showUnits = showUnits;
-        this.showLimits = showLimits;
-        this.showWarnings = showWarnings;
+        this.minMaxTolerance.set(minMaxTolerance);
+        this.loLo.set(loLo);
+        this.low.set(low);
+        this.high.set(high);
+        this.hiHi.set(hiHi);
+        this.showUnits.set(showUnits);
+        this.showLimits.set(showLimits);
+        this.showWarnings.set(showWarnings);
 
         layout();
 
-        this.currentValue = initialValue;
-        this.isGradientEnabled = isGradientEnabled;
-        this.isHighlightActiveRegionEnabled = isHighlightActiveRegionEnabled;
+        this.currentValue.set(initialValue);
+        this.isGradientEnabled.set(isGradientEnabled);
+        this.isHighlightActiveRegionEnabled.set(isHighlightActiveRegionEnabled);
 
-        this.needleWidth = needleWidth;
-        this.needleColor = needleColor;
-        this.knobSize = knobSize;
-        this.knobColor = knobColor;
+        this.needleWidth.set(needleWidth);
+        this.needleColor.set(needleColor);
+        this.knobSize.set(knobSize);
+        this.knobColor.set(knobColor);
 
         setNormalStatusColor(normalStatusColor);
         setMinorAlarmColor(minorAlarmColor);
@@ -128,14 +131,14 @@ public class RTLinearMeter extends ImageView
         requestLayout();
     }
 
-    private boolean showUnits;
-    private String units = "";
-    private boolean showLimits;
+    private AtomicBoolean showUnits = new AtomicBoolean(true);
+    private AtomicReference<String> units = new AtomicReference<>("");
+    private AtomicBoolean showLimits = new AtomicBoolean(true);
 
-    private double loLo;
-    private double low;
-    private double high;
-    private double hiHi;
+    private AtomicReference<Double> loLo = new AtomicReference<>(0.0);
+    private AtomicReference<Double> low = new AtomicReference<>(0.0);
+    private AtomicReference<Double> high = new AtomicReference<>(100.0);
+    private AtomicReference<Double> hiHi = new AtomicReference<>(100.0);
 
     private static Image warningTriangle = null;
 
@@ -162,11 +165,11 @@ public class RTLinearMeter extends ImageView
         NO_UNIT
     }
 
-    private WARNING currentWarning = WARNING.NONE;
+    private AtomicReference<WARNING> currentWarning = new AtomicReference<WARNING>(WARNING.NONE);
 
     /** Colors */
-    private Color foreground = Color.BLACK;
-    private Color background = Color.WHITE;
+    private AtomicReference<Color> foreground = new AtomicReference<>(Color.BLACK);
+    private AtomicReference<Color> background = new AtomicReference<>(Color.WHITE);
 
     /** Fonts */
     private Font font;
@@ -181,51 +184,55 @@ public class RTLinearMeter extends ImageView
         public void refreshPlotPart(PlotPart plotPart) { }
     };
 
-    private boolean validRange;
-    private double minMaxTolerance;
+    private AtomicBoolean validRange = new AtomicBoolean(false);
+    private AtomicReference<Double> minMaxTolerance = new AtomicReference<>(0.0);
 
     public boolean getValidRange() {
-        return validRange;
+        return validRange.get();
     }
 
     /** Optional scale of this linear meter */
     public LinearMeterScale linearMeterScale;
 
     /** Value to display */
-    private double currentValue = Double.NaN;
+    private AtomicReference<Double> currentValue = new AtomicReference<Double>(Double.NaN);
 
-    private Color normalStatusColor_lowlighted = Color.LIGHT_GRAY;
-    private Color normalStatusColorGradientStartPoint_lowlighted = Color.LIGHT_GRAY;
-    private Color normalStatusColorGradientEndPoint_lowlighted = Color.LIGHT_GRAY;
-    private Color normalStatusColor_highlighted = Color.LIGHT_GRAY;
-    private Color normalStatusColorGradientStartPoint_highlighted = Color.LIGHT_GRAY;
-    private Color normalStatusColorGradientEndPoint_highlighted = Color.LIGHT_GRAY;
+    private AtomicReference<Color> normalStatusColor_lowlighted = new AtomicReference<Color>(Color.LIGHT_GRAY);
+    private AtomicReference<Color> normalStatusColorGradientStartPoint_lowlighted = new AtomicReference<Color>(Color.LIGHT_GRAY);
+    private AtomicReference<Color> normalStatusColorGradientEndPoint_lowlighted = new AtomicReference<Color>(Color.LIGHT_GRAY);
+    private AtomicReference<Color> normalStatusColor_highlighted = new AtomicReference<Color>(Color.LIGHT_GRAY);
+    private AtomicReference<Color> normalStatusColorGradientStartPoint_highlighted = new AtomicReference<Color>(Color.LIGHT_GRAY);
+    private AtomicReference<Color> normalStatusColorGradientEndPoint_highlighted = new AtomicReference<Color>(Color.LIGHT_GRAY);
 
-    private Color minorAlarmColor_lowlighted = Color.ORANGE;
-    private Color minorAlarmColor_highlighted = Color.ORANGE;
-    private Color minorAlarmColorGradientStartPoint_lowlighted = Color.ORANGE;
-    private Color minorAlarmColorGradientEndPoint_lowlighted = Color.ORANGE;
-    private Color minorAlarmColorGradientStartPoint_highlighted = Color.ORANGE;
-    private Color minorAlarmColorGradientEndPoint_highlighted = Color.ORANGE;
+    private AtomicReference<Color> minorAlarmColor_lowlighted = new AtomicReference<Color>(Color.ORANGE);
+    private AtomicReference<Color> minorAlarmColor_highlighted = new AtomicReference<Color>(Color.ORANGE);
+    private AtomicReference<Color> minorAlarmColorGradientStartPoint_lowlighted = new AtomicReference<Color>(Color.ORANGE);
+    private AtomicReference<Color> minorAlarmColorGradientEndPoint_lowlighted = new AtomicReference<Color>(Color.ORANGE);
+    private AtomicReference<Color> minorAlarmColorGradientStartPoint_highlighted = new AtomicReference<Color>(Color.ORANGE);
+    private AtomicReference<Color> minorAlarmColorGradientEndPoint_highlighted = new AtomicReference<Color>(Color.ORANGE);
 
-    private Color majorAlarmColor_lowlighted = Color.RED;
-    private Color majorAlarmColor_highlighted = Color.RED;
-    private Color majorAlarmColorGradientStartPoint_lowlighted = Color.RED;
-    private Color majorAlarmColorGradientEndPoint_lowlighted = Color.RED;
-    private Color majorAlarmColorGradientStartPoint_highlighted = Color.RED;
-    private Color majorAlarmColorGradientEndPoint_highlighted = Color.RED;
+    private AtomicReference<Color> majorAlarmColor_lowlighted = new AtomicReference<Color>(Color.RED);
+    private AtomicReference<Color> majorAlarmColor_highlighted = new AtomicReference<Color>(Color.RED);
+    private AtomicReference<Color> majorAlarmColorGradientStartPoint_lowlighted = new AtomicReference<Color>(Color.RED);
+    private AtomicReference<Color> majorAlarmColorGradientEndPoint_lowlighted = new AtomicReference<Color>(Color.RED);
+    private AtomicReference<Color> majorAlarmColorGradientStartPoint_highlighted = new AtomicReference<Color>(Color.RED);
+    private AtomicReference<Color> majorAlarmColorGradientEndPoint_highlighted = new AtomicReference<Color>(Color.RED);
 
-    Paint normalStatusActiveColor_lowlighted, minorAlarmActiveColor_lowlighted, majorAlarmActiveColor_lowlighted;
+    AtomicReference<Paint> normalStatusActiveColor_lowlighted = new AtomicReference<>(Color.WHITE);
+    AtomicReference<Paint> minorAlarmActiveColor_lowlighted = new AtomicReference<>(Color.YELLOW);
+    AtomicReference<Paint> majorAlarmActiveColor_lowlighted = new AtomicReference<>(Color.RED);
 
-    Paint normalStatusActiveColor_highlighted, majorAlarmActiveColor_highlighted, minorAlarmActiveColor_highlighted;
+    AtomicReference<Paint> normalStatusActiveColor_highlighted = new AtomicReference<>(Color.WHITE);
+    AtomicReference<Paint> majorAlarmActiveColor_highlighted = new AtomicReference<>(Color.YELLOW);
+    AtomicReference<Paint> minorAlarmActiveColor_highlighted = new AtomicReference<>(Color.RED);
 
-    private int needleWidth;
+    private AtomicInteger needleWidth = new AtomicInteger(2);
 
-    private Color needleColor;
+    private AtomicReference<Color> needleColor = new AtomicReference<>(Color.BLACK);
 
-    private Boolean isGradientEnabled;
+    private AtomicBoolean isGradientEnabled = new AtomicBoolean(false);
 
-    private Boolean isHighlightActiveRegionEnabled;
+    private AtomicBoolean isHighlightActiveRegionEnabled = new AtomicBoolean(true);
 
     private void runOnJavaFXThread(Runnable runnable) {
         if (Platform.isFxApplicationThread()) {
@@ -238,43 +245,43 @@ public class RTLinearMeter extends ImageView
 
     public void setIsGradientEnabled(boolean isGradientEnabled) {
         runOnJavaFXThread(() -> {
-            this.isGradientEnabled = isGradientEnabled;
+            this.isGradientEnabled.set(isGradientEnabled);
             updateActiveColors();
         });
     }
 
     public void setIsHighlightActiveRegionEnabled(boolean isHighlightActiveRegionEnabled) {
-        runOnJavaFXThread(() -> this.isHighlightActiveRegionEnabled = isHighlightActiveRegionEnabled);
+        this.isHighlightActiveRegionEnabled.set(isHighlightActiveRegionEnabled);
     }
 
     private void updateActiveColors() {
-        if (isGradientEnabled) {
+        if (isGradientEnabled.get()) {
             if (linearMeterScale.isHorizontal()) {
-                majorAlarmActiveColor_lowlighted = createVerticalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_lowlighted, majorAlarmColorGradientEndPoint_lowlighted);
-                minorAlarmActiveColor_lowlighted = createVerticalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_lowlighted, minorAlarmColorGradientEndPoint_lowlighted);
-                normalStatusActiveColor_lowlighted = createVerticalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted); // The normal status region is never lowlighted.
+                majorAlarmActiveColor_lowlighted.set(createVerticalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_lowlighted.get(), majorAlarmColorGradientEndPoint_lowlighted.get()));
+                minorAlarmActiveColor_lowlighted.set(createVerticalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_lowlighted.get(), minorAlarmColorGradientEndPoint_lowlighted.get()));
+                normalStatusActiveColor_lowlighted.set(createVerticalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted.get(), normalStatusColorGradientEndPoint_highlighted.get())); // The normal status region is never lowlighted.
 
-                minorAlarmActiveColor_highlighted = createVerticalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_highlighted, minorAlarmColorGradientEndPoint_highlighted);
-                majorAlarmActiveColor_highlighted = createVerticalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_highlighted, majorAlarmColorGradientEndPoint_highlighted);
-                normalStatusActiveColor_highlighted = createVerticalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted);
+                minorAlarmActiveColor_highlighted.set(createVerticalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_highlighted.get(), minorAlarmColorGradientEndPoint_highlighted.get()));
+                majorAlarmActiveColor_highlighted.set(createVerticalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_highlighted.get(), majorAlarmColorGradientEndPoint_highlighted.get()));
+                normalStatusActiveColor_highlighted.set(createVerticalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted.get(), normalStatusColorGradientEndPoint_highlighted.get()));
             } else {
-                majorAlarmActiveColor_lowlighted = createHorizontalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_lowlighted, majorAlarmColorGradientEndPoint_lowlighted);
-                minorAlarmActiveColor_lowlighted = createHorizontalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_lowlighted, minorAlarmColorGradientEndPoint_lowlighted);
-                normalStatusActiveColor_lowlighted = createHorizontalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted); // The normal status region is never lowlighted.
+                majorAlarmActiveColor_lowlighted.set(createHorizontalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_lowlighted.get(), majorAlarmColorGradientEndPoint_lowlighted.get()));
+                minorAlarmActiveColor_lowlighted.set(createHorizontalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_lowlighted.get(), minorAlarmColorGradientEndPoint_lowlighted.get()));
+                normalStatusActiveColor_lowlighted.set(createHorizontalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted.get(), normalStatusColorGradientEndPoint_highlighted.get())); // The normal status region is never lowlighted.
 
-                minorAlarmActiveColor_highlighted = createHorizontalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_highlighted, minorAlarmColorGradientEndPoint_highlighted);
-                majorAlarmActiveColor_highlighted = createHorizontalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_highlighted, majorAlarmColorGradientEndPoint_highlighted);
-                normalStatusActiveColor_highlighted = createHorizontalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted);
+                minorAlarmActiveColor_highlighted.set(createHorizontalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_highlighted.get(), minorAlarmColorGradientEndPoint_highlighted.get()));
+                majorAlarmActiveColor_highlighted.set(createHorizontalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_highlighted.get(), majorAlarmColorGradientEndPoint_highlighted.get()));
+                normalStatusActiveColor_highlighted.set(createHorizontalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted.get(), normalStatusColorGradientEndPoint_highlighted.get()));
             }
         }
         else {
-            normalStatusActiveColor_lowlighted = normalStatusColor_highlighted; // The normal status region is never lowlighted.
-            majorAlarmActiveColor_lowlighted = majorAlarmColor_lowlighted;
-            minorAlarmActiveColor_lowlighted = minorAlarmColor_lowlighted;
+            normalStatusActiveColor_lowlighted.set(normalStatusColor_highlighted.get()); // The normal status region is never lowlighted.
+            majorAlarmActiveColor_lowlighted.set(majorAlarmColor_lowlighted.get());
+            minorAlarmActiveColor_lowlighted.set(minorAlarmColor_lowlighted.get());
 
-            normalStatusActiveColor_highlighted = normalStatusColor_highlighted;
-            minorAlarmActiveColor_highlighted = minorAlarmColor_highlighted;
-            majorAlarmActiveColor_highlighted = majorAlarmColor_highlighted;
+            normalStatusActiveColor_highlighted.set(normalStatusColor_highlighted.get());
+            minorAlarmActiveColor_highlighted.set(minorAlarmColor_highlighted.get());
+            majorAlarmActiveColor_highlighted.set(majorAlarmColor_highlighted.get());
         }
     }
 
@@ -332,239 +339,205 @@ public class RTLinearMeter extends ImageView
     }
 
     public void setNormalStatusColor(Color normalStatusColor) {
-        runOnJavaFXThread(() -> {
-            this.normalStatusColor_lowlighted = computeLowlightedColor(normalStatusColor);
-            this.normalStatusColor_highlighted = normalStatusColor;
+            this.normalStatusColor_lowlighted.set(computeLowlightedColor(normalStatusColor));
+            this.normalStatusColor_highlighted.set(normalStatusColor);
 
-            this.normalStatusColorGradientStartPoint_lowlighted = computeGradientStartPoint(normalStatusColor_lowlighted);
-            this.normalStatusColorGradientEndPoint_lowlighted = computeGradientEndPoint(normalStatusColor_lowlighted);
+            this.normalStatusColorGradientStartPoint_lowlighted.set(computeGradientStartPoint(normalStatusColor_lowlighted.get()));
+            this.normalStatusColorGradientEndPoint_lowlighted.set(computeGradientEndPoint(normalStatusColor_lowlighted.get()));
 
-            this.normalStatusColorGradientStartPoint_highlighted = computeGradientStartPoint(normalStatusColor_highlighted);
-            this.normalStatusColorGradientEndPoint_highlighted = computeGradientEndPoint(normalStatusColor_highlighted);
+            this.normalStatusColorGradientStartPoint_highlighted.set(computeGradientStartPoint(normalStatusColor_highlighted.get()));
+            this.normalStatusColorGradientEndPoint_highlighted.set(computeGradientEndPoint(normalStatusColor_highlighted.get()));
 
             updateActiveColors();
-        });
     }
 
     public void setMinorAlarmColor(Color minorAlarmColor) {
-        runOnJavaFXThread(() -> {
-            this.minorAlarmColor_lowlighted = computeLowlightedColor(minorAlarmColor);
-            this.minorAlarmColor_highlighted = minorAlarmColor;
+            this.minorAlarmColor_lowlighted.set(computeLowlightedColor(minorAlarmColor));
+            this.minorAlarmColor_highlighted.set(minorAlarmColor);
 
-            this.minorAlarmColorGradientStartPoint_lowlighted = computeGradientStartPoint(minorAlarmColor_lowlighted);
-            this.minorAlarmColorGradientEndPoint_lowlighted = computeGradientEndPoint(minorAlarmColor_lowlighted);
+            this.minorAlarmColorGradientStartPoint_lowlighted.set(computeGradientStartPoint(minorAlarmColor_lowlighted.get()));
+            this.minorAlarmColorGradientEndPoint_lowlighted.set(computeGradientEndPoint(minorAlarmColor_lowlighted.get()));
 
-            this.minorAlarmColorGradientStartPoint_highlighted = computeGradientStartPoint(minorAlarmColor_highlighted);
-            this.minorAlarmColorGradientEndPoint_highlighted = computeGradientEndPoint(minorAlarmColor_highlighted);
+            this.minorAlarmColorGradientStartPoint_highlighted.set(computeGradientStartPoint(minorAlarmColor_highlighted.get()));
+            this.minorAlarmColorGradientEndPoint_highlighted.set(computeGradientEndPoint(minorAlarmColor_highlighted.get()));
 
             updateActiveColors();
-        });
     }
 
     public void setMajorAlarmColor(Color majorAlarmColor) {
         runOnJavaFXThread(() -> {
-            this.majorAlarmColor_lowlighted = computeLowlightedColor(majorAlarmColor);
-            this.majorAlarmColor_highlighted = majorAlarmColor;
+            this.majorAlarmColor_lowlighted.set(computeLowlightedColor(majorAlarmColor));
+            this.majorAlarmColor_highlighted.set(majorAlarmColor);
 
-            this.majorAlarmColorGradientStartPoint_lowlighted = computeGradientStartPoint(majorAlarmColor_lowlighted);
-            this.majorAlarmColorGradientEndPoint_lowlighted = computeGradientEndPoint(majorAlarmColor_lowlighted);
+            this.majorAlarmColorGradientStartPoint_lowlighted.set(computeGradientStartPoint(majorAlarmColor_lowlighted.get()));
+            this.majorAlarmColorGradientEndPoint_lowlighted.set(computeGradientEndPoint(majorAlarmColor_lowlighted.get()));
 
-            this.majorAlarmColorGradientStartPoint_highlighted = computeGradientStartPoint(majorAlarmColor_highlighted);
-            this.majorAlarmColorGradientEndPoint_highlighted = computeGradientEndPoint(majorAlarmColor_highlighted);
+            this.majorAlarmColorGradientStartPoint_highlighted.set(computeGradientStartPoint(majorAlarmColor_highlighted.get()));
+            this.majorAlarmColorGradientEndPoint_highlighted.set(computeGradientEndPoint(majorAlarmColor_highlighted.get()));
 
             updateActiveColors();
         });
     }
 
     public void setNeedleWidth(int needleWidth) {
-        runOnJavaFXThread(() -> this.needleWidth = needleWidth);
+        this.needleWidth.set(needleWidth);
     }
 
     public void setNeedleColor(Color needleColor) {
-        runOnJavaFXThread(() -> this.needleColor = needleColor);
+        this.needleColor.set(needleColor);
     }
 
     public void setShowUnits(boolean newValue) {
-        runOnJavaFXThread(() -> {
-            showUnits = newValue;
-            updateMeterBackground();
-            redrawIndicator(currentValue, currentWarning);
-        });
+        showUnits.set(newValue);
+        updateMeterBackground();
+        redrawIndicator(currentValue.get(), currentWarning.get());
     }
 
     public void setUnits(String newValue) {
-        runOnJavaFXThread(() -> {
-            if (!units.equals(newValue)) {
-                units = newValue;
-                updateMeterBackground();
-                redrawIndicator(currentValue, currentWarning);
-            }
-        });
+
+        if (!units.equals(newValue)) {
+            units.set(newValue);
+            updateMeterBackground();
+            redrawIndicator(currentValue.get(), currentWarning.get());
+        }
     }
 
     public void setShowLimits(boolean newValue) {
-        runOnJavaFXThread(() -> {
-            showLimits = newValue;
-            updateMeterBackground();
-            determineWarning();
-            redrawIndicator(currentValue, currentWarning);
-        });
+        showLimits.set(newValue);
+        updateMeterBackground();
+        determineWarning();
+        redrawIndicator(currentValue.get(), currentWarning.get());
     }
 
     public void setRange(double minimum, double maximum, boolean validRange) {
-        runOnJavaFXThread(() -> {
-            this.validRange = validRange;
-            linearMeterScale.setValueRange(minimum, maximum);
+        this.validRange.set(validRange);
+        linearMeterScale.setValueRange(minimum, maximum);
 
-            updateMeterBackground();
-            redrawIndicator(currentValue, currentWarning);
-        });
+        updateMeterBackground();
+        redrawIndicator(currentValue.get(), currentWarning.get());
     }
 
     public void setMinMaxTolerance(double minMaxTolerance) {
-        runOnJavaFXThread(() -> {
-            this.minMaxTolerance = minMaxTolerance;
+            this.minMaxTolerance.set(minMaxTolerance);
             determineWarning();
-            redrawIndicator(currentValue, currentWarning);
-        });
+            redrawIndicator(currentValue.get(), currentWarning.get());
     }
 
     public double getLoLo() {
-        return loLo;
+        return loLo.get();
     }
 
     public void setLoLo(double loLo) {
-        runOnJavaFXThread(() -> {
-            this.loLo = loLo;
-            layout();
-            updateMeterBackground();
-        });
+        this.loLo.set(loLo);
+        layout();
+        updateMeterBackground();
     }
 
     public double getLow() {
-        return low;
+        return low.get();
     }
 
     public void setLow(double low) {
         runOnJavaFXThread(() -> {
-            this.low = low;
+            this.low.set(low);
             layout();
             updateMeterBackground();
         });
     }
 
     public double getHigh() {
-        return high;
+        return high.get();
     }
 
     public void setHigh(double high) {
-        runOnJavaFXThread(() -> {
-            this.high = high;
-            layout();
-            updateMeterBackground();
-        });
+        this.high.set(high);
+        layout();
+        updateMeterBackground();
     }
 
     public double getHiHi() {
-        return hiHi;
+        return hiHi.get();
     }
 
     public void setHiHi(double hiHi) {
-        runOnJavaFXThread(() -> {
-            this.hiHi = hiHi;
-            layout();
-            updateMeterBackground();
-        });
+        this.hiHi.set(hiHi);
+        layout();
+        updateMeterBackground();
     }
 
-    private Color knobColor = new Color(0, 0, 0, 255);
+    private AtomicReference<Color> knobColor = new AtomicReference<Color>(new Color(0, 0, 0, 255));
 
     public void setKnobColor(Color knobColor) {
-        runOnJavaFXThread(() -> {
-            this.knobColor = knobColor;
-            requestLayout();
-        });
+        this.knobColor.set(knobColor);
+        requestLayout();
     }
 
-    private int knobSize;
+    private AtomicInteger knobSize = new AtomicInteger(1);
 
     public void setKnobSize(int knobSize) {
-        runOnJavaFXThread(() -> {
-            this.knobSize = knobSize;
+            this.knobSize.set(knobSize);
             requestLayout();
-        });
     }
 
     private BufferedImage meter_background = null;
 
-    private WritableImage awt_jfx_convert_buffer = null;
-
     /** Redraw on UI thread by adding needle to 'meter_background' */
-    private void redrawIndicator (double value, WARNING warning)
-    {
-        runOnJavaFXThread(() -> {
-            if (meter_background != null)
-            {
-                if (meter_background.getType() != BufferedImage.TYPE_INT_ARGB){
-                    throw new IllegalPathStateException("Need TYPE_INT_ARGB for direct buffer access, not " + meter_background.getType());
-                }
-
-                BufferedImage combined = new BufferedImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, BufferedImage.TYPE_INT_ARGB);
-                int[] src  = ((DataBufferInt) meter_background.getRaster().getDataBuffer()).getData();
-                int[] dest = ((DataBufferInt) combined.getRaster().getDataBuffer()).getData();
-                System.arraycopy(src, 0, dest, 0, linearMeterScale.getBounds().width * linearMeterScale.getBounds().height);
-
-                // Add needle & label
-                Graphics2D gc = combined.createGraphics();
-
-                drawValue(gc, value);
-                drawWarning(gc, warning);
-                if (showUnits) {
-                    drawUnit(gc);
-                }
-
-                // Convert to JFX image and show
-                if (awt_jfx_convert_buffer == null  ||
-                        awt_jfx_convert_buffer.getWidth() != linearMeterScale.getBounds().width ||
-                        awt_jfx_convert_buffer.getHeight() != linearMeterScale.getBounds().height)
-                    awt_jfx_convert_buffer = new WritableImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height);
-
-                awt_jfx_convert_buffer.getPixelWriter().setPixels(0, 0, linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, PixelFormat.getIntArgbInstance(), dest, 0, linearMeterScale.getBounds().width);
-
-                setImage(awt_jfx_convert_buffer);
-                logger.log(Level.FINE, "Redraw meter");
+    private void redrawIndicator(double value, WARNING warning) {
+        if (meter_background != null) {
+            if (meter_background.getType() != BufferedImage.TYPE_INT_ARGB) {
+                throw new IllegalPathStateException("Need TYPE_INT_ARGB for direct buffer access, not " + meter_background.getType());
             }
-        });
-    };
+
+            BufferedImage combined = new BufferedImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, BufferedImage.TYPE_INT_ARGB);
+            int[] src = ((DataBufferInt) meter_background.getRaster().getDataBuffer()).getData();
+            int[] dest = ((DataBufferInt) combined.getRaster().getDataBuffer()).getData();
+            System.arraycopy(src, 0, dest, 0, linearMeterScale.getBounds().width * linearMeterScale.getBounds().height);
+
+            // Add needle & label
+            Graphics2D gc = combined.createGraphics();
+
+            drawValue(gc, value);
+            drawWarning(gc, warning);
+            if (showUnits.get()) {
+                drawUnit(gc);
+            }
+
+            // Convert to JFX image and show
+
+            WritableImage awt_jfx_convert_buffer = new WritableImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height);
+
+            awt_jfx_convert_buffer.getPixelWriter().setPixels(0, 0, linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, PixelFormat.getIntArgbInstance(), dest, 0, linearMeterScale.getBounds().width);
+            runOnJavaFXThread(() -> { draw(awt_jfx_convert_buffer); });
+            logger.log(Level.FINE, "Redraw meter");
+        }
+    }
+
+    private void draw(WritableImage awt_jfx_convert_buffer) {
+        setImage(awt_jfx_convert_buffer);
+    }
 
     /** Call to update size of meter
      *
      *  @param width
      *  @param height
      */
-    public void setSize(int width, int height)
-    {
-        runOnJavaFXThread(() -> {
-            linearMeterScale.setBounds(0, 0, width, height);
-            layout();
-            updateActiveColors();
-            requestLayout();
-        });
+    public void setSize(int width, int height) {
+        linearMeterScale.setBounds(0, 0, width, height);
+        layout();
+        updateActiveColors();
+        requestLayout();
     }
 
     /** @param color Foreground (labels, tick marks) color */
-    public void setForeground(javafx.scene.paint.Color color)
-    {
-        runOnJavaFXThread(() -> {
-            foreground = GraphicsUtils.convert(color);
-            linearMeterScale.setColor(color);
-        });
+    public void setForeground(javafx.scene.paint.Color color) {
+        foreground.set(GraphicsUtils.convert(color));
+        linearMeterScale.setColor(color);
     }
 
     /** @param color Background color */
     public void setBackground(javafx.scene.paint.Color color)
     {
-        runOnJavaFXThread(() -> background = GraphicsUtils.convert(color));
+        background.set(GraphicsUtils.convert(color));
     }
 
     /** @param font Label font */
@@ -576,44 +549,40 @@ public class RTLinearMeter extends ImageView
         });
     }
 
-    private boolean showWarnings = true;
+    private AtomicBoolean showWarnings = new AtomicBoolean(true);
 
     public void setShowWarnings(boolean showWarnings) {
-        runOnJavaFXThread(() -> { this.showWarnings = showWarnings; });
+        this.showWarnings.set(showWarnings);
     }
 
-    private boolean lag = false;
-    private Boolean isValueWaitingToBeDrawn = false;
-    private double valueWaitingToBeDrawn;
+    private AtomicBoolean lag = new AtomicBoolean(false);
+    private AtomicBoolean isValueWaitingToBeDrawn = new AtomicBoolean(false);
+    private AtomicReference<Double> valueWaitingToBeDrawn = new AtomicReference<>(Double.NaN);
     /** @param newValue Current value */
     public void setCurrentValue(double newValue)
     {
-        runOnJavaFXThread(() -> {
-            valueWaitingToBeDrawn = newValue;
+        valueWaitingToBeDrawn.set(newValue);
 
-            if (isValueWaitingToBeDrawn) {
-                lag = true;
-            }
-            else {
-                isValueWaitingToBeDrawn = true;
+        if (isValueWaitingToBeDrawn.get()) {
+            lag.set(true);
+        }
+        else {
+            isValueWaitingToBeDrawn.set(true);
 
-                Platform.runLater(() -> {
-                    drawNewValue(valueWaitingToBeDrawn);
-                    isValueWaitingToBeDrawn = false;
-                    lag = false;
-                });
-            }
-        });
+            drawNewValue(valueWaitingToBeDrawn.get());
+            isValueWaitingToBeDrawn.set(false);
+            lag.set(false);
+        }
     }
 
     private void drawNewValue(double newValue) {
-        double oldValue = currentValue;
-        currentValue = newValue;
+        double oldValue = currentValue.get();
+        currentValue.set(newValue);
 
-        if (newValue > linearMeterScale.getValueRange().getHigh() && newValue <= linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
+        if (newValue > linearMeterScale.getValueRange().getHigh() && newValue <= linearMeterScale.getValueRange().getHigh() + minMaxTolerance.get()) {
             newValue = linearMeterScale.getValueRange().getHigh();
         }
-        if (newValue < linearMeterScale.getValueRange().getLow() && newValue >= linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
+        if (newValue < linearMeterScale.getValueRange().getLow() && newValue >= linearMeterScale.getValueRange().getLow() - minMaxTolerance.get()) {
             newValue = linearMeterScale.getValueRange().getLow();
         }
 
@@ -627,7 +596,7 @@ public class RTLinearMeter extends ImageView
                     newIndicatorPosition = (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (newValue - linearMeterScale.getValueRange().getLow()));
                 }
                 WARNING newWarning = determineWarning();
-                if (currentIndicatorPosition == null || currentIndicatorPosition != newIndicatorPosition || currentWarning != newWarning) {
+                if (currentIndicatorPosition == null || currentIndicatorPosition != newIndicatorPosition || currentWarning.get() != newWarning) {
                     redrawIndicator(newValue, newWarning);
                 }
             }
@@ -638,22 +607,22 @@ public class RTLinearMeter extends ImageView
     }
 
     private WARNING determineWarning() {
-        if (!showWarnings) {
+        if (!showWarnings.get()) {
             return WARNING.NONE;
         }
-        else if (lag) {
+        else if (lag.get()) {
             return WARNING.LAG;
         }
-        else if (showUnits && units.equals("")) {
+        else if (showUnits.get() && units.get().equals("")) {
             return WARNING.NO_UNIT;
         }
-        else if (!validRange) {
+        else if (!validRange.get()) {
             return WARNING.MIN_AND_MAX_NOT_DEFINED;
         }
-        else if (currentValue < linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
+        else if (currentValue.get() < linearMeterScale.getValueRange().getLow() - minMaxTolerance.get()) {
             return WARNING.VALUE_LESS_THAN_MIN;
         }
-        else if (currentValue > linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
+        else if (currentValue.get() > linearMeterScale.getValueRange().getHigh() + minMaxTolerance.get()) {
             return WARNING.VALUE_GREATER_THAN_MAX;
         }
         else {
@@ -684,11 +653,11 @@ public class RTLinearMeter extends ImageView
             }
 
             drawWarningText(gc, warningText);
-            if (currentWarning != warning) {
+            if (currentWarning.get() != warning) {
                 logger.log(Level.WARNING, warningText + " on Linear Meter!");
             }
         }
-        currentWarning = warning;
+        currentWarning.set(warning);
     }
 
     /** @param visible Whether the scale must be displayed or not. */
@@ -704,7 +673,7 @@ public class RTLinearMeter extends ImageView
     private void requestLayout()
     {
         updateMeterBackground();
-        redrawIndicator(currentValue, currentWarning);
+        redrawIndicator(currentValue.get(), currentWarning.get());
     }
 
     private void computeLayout()
@@ -748,7 +717,7 @@ public class RTLinearMeter extends ImageView
         linearMeterScale.computeTicks(gc);
         computeLayout();
 
-        gc.setBackground(background);
+        gc.setBackground(background.get());
         gc.clearRect(0, 0, width, height);
 
         linearMeterScale.paint(gc, new Rectangle(0,0,0,0));
@@ -759,20 +728,20 @@ public class RTLinearMeter extends ImageView
 
     private void paintMeter(Graphics2D graphics) {
         Color color = graphics.getColor();
-        if (showLimits) {
-            if (isHighlightActiveRegionEnabled) {
-                paintRectangle(graphics, normalRectangle, normalStatusActiveColor_lowlighted);
-                paintRectangle(graphics, lowRectangle, minorAlarmActiveColor_lowlighted);
-                paintRectangle(graphics, highRectangle, minorAlarmActiveColor_lowlighted);
-                paintRectangle(graphics, loLoRectangle, majorAlarmActiveColor_lowlighted);
-                paintRectangle(graphics, hiHiRectangle, majorAlarmActiveColor_lowlighted);
+        if (showLimits.get()) {
+            if (isHighlightActiveRegionEnabled.get()) {
+                paintRectangle(graphics, normalRectangle, normalStatusActiveColor_lowlighted.get());
+                paintRectangle(graphics, lowRectangle, minorAlarmActiveColor_lowlighted.get());
+                paintRectangle(graphics, highRectangle, minorAlarmActiveColor_lowlighted.get());
+                paintRectangle(graphics, loLoRectangle, majorAlarmActiveColor_lowlighted.get());
+                paintRectangle(graphics, hiHiRectangle, majorAlarmActiveColor_lowlighted.get());
             }
             else {
-                paintRectangle(graphics, normalRectangle, normalStatusActiveColor_highlighted);
-                paintRectangle(graphics, lowRectangle, minorAlarmActiveColor_highlighted);
-                paintRectangle(graphics, highRectangle, minorAlarmActiveColor_highlighted);
-                paintRectangle(graphics, loLoRectangle, majorAlarmActiveColor_highlighted);
-                paintRectangle(graphics, hiHiRectangle, majorAlarmActiveColor_highlighted);
+                paintRectangle(graphics, normalRectangle, normalStatusActiveColor_highlighted.get());
+                paintRectangle(graphics, lowRectangle, minorAlarmActiveColor_highlighted.get());
+                paintRectangle(graphics, highRectangle, minorAlarmActiveColor_highlighted.get());
+                paintRectangle(graphics, loLoRectangle, majorAlarmActiveColor_highlighted.get());
+                paintRectangle(graphics, hiHiRectangle, majorAlarmActiveColor_highlighted.get());
             }
         }
         else {
@@ -781,7 +750,7 @@ public class RTLinearMeter extends ImageView
                                          marginAbove,
                                          linearMeterScale.getBounds().width - marginLeft - marginRight,
                                          linearMeterScale.getBounds().height - marginAbove - marginBelow),
-                           normalStatusActiveColor_lowlighted);
+                           normalStatusActiveColor_lowlighted.get());
         }
         graphics.setColor(color);
     }
@@ -821,22 +790,22 @@ public class RTLinearMeter extends ImageView
             gc.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
             gc.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-            if (showLimits) {
-                if (isHighlightActiveRegionEnabled) {
-                    if (value <= loLo) {
-                        paintRectangle(gc, loLoRectangle, majorAlarmColor_highlighted);
+            if (showLimits.get()) {
+                if (isHighlightActiveRegionEnabled.get()) {
+                    if (value <= loLo.get()) {
+                        paintRectangle(gc, loLoRectangle, majorAlarmColor_highlighted.get());
                     }
-                    else if (value >= hiHi) {
-                        paintRectangle(gc, hiHiRectangle, majorAlarmColor_highlighted);
+                    else if (value >= hiHi.get()) {
+                        paintRectangle(gc, hiHiRectangle, majorAlarmColor_highlighted.get());
                     }
-                    else if (value <= low && value > loLo) {
-                        paintRectangle(gc, lowRectangle, minorAlarmActiveColor_highlighted);
+                    else if (value <= low.get() && value > loLo.get()) {
+                        paintRectangle(gc, lowRectangle, minorAlarmActiveColor_highlighted.get());
                     }
-                    else if (value >= high && value < hiHi) {
-                        paintRectangle(gc, highRectangle, minorAlarmActiveColor_highlighted);
+                    else if (value >= high.get() && value < hiHi.get()) {
+                        paintRectangle(gc, highRectangle, minorAlarmActiveColor_highlighted.get());
                     }
                     else {
-                        paintRectangle(gc, normalRectangle, normalStatusActiveColor_highlighted);
+                        paintRectangle(gc, normalRectangle, normalStatusActiveColor_highlighted.get());
                     }
                 }
             }
@@ -846,27 +815,27 @@ public class RTLinearMeter extends ImageView
 
                     currentIndicatorPosition = (int) (marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
 
-                    if (knobSize > 0) {
-                        int[] XVal = { currentIndicatorPosition - (int) Math.round((1.0 * knobSize) / 4.0),
-                                       currentIndicatorPosition + (int) Math.round((1.0 * knobSize) / 4.0),
+                    if (knobSize.get() > 0) {
+                        int[] XVal = { currentIndicatorPosition - (int) Math.round((1.0 * knobSize.get()) / 4.0),
+                                       currentIndicatorPosition + (int) Math.round((1.0 * knobSize.get()) / 4.0),
                                        currentIndicatorPosition };
 
                         int[] YVal = { 0, 0, marginAbove - 2 };
 
                         gc.setStroke(AxisPart.TICK_STROKE);
-                        gc.setColor(knobColor);
+                        gc.setColor(knobColor.get());
                         gc.fillPolygon(XVal, YVal, 3);
-                        gc.setColor(knobColor);
+                        gc.setColor(knobColor.get());
                         gc.drawPolygon(XVal, YVal, 3);
                     }
 
-                    if (needleWidth > 0) {
-                        gc.setStroke(new BasicStroke((float) needleWidth));
+                    if (needleWidth.get() > 0) {
+                        gc.setStroke(new BasicStroke((float) needleWidth.get()));
                         gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-                        gc.setPaint(needleColor);
+                        gc.setPaint(needleColor.get());
 
-                        int y1 = marginAbove + needleWidth / 2 + 1;
-                        int y2 = linearMeterScale.getBounds().height - marginBelow - (needleWidth - 1) / 2 - 1;
+                        int y1 = marginAbove + needleWidth.get() / 2 + 1;
+                        int y2 = linearMeterScale.getBounds().height - marginBelow - (needleWidth.get() - 1) / 2 - 1;
 
                         gc.drawLine(currentIndicatorPosition, y1, currentIndicatorPosition, y2);
                     }
@@ -876,27 +845,27 @@ public class RTLinearMeter extends ImageView
 
                     currentIndicatorPosition = (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
 
-                    if (knobSize > 0) {
-                        int[] YVal = { currentIndicatorPosition + (int) Math.round((1.0 * knobSize / 4.0)),
-                                       currentIndicatorPosition - (int) Math.round((1.0 * knobSize / 4.0)),
+                    if (knobSize.get() > 0) {
+                        int[] YVal = { currentIndicatorPosition + (int) Math.round((1.0 * knobSize.get() / 4.0)),
+                                       currentIndicatorPosition - (int) Math.round((1.0 * knobSize.get() / 4.0)),
                                        currentIndicatorPosition };
 
                         int[] XVal = { 0, 0, marginLeft - 2 };
 
                         gc.setStroke(AxisPart.TICK_STROKE);
-                        gc.setColor(knobColor);
+                        gc.setColor(knobColor.get());
                         gc.fillPolygon(XVal, YVal, 3);
-                        gc.setColor(knobColor);
+                        gc.setColor(knobColor.get());
                         gc.drawPolygon(XVal, YVal, 3);
                     }
 
-                    if (needleWidth > 0) {
-                        gc.setStroke(new BasicStroke((float) needleWidth));
+                    if (needleWidth.get() > 0) {
+                        gc.setStroke(new BasicStroke((float) needleWidth.get()));
                         gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-                        gc.setPaint(needleColor);
+                        gc.setPaint(needleColor.get());
 
-                        int x1 = marginLeft + (needleWidth)/2 + 1;
-                        int x2 = linearMeterScale.getBounds().width - marginRight - (needleWidth+1)/2;
+                        int x1 = marginLeft + (needleWidth.get())/2 + 1;
+                        int x2 = linearMeterScale.getBounds().width - marginRight - (needleWidth.get()+1)/2;
 
                         gc.drawLine(x1, currentIndicatorPosition, x2, currentIndicatorPosition);
                     }
@@ -920,7 +889,7 @@ public class RTLinearMeter extends ImageView
             linearMeterScale.setHorizontal(horizontal);
             redrawLinearMeterScale();
             updateMeterBackground();
-            redrawIndicator(currentValue, currentWarning);
+            redrawIndicator(currentValue.get(), currentWarning.get());
         });
     }
 
@@ -1022,7 +991,7 @@ public class RTLinearMeter extends ImageView
 
         //Draw border of rectangle.
         //TODO: can this be included in the paint?
-        gc.setColor(foreground);
+        gc.setColor(foreground.get());
         gc.draw(rectangle);
 
         gc.setColor(oldColor);
@@ -1047,11 +1016,16 @@ public class RTLinearMeter extends ImageView
         double displayedHiHi;
         double displayedHigh;
 
-        displayedLoLo = Double.isFinite(loLo) ? Math.max(loLo, linearMeterScale.getValueRange().getLow()) : linearMeterScale.getValueRange().getLow();
-        displayedLow = Double.isFinite(low) ? Math.max(Math.max(low, linearMeterScale.getValueRange().getLow()), displayedLoLo) : linearMeterScale.getValueRange().getLow();
+        double loLoValue = loLo.get();
+        double lowValue = low.get();
+        double highValue = high.get();
+        double hiHiValue = hiHi.get();
 
-        displayedHiHi = Double.isFinite(high) ? Math.min(hiHi, linearMeterScale.getValueRange().getHigh()) : linearMeterScale.getValueRange().getHigh();
-        displayedHigh = Double.isFinite(hiHi) ? Math.min(Math.min(high, linearMeterScale.getValueRange().getHigh()), displayedHiHi) : linearMeterScale.getValueRange().getHigh();
+        displayedLoLo = Double.isFinite(loLoValue) ? Math.max(loLoValue, linearMeterScale.getValueRange().getLow()) : linearMeterScale.getValueRange().getLow();
+        displayedLow = Double.isFinite(lowValue) ? Math.max(Math.max(lowValue, linearMeterScale.getValueRange().getLow()), displayedLoLo) : linearMeterScale.getValueRange().getLow();
+
+        displayedHiHi = Double.isFinite(highValue) ? Math.min(hiHiValue, linearMeterScale.getValueRange().getHigh()) : linearMeterScale.getValueRange().getHigh();
+        displayedHigh = Double.isFinite(hiHiValue) ? Math.min(Math.min(highValue, linearMeterScale.getValueRange().getHigh()), displayedHiHi) : linearMeterScale.getValueRange().getHigh();
 
         FontMetrics fontMetrics = null;
         if (font != null) {
@@ -1060,7 +1034,8 @@ public class RTLinearMeter extends ImageView
         }
 
         if (linearMeterScale.isHorizontal()) {
-            marginAbove = knobSize >= 1 ? knobSize + 2 : 0;
+            int knobSizeValue = knobSize.get();
+            marginAbove = knobSizeValue >= 1 ? knobSizeValue + 2 : 0;
             if (linearMeterScale.isVisible() && fontMetrics != null) {
                 var majorTicks = linearMeterScale.getTicks().getMajorTicks();
                 if (majorTicks.size() >= 2) {
@@ -1079,7 +1054,7 @@ public class RTLinearMeter extends ImageView
                 marginBelow = 1;
             }
 
-            if (showUnits && fontMetrics != null) {
+            if (showUnits.get() && fontMetrics != null) {
                 marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
             }
 
@@ -1118,7 +1093,8 @@ public class RTLinearMeter extends ImageView
                                           meterBreadth);
         }
         else {
-            marginLeft = knobSize >= 1 ? knobSize + 2 : 0;
+            int knobSizeValue = knobSize.get();
+            marginLeft = knobSizeValue >= 1 ? knobSizeValue + 2 : 0;
             if (linearMeterScale.isVisible() && fontMetrics != null) {
                 int maxTickLabelWidth = 0;
                 maxTickLabelWidth = 0;
@@ -1136,7 +1112,7 @@ public class RTLinearMeter extends ImageView
                 marginBelow = 1;
             }
 
-            if (showUnits && fontMetrics != null) {
+            if (showUnits.get() && fontMetrics != null) {
                 marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
             }
 
