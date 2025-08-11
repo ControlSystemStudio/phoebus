@@ -42,17 +42,16 @@ public class toVType {
         //this value was converted from string to might be incorrect
         Object value = pvData.getValue();
 
+        Object typedValue = convertValueByVtype(value, vType);
+
+
         Alarm alarm = createAlarm(severityStr, description);
         Time time = createTime(seconds, nanos);
         Display display = createDisplay(min, max, warnLow, warnHigh, alarmLow, alarmHigh, precision, description, units);
 
 
-
-
-
-
         try {
-            VType vValue = VType.toVType(value, alarm, time, display);
+            VType vValue = VType.toVType(typedValue, alarm, time, display);
             return vValue;
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -86,6 +85,51 @@ public class toVType {
 
     }
 
+    public static Object convertValueByVtype(Object rawValue, String vtype) {
+        if (rawValue == null || vtype == null) return null;
+
+        try {
+            switch (vtype) {
+                case "VDouble":
+                    if (rawValue instanceof Number) return ((Number) rawValue).doubleValue();
+                    return Double.parseDouble(rawValue.toString());
+
+                case "VFloat":
+                    if (rawValue instanceof Number) return ((Number) rawValue).floatValue();
+                    return Float.parseFloat(rawValue.toString());
+
+                case "VInt":
+                    if (rawValue instanceof Number) return ((Number) rawValue).intValue();
+                    return Integer.parseInt(rawValue.toString());
+
+                case "VLong":
+                    if (rawValue instanceof Number) return ((Number) rawValue).longValue();
+                    return Long.parseLong(rawValue.toString());
+
+                case "VShort":
+                    if (rawValue instanceof Number) return ((Number) rawValue).shortValue();
+                    return Short.parseShort(rawValue.toString());
+
+                case "VByte":
+                    if (rawValue instanceof Number) return ((Number) rawValue).byteValue();
+                    return Byte.parseByte(rawValue.toString());
+
+                case "VBoolean":
+                    if (rawValue instanceof Boolean) return rawValue;
+                    return Boolean.parseBoolean(rawValue.toString());
+
+                case "VString":
+                    return rawValue.toString();
+
+                // Add arrays here, e.g. VDoubleArray, VStringArray etc.
+
+                default:
+                    return rawValue;
+            }
+        } catch (Exception e) {
+            return rawValue;
+        }
+    }
 
 
 
