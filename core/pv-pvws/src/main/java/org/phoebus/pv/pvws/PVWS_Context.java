@@ -21,13 +21,14 @@ public class PVWS_Context {
     private final PVWS_Client client;
 
 
-    private PVWS_Context() throws URISyntaxException, InterruptedException, JsonProcessingException {
-        URI serverUri = new URI("ws://localhost:8080/pvws/pv");
+    private PVWS_Context() throws Exception {
+        PVWS_Preferences.getInstance().installPreferences();
+        URI serverUri = new URI(System.getProperty("PVWS_ADDRESS"));
         this.client = initializeClient(serverUri);
     }
 
     // Thread-safe singleton getter with lazy initialization
-    public static PVWS_Context getInstance() throws URISyntaxException, InterruptedException, JsonProcessingException {
+    public static PVWS_Context getInstance() throws Exception {
         if (instance == null) {
             synchronized (PVWS_Context.class) {
                 if (instance == null) {
