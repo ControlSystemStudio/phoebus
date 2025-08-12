@@ -946,7 +946,7 @@ public class RTLinearMeter extends ImageView
             }
 
             if (linearMeterScale.isHorizontal()) {
-                if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
+                if (value >= linearMeterScale.getValueRange().getLow()) {
                     if (isHighlightActiveRegionEnabled.get()) {
                         if (value <= loLo.get()) {
                             gc.setPaint(majorAlarmColor_highlighted.get());
