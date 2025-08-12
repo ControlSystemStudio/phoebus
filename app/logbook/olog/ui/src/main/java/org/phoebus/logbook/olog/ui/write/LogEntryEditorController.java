@@ -47,11 +47,21 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
+
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import org.phoebus.framework.autocomplete.Proposal;
@@ -70,7 +80,6 @@ import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.olog.ui.HelpViewer;
-import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
 import org.phoebus.olog.es.api.model.OlogLog;
@@ -191,6 +200,8 @@ public class LogEntryEditorController {
     @SuppressWarnings("unused")
     private Node attachmentsPane;
 
+
+
     private final ContextMenu logbookDropDown = new ContextMenu();
     private final ContextMenu tagDropDown = new ContextMenu();
 
@@ -269,6 +280,7 @@ public class LogEntryEditorController {
 
     @FXML
     public void initialize() {
+
 
         // Remote log service not reachable, so show error pane.
         if (!checkConnectivity()) {
@@ -392,16 +404,6 @@ public class LogEntryEditorController {
             return text.substring(0, text.length() - 2);
         }, selectedLogbooks));
 
-        tagsSelection.textProperty().bind(Bindings.createStringBinding(() -> {
-            if (selectedTags.isEmpty()) {
-                return "";
-            }
-            StringBuilder stringBuilder = new StringBuilder();
-            selectedTags.forEach(l -> stringBuilder.append(l).append(", "));
-            String text = stringBuilder.toString();
-            return text.substring(0, text.length() - 2);
-        }, selectedTags));
-
         logbooksDropdownButton.focusedProperty().addListener((changeListener, oldVal, newVal) ->
         {
             if (!newVal && !tagDropDown.isShowing() && !logbookDropDown.isShowing())
@@ -447,16 +449,6 @@ public class LogEntryEditorController {
             tagsPopOver.setAvailable(availableTagsAsStringList, newSelection);
             tagsPopOver.setSelected(newSelection);
             newSelection.forEach(t -> updateDropDown(tagDropDown, t, true));
-        });
-
-        selectedLogbooks.addListener((ListChangeListener<String>) change -> {
-            if (change.getList() == null) {
-                return;
-            }
-            List<String> newSelection = new ArrayList<>(change.getList());
-            logbooksPopOver.setAvailable(availableLogbooksAsStringList, newSelection);
-            logbooksPopOver.setSelected(newSelection);
-            newSelection.forEach(l -> updateDropDown(logbookDropDown, l, true));
         });
 
         AutocompleteMenu autocompleteMenu = new AutocompleteMenu(new ProposalService(new ProposalProvider() {
@@ -547,7 +539,138 @@ public class LogEntryEditorController {
 
         // Note: logbooks and tags are retrieved asynchronously from service
         getServerSideStaticData();
+
+        setupTextAreaContextMenu();
+
     }
+
+    private void setupTextAreaContextMenu() {
+        // Create the context menu with default items
+        ContextMenu contextMenu = new ContextMenu();
+
+        // Standard text editing items
+        MenuItem undo = new MenuItem("Undo");
+        undo.setOnAction(e -> textArea.undo());
+
+        MenuItem redo = new MenuItem("Redo");
+        redo.setOnAction(e -> textArea.redo());
+
+        MenuItem cut = new MenuItem("Cut");
+        cut.setOnAction(e -> textArea.cut());
+
+        MenuItem copy = new MenuItem("Copy");
+        copy.setOnAction(e -> textArea.copy());
+
+        MenuItem paste = new MenuItem("Paste");
+        paste.setOnAction(e -> textArea.paste());
+
+        MenuItem delete = new MenuItem("Delete");
+        delete.setOnAction(e -> textArea.replaceSelection(""));
+
+        MenuItem selectAll = new MenuItem("Select All");
+        selectAll.setOnAction(e -> textArea.selectAll());
+
+        // Our custom menu item
+        MenuItem pasteUrlItem = new MenuItem("Paste URL as Markdown");
+        pasteUrlItem.setOnAction(event -> handleSmartPaste());
+        pasteUrlItem.setAccelerator(new KeyCodeCombination(KeyCode.V,
+                KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
+
+        // Add all items to the menu
+        contextMenu.getItems().addAll(
+                undo,
+                redo,
+                new SeparatorMenuItem(),
+                cut,
+                copy,
+                paste,
+                delete,
+                new SeparatorMenuItem(),
+                selectAll,
+                new SeparatorMenuItem(),
+                pasteUrlItem
+        );
+
+        // Bind the menu items to the text area's state
+        undo.disableProperty().bind(textArea.undoableProperty().not());
+        redo.disableProperty().bind(textArea.redoableProperty().not());
+        cut.disableProperty().bind(textArea.selectedTextProperty().isEmpty());
+        copy.disableProperty().bind(textArea.selectedTextProperty().isEmpty());
+        delete.disableProperty().bind(textArea.selectedTextProperty().isEmpty());
+
+        // Set the context menu on the text area
+        textArea.setContextMenu(contextMenu);
+    }
+
+    private void handleSmartPaste() {
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        if (!clipboard.hasString()) {
+            return;
+        }
+
+        String clipboardText = clipboard.getString();
+        String ologUrl = extractOlogUrl(clipboardText);
+        String selectedText = textArea.getSelectedText();
+
+        if (ologUrl != null) {
+            // It's an Olog URL
+            String logNumber = extractLogNumber(ologUrl);
+            if (logNumber != null) {
+                if (selectedText != null && !selectedText.isEmpty()) {
+                    // Use selected text as link text for the Olog reference
+                    String markdownLink = String.format("[%s](%s)", selectedText, ologUrl);
+                    textArea.replaceSelection(markdownLink);
+                } else {
+                    // No selection - create a standard log entry reference
+                    String markdownLink = String.format("[%s](%s)", logNumber, ologUrl);
+                    textArea.replaceSelection(markdownLink);
+                }
+            }
+            return;
+        }
+
+        // Try to identify if clipboard content is a regular URL
+        try {
+            new URL(clipboardText);
+
+            if (selectedText != null && !selectedText.isEmpty()) {
+                // Replace selection with markdown link using selected text
+                String markdownLink = String.format("[%s](%s)", selectedText, clipboardText);
+                textArea.replaceSelection(markdownLink);
+            } else {
+                // No selection - use URL as both link text and target
+                String markdownLink = String.format("[%s](%s)", clipboardText, clipboardText);
+                textArea.replaceSelection(markdownLink);
+            }
+        } catch (MalformedURLException e) {
+            // Not a URL - do nothing
+        }
+    }
+    private String extractOlogUrl(String text) {
+        String rootUrl = LogbookUIPreferences.web_client_root_URL;
+        if (rootUrl == null || rootUrl.isEmpty()) {
+            return null;
+        }
+
+        if (text.toLowerCase().contains("olog") &&
+                text.matches(".*?/logs/\\d+/?$")) {
+            return text;
+        }
+        return null;
+    }
+
+    private String extractLogNumber(String url) {
+        if (url == null) {
+            return null;
+        }
+        Pattern pattern = Pattern.compile("/logs/(\\d+)/?$");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
 
     /**
      * Handler for Cancel button. Note that any selections in the {@link SelectionService} are
@@ -758,7 +881,7 @@ public class LogEntryEditorController {
             List<String> preSelectedLogbooks =
                     logEntry.getLogbooks().stream().map(Logbook::getName).toList();
             List<String> defaultLogbooks = Arrays.asList(LogbookUIPreferences.default_logbooks);
-            availableLogbooksAsStringList.forEach(logbook -> {
+            for (String logbook : availableLogbooksAsStringList) {
                 CheckBox checkBox = new CheckBox(logbook);
                 CustomMenuItem newLogbook = new CustomMenuItem(checkBox);
                 newLogbook.setHideOnClick(false);
@@ -779,7 +902,7 @@ public class LogEntryEditorController {
                     selectedLogbooks.add(logbook);
                 }
                 logbookDropDown.getItems().add(newLogbook);
-            });
+            }
 
             availableTags = logClient.listTags();
             availableTagsAsStringList =
