@@ -38,7 +38,7 @@ public class AccessRightsChange
     }
 
     /** @return Do the access rights include write access? */
-    public boolean mayWrite()
+    public boolean isWritable()
     {
         return (access_rights & WRITE_ACCESS) == WRITE_ACCESS;
     }
@@ -79,7 +79,7 @@ public class AccessRightsChange
     {
         return String.format("CID %d access rights %s (0x%02X)",
                              cid,
-                             mayWrite() ? "writeable" : "read-only",
+                             isWritable() ? "writeable" : "read-only",
                              access_rights);
     }
 }

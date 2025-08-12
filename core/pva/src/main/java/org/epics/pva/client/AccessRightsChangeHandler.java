@@ -41,6 +41,6 @@ class AccessRightsChangeHandler implements CommandHandler<ClientTCPHandler>
         }
 
         logger.log(Level.FINE, () -> "Received '" + channel.getName() + "' " + acl);
-        channel.updateAccessRights(acl.mayWrite());
+        channel.updateAccessRights(acl.isWritable());
     }
 }
