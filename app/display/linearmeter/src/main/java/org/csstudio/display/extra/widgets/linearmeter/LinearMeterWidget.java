@@ -113,6 +113,35 @@ public class LinearMeterWidget extends PVWidget
     public static WidgetPropertyDescriptor<Boolean>   propScaleVisible =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scale_visible", Messages.WidgetProperties_ScaleVisible);
 
+
+    enum LimitsFromPV {
+        LimitsFromPV("true"),
+        Limits("false");
+
+        private final String name;
+
+        private LimitsFromPV(String name) {
+            this.name = name;
+        };
+
+        public String getName() {
+            return this.name;
+        }
+
+        @Override
+        public String toString() {
+            return this.name;
+        }
+    }
+
+    public static final WidgetPropertyDescriptor<LimitsFromPV> propLimitsFromPV =
+            new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "limits_from_pv", Messages.WidgetProperties_LimitsFromPV) {
+                @Override
+                public EnumWidgetProperty<LimitsFromPV> createProperty(final Widget widget, LimitsFromPV default_value) {
+                    return new EnumWidgetProperty<>(this, widget, LimitsFromPV.LimitsFromPV);
+                }
+            };
+
     private WidgetProperty<RTLinearMeter.DisplayMode> display_mode;
     public static WidgetPropertyDescriptor<RTLinearMeter.DisplayMode> propDisplayMode =
             new WidgetPropertyDescriptor<>(
@@ -183,7 +212,7 @@ public class LinearMeterWidget extends PVWidget
     private WidgetProperty<Boolean> scale_visible;
     private WidgetProperty<WidgetColor> knob_color;
     private WidgetProperty<Integer> knobSize;
-    private WidgetProperty<Boolean> limits_from_pv;
+    private WidgetProperty<LimitsFromPV> limits_from_pv;
     private WidgetProperty<Double> minimum;
     private WidgetProperty<Double> maximum;
     private WidgetProperty<Double> level_high;
@@ -225,7 +254,7 @@ public class LinearMeterWidget extends PVWidget
         properties.add(scale_visible = propScaleVisible.createProperty(this, true));
         properties.add(show_limits = propShowLimits.createProperty(this, true));
         properties.add(show_warnings = propShowWarnings.createProperty(this, true));
-        properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
+        properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, LimitsFromPV.LimitsFromPV));
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
         properties.add(displayHorizontal = propDisplayHorizontal.createProperty(this, true));
@@ -321,7 +350,7 @@ public class LinearMeterWidget extends PVWidget
     public WidgetProperty<Integer> propKnobSize() { return knobSize; }
 
     /** @return 'limits_from_pv' property */
-    public WidgetProperty<Boolean> propLimitsFromPV()
+    public WidgetProperty<LimitsFromPV> propLimitsFromPV()
     {
         return limits_from_pv;
     }

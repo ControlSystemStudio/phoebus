@@ -44,7 +44,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
 
         double minimum, maximum;
         double loLo, low, high, hiHi;
-        if (model_widget.propLimitsFromPV().getValue() && !toolkit.isEditMode()) {
+        if (model_widget.propLimitsFromPV().getValue().equals(LinearMeterWidget.LimitsFromPV.LimitsFromPV) && !toolkit.isEditMode()) {
             minimum = Double.NaN;
             maximum = Double.NaN;
             loLo = Double.NaN;
@@ -319,7 +319,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                 meter.setUnits(display.getUnit());
             }
 
-            if (model_widget != null && model_widget.propLimitsFromPV().getValue()) {
+            if (model_widget != null && model_widget.propLimitsFromPV().getValue().equals(LinearMeterWidget.LimitsFromPV.LimitsFromPV)) {
                 Range displayRange = display.getDisplayRange();
                 if (displayRange != null
                         && Double.isFinite(displayRange.getMinimum())
