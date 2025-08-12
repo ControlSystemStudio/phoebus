@@ -180,11 +180,11 @@
 	-fx-snap-to-pixel: false
 }
 
-.widget_pane_unfocused{
+.widget_pane{
     -fx-border-color: #F4F4F4;
 }
 
-.widget_pane_focused{
+.widget_pane:focused{
     -fx-border-color: #00A0D8;
 }
 
