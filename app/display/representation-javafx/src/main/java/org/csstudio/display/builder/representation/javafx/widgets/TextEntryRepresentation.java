@@ -52,7 +52,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
      */
     private boolean active = false;
     private volatile boolean enabled = true;
-    private static final String NODE_ID = UUID.randomUUID().toString();;
+    private final String node_id = UUID.randomUUID().toString();;
 
 
     private final DirtyFlag dirty_size = new DirtyFlag();
@@ -104,7 +104,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             text = new TextField();
         text.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         text.getStyleClass().add("text_entry");
-        text.setId(NODE_ID);
+        text.setId(node_id);
 
         if (! toolkit.isEditMode())
         {
@@ -430,10 +430,11 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                 PseudoClass alignmentClass = PseudoClass.getPseudoClass(alignment);
                 jfx_node.pseudoClassStateChanged(alignmentClass, true);
                 
-                if (jfx_node.getScene() != null) {
+                if (jfx_node.getScene() != null && !enabled) {
                     // Need to get the TextArea 'content' node to set the cursor
                     // for the whole widget otherwise it will only show on the borders.
-                    jfx_node.getScene().lookup("#"+NODE_ID+" .content").setCursor(Cursors.NO_WRITE);
+                    jfx_node.getScene().lookup("#"+node_id+" .content").setCursor(Cursors.NO_WRITE);
+                    jfx_node.layout();
                 }
             }
         }
