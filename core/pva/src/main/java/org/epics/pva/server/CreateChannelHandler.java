@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import static org.epics.pva.PVASettings.logger;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 
+import org.epics.pva.common.AccessRightsChange;
 import org.epics.pva.common.CommandHandler;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.data.PVAStatus;
@@ -20,7 +21,6 @@ import org.epics.pva.data.PVAString;
 /** Handle response to client's CREATE CHANNEL command
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
 {
     @Override
@@ -55,6 +55,7 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
     {
         tcp.submit((version, buffer) ->
         {
+            // Confirm channel creation
             logger.log(Level.FINE, () ->  "Confirm channel creation " + pv + " [CID " + cid + "]");
             PVAHeader.encodeMessageHeader(buffer,
                     PVAHeader.FLAG_SERVER,
@@ -66,6 +67,14 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
             buffer.putInt(pv.getSID());
             // status
             PVAStatus.StatusOK.encode(buffer);
+
+            // Send initial access rights with the channel confirmation.
+            // The client may have read the channel creation confirmation
+            // and send for example a Get-Init before it processes the access rights info,
+            // but at least it's in the TCP pipeline
+            final boolean writable = pv.isWritable();
+            logger.log(Level.FINE, () ->  "Send ACL " + pv + " [CID " + cid + "]" + (writable ? " writable" : " read-only"));
+            AccessRightsChange.encode(buffer, cid, writable);
         });
     }
 }

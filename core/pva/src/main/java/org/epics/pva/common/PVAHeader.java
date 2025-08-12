@@ -72,6 +72,9 @@ public class PVAHeader
     /** Application command: Reply to search */
     public static final byte CMD_SEARCH_RESPONSE = 0x04;
 
+    /** Application command: Access Control (List) Channel */
+    public static final byte CMD_ACL_CHANGE = 0x06;
+
     /** Application command: Create Channel */
     public static final byte CMD_CREATE_CHANNEL = 0x07;
 

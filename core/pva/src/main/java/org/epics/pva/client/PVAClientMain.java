@@ -97,8 +97,8 @@ public class PVAClientMain
                     final PVAChannel pv = iter.next();
                     if (pv.getState() == ClientChannelState.CONNECTED)
                     {
-                        PVASettings.logger.log(Level.INFO, "Server: " + pv.getTCP().getServerX509Name());
-                        PVASettings.logger.log(Level.INFO, "Client: " + pv.getTCP().getClientX509Name());
+                        PVASettings.logger.log(Level.INFO, "Server X509 Name: " + pv.getTCP().getServerX509Name());
+                        PVASettings.logger.log(Level.INFO, "Client X509 Name: " + pv.getTCP().getClientX509Name());
 
                         final PVAData data = pv.info(request).get(timeout_ms, TimeUnit.MILLISECONDS);
                         System.out.println(pv.getName() + " = " + data.formatType());
@@ -142,8 +142,8 @@ public class PVAClientMain
                     final PVAChannel pv = iter.next();
                     if (pv.getState() == ClientChannelState.CONNECTED)
                     {
-                        PVASettings.logger.log(Level.INFO, "Server: " + pv.getTCP().getServerX509Name());
-                        PVASettings.logger.log(Level.INFO, "Client: " + pv.getTCP().getClientX509Name());
+                        PVASettings.logger.log(Level.INFO, "Server X509 Name: " + pv.getTCP().getServerX509Name());
+                        PVASettings.logger.log(Level.INFO, "Client X509 Name: " + pv.getTCP().getClientX509Name());
 
                         final PVAData data = pv.read(request).get(timeout_ms, TimeUnit.MILLISECONDS);
                         System.out.println(pv.getName() + " = " + data);
@@ -188,8 +188,8 @@ public class PVAClientMain
                     {
                         try
                         {
-                            PVASettings.logger.log(Level.INFO, "Server: " + ch.getTCP().getServerX509Name());
-                            PVASettings.logger.log(Level.INFO, "Client: " + ch.getTCP().getClientX509Name());
+                            PVASettings.logger.log(Level.INFO, "Server X509 Name: " + ch.getTCP().getServerX509Name());
+                            PVASettings.logger.log(Level.INFO, "Client X509 Name: " + ch.getTCP().getClientX509Name());
                             ch.subscribe(request, listener);
                         }
                         catch (Exception ex)
