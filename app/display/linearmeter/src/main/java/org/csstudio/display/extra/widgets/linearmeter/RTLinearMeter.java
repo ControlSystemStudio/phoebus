@@ -237,6 +237,17 @@ public class RTLinearMeter extends ImageView
 
     private AtomicBoolean isHighlightActiveRegionEnabled = new AtomicBoolean(true);
 
+    enum DisplayMode {
+        NEEDLE,
+        BAR
+    }
+
+    public void setDisplayMode(DisplayMode newDisplayMode) {
+        this.displayMode.set(newDisplayMode);
+    }
+
+    private AtomicReference<DisplayMode> displayMode = new AtomicReference<>(DisplayMode.NEEDLE);
+
     private void runOnJavaFXThread(Runnable runnable) {
         if (Platform.isFxApplicationThread()) {
             runnable.run();
@@ -507,7 +518,17 @@ public class RTLinearMeter extends ImageView
         // Add needle & label
         Graphics2D gc = combined.createGraphics();
 
-        drawValue(gc, value);
+        DisplayMode displayMode = this.displayMode.get();
+        if (displayMode.equals(DisplayMode.NEEDLE)) {
+            drawValue(gc, value);
+        }
+        else if (displayMode.equals(DisplayMode.BAR)) {
+            drawBar(gc, value);
+        }
+        else {
+            throw new RuntimeException("Unhandled case");
+        }
+
         drawWarning(gc, warning);
         if (showUnits.get()) {
             drawUnit(gc);
@@ -882,6 +903,97 @@ public class RTLinearMeter extends ImageView
 
                         gc.drawLine(x1, currentIndicatorPosition, x2, currentIndicatorPosition);
                     }
+                }
+            }
+            gc.setRenderingHints(oldrenderingHints);
+            gc.setStroke(oldStroke);
+            gc.setPaint(oldPaint);
+        }
+    }
+
+    private void drawBar(Graphics2D gc, double value) {
+        if (Double.isNaN(value)) {
+            currentIndicatorPosition = null;
+        }
+        else {
+            Stroke oldStroke = gc.getStroke();
+            Paint oldPaint = gc.getPaint();
+            RenderingHints oldrenderingHints = gc.getRenderingHints();
+
+            gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            gc.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+            gc.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+            gc.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+            if (showLimits.get()) {
+                if (isHighlightActiveRegionEnabled.get()) {
+                    if (value <= loLo.get()) {
+                        paintRectangle(gc, loLoRectangle, majorAlarmColor_highlighted.get());
+                    }
+                    else if (value >= hiHi.get()) {
+                        paintRectangle(gc, hiHiRectangle, majorAlarmColor_highlighted.get());
+                    }
+                    else if (value <= low.get() && value > loLo.get()) {
+                        paintRectangle(gc, lowRectangle, minorAlarmActiveColor_highlighted.get());
+                    }
+                    else if (value >= high.get() && value < hiHi.get()) {
+                        paintRectangle(gc, highRectangle, minorAlarmActiveColor_highlighted.get());
+                    }
+                    else {
+                        paintRectangle(gc, normalRectangle, normalStatusActiveColor_highlighted.get());
+                    }
+                }
+            }
+
+            if (linearMeterScale.isHorizontal()) {
+                if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
+                    if (isHighlightActiveRegionEnabled.get()) {
+                        if (value <= loLo.get()) {
+                            gc.setPaint(majorAlarmColor_highlighted.get());
+                        }
+                        else if (value >= hiHi.get()) {
+                            gc.setPaint(majorAlarmColor_highlighted.get());
+                        }
+                        else if (value <= low.get() && value > loLo.get()) {
+                            gc.setPaint(minorAlarmActiveColor_highlighted.get());
+                        }
+                        else if (value >= high.get() && value < hiHi.get()) {
+                            gc.setPaint(minorAlarmActiveColor_highlighted.get());
+                        }
+                        else {
+                            gc.setPaint(needleColor.get());
+                        }
+                    }
+                    else {
+                        gc.setPaint(needleColor.get());
+                    }
+                    currentIndicatorPosition = (int) (marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+                    gc.fillRect(marginLeft+1, marginAbove+1, (int) currentIndicatorPosition, meterBreadth-1);
+                }
+            } else {
+                if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
+                    if (isHighlightActiveRegionEnabled.get()) {
+                        if (value <= loLo.get()) {
+                            gc.setPaint(majorAlarmColor_highlighted.get());
+                        }
+                        else if (value >= hiHi.get()) {
+                            gc.setPaint(majorAlarmColor_highlighted.get());
+                        }
+                        else if (value <= low.get() && value > loLo.get()) {
+                            gc.setPaint(minorAlarmActiveColor_highlighted.get());
+                        }
+                        else if (value >= high.get() && value < hiHi.get()) {
+                            gc.setPaint(minorAlarmActiveColor_highlighted.get());
+                        }
+                        else {
+                            gc.setPaint(needleColor.get());
+                        }
+                    }
+                    else {
+                        gc.setPaint(needleColor.get());
+                    }
+                    currentIndicatorPosition = (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+                    gc.fillRect(marginLeft+1, currentIndicatorPosition+1, (int) meterBreadth-1, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow-1);
                 }
             }
             gc.setRenderingHints(oldrenderingHints);

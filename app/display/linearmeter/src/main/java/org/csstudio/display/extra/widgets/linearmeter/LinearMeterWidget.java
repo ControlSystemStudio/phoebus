@@ -10,6 +10,7 @@ import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
+import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.PVWidget;
@@ -112,6 +113,18 @@ public class LinearMeterWidget extends PVWidget
     public static WidgetPropertyDescriptor<Boolean>   propScaleVisible =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scale_visible", Messages.WidgetProperties_ScaleVisible);
 
+    private WidgetProperty<RTLinearMeter.DisplayMode> display_mode;
+    public static WidgetPropertyDescriptor<RTLinearMeter.DisplayMode> propDisplayMode =
+            new WidgetPropertyDescriptor<>(
+                    WidgetPropertyCategory.DISPLAY, "display_mode", "Display Mode")
+            {
+                @Override
+                public EnumWidgetProperty<RTLinearMeter.DisplayMode> createProperty(Widget widget, RTLinearMeter.DisplayMode default_value)
+                {
+                    return new EnumWidgetProperty<>(this, widget, default_value);
+                }
+            };
+
     public static WidgetPropertyDescriptor<WidgetColor> propNeedleColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "needle_color", Messages.WidgetProperties_NeedleColor);
 
@@ -205,6 +218,7 @@ public class LinearMeterWidget extends PVWidget
     {
         super.defineProperties(properties);
 
+        properties.add(display_mode = propDisplayMode.createProperty(this, RTLinearMeter.DisplayMode.NEEDLE));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(format = propFormat.createProperty(this, FormatOption.DEFAULT));
         properties.add(show_units = propShowUnits.createProperty(this, true));
@@ -367,5 +381,9 @@ public class LinearMeterWidget extends PVWidget
     }
 
     public WidgetProperty<Integer> propNeedleWidth() { return needleWidth; }
+
+    public WidgetProperty<RTLinearMeter.DisplayMode> propDisplayMode() {
+        return display_mode;
+}
 
 }
