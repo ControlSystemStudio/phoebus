@@ -22,7 +22,6 @@ import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -227,11 +226,9 @@ public class RTLinearMeter extends ImageView
     private double minMaxTolerance = 0.0;
 
     public boolean getValidRange() {
-        AtomicBoolean returnValue = new AtomicBoolean(false);
-        withReadLock(() -> {
-            returnValue.set(validRange);
+        return withReadLock(() -> {
+            return validRange;
         });
-        return returnValue.get();
     }
 
     /** Optional scale of this linear meter */
@@ -505,11 +502,9 @@ public class RTLinearMeter extends ImageView
     }
 
     public double getLoLo() {
-        AtomicReference<Double> returnValue = new AtomicReference<>();
-        withReadLock(() -> {
-            returnValue.set(loLo);
+        return withReadLock(() -> {
+            return loLo;
         });
-        return returnValue.get();
     }
 
     public void setLoLo(double loLo) {
@@ -521,11 +516,9 @@ public class RTLinearMeter extends ImageView
     }
 
     public double getLow() {
-        AtomicReference<Double> returnValue = new AtomicReference<>();
-        withReadLock(() -> {
-            returnValue.set(low);
+        return withReadLock(() -> {
+            return low;
         });
-        return returnValue.get();
     }
 
     public void setLow(double low) {
@@ -537,11 +530,9 @@ public class RTLinearMeter extends ImageView
     }
 
     public double getHigh() {
-        AtomicReference<Double> returnValue = new AtomicReference<>();
-        withReadLock(() -> {
-            returnValue.set(high);
+        return withReadLock(() -> {
+            return high;
         });
-        return returnValue.get();
     }
 
     public void setHigh(double high) {
@@ -553,11 +544,9 @@ public class RTLinearMeter extends ImageView
     }
 
     public double getHiHi() {
-        AtomicReference<Double> returnValue = new AtomicReference<>();
-        withReadLock(() -> {
-            returnValue.set(hiHi);
+        return withReadLock(() -> {
+            return hiHi;
         });
-        return returnValue.get();
     }
 
     public void setHiHi(double hiHi) {
@@ -760,31 +749,29 @@ public class RTLinearMeter extends ImageView
     }
 
     private WARNING determineWarning() {
-        AtomicReference<WARNING> returnValue = new AtomicReference<>();
-        withReadLock(() -> {
+        return withReadLock(() -> {
             if (!showWarnings) {
-                returnValue.set(WARNING.NONE);
+                return WARNING.NONE;
             }
             else if (lag) {
-                returnValue.set(WARNING.LAG);
+                return WARNING.LAG;
             }
             else if (showUnits && units.equals("")) {
-                returnValue.set(WARNING.NO_UNIT);
+                return WARNING.NO_UNIT;
             }
             else if (!validRange) {
-                returnValue.set(WARNING.MIN_AND_MAX_NOT_DEFINED);
+                return WARNING.MIN_AND_MAX_NOT_DEFINED;
             }
             else if (currentValue < linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
-                returnValue.set(WARNING.VALUE_LESS_THAN_MIN);
+                return WARNING.VALUE_LESS_THAN_MIN;
             }
             else if (currentValue > linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
-                returnValue.set(WARNING.VALUE_GREATER_THAN_MAX);
+                return WARNING.VALUE_GREATER_THAN_MAX;
             }
             else {
-                returnValue.set(WARNING.NONE);
+                return WARNING.NONE;
             }
         });
-        return returnValue.get();
     }
 
     /** @param visible Whether the scale must be displayed or not. */
