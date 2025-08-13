@@ -576,7 +576,7 @@ public class RTLinearMeter extends ImageView
     }
 
     private void redraw() {
-        withReadLock(() -> {
+        withWriteLock(() -> {
             updateMeterBackground();
             redrawIndicator(currentValue, determineWarning());
         });
@@ -786,7 +786,7 @@ public class RTLinearMeter extends ImageView
     /** Request a complete redraw with new layout */
     private void requestLayout()
     {
-        withReadLock(() -> {
+        withWriteLock(() -> {
             updateMeterBackground();
             redrawIndicator(currentValue, determineWarning());
         });
@@ -817,7 +817,7 @@ public class RTLinearMeter extends ImageView
      */
     private void updateMeterBackground()
     {
-        withReadLock(() -> {
+        withWriteLock(() -> {
             int width = linearMeterScale.getBounds().width;
             int height = linearMeterScale.getBounds().height;
 
