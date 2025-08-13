@@ -115,22 +115,20 @@ public class LinearMeterWidget extends PVWidget
 
 
     enum LimitsFromPV {
-        LimitsFromPV("true"),
-        Limits("false");
+        LimitsFromPV("All limits from PV"),
+        MinAndMaxFromPV("Min & max from PV"),
+        AlarmLimitsFromPV("Alarm limits from PV"),
+        NoLimitsFromPV("No limits from PV");
 
-        private final String name;
+        private final String displayName;
 
-        private LimitsFromPV(String name) {
-            this.name = name;
+        private LimitsFromPV(String displayName) {
+            this.displayName = displayName;
         };
-
-        public String getName() {
-            return this.name;
-        }
 
         @Override
         public String toString() {
-            return this.name;
+            return this.displayName;
         }
     }
 
@@ -138,7 +136,24 @@ public class LinearMeterWidget extends PVWidget
             new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "limits_from_pv", Messages.WidgetProperties_LimitsFromPV) {
                 @Override
                 public EnumWidgetProperty<LimitsFromPV> createProperty(final Widget widget, LimitsFromPV default_value) {
-                    return new EnumWidgetProperty<>(this, widget, LimitsFromPV.LimitsFromPV);
+                    EnumWidgetProperty widgetProperty = new EnumWidgetProperty<>(this, widget, LimitsFromPV.LimitsFromPV) {
+                        @Override
+                        public void setSpecification(final String specification) {
+                            // Backwards compatibility to previous version of the Linear Meter, where
+                            // propLimitsFromPV was a boolean:
+                            if (specification.equals("true")) {
+                                super.setSpecification(LimitsFromPV.LimitsFromPV.ordinal() + "");
+                            }
+                            else if (specification.equals("false")) {
+                                super.setSpecification(LimitsFromPV.NoLimitsFromPV.ordinal() + "");
+                            }
+                            else {
+                                // If not a boolean, set according to enum LimitsFromPV:
+                                super.setSpecification(specification);
+                            }
+                        }
+                    };
+                    return widgetProperty;
                 }
             };
 
