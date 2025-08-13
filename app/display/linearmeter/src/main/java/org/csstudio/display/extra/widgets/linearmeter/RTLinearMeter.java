@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import javafx.application.Platform;
@@ -141,6 +142,14 @@ public class RTLinearMeter extends ImageView
         readWriteLock.readLock().lock();
         try {
             runnable.run();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+    private <T> T withReadLock(Supplier<T> supplier) {
+        readWriteLock.readLock().lock();
+        try {
+            return supplier.get();
         } finally {
             readWriteLock.readLock().unlock();
         }
@@ -708,11 +717,23 @@ public class RTLinearMeter extends ImageView
         });
     }
 
+    private int computeIndicatorPosition(double value) {
+        return withReadLock(() -> {
+            if (linearMeterScale.isHorizontal()) {
+                return (int) (marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+            }
+            else {
+                return (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+            }
+        });
+    }
+
     private void drawNewValue(double newValue) {
         withWriteLock(() -> {
             WARNING oldWarning = determineWarning();
             AtomicReference<Double> newValueAtomicReference = new AtomicReference<>(newValue); // Workaround, since captured variables need to be effectively final in Java.
             double oldValue = currentValue.get();
+            double oldIndicatorPosition = computeIndicatorPosition(oldValue);
             currentValue.set(newValueAtomicReference.get());
 
             if (newValueAtomicReference.get() > linearMeterScale.getValueRange().getHigh() && newValueAtomicReference.get() <= linearMeterScale.getValueRange().getHigh() + minMaxTolerance.get()) {
@@ -727,14 +748,8 @@ public class RTLinearMeter extends ImageView
 
             if (oldValue != newValueAtomicReference.get()) {
                 if (!Double.isNaN(newValueAtomicReference.get())){
-                    int newIndicatorPosition;
-                    if (linearMeterScale.isHorizontal()) {
-                        newIndicatorPosition = (int) (marginLeft + pixelsPerScaleUnit * (newValueAtomicReference.get() - linearMeterScale.getValueRange().getLow()));
-                    }
-                    else {
-                        newIndicatorPosition = (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (newValueAtomicReference.get() - linearMeterScale.getValueRange().getLow()));
-                    }
-                    if (currentIndicatorPosition == null || currentIndicatorPosition != newIndicatorPosition || determineWarning() != newWarning) {
+                    int newIndicatorPosition = computeIndicatorPosition(newValue);
+                    if (newIndicatorPosition != oldIndicatorPosition || determineWarning() != newWarning) {
                         redrawIndicator(newValueAtomicReference.get(), newWarning);
                     }
                 }
@@ -900,12 +915,11 @@ public class RTLinearMeter extends ImageView
         return gradientPaint;
     }
 
-    Integer currentIndicatorPosition;
     /** Draw needle and label for current value */
     private void drawValue(Graphics2D gc, double value) {
         withReadLock(() -> {
             if (Double.isNaN(value)) {
-                currentIndicatorPosition = null;
+                return;
             }
             else {
                 Stroke oldStroke = gc.getStroke();
@@ -940,7 +954,7 @@ public class RTLinearMeter extends ImageView
                 if (linearMeterScale.isHorizontal()) {
                     if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
 
-                        currentIndicatorPosition = (int) (marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+                        int currentIndicatorPosition = computeIndicatorPosition(value);
 
                         if (knobSize.get() > 0) {
                             int[] XVal = { currentIndicatorPosition - (int) Math.round((1.0 * knobSize.get()) / 4.0),
@@ -970,12 +984,12 @@ public class RTLinearMeter extends ImageView
                 } else {
                     if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
 
-                        currentIndicatorPosition = (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+                        int currentIndicatorPosition = computeIndicatorPosition(value);
 
                         if (knobSize.get() > 0) {
                             int[] YVal = { currentIndicatorPosition + (int) Math.round((1.0 * knobSize.get() / 4.0)),
-                                    currentIndicatorPosition - (int) Math.round((1.0 * knobSize.get() / 4.0)),
-                                    currentIndicatorPosition };
+                                           currentIndicatorPosition - (int) Math.round((1.0 * knobSize.get() / 4.0)),
+                                           currentIndicatorPosition };
 
                             int[] XVal = { 0, 0, marginLeft - 2 };
 
@@ -1008,7 +1022,7 @@ public class RTLinearMeter extends ImageView
     private void drawBar(Graphics2D gc, double value) {
         withReadLock(() -> {
             if (Double.isNaN(value)) {
-                currentIndicatorPosition = null;
+                return;
             }
             else {
                 Stroke oldStroke = gc.getStroke();
@@ -1062,7 +1076,7 @@ public class RTLinearMeter extends ImageView
                         else {
                             gc.setPaint(needleColor.get());
                         }
-                        currentIndicatorPosition = (int) (marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+                        int currentIndicatorPosition = computeIndicatorPosition(value);
                         gc.fillRect(marginLeft+1, marginAbove+1, (int) currentIndicatorPosition, meterBreadth-1);
                     }
                 } else {
@@ -1087,7 +1101,7 @@ public class RTLinearMeter extends ImageView
                         else {
                             gc.setPaint(needleColor.get());
                         }
-                        currentIndicatorPosition = (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+                        int currentIndicatorPosition = computeIndicatorPosition(value);
                         gc.fillRect(marginLeft+1, currentIndicatorPosition+1, (int) meterBreadth-1, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow-1);
                     }
                 }
