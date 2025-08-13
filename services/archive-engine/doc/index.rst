@@ -120,6 +120,19 @@ To test access, try this from any user account on the same host::
     SELECT * FROM channel;
     \q
 
+Example for python access::
+
+    pip install psycopg
+
+    python3
+
+    import psycopg
+    with psycopg.connect("host=127.0.0.1 user=report password=$report dbname=archive") as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT channel_id, name FROM channel")
+            for row in cur:
+                print("#%5d - %s" % (row[0], row[1]))
+
 
 View Archive Data
 -----------------
