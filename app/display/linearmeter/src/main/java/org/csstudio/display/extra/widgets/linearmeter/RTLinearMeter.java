@@ -179,15 +179,24 @@ public class RTLinearMeter extends ImageView
     }
 
     private enum WARNING {
-        NONE,
-        VALUE_LESS_THAN_MIN,
-        VALUE_GREATER_THAN_MAX,
-        MIN_AND_MAX_NOT_DEFINED,
-        LAG,
-        NO_UNIT
-    }
+        NONE(""),
+        VALUE_LESS_THAN_MIN("VALUE < MIN"),
+        VALUE_GREATER_THAN_MAX("VALUE > MAX"),
+        MIN_AND_MAX_NOT_DEFINED("NO UNIT DEFINED"),
+        LAG("MIN AND MAX ARE NOT SET"),
+        NO_UNIT("LAG");
 
-    private AtomicReference<WARNING> currentWarning = new AtomicReference<WARNING>(WARNING.NONE);
+        private final String displayName;
+
+        private WARNING(String displayName) {
+            this.displayName = displayName;
+        };
+
+        @Override
+        public String toString() {
+            return this.displayName;
+        }
+    }
 
     /** Colors */
     private AtomicReference<Color> foreground = new AtomicReference<>(Color.BLACK);
@@ -454,10 +463,17 @@ public class RTLinearMeter extends ImageView
         });
     }
 
+    private void logNewWarningIfDifferent(WARNING oldWarning, WARNING newWarning) {
+        if (oldWarning != newWarning) {
+            logger.log(Level.WARNING, newWarning.toString() + " on Linear Meter!");
+        }
+    }
     public void setShowLimits(boolean newValue) {
         withWriteLock(() -> {
+            WARNING oldWarning = determineWarning();
             showLimits.set(newValue);
-            determineWarning();
+            WARNING newWarning = determineWarning();
+            logNewWarningIfDifferent(oldWarning, newWarning);
             redraw();
         });
     }
@@ -472,9 +488,11 @@ public class RTLinearMeter extends ImageView
 
     public void setMinMaxTolerance(double minMaxTolerance) {
         withWriteLock(() -> {
+            WARNING oldWarning = determineWarning();
             this.minMaxTolerance.set(minMaxTolerance);
-            determineWarning();
-            redrawIndicator(currentValue.get(), currentWarning.get());
+            WARNING newWarning = determineWarning();
+            logNewWarningIfDifferent(oldWarning, newWarning);
+            redrawIndicator(currentValue.get(), newWarning);
         });
     }
 
@@ -563,7 +581,7 @@ public class RTLinearMeter extends ImageView
     private void redraw() {
         withReadLock(() -> {
             updateMeterBackground();
-            redrawIndicator(currentValue.get(), currentWarning.get());
+            redrawIndicator(currentValue.get(), determineWarning());
         });
     }
     private AtomicReference<Optional<ImmutableTriple<BufferedImage, Pair<BufferedImage, WritableImage>, Pair<Integer, Integer>>>> meterBackgroundCombinedBufferedImageAndAWTJFXConvertBufferAtomicReference = new AtomicReference<>(Optional.empty());
@@ -603,7 +621,9 @@ public class RTLinearMeter extends ImageView
                 throw new RuntimeException("Unhandled case");
             }
 
-            drawWarning(gc, warning);
+            if (warning != WARNING.NONE) {
+                drawWarningText(gc, warning.toString());
+            }
             if (showUnits.get()) {
                 drawUnit(gc);
             }
@@ -690,6 +710,7 @@ public class RTLinearMeter extends ImageView
 
     private void drawNewValue(double newValue) {
         withWriteLock(() -> {
+            WARNING oldWarning = determineWarning();
             AtomicReference<Double> newValueAtomicReference = new AtomicReference<>(newValue); // Workaround, since captured variables need to be effectively final in Java.
             double oldValue = currentValue.get();
             currentValue.set(newValueAtomicReference.get());
@@ -701,6 +722,9 @@ public class RTLinearMeter extends ImageView
                 newValueAtomicReference.set(linearMeterScale.getValueRange().getLow());
             }
 
+            WARNING newWarning = determineWarning();
+            logNewWarningIfDifferent(oldWarning, newWarning);
+
             if (oldValue != newValueAtomicReference.get()) {
                 if (!Double.isNaN(newValueAtomicReference.get())){
                     int newIndicatorPosition;
@@ -710,13 +734,12 @@ public class RTLinearMeter extends ImageView
                     else {
                         newIndicatorPosition = (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (newValueAtomicReference.get() - linearMeterScale.getValueRange().getLow()));
                     }
-                    WARNING newWarning = determineWarning();
-                    if (currentIndicatorPosition == null || currentIndicatorPosition != newIndicatorPosition || currentWarning.get() != newWarning) {
+                    if (currentIndicatorPosition == null || currentIndicatorPosition != newIndicatorPosition || determineWarning() != newWarning) {
                         redrawIndicator(newValueAtomicReference.get(), newWarning);
                     }
                 }
                 else if (!Double.isNaN(oldValue)) {
-                    redrawIndicator(newValueAtomicReference.get(), determineWarning());
+                    redrawIndicator(newValueAtomicReference.get(), newWarning);
                 }
             }
         });
@@ -750,36 +773,6 @@ public class RTLinearMeter extends ImageView
         return returnValue.get();
     }
 
-    private void drawWarning(Graphics2D gc, WARNING warning) {
-        if (warning != WARNING.NONE) {
-            String warningText = "";
-            if (warning == WARNING.VALUE_LESS_THAN_MIN) {
-                warningText = "VALUE < MIN";
-
-            }
-            else if (warning == WARNING.VALUE_GREATER_THAN_MAX) {
-                warningText = "VALUE > MAX";
-
-            }
-            else if (warning == WARNING.NO_UNIT) {
-                warningText = "NO UNIT DEFINED";
-            }
-            else if (warning == WARNING.MIN_AND_MAX_NOT_DEFINED) {
-                warningText = "MIN AND MAX ARE NOT SET";
-
-            }
-            else if (warning == WARNING.LAG) {
-                warningText = "LAG";
-            }
-
-            drawWarningText(gc, warningText);
-            if (currentWarning.get() != warning) {
-                logger.log(Level.WARNING, warningText + " on Linear Meter!");
-            }
-        }
-        currentWarning.set(warning);
-    }
-
     /** @param visible Whether the scale must be displayed or not. */
     public void setScaleVisible (boolean visible)
     {
@@ -794,7 +787,7 @@ public class RTLinearMeter extends ImageView
     {
         withReadLock(() -> {
             updateMeterBackground();
-            redrawIndicator(currentValue.get(), currentWarning.get());
+            redrawIndicator(currentValue.get(), determineWarning());
         });
     }
 
@@ -1119,7 +1112,7 @@ public class RTLinearMeter extends ImageView
             linearMeterScale.setHorizontal(horizontal);
             redrawLinearMeterScale();
             updateMeterBackground();
-            redrawIndicator(currentValue.get(), currentWarning.get());
+            redrawIndicator(currentValue.get(), determineWarning());
         });
     }
 
