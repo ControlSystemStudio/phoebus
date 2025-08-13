@@ -96,8 +96,14 @@ public class SaveAndRestoreInstance implements AppInstance {
         } else {
             CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
             Platform.runLater(() -> {
-                boolean okToClose = saveAndRestoreController.doCloseCheck();
-                completableFuture.complete(okToClose);
+                try {
+                    boolean okToClose = saveAndRestoreController.doCloseCheck();
+                    completableFuture.complete(okToClose);
+                } catch (Exception e) {
+                    Logger.getLogger(SaveAndRestoreInstance.class.getName()).log(Level.SEVERE,
+                        "Got exception when checking if OK to close", e);
+                    completableFuture.complete(true);
+                }
             });
             try {
                 return completableFuture.get();

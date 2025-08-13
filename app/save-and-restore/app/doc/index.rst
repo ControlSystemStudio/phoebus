@@ -340,8 +340,8 @@ Restore from context menu
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 User may invoke a restore operation (from client or from service) from context menu items in the tree
-view or in the search-and-filer view. In this case user will not have the possibility to deselect specific PVs.
-Filtering/exclusion based on PV name will also not be possible.
+view or in the search-and-filter view. In this case user will not have the possibility to deselect specific PVs.
+Filtering/exclusion based on PV name will not be possible either.
 However, PV items configured as read-only will always be excluded from a restore operation.
 
 Restore result
