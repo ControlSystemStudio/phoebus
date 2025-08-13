@@ -544,34 +544,40 @@ public class LogEntryEditorController {
 
     }
 
+    /**
+     * Sets up the context menu for the {@link TextArea}. While a {@link TextArea} comes with a default
+     * context menu containing the standard items (copy, paste...), the ability to access this context
+     * menu is not possible since Java9, see <a href="https://stackoverflow.com/questions/71053358/javafx-17-custom-textarea-textfield-right-click-menu">this post</a>.
+     * Any customization means the whole context menu must be built from scratch.
+     */
     private void setupTextAreaContextMenu() {
         // Create the context menu with default items
         ContextMenu contextMenu = new ContextMenu();
 
         // Standard text editing items
-        MenuItem undo = new MenuItem("Undo");
+        MenuItem undo = new MenuItem(Messages.TextAreaContextMenuUndo);
         undo.setOnAction(e -> textArea.undo());
 
-        MenuItem redo = new MenuItem("Redo");
+        MenuItem redo = new MenuItem(Messages.TextAreaContextMenuRedo);
         redo.setOnAction(e -> textArea.redo());
 
-        MenuItem cut = new MenuItem("Cut");
+        MenuItem cut = new MenuItem(Messages.TextAreaContextMenuCut);
         cut.setOnAction(e -> textArea.cut());
 
-        MenuItem copy = new MenuItem("Copy");
+        MenuItem copy = new MenuItem(Messages.TextAreaContextMenuCopy);
         copy.setOnAction(e -> textArea.copy());
 
-        MenuItem paste = new MenuItem("Paste");
+        MenuItem paste = new MenuItem(Messages.TextAreaContextMenuPaste);
         paste.setOnAction(e -> textArea.paste());
 
-        MenuItem delete = new MenuItem("Delete");
+        MenuItem delete = new MenuItem(Messages.TextAreaContextMenuDelete);
         delete.setOnAction(e -> textArea.replaceSelection(""));
 
-        MenuItem selectAll = new MenuItem("Select All");
+        MenuItem selectAll = new MenuItem(Messages.TextAreaContextMenuSelectAll);
         selectAll.setOnAction(e -> textArea.selectAll());
 
         // Our custom menu item
-        MenuItem pasteUrlItem = new MenuItem("Paste URL as Markdown");
+        MenuItem pasteUrlItem = new MenuItem(Messages.TextAreaContextMenuPasteURLAsMarkdown);
         pasteUrlItem.setOnAction(event -> handleSmartPaste());
         pasteUrlItem.setAccelerator(new KeyCodeCombination(KeyCode.V,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
@@ -597,7 +603,10 @@ public class LogEntryEditorController {
         cut.disableProperty().bind(textArea.selectedTextProperty().isEmpty());
         copy.disableProperty().bind(textArea.selectedTextProperty().isEmpty());
         delete.disableProperty().bind(textArea.selectedTextProperty().isEmpty());
-
+        contextMenu.setOnShowing(e -> {
+            String clipboardContent = Clipboard.getSystemClipboard().getString();
+            pasteUrlItem.setDisable(clipboardContent == null || !clipboardContent.toLowerCase().startsWith("http"));
+        });
         // Set the context menu on the text area
         textArea.setContextMenu(contextMenu);
     }
@@ -646,6 +655,7 @@ public class LogEntryEditorController {
             // Not a URL - do nothing
         }
     }
+
     private String extractOlogUrl(String text) {
         String rootUrl = LogbookUIPreferences.web_client_root_URL;
         if (rootUrl == null || rootUrl.isEmpty()) {
@@ -957,7 +967,7 @@ public class LogEntryEditorController {
                defaultLevel = optionalLevel.get().name();
             }
             selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : defaultLevel);
-            levelSelector.getSelectionModel().select(selectedLevelProperty.get());
+            Platform.runLater(() -> levelSelector.getSelectionModel().select(selectedLevelProperty.get()));
         });
     }
 
