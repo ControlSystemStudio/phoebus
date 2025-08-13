@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.epics.pva.server;
 import static org.epics.pva.PVASettings.logger;
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.ForkJoinPool;
@@ -161,6 +162,26 @@ public class PVAServer implements AutoCloseable
         return pv_by_sid.get(sid);
     }
 
+
+    /** Info about a client to the PVA server:
+     *  Network address and authentication info
+     */
+    public static record ClientInfo(InetSocketAddress address,
+                                    ServerAuth authentication)
+    {
+    }
+
+    /** Get information about clients to this PVA server
+     *  @return {@link ClientInfo}s
+     */
+    public Collection<ClientInfo> getClientInfos()
+    {
+        return tcp_handlers.stream()
+                           .map(tcp -> new ClientInfo(tcp.getRemoteAddress(),
+                                                      tcp.getAuth()))
+                           .toList();
+    }
+
     /** Special address used in TCP search reply to indicate "Use this TCP connection" */
     private static final InetSocketAddress USE_THIS_TCP_CONNECTION = new InetSocketAddress(0);
 
@@ -184,14 +205,22 @@ public class PVAServer implements AutoCloseable
         if (tls_requested  &&  !tls)
                 logger.log(Level.WARNING, "PVA Client " + client + " searches for '" + name + "' with TLS, but EPICS_PVAS_TLS_KEYCHAIN is not configured");
 
+        // Send search reply from either custom_search_handler or later in here
         final Consumer<InetSocketAddress> send_search_reply = server_address ->
         {
+            // Use 'server_address', or fall back to what we would normally use
+            final InetSocketAddress address;
+            if (server_address != null)
+                address = server_address;
+            else if (tcp_connection != null)
+                address = USE_THIS_TCP_CONNECTION;
+            else
+                address = getTCPAddress(tls);
             // If received via TCP, reply via same connection.
             if (tcp_connection != null)
-                tcp_connection.submitSearchReply(guid, seq, cid, server_address, tls);
-            else
-                // Otherwise reply via UDP to the given address.
-                POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, server_address, tls, client));
+                tcp_connection.submitSearchReply(guid, seq, cid, address, tls);
+            else // Otherwise reply via UDP to the given address.
+                POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, address, tls, client));
         };
 
         // Does custom handler consume the search request?
@@ -208,20 +237,12 @@ public class PVAServer implements AutoCloseable
             return true;
         }
         else
-        {
-            // Known channel?
+        {   // Known channel?
             final ServerPV pv = getPV(name);
             if (pv != null)
-            {
-                // Reply with TCP connection info
+            {   // Reply with TCP connection info
                 logger.log(Level.FINE, () -> "Received Search for known PV " + pv);
-
-                // If received via TCP, ask client to continue on same connection.
-                // Otherwise provide the TCP address for the UDP request.
-                if (tcp_connection != null)
-                    send_search_reply.accept(USE_THIS_TCP_CONNECTION);
-                else
-                    send_search_reply.accept(getTCPAddress(tls));
+                send_search_reply.accept(null);
                 return true;
             }
             else

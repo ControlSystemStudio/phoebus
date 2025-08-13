@@ -27,6 +27,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -202,6 +203,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private final MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/compare.png"));
     private final MenuItem deleteNodeMenuItem = new MenuItem(Messages.contextMenuDelete, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
     private final MenuItem pasteMenuItem = new MenuItem(Messages.paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
+    private final ObservableValue<? extends ObservableList<Filter>> comboBoxItems = new SimpleObjectProperty<>(filtersList);
 
     private final BooleanProperty autoFilterActive = new SimpleBooleanProperty();
 
@@ -273,6 +275,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         filtersComboBox.disableProperty().bind(Bindings.createBooleanBinding(autoFilterActive::get, autoFilterActive));
         filtersComboBox.valueProperty().bindBidirectional(currentFilterProperty);
+        currentFilterProperty.addListener((obs, o, n) -> applyFilter(n));
 
         treeView.setEditable(true);
 
@@ -335,8 +338,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             }
         });
 
-        filtersComboBox.itemsProperty().bind(new SimpleObjectProperty<>(filtersList));
-
+        filtersComboBox.itemsProperty().bind(comboBoxItems);
 
         // Clear clipboard to make sure that only custom data format is
         // considered in paste actions.
@@ -1118,10 +1120,14 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * Applies a {@link Filter} selected by user. The service will be queries for {@link Node}s matching
      * the {@link Filter}, then the {@link TreeView} is updated based on the search result.
      *
-     * @param filter {@link Filter} selected by user.
+     * @param filter {@link Filter} selected by user or through business logic. If <code>null</code>, then the
+     *                             <code>no filter</code> {@link Filter} is applied.
      */
     private void applyFilter(Filter filter) {
         treeView.getSelectionModel().clearSelection();
+        if(filter == null){
+            return;
+        }
         Map<String, String> searchParams =
                 SearchQueryUtil.parseHumanReadableQueryString(filter.getQueryString());
         // In this case we want to hit all matching, i.e. no pagination.
@@ -1164,9 +1170,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             final int index = filtersList.indexOf(filter);
             filtersList.set(index, filter);
             filtersComboBox.valueProperty().set(filter);
-            // If this is the active filter, update the tree view
+            // If this is the current filter, update the tree view
             if (filter.equals(filtersComboBox.getSelectionModel().getSelectedItem())) {
-                applyFilter(filter);
+               currentFilterProperty.set(filter);
             }
         }
     }
@@ -1186,8 +1192,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             Filter filterToRemove = new Filter();
             filterToRemove.setName(name);
             Platform.runLater(() -> {
+                if (filterToRemove.equals(filtersComboBox.getSelectionModel().getSelectedItem())) {
+                    currentFilterProperty.set(null);
+                }
                 filtersList.remove(filterToRemove);
-                currentFilterProperty.set(null);
             });
         }
     }

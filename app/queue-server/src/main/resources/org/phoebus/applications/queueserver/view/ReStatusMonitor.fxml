@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox minHeight="130.0" prefHeight="130.0" spacing="2.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.queueserver.controller.ReStatusMonitorController">
+   <children>
+      <Label text="RE Manager Status" />
+      <GridPane hgap="8.0" style="-fx-border-color: #d9d9d9; -fx-border-radius: 2; -fx-border-width: 2; -fx-background-color: #f8f8f8;" VBox.vgrow="ALWAYS">
+         <columnConstraints>
+            <ColumnConstraints minWidth="10.0" />
+            <ColumnConstraints minWidth="10.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
+         </rowConstraints>
+         <children>
+            <Label fx:id="envLabel" maxWidth="1.7976931348623157E308" text="RE Environment: -" />
+            <Label fx:id="managerLabel" maxWidth="1.7976931348623157E308" text="Manager state: -" GridPane.rowIndex="1" />
+            <Label fx:id="reLabel" maxWidth="1.7976931348623157E308" text="RE state: -" GridPane.rowIndex="2" />
+            <Label fx:id="histLabel" maxWidth="1.7976931348623157E308" text="Items in history: -" GridPane.rowIndex="3" />
+            <Label fx:id="autoLabel" maxWidth="1.7976931348623157E308" text="Queue AUTOSTART: -" GridPane.columnIndex="1" />
+            <Label fx:id="stopLabel" maxWidth="1.7976931348623157E308" text="Queue STOP pending: -" GridPane.columnIndex="1" GridPane.rowIndex="1">
+               <GridPane.margin>
+                  <Insets />
+               </GridPane.margin>
+            </Label>
+            <Label fx:id="loopLabel" maxWidth="1.7976931348623157E308" text="Queue LOOP mode: -" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label fx:id="queueLabel" maxWidth="1.7976931348623157E308" text="Items in queue: -" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+         </children>
+         <VBox.margin>
+            <Insets />
+         </VBox.margin>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </GridPane>
+   </children>
+</VBox>

@@ -307,17 +307,6 @@ public class EmbeddedDisplayWidget extends MacroWidget
         return super.getProperty(name);
     }
 
-    @Override
-    public Macros getEffectiveMacros()
-    {
-        final Macros macros = new Macros(super.getEffectiveMacros());
-
-        // Legacy "Linking Container" defined a "Linking Container ID" macro.
-        macros.add("LCID", getID());
-
-        return macros;
-    }
-
     /** @return 'file' property */
     public WidgetProperty<String> propFile()
     {

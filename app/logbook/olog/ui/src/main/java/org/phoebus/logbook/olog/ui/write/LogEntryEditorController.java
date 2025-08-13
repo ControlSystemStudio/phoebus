@@ -27,6 +27,8 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableStringValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -219,7 +221,7 @@ public class LogEntryEditorController {
     private final ObservableList<String> availableLevels = FXCollections.observableArrayList();
     private final SimpleStringProperty titleProperty = new SimpleStringProperty();
     private final SimpleStringProperty descriptionProperty = new SimpleStringProperty();
-    private final SimpleStringProperty selectedLevelProperty = new SimpleStringProperty();
+    private final StringProperty selectedLevelProperty = new SimpleStringProperty();
     private final SimpleStringProperty usernameProperty = new SimpleStringProperty();
     private final SimpleStringProperty passwordProperty = new SimpleStringProperty();
 
@@ -963,7 +965,7 @@ public class LogEntryEditorController {
             Optional<LogEntryLevel> optionalLevel = levels.stream().filter(LogEntryLevel::defaultLevel).findFirst();
             String defaultLevel = null;
             if(optionalLevel.isPresent()){
-                // One level value should be the default level
+                // One level value *should* be the default level
                defaultLevel = optionalLevel.get().name();
             }
             selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : defaultLevel);

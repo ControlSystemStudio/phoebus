@@ -3,34 +3,35 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-channel</artifactId>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.0.3-SNAPSHOT</version>
   </parent>
   <artifactId>app-channel-utility</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-channel-channelfinder</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

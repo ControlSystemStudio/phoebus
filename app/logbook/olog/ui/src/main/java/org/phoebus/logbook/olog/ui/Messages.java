@@ -67,6 +67,7 @@ public class Messages
             TextAreaContextMenuRedo,
             TextAreaContextMenuSelectAll,
             TextAreaContextMenuUndo,
+            UnsupportedFileType,
             UpdateLogEntry;
 
     static

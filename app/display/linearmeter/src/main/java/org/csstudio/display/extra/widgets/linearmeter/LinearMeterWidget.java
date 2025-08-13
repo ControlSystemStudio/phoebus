@@ -103,6 +103,9 @@ public class LinearMeterWidget extends PVWidget
     public static WidgetPropertyDescriptor<Boolean> propShowLimits =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_limits", Messages.WidgetProperties_ShowLimits);
 
+    public static WidgetPropertyDescriptor<Boolean> propShowWarnings =
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_warnings", Messages.WidgetProperties_ShowWarnings);
+
     public static WidgetPropertyDescriptor<Boolean> propDisplayHorizontal =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "displayHorizontal", Messages.WidgetProperties_Horizontal);
 
@@ -162,6 +165,7 @@ public class LinearMeterWidget extends PVWidget
     private WidgetProperty<FormatOption> format;
     private WidgetProperty<Boolean> show_units;
     private WidgetProperty<Boolean> show_limits;
+    private WidgetProperty<Boolean> show_warnings;
     private WidgetProperty<WidgetColor> needle_color;
     private WidgetProperty<Boolean> scale_visible;
     private WidgetProperty<WidgetColor> knob_color;
@@ -206,6 +210,7 @@ public class LinearMeterWidget extends PVWidget
         properties.add(show_units = propShowUnits.createProperty(this, true));
         properties.add(scale_visible = propScaleVisible.createProperty(this, true));
         properties.add(show_limits = propShowLimits.createProperty(this, true));
+        properties.add(show_warnings = propShowWarnings.createProperty(this, true));
         properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
@@ -279,6 +284,12 @@ public class LinearMeterWidget extends PVWidget
     public WidgetProperty<Boolean> propShowLimits()
     {
         return show_limits;
+    }
+
+    /** @return 'show_warnings' property */
+    public WidgetProperty<Boolean> propShowWarnings()
+    {
+        return show_warnings;
     }
 
     /** @return 'needle_color' property */

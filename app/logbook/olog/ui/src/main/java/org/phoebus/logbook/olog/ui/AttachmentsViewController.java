@@ -213,7 +213,7 @@ public class AttachmentsViewController {
      */
     private void showImageAttachment() {
         URI uri = selectedAttachment.get().getFile().toURI();
-        URI withWatermark = URI.create(uri + "?watermark=true");
+        URI withWatermark = URI.create(uri + "?watermark=" + LogbookUIPreferences.show_log_watermark);
         ApplicationLauncherService.openResource(withWatermark,
                 false, null);
     }

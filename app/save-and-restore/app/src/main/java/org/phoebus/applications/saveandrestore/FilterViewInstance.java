@@ -18,7 +18,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,12 +48,11 @@ public class FilterViewInstance implements AppInstance {
         }
 
         searchResultTableViewController = loader.getController();
-        dockItem.addCloseCheck(() -> {
-            INSTANCE = null;
-            return CompletableFuture.completedFuture(true);
-        });
 
-        dockItem.setOnCloseRequest(e -> searchResultTableViewController.handleTabClosed());
+        dockItem.setOnCloseRequest(e -> {
+            searchResultTableViewController.handleTabClosed();
+            INSTANCE = null;
+        });
 
         DockPane.getActiveDockPane().addTab(dockItem);
     }

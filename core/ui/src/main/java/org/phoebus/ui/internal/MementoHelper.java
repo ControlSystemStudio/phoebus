@@ -299,7 +299,27 @@ public class MementoHelper
     {
         DockPane.setActiveDockPane(pane);
         final AppInstance instance;
-        if (app instanceof AppResourceDescriptor)
+        if (app.getName().equals("display_runtime")) {
+            String input = item_memento.getString(INPUT_URI).orElse(null);
+            if (input != null) {
+                URI inputURI = URI.create(input);
+                DockItemWithInput existing = DockStage.getDockItemWithInput("display_runtime", inputURI);
+
+                if (existing != null) {
+                    instance = existing.getApplication();
+                    existing.getDockPane().getTabs().remove(existing);
+                    pane.getTabs().add(existing);
+                    existing.select();
+                }
+                else {
+                    instance = ((AppResourceDescriptor) app).create(inputURI);
+                }
+            }
+            else {
+                instance = app.create();
+            }
+        }
+        else if (app instanceof AppResourceDescriptor)
         {
             final AppResourceDescriptor app_res = (AppResourceDescriptor) app;
             final String input = item_memento.getString(INPUT_URI).orElse(null);
