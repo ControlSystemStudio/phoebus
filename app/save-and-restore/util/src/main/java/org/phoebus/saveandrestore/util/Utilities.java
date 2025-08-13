@@ -663,11 +663,10 @@ public final class Utilities {
             int diff = b == null ? (c == null ? 0 : 1) : (c == null ? -1 : b.compareTo(c));
             return new VTypeComparison(str, diff, diff == 0);
         } else if (value instanceof VString && baseValue instanceof VString) {
-            String str = valueToString(value);
             String b = ((VString) value).getValue();
             String c = ((VString) baseValue).getValue();
             int diff = b == null ? (c == null ? 0 : 1) : (c == null ? -1 : b.compareTo(c));
-            return new VTypeComparison(str, diff, diff == 0);
+            return new VTypeComparison(b, diff,diff == 0, Math.abs(diff));
         } else if (value instanceof VNumberArray && baseValue instanceof VNumberArray) {
             String sb = valueToString(value);
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
@@ -873,11 +872,10 @@ public final class Utilities {
             int diff = b == null ? (c == null ? 0 : 1) : (c == null ? -1 : b.compareTo(c));
             return new VTypeComparison(str, diff, diff == 0);
         } else if (value instanceof VString && baseValue instanceof VString) {
-            String str = valueToString(value);
             String b = ((VString) value).getValue();
             String c = ((VString) baseValue).getValue();
             int diff = b == null ? (c == null ? 0 : 1) : (c == null ? -1 : b.compareTo(c));
-            return new VTypeComparison(str, diff, diff == 0);
+            return new VTypeComparison(b, diff, diff == 0, Math.abs(diff));
         } else if (value instanceof VNumberArray && baseValue instanceof VNumberArray) {
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
