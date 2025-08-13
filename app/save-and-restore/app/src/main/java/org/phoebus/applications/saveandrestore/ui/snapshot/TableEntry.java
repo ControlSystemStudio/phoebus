@@ -30,13 +30,13 @@ import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
+import org.phoebus.applications.saveandrestore.ui.VTypePair;
+import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.saveandrestore.util.Threshold;
 import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
-import org.phoebus.applications.saveandrestore.ui.VTypePair;
-import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -140,23 +140,20 @@ public class TableEntry {
         setReadbackValue(snapshotItem.getReadbackValue());
         if (snapshotItem.getValue() == null || snapshotItem.getValue().equals(VDisconnectedData.INSTANCE)) {
             setActionResult(ActionResult.FAILED);
-        }
-        else {
+        } else {
             setActionResult(ActionResult.OK);
         }
-        if (snapshotItem.getConfigPv().getReadbackPvName() != null){
-            if(snapshotItem.getReadbackValue() == null || snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
+        if (snapshotItem.getConfigPv().getReadbackPvName() != null) {
+            if (snapshotItem.getReadbackValue() == null || snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
                 setActionResultReadback(ActionResult.FAILED);
-            }
-            else{
+            } else {
                 setActionResultReadback(ActionResult.OK);
             }
         }
         this.configPv = snapshotItem.getConfigPv();
-        connect();
     }
 
-    public SnapshotItem getSnapshotItem(){
+    public SnapshotItem getSnapshotItem() {
         return snapshotItem;
     }
 
@@ -469,34 +466,40 @@ public class TableEntry {
         return snapshotVal;
     }
 
-    public ObjectProperty<ActionResult> actionResultProperty(){
+
+
+    @SuppressWarnings("unused")
+    public ObjectProperty<ActionResult> actionResultProperty() {
         return actionResult;
     }
 
-    public void setActionResult(ActionResult actionResult){
+    public void setActionResult(ActionResult actionResult) {
         this.actionResult.set(actionResult);
     }
 
-    public ObjectProperty<ActionResult> actionResultReadbackProperty(){
+    public ObjectProperty<ActionResult> actionResultReadbackProperty() {
         return actionResultReadback;
     }
 
-    public void setActionResultReadback(ActionResult actionResult){
+    public void setActionResultReadback(ActionResult actionResult) {
         this.actionResultReadback.set(actionResult);
     }
 
-    private void connect(){
+    /**
+     * Connects to PV and read-back PV (if defined).
+     */
+    public void connect() {
         try {
             pv = PVPool.getPV(pvNameProperty().get());
             pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
                     .subscribe(value -> setLiveValue(PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value));
-
-            if (readbackName.isNotNull().get() && !readbackName.get().isEmpty()) {
+            if(readbackName.isNotNull().get() && !readbackName.get().isEmpty()) {
                 readbackPv = PVPool.getPV(readbackName.get());
                 readbackPv.onValueEvent()
                         .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
                         .subscribe(value -> setReadbackValue(PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value));
-            } else {
+            }
+            else {
                 // If configuration does not define read-back PV, then UI should show "no data" rather than "disconnected"
                 setReadbackValue(VNoData.INSTANCE);
             }

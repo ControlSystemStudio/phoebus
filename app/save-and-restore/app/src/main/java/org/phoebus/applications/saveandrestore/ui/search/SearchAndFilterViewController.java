@@ -648,11 +648,13 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
         }
     }
 
-    public void filterActivated(String filterName){
-
+    @Override
+    public void handleTabClosed(){
+        webSocketClientService.removeWebSocketMessageHandler(this);
     }
 
-    public void filterDeactivated(String filterName){
-
+    @Override
+    public boolean doCloseCheck(){
+        return true;
     }
 }

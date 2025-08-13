@@ -832,33 +832,35 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     /**
-     * Handles clean-up when the associated {@link SnapshotTab} is closed.
      * A check is made if content is dirty, in which case user is prompted to cancel or close anyway.
      *
      * @return <code>true</code> if content is not dirty or user chooses to close anyway,
      * otherwise <code>false</code>.
      */
     @Override
-    public boolean handleTabClosed() {
+    public boolean doCloseCheck() {
         if (snapshotDataDirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle(Messages.closeTabPrompt);
-            alert.setContentText(Messages.promptCloseSnapshotTabContent);
-            DialogHelper.positionDialog(alert, borderPane, -150, -150);
+            alert.setTitle(Messages.closeSnapshotWarning);
+            alert.setContentText(Messages.closeSnapshotWarning);
+            DialogHelper.positionDialog(alert, borderPane, -200, -200);
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
-        } else {
-            webSocketClientService.removeWebSocketMessageHandler(this);
-            dispose();
-            return true;
         }
+        return true;
+    }
+
+    @Override
+    public void handleTabClosed(){
+        webSocketClientService.removeWebSocketMessageHandler(this);
+        dispose();
     }
 
     /**
      * Releases PV resources.
      */
     private void dispose() {
-        tableEntryItems.forEach(tableEntry -> tableEntry.dispose());
+        tableEntryItems.forEach(TableEntry::dispose);
     }
 
     private void showLoggingError(String cause) {
@@ -1115,9 +1117,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         for (SnapshotItem snapshotItem : snapshotItems) {
             if (snapshotItem.getValue().equals(VDisconnectedData.INSTANCE)) {
                 disconnectedPvEncountered.set(true);
-                Platform.runLater(() -> {
-                    actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
-                });
+                Platform.runLater(() ->
+                    actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png"))));
                 break;
             }
         }
@@ -1125,9 +1126,9 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             if (snapshotItem.getConfigPv().getReadbackPvName() != null && snapshotItem.getReadbackValue() != null &&
                     snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
                 disconnectedReadbackPvEncountered.set(true);
-                Platform.runLater(() -> {
-                    actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
-                });
+                Platform.runLater(() ->
+                    actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png"))));
+
                 break;
             }
         }
@@ -1214,7 +1215,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                                     .map(andItem -> Pattern.compile(andItem.trim()))
                                     .collect(Collectors.toList());
                         }
-                    }).collect(Collectors.toList());
+                    }).toList();
             List<TableEntry> filteredEntries = tableEntryItems.stream()
                     .filter(item -> {
                         boolean matchEither = false;
@@ -1392,6 +1393,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     tableEntry = new TableEntry(snpshotItem);
                     tableEntry.idProperty().setValue(tableEntryItems.size() + i + 1);
                     tableEntryItems.add(tableEntry);
+                    tableEntry.connect();
                 } else {
                     tableEntry = tableEntryOptional.get();
                 }
@@ -1452,7 +1454,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      */
     private void showSnapshotInTable() {
         AtomicInteger counter = new AtomicInteger(0);
-        tableEntryItems.forEach(tableEntry -> tableEntry.dispose());
+        tableEntryItems.forEach(TableEntry::dispose);
         tableEntryItems.clear();
         snapshot.getSnapshotData().getSnapshotItems().forEach(snapshotItem -> {
             TableEntry tableEntry = new TableEntry(snapshotItem);
@@ -1461,6 +1463,9 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             tableEntry.setStoredReadbackValue(snapshotItem.getReadbackValue(), 0);
             tableEntryItems.add(tableEntry);
         });
+
+        JobManager.schedule("Connect to PVs", monitor ->
+           tableEntryItems.forEach(TableEntry::connect));
 
         updateTable();
     }

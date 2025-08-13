@@ -34,7 +34,10 @@ public class Messages {
     public static String cannotCompareTitle;
     public static String closeConfigurationWarning;
     public static String closeCompositeSnapshotWarning;
-    public static String closeTabPrompt;
+    public static String closeSnapshotWarning;
+    public static String closeCompositeSnapshotTabPrompt;
+    public static String closeConfigurationTabPrompt;
+    public static String closeSnapshotTabPrompt;
     public static String compositeSnapshotConsistencyCheckFailed;
     public static String contextMenuAddTag;
     @Deprecated
@@ -120,7 +123,6 @@ public class Messages {
 
     public static String overwrite;
     public static String paste;
-    public static String promptCloseSnapshotTabContent;
     public static String promptDeleteSelectedTitle;
     public static String promptDeleteSelectedHeader;
     public static String promptDeleteSelectedContent;
