@@ -635,8 +635,10 @@ public class RTLinearMeter extends ImageView
 
                 // Convert to JFX image and show
                 runOnJavaFXThread(() -> {
-                    awtJFXConvertBuffer.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), dest, 0, width);
-                    setImage(awtJFXConvertBuffer);
+                    withWriteLock(() -> {
+                        awtJFXConvertBuffer.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), dest, 0, width);
+                        setImage(awtJFXConvertBuffer);
+                    });
                 });
 
                 logger.log(Level.FINE, "Redraw meter");
