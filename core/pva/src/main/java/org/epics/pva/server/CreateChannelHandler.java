@@ -55,6 +55,12 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
     {
         tcp.submit((version, buffer) ->
         {
+            // Send initial access rights with (before) the channel confirmation,
+            // so client knows permissions when channel is confirmed
+            final boolean writable = pv.isWritable();
+            logger.log(Level.FINE, () ->  "Send ACL " + pv + " [CID " + cid + "]" + (writable ? " writable" : " read-only"));
+            AccessRightsChange.encode(buffer, cid, writable);
+
             // Confirm channel creation
             logger.log(Level.FINE, () ->  "Confirm channel creation " + pv + " [CID " + cid + "]");
             PVAHeader.encodeMessageHeader(buffer,
@@ -67,14 +73,6 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
             buffer.putInt(pv.getSID());
             // status
             PVAStatus.StatusOK.encode(buffer);
-
-            // Send initial access rights with the channel confirmation.
-            // The client may have read the channel creation confirmation
-            // and send for example a Get-Init before it processes the access rights info,
-            // but at least it's in the TCP pipeline
-            final boolean writable = pv.isWritable();
-            logger.log(Level.FINE, () ->  "Send ACL " + pv + " [CID " + cid + "]" + (writable ? " writable" : " read-only"));
-            AccessRightsChange.encode(buffer, cid, writable);
         });
     }
 }
