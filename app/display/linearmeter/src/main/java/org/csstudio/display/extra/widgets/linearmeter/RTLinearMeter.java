@@ -581,57 +581,66 @@ public class RTLinearMeter extends ImageView
             redrawIndicator(currentValue, determineWarning());
         });
     }
-    private Optional<ImmutableTriple<BufferedImage, Pair<BufferedImage, WritableImage>, Pair<Integer, Integer>>> meterBackgroundCombinedBufferedImageAndAWTJFXConvertBufferAtomicReference = Optional.empty();
+
+    private record ImageBuffers(BufferedImage meterBackground,
+                                BufferedImage combinedBufferedImage,
+                                WritableImage awtJFXConvertBuffer,
+                                int width,
+                                int height) { }
+
+    private Optional<ImageBuffers> maybeImageBuffers = Optional.empty();
     /**
      * Redraw on UI thread by adding needle to 'meter_background'
      */
     private void redrawIndicator(double value, WARNING warning) {
         withReadLock(() -> {
-            var meterBackgroundCombinedBufferedImageAndAWTJFXConvertBuffer = meterBackgroundCombinedBufferedImageAndAWTJFXConvertBufferAtomicReference;
-            if (meterBackgroundCombinedBufferedImageAndAWTJFXConvertBuffer.isEmpty()) {
+            if (maybeImageBuffers.isEmpty()) {
                 return;
             }
-            BufferedImage meterBackground = meterBackgroundCombinedBufferedImageAndAWTJFXConvertBuffer.get().getLeft();
-            BufferedImage combined = meterBackgroundCombinedBufferedImageAndAWTJFXConvertBuffer.get().getMiddle().getKey();
-            var awtJFXConvertBuffer = meterBackgroundCombinedBufferedImageAndAWTJFXConvertBuffer.get().getMiddle().getValue();
-            int width = meterBackgroundCombinedBufferedImageAndAWTJFXConvertBuffer.get().getRight().getKey();
-            int height = meterBackgroundCombinedBufferedImageAndAWTJFXConvertBuffer.get().getRight().getValue();
-            if (meterBackground.getType() != BufferedImage.TYPE_INT_ARGB) {
-                throw new IllegalPathStateException("Need TYPE_INT_ARGB for direct buffer access, not " + meterBackground.getType());
-            }
-
-            int[] src = ((DataBufferInt) meterBackground.getRaster().getDataBuffer()).getData();
-            int[] dest = ((DataBufferInt) combined.getRaster().getDataBuffer()).getData();
-            System.arraycopy(src, 0, dest, 0, width * height);
-
-            // Add needle & label
-            Graphics2D gc = combined.createGraphics();
-
-            DisplayMode displayMode = this.displayMode;
-            if (displayMode.equals(DisplayMode.NEEDLE)) {
-                drawValue(gc, value);
-            }
-            else if (displayMode.equals(DisplayMode.BAR)) {
-                drawBar(gc, value);
-            }
             else {
-                throw new RuntimeException("Unhandled case");
-            }
+                ImageBuffers imageBuffers = maybeImageBuffers.get();
+                BufferedImage meterBackground = imageBuffers.meterBackground();
+                BufferedImage combined = imageBuffers.combinedBufferedImage();
+                WritableImage awtJFXConvertBuffer = imageBuffers.awtJFXConvertBuffer;
+                int width = imageBuffers.width();
+                int height = imageBuffers.height();
+                if (meterBackground.getType() != BufferedImage.TYPE_INT_ARGB) {
+                    throw new IllegalPathStateException("Need TYPE_INT_ARGB for direct buffer access, not " + meterBackground.getType());
+                }
 
-            if (warning != WARNING.NONE) {
-                drawWarningText(gc, warning.toString());
-            }
-            if (showUnits) {
-                drawUnit(gc);
-            }
+                int[] src = ((DataBufferInt) meterBackground.getRaster().getDataBuffer()).getData();
+                int[] dest = ((DataBufferInt) combined.getRaster().getDataBuffer()).getData();
+                System.arraycopy(src, 0, dest, 0, width * height);
 
-            // Convert to JFX image and show
-            runOnJavaFXThread(() -> {
-                awtJFXConvertBuffer.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), dest, 0, width);
-                setImage(awtJFXConvertBuffer);
-            });
+                // Add needle & label
+                Graphics2D gc = combined.createGraphics();
 
-            logger.log(Level.FINE, "Redraw meter");
+                DisplayMode displayMode = this.displayMode;
+                if (displayMode.equals(DisplayMode.NEEDLE)) {
+                    drawValue(gc, value);
+                }
+                else if (displayMode.equals(DisplayMode.BAR)) {
+                    drawBar(gc, value);
+                }
+                else {
+                    throw new RuntimeException("Unhandled case");
+                }
+
+                if (warning != WARNING.NONE) {
+                    drawWarningText(gc, warning.toString());
+                }
+                if (showUnits) {
+                    drawUnit(gc);
+                }
+
+                // Convert to JFX image and show
+                runOnJavaFXThread(() -> {
+                    awtJFXConvertBuffer.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), dest, 0, width);
+                    setImage(awtJFXConvertBuffer);
+                });
+
+                logger.log(Level.FINE, "Redraw meter");
+            }
         });
     }
 
@@ -845,9 +854,7 @@ public class RTLinearMeter extends ImageView
             {
                 BufferedImage combined = new BufferedImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, BufferedImage.TYPE_INT_ARGB);
                 WritableImage awtJFXConvertBuffer = new WritableImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height);
-                Pair<BufferedImage, WritableImage> imageBuffersForWriting = new Pair<>(combined, awtJFXConvertBuffer);
-                Pair<Integer, Integer> widthAndHeight = new Pair<>(width, height);
-                meterBackgroundCombinedBufferedImageAndAWTJFXConvertBufferAtomicReference = Optional.of(new ImmutableTriple<>(image, imageBuffersForWriting, widthAndHeight));
+                maybeImageBuffers = Optional.of(new ImageBuffers(image, combined, awtJFXConvertBuffer, width, height));
             }
         });
     }
@@ -1103,7 +1110,7 @@ public class RTLinearMeter extends ImageView
     {
         withWriteLock(() -> {
             // Release memory ASAP
-            meterBackgroundCombinedBufferedImageAndAWTJFXConvertBufferAtomicReference = Optional.empty();
+            maybeImageBuffers = Optional.empty();
         });
     }
 
