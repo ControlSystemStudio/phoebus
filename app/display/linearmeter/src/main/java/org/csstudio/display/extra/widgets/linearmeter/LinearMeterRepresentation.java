@@ -160,26 +160,26 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
 
         addWidgetPropertyListener(model_widget.propMinimum(), (property, old_value, new_value) -> {
 
-            synchronized (meter) {
+            meter.withWriteLock(() -> {
                 boolean validRange = Double.isFinite(new_value) && Double.isFinite(model_widget.propMaximum().getValue());
                 meter.setRange(new_value, model_widget.propMaximum().getValue(), validRange);
                 if (toolkit.isEditMode() && validRange) {
                     meter.setCurrentValue((new_value + model_widget.propMaximum().getValue()) / 2.0);
                 }
-            }
+            });
 
             layoutChanged(null, null, null);
         });
 
         addWidgetPropertyListener(model_widget.propMaximum(), (property, old_value, new_value) -> {
 
-            synchronized (meter) {
+            meter.withWriteLock(() -> {
                 boolean validRange = Double.isFinite(new_value) && Double.isFinite(model_widget.propMinimum().getValue());
                 meter.setRange(model_widget.propMinimum().getValue(), new_value, validRange);
                 if (toolkit.isEditMode() && validRange) {
                     meter.setCurrentValue((new_value + model_widget.propMinimum().getValue()) / 2.0);
                 }
-            }
+            });
 
             layoutChanged(null, null, null);
         });
@@ -265,13 +265,13 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
     {
         if (toolkit.isEditMode())
         {
-            synchronized(meter) {
+            meter.withWriteLock(() -> {
                 int w = model_widget.propWidth().getValue();
                 int h = model_widget.propHeight().getValue();
                 model_widget.propWidth().setValue(h);
                 model_widget.propHeight().setValue(w);
                 meter.setHorizontal(horizontal);
-            }
+            });
             layoutChanged(null, null, null);
         }
     }
@@ -378,7 +378,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
 
         if (dirty_look.checkAndClear())
         {
-            synchronized (meter) {
+            meter.withWriteLock(() -> {
                 boolean horizontal = model_widget.propDisplayHorizontal().getValue();
                 int width = model_widget.propWidth().getValue();
                 int height = model_widget.propHeight().getValue();
@@ -394,7 +394,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                 jfx_node.setPrefSize(width, height);
 
                 meter.setSize(width, height);
-            }
+            });
         }
     }
 

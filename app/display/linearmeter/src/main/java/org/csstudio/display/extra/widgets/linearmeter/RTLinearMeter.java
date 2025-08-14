@@ -136,7 +136,7 @@ public class RTLinearMeter extends ImageView
     }
 
     private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private void withReadLock(Runnable runnable) {
+    protected void withReadLock(Runnable runnable) {
         readWriteLock.readLock().lock();
         try {
             runnable.run();
@@ -144,7 +144,7 @@ public class RTLinearMeter extends ImageView
             readWriteLock.readLock().unlock();
         }
     }
-    private <T> T withReadLock(Supplier<T> supplier) {
+    protected <T> T withReadLock(Supplier<T> supplier) {
         readWriteLock.readLock().lock();
         try {
             return supplier.get();
@@ -152,7 +152,7 @@ public class RTLinearMeter extends ImageView
             readWriteLock.readLock().unlock();
         }
     }
-    private void withWriteLock(Runnable runnable) {
+    protected void withWriteLock(Runnable runnable) {
         readWriteLock.writeLock().lock();
         try {
             runnable.run();
