@@ -369,12 +369,14 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
      * @param children list of children nodes under the parent widget
      */
     public void setDisabledLook(Boolean enabled, ObservableList<Node> children) {
-        jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
-        if (children != null) {
-            for (Node node : children)
-            {
-                Styles.update(node, Styles.NOT_ENABLED, !enabled);
-            }   
+        if (!toolkit.isEditMode()) {
+            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+            if (children != null) {
+                for (Node node : children)
+                {
+                    Styles.update(node, Styles.NOT_ENABLED, !enabled);
+                }   
+            }
         }
     }
 }

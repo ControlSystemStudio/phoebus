@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -51,6 +52,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
      */
     private boolean active = false;
     private volatile boolean enabled = true;
+    private final String node_id = UUID.randomUUID().toString();;
+
 
     private final DirtyFlag dirty_size = new DirtyFlag();
     private final DirtyFlag dirty_style = new DirtyFlag();
@@ -101,6 +104,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             text = new TextField();
         text.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         text.getStyleClass().add("text_entry");
+        text.setId(node_id);
 
         if (! toolkit.isEditMode())
         {
@@ -425,6 +429,13 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                 String alignment = model_widget.propHorizontalAlignment().getValue().toString().toLowerCase();
                 PseudoClass alignmentClass = PseudoClass.getPseudoClass(alignment);
                 jfx_node.pseudoClassStateChanged(alignmentClass, true);
+                
+                if (jfx_node.getScene() != null && !enabled) {
+                    // Need to get the TextArea 'content' node to set the cursor
+                    // for the whole widget otherwise it will only show on the borders.
+                    jfx_node.getScene().lookup("#"+node_id+" .content").setCursor(Cursors.NO_WRITE);
+                    jfx_node.layout();
+                }
             }
         }
         if (! active)
