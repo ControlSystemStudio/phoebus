@@ -189,9 +189,9 @@ public class RTLinearMeter extends ImageView
         NONE(""),
         VALUE_LESS_THAN_MIN("VALUE < MIN"),
         VALUE_GREATER_THAN_MAX("VALUE > MAX"),
-        MIN_AND_MAX_NOT_DEFINED("NO UNIT DEFINED"),
-        LAG("MIN AND MAX ARE NOT SET"),
-        NO_UNIT("LAG");
+        MIN_AND_MAX_NOT_DEFINED("MIN AND MAX ARE NOT SET"),
+        LAG("LAG"),
+        NO_UNIT("NO UNIT DEFINED");
 
         private final String displayName;
 
@@ -799,7 +799,8 @@ public class RTLinearMeter extends ImageView
     {
         withWriteLock(() -> {
             updateMeterBackground();
-            redrawIndicator(currentValue, determineWarning());
+            WARNING warning = determineWarning();
+            redrawIndicator(currentValue, warning);
         });
     }
 
