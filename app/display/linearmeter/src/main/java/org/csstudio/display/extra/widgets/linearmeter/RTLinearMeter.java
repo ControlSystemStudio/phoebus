@@ -1010,6 +1010,7 @@ public class RTLinearMeter extends ImageView
             }
         });
     }
+    private final Color TRANSPARENT = new Color(0, 0, 0, 0);
 
     private void drawBar(Graphics2D gc, double value) {
         withReadLock(() -> {
@@ -1026,26 +1027,7 @@ public class RTLinearMeter extends ImageView
                 gc.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
                 gc.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-                if (showLimits) {
-                    if (isHighlightActiveRegionEnabled) {
-                        if (value <= loLo) {
-                            paintRectangle(gc, loLoRectangle, majorAlarmColor_highlighted);
-                        }
-                        else if (value >= hiHi) {
-                            paintRectangle(gc, hiHiRectangle, majorAlarmColor_highlighted);
-                        }
-                        else if (value <= low && value > loLo) {
-                            paintRectangle(gc, lowRectangle, minorAlarmActiveColor_highlighted);
-                        }
-                        else if (value >= high && value < hiHi) {
-                            paintRectangle(gc, highRectangle, minorAlarmActiveColor_highlighted);
-                        }
-                        else {
-                            paintRectangle(gc, normalRectangle, normalStatusActiveColor_highlighted);
-                        }
-                    }
-                }
-
+                int currentIndicatorPosition = computeIndicatorPosition(value <= linearMeterScale.getValueRange().getHigh() ? value : linearMeterScale.getValueRange().getHigh());
                 if (linearMeterScale.isHorizontal()) {
                     if (value > linearMeterScale.getValueRange().getLow()) {
                         if (isHighlightActiveRegionEnabled) {
@@ -1068,8 +1050,8 @@ public class RTLinearMeter extends ImageView
                         else {
                             gc.setPaint(needleColor);
                         }
-                        int currentIndicatorPosition = computeIndicatorPosition(value <= linearMeterScale.getValueRange().getHigh() ? value : linearMeterScale.getValueRange().getHigh());
-                        gc.fillRect(marginLeft+1, marginAbove+1, (int) currentIndicatorPosition-4, meterBreadth-1);
+                        // Draw the bar:
+                        gc.fillRect(marginLeft, marginAbove, (int) currentIndicatorPosition - 3, meterBreadth);
                     }
                 } else {
                     if (value > linearMeterScale.getValueRange().getLow()) {
@@ -1093,10 +1075,19 @@ public class RTLinearMeter extends ImageView
                         else {
                             gc.setPaint(needleColor);
                         }
-                        int currentIndicatorPosition = computeIndicatorPosition(value <= linearMeterScale.getValueRange().getHigh() ? value : linearMeterScale.getValueRange().getHigh());
-                        gc.fillRect(marginLeft+1, currentIndicatorPosition, (int) meterBreadth-1, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
+                        // Draw the bar:
+                        gc.fillRect(marginLeft, currentIndicatorPosition, (int) meterBreadth, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
                     }
                 }
+
+                // Re-draw the border of the linear meter, since it may have been covered by the bar (if the border is transparent):
+                paintRectangle(gc,
+                        new Rectangle(marginLeft,
+                                marginAbove,
+                                linearMeterScale.getBounds().width - marginLeft - marginRight,
+                                linearMeterScale.getBounds().height - marginAbove - marginBelow),
+                        TRANSPARENT);
+
                 gc.setRenderingHints(oldrenderingHints);
                 gc.setStroke(oldStroke);
                 gc.setPaint(oldPaint);
