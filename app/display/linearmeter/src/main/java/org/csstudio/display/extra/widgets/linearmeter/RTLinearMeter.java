@@ -1076,7 +1076,7 @@ public class RTLinearMeter extends ImageView
                             gc.setPaint(needleColor);
                         }
                         // Draw the bar:
-                        gc.fillRect(marginLeft, currentIndicatorPosition, (int) meterBreadth, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
+                        gc.fillRect(marginLeft, currentIndicatorPosition, (int) meterBreadth+1, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
                     }
                 }
 
@@ -1263,7 +1263,7 @@ public class RTLinearMeter extends ImageView
 
             if (linearMeterScale.isHorizontal()) {
                 int knobSizeValue = knobSize;
-                marginAbove = knobSizeValue >= 1 ? knobSizeValue + 2 : 0;
+                marginAbove = displayMode == DisplayMode.NEEDLE && knobSizeValue >= 1 ? knobSizeValue + 2 : 0;
                 if (linearMeterScale.isVisible() && fontMetrics != null) {
                     var majorTicks = linearMeterScale.getTicks().getMajorTicks();
                     if (majorTicks.size() >= 2) {
@@ -1278,8 +1278,8 @@ public class RTLinearMeter extends ImageView
                     marginBelow = (int) (0.5 * linearMeterScale.getTickLength() + 4 + fontMetrics.getAscent() + fontMetrics.getDescent());
                 } else {
                     marginLeft = 0;
-                    marginRight = 1;
-                    marginBelow = 1;
+                    marginRight = 0;
+                    marginBelow = 0;
                 }
 
                 if (showUnits && fontMetrics != null) {
@@ -1322,7 +1322,7 @@ public class RTLinearMeter extends ImageView
             }
             else {
                 int knobSizeValue = knobSize;
-                marginLeft = knobSizeValue >= 1 ? knobSizeValue + 2 : 0;
+                marginLeft = displayMode == DisplayMode.NEEDLE && knobSizeValue >= 1 ? knobSizeValue + 2 : 0;
                 if (linearMeterScale.isVisible() && fontMetrics != null) {
                     int maxTickLabelWidth = 0;
                     maxTickLabelWidth = 0;
@@ -1335,9 +1335,9 @@ public class RTLinearMeter extends ImageView
                     marginAbove = fontMetrics.getAscent() / 2 + 1;
                     marginBelow = fontMetrics.getAscent() / 2 + 1;
                 } else {
-                    marginRight = 1;
+                    marginRight = 0;
                     marginAbove = 0;
-                    marginBelow = 1;
+                    marginBelow = 0;
                 }
 
                 if (showUnits && fontMetrics != null) {
