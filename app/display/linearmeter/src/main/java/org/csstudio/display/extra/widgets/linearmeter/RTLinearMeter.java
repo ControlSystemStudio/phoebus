@@ -187,11 +187,11 @@ public class RTLinearMeter extends ImageView
 
     private enum WARNING {
         NONE(""),
-        VALUE_LESS_THAN_MIN("VALUE < MIN"),
-        VALUE_GREATER_THAN_MAX("VALUE > MAX"),
-        MIN_AND_MAX_NOT_DEFINED("MIN AND MAX ARE NOT SET"),
-        LAG("LAG"),
-        NO_UNIT("NO UNIT DEFINED");
+        VALUE_LESS_THAN_MIN("Value < Min"),
+        VALUE_GREATER_THAN_MAX("Value > Max"),
+        MIN_AND_MAX_NOT_DEFINED("Min and max are not set"),
+        LAG("Lag"),
+        NO_UNIT("No unit defined");
 
         private final String displayName;
 
