@@ -1051,7 +1051,7 @@ public class RTLinearMeter extends ImageView
                 }
 
                 if (linearMeterScale.isHorizontal()) {
-                    if (value >= linearMeterScale.getValueRange().getLow()) {
+                    if (value > linearMeterScale.getValueRange().getLow()) {
                         if (isHighlightActiveRegionEnabled) {
                             if (value <= loLo) {
                                 gc.setPaint(majorAlarmColor_highlighted);
@@ -1072,11 +1072,11 @@ public class RTLinearMeter extends ImageView
                         else {
                             gc.setPaint(needleColor);
                         }
-                        int currentIndicatorPosition = computeIndicatorPosition(value);
-                        gc.fillRect(marginLeft+1, marginAbove+1, (int) currentIndicatorPosition, meterBreadth-1);
+                        int currentIndicatorPosition = computeIndicatorPosition(value <= linearMeterScale.getValueRange().getHigh() ? value : linearMeterScale.getValueRange().getHigh());
+                        gc.fillRect(marginLeft+1, marginAbove+1, (int) currentIndicatorPosition-4, meterBreadth-1);
                     }
                 } else {
-                    if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
+                    if (value > linearMeterScale.getValueRange().getLow()) {
                         if (isHighlightActiveRegionEnabled) {
                             if (value <= loLo) {
                                 gc.setPaint(majorAlarmColor_highlighted);
@@ -1097,8 +1097,8 @@ public class RTLinearMeter extends ImageView
                         else {
                             gc.setPaint(needleColor);
                         }
-                        int currentIndicatorPosition = computeIndicatorPosition(value);
-                        gc.fillRect(marginLeft+1, currentIndicatorPosition+1, (int) meterBreadth-1, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow-1);
+                        int currentIndicatorPosition = computeIndicatorPosition(value <= linearMeterScale.getValueRange().getHigh() ? value : linearMeterScale.getValueRange().getHigh());
+                        gc.fillRect(marginLeft+1, currentIndicatorPosition, (int) meterBreadth-1, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
                     }
                 }
                 gc.setRenderingHints(oldrenderingHints);
