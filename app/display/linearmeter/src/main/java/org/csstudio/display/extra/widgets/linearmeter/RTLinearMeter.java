@@ -190,8 +190,7 @@ public class RTLinearMeter extends ImageView
         VALUE_LESS_THAN_MIN("Value < Min"),
         VALUE_GREATER_THAN_MAX("Value > Max"),
         MIN_AND_MAX_NOT_DEFINED("Min and max are not set"),
-        LAG("Lag"),
-        NO_UNIT("No unit defined");
+        LAG("Lag");
 
         private final String displayName;
 
@@ -766,9 +765,6 @@ public class RTLinearMeter extends ImageView
             }
             else if (lag) {
                 return WARNING.LAG;
-            }
-            else if (showUnits && units.equals("")) {
-                return WARNING.NO_UNIT;
             }
             else if (!validRange) {
                 return WARNING.MIN_AND_MAX_NOT_DEFINED;
