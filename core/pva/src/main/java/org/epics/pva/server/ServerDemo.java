@@ -26,7 +26,6 @@ import org.epics.pva.data.nt.PVATimeStamp;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class ServerDemo
 {
     public static void main(String[] args) throws Exception
@@ -97,6 +96,10 @@ public class ServerDemo
                 if (! ex.getMessage().toLowerCase().contains("incompatible"))
                     throw ex;
             }
+
+            write_pv.close();
+            pv2.close();
+            pv1.close();
         }
     }
 }
