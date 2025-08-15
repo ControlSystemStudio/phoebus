@@ -27,9 +27,17 @@ public class AccessRightsChange
     /** Access rights bits */
     public byte access_rights;
 
-    /** Access rights bit definitions */
-    public static final byte READ_ONLY    = 0x00,
-                             WRITE_ACCESS = 0x01;
+    /** Access rights bit definitions
+     *
+     *  May client write (PUT),
+     *  perform a write with read-back (PUT-GET)
+     *  call a remote procedure (RPC)?
+     */
+    public static final byte READ_ONLY      = 0x00,
+                             PUT_ACCESS     = (1 << 0),
+                             PUT_GET_ACCESS = (1 << 1),
+                             RPC_ACCESS     = (1 << 2);
+
 
     private AccessRightsChange(final int cid, final byte access_rights)
     {
@@ -37,10 +45,12 @@ public class AccessRightsChange
         this.access_rights = access_rights;
     }
 
-    /** @return Do the access rights include write access? */
-    public boolean isWritable()
+    // TODO Add API for PUT_GET and RPC once PVXS has a reference implementation
+
+    /** @return Do the access rights include write ('PUT') access? */
+    public boolean havePUTaccess()
     {
-        return (access_rights & WRITE_ACCESS) == WRITE_ACCESS;
+        return (access_rights & PUT_ACCESS) == PUT_ACCESS;
     }
 
     /** Encode access rights change
@@ -52,7 +62,7 @@ public class AccessRightsChange
     {
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_ACL_CHANGE, PAYLOAD_SIZE);
         buffer.putInt(cid);
-        buffer.put(writable ? WRITE_ACCESS : READ_ONLY);
+        buffer.put(writable ? PUT_ACCESS : READ_ONLY);
     }
 
     /** Decode access rights change
@@ -79,7 +89,7 @@ public class AccessRightsChange
     {
         return String.format("CID %d access rights %s (0x%02X)",
                              cid,
-                             isWritable() ? "writeable" : "read-only",
+                             havePUTaccess() ? "writeable" : "read-only",
                              access_rights);
     }
 }
