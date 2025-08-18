@@ -29,8 +29,6 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import javafx.application.Platform;
-import javafx.util.Pair;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.csstudio.javafx.rtplot.internal.AxisPart;
 import org.csstudio.javafx.rtplot.internal.PlotPart;
 import org.csstudio.javafx.rtplot.internal.PlotPartListener;
@@ -616,7 +614,7 @@ public class RTLinearMeter extends ImageView
 
                 DisplayMode displayMode = this.displayMode;
                 if (displayMode.equals(DisplayMode.NEEDLE)) {
-                    drawValue(gc, value);
+                    drawNeedle(gc, value);
                 }
                 else if (displayMode.equals(DisplayMode.BAR)) {
                     drawBar(gc, value);
@@ -715,13 +713,16 @@ public class RTLinearMeter extends ImageView
         });
     }
 
-    private int computeIndicatorPosition(double value) {
+    private Optional<Integer> computeIndicatorPosition(double value) {
+        if (Double.isNaN(value)) {
+            return Optional.empty();
+        }
         return withReadLock(() -> {
             if (linearMeterScale.isHorizontal()) {
-                return (int) (marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+                return Optional.of((int) Math.round(marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow())));
             }
             else {
-                return (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+                return Optional.of((int) Math.round(linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow())));
             }
         });
     }
@@ -731,7 +732,7 @@ public class RTLinearMeter extends ImageView
             WARNING oldWarning = determineWarning();
             AtomicReference<Double> newValueAtomicReference = new AtomicReference<>(newValue); // Workaround, since captured variables need to be effectively final in Java.
             double oldValue = currentValue;
-            double oldIndicatorPosition = computeIndicatorPosition(oldValue);
+            Optional<Integer> maybeOldIndicatorPosition = computeIndicatorPosition(oldValue);
             currentValue = newValueAtomicReference.get();
 
             if (newValueAtomicReference.get() > linearMeterScale.getValueRange().getHigh() && newValueAtomicReference.get() <= linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
@@ -746,8 +747,9 @@ public class RTLinearMeter extends ImageView
 
             if (oldValue != newValueAtomicReference.get()) {
                 if (!Double.isNaN(newValueAtomicReference.get())){
-                    int newIndicatorPosition = computeIndicatorPosition(newValue);
-                    if (newIndicatorPosition != oldIndicatorPosition || determineWarning() != newWarning) {
+                    Optional<Integer> maybeNewIndicatorPosition = computeIndicatorPosition(newValue);
+                    boolean indicatorPositionHasChanged = maybeNewIndicatorPosition.isPresent() != maybeOldIndicatorPosition.isPresent() || maybeOldIndicatorPosition.isPresent() && maybeNewIndicatorPosition.isPresent() && maybeOldIndicatorPosition.get() != maybeNewIndicatorPosition.get();
+                    if (indicatorPositionHasChanged || determineWarning() != newWarning) {
                         redrawIndicator(newValueAtomicReference.get(), newWarning);
                     }
                 }
@@ -908,7 +910,7 @@ public class RTLinearMeter extends ImageView
     }
 
     /** Draw needle and label for current value */
-    private void drawValue(Graphics2D gc, double value) {
+    private void drawNeedle(Graphics2D gc, double value) {
         withReadLock(() -> {
             if (Double.isNaN(value)) {
                 return;
@@ -942,68 +944,83 @@ public class RTLinearMeter extends ImageView
                         }
                     }
                 }
+                // Re-draw border around widget:
+                paintRectangle(gc,
+                        new Rectangle(marginLeft,
+                                marginAbove,
+                                linearMeterScale.getBounds().width - marginLeft - marginRight - 1,
+                                linearMeterScale.getBounds().height - marginAbove - marginBelow - 1),
+                        TRANSPARENT);
 
                 if (linearMeterScale.isHorizontal()) {
                     if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
 
-                        int currentIndicatorPosition = computeIndicatorPosition(value);
+                        Optional<Integer> maybeCurrentIndicatorPosition = computeIndicatorPosition(value);
 
-                        if (knobSize > 0) {
-                            int[] XVal = { currentIndicatorPosition - (int) Math.round((1.0 * knobSize) / 4.0),
-                                    currentIndicatorPosition + (int) Math.round((1.0 * knobSize) / 4.0),
-                                    currentIndicatorPosition };
+                        if (maybeCurrentIndicatorPosition.isPresent()) {
+                            int currentIndicatorPosition = maybeCurrentIndicatorPosition.get();
 
-                            int[] YVal = { 0, 0, marginAbove - 2 };
+                            if (knobSize > 0) {
+                                int[] XVal = { currentIndicatorPosition - (int) Math.round((1.0 * knobSize) / 4.0),
+                                        currentIndicatorPosition + (int) Math.round((1.0 * knobSize) / 4.0),
+                                        currentIndicatorPosition };
 
-                            gc.setStroke(AxisPart.TICK_STROKE);
-                            gc.setColor(knobColor);
-                            gc.fillPolygon(XVal, YVal, 3);
-                            gc.setColor(knobColor);
-                            gc.drawPolygon(XVal, YVal, 3);
-                        }
+                                int[] YVal = { 0, 0, marginAbove - 2 };
 
-                        if (needleWidth > 0) {
-                            gc.setStroke(new BasicStroke((float) needleWidth));
-                            gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-                            gc.setPaint(needleColor);
+                                gc.setStroke(AxisPart.TICK_STROKE);
+                                gc.setColor(knobColor);
+                                gc.fillPolygon(XVal, YVal, 3);
+                                gc.setColor(knobColor);
+                                gc.drawPolygon(XVal, YVal, 3);
+                            }
 
-                            int y1 = marginAbove + needleWidth / 2 + 1;
-                            int y2 = linearMeterScale.getBounds().height - marginBelow - (needleWidth - 1) / 2 - 1;
+                            if (needleWidth > 0) {
+                                gc.setStroke(new BasicStroke((float) needleWidth));
+                                gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+                                gc.setPaint(needleColor);
 
-                            gc.drawLine(currentIndicatorPosition, y1, currentIndicatorPosition, y2);
+                                int y1 = marginAbove + needleWidth / 2 + 1;
+                                int y2 = linearMeterScale.getBounds().height - marginBelow - (needleWidth - 1) / 2 - 1;
+
+                                gc.drawLine(currentIndicatorPosition, y1, currentIndicatorPosition, y2);
+                            }
                         }
                     }
                 } else {
                     if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
 
-                        int currentIndicatorPosition = computeIndicatorPosition(value);
+                        Optional<Integer> maybeCurrentIndicatorPosition = computeIndicatorPosition(value);
+                        if (maybeCurrentIndicatorPosition.isPresent()) {
+                            int currentIndicatorPosition = maybeCurrentIndicatorPosition.get() - 1;
 
-                        if (knobSize > 0) {
-                            int[] YVal = { currentIndicatorPosition + (int) Math.round((1.0 * knobSize / 4.0)),
-                                           currentIndicatorPosition - (int) Math.round((1.0 * knobSize / 4.0)),
-                                           currentIndicatorPosition };
+                            if (knobSize > 0) {
+                                int[] YVal = { currentIndicatorPosition + (int) Math.round((1.0 * knobSize / 4.0)),
+                                        currentIndicatorPosition - (int) Math.round((1.0 * knobSize / 4.0)),
+                                        currentIndicatorPosition };
 
-                            int[] XVal = { 0, 0, marginLeft - 2 };
+                                int[] XVal = { 0, 0, marginLeft - 2 };
 
-                            gc.setStroke(AxisPart.TICK_STROKE);
-                            gc.setColor(knobColor);
-                            gc.fillPolygon(XVal, YVal, 3);
-                            gc.setColor(knobColor);
-                            gc.drawPolygon(XVal, YVal, 3);
-                        }
+                                gc.setStroke(AxisPart.TICK_STROKE);
+                                gc.setColor(knobColor);
+                                gc.fillPolygon(XVal, YVal, 3);
+                                gc.setColor(knobColor);
+                                gc.drawPolygon(XVal, YVal, 3);
+                            }
 
-                        if (needleWidth > 0) {
-                            gc.setStroke(new BasicStroke((float) needleWidth));
-                            gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-                            gc.setPaint(needleColor);
+                            if (needleWidth > 0) {
+                                gc.setStroke(new BasicStroke((float) needleWidth));
+                                gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+                                gc.setPaint(needleColor);
 
-                            int x1 = marginLeft + (needleWidth)/2 + 1;
-                            int x2 = linearMeterScale.getBounds().width - marginRight - (needleWidth+1)/2;
+                                int x1 = marginLeft + (needleWidth)/2 + 1;
+                                int x2 = linearMeterScale.getBounds().width - marginRight - (needleWidth+1)/2;
 
-                            gc.drawLine(x1, currentIndicatorPosition, x2, currentIndicatorPosition);
+                                gc.drawLine(x1, currentIndicatorPosition, x2, currentIndicatorPosition);
+                            }
                         }
                     }
                 }
+
                 gc.setRenderingHints(oldrenderingHints);
                 gc.setStroke(oldStroke);
                 gc.setPaint(oldPaint);
@@ -1027,66 +1044,71 @@ public class RTLinearMeter extends ImageView
                 gc.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
                 gc.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-                int currentIndicatorPosition = computeIndicatorPosition(value <= linearMeterScale.getValueRange().getHigh() ? value : linearMeterScale.getValueRange().getHigh());
-                if (linearMeterScale.isHorizontal()) {
-                    if (value > linearMeterScale.getValueRange().getLow()) {
-                        if (isHighlightActiveRegionEnabled) {
-                            if (value <= loLo) {
-                                gc.setPaint(majorAlarmColor_highlighted);
-                            }
-                            else if (value >= hiHi) {
-                                gc.setPaint(majorAlarmColor_highlighted);
-                            }
-                            else if (value <= low && value > loLo) {
-                                gc.setPaint(minorAlarmActiveColor_highlighted);
-                            }
-                            else if (value >= high && value < hiHi) {
-                                gc.setPaint(minorAlarmActiveColor_highlighted);
-                            }
-                            else {
-                                gc.setPaint(needleColor);
-                            }
-                        }
-                        else {
-                            gc.setPaint(needleColor);
-                        }
-                        // Draw the bar:
-                        gc.fillRect(marginLeft, marginAbove, (int) currentIndicatorPosition - 3, meterBreadth);
-                    }
-                } else {
-                    if (value > linearMeterScale.getValueRange().getLow()) {
-                        if (isHighlightActiveRegionEnabled) {
-                            if (value <= loLo) {
-                                gc.setPaint(majorAlarmColor_highlighted);
-                            }
-                            else if (value >= hiHi) {
-                                gc.setPaint(majorAlarmColor_highlighted);
-                            }
-                            else if (value <= low && value > loLo) {
-                                gc.setPaint(minorAlarmActiveColor_highlighted);
-                            }
-                            else if (value >= high && value < hiHi) {
-                                gc.setPaint(minorAlarmActiveColor_highlighted);
-                            }
-                            else {
-                                gc.setPaint(needleColor);
-                            }
-                        }
-                        else {
-                            gc.setPaint(needleColor);
-                        }
-                        // Draw the bar:
-                        gc.fillRect(marginLeft, currentIndicatorPosition, (int) meterBreadth+1, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
-                    }
-                }
+                Optional<Integer> maybeCurrentIndicatorPosition = computeIndicatorPosition(value <= linearMeterScale.getValueRange().getHigh() ? value : linearMeterScale.getValueRange().getHigh());
 
-                // Re-draw the border of the linear meter, since it may have been covered by the bar (if the border is transparent):
-                paintRectangle(gc,
-                        new Rectangle(marginLeft,
-                                marginAbove,
-                                linearMeterScale.getBounds().width - marginLeft - marginRight,
-                                linearMeterScale.getBounds().height - marginAbove - marginBelow),
-                        TRANSPARENT);
+                if (maybeCurrentIndicatorPosition.isPresent()) {
+                    if (linearMeterScale.isHorizontal()) {
+                        int currentIndicatorPosition = maybeCurrentIndicatorPosition.get() + 1;
+                        if (value > linearMeterScale.getValueRange().getLow()) {
+                            if (isHighlightActiveRegionEnabled) {
+                                if (value <= loLo) {
+                                    gc.setPaint(majorAlarmColor_highlighted);
+                                }
+                                else if (value >= hiHi) {
+                                    gc.setPaint(majorAlarmColor_highlighted);
+                                }
+                                else if (value <= low && value > loLo) {
+                                    gc.setPaint(minorAlarmActiveColor_highlighted);
+                                }
+                                else if (value >= high && value < hiHi) {
+                                    gc.setPaint(minorAlarmActiveColor_highlighted);
+                                }
+                                else {
+                                    gc.setPaint(needleColor);
+                                }
+                            }
+                            else {
+                                gc.setPaint(needleColor);
+                            }
+                            // Draw the bar:
+                            gc.fillRect(marginLeft, marginAbove, currentIndicatorPosition-marginLeft, meterBreadth);
+                        }
+                    } else {
+                        int currentIndicatorPosition = maybeCurrentIndicatorPosition.get() - 1;
+                        if (value > linearMeterScale.getValueRange().getLow()) {
+                            if (isHighlightActiveRegionEnabled) {
+                                if (value <= loLo) {
+                                    gc.setPaint(majorAlarmColor_highlighted);
+                                }
+                                else if (value >= hiHi) {
+                                    gc.setPaint(majorAlarmColor_highlighted);
+                                }
+                                else if (value <= low && value > loLo) {
+                                    gc.setPaint(minorAlarmActiveColor_highlighted);
+                                }
+                                else if (value >= high && value < hiHi) {
+                                    gc.setPaint(minorAlarmActiveColor_highlighted);
+                                }
+                                else {
+                                    gc.setPaint(needleColor);
+                                }
+                            }
+                            else {
+                                gc.setPaint(needleColor);
+                            }
+                            // Draw the bar:
+                            gc.fillRect(marginLeft, currentIndicatorPosition, meterBreadth, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
+                        }
+                    }
+
+                    // Re-draw the border of the linear meter, since it may have been covered by the bar (if the border is transparent):
+                    paintRectangle(gc,
+                            new Rectangle(marginLeft,
+                                    marginAbove,
+                                    linearMeterScale.getBounds().width - marginLeft - marginRight - 1,
+                                    linearMeterScale.getBounds().height - marginAbove - marginBelow - 1),
+                            TRANSPARENT);
+                }
 
                 gc.setRenderingHints(oldrenderingHints);
                 gc.setStroke(oldStroke);
@@ -1268,7 +1290,7 @@ public class RTLinearMeter extends ImageView
                     var majorTicks = linearMeterScale.getTicks().getMajorTicks();
                     if (majorTicks.size() >= 2) {
                         marginLeft = fontMetrics.stringWidth(majorTicks.get(0).getLabel()) / 2;
-                        marginRight = fontMetrics.stringWidth(majorTicks.get(majorTicks.size() - 1).getLabel()) / 2;
+                        marginRight = fontMetrics.stringWidth(majorTicks.get(majorTicks.size() - 1).getLabel()) / 2 - 1;
                     } else if (majorTicks.size() == 1) {
                         marginRight = marginLeft = fontMetrics.stringWidth(majorTicks.get(0).getLabel()) / 2;
                     } else {
@@ -1286,7 +1308,7 @@ public class RTLinearMeter extends ImageView
                     marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
                 }
 
-                pixelsPerScaleUnit = (linearMeterScale.getBounds().width - marginLeft - marginRight) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
+                pixelsPerScaleUnit = (linearMeterScale.getBounds().width - marginLeft - marginRight - 1) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
                 meterBreadth = Math.round(linearMeterScale.getBounds().height - marginAbove - marginBelow);
 
                 double x_loLoRectangle = marginLeft;
@@ -1344,7 +1366,7 @@ public class RTLinearMeter extends ImageView
                     marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
                 }
 
-                pixelsPerScaleUnit = (linearMeterScale.getBounds().height - marginAbove - marginBelow) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
+                pixelsPerScaleUnit = (linearMeterScale.getBounds().height - marginAbove - marginBelow - 1) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
                 meterBreadth = Math.round(linearMeterScale.getBounds().width - marginLeft - marginRight);
 
                 double y_loLoRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedLoLo);
