@@ -52,6 +52,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
@@ -304,7 +305,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
         descriptionChangeListener = (observableValue, oldValue, newValue) -> dirty.setValue(true);
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
-                        compositeSnapshotDescriptionProperty.isEmpty().get() ||
+                        (!Preferences.allow_empty_descriptions && compositeSnapshotDescriptionProperty.isEmpty().get()) ||
                         compositeSnapshotNameProperty.isEmpty().get() ||
                         userIdentity.isNull().get(),
                 dirty, compositeSnapshotDescriptionProperty, compositeSnapshotNameProperty, userIdentity));

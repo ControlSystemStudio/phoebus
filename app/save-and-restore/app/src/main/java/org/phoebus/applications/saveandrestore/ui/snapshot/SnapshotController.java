@@ -398,7 +398,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                         // TODO: support save (=update) a composite snapshot from the snapshot view. In the meanwhile, disable save button.
                                 snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
-                                snapshotCommentProperty.isEmpty().get() ||
+                                (!Preferences.allow_empty_descriptions && snapshotCommentProperty.isEmpty().get()) ||
                                 userIdentity.isNull().get(),
                 snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
 
