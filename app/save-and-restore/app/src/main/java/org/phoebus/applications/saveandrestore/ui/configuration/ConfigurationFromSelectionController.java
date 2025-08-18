@@ -41,6 +41,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVCommon;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
@@ -243,8 +244,9 @@ public class ConfigurationFromSelectionController implements Initializable {
 
         // Cannot save until location, config name and description are set.
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> targetNode.get() == null ||
-                        configurationName.get() == null || configurationName.get().isEmpty() ||
-                        description.get() == null || description.get().isEmpty(),
+                        configurationName.get() == null || configurationName.get().isEmpty() || (
+                                !Preferences.allow_empty_descriptions && (description.get() == null || description.get().isEmpty())
+                        ),
                 targetNode, configurationName, description));
 
         // Make config name field non-editable if location is not set, or if user is updating existing configuration

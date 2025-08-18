@@ -51,6 +51,7 @@ import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import javafx.util.converter.DoubleStringConverter;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -349,7 +350,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         descriptionChangeListener = (observableValue, oldValue, newValue) -> dirty.setValue(true);
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
-                        configurationDescriptionProperty.isEmpty().get() ||
+                        (!Preferences.allow_empty_descriptions && configurationDescriptionProperty.isEmpty().get()) ||
                         configurationNameProperty.isEmpty().get() ||
                         userIdentity.isNull().get(),
                 dirty, configurationDescriptionProperty, configurationNameProperty, userIdentity));
