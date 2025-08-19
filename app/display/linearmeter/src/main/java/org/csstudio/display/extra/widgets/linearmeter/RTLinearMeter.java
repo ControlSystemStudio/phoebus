@@ -42,10 +42,11 @@ import javax.imageio.ImageIO;
 
 /**
  * @author European Spallation Source ERIC
- * @version 1.1
+ * @version 1.2
  *
  * Version 1.0 implemented by Fredrik Söderberg.
  * Version 1.1 (some fixes and improvements) by Abraham Wolk.
+ * Version 1.2 ("Bar" mode in addition to "Needle" mode, more fine-grained concurrency, and some improvements) by Abraham Wolk.
  *
  * The Linear Meter graphics design is by Dirk Nordt and Fredrik Söderberg.
  *
@@ -54,9 +55,9 @@ import javax.imageio.ImageIO;
 @SuppressWarnings("nls")
 public class RTLinearMeter extends ImageView
 {
-    // Note: All methods that are called from different threads must ensure thread-safety by running
-    // relevant code on the JavaFX application thread. (The helper function runOnJavaFXThread() can
-    // be used for this.)
+    // Note: All methods must ensure thread-safety by acquiring
+    // readWriteLock.readLock() when reading fields, and by acquiring
+    // readWriteLock.writeLock() when writing to one or more fields.
 
     public RTLinearMeter(double initialValue,
                          int width,
