@@ -41,8 +41,9 @@ public class LinearMeterWidget extends PVWidget {
     /**
      * 1.0.0: Linear meter by Claudio Rosatti based on 3rd party library
      * 2.0.0: Simple linear meter, based on meter v 3.0.0, drawn in background
+     * 3.0.0: Improvements to the Linear Meter and the introduction of a "Bar" mode.
      */
-    public static Version METER_VERSION = new Version(2, 0, 0);
+    public static Version METER_VERSION = new Version(3, 0, 0);
 
     /**
      * Custom configurator to read legacy files
