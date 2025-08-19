@@ -250,19 +250,10 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
      * @param filtered List of filtered suggestions to display.
      */
     private void showFilteredSuggestions(List<String> filtered) {
-        if (filtered.isEmpty()) {
-            suggestionsPopup.hide();
-            return;
-        }
-
         suggestions.setAll(filtered);
 
         if (!suggestionsPopup.isShowing()) {
             showPopup(filtered.size());
-
-            if (jfx_node.isFocused()) {
-                javafx.application.Platform.runLater(() -> jfx_node.requestFocus());
-            }
         } else {
             updatePopupSize(filtered.size());
         }
@@ -414,6 +405,7 @@ public class AutoCompleteRepresentation extends RegionBaseRepresentation<TextFie
         try {
             return value.contains(".") ? Double.parseDouble(value) : Integer.parseInt(value);
         } catch (NumberFormatException e) {
+            // This will handle String PVs, which are expected to be most likely
             VType converted = VType.toVType(value);
             return converted != null ? converted : value;
         }
