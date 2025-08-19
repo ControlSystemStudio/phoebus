@@ -51,7 +51,6 @@ import javafx.scene.layout.Region;
 
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
- *  @author Thales
  */
 @SuppressWarnings("nls")
 public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputControl, TextEntryWidget>
@@ -394,7 +393,9 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         suggestions.setAll(filtered);
 
         if (!suggestionsPopup.isShowing()) {
-            showPopup(filtered.size());
+            if (!isMultiLine()) {
+                showPopup(filtered.size());
+            }
         } else {
             updatePopupSize(filtered.size());
         }

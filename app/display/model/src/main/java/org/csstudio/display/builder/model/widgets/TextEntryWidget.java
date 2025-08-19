@@ -64,7 +64,6 @@ import org.w3c.dom.Element;
 
 /** Widget that displays a changing text
  *  @author Kay Kasemir
- *  @author Thales
  */
 @SuppressWarnings("nls")
 public class TextEntryWidget extends WritablePVWidget
@@ -96,12 +95,6 @@ public class TextEntryWidget extends WritablePVWidget
      */
     public static final WidgetPropertyDescriptor<String> propItems =
         newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "autocompleteitems", "Suggestions");
-
-    /**
-     * 'max_suggestions' property: maximum number of suggestions to display
-     */
-    private static final WidgetPropertyDescriptor<Integer> propMaxSuggestions =
-        newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "max_suggestions", "Max Suggestions");
 
     /**
      * 'min_chars' property: minimum characters to trigger autocomplete
