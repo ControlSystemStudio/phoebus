@@ -21,26 +21,22 @@ import org.w3c.dom.Element;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.*;
 
 @SuppressWarnings("nls")
-public class LinearMeterWidget extends PVWidget
-{
-    public LinearMeterWidget()
-    {
+public class LinearMeterWidget extends PVWidget {
+    public LinearMeterWidget() {
         super(WIDGET_DESCRIPTOR.getType(), 240, 120);
     }
 
     public static WidgetDescriptor WIDGET_DESCRIPTOR =
-        new WidgetDescriptor("linearmeter", WidgetCategory.MONITOR,
-            "LinearMeter",
-            "/icons/linear-meter.png",
-            "Compact monitor widget for the value of a PV.",
-            Arrays.asList(""))
-        {
-            @Override
-            public Widget createWidget()
-            {
-                return new LinearMeterWidget();
-            }
-        };
+            new WidgetDescriptor("linearmeter", WidgetCategory.MONITOR,
+                    "LinearMeter",
+                    "/icons/linear-meter.png",
+                    Messages.LinearMeterDescription,
+                    Arrays.asList("")) {
+                @Override
+                public Widget createWidget() {
+                    return new LinearMeterWidget();
+                }
+            };
 
     /**
      * 1.0.0: Linear meter by Claudio Rosatti based on 3rd party library
@@ -48,28 +44,26 @@ public class LinearMeterWidget extends PVWidget
      */
     public static Version METER_VERSION = new Version(2, 0, 0);
 
-    /** Custom configurator to read legacy files */
-    protected static class LinearMeterConfigurator extends WidgetConfigurator
-    {
+    /**
+     * Custom configurator to read legacy files
+     */
+    protected static class LinearMeterConfigurator extends WidgetConfigurator {
         //TODO: This has to be fixed for the Linear Meter. Current implementation is
         // for the Meter widget and is not valid. No version 3.
 
-        public LinearMeterConfigurator(Version xmlVersion)
-        {
+        public LinearMeterConfigurator(Version xmlVersion) {
             super(xmlVersion);
         }
 
         @Override
         public boolean configureFromXML(ModelReader reader, Widget widget,
-                                        Element xml) throws Exception
-        {
+                                        Element xml) throws Exception {
             if (!super.configureFromXML(reader, widget, xml))
                 return false;
 
             LinearMeterWidget meter = (LinearMeterWidget) widget;
 
-            if (xml_version.getMajor() < 2)
-            {   // BOY
+            if (xml_version.getMajor() < 2) {   // BOY
 
                 Element e = XMLUtil.getChildElement(xml, "scale_font");
                 if (e != null)
@@ -77,23 +71,21 @@ public class LinearMeterWidget extends PVWidget
 
                 // Are any of the limits disabled, or 'Show Ramp' disabled?
                 if ((!XMLUtil.getChildBoolean(xml, "show_hihi").orElse(true) &&
-                    !XMLUtil.getChildBoolean(xml, "show_hi").orElse(true) &&
-                    !XMLUtil.getChildBoolean(xml, "show_lo").orElse(true)  &&
-                    !XMLUtil.getChildBoolean(xml, "show_lolo").orElse(true)
+                        !XMLUtil.getChildBoolean(xml, "show_hi").orElse(true) &&
+                        !XMLUtil.getChildBoolean(xml, "show_lo").orElse(true) &&
+                        !XMLUtil.getChildBoolean(xml, "show_lolo").orElse(true)
                 )
-                    ||
-                    !XMLUtil.getChildBoolean(xml, "show_markers").orElse(true))
+                        ||
+                        !XMLUtil.getChildBoolean(xml, "show_markers").orElse(true))
                     meter.propShowLimits().setValue(false);
-            }
-            else if (xml_version.getMajor() < 3)
-            {   // Display Builder meter based on 3rd party JFX lib
+            } else if (xml_version.getMajor() < 3) {   // Display Builder meter based on 3rd party JFX lib
                 XMLUtil.getChildBoolean(xml, "unit_from_pv")
-                    .ifPresent(meter.propShowUnits()::setValue);
+                        .ifPresent(meter.propShowUnits()::setValue);
 
                 if (!XMLUtil.getChildBoolean(xml, "show_hihi").orElse(true) &&
-                    !XMLUtil.getChildBoolean(xml, "show_high").orElse(true) &&
-                    !XMLUtil.getChildBoolean(xml, "show_low").orElse(true)  &&
-                    !XMLUtil.getChildBoolean(xml, "show_lolo").orElse(true))
+                        !XMLUtil.getChildBoolean(xml, "show_high").orElse(true) &&
+                        !XMLUtil.getChildBoolean(xml, "show_low").orElse(true) &&
+                        !XMLUtil.getChildBoolean(xml, "show_lolo").orElse(true))
                     meter.propShowLimits().setValue(false);
             }
 
@@ -102,29 +94,31 @@ public class LinearMeterWidget extends PVWidget
     }
 
     public static WidgetPropertyDescriptor<Boolean> propShowLimits =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_limits", Messages.WidgetProperties_ShowLimits);
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_limits", Messages.WidgetProperties_ShowLimits);
 
     public static WidgetPropertyDescriptor<Boolean> propShowWarnings =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_warnings", Messages.WidgetProperties_ShowWarnings);
 
     public static WidgetPropertyDescriptor<Boolean> propDisplayHorizontal =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "displayHorizontal", Messages.WidgetProperties_Horizontal);
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "displayHorizontal", Messages.WidgetProperties_Horizontal);
 
-    public static WidgetPropertyDescriptor<Boolean>   propScaleVisible =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scale_visible", Messages.WidgetProperties_ScaleVisible);
+    public static WidgetPropertyDescriptor<Boolean> propScaleVisible =
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scale_visible", Messages.WidgetProperties_ScaleVisible);
 
 
     enum LimitsFromPV {
-        LimitsFromPV("All limits from PV"),
-        MinAndMaxFromPV("Min & max from PV"),
-        AlarmLimitsFromPV("Alarm limits from PV"),
-        NoLimitsFromPV("No limits from PV");
+        LimitsFromPV(Messages.AllLimitsFromPV),
+        MinAndMaxFromPV(Messages.MinAndMaxFromPV),
+        AlarmLimitsFromPV(Messages.AlarmLimitsFromPV),
+        NoLimitsFromPV(Messages.NoLimitsFromPV);
 
         private final String displayName;
 
         private LimitsFromPV(String displayName) {
             this.displayName = displayName;
-        };
+        }
+
+        ;
 
         @Override
         public String toString() {
@@ -143,11 +137,9 @@ public class LinearMeterWidget extends PVWidget
                             // propLimitsFromPV was a boolean:
                             if (specification.equals("true")) {
                                 super.setSpecification(LimitsFromPV.LimitsFromPV.ordinal() + "");
-                            }
-                            else if (specification.equals("false")) {
+                            } else if (specification.equals("false")) {
                                 super.setSpecification(LimitsFromPV.NoLimitsFromPV.ordinal() + "");
-                            }
-                            else {
+                            } else {
                                 // If not a boolean, set according to enum LimitsFromPV:
                                 super.setSpecification(specification);
                             }
@@ -160,61 +152,61 @@ public class LinearMeterWidget extends PVWidget
     private WidgetProperty<RTLinearMeter.DisplayMode> display_mode;
     public static WidgetPropertyDescriptor<RTLinearMeter.DisplayMode> propDisplayMode =
             new WidgetPropertyDescriptor<>(
-                    WidgetPropertyCategory.DISPLAY, "display_mode", "Display Mode")
-            {
+                    WidgetPropertyCategory.DISPLAY, "display_mode", Messages.DisplayMode) {
                 @Override
-                public EnumWidgetProperty<RTLinearMeter.DisplayMode> createProperty(Widget widget, RTLinearMeter.DisplayMode default_value)
-                {
+                public EnumWidgetProperty<RTLinearMeter.DisplayMode> createProperty(Widget widget, RTLinearMeter.DisplayMode default_value) {
                     return new EnumWidgetProperty<>(this, widget, default_value);
                 }
             };
 
     public static WidgetPropertyDescriptor<WidgetColor> propNeedleColor =
-        newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "needle_color", Messages.WidgetProperties_NeedleColor);
+            newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "needle_color", Messages.WidgetProperties_NeedleColor);
 
     public static WidgetPropertyDescriptor<WidgetColor> knobColor_descriptor =
-        newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "knob_color", Messages.WidgetProperties_KnobColor);
+            newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "knob_color", Messages.WidgetProperties_KnobColor);
 
     public static WidgetPropertyDescriptor<Integer> knobSize_descriptor =
-            newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "knob_size", "Knob Size");
+            newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "knob_size", Messages.KnobSize);
 
     public static WidgetPropertyDescriptor<Double> propLevelHiHi =
-        newDoublePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR,  "level_hihi", Messages.WidgetProperties_LevelHiHi);
+            newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "level_hihi", Messages.WidgetProperties_LevelHiHi);
 
     public static WidgetPropertyDescriptor<Double> propLevelHigh =
-        newDoublePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR,  "level_high", Messages.WidgetProperties_LevelHigh);
+            newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "level_high", Messages.WidgetProperties_LevelHigh);
 
     public static WidgetPropertyDescriptor<Double> propLevelLoLo =
-        newDoublePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR,  "level_lolo", Messages.WidgetProperties_LevelLoLo);
+            newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "level_lolo", Messages.WidgetProperties_LevelLoLo);
 
     public static WidgetPropertyDescriptor<Double> propLevelLow =
-        newDoublePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR,  "level_low", Messages.WidgetProperties_LevelLow);
+            newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "level_low", Messages.WidgetProperties_LevelLow);
 
 
-    /** 'min_max_tolerance' property: Treat the value range [min - min_max_tolerance, max + min_max_tolerance] as the valid value range for the widget (can be used to avoid warnings due to precision errors in cases such as when a PV sends -0.0000001 when the value is actually 0.0. */
+    /**
+     * 'min_max_tolerance' property: Treat the value range [min - min_max_tolerance, max + min_max_tolerance] as the valid value range for the widget (can be used to avoid warnings due to precision errors in cases such as when a PV sends -0.0000001 when the value is actually 0.0.
+     */
     public static final WidgetPropertyDescriptor<Double> propMinMaxTolerance =
             newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "min_max_tolerance", Messages.WidgetProperties_MinMaxTolerance);
 
     public static StructuredWidgetProperty.Descriptor colorsStructuredWidget_descriptor =
-            new StructuredWidgetProperty.Descriptor(WidgetPropertyCategory.DISPLAY, "colors", "Colors");
+            new StructuredWidgetProperty.Descriptor(WidgetPropertyCategory.DISPLAY, "colors", Messages.Colors);
 
     public static WidgetPropertyDescriptor<WidgetColor> propNormalStatusColor_descriptor =
-            newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "normal_status_color", "Normal Status Color");
+            newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "normal_status_color", Messages.NormalStatusColor);
 
     public static WidgetPropertyDescriptor<WidgetColor> minorWarningColor_descriptor =
-            newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "minor_warning_color", "Low & High Warning Color");
+            newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "minor_warning_color", Messages.LowAndHighWarningColor);
 
     public static WidgetPropertyDescriptor<WidgetColor> majorWarningColor_descriptor =
-            newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "major_warning_color", "LoLo & HiHi Warning Color");
+            newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "major_warning_color", Messages.LoLoAndHiHiWarningColor);
 
     public static WidgetPropertyDescriptor<Boolean> isGradientEnabled_descriptor =
-            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "is_gradient_enabled", "Enable Gradient");
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "is_gradient_enabled", Messages.EnableGradient);
 
     public static WidgetPropertyDescriptor<Boolean> isHighlightingOfInactiveRegionsEnabled_descriptor =
-            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "is_highlighting_of_active_regions_enabled", "Highlight Active Region");
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "is_highlighting_of_active_regions_enabled", Messages.HighlightActiveRegion);
 
     public static WidgetPropertyDescriptor<Integer> needleWidth_descriptor =
-            newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "needle_width", "Needle Width");
+            newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "needle_width", Messages.NeedleWidth);
 
     private WidgetProperty<WidgetColor> foreground;
     private WidgetProperty<WidgetColor> background;
@@ -246,20 +238,17 @@ public class LinearMeterWidget extends PVWidget
     private WidgetProperty<WidgetColor> majorWarningColor;
 
     @Override
-    public Version getVersion()
-    {
+    public Version getVersion() {
         return METER_VERSION;
     }
 
     @Override
-    public WidgetConfigurator getConfigurator(Version persistedVersion) throws Exception
-    {
+    public WidgetConfigurator getConfigurator(Version persistedVersion) throws Exception {
         return new LinearMeterConfigurator(persistedVersion);
     }
 
     @Override
-    protected void defineProperties(List<WidgetProperty<?>> properties)
-    {
+    protected void defineProperties(List<WidgetProperty<?>> properties) {
         super.defineProperties(properties);
 
         properties.add(display_mode = propDisplayMode.createProperty(this, RTLinearMeter.DisplayMode.NEEDLE));
@@ -278,23 +267,23 @@ public class LinearMeterWidget extends PVWidget
         background = propBackgroundColor.createProperty(this, new WidgetColor(0, 0, 0, 0));
         needle_color = propNeedleColor.createProperty(this, new WidgetColor(0, 0, 0, 255));
         knob_color = knobColor_descriptor.createProperty(this, new WidgetColor(0, 0, 0, 255));
-        normalStatusColor = propNormalStatusColor_descriptor.createProperty(this, new WidgetColor(194,198,195));
+        normalStatusColor = propNormalStatusColor_descriptor.createProperty(this, new WidgetColor(194, 198, 195));
         minorWarningColor = minorWarningColor_descriptor.createProperty(this, new WidgetColor(242, 148, 141));
         majorWarningColor = majorWarningColor_descriptor.createProperty(this, new WidgetColor(240, 60, 46));
         isGradientEnabled = isGradientEnabled_descriptor.createProperty(this, false);
         isHighlightingOfInactiveRegionsEnabled = isHighlightingOfInactiveRegionsEnabled_descriptor.createProperty(this, true);
         properties.add(needleWidth = needleWidth_descriptor.createProperty(this, 1));
         List<WidgetProperty<?>> colorSelectionWidgets = Arrays.asList(foreground,
-                                                                      background,
-                                                                      needle_color,
-                                                                      knob_color,
-                                                                      normalStatusColor,
-                                                                      minorWarningColor,
-                                                                      majorWarningColor,
-                                                                      isGradientEnabled,
-                                                                      isHighlightingOfInactiveRegionsEnabled);
+                background,
+                needle_color,
+                knob_color,
+                normalStatusColor,
+                minorWarningColor,
+                majorWarningColor,
+                isGradientEnabled,
+                isHighlightingOfInactiveRegionsEnabled);
         properties.add(colorsStructuredWidget = colorsStructuredWidget_descriptor.createProperty(this,
-                                                                                                 colorSelectionWidgets));
+                colorSelectionWidgets));
         properties.add(level_lolo = propLevelLoLo.createProperty(this, 10.0));
         properties.add(level_low = propLevelLow.createProperty(this, 20.0));
         properties.add(level_high = propLevelHigh.createProperty(this, 80.0));
@@ -302,113 +291,130 @@ public class LinearMeterWidget extends PVWidget
         properties.add(minMaxTolerance = propMinMaxTolerance.createProperty(this, 0.0));
     }
 
-    /** @return 'foreground_color' property */
-    public WidgetProperty<WidgetColor> propForeground()
-    {
+    /**
+     * @return 'foreground_color' property
+     */
+    public WidgetProperty<WidgetColor> propForeground() {
         return foreground;
     }
 
-    /** @return 'background_color' property */
-    public WidgetProperty<WidgetColor> propBackground()
-    {
+    /**
+     * @return 'background_color' property
+     */
+    public WidgetProperty<WidgetColor> propBackground() {
         return background;
     }
 
-    /** @return 'font' property */
-    public WidgetProperty<WidgetFont> propFont()
-    {
+    /**
+     * @return 'font' property
+     */
+    public WidgetProperty<WidgetFont> propFont() {
         return font;
     }
 
-    /** @return 'format' property */
-    public WidgetProperty<FormatOption> propFormat()
-    {
+    /**
+     * @return 'format' property
+     */
+    public WidgetProperty<FormatOption> propFormat() {
         return format;
     }
 
-    /** @return 'show_units' property */
-    public WidgetProperty<Boolean> propShowUnits()
-    {
+    /**
+     * @return 'show_units' property
+     */
+    public WidgetProperty<Boolean> propShowUnits() {
         return show_units;
     }
 
-    /** @return 'scale_visible' property */
-    public WidgetProperty<Boolean> propScaleVisible()
-    {
+    /**
+     * @return 'scale_visible' property
+     */
+    public WidgetProperty<Boolean> propScaleVisible() {
         return scale_visible;
     }
 
-    /** @return 'show_limits' property */
-    public WidgetProperty<Boolean> propShowLimits()
-    {
+    /**
+     * @return 'show_limits' property
+     */
+    public WidgetProperty<Boolean> propShowLimits() {
         return show_limits;
     }
 
-    /** @return 'show_warnings' property */
-    public WidgetProperty<Boolean> propShowWarnings()
-    {
+    /**
+     * @return 'show_warnings' property
+     */
+    public WidgetProperty<Boolean> propShowWarnings() {
         return show_warnings;
     }
 
-    /** @return 'needle_color' property */
-    public WidgetProperty<WidgetColor> propNeedleColor()
-    {
+    /**
+     * @return 'needle_color' property
+     */
+    public WidgetProperty<WidgetColor> propNeedleColor() {
         return needle_color;
     }
 
-    /** @return 'knob_color' property */
-    public WidgetProperty<WidgetColor> propKnobColor()
-    {
+    /**
+     * @return 'knob_color' property
+     */
+    public WidgetProperty<WidgetColor> propKnobColor() {
         return knob_color;
     }
 
-    public WidgetProperty<Integer> propKnobSize() { return knobSize; }
+    public WidgetProperty<Integer> propKnobSize() {
+        return knobSize;
+    }
 
-    /** @return 'limits_from_pv' property */
-    public WidgetProperty<LimitsFromPV> propLimitsFromPV()
-    {
+    /**
+     * @return 'limits_from_pv' property
+     */
+    public WidgetProperty<LimitsFromPV> propLimitsFromPV() {
         return limits_from_pv;
     }
 
-    /** @return 'minimum' property */
-    public WidgetProperty<Double> propMinimum()
-    {
+    /**
+     * @return 'minimum' property
+     */
+    public WidgetProperty<Double> propMinimum() {
         return minimum;
     }
 
-    /** @return 'maximum' property */
-    public WidgetProperty<Double> propMaximum()
-    {
+    /**
+     * @return 'maximum' property
+     */
+    public WidgetProperty<Double> propMaximum() {
         return maximum;
     }
 
-    public WidgetProperty<Boolean> propDisplayHorizontal() { return displayHorizontal; }
+    public WidgetProperty<Boolean> propDisplayHorizontal() {
+        return displayHorizontal;
+    }
 
-    public WidgetProperty<Double> propLevelHiHi ( ) {
+    public WidgetProperty<Double> propLevelHiHi() {
         return level_hihi;
     }
 
-    public WidgetProperty<Double> propLevelHigh ( ) {
+    public WidgetProperty<Double> propLevelHigh() {
         return level_high;
     }
 
-    public WidgetProperty<Double> propLevelLoLo ( ) {
+    public WidgetProperty<Double> propLevelLoLo() {
         return level_lolo;
     }
 
-    public WidgetProperty<Double> propLevelLow ( ) {
+    public WidgetProperty<Double> propLevelLow() {
         return level_low;
     }
 
-    public WidgetProperty<Double> propMinMaxTolerance ( ) {
+    public WidgetProperty<Double> propMinMaxTolerance() {
         return minMaxTolerance;
     }
 
-    public WidgetProperty<Boolean> propIsGradientEnabled () {
+    public WidgetProperty<Boolean> propIsGradientEnabled() {
         return isGradientEnabled;
     }
 
-    public WidgetProperty<Boolean> propIsHighlightActiveRegionEnabled () {
+    public WidgetProperty<Boolean> propIsHighlightActiveRegionEnabled() {
         return isHighlightingOfInactiveRegionsEnabled;
     }
 
@@ -419,15 +425,17 @@ public class LinearMeterWidget extends PVWidget
     public WidgetProperty<WidgetColor> propMinorWarningColor() {
         return minorWarningColor;
     }
-    
+
     public WidgetProperty<WidgetColor> propMajorWarningColor() {
         return majorWarningColor;
     }
 
-    public WidgetProperty<Integer> propNeedleWidth() { return needleWidth; }
+    public WidgetProperty<Integer> propNeedleWidth() {
+        return needleWidth;
+    }
 
     public WidgetProperty<RTLinearMeter.DisplayMode> propDisplayMode() {
         return display_mode;
-}
+    }
 
 }
