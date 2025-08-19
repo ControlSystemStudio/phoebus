@@ -14,7 +14,6 @@ import org.csstudio.display.builder.model.spi.WidgetsService;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.ArcWidget;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
-import org.csstudio.display.builder.model.widgets.AutoCompleteWidget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
@@ -75,7 +74,6 @@ public class BaseWidgetsService implements WidgetsService
             CheckBoxWidget.WIDGET_DESCRIPTOR,
             ChoiceButtonWidget.WIDGET_DESCRIPTOR,
             ClockWidget.WIDGET_DESCRIPTOR,
-            AutoCompleteWidget.WIDGET_DESCRIPTOR,
             ComboWidget.WIDGET_DESCRIPTOR,
             DataBrowserWidget.WIDGET_DESCRIPTOR,
             DigitalClockWidget.WIDGET_DESCRIPTOR,

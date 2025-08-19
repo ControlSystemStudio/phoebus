@@ -16,7 +16,6 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.ArcWidget;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
-import org.csstudio.display.builder.model.widgets.AutoCompleteWidget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
@@ -92,7 +91,6 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(CheckBoxWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new CheckBoxRepresentation()),
             entry(ChoiceButtonWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new ChoiceButtonRepresentation()),
             entry(ComboWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new ComboRepresentation()),
-            entry(AutoCompleteWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new AutoCompleteRepresentation()),
             entry(DataBrowserWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new DataBrowserRepresentation()),
             entry(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR, () -> (WidgetRepresentation) new EmbeddedDisplayRepresentation()),
             entry(EllipseWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new EllipseRepresentation()),
