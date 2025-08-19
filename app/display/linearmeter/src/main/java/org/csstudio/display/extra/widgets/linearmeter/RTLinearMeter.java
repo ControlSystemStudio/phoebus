@@ -651,13 +651,8 @@ public class RTLinearMeter extends ImageView
             int height;
 
             // Re-draw border around widget:
-            if (linearMeterScale.isVisible()) {
-                width = linearMeterScale.getBounds().width - marginLeft - marginRight;
-                height = linearMeterScale.getBounds().height - marginAbove - marginBelow;
-            } else {
-                width = linearMeterScale.getBounds().width - marginLeft - marginRight - 1;
-                height = linearMeterScale.getBounds().height - marginAbove - marginBelow - 1;
-            }
+            width = linearMeterScale.getBounds().width - marginLeft - marginRight - 1;
+            height = linearMeterScale.getBounds().height - marginAbove - marginBelow - 1;
             paintRectangle(gc,
                     new Rectangle(marginLeft,
                             marginAbove,
@@ -997,7 +992,7 @@ public class RTLinearMeter extends ImageView
                                 gc.setPaint(needleColor);
 
                                 int y1 = marginAbove + needleWidth / 2 + 1;
-                                int y2 = linearMeterScale.getBounds().height - marginBelow - (needleWidth - 1) / 2 - 1;
+                                int y2 = linearMeterScale.getBounds().height - marginBelow - (needleWidth - 1) / 2 - 2;
 
                                 gc.drawLine(currentIndicatorPosition, y1, currentIndicatorPosition, y2);
                             }
@@ -1030,7 +1025,7 @@ public class RTLinearMeter extends ImageView
                                 gc.setPaint(needleColor);
 
                                 int x1 = marginLeft + (needleWidth)/2 + 1;
-                                int x2 = linearMeterScale.getBounds().width - marginRight - (needleWidth+1)/2;
+                                int x2 = linearMeterScale.getBounds().width - marginRight - (needleWidth+1)/2 - 1;
 
                                 gc.drawLine(x1, currentIndicatorPosition, x2, currentIndicatorPosition);
                             }
@@ -1114,7 +1109,7 @@ public class RTLinearMeter extends ImageView
                                 gc.setPaint(needleColor);
                             }
                             // Draw the bar:
-                            gc.fillRect(marginLeft, currentIndicatorPosition, meterBreadth, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
+                            gc.fillRect(marginLeft, currentIndicatorPosition, meterBreadth - 1, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
                         }
                     }
                 }
@@ -1318,7 +1313,7 @@ public class RTLinearMeter extends ImageView
                 }
 
                 pixelsPerScaleUnit = (linearMeterScale.getBounds().width - marginLeft - marginRight - 1) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
-                meterBreadth = Math.round(linearMeterScale.getBounds().height - marginAbove - marginBelow);
+                meterBreadth = Math.round(linearMeterScale.getBounds().height - marginAbove - marginBelow) - 1;
 
                 double x_loLoRectangle = marginLeft;
                 double x_lowRectangle = marginLeft + pixelsPerScaleUnit * (displayedLoLo - linearMeterScale.getValueRange().getLow());
@@ -1385,27 +1380,27 @@ public class RTLinearMeter extends ImageView
 
                 loLoRectangle = new Rectangle(marginLeft,
                         (int) Math.round(y_loLoRectangle),
-                        meterBreadth,
-                        (int) (Math.round(pixelsPerScaleUnit * (displayedLoLo - linearMeterScale.getValueRange().getLow()) )));
+                        meterBreadth - 1,
+                        (int) (Math.round(pixelsPerScaleUnit * (displayedLoLo - linearMeterScale.getValueRange().getLow()))));
 
                 lowRectangle = new Rectangle(marginLeft,
                         (int) Math.round(y_lowRectangle),
-                        meterBreadth,
+                        meterBreadth - 1,
                         (int) (Math.round(y_loLoRectangle) - Math.round(y_lowRectangle)));
 
                 normalRectangle =  new Rectangle(marginLeft,
                         (int) Math.round(y_normalRectangle),
-                        meterBreadth,
+                        meterBreadth - 1,
                         (int) (Math.round(y_lowRectangle) - Math.round(y_normalRectangle)));
 
                 highRectangle = new Rectangle(marginLeft,
                         (int) Math.round(y_highRectangle),
-                        meterBreadth,
+                        meterBreadth - 1,
                         (int) (Math.round(y_normalRectangle) - Math.round(y_highRectangle)));
 
                 hiHiRectangle = new Rectangle(marginLeft,
                         marginAbove,
-                        meterBreadth,
+                        meterBreadth - 1,
                         (int) Math.round(y_highRectangle) - marginAbove);
             }
         });
