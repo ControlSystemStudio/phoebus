@@ -614,10 +614,12 @@ public class RTLinearMeter extends ImageView
 
                 DisplayMode displayMode = this.displayMode;
                 if (displayMode.equals(DisplayMode.NEEDLE)) {
+                    redrawBorderAroundLinearMeter(gc); // When drawing a needle, redraw the border *before* drawing the needle.
                     drawNeedle(gc, value);
                 }
                 else if (displayMode.equals(DisplayMode.BAR)) {
                     drawBar(gc, value);
+                    redrawBorderAroundLinearMeter(gc); // When drawing a bar, redraw the border *after* drawing the bar.
                 }
                 else {
                     throw new RuntimeException("Unhandled case");
@@ -641,6 +643,28 @@ public class RTLinearMeter extends ImageView
                 logger.log(Level.FINE, "Redraw meter");
             }
         });
+    }
+
+    private void redrawBorderAroundLinearMeter(Graphics2D gc) {
+        {
+            int width;
+            int height;
+
+            // Re-draw border around widget:
+            if (linearMeterScale.isVisible()) {
+                width = linearMeterScale.getBounds().width - marginLeft - marginRight;
+                height = linearMeterScale.getBounds().height - marginAbove - marginBelow;
+            } else {
+                width = linearMeterScale.getBounds().width - marginLeft - marginRight - 1;
+                height = linearMeterScale.getBounds().height - marginAbove - marginBelow - 1;
+            }
+            paintRectangle(gc,
+                    new Rectangle(marginLeft,
+                            marginAbove,
+                            width,
+                            height),
+                    TRANSPARENT);
+        }
     }
 
     /** Call to update size of meter
@@ -944,13 +968,6 @@ public class RTLinearMeter extends ImageView
                         }
                     }
                 }
-                // Re-draw border around widget:
-                paintRectangle(gc,
-                        new Rectangle(marginLeft,
-                                marginAbove,
-                                linearMeterScale.getBounds().width - marginLeft - marginRight - 1,
-                                linearMeterScale.getBounds().height - marginAbove - marginBelow - 1),
-                        TRANSPARENT);
 
                 if (linearMeterScale.isHorizontal()) {
                     if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
@@ -1100,14 +1117,6 @@ public class RTLinearMeter extends ImageView
                             gc.fillRect(marginLeft, currentIndicatorPosition, meterBreadth, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
                         }
                     }
-
-                    // Re-draw the border of the linear meter, since it may have been covered by the bar (if the border is transparent):
-                    paintRectangle(gc,
-                            new Rectangle(marginLeft,
-                                    marginAbove,
-                                    linearMeterScale.getBounds().width - marginLeft - marginRight - 1,
-                                    linearMeterScale.getBounds().height - marginAbove - marginBelow - 1),
-                            TRANSPARENT);
                 }
 
                 gc.setRenderingHints(oldrenderingHints);
@@ -1339,7 +1348,7 @@ public class RTLinearMeter extends ImageView
 
                 hiHiRectangle = new Rectangle((int) Math.round(x_hiHiRectangle),
                         marginAbove,
-                        (int) (Math.round(pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi))),
+                        (int) (Math.ceil(pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi))),
                         meterBreadth);
             }
             else {
