@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2025 Thales.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,22 +10,32 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newIntegerPropertyDescriptor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newPVNamePropertyDescriptor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newStringPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialog;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFormat;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propItemsFromPV;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPrecision;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propShowUnits;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVerticalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propWrapWords;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 
+import java.util.stream.Collectors;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Version;
@@ -53,6 +64,7 @@ import org.w3c.dom.Element;
 
 /** Widget that displays a changing text
  *  @author Kay Kasemir
+ *  @author Thales
  */
 @SuppressWarnings("nls")
 public class TextEntryWidget extends WritablePVWidget
@@ -76,6 +88,52 @@ public class TextEntryWidget extends WritablePVWidget
     /** 'multi_line' */
     public static final WidgetPropertyDescriptor<Boolean> propMultiLine =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "multi_line", Messages.WidgetProperties_MultiLine);
+
+
+
+    /**
+     * 'items' property: list of items (string properties) for auto-completion
+     */
+    public static final WidgetPropertyDescriptor<String> propItems =
+        newPVNamePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "autocompleteitems", "Suggestions");
+
+    /**
+     * 'max_suggestions' property: maximum number of suggestions to display
+     */
+    private static final WidgetPropertyDescriptor<Integer> propMaxSuggestions =
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "max_suggestions", "Max Suggestions");
+
+    /**
+     * 'min_chars' property: minimum characters to trigger autocomplete
+     */
+    private static final WidgetPropertyDescriptor<Integer> propMinCharacters =
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "min_characters", "Min Characters");
+
+    /**
+     * 'case_sensitive' property: whether matching is case sensitive
+     */
+    private static final WidgetPropertyDescriptor<Boolean> propCaseSensitive =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "case_sensitive", "Case Sensitive");
+
+    /**
+     * 'placeholder' property: placeholder text when empty
+     */
+    private static final WidgetPropertyDescriptor<String> propPlaceholder =
+        newStringPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "placeholder", "Placeholder Text");
+
+    /**
+     * 'allowcustom' property: allow custom values
+     */
+    private static final WidgetPropertyDescriptor<Boolean> propCustom =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "allow_custom",
+            "Allow custom values");
+
+    /**
+     * 'filter_mode' property: how to filter suggestions (starts_with, contains, fuzzy)
+     */
+    private static final WidgetPropertyDescriptor<String> propFilterMode =
+        newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "filter_mode", "Filter Mode");
+
 
     private static class CustomWidgetConfigurator extends WidgetConfigurator
     {
@@ -282,6 +340,17 @@ public class TextEntryWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> multi_line;
     private volatile WidgetProperty<HorizontalAlignment> horizontal_alignment;
     private volatile WidgetProperty<VerticalAlignment> vertical_alignment;
+    private volatile WidgetProperty<String> items;
+    private volatile WidgetProperty<Boolean> items_from_pv;
+    private volatile WidgetProperty<Boolean> confirm_dialog;
+    private volatile WidgetProperty<String> confirm_message;
+    private volatile WidgetProperty<String> password;
+    private volatile WidgetProperty<Integer> min_characters;
+    private volatile WidgetProperty<Boolean> case_sensitive;
+    private volatile WidgetProperty<String> placeholder;
+    private volatile WidgetProperty<String> filter_mode;
+    private volatile WidgetProperty<Boolean> allow_custom;
+    private volatile List<String> itemsList = List.of();
 
     /** Constructor */
     public TextEntryWidget()
@@ -317,6 +386,18 @@ public class TextEntryWidget extends WritablePVWidget
         properties.add(wrap_words = propWrapWords.createProperty(this, false));
         properties.add(multi_line = propMultiLine.createProperty(this, false));
         BorderSupport.addBorderProperties(this, properties);
+
+        properties.add(items = propItems.createProperty(this, ""));
+        properties.add(items_from_pv = propItemsFromPV.createProperty(this, false));
+        properties.add(min_characters = propMinCharacters.createProperty(this, 1));
+        properties.add(case_sensitive = propCaseSensitive.createProperty(this, false));
+        properties.add(placeholder = propPlaceholder.createProperty(this, "Type to search..."));
+        properties.add(filter_mode = propFilterMode.createProperty(this, "fuzzy"));
+        properties.add(allow_custom = propCustom.createProperty(this, false));
+
+        properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
+        properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are you sure you want to do this?"));
+        properties.add(password = propPassword.createProperty(this, ""));
     }
 
     /** @return 'foreground_color' property */
@@ -383,5 +464,140 @@ public class TextEntryWidget extends WritablePVWidget
     public WidgetProperty<VerticalAlignment> propVerticalAlignment()
     {
         return vertical_alignment;
+    }
+
+    /**
+     * @return 'items' property
+     */
+    public WidgetProperty<String> propItems() {
+        return items;
+    }
+
+    /**
+     * Convenience routine for script to fetch items
+     *
+     * @return Items currently available for auto-completion
+     */
+    public Collection<String> getItems() {
+        return itemsList;
+    }
+
+    /**
+     * Set the items list for auto-completion
+     *
+     * @param items List of items to set
+     */
+    public void setItems(List<String> items) {
+        this.itemsList = Objects.requireNonNullElseGet(items, List::of);
+    }
+
+    /**
+     * @return 'items_from_PV' property
+     */
+    public WidgetProperty<Boolean> propItemsFromPV() {
+        return items_from_pv;
+    }
+
+    /**
+     * @return 'confirm_dialog' property
+     */
+    public WidgetProperty<Boolean> propConfirmDialog() {
+        return confirm_dialog;
+    }
+
+    /**
+     * @return 'confirm_message' property
+     */
+    public WidgetProperty<String> propConfirmMessage() {
+        return confirm_message;
+    }
+
+    /**
+     * @return 'password' property
+     */
+    public WidgetProperty<String> propPassword() {
+        return password;
+    }
+
+    /**
+     * @return 'min_characters' property
+     */
+    public WidgetProperty<Integer> propMinCharacters() {
+        return min_characters;
+    }
+
+    /**
+     * @return 'case_sensitive' property
+     */
+    public WidgetProperty<Boolean> propCaseSensitive() {
+        return case_sensitive;
+    }
+
+    /**
+     * @return 'placeholder' property
+     */
+    public WidgetProperty<String> propPlaceholder() {
+        return placeholder;
+    }
+
+    /**
+     * @return 'filter_mode' property
+     */
+    public WidgetProperty<String> propFilterMode() {
+        return filter_mode;
+    }
+
+    /**
+     * @return 'allow_custom' property
+     */
+    public WidgetProperty<Boolean> propCustom() {
+        return allow_custom;
+    }
+
+    /**
+     * Filter items based on input text and return top N matches
+     *
+     * @param inputText Text to filter by
+     * @return List of filtered suggestions (max N items)
+     */
+    public List<String> getFilteredSuggestions(final String inputText) {
+        if (inputText == null || inputText.length() < min_characters.getValue()) {
+            return List.of();
+        }
+
+        final String searchText = case_sensitive.getValue() ? inputText : inputText.toLowerCase();
+        final String mode = filter_mode.getValue();
+
+        return getItems().stream()
+            .filter(item -> {
+                final String itemText = case_sensitive.getValue() ? item : item.toLowerCase();
+                return switch (mode) {
+                    case "starts_with" -> itemText.startsWith(searchText);
+                    case "fuzzy" -> fuzzyMatch(itemText, searchText);
+                    default -> itemText.contains(searchText);
+                };
+            })
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Simple fuzzy matching algorithm for filtering option.
+     *
+     * @param text    Text to search in
+     * @param pattern Pattern to search for
+     * @return true if pattern fuzzy matches text
+     */
+    private boolean fuzzyMatch(final String text, final String pattern) {
+        int textIndex = 0;
+        int patternIndex = 0;
+
+        while (textIndex < text.length() && patternIndex < pattern.length()) {
+            if (text.charAt(textIndex) == pattern.charAt(patternIndex)) {
+                patternIndex++;
+            }
+            textIndex++;
+        }
+
+        return patternIndex == pattern.length();
     }
 }
