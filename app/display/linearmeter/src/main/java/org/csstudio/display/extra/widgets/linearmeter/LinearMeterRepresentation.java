@@ -242,7 +242,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
         super.unregisterListeners();
     }
 
-    int minimumSize = 10;
+    int minimumSize = 2;
     private void widthChanged(WidgetProperty<Integer> prop, Integer old_value, Integer new_value)
     {
         if (new_value < minimumSize) {
