@@ -1354,7 +1354,7 @@ public class RTLinearMeter extends ImageView
 
                 hiHiRectangle = new Rectangle((int) Math.round(x_hiHiRectangle),
                         marginAbove,
-                        (int) (Math.ceil(pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi))),
+                        (int) (Math.round(pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi))),
                         meterBreadth);
             }
             else {
