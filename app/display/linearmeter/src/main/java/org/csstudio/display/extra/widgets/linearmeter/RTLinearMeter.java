@@ -1094,7 +1094,7 @@ public class RTLinearMeter extends ImageView
                                 gc.setPaint(needleColor);
                             }
                             // Draw the bar:
-                            gc.fillRect(marginLeft, marginAbove, currentIndicatorPosition-marginLeft, meterBreadth);
+                            gc.fillRect(marginLeft, marginAbove, currentIndicatorPosition - marginLeft, meterBreadth);
                         }
                     } else {
                         int currentIndicatorPosition = maybeCurrentIndicatorPosition.get() - 1;
@@ -1120,7 +1120,7 @@ public class RTLinearMeter extends ImageView
                                 gc.setPaint(needleColor);
                             }
                             // Draw the bar:
-                            gc.fillRect(marginLeft, currentIndicatorPosition, meterBreadth - 1, linearMeterScale.getBounds().height-currentIndicatorPosition-marginBelow);
+                            gc.fillRect(marginLeft, currentIndicatorPosition, meterBreadth - 1, linearMeterScale.getBounds().height - currentIndicatorPosition - marginBelow);
                         }
                     }
                 }
