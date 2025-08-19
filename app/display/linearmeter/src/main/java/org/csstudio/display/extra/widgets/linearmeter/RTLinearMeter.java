@@ -58,6 +58,16 @@ public class RTLinearMeter extends ImageView
     // Note: All methods must ensure thread-safety by acquiring
     // readWriteLock.readLock() when reading fields, and by acquiring
     // readWriteLock.writeLock() when writing to one or more fields.
+    //
+    // The helper functions
+    //
+    // - void withReadLock(Runnable runnable)
+    // - <T> T withReadLock(Supplier<T> supplier)
+    // - void withWriteLock(Runnable runnable)
+    //
+    // have been implemented to facilitate the acquiring and releasing
+    // of locks. When a read-lock is held, care must be taken not
+    // to try to acquire the write-lock, since it leads to a deadlock.
 
     public RTLinearMeter(double initialValue,
                          int width,
