@@ -290,7 +290,6 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
         if (new_value instanceof VDouble) {
             VDouble vDouble = ((VDouble) new_value);
             double newValue = vDouble.getValue();
-            meter.setCurrentValue(newValue);
 
             if (!Double.isNaN(newValue)) {
                 if (Double.isNaN(observedMin) || newValue < observedMin) {
@@ -368,6 +367,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                     }
                 }
             }
+            meter.setCurrentValue(newValue);
         }
     }
 
