@@ -21,6 +21,7 @@ package org.phoebus.logbook.olog.ui.write;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.SimpleType;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -58,8 +59,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 
+import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
@@ -94,6 +97,15 @@ import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
+import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.simp.stomp.StompFrameHandler;
+import org.springframework.messaging.simp.stomp.StompHeaders;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSessionHandler;
+import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.web.socket.client.WebSocketClient;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -543,6 +555,8 @@ public class LogEntryEditorController {
         getServerSideStaticData();
 
         setupTextAreaContextMenu();
+
+        doStompStuff();
 
     }
 
@@ -1064,6 +1078,42 @@ public class LogEntryEditorController {
             levelSelector.getSelectionModel().select(0);
             selectedTags.forEach(t -> updateDropDown(tagDropDown, t, false));
             selectedLogbooks.forEach(l -> updateDropDown(logbookDropDown, l, false));
+        }
+    }
+
+    private void doStompStuff(){
+        WebSocketClient webSocketClient = new StandardWebSocketClient();
+        WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
+        stompClient.setMessageConverter(new StringMessageConverter());
+        String url = "ws://localhost:8080/websocket";
+        StompSessionHandler sessionHandler = new MyStompSessionHandler();
+        try {
+            StompSession stompSession = stompClient.connect(url, sessionHandler).get();
+            stompSession.subscribe("/messages", new StompFrameHandler() {
+                @Override
+                public Type getPayloadType(StompHeaders headers) {
+                    return String.class;
+                }
+
+                @Override
+                public void handleFrame(StompHeaders headers, Object payload) {
+                    System.out.println(payload);
+                }
+            });
+            StompSession.Receiptable receiptable = stompSession.send("/websocket/echo", "Hello World");
+            receiptable.getReceiptId();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static class MyStompSessionHandler extends StompSessionHandlerAdapter {
+
+        @Override
+        public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
+            System.out.println();
         }
     }
 }

@@ -39,6 +39,16 @@
             <artifactId>app-logbook-olog-client-es</artifactId>
             <version>5.0.3-SNAPSHOT</version>
         </dependency>
+      <dependency>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-websocket</artifactId>
+          <version>5.3.22</version>
+      </dependency>
+      <dependency>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-messaging</artifactId>
+          <version>5.3.22</version>
+      </dependency>
         <dependency>
             <groupId>org.jfxtras</groupId>
             <artifactId>jfxtras-agenda</artifactId>
