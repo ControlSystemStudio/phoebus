@@ -16,7 +16,6 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
-import org.csstudio.display.builder.model.widgets.KnobWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
 import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
@@ -43,7 +42,6 @@ public class BaseWidgetRuntimes implements WidgetRuntimesService
             entry(ArrayWidget.WIDGET_DESCRIPTOR.getType(),           () -> new ArrayWidgetRuntime()),
             entry(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR.getType(), () -> new EmbeddedDisplayRuntime()),
             entry(GroupWidget.WIDGET_DESCRIPTOR.getType(),           () -> new GroupWidgetRuntime()),
-            entry(KnobWidget.WIDGET_DESCRIPTOR.getType(),            () -> new KnobWidgetRuntime()),
             entry(ImageWidget.WIDGET_DESCRIPTOR.getType(),           () -> new ImageWidgetRuntime()),
             entry(NavigationTabsWidget.WIDGET_DESCRIPTOR.getType(),  () -> new NavigationTabsRuntime()),
             entry(ScaledSliderWidget.WIDGET_DESCRIPTOR.getType(),    () -> new SliderWidgetRuntime()),
