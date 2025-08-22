@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -51,13 +51,16 @@ import javafx.scene.layout.Pane;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class NavigationTabsRepresentation extends RegionBaseRepresentation<NavigationTabs, NavigationTabsWidget>
 {
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag dirty_tabs = new DirtyFlag();
     private final DirtyFlag dirty_tab_look = new DirtyFlag();
     private final DirtyFlag dirty_active_tab = new DirtyFlag();
+
+    // Track the "active tab" of navigation tabs _inside_ this one.
+    // As user toggles between tabs, this will allow restoring the active tab
+    // of nested instances, which would otherwise start over at their default tab
     private class SelectedNavigationTabs extends MutablePair<Integer, HashMap<Pair<Integer, String>, HashMap<String, SelectedNavigationTabs>>> {
         public SelectedNavigationTabs(int activeTab) {
             left = activeTab;
@@ -244,9 +247,10 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
                 });
                 checkCompletion(model_widget, completion, "timeout representing new content");
 
-                int tabNumber = model_widget.propActiveTab().getValue();
-                String tabName = model_widget.propTabs().getValue().get(model_widget.propActiveTab().getValue()).name().getValue();
-                Pair<Integer, String> tabNumberAndTabName = new Pair<>(tabNumber, tabName);
+                final List<TabProperty> tabs = model_widget.propTabs().getValue();
+                final int tabNumber = Math.min(model_widget.propActiveTab().getValue(), tabs.size()-1);
+                final String tabName = tabs.get(tabNumber).name().getValue();
+                final Pair<Integer, String> tabNumberAndTabName = new Pair<>(tabNumber, tabName);
 
                 if (!selectedNavigationTabs.right.containsKey(tabNumberAndTabName)) {
                     selectedNavigationTabs.right.put(tabNumberAndTabName, new HashMap<>());
