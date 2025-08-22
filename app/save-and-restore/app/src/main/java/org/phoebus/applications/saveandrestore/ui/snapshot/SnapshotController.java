@@ -51,6 +51,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.converter.DoubleStringConverter;
 import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VEnum;
@@ -272,6 +273,12 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     protected TableColumn<TableEntry, ?> baseSnapshotColumn;
 
     @FXML
+    private TableColumn<TableEntry, AlarmSeverity> storedSeverityColumn;
+
+    @FXML
+    private TableColumn<TableEntry, AlarmSeverity> liveSeverityColumn;
+
+    @FXML
     protected TooltipTableColumn<VType> baseSnapshotValueColumn;
 
     @FXML
@@ -357,7 +364,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
 
-
     @FXML
     public void initialize() {
 
@@ -396,7 +402,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         // TODO: support save (=update) a composite snapshot from the snapshot view. In the meanwhile, disable save button.
-                                snapshotDataDirty.not().get() ||
+                        snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
                                 (!Preferences.allow_empty_descriptions && snapshotCommentProperty.isEmpty().get()) ||
                                 userIdentity.isNull().get(),
@@ -468,7 +474,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
         showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
         showLiveReadbackButton.selectedProperty()
-                .addListener((a, o, n) ->{
+                .addListener((a, o, n) -> {
                     this.showReadbacks.set(n);
                     actionResultReadbackColumn.visibleProperty().setValue(actionResultReadbackColumn.getGraphic() != null);
                 });
@@ -668,6 +674,9 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         storedReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
         readbackColumn.visibleProperty().bind(showReadbacks);
 
+        liveSeverityColumn.setCellFactory(a -> new AlarmSeverityCell());
+        storedSeverityColumn.setCellFactory(a -> new AlarmSeverityCell());
+
         timeColumn.visibleProperty().bind(compareViewEnabled.not());
         firstDividerColumn.visibleProperty().bind(compareViewEnabled);
         statusColumn.visibleProperty().bind(compareViewEnabled.not());
@@ -763,7 +772,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * Restores snapshot meta-data properties to indicate that the UI
      * is not showing persisted {@link Snapshot} data.
      */
-    private void resetMetaData(){
+    private void resetMetaData() {
         tabTitleProperty.setValue(Messages.unnamedSnapshot);
         snapshotNameProperty.setValue(null);
         snapshotCommentProperty.setValue(null);
@@ -1141,7 +1150,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 break;
             }
         }
-        for(SnapshotItem snapshotItem : snapshotItems){
+        for (SnapshotItem snapshotItem : snapshotItems) {
             if (snapshotItem.getConfigPv().getReadbackPvName() != null && snapshotItem.getReadbackValue() != null &&
                     snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
                 disconnectedReadbackPvEncountered.set(true);
@@ -1155,7 +1164,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             if (!disconnectedPvEncountered.get()) {
                 actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
             }
-            if(!disconnectedReadbackPvEncountered.get()){
+            if (!disconnectedReadbackPvEncountered.get()) {
                 actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
             }
         });
@@ -1329,8 +1338,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         Platform.runLater(() -> {
             if (!disconnectedPvEncountered.get()) {
                 actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
-            }
-            else{
+            } else {
                 actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
             }
         });
@@ -1508,15 +1516,13 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
             if (entry.getValue() == null || entry.getValue().equals(VDisconnectedData.INSTANCE)) {
                 tableEntry.setActionResult(ActionResult.FAILED);
-            }
-            else {
+            } else {
                 tableEntry.setActionResult(ActionResult.OK);
             }
-            if (entry.getConfigPv().getReadbackPvName() != null){
-                if(entry.getReadbackValue() == null || entry.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
+            if (entry.getConfigPv().getReadbackPvName() != null) {
+                if (entry.getReadbackValue() == null || entry.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
                     tableEntry.setActionResultReadback(ActionResult.FAILED);
-                }
-                else{
+                } else {
                     tableEntry.setActionResultReadback(ActionResult.OK);
                 }
             }
@@ -1590,22 +1596,20 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     /**
-     *
      * @param configurationData {@link ConfigurationData} obejct of a {@link org.phoebus.applications.saveandrestore.model.Configuration}
      * @return <code>true</code> if any if the {@link ConfigPv} items in {@link ConfigurationData#getPvList()} defines a non-null read-back
      * PV name, otherwise <code>false</code>.
      */
-    private boolean configurationHasReadbackPvs(ConfigurationData configurationData){
+    private boolean configurationHasReadbackPvs(ConfigurationData configurationData) {
         return configurationData.getPvList().stream().anyMatch(cp -> cp.getReadbackPvName() != null);
     }
 
     /**
-     *
      * @param snapshotData {@link SnapshotData} obejct of a {@link org.phoebus.applications.saveandrestore.model.Snapshot}
      * @return <code>true</code> if any if the {@link ConfigPv} items in {@link SnapshotData#getSnapshotItems()} defines a non-null read-back
      * PV name, otherwise <code>false</code>.
      */
-    private boolean configurationHasReadbackPvs(SnapshotData snapshotData){
+    private boolean configurationHasReadbackPvs(SnapshotData snapshotData) {
         return snapshotData.getSnapshotItems().stream().anyMatch(si -> si.getConfigPv().getReadbackPvName() != null);
     }
 
@@ -1658,6 +1662,34 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                             setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
                 }
             }
+        }
+    }
+
+    /**
+     * {@link TableCell} customized for the alarm severity column such that alarm information is
+     * decorated in the same manner as in other applications.
+     */
+    private static class AlarmSeverityCell extends TableCell<TableEntry, AlarmSeverity> {
+
+        @Override
+        public void updateItem(AlarmSeverity alarmSeverity, boolean empty) {
+            if (empty) {
+                setText(null);
+                setStyle(TableCellColors.REGULAR_CELL_STYLE);
+            } else if (alarmSeverity == null) {
+                setText("---");
+                setStyle(TableCellColors.REGULAR_CELL_STYLE);
+            } else {
+                setText(alarmSeverity.toString());
+                switch (alarmSeverity) {
+                    case NONE -> setStyle(TableCellColors.ALARM_NONE_STYLE);
+                    case UNDEFINED -> setStyle(TableCellColors.ALARM_UNDEFINED_STYLE);
+                    case MINOR -> setStyle(TableCellColors.ALARM_MINOR_STYLE);
+                    case MAJOR -> setStyle(TableCellColors.ALARM_MAJOR_STYLE);
+                    case INVALID -> setStyle(TableCellColors.ALARM_INVALID_STYLE);
+                }
+            }
+
         }
     }
 }
