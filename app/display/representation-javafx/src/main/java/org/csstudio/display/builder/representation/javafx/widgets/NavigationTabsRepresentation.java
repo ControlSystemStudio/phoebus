@@ -18,8 +18,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-import javafx.util.Pair;
-import org.apache.commons.lang3.tuple.MutablePair;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -61,10 +59,22 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
     // Track the "active tab" of navigation tabs _inside_ this one.
     // As user toggles between tabs, this will allow restoring the active tab
     // of nested instances, which would otherwise start over at their default tab
-    private class SelectedNavigationTabs extends MutablePair<Integer, HashMap<Pair<Integer, String>, HashMap<String, SelectedNavigationTabs>>> {
-        public SelectedNavigationTabs(int activeTab) {
-            left = activeTab;
-            right = new HashMap<>();  // 'right' is a mapping of the form: Tab Number & Tab Name (Integer, String) -> Name of Navigator Tab Widget (String) -> Opened Tab and Sub-Tabs (SelectedNavigationTabs)
+
+    // Tab index and name as unique identifier for a tab
+    private static record UniqueTabID(int index, String name) {}
+
+    private static class SelectedNavigationTabs
+    {
+        // Index of active tab in this nav tabs widget
+        int active_tab;
+
+        // Map from UniqueTabID ->   ( Map from Name of child Navigator Tab Widget -> Opened Tab and Sub-Tabs )
+        final HashMap<UniqueTabID,
+                      HashMap<String, SelectedNavigationTabs>> child_navtab_selections = new HashMap<>();
+
+        SelectedNavigationTabs(int activeTab)
+        {
+            active_tab = activeTab;
         }
     };
     protected SelectedNavigationTabs selectedNavigationTabs = new SelectedNavigationTabs(0);
@@ -190,7 +200,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
         dirty_active_tab.mark();
         toolkit.scheduleUpdate(this);
         tab_display_listener.propertyChanged(null, null, null);
-        selectedNavigationTabs.left = tab_index;
+        selectedNavigationTabs.active_tab = tab_index;
     }
 
     /** Update to the next pending display
@@ -250,35 +260,33 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
                 final List<TabProperty> tabs = model_widget.propTabs().getValue();
                 final int tabNumber = Math.min(model_widget.propActiveTab().getValue(), tabs.size()-1);
                 final String tabName = tabs.get(tabNumber).name().getValue();
-                final Pair<Integer, String> tabNumberAndTabName = new Pair<>(tabNumber, tabName);
+                final UniqueTabID tab_id = new UniqueTabID(tabNumber, tabName);
 
-                if (!selectedNavigationTabs.right.containsKey(tabNumberAndTabName)) {
-                    selectedNavigationTabs.right.put(tabNumberAndTabName, new HashMap<>());
-                }
-                HashMap<String, SelectedNavigationTabs> selectedNavigationTabsHashMapForCurrentTab = selectedNavigationTabs.right.get(tabNumberAndTabName);
+                // For this tab_id, create or update map of NavTabs children to their selected tab index and sub-navtabs
+                final HashMap<String, SelectedNavigationTabs> selectedNavTabsMapForCurrentTab = selectedNavigationTabs.child_navtab_selections.computeIfAbsent(tab_id, tid -> new HashMap<>());
 
-                new_model.getChildren()
-                         .stream()
-                         .filter(widget -> widget instanceof NavigationTabsWidget)
-                         .forEach(widget -> {
-                             NavigationTabsWidget nestedNavigationTabsWidget = (NavigationTabsWidget) widget;
-                             NavigationTabsRepresentation nestedNavigationTabsRepresentation = (NavigationTabsRepresentation) nestedNavigationTabsWidget.getUserData(Widget.USER_DATA_REPRESENTATION);
-                             if (nestedNavigationTabsRepresentation != null) {
-                                 SelectedNavigationTabs nestedNavigationTabsRepresentation_selectedNavigationTabs;
+                for (Widget w : new_model.getChildren())
+                    if (w instanceof NavigationTabsWidget childNavTab)
+                    {
+                        final NavigationTabsRepresentation childRepr = childNavTab.getUserData(Widget.USER_DATA_REPRESENTATION);
+                        if (childRepr != null)
+                        {
+                            SelectedNavigationTabs childRepr_selectedNavigationTabs = selectedNavTabsMapForCurrentTab.get(childNavTab.getName());
+                            if (childRepr_selectedNavigationTabs == null)
+                            {   // See childNavTab for the first time? Create its SelectedNavigationTabs with its propActiveTab as start value
+                                childRepr_selectedNavigationTabs = new SelectedNavigationTabs(childNavTab.propActiveTab().getValue());
+                                selectedNavTabsMapForCurrentTab.put(childNavTab.getName(), childRepr_selectedNavigationTabs);
+                            }
+                            // Known childNavTab? Re-select its last active tab (if valid index)
+                            else if (childRepr_selectedNavigationTabs.active_tab < childNavTab.propTabs().size())
+                                childNavTab.propActiveTab().setValue(childRepr_selectedNavigationTabs.active_tab);
 
-                                 if (!selectedNavigationTabsHashMapForCurrentTab.containsKey(nestedNavigationTabsWidget.getName())) {
-                                     nestedNavigationTabsRepresentation_selectedNavigationTabs = new SelectedNavigationTabs(nestedNavigationTabsWidget.propActiveTab().getValue());
-                                     selectedNavigationTabsHashMapForCurrentTab.put(nestedNavigationTabsWidget.getName(), nestedNavigationTabsRepresentation_selectedNavigationTabs);
-                                 }
-                                 else {
-                                     nestedNavigationTabsRepresentation_selectedNavigationTabs = selectedNavigationTabsHashMapForCurrentTab.get(nestedNavigationTabsWidget.getName());
-                                     if (nestedNavigationTabsWidget.propTabs().size() > nestedNavigationTabsRepresentation_selectedNavigationTabs.left) {
-                                         nestedNavigationTabsWidget.propActiveTab().setValue(nestedNavigationTabsRepresentation_selectedNavigationTabs.left);
-                                     }
-                                 }
-                                 nestedNavigationTabsRepresentation.selectedNavigationTabs = nestedNavigationTabsRepresentation_selectedNavigationTabs;
-                             }
-                        });
+                            // childRepr.selectedNavigationTabs was set when the childNavTabRepr got constructed,
+                            // but it's empty and its reference will be lost when we switch tabs.
+                            // Replace it with the one that's tracked by the parent navtab (this one)
+                            childRepr.selectedNavigationTabs = childRepr_selectedNavigationTabs;
+                         }
+                    }
 
                 model_widget.runtimePropEmbeddedModel().setValue(new_model);
             }
