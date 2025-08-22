@@ -5,6 +5,7 @@ import org.phoebus.framework.jobs.Job;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.SearchResult;
+import org.springframework.messaging.simp.stomp.StompSession;
 
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A basic controller for any ui performing logbook queries. The
@@ -31,6 +34,8 @@ public abstract class LogbookSearchController {
     private ScheduledFuture<?> runningTask;
     protected final SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
     private static final int SEARCH_JOB_INTERVAL = 30; // seconds
+
+    protected StompSession stompSession;
 
     public void setClient(LogClient client) {
         this.client = client;
@@ -91,6 +96,10 @@ public abstract class LogbookSearchController {
      * Utility method to cancel any ongoing periodic search jobs.
      */
     public void shutdown() {
-        cancelPeriodSearch();
+        //cancelPeriodSearch();
+        if(stompSession != null && stompSession.isConnected()){
+            Logger.getLogger(LogbookSearchController.class.getName()).log(Level.INFO, "Disconnecting from web socket");
+            stompSession.disconnect();
+        }
     }
 }
