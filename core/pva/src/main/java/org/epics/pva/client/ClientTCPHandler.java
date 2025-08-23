@@ -48,6 +48,7 @@ class ClientTCPHandler extends TCPHandler
                               new ValidatedHandler(),
                               new EchoHandler(),
                               new CreateChannelHandler(),
+                              new AccessRightsChangeHandler(),
                               new DestroyChannelHandler(),
                               new GetHandler(),
                               new PutHandler(),
