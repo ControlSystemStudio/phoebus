@@ -164,7 +164,6 @@ public class DockStage
 
         final Scene scene = new Scene(layout, geometry.width, geometry.height);
         stage.setScene(scene);
-        stage.setTitle(Messages.FixedTitle);
         // Set position
         stage.setX(geometry.x);
         stage.setY(geometry.y);
