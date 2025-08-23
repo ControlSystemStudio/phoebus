@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-10-03 15:25:39 by shroffk-->
+<display version="2.0.0">
+  <name>Display</name>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display</name>
+    <file>level_1_embedded.bob</file>
+    <y>50</y>
+    <height>150</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_1</name>
+    <file>level_1_embedded.bob</file>
+    <x>400</x>
+    <y>50</y>
+    <height>150</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>ROOT</text>
+    <x>190</x>
+    <width>350</width>
+    <height>50</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD_ITALIC" size="24.0">
+      </font>
+    </font>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+</display>
