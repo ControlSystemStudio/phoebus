@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.SubScene?>
+<SubScene xmlns="http://javafx.com/javafx/8"
+          xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="org.phoebus.applications.waterfallplotwidget.WaterfallPlotController">
+    <root>
+        <StackPane fx:id="xyChartStackPane" />
+    </root>
+</SubScene>
