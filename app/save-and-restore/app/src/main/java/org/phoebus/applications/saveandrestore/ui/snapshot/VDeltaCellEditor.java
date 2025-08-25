@@ -20,12 +20,10 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import org.phoebus.saveandrestore.util.Utilities;
-import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
+import org.phoebus.saveandrestore.util.Utilities;
+import org.phoebus.saveandrestore.util.VNoData;
 
 import java.util.Formatter;
 
@@ -38,10 +36,6 @@ import java.util.Formatter;
  */
 public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
 
-    private static final Image WARNING_IMAGE = new Image(
-            SnapshotController.class.getResourceAsStream("/icons/hprio_tsk.png"));
-    private static final Image DISCONNECTED_IMAGE = new Image(
-            SnapshotController.class.getResourceAsStream("/icons/showerr_tsk.png"));
     private final Tooltip tooltip = new Tooltip();
 
     private boolean showDeltaPercentage = false;
@@ -57,7 +51,7 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
     @Override
     public void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
-        getStyleClass().remove("diff-cell");
+        setStyle(TableCellColors.REGULAR_CELL_STYLE);
         if (item == null || empty) {
             setText("");
             setTooltip(null);
@@ -65,10 +59,9 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
         } else {
             if (item == VDisconnectedData.INSTANCE) {
                 setText(VDisconnectedData.DISCONNECTED);
-                setGraphic(new ImageView(DISCONNECTED_IMAGE));
+                setStyle(TableCellColors.DISCONNECTED_STYLE);
                 tooltip.setText("No Value Available");
                 setTooltip(tooltip);
-                getStyleClass().add("diff-cell");
             } else if (item == VNoData.INSTANCE) {
                 setText(item.toString());
                 tooltip.setText("No Value Available");
@@ -76,10 +69,7 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
             } else if (item instanceof VTypePair pair) {
                 if (pair.value == VDisconnectedData.INSTANCE) {
                     setText(VDisconnectedData.DISCONNECTED);
-                    if (pair.base != VDisconnectedData.INSTANCE) {
-                        getStyleClass().add("diff-cell");
-                    }
-                    setGraphic(new ImageView(DISCONNECTED_IMAGE));
+                    setStyle(TableCellColors.DISCONNECTED_STYLE);
                 } else if (pair.value == VNoData.INSTANCE) {
                     setText(pair.value.toString());
                 } else {
@@ -92,11 +82,9 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
                         setText(vtc.getString());
                     }
                     if (!vtc.isWithinThreshold()) {
-                        getStyleClass().add("diff-cell");
-                        setGraphic(new ImageView(WARNING_IMAGE));
+                        setStyle(TableCellColors.ALARM_MAJOR_STYLE);
                     }
                 }
-
                 tooltip.setText(item.toString());
                 setTooltip(tooltip);
             }

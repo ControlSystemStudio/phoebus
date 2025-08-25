@@ -43,7 +43,7 @@ public class SearchParameters implements ObservableValue<String> {
     private SimpleStringProperty title = new SimpleStringProperty();
     private SimpleStringProperty text = new SimpleStringProperty();
     private SimpleStringProperty author = new SimpleStringProperty();
-    private SimpleStringProperty level = new SimpleStringProperty();
+    private SimpleStringProperty levels = new SimpleStringProperty();
     private SimpleStringProperty tags = new SimpleStringProperty();
     private SimpleStringProperty logbooks = new SimpleStringProperty();
     private SimpleStringProperty startTime = new SimpleStringProperty();
@@ -74,7 +74,7 @@ public class SearchParameters implements ObservableValue<String> {
             updateMap(Keys.OWNER, newValue);
             notifyListeners();
         });
-        level.addListener((observable, oldValue, newValue) -> {
+        levels.addListener((observable, oldValue, newValue) -> {
             updateMap(Keys.LEVEL, newValue);
             notifyListeners();
         });
@@ -106,7 +106,7 @@ public class SearchParameters implements ObservableValue<String> {
         } else {
             searchParameters.put(key, newValue);
         }
-        notifyListeners();
+        //notifyListeners();
     }
 
     public void addListener(InvalidationListener listener) {
@@ -149,8 +149,8 @@ public class SearchParameters implements ObservableValue<String> {
         return author;
     }
 
-    public SimpleStringProperty levelProperty() {
-        return level;
+    public SimpleStringProperty levelsProperty() {
+        return levels;
     }
 
     public SimpleStringProperty tagsProperty() {
@@ -203,9 +203,9 @@ public class SearchParameters implements ObservableValue<String> {
             textProperty().setValue(null);
         }
         if (map.containsKey(Keys.LEVEL.getName())) {
-            levelProperty().setValue(map.get(Keys.LEVEL.getName()));
+            levelsProperty().setValue(map.get(Keys.LEVEL.getName()));
         } else {
-            levelProperty().setValue(null);
+            levelsProperty().setValue(null);
         }
         if (map.containsKey(Keys.TAGS.getName())) {
             tagsProperty().setValue(map.get(Keys.TAGS.getName()));

@@ -27,6 +27,7 @@ import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.Ela
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.FilterRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.SnapshotDataRepository;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.util.Base64Utils;
+import org.springframework.web.socket.WebSocketSession;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -129,4 +131,20 @@ public class ControllersTestConfig {
     public SnapshotUtil snapshotUtil() {
         return new SnapshotUtil();
     }
+
+    @Bean
+    public WebSocketSession webSocketSession(){
+        return Mockito.mock(WebSocketSession.class);
+    }
+
+    @Bean
+    public WebSocketHandler webSocketHandler(){
+        return Mockito.mock(WebSocketHandler.class);
+    }
+
+    @Bean
+    public long connectionTimeout(){
+        return 5000;
+    }
+
 }

@@ -1,0 +1,8 @@
+{
+  "messageType": "FILTER_ADDED_OR_UPDATED",
+  "payload": {
+    "name": "myFilter",
+    "queryString": "a=b&c=d",
+    "user": "John Doe"
+  }
+}

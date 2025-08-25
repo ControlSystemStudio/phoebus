@@ -90,7 +90,7 @@ public class ElogApi {
 
     String encoded_Text = new String(attributes.get("Text").getBytes(), StandardCharsets.ISO_8859_1); // charset hell - this seems stupid but works
     attributes.put("Text", encoded_Text);
-    String encoded_Subject = new String(attributes.get("Text").getBytes(), StandardCharsets.UTF_8); // charset hell - this seems stupid but works
+    String encoded_Subject = new String(attributes.get("Subject").getBytes(), StandardCharsets.UTF_8); // charset hell - this seems stupid but works
     attributes.put("Subject", encoded_Subject);
 
     Map<String, String> new_attributes = new HashMap<>(attributes);
@@ -235,19 +235,43 @@ public class ElogApi {
    * @param search_term
    * 
    */
-  public List<ElogEntry> search( Map<String, String> search_term ) throws LogbookException {
+  public ElogSearchResult search( Map<String, String> search_term, Integer from, Integer size ) throws LogbookException {
 
     Map<String, Object> params = new HashMap<>();
     params.put( "mode", "summary" );
-    params.put( "reverse", "1" );
-    params.put( "npp", 20 ); // number of returned results...
+
+    // Sort by date
+    if(search_term.containsKey("sort")) {
+        String sortDirection = search_term.get("sort");
+        if("up".equalsIgnoreCase(sortDirection)) {
+            params.put( "reverse", "0" );
+        } else if("down".equalsIgnoreCase(sortDirection)) {
+            params.put( "reverse", "1" );
+        } 
+        search_term.remove("sort");
+    } else {
+        params.put( "reverse", "1" );
+    }
+
+    // Pagination parameters
+    String requestUrl = this.url;
+    if(from != null && size != null) {
+        if(size != 0) {
+            int page = from / size + 1;
+            requestUrl = String.format("%spage%d", requestUrl, page);
+            params.put( "npp", size );
+        }
+    } else {
+        params.put( "npp", 20 ); // number of returned results...
+    }
+
     params.putAll( search_term );
 
     Map<String, Object> cookies = new HashMap<>();
     cookies.put( "unm", this.username );
     cookies.put( "upwd", this.password );
 
-    Response<String> resp = Requests.get( this.url )
+    Response<String> resp = Requests.get( requestUrl )
                                     .cookies(cookies)
                                     .params(params)
                                     .followRedirect(false)
@@ -257,12 +281,25 @@ public class ElogApi {
     validateResponse( resp );
 
     List<ElogEntry> entries = new ArrayList<>();
+    int totalCount = 0;
 
     try {
       TagNode tagNode = new HtmlCleaner().clean( resp.body() );
       org.w3c.dom.Document doc = new DomSerializer( new CleanerProperties()).createDOM(tagNode);
       XPath xpath = XPathFactory.newInstance().newXPath();
       NodeList msgIds = (NodeList) xpath.evaluate( "(//tr/td[@class=\"list1\" or @class=\"list2\"][1])/a/@href", doc, XPathConstants.NODESET );
+      
+      // Extract the number of all entries
+      String expression = "//b[contains(., 'Entries')]";
+      String result = (String) xpath.evaluate(expression, doc, XPathConstants.STRING);
+      if(result != null && !result.isEmpty()) {
+          java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(\\d+)\\s+Entries");
+          java.util.regex.Matcher matcher = pattern.matcher(result);
+          if(matcher.find()) {
+              totalCount = Integer.parseInt(matcher.group(1));
+          }
+      }
+      
       for( int i = 0; i < msgIds.getLength(); i++ ) {
         String msgIdStr = msgIds.item(i).getNodeValue();
         entries.add( read( Long.valueOf( msgIdStr.substring( msgIdStr.lastIndexOf('/') + 1 ) )));
@@ -271,7 +308,7 @@ public class ElogApi {
       throw new LogbookException( "could not parse the elog response", e );
     }
 
-    return entries;
+    return ElogSearchResult.of(entries, totalCount);
   }
 
 
@@ -504,7 +541,10 @@ public class ElogApi {
         } else {
           URI loc = URI.create( location );
           String[] path = loc.getPath().split("/");
-          msgId = Integer.parseInt( path[ path.length-1 ] );
+          String msgIdStr = path[ path.length-1 ];
+          if(msgIdStr != null && msgIdStr.matches("\\d+")) {
+            msgId = Integer.parseInt( msgIdStr );
+          }
         }
       }
       if( body.contains("form name=form1") || body.contains("type=password") ) {

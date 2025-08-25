@@ -18,7 +18,6 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
@@ -28,11 +27,12 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.ui.ImageRepository;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -51,11 +51,9 @@ import java.util.logging.Logger;
  * Note that this class is used also to show the snapshot view for {@link Node}s of type {@link NodeType#COMPOSITE_SNAPSHOT}.
  * </p>
  */
-public class SnapshotTab extends SaveAndRestoreTab {
+public class SnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
 
     public SaveAndRestoreService saveAndRestoreService;
-
-    private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
     protected Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
 
@@ -77,10 +75,6 @@ public class SnapshotTab extends SaveAndRestoreTab {
                 if (clazz.isAssignableFrom(SnapshotController.class)) {
                     return clazz.getConstructor(SnapshotTab.class)
                             .newInstance(this);
-                } else if (clazz.isAssignableFrom(SnapshotTableViewController.class)) {
-                    return clazz.getConstructor().newInstance();
-                } else if (clazz.isAssignableFrom(SnapshotControlsViewController.class)) {
-                    return clazz.getConstructor().newInstance();
                 }
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError("Error",
@@ -98,22 +92,6 @@ public class SnapshotTab extends SaveAndRestoreTab {
             return;
         }
 
-        ImageView imageView = new ImageView();
-        imageView.imageProperty().bind(tabGraphicImageProperty);
-
-        setGraphic(imageView);
-
-        textProperty().set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
-        setTabImage(node);
-
-        setOnCloseRequest(event -> {
-            if (controller != null && !((SnapshotController) controller).handleSnapshotTabClosed()) {
-                event.consume();
-            } else {
-                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
-            }
-        });
-
         MenuItem compareSnapshotToArchiverDataMenuItem = new MenuItem(Messages.contextMenuCompareSnapshotWithArchiverData, new ImageView(compareSnapshotIcon));
         compareSnapshotToArchiverDataMenuItem.setOnAction(ae -> addSnapshotFromArchive());
 
@@ -125,30 +103,6 @@ public class SnapshotTab extends SaveAndRestoreTab {
             compareSnapshotToArchiverDataMenuItem.disableProperty().set(snapshot.getSnapshotNode().getUniqueId() == null);
         });
         getContextMenu().getItems().add(compareSnapshotToArchiverDataMenuItem);
-
-        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
-    }
-
-    public void updateTabTitle(String name) {
-        Platform.runLater(() -> textProperty().set(name));
-    }
-
-    /**
-     * Set tab image based on node type, and optionally golden tag
-     *
-     * @param node A snapshot {@link Node}
-     */
-    private void setTabImage(Node node) {
-        if (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
-            tabGraphicImageProperty.set(ImageRepository.COMPOSITE_SNAPSHOT);
-        } else {
-            boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
-            if (golden) {
-                tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
-            } else {
-                tabGraphicImageProperty.set(ImageRepository.SNAPSHOT);
-            }
-        }
     }
 
     /**
@@ -158,7 +112,6 @@ public class SnapshotTab extends SaveAndRestoreTab {
      *                          a snapshot will be created.
      */
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
-        setId(null);
         ((SnapshotController) controller).initializeViewForNewSnapshot(configurationNode);
     }
 
@@ -168,8 +121,6 @@ public class SnapshotTab extends SaveAndRestoreTab {
      * @param snapshotNode The {@link Node} of type {@link NodeType#SNAPSHOT} containing snapshot data.
      */
     public void loadSnapshot(Node snapshotNode) {
-        updateTabTitle(snapshotNode.getName());
-        setId(snapshotNode.getUniqueId());
         ((SnapshotController) controller).loadSnapshot(snapshotNode);
     }
 
@@ -181,16 +132,6 @@ public class SnapshotTab extends SaveAndRestoreTab {
         ((SnapshotController) controller).addSnapshotFromArchiver();
     }
 
-    @Override
-    public void nodeChanged(Node node) {
-        if (node.getUniqueId().equals(getId())) {
-            Platform.runLater(() -> {
-                ((SnapshotController) controller).setSnapshotNameProperty(node.getName());
-                setTabImage(node);
-            });
-        }
-    }
-
     public Node getSnapshotNode() {
         return ((SnapshotController) controller).getSnapshot().getSnapshotNode();
     }
@@ -199,4 +140,13 @@ public class SnapshotTab extends SaveAndRestoreTab {
         return ((SnapshotController) controller).getConfigurationNode();
     }
 
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
+        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_REMOVED)) {
+            String nodeId = (String) saveAndRestoreWebSocketMessage.payload();
+            if (getId() != null && nodeId.equals(getId())) {
+                Platform.runLater(() -> getTabPane().getTabs().remove(this));
+            }
+        }
+    }
 }

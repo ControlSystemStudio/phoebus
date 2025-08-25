@@ -1,16 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>services</artifactId>
-		<version>5.0.1-SNAPSHOT</version>
+		<version>5.0.3-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.phoebus</groupId>
 	<artifactId>service-save-and-restore</artifactId>
-	<version>5.0.1-SNAPSHOT</version>
+  <name>${project.groupId}:${project.artifactId}</name>
+  <version>5.0.3-SNAPSHOT</version>
 
 	<properties>
 		<spring.boot.version>2.7.3</spring.boot.version>
@@ -47,6 +47,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>co.elastic.clients</groupId>
 			<artifactId>elasticsearch-java</artifactId>
 			<version>${elasticsearch.version}</version>
@@ -61,24 +66,42 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-model</artifactId>
-			<version>5.0.1-SNAPSHOT</version>
+			<version>5.0.3-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-util</artifactId>
-			<version>5.0.1-SNAPSHOT</version>
+			<version>5.0.3-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-pv-pva</artifactId>
-			<version>5.0.1-SNAPSHOT</version>
+			<version>5.0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-pv-ca</artifactId>
-			<version>5.0.1-SNAPSHOT</version>
+			<version>5.0.3-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>core-websocket</artifactId>
+			<version>5.0.3-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.23.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.23.1</version>
 		</dependency>
 
 		<dependency>

@@ -48,7 +48,7 @@ public class MatlabScriptExportJob extends ExportJob
 
     /** {@inheritDoc} */
     @Override
-    protected void printExportInfo(final PrintStream out)
+    protected void printExportInfo(final PrintStream out) throws Exception
     {
         super.printExportInfo(out);
         out.println(comment);

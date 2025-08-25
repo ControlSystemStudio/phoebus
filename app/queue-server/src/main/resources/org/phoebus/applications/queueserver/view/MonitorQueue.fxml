@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane minHeight="670.0" minWidth="930.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.queueserver.controller.MonitorQueueController">
+   <children>
+      <AnchorPane layoutX="20.0" layoutY="20.0">
+         <children>
+            <fx:include source="ReManagerConnection.fxml" />
+         </children>
+      </AnchorPane>
+      <AnchorPane layoutX="145.0" layoutY="20.0" AnchorPane.leftAnchor="145.0" AnchorPane.rightAnchor="512.0">
+         <children>
+            <fx:include source="ReStatusMonitor.fxml" />
+         </children>
+      </AnchorPane>
+      <VBox fx:id="stack" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="170.0">
+         <children>
+            <TitledPane fx:id="runningPane" animated="false" text="Running Plan" VBox.vgrow="ALWAYS">
+               <content>
+                  <AnchorPane fx:id="runningPlanContainer" />
+               </content>
+            </TitledPane>
+            <TitledPane fx:id="queuePane" animated="false" text="Plan Queue" VBox.vgrow="ALWAYS">
+               <content>
+                  <AnchorPane fx:id="planQueueContainer" />
+               </content>
+            </TitledPane>
+            <TitledPane fx:id="historyPane" animated="false" text="Plan History" VBox.vgrow="ALWAYS">
+               <content>
+                  <AnchorPane fx:id="planHistoryContainer" />
+               </content>
+            </TitledPane>
+            <TitledPane fx:id="consolePane" animated="false" text="Console Monitor" VBox.vgrow="ALWAYS">
+               <content>
+                  <AnchorPane>
+                     <children>
+                        <fx:include source="ReConsoleMonitor.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
+               </content>
+            </TitledPane>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

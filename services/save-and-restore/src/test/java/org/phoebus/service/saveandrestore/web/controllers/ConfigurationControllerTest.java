@@ -20,13 +20,26 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.mockito.Mockito;
+import org.phoebus.applications.saveandrestore.model.Comparison;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
+
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
@@ -36,7 +49,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -70,43 +88,153 @@ public class ConfigurationControllerTest {
     @Autowired
     private String demoUser;
 
-    @Test
-    public void testCreateConfiguration() throws Exception {
+    @Autowired
+    private WebSocketHandler webSocketHandler;
 
-        reset(nodeDAO);
+    @AfterEach
+    public void resetMocks(){
+        reset(nodeDAO, webSocketHandler);
+    }
+
+    @Test
+    public void testCreateConfiguration1() throws Exception {
 
         Configuration configuration = new Configuration();
         configuration.setConfigurationNode(Node.builder().build());
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("foo").readbackPvName("bar").build()));
+
+        configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.anyString(), Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        request = put("/config?parentNodeId=a")
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testCreateConfiguration2() throws Exception {
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(Node.builder().build());
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(Collections.emptyList());
+        configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.anyString(), Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
+
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        request = put("/config?parentNodeId=a")
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testCreateConfiguration3() throws Exception {
+
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(Node.builder().build());
+
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        request = put("/config?parentNodeId=a")
-                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
-
-        mockMvc.perform(request).andExpect(status().isUnauthorized());
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
-    public void testUpdateConfiguration() throws Exception {
+    public void testCreateConfiguration4() throws Exception{
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(Node.builder().build());
+
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateConfiguration1() throws Exception {
 
         Node configurationNode = Node.builder().uniqueId("uniqueId").nodeType(NodeType.CONFIGURATION).userName(demoUser).build();
 
         Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(configurationNode);
+
+        when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
+        when(nodeDAO.updateConfiguration(Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
+
+        MockHttpServletRequestBuilder request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void tesUpdateConfiguration2() throws Exception {
+
+        Node configurationNode = Node.builder().uniqueId("uniqueId").nodeType(NodeType.CONFIGURATION).userName(demoUser).build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(configurationNode);
+
+        when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
+        when(nodeDAO.updateConfiguration(Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
+
+        MockHttpServletRequestBuilder request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateConfiguration3() throws Exception {
+
+        Configuration configuration = new Configuration();
+        Node configurationNode = Node.builder().uniqueId("uniqueId").nodeType(NodeType.CONFIGURATION).userName("someUser").build();
+        configuration.setConfigurationNode(configurationNode);
+
+        when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
+        when(nodeDAO.updateConfiguration(Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
+
+        MockHttpServletRequestBuilder request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateConfiguration4() throws Exception {
+
+        Configuration configuration = new Configuration();
+        Node configurationNode = Node.builder().uniqueId("uniqueId").nodeType(NodeType.CONFIGURATION).userName("someUser").build();
         configuration.setConfigurationNode(configurationNode);
 
         when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
@@ -115,46 +243,77 @@ public class ConfigurationControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
 
-        mockMvc.perform(request).andExpect(status().isOk());
+        mockMvc.perform(request).andExpect(status().isForbidden());
+    }
 
-        when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
+    @Test
+    public void testUpdateConfiguration5() throws Exception {
 
-        request = post("/config")
-                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
-                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
-
-        mockMvc.perform(request).andExpect(status().isOk());
-
-        configurationNode = Node.builder().uniqueId("uniqueId").nodeType(NodeType.CONFIGURATION).userName("someUser").build();
+        Configuration configuration = new Configuration();
+        Node configurationNode = Node.builder().uniqueId("uniqueId").nodeType(NodeType.CONFIGURATION).userName("someUser").build();
         configuration.setConfigurationNode(configurationNode);
 
-        when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
-
-        request = post("/config")
-                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
-                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
-
-        mockMvc.perform(request).andExpect(status().isOk());
-
-        when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
-
-        request = post("/config")
-                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
-                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
-
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        request = post("/config")
+        MockHttpServletRequestBuilder request = post("/config")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        request = post("/config")
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateConfiguration6() throws Exception{
+
+        Configuration configuration = new Configuration();
+        Node configurationNode = Node.builder().uniqueId("uniqueId").nodeType(NodeType.CONFIGURATION).userName("someUser").build();
+        configuration.setConfigurationNode(configurationNode);
+
+        MockHttpServletRequestBuilder request = post("/config")
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
 
-        mockMvc.perform(request).andExpect(status().isUnauthorized()
-        );
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void testCreateInvalidConfiguration() throws Exception {
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(Node.builder().build());
+        ConfigurationData configurationData = new ConfigurationData();
+        configuration.setConfigurationData(configurationData);
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("foo").build(),
+                ConfigPv.builder().pvName("fooo").comparison(new Comparison(null, 0.1)).build()));
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        configurationData.setPvList(List.of(
+                ConfigPv.builder().pvName("fooo").readbackPvName("bar").comparison(new Comparison(null, 0.1)).build()));
+
+        configuration.setConfigurationData(configurationData);
+
+        request = put("/config?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        configurationData.setPvList(List.of(
+                ConfigPv.builder().pvName("fooo").readbackPvName("bar").comparison(new Comparison(ComparisonMode.RELATIVE, -0.1))
+                        .build()));
+
+        configuration.setConfigurationData(configurationData);
+
+        request = put("/config?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 }

@@ -143,6 +143,8 @@ public class AlarmPV extends PV
                     return Alarm.of(AlarmSeverity.MINOR, AlarmStatus.UNDEFINED, state.toString());
                 case MAJOR:
                     return Alarm.of(AlarmSeverity.MAJOR, AlarmStatus.UNDEFINED, state.toString());
+                case INVALID:
+                    return Alarm.of(AlarmSeverity.INVALID, AlarmStatus.UNDEFINED, state.toString());
                 case UNDEFINED:
                     return Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.UNDEFINED, state.toString());
                 default:

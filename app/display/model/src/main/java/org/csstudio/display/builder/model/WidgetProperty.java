@@ -11,6 +11,7 @@ import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
 import java.lang.reflect.Constructor;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 
 import javax.xml.stream.XMLStreamWriter;
@@ -70,6 +71,8 @@ public abstract class WidgetProperty<T extends Object> extends PropertyChangeHan
         this.value = this.default_value;
     }
 
+    private Optional<String> informativeTooltip = Optional.empty();
+
     @SuppressWarnings("unchecked")
     @Override
     public WidgetProperty<T> clone()
@@ -119,6 +122,15 @@ public abstract class WidgetProperty<T extends Object> extends PropertyChangeHan
     public String getName()
     {
         return descriptor.getName();
+    }
+
+    public void setInformativeTooltip(String informativeTooltip) {
+        this.informativeTooltip = Optional.of(informativeTooltip);
+    }
+
+    /** @return Optional informative tooltip describing the property */
+    public Optional<String> getInformativeTooltip() {
+        return informativeTooltip;
     }
 
     /** Get full path to property

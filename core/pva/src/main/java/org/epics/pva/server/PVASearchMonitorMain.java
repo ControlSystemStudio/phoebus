@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2022-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -40,15 +40,22 @@ public class PVASearchMonitorMain
         /** How often some client has searched for it */
         final AtomicLong count = new AtomicLong();
 
-        /** Client that searched most recently */
-        volatile InetSocketAddress client;
+        /** Client that searched for the PV */
+        final InetSocketAddress client;
 
         /** Time of last search */
         volatile Instant last = null;
 
-        SearchInfo(final String name)
+        SearchInfo(final String name, final InetSocketAddress client)
         {
             this.name = name;
+            this.client = client;
+        }
+
+        /** @return Key of PV name and client address */
+        public String getKey()
+        {
+            return name + client.toString();
         }
 
         /** Sort by search count */
@@ -64,7 +71,7 @@ public class PVASearchMonitorMain
         }
     }
 
-    /** Map of PV name to search info */
+    /** Map of PV name and client address to search info */
     private static final ConcurrentHashMap<String, SearchInfo> searches = new ConcurrentHashMap<>();
 
     private static void help()
@@ -147,10 +154,10 @@ public class PVASearchMonitorMain
             if (!once.get()  &&  name.equals("QUIT"))
                 done.countDown();
 
-            final SearchInfo search = searches.computeIfAbsent(name, n -> new SearchInfo(name));
+            final SearchInfo candidate = new SearchInfo(name, addr);
+            final SearchInfo search = searches.computeIfAbsent(candidate.getKey(), k -> candidate);
             search.count.incrementAndGet();
             search.last = Instant.now();
-            search.client = addr;
 
             // Done, don't proceed with default search handler
             return true;
@@ -164,14 +171,22 @@ public class PVASearchMonitorMain
                 System.out.println("Run 'pvget QUIT' to stop");
             while (! done.await(update_period, TimeUnit.SECONDS))
             {
-                System.out.println("\nCount Name                 Last Client                                Age");
+                int max_name = 10, max_client = 10;
+                for (SearchInfo info : searches.values())
+                {
+                    max_name   = Math.max(max_name,   info.name.length());
+                    max_client = Math.max(max_client, info.client.toString().length());
+                }
+
+                System.out.format("\nCount %-" + max_name + "s %-" + max_client + "s    Age\n", "Name", "Last Client");
+                final String format = "%5d %-" + max_name + "s %-" + max_client + "s %6d sec\n";
                 final Instant now = Instant.now();
                 searches.values()
                         .stream()
                         .sorted()
                         .forEach(info ->
                 {
-                    System.out.format("%5d %-20s %-35s %6d sec\n",
+                    System.out.format(format,
                                       info.count.get(),
                                       info.name,
                                       info.client.toString(),

@@ -299,7 +299,7 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
             // Just apply a style that matches the disabled look.
             enabled = model_widget.propEnabled().getValue() &&
                       model_widget.runtimePropPVWritable().getValue();
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            setDisabledLook(enabled, jfx_node.getChildren());
             for (Node rb_node : jfx_node.getChildren())
             {
                 final RadioButton rb = (RadioButton) rb_node;

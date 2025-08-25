@@ -20,18 +20,26 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
+import org.phoebus.applications.saveandrestore.model.Comparison;
+import org.phoebus.applications.saveandrestore.model.ComparisonMode;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
@@ -45,9 +53,12 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -72,6 +83,9 @@ public class NodeControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private WebSocketHandler webSocketHandler;
 
     private static Node folderFromClient;
 
@@ -101,6 +115,11 @@ public class NodeControllerTest {
                 .userName("myusername").build();
 
         folderFromClient = Node.builder().name("SomeFolder").userName("myusername").uniqueId("11").build();
+    }
+
+    @AfterEach
+    public void resetMocks(){
+        reset(webSocketHandler, nodeDAO);
     }
 
     @Test
@@ -157,13 +176,14 @@ public class NodeControllerTest {
     @Test
     public void testCreateConfig() throws Exception {
 
-        reset(nodeDAO);
-
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
                 .userName("user").build();
 
         Configuration configuration = new Configuration();
         configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(Collections.emptyList());
+        configuration.setConfigurationData(configurationData);
 
         when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer((Answer<Configuration>) invocation -> configuration);
 
@@ -180,8 +200,92 @@ public class NodeControllerTest {
     }
 
     @Test
-    public void testUpdateConfig() throws Exception {
+    public void testCreateConfigWithToleranceData() throws Exception {
+
         reset(nodeDAO);
+
+        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName("user").build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        ConfigPv configPv1 = new ConfigPv();
+        configPv1.setPvName("name");
+        configPv1.setComparison(new Comparison(ComparisonMode.ABSOLUTE, 1.0));
+        configurationData.setPvList(List.of(configPv1));
+        configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer((Answer<Configuration>) invocation -> configuration);
+
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(configuration));
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
+                .andReturn();
+
+        // Make sure response contains expected data
+        objectMapper.readValue(result.getResponse().getContentAsString(), Configuration.class);
+    }
+
+    @Test
+    public void testCreateConfigWithBadToleranceData1() throws Exception {
+
+        reset(nodeDAO);
+
+        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName("user").build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        ConfigPv configPv1 = new ConfigPv();
+        configPv1.setPvName("name");
+        configPv1.setComparison(new Comparison(ComparisonMode.ABSOLUTE, null));
+        configurationData.setPvList(List.of(configPv1));
+        configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer((Answer<Configuration>) invocation -> configuration);
+
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(configuration));
+
+       mockMvc.perform(request).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testCreateConfigWithBadToleranceData2() throws Exception {
+
+        reset(nodeDAO);
+
+        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName("user").build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        ConfigPv configPv1 = new ConfigPv();
+        configPv1.setPvName("name");
+        configPv1.setComparison(new Comparison(null, 0.1));
+        configurationData.setPvList(List.of(configPv1));
+        configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer((Answer<Configuration>) invocation -> configuration);
+
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(configuration));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testUpdateConfig() throws Exception {
 
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
                 .userName("user").build();
@@ -236,7 +340,6 @@ public class NodeControllerTest {
 
     @Test
     public void testCreateNodeBadRequests() throws Exception {
-        reset(nodeDAO);
 
         Node config = Node.builder().nodeType(NodeType.FOLDER).uniqueId("hhh")
                 .userName("valid").build();
@@ -257,7 +360,6 @@ public class NodeControllerTest {
 
     @Test
     public void testGetChildNodes() throws Exception {
-        reset(nodeDAO);
 
         when(nodeDAO.getChildNodes("p")).thenAnswer((Answer<List<Node>>) invocation -> Collections.singletonList(config1));
 
@@ -275,7 +377,6 @@ public class NodeControllerTest {
 
     @Test
     public void testGetChildNodesNonExistingNode() throws Exception {
-        reset(nodeDAO);
 
         when(nodeDAO.getChildNodes("non-existing")).thenThrow(NodeNotFoundException.class);
         MockHttpServletRequestBuilder request = get("/node/non-existing/children").contentType(JSON);
@@ -327,6 +428,7 @@ public class NodeControllerTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+        when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
 
         request =
                 delete("/node")
@@ -334,62 +436,115 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testDeleteForbiddenAccess() throws Exception {
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName("notDemoUser").build());
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+    }
 
-        request =
+    @Test
+    public void testDeleteForbiddenAccess2() throws Exception {
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+        when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
+
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
-        request =
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+
+    }
+
+    @Test
+    public void testDeleteFolder2() throws Exception {
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+        when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
+        //when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("b"));
+
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+
+    }
+
+    @Test
+    public void testDeleteFolder3() throws Exception {
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
+        when(nodeDAO.getParentNode("a")).thenReturn(Node.builder().uniqueId("b").build());
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testDeleteForbidden3() throws Exception{
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
+
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+    }
+
+    @Test
+    public void testDeleteForbidden4() throws Exception{
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
+        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+
+    }
+
+    @Test
+    public void testDeleteFolder5() throws Exception{
+
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
-        request =
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, adminAuthorization);
@@ -421,8 +576,6 @@ public class NodeControllerTest {
     @Test
     public void testGetConfiguration() throws Exception {
 
-        Mockito.reset(nodeDAO);
-
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().build());
 
         MockHttpServletRequestBuilder request = get("/node/a");
@@ -436,7 +589,6 @@ public class NodeControllerTest {
 
     @Test
     public void testGetNonExistingConfiguration() throws Exception {
-        Mockito.reset(nodeDAO);
         when(nodeDAO.getNode("a")).thenThrow(NodeNotFoundException.class);
 
         MockHttpServletRequestBuilder request = get("/node/a");
@@ -448,8 +600,6 @@ public class NodeControllerTest {
 
     @Test
     public void testGetNonExistingFolder() throws Exception {
-
-        Mockito.reset(nodeDAO);
         when(nodeDAO.getNode("a")).thenThrow(NodeNotFoundException.class);
 
         MockHttpServletRequestBuilder request = get("/node/a");
@@ -477,8 +627,6 @@ public class NodeControllerTest {
 
     @Test
     public void testUpdateNode() throws Exception {
-
-        reset(nodeDAO);
 
         Node node = Node.builder().name("foo").uniqueId("a").userName(demoUser).build();
 
@@ -634,7 +782,6 @@ public class NodeControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        reset(nodeDAO);
     }
 
     @Test
@@ -658,6 +805,5 @@ public class NodeControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        reset(nodeDAO);
     }
 }

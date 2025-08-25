@@ -34,12 +34,12 @@ This is an example recipe for getting started.
 2) Start `pvacms -v`. It will create several files, including
 
  * `~/.config/pva/1.3/admin.p12`: Certificate for the `admin` user
- 
+
 3) For an IOC, request a hybrid server and client certificate.
    Note its "Certificate identifier":
 
    ```
-   $ authnstd --name ioc --cert-usage hybrid
+   $ authnstd --name ioc --cert-usage ioc
    Keychain file created   : /home/user/.config/pva/1.3/server.p12
    Certificate identifier  : e53ed409:15273288300286014953
    ```
@@ -52,17 +52,17 @@ This is an example recipe for getting started.
    Approve ==> CERT:STATUS:e53ed409:15273288300286014953 ==> Completed Successfully
    ```
 
- * `~/.config/pva/1.3/server.p12`: Our server certificate (hybrid, for IOC) 
+ * `~/.config/pva/1.3/server.p12`: Our server certificate (hybrid, for IOC)
 
 4) Request a client certificate, note its identifier:
 
    ```
-   $ authnstd 
+   $ authnstd
    Keychain file created   : /home/user/.config/pva/1.3/client.p12
    Certificate identifier  : e53ed409:11521018863975115478
    ```
 
-   Accept that certificate: 
+   Accept that certificate:
 
    ```
    $ EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/admin.p12  \
@@ -94,12 +94,19 @@ To list certificate details:
 keytool -list -v -keystore ~/.config/pva/1.3/client.p12 -storepass ""
 ```
 
+Following the `pvacms` and `authnstd` messages, you will notice that secure PVA
+maintains files in two locations.
+If you need to start over, stop `pvacms`, delete those files, and then start `pvacms` again:
+
+```
+$ rm -rf  ~/.config/pva  ~/.local/share/pva
+```
+
 For a test setup, all the above can be executed by a single user on one host.
 In a production setup, however, each human user should only have access to their own `client.p12` file.
 Pseudo-users running IOCs would have a `server.p12` file.
 Only an admin user on a designated host would have access to the remaining `pvacms` files,
 including the `admin.p12` file that permits accepting and revoking certificates.
-
 
 Secure IOC
 ==========
@@ -240,7 +247,7 @@ For lower level encryption information, add `-Djavax.net.debug=all`.
 
 For example, when receiving subscription updates for a string PV with status and timestamp,
 the log messages indicate that the encrypted data size of 74 bytes is almost twice the size
-of the decrypted payload of 41 bytes: 
+of the decrypted payload of 41 bytes:
 
 ```
 javax.net.ssl|DEBUG|91|TCP receiver /127.0.0.1|2023-05-05 15:57:37.299 EDT|SSLSocketInputRecord.java:214|READ: TLSv1.2 application_data, length = 74
@@ -400,24 +407,24 @@ In total, we now have the following:
    Keystore with public and private key of our Certification Authority (CA).
    This file needs to be guarded because it allows creating new IOC
    and client keystores.
-   
+
  * `myca.cer`:
    Public certificate of the CA.
    Imported into any `*.p12` that needs to trust the CA.
-   
+
  * `trust_ca.p12`:
    Truststore with public certificate of the CA.
    Equivalent to `myca.cer`, and some tools might directly use `myca.cer`,
-   but `trust_ca.p12` presents it in the commonly used  PKCS12 `*.p12` file format. 
+   but `trust_ca.p12` presents it in the commonly used  PKCS12 `*.p12` file format.
    Clients can set their `EPICS_PVA_TLS_KEYCHAIN` to this file to
    communicate with IOCs, resulting in encryption and "ca" authentication.
-   
+
  * `ioc.p12`:
    Keystore with public and private key of an IOC.
    The public key certificate is signed by the CA so that clients
    will trust it.
    To be used with `EPICS_PVAS_TLS_KEYCHAIN` of IOCs.
-   
+
  * `myioc.cer`, `myioc.csr`: Public IOC certificate and certificate signing request.
    Intermediate files used to sign the IOC certificate.
    May be deleted.

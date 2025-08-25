@@ -79,6 +79,7 @@ public class Messages {
     public static String duplicatePVNamesAdditionalItems;
     public static String duplicatePVNamesCheckFailed;
     public static String duplicatePVNamesFoundInSelection;
+    public static String duplicatePVNamesNotSupported;
     public static String Edit;
     public static String editFilter;
     public static String errorActionFailed;
@@ -177,12 +178,17 @@ public class Messages {
     public static String toolTipConfigurationExists;
     public static String toolTipConfigurationExistsOption;
     public static String toolTipMultiplierSpinner;
+    public static String unnamedConfiguration;
+    public static String unnamedCompositeSnapshot;
     public static String unnamedSnapshot;
 
     public static String updateCompositeSnapshotFailed;
     public static String updateConfigurationFailed;
 
     public static String updateNodeFailed;
+
+    public static String webSocketConnected;
+    public static String webSocketDisconnected;
 
     static {
         NLS.initializeMessages(Messages.class);

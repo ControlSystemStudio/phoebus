@@ -41,10 +41,12 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromServiceMenuItem;
@@ -77,7 +79,8 @@ import java.util.stream.Collectors;
 /**
  * Controller for the search result table.
  */
-public class SearchResultTableViewController extends SaveAndRestoreBaseController implements Initializable {
+public class SearchResultTableViewController extends SaveAndRestoreBaseController
+        implements Initializable, WebSocketMessageHandler {
 
     @SuppressWarnings("unused")
     @FXML
@@ -137,12 +140,9 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
     private String queryString;
     private static final Logger LOGGER = Logger.getLogger(SearchResultTableViewController.class.getName());
 
-    private SaveAndRestoreService saveAndRestoreService;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
-        saveAndRestoreService = SaveAndRestoreService.getInstance();
 
         tableUi.disableProperty().bind(disableUi);
         progressIndicator.visibleProperty().bind(disableUi);
@@ -287,6 +287,8 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 pageSizeTextField.setText(oldValue);
             }
         });
+
+        webSocketClientService.addWebSocketMessageHandler(this);
     }
 
     private ImageView getImageView(Node node) {
@@ -307,15 +309,6 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         return null;
     }
 
-    public void nodeChanged(Node updatedNode) {
-        for (Node node : resultTableView.getItems()) {
-            if (node.getUniqueId().equals(updatedNode.getUniqueId())) {
-                node.setTags(updatedNode.getTags());
-                resultTableView.refresh();
-            }
-        }
-    }
-
     public void clearTable() {
         tableEntries.clear();
         hitCountProperty.set(0);
@@ -330,6 +323,7 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         queryString = query;
         Map<String, String> searchParams =
                 SearchQueryUtil.parseHumanReadableQueryString(queryString);
+        LOGGER.log(Level.INFO, "search() searchParams: = " + searchParams);
 
         searchParams.put(SearchQueryUtil.Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         searchParams.put(SearchQueryUtil.Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
@@ -368,7 +362,6 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         try {
             /* Search with the uniqueID */
             Node uniqueIdNode = SaveAndRestoreService.getInstance().getNode(uniqueIdString);
-            LOGGER.log(Level.INFO, "uniqueIDNode: " + uniqueIdNode);
 
             /* Check that there are results, then fill table - should be at most one result */
             if (uniqueIdNode != null) {
@@ -377,7 +370,7 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                     tableEntries.setAll(List.of(uniqueIdNode));
                     hitCountProperty.set(1);
                 });
-            /* Clear the results table if no record returned */
+                /* Clear the results table if no record returned */
             } else {
                 Platform.runLater(tableEntries::clear);
                 hitCountProperty.set(0);
@@ -398,16 +391,16 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
     /**
      * Retrieves a filter from the service and loads then performs a search for matching {@link Node}s. If
      * the filter does not exist, or if retrieval fails, an error dialog is shown.
+     *
      * @param filterId Unique id of an existing {@link Filter}.
      */
-    public void loadFilter(String filterId){
+    public void loadFilter(String filterId) {
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
             Optional<Filter> filter = filters.stream().filter(f -> f.getName().equals(filterId)).findFirst();
-            if(filter.isPresent()){
+            if (filter.isPresent()) {
                 search(filter.get().getQueryString());
-            }
-            else{
+            } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle(Messages.errorGeneric);
                 alert.setHeaderText(MessageFormat.format(Messages.failedGetSpecificFilter, filterId));
@@ -417,5 +410,17 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(resultTableView, Messages.errorGeneric, MessageFormat.format(Messages.failedGetSpecificFilter, filterId), e);
         }
+    }
+
+    @Override
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
+        switch (saveAndRestoreWebSocketMessage.messageType()) {
+            case NODE_UPDATED, NODE_REMOVED, NODE_ADDED -> search();
+        }
+    }
+
+    public boolean handleTabClosed() {
+        webSocketClientService.removeWebSocketMessageHandler(this);
+        return true;
     }
 }

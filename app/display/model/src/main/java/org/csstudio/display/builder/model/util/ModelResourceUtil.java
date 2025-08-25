@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -304,8 +304,7 @@ public class ModelResourceUtil
         return null;
     }
 
-    /** Check if a resource doesn't just look like a URL
-     *  but can actually be opened
+    /** Check if a resource can be opened as a URL
      *  @param resource_name Path to resource, presumably "http://.."
      *  @return <code>true</code> if indeed an exiting URL
      */
@@ -327,34 +326,22 @@ public class ModelResourceUtil
         }
 
         if (! isURL(resource_name)) {
-            logger.log(Level.WARNING, "URL {0} is not a URL", new Object[] { resource_name });
             return false;
         }
-        // This implementation is expensive:
-        // On success, caller will soon open the URL again.
-        // In practice, not too bad because second time around
-        // is usually quite fast as result of web server cache.
-        //
-        // Alternative would be to always return the stream as
-        // a result, updating all callers from
-        //
-        //  resolved = ModelResourceUtil.resolveResource(parent_display, display_file);
-        //  stream = ModelResourceUtil.openResourceStream(resolved)
-        //
-        // to just
-        //
-        //  stream = ModelResourceUtil.resolveResource(parent_display, display_file);
-        //
-        // This can break code which really just needs the resolved name.
 
-        try
+        final String escaped = resource_name.replace(" ", "%20");
+        // Opening the URL stream to check availability seems expensive.
+        // On success, we'll soon do this again to actually read.
+        // But 'openURL' uses a cache, the next time around
+        // we already have the content.
+        // Attempts to "only check" without reading, for example
+        //    new URL(...).openConnection().connect()
+        // turned out to sometimes succeed even if the document doesn't exist
+        // on the web server. Details might be related to the behavior
+        // of site-specific intermediate proxies.
+        // In any case, this seems the most reliable approach
+        try (InputStream stream = openURL(escaped))
         {
-//            final InputStream stream = openURL(resource_name);
-//            stream.close();
-            //Test only if the page exist and not read the content
-            final String escaped = resource_name.replace(" ", "%20");
-            URL resource = new URL(escaped);
-            resource.openConnection();
             return true;
         }
         catch (Exception ex)

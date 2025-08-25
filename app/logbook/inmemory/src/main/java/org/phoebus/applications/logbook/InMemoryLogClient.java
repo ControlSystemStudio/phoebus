@@ -1,12 +1,27 @@
 package org.phoebus.applications.logbook;
 
+import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.AttachmentImpl;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryImpl;
+import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.LogEntryLevel;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.LogbookImpl;
+import org.phoebus.logbook.Property;
+import org.phoebus.logbook.PropertyImpl;
+import org.phoebus.logbook.SearchResult;
+import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.TagImpl;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
@@ -23,21 +38,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.AttachmentImpl;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogEntryImpl;
-import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.LogbookImpl;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.PropertyImpl;
-import org.phoebus.logbook.SearchResult;
-import org.phoebus.logbook.Tag;
-import org.phoebus.logbook.TagImpl;
-
 /**
  * A logbook which maintains logentries in memory. It is mainly for testing and debugging purpose.
  */
@@ -47,16 +47,16 @@ public class InMemoryLogClient implements LogClient {
     private final Map<Long, LogEntry> logEntries;
 
     private final Collection<Logbook> logbooks = Arrays.asList(LogbookImpl.of("Controls"),
-                                                               LogbookImpl.of("Commissioning"),
-                                                               LogbookImpl.of("Scratch Pad"));
+            LogbookImpl.of("Commissioning"),
+            LogbookImpl.of("Scratch Pad"));
     private final Collection<Tag> tags = Arrays.asList(TagImpl.of("Operations"),
-                                                       TagImpl.of("Alarm"),
-                                                       TagImpl.of("Example"));
+            TagImpl.of("Alarm"),
+            TagImpl.of("Example"));
     private final List<String> levels = Arrays.asList("Urgent", "Suggestion", "Info", "Request", "Problem");
 
     private static List<Property> inMemoryProperties() {
         Map<String, String> tracAttributes = new HashMap<>();
-        Property track = PropertyImpl.of("Track",tracAttributes);
+        Property track = PropertyImpl.of("Track", tracAttributes);
         Map<String, String> experimentAttributes = new HashMap<>();
         Property experimentProperty = PropertyImpl.of("Experiment", experimentAttributes);
         Map<String, String> resourceAttributes = new HashMap<>();
@@ -80,8 +80,8 @@ public class InMemoryLogClient implements LogClient {
     }
 
     @Override
-    public Collection<String> listLevels() {
-        return levels;
+    public Collection<LogEntryLevel> listLevels() {
+        return levels.stream().map(l -> new LogEntryLevel(l, false)).toList();
     }
 
     @Override
@@ -110,6 +110,7 @@ public class InMemoryLogClient implements LogClient {
     }
 
     String prefix = "phoebus_tmp_file";
+
     @Override
     public LogEntry set(LogEntry log) {
         long id = logIdCounter.incrementAndGet();
@@ -128,7 +129,7 @@ public class InMemoryLogClient implements LogClient {
                     ext = file.getName().substring(i);
                 }
                 File tempFile = File.createTempFile(prefix, ext);
-                Files.copy(file.toPath(), tempFile.toPath());
+                Files.copy(file.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 tempFile.deleteOnExit();
                 String mimeType = URLConnection.guessContentTypeFromName(tempFile.getName());
                 return AttachmentImpl.of(tempFile, mimeType != null ? mimeType : ext, false);
@@ -155,12 +156,12 @@ public class InMemoryLogClient implements LogClient {
     @Override
     public List<LogEntry> findLogs(Map<String, String> map) {
         Stream<LogEntry> searchStream = logEntries.values().stream();
-        if(map.containsKey("start")) {
+        if (map.containsKey("start")) {
             searchStream = searchStream.filter(log -> {
                 return log.getCreatedDate().isAfter(Instant.ofEpochSecond(Long.valueOf(map.get("start"))));
             });
         }
-        if(map.containsKey("end")) {
+        if (map.containsKey("end")) {
             searchStream = searchStream.filter(log -> {
                 return log.getCreatedDate().isBefore(Instant.ofEpochSecond(Long.valueOf(map.get("end"))));
             });
@@ -169,7 +170,7 @@ public class InMemoryLogClient implements LogClient {
             final String searchString = map.get("search").replaceAll("\\*", "");
             if (!searchString.isEmpty()) {
                 searchStream = searchStream.filter(log -> {
-                    return log.getDescription().contains(searchString)||log.getTitle().contains(searchString);
+                    return log.getDescription().contains(searchString) || log.getTitle().contains(searchString);
                 });
             }
         }

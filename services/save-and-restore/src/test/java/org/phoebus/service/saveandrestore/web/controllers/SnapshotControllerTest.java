@@ -20,6 +20,7 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -27,8 +28,10 @@ import org.mockito.stubbing.Answer;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
@@ -40,7 +43,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.List;
+import java.util.Set;
 
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -75,6 +82,14 @@ public class SnapshotControllerTest {
     @Autowired
     private String demoUser;
 
+    @Autowired
+    private WebSocketHandler webSocketHandler;
+
+    @AfterEach
+    public void resetMocks(){
+        reset(webSocketHandler, nodeDAO);
+    }
+
 
     @Test
     public void testSaveSnapshotWrongNodeType() throws Exception {
@@ -92,6 +107,8 @@ public class SnapshotControllerTest {
                 .content(objectMapper.writeValueAsString(snapshot));
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
@@ -105,10 +122,12 @@ public class SnapshotControllerTest {
                 .content(objectMapper.writeValueAsString(snapshot));
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
-    public void testCreateSnapshot() throws Exception {
+    public void testCreateSnapshot1() throws Exception {
         Node node = Node.builder().uniqueId("uniqueId").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
         Snapshot snapshot = new Snapshot();
         snapshot.setSnapshotNode(node);
@@ -130,7 +149,19 @@ public class SnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(result.getResponse().getContentAsString(), Snapshot.class);
 
-        request = put("/snapshot?parentNodeId=a")
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testCreateSnapshot2() throws Exception {
+
+        Node node = Node.builder().uniqueId("uniqueId").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(node);
+
+        String snapshotString = objectMapper.writeValueAsString(snapshot);
+
+        MockHttpServletRequestBuilder request = put("/snapshot?parentNodeId=a")
                 .contentType(JSON)
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isUnauthorized());
@@ -141,15 +172,32 @@ public class SnapshotControllerTest {
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        request = put("/snapshot?parentNodeId=a")
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testCreateSnapshot3() throws Exception{
+
+        Node node = Node.builder().uniqueId("uniqueId").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(node);
+
+        String snapshotString = objectMapper.writeValueAsString(snapshot);
+
+        when(nodeDAO.createSnapshot(Mockito.anyString(), Mockito.any(Snapshot.class)))
+                .thenReturn(snapshot);
+
+        MockHttpServletRequestBuilder request = put("/snapshot?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON)
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isOk());
+
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
-    public void testUpdateSnapshot() throws Exception {
+    public void testUpdateSnapshot1() throws Exception {
         Node node = Node.builder().uniqueId("s").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
         Snapshot snapshot = new Snapshot();
         snapshot.setSnapshotNode(node);
@@ -171,30 +219,75 @@ public class SnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(result.getResponse().getContentAsString(), Snapshot.class);
 
-        request = put("/snapshot")
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateSnapshot2() throws Exception {
+
+        Node node = Node.builder().uniqueId("s").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(node);
+
+        String snapshotString = objectMapper.writeValueAsString(snapshot);
+
+        MockHttpServletRequestBuilder request = put("/snapshot")
                 .contentType(JSON)
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        request = post("/snapshot")
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateSnapshot3() throws Exception {
+
+        Node node = Node.builder().uniqueId("s").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(node);
+
+        String snapshotString = objectMapper.writeValueAsString(snapshot);
+
+        MockHttpServletRequestBuilder request = post("/snapshot")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON)
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        request = post("/snapshot")
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testUpdateSnapshot4() throws Exception{
+
+        Node node = Node.builder().uniqueId("s").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(node);
+
+        String snapshotString = objectMapper.writeValueAsString(snapshot);
+
+        when(nodeDAO.updateSnapshot(Mockito.any(Snapshot.class)))
+                .thenReturn(snapshot);
+
+        MockHttpServletRequestBuilder request = post("/snapshot")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON)
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isOk());
+
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
-    public void testDeleteSnapshot() throws Exception{
+    public void testDeleteSnapshot1() throws Exception {
 
-        when(nodeDAO.getNode("a")).thenReturn(Node.builder()
+        Node node = Node.builder()
                 .nodeType(NodeType.SNAPSHOT)
-                .uniqueId("a").userName(demoUser).build());
+                .uniqueId("a").userName(demoUser).build();
+
+        when(nodeDAO.getNode("a")).thenReturn(node);
+
+        //when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("a"));
 
         MockHttpServletRequestBuilder request =
                 delete("/node")
@@ -203,28 +296,51 @@ public class SnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        request =
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testDeleteSnapshot2() throws Exception {
+
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        when(nodeDAO.getNode("a")).thenReturn(Node.builder()
-                .nodeType(NodeType.SNAPSHOT)
-                .uniqueId("a").userName("otherUser").build());
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
 
-        request =
+    @Test
+    public void testDeleteSnapshot3() throws Exception {
+
+        Node node = Node.builder()
+                .nodeType(NodeType.SNAPSHOT)
+                .uniqueId("a").userName("otherUser").build();
+
+        when(nodeDAO.getNode("a")).thenReturn(node);
+        //when(nodeDAO.deleteNodes(List.of("a"))).thenReturn(Set.of("a"));
+
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, adminAuthorization);
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        request =
+        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+    }
+
+    @Test
+    public void testDeleteSnapshot4() throws Exception{
+
+        MockHttpServletRequestBuilder request =
                 delete("/node")
                         .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")));
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
+
+        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 }

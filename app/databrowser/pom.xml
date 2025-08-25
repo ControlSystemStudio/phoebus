@@ -3,9 +3,10 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.0.3-SNAPSHOT</version>
   </parent>
   <artifactId>app-databrowser</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -27,42 +28,42 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-trends-archive-reader</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-rtplot</artifactId>
-      <version>5.0.1-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.epics</groupId>
@@ -74,6 +75,38 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
       <version>${apache.commons.math.version}</version>
+    </dependency>
+    <!-- Lib to read/write MS Office (Excel, ..) files, fetching only POI itself -->
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.zaxxer</groupId>
+          <artifactId>SparseBitSet</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>jcl-over-slf4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-collections4</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-math3</artifactId>
+        </exclusion>
+      </exclusions>
+      <version>5.0.0</version>
     </dependency>
   </dependencies>
 </project>

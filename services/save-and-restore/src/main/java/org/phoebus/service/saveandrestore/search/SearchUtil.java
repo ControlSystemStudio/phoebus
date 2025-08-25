@@ -7,8 +7,10 @@ import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.ldap.core.support.AbstractContextSource;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -19,6 +21,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A utility class for creating a search query for log entries based on time,
@@ -45,6 +50,8 @@ public class SearchUtil {
     @Value("${elasticsearch.result.size.search.max:1000}")
     private int maxSearchSize;
 
+    private static final Logger LOG = LoggerFactory.getLogger(SearchUtil.class);
+
     /**
      * @param searchParameters - the various search parameters
      * @return A {@link SearchRequest} based on the provided search parameters
@@ -53,6 +60,7 @@ public class SearchUtil {
         Builder boolQueryBuilder = new Builder();
         boolean fuzzySearch = false;
         List<String> descriptionTerms = new ArrayList<>();
+        List<String> descriptionPhraseTerms = new ArrayList<>();
         List<String> nodeNameTerms = new ArrayList<>();
         List<String> nodeNamePhraseTerms = new ArrayList<>();
         List<String> nodeTypeTerms = new ArrayList<>();
@@ -63,6 +71,9 @@ public class SearchUtil {
         int searchResultSize = defaultSearchSize;
         int from = 0;
 
+        LOG.info("buildSearchRequest() called");
+        LOG.info("  searchParameters: " + searchParameters);
+
         for (Entry<String, List<String>> parameter : searchParameters.entrySet()) {
             switch (parameter.getKey().strip().toLowerCase()) {
                 case "uniqueid":
@@ -72,29 +83,41 @@ public class SearchUtil {
                         }
                     }
                     break;
+
                 // Search for node name. List of names cannot be split on space char as it is allowed in a node name.
                 case "name":
                     for (String value : parameter.getValue()) {
-                        for (String pattern : value.split("[|,;]")) {
+                        for (String pattern : getSearchTerms(value)) {
                             String term = pattern.trim().toLowerCase();
+                            // Quoted strings will be mapped to a phrase query
                             if(term.startsWith("\"") && term.endsWith("\"")){
                                 nodeNamePhraseTerms.add(term.substring(1, term.length() - 1));
                             }
                             else{
-                                nodeNameTerms.add(term);
+                                // add wildcards inorder to search for sub-strings
+                                nodeNameTerms.add("*" + term + "*");
                             }
                         }
                     }
                     break;
+
                 // Search in description/comment
-                case "description":
                 case "desc":
+                case "description":
                     for (String value : parameter.getValue()) {
-                        for (String pattern : value.split("[|,;]")) {
-                            descriptionTerms.add(pattern.trim());
+                        for (String pattern : getSearchTerms(value)) {
+                            String term = pattern.trim().toLowerCase();
+                            // Quoted strings will be mapped to a phrase query
+                            if (term.startsWith("\"") && term.endsWith("\"")) {
+                                descriptionPhraseTerms.add(term.substring(1, term.length() - 1));
+                            } else {
+                                // add wildcards inorder to search for sub-strings
+                                descriptionTerms.add("*" + term + "*");
+                            }
                         }
                     }
                     break;
+
                 // Search for node type.
                 case "type":
                     for (String value : parameter.getValue()) {
@@ -212,30 +235,28 @@ public class SearchUtil {
             }
         }
 
-        // Add the description query
+        // Add the description query. Multiple search terms will be AND:ed.
         if (!descriptionTerms.isEmpty()) {
-            DisMaxQuery.Builder descQuery = new DisMaxQuery.Builder();
-            List<Query> descQueries = new ArrayList<>();
-            if (fuzzySearch) {
-                descriptionTerms.forEach(searchTerm -> {
-                    Query fuzzyQuery = FuzzyQuery.of(f -> f.field("node.description").value(searchTerm))._toQuery();
-                    NestedQuery nestedQuery =
-                            NestedQuery.of(n1 -> n1.path("node")
-                                    .query(fuzzyQuery));
-                    descQueries.add(nestedQuery._toQuery());
-                });
-            } else {
-                descriptionTerms.forEach(searchTerm -> {
-                    Query wildcardQuery =
-                            WildcardQuery.of(w -> w.field("node.description").value(searchTerm))._toQuery();
-                    NestedQuery nestedQuery =
-                            NestedQuery.of(n1 -> n1.path("node")
-                                    .query(wildcardQuery));
-                    descQueries.add(nestedQuery._toQuery());
-                });
+            for (String searchTerm : descriptionTerms) {
+                NestedQuery innerNestedQuery;
+                if (fuzzySearch) {
+                    FuzzyQuery matchQuery = FuzzyQuery.of(m -> m.field("node.description").value(searchTerm));
+                    innerNestedQuery = NestedQuery.of(n -> n.path("node").query(matchQuery._toQuery()));
+                } else {
+                    WildcardQuery matchQuery = WildcardQuery.of(m -> m.field("node.description").value(searchTerm));
+                    innerNestedQuery = NestedQuery.of(n -> n.path("node").query(matchQuery._toQuery()));
+                }
+                boolQueryBuilder.must(innerNestedQuery._toQuery());
             }
-            descQuery.queries(descQueries);
-            boolQueryBuilder.must(descQuery.build()._toQuery());
+        }
+
+        // Add phrase queries for the description key. Multiple search terms will be AND:ed.
+        if (!descriptionPhraseTerms.isEmpty()) {
+            for (String searchTerm : descriptionPhraseTerms) {
+                MatchPhraseQuery matchQuery = MatchPhraseQuery.of(m -> m.field("node.description").query(searchTerm));
+                NestedQuery innerNestedQuery = NestedQuery.of(n -> n.path("node").query(matchQuery._toQuery()));
+                boolQueryBuilder.must(innerNestedQuery._toQuery());
+            }
         }
 
         // Add uniqueId query
@@ -243,40 +264,28 @@ public class SearchUtil {
             boolQueryBuilder.must(IdsQuery.of(id -> id.values(uniqueIdTerms))._toQuery());
         }
 
-        // Add the name query
+        // Add the description query. Multiple search terms will be AND:ed.
         if (!nodeNameTerms.isEmpty()) {
-            DisMaxQuery.Builder nodeNameQuery = new DisMaxQuery.Builder();
-            List<Query> nodeNameQueries = new ArrayList<>();
-            if (fuzzySearch) {
-                nodeNameTerms.forEach(searchTerm -> {
-                    NestedQuery innerNestedQuery;
+            for (String searchTerm : nodeNameTerms) {
+                NestedQuery innerNestedQuery;
+                if (fuzzySearch) {
                     FuzzyQuery matchQuery = FuzzyQuery.of(m -> m.field("node.name").value(searchTerm));
-                    innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
-                    nodeNameQueries.add(innerNestedQuery._toQuery());
-                });
-            } else {
-                nodeNameTerms.forEach(searchTerm -> {
-                    NestedQuery innerNestedQuery;
+                    innerNestedQuery = NestedQuery.of(n -> n.path("node").query(matchQuery._toQuery()));
+                } else {
                     WildcardQuery matchQuery = WildcardQuery.of(m -> m.field("node.name").value(searchTerm));
-                    innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
-                    nodeNameQueries.add(innerNestedQuery._toQuery());
-                });
+                    innerNestedQuery = NestedQuery.of(n -> n.path("node").query(matchQuery._toQuery()));
+                }
+                boolQueryBuilder.must(innerNestedQuery._toQuery());
             }
-            nodeNameQuery.queries(nodeNameQueries);
-            boolQueryBuilder.must(nodeNameQuery.build()._toQuery());
         }
 
-        if(!nodeNamePhraseTerms.isEmpty()){
-            DisMaxQuery.Builder nodeNamePhraseQueryBuilder = new DisMaxQuery.Builder();
-            List<NestedQuery> nestedQueries = new ArrayList<>();
-            nodeNamePhraseTerms.forEach(phraseSearchTerm -> {
-                NestedQuery innerNestedQuery;
-                MatchPhraseQuery matchPhraseQuery = MatchPhraseQuery.of(m -> m.field("node.name").query(phraseSearchTerm));
-                innerNestedQuery = NestedQuery.of(n -> n.path("node").query(matchPhraseQuery._toQuery()));
-                nestedQueries.add(innerNestedQuery);
-            });
-            nodeNamePhraseQueryBuilder.queries(nestedQueries.stream().map(QueryVariant::_toQuery).collect(Collectors.toList()));
-            boolQueryBuilder.must(nodeNamePhraseQueryBuilder.build()._toQuery());
+        // Add phrase queries for the nodeName key. Multiple search terms will be AND:ed.
+        if (!nodeNamePhraseTerms.isEmpty()) {
+            for (String searchTerm : nodeNamePhraseTerms) {
+                MatchPhraseQuery matchQuery = MatchPhraseQuery.of(m -> m.field("node.name").query(searchTerm));
+                NestedQuery innerNestedQuery = NestedQuery.of(n -> n.path("node").query(matchQuery._toQuery()));
+                boolQueryBuilder.must(innerNestedQuery._toQuery());
+            }
         }
 
         // Add node type query. Fuzzy search not needed as node types are well-defined and limited in number.
@@ -336,5 +345,44 @@ public class SearchUtil {
                 .timeout("60s")
                 .size(Math.min(searchResultSize, maxSearchSize))
                 .from(0));
+    }
+
+    /**
+     * Parses a search query terms string into a string array. In particular,
+     * quoted search terms must be maintained even if they contain the
+     * separator chars used to tokenize the terms.
+     *
+     * @param searchQueryTerms String as specified by client
+     * @return A {@link List} of search terms, some of which may be
+     * quoted. Is void of any zero-length strings.
+     */
+    public List<String> getSearchTerms(String searchQueryTerms) {
+        // Count double quote chars. Odd number of quote chars
+        // is not supported -> throw exception
+        long quoteCount = searchQueryTerms.chars().filter(c -> c == '\"').count();
+        if (quoteCount == 0) {
+            return Arrays.stream(searchQueryTerms.split("[\\|,;\\s+]")).filter(t -> t.length() > 0).collect(Collectors.toList());
+        }
+        if (quoteCount % 2 == 1) {
+            throw new IllegalArgumentException("Unbalanced quotes in search query");
+        }
+        // If we come this far then at least one quoted term is
+        // contained in user input
+        List<String> terms = new ArrayList<>();
+        int nextStartIndex = searchQueryTerms.indexOf('\"');
+        while (nextStartIndex >= 0) {
+            int endIndex = searchQueryTerms.indexOf('\"', nextStartIndex + 1);
+            String quotedTerm = searchQueryTerms.substring(nextStartIndex, endIndex + 1);
+            terms.add(quotedTerm);
+            // Remove the quoted term from user input
+            searchQueryTerms = searchQueryTerms.replace(quotedTerm, "");
+            // Check next occurrence
+            nextStartIndex = searchQueryTerms.indexOf('\"');
+        }
+        // Add remaining terms...
+        List<String> remaining = Arrays.asList(searchQueryTerms.split("[\\|,;\\s+]"));
+        //...but remove empty strings, which are "leftovers" when quoted terms are removed
+        terms.addAll(remaining.stream().filter(t -> t.length() > 0).collect(Collectors.toList()));
+        return terms;
     }
 }

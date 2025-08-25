@@ -20,9 +20,12 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
@@ -35,6 +38,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+
+import java.util.Collections;
 
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -67,16 +72,25 @@ public class ConfigurationControllerPermitAllTest {
     @Autowired
     private String demoUser;
 
+    @AfterEach
+    public void resetMocks(){
+        reset(nodeDAO);
+    }
+
     @Test
     public void testCreateConfiguration() throws Exception {
 
-        reset(nodeDAO);
-
         Configuration configuration = new Configuration();
         configuration.setConfigurationNode(Node.builder().build());
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(Collections.emptyList());
+        configuration.setConfigurationData(configurationData);
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+
+        when(nodeDAO.createConfiguration(Mockito.anyString(), Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
 
         mockMvc.perform(request).andExpect(status().isOk());
 
@@ -101,6 +115,8 @@ public class ConfigurationControllerPermitAllTest {
         configuration.setConfigurationNode(configurationNode);
 
         when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
+        when(nodeDAO.updateConfiguration(Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
 
         MockHttpServletRequestBuilder request = post("/config")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)

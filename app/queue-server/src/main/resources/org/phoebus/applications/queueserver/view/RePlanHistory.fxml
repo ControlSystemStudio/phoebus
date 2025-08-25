@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SplitMenuButton?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <TableView fx:id="table" layoutX="1.0" layoutY="34.0" prefHeight="170.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="34.0">
+            <columns>
+                <TableColumn fx:id="idxCol" editable="false" minWidth="41.0" prefWidth="-1.0" sortable="false" text="Index" />
+                <TableColumn fx:id="typeCol" editable="false" minWidth="35.0" prefWidth="-1.0" sortable="false" text="Type" />
+                <TableColumn fx:id="nameCol" editable="false" minWidth="43.0" prefWidth="-1.0" sortable="false" text="Name" />
+            <TableColumn fx:id="statusCol" editable="false" minWidth="53.0" prefWidth="-1.0" sortable="false" text="STATUS" />
+                <TableColumn fx:id="paramCol" editable="false" minWidth="80.0" prefWidth="-1.0" sortable="false" text="Parameters" />
+                <TableColumn fx:id="userCol" editable="false" minWidth="37.0" prefWidth="-1.0" sortable="false" text="USER" />
+                <TableColumn fx:id="grpCol" editable="false" minWidth="51.0" prefWidth="-1.0" sortable="false" text="GROUP" />
+            </columns>
+        </TableView>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+            <children>
+                <Label text="HISTORY" HBox.hgrow="ALWAYS" />
+                <HBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Button fx:id="copyBtn" mnemonicParsing="false" text="Copy to Queue" />
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Button fx:id="deselectBtn" mnemonicParsing="false" text="Deselect All" />
+                        <Button fx:id="clearBtn" mnemonicParsing="false" text="Clear History" />
+                    </children>
+                </HBox>
+            <HBox alignment="CENTER_RIGHT" spacing="5.0">
+               <children>
+                  <SplitMenuButton fx:id="exportBtn" mnemonicParsing="false" text="Export">
+                     <items>
+                        <MenuItem fx:id="exportTxtItem" mnemonicParsing="false" text="Export as TXT" />
+                        <MenuItem fx:id="exportJsonItem" mnemonicParsing="false" text="Export as JSON" />
+                        <MenuItem fx:id="exportYamlItem" mnemonicParsing="false" text="Export as YAML" />
+                     </items>
+                  </SplitMenuButton>
+               </children>
+            </HBox>
+            </children>
+        </HBox>
+    </children>
+</AnchorPane>

@@ -36,14 +36,13 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -155,11 +154,6 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public Node updateNode(Node nodeToUpdate) {
-        return updateNode(nodeToUpdate, false);
     }
 
     @Override
@@ -588,10 +582,10 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
             String stringBuilder = Preferences.jmasarServiceUrl +
                     "/login";
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(stringBuilder))
-                .header("Content-Type", CONTENT_TYPE_JSON)
-                .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
-                .build();
+                    .uri(URI.create(stringBuilder))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
+                    .build();
             HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             return OBJECT_MAPPER.readValue(response.body(), UserData.class);
         } catch (Exception e) {

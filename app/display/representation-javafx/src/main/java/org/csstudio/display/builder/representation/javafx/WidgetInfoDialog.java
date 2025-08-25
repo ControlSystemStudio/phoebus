@@ -7,31 +7,47 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import javafx.geometry.Pos;
-import javafx.scene.layout.FlowPane;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.TilePane;
-import javafx.stage.Stage;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.TilePane;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
@@ -47,59 +63,79 @@ import org.epics.vtype.VType;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.adapter.AdapterService;
+import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVFactory;
+import org.phoebus.pv.PVPool;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
 import org.phoebus.ui.javafx.StringTable;
 import org.phoebus.ui.pv.SeverityColors;
-
-import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.scene.Node;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 import org.phoebus.ui.spi.ContextMenuEntry;
+import org.phoebus.util.time.TimestampFormats;
 
-/** Dialog for displaying widget information
- *  @author Kay Kasemir
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.ServiceLoader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+/**
+ * Dialog for displaying widget information
+ *
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class WidgetInfoDialog extends Dialog<Boolean>
-{
+public class WidgetInfoDialog extends Dialog<Boolean> {
 
     private Macros macros = null;
-    private Collection<NameStateValue> pvs;
-    private Widget widget;
+    private final Collection<NameStateValue> pvs;
+    private final Widget widget;
     private DisplayWidgetStats stats;
+    private Job getArchiveStatusJob;
+    private final BooleanProperty getFromArchiverInProgress = new SimpleBooleanProperty();
 
-    /** PV info */
-    public static class NameStateValue extends ProcessVariable
-    {
-        /** State, incl. read-only or writable? */
+    /**
+     * PV info
+     */
+    public static class NameStateValue extends ProcessVariable {
+        /**
+         * State, incl. read-only or writable?
+         */
         private final String state;
-        /** Last known value */
+        /**
+         * Last known value
+         */
         private final VType value;
-        /** Path to Widget within display that uses the PV */
+        /**
+         * Path to Widget within display that uses the PV
+         */
         private final String path;
 
-        /** @param name PV Name
-         *  @param state State, incl. read-only or writable?
-         *  @param value Last known value
-         *  @param path Path to Widget within display that uses the PV
+        private final ObjectProperty<ArchivedStatus> archiverValue = new SimpleObjectProperty<>(ArchivedStatus.UNKNOWN);
+
+
+        /**
+         * @param name  PV Name
+         * @param state State, incl. read-only or writable?
+         * @param value Last known value
+         * @param path  Path to Widget within display that uses the PV
          */
-        public NameStateValue(final String name, final String state, final VType value, final String path)
-        {
+        public NameStateValue(final String name, final String state, final VType value, final String path) {
             super(name);
             this.state = state;
             this.value = value;
@@ -117,60 +153,62 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         public String getPath() {
             return path;
         }
+
+        public ArchivedStatus getArchiverValue() {
+            return archiverValue.get();
+        }
+
+        public void setArchiverValue(ArchivedStatus archivedStatus) {
+            this.archiverValue.setValue(archivedStatus);
+        }
     }
 
-    /** Cell with text colored based on alarm severity */
-    private static class AlarmColoredCell extends ReadOnlyTextCell<NameStateValue>
-    {
+    /**
+     * Cell with text colored based on alarm severity
+     */
+    private static class AlarmColoredCell extends ReadOnlyTextCell<NameStateValue> {
         @Override
-        protected void updateItem(final String item, final boolean empty)
-        {
+        protected void updateItem(final String item, final boolean empty) {
             super.updateItem(item, empty);
             final AlarmSeverity severity;
-            if (! empty                   &&
-                getTableRow() != null     &&
-                getTableRow().getItem() != null)
-            {
+            if (!empty &&
+                    getTableRow() != null &&
+                    getTableRow().getItem() != null) {
                 final VType vtype = getTableRow().getItem().value;
                 if (vtype == null)
                     severity = AlarmSeverity.UNDEFINED;
-                else
-                {
+                else {
                     final Alarm alarm = Alarm.alarmOf(vtype);
                     if (alarm == null)
                         severity = AlarmSeverity.NONE;
                     else
                         severity = alarm.getSeverity();
                 }
-            }
-            else
+            } else
                 severity = AlarmSeverity.NONE;
             text.setStyle("-fx-text-fill: " + JFXUtil.webRGB(SeverityColors.getTextColor(severity)) + "; -fx-control-inner-background: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(severity)));
         }
     }
 
-    /** Create dialog
-     *  @param widget {@link Widget}
-     *  @param pvs {@link Collection<NameStateValue>}s, may be empty
+    /**
+     * Create dialog
+     *
+     * @param widget {@link Widget}
+     * @param pvs    {@link Collection<NameStateValue>}s, may be empty
      */
-    public WidgetInfoDialog(final Widget widget, final Collection<NameStateValue> pvs)
-    {
+    public WidgetInfoDialog(final Widget widget, final Collection<NameStateValue> pvs) {
         this.pvs = pvs;
         this.widget = widget;
         setTitle(Messages.WidgetInfoDialog_Title);
-        setHeaderText(MessageFormat.format(Messages.WidgetInfoDialog_Info_Fmt, new Object[] { widget.getName(), widget.getType() }));
-    	final Node node = JFXBaseRepresentation.getJFXNode(widget);
-    	initOwner(node.getScene().getWindow());
+        setHeaderText(MessageFormat.format(Messages.WidgetInfoDialog_Info_Fmt, widget.getName(), widget.getType()));
+        final Node node = JFXBaseRepresentation.getJFXNode(widget);
+        initOwner(node.getScene().getWindow());
 
-        if (! (widget instanceof DisplayModel))
-        {   // Widgets (but not the DisplayModel!) have a descriptor for their icon
-            try
-            {
+        if (!(widget instanceof DisplayModel)) {   // Widgets (but not the DisplayModel!) have a descriptor for their icon
+            try {
                 final WidgetDescriptor descriptor = WidgetFactory.getInstance().getWidgetDescriptor(widget.getType());
                 setGraphic(new ImageView(new Image(descriptor.getIconURL().toExternalForm())));
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 // No icon, no problem
             }
         }
@@ -187,16 +225,27 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
         final ButtonType export = new ButtonType(Messages.ExportWidgetInfo, ButtonData.LEFT);
         final ButtonType copy = new ButtonType(Messages.CopyWidgetInfo, ButtonData.LEFT);
-
+        final ButtonType fetchArchiverStatus = new ButtonType("Get Archiver Status", ButtonData.LEFT);
 
         getDialogPane().setContent(tabs);
         getDialogPane().getButtonTypes().addAll(export, ButtonType.CLOSE);
         getDialogPane().getButtonTypes().addAll(copy);
+        getDialogPane().getButtonTypes().addAll(fetchArchiverStatus);
         setResizable(true);
         tabs.setMinWidth(800);
 
-        Button exportButton = (Button)getDialogPane().lookupButton(export);
-        Button copyButton = (Button)getDialogPane().lookupButton(copy);
+        Button exportButton = (Button) getDialogPane().lookupButton(export);
+        Button copyButton = (Button) getDialogPane().lookupButton(copy);
+        Button fetchArchiveStatusButton = (Button) getDialogPane().lookupButton(fetchArchiverStatus);
+        fetchArchiveStatusButton.disableProperty().bind(getFromArchiverInProgress);
+
+
+
+        fetchArchiveStatusButton.addEventFilter(ActionEvent.ACTION,
+                event -> {
+                    fetchArchiverStatus();
+                    event.consume();
+                });
 
         exportButton.addEventFilter(
                 ActionEvent.ACTION,
@@ -206,7 +255,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                             new FileChooser.ExtensionFilter("CSV files", "*.csv"),
                             new FileChooser.ExtensionFilter("All files", "*.*"));
                     File file = fileChooser.showSaveDialog(getDialogPane().getScene().getWindow());
-                    if(file != null){
+                    if (file != null) {
                         exportToCSV(file);
                     }
                     event.consume();
@@ -221,10 +270,16 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         );
 
         setResultConverter(button -> true);
+
+        setOnCloseRequest(e -> {
+            if (getArchiveStatusJob != null) {
+                getArchiveStatusJob.cancel();
+            }
+        });
     }
 
 
-    private void pvListDisplay(){
+    private void pvListDisplay() {
         FlowPane layout = new FlowPane();
         layout.setVgap(10);
         layout.setHgap(20);
@@ -235,7 +290,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         Button copyPv = new Button(Messages.CopyButton);
         Button ok = new Button("OK");
         area.setPadding(new Insets(10, 10, 10, 10));
-        area.setPrefSize(250,450);
+        area.setPrefSize(250, 450);
         stage.setResizable(false);
         //stage.setMaxHeight(530);
         //stage.setMaxWidth(270);
@@ -252,13 +307,12 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
 
         pvs.stream().sorted(Comparator.comparing(pv -> pv.getName())).forEach(pv -> {
-            if(!area.getText().contains(pv.getName()))
-                area.setText(area.getText()+pv.getName()+"\n");
+            if (!area.getText().contains(pv.getName()))
+                area.setText(area.getText() + pv.getName() + "\n");
         });
 
         EventHandler<ActionEvent> copying = new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e)
-            {
+            public void handle(ActionEvent e) {
                 final Clipboard clipboard = Clipboard.getSystemClipboard();
                 final ClipboardContent content = new ClipboardContent();
                 content.putString(area.getText());
@@ -266,8 +320,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             }
         };
         EventHandler<ActionEvent> cancel = new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent e)
-            {
+            public void handle(ActionEvent e) {
                 stage.close();
             }
         };
@@ -278,15 +331,16 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
     /**
      * Writes the table content of each tab to file.
-     *
+     * <p>
      * Note that the pipe character "|" is used to separate items on each data row as comma
      * might conflict with the string content.
-     *
+     * <p>
      * Upon completion an alert dialog is shown to inform of the outcome (done/failed),
      * but the widget info dialog is not closed.
+     *
      * @param file The destination file as selected by user.
      */
-    private void exportToCSV(File file){
+    private void exportToCSV(File file) {
         String horizontalRuler = "---------------------------------------------------------";
         String itemSeparator = " | ";
         StringBuilder buffer = new StringBuilder();
@@ -304,9 +358,9 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         });
         buffer.append(System.lineSeparator());
 
-        if (widget instanceof DisplayModel){
+        if (widget instanceof DisplayModel) {
             buffer.append("Widget Counts (widget type, count)").append(System.lineSeparator())
-                .append(horizontalRuler).append(System.lineSeparator());
+                    .append(horizontalRuler).append(System.lineSeparator());
             stats.getTypes().entrySet().stream().forEach(entry -> {
                 buffer.append(entry.getKey()).append(itemSeparator).append(entry.getValue().get()).append(System.lineSeparator());
             });
@@ -333,7 +387,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         });
         buffer.append(System.lineSeparator());
 
-        try (FileOutputStream fileOutputStream = new FileOutputStream(file)){
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
             fileOutputStream.write(buffer.toString().getBytes());
             fileOutputStream.flush();
             Alert alert = new Alert(AlertType.INFORMATION);
@@ -348,8 +402,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         }
     }
 
-    private Tab createMacros(final Macros orig_macros)
-    {
+    private Tab createMacros(final Macros orig_macros) {
         macros = (orig_macros == null) ? new Macros() : orig_macros;
         // Use text field to allow copying the name and value
         // Table uses list of macro names as input
@@ -364,7 +417,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         value.setCellValueFactory(param -> new ReadOnlyStringWrapper(macros.getValue(param.getValue())));
 
         final TableView<String> table =
-            new TableView<>(FXCollections.observableArrayList(macros.getNames()));
+                new TableView<>(FXCollections.observableArrayList(macros.getNames()));
         table.getColumns().add(name);
         table.getColumns().add(value);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -372,8 +425,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         return new Tab(Messages.WidgetInfoDialog_TabMacros, table);
     }
 
-    private Tab createPVs(final Collection<NameStateValue> pvs)
-    {
+    private Tab createPVs(final Collection<NameStateValue> pvs) {
         // Use text field to allow users to copy the name, value to clipboard
         final TableColumn<NameStateValue, String> name = new TableColumn<>(Messages.WidgetInfoDialog_Name);
         name.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("name"));
@@ -392,6 +444,29 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             return new ReadOnlyStringWrapper(text);
         });
 
+        // Check if archive data source is available
+        boolean archiveDataSourceAvailable =
+                ServiceLoader.load(PVFactory.class).stream().filter(f -> f.get().getType().equals("archive")).findFirst().isPresent();
+
+        final TableColumn<NameStateValue, ArchivedStatus> archiverValue = new TableColumn<>(Messages.ArchivedStatus);
+        archiverValue.setCellValueFactory(cell -> cell.getValue().archiverValue);
+        archiverValue.setCellFactory(c -> new TableCell<>() {
+            @Override
+            protected void updateItem(ArchivedStatus item, boolean empty) {
+                if (empty || item.equals(ArchivedStatus.UNKNOWN)) {
+                    setText(null);
+                    return;
+                }
+                switch (item){
+                    case NOT_APPLICABLE -> setText(Messages.ArchivedStatusNotApplicable);
+                    case YES ->  setText(Messages.ArchivedStatusYes);
+                    case NO -> setText(Messages.ArchivedStatusNo);
+                    case LOADING -> setText(Messages.ArchivedStatusPleaseWait);
+                }
+            }
+        });
+        archiverValue.setMinWidth(100.0);
+
         final ObservableList<NameStateValue> pv_data = FXCollections.observableArrayList(pvs);
         pv_data.sort(Comparator.comparing(a -> a.getName()));
         final TableView<NameStateValue> table = new TableView<>(pv_data);
@@ -399,6 +474,9 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         table.getColumns().add(state);
         table.getColumns().add(value);
         table.getColumns().add(path);
+        if (archiveDataSourceAvailable) {
+            table.getColumns().add(archiverValue);
+        }
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -441,8 +519,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         return new Tab(Messages.WidgetInfoDialog_TabPVs, table);
     }
 
-    private Tab createProperties(final Widget widget)
-    {
+    private Tab createProperties(final Widget widget) {
         // Use text field to allow copying the name (for use in scripts)
         // and value, but not the localized description and category
         // which are just for information
@@ -461,7 +538,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         value.setCellValueFactory(param -> new ReadOnlyStringWrapper(Objects.toString(param.getValue().getValue())));
 
         final TableView<WidgetProperty<?>> table =
-            new TableView<>(FXCollections.observableArrayList(widget.getProperties()));
+                new TableView<>(FXCollections.observableArrayList(widget.getProperties()));
         table.getColumns().add(cat);
         table.getColumns().add(descr);
         table.getColumns().add(name);
@@ -471,23 +548,22 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         return new Tab(Messages.WidgetInfoDialog_TabProperties, table);
     }
 
-    private Tab createWidgetStats(final DisplayModel model)
-    {
+    private Tab createWidgetStats(final DisplayModel model) {
         // Compute stats
         stats = new DisplayWidgetStats(model);
 
         // Turn map into rows of "type, count", sorted by type
         final List<List<String>> rows = new ArrayList<>();
         stats.getTypes()
-             .keySet()
-             .stream()
-             .sorted()
-             .forEach(type ->
-         {
-             final String count = stats.getTypes().get(type).toString();
-             final List<String> row = List.of(type, count);
-             rows.add(row);
-         });
+                .keySet()
+                .stream()
+                .sorted()
+                .forEach(type ->
+                {
+                    final String count = stats.getTypes().get(type).toString();
+                    final List<String> row = List.of(type, count);
+                    rows.add(row);
+                });
 
         // Type, count table
         final StringTable table = new StringTable(false);
@@ -523,22 +599,85 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         return new Tab(Messages.WidgetInfoDialog_WidgetStats, layout);
     }
 
-    private String getPVValue(VType vtype){
+    private String getPVValue(VType vtype) {
         String text;
         if (vtype == null)
             text = Messages.WidgetInfoDialog_Disconnected;
-        else
-        {
+        else {
             // For arrays, show up to 10 elements.
             if (vtype instanceof VNumberArray)
-                text = VTypeHelper.formatArray((VNumberArray)vtype, 10);
+                text = VTypeHelper.formatArray((VNumberArray) vtype, 10);
             else
                 text = VTypeUtil.getValueString(vtype, true);
             final Alarm alarm = Alarm.alarmOf(vtype);
-            if (alarm != null  &&  alarm.getSeverity() != AlarmSeverity.NONE)
+            if (alarm != null && alarm.getSeverity() != AlarmSeverity.NONE)
                 text = text + " [" + alarm.getSeverity().toString() + ", " +
                         alarm.getName() + "]";
         }
         return text;
+    }
+
+    private void fetchArchiverStatus() {
+        getFromArchiverInProgress.setValue(true);
+        for (WidgetInfoDialog.NameStateValue pv : pvs) {
+            pv.setArchiverValue(ArchivedStatus.LOADING);
+        }
+        getArchiveStatusJob = JobManager.schedule("Get archived PV values", monitor -> {
+            try {
+                for (NameStateValue pv : pvs) {
+                    if (monitor.isCanceled()) {
+                        break;
+                    }
+                    ArchivedStatus archivedStatus = getFromArchiver(pv.getName());
+                    pv.setArchiverValue(archivedStatus);
+                }
+            } finally {
+                getFromArchiverInProgress.setValue(false);
+            }
+        });
+    }
+
+    /**
+     * Uses the archive:// data source to retrieve last archived sample.
+     * For loc://, sim://, sys:// and formula functions, {@link ArchivedStatus#NOT_APPLICABLE} is returned.
+     * @param pvName A valid PV name.
+     * @return The {@link ArchivedStatus} of the PV, if any, or {@link ArchivedStatus#UNKNOWN} if there is
+     * an issue interacting with the data source.
+     */
+    private ArchivedStatus getFromArchiver(String pvName) {
+        if (pvName.toLowerCase().startsWith("loc://") ||
+            pvName.toLowerCase().startsWith("sim://") ||
+            pvName.toLowerCase().startsWith("sys://") ||
+            pvName.toLowerCase().startsWith("=")) {
+            return ArchivedStatus.NOT_APPLICABLE;
+        }
+        // Check if pv name is prefixed with a scheme, e.g. pva://, ca://...
+        int indexSchemeSeparator = pvName.indexOf("://");
+        if (indexSchemeSeparator > 0 && pvName.length() > indexSchemeSeparator) {
+            pvName = pvName.substring(indexSchemeSeparator + 1);
+        }
+        // Prepend "archiver://"
+        pvName = "archive://" + pvName + "(" + TimestampFormats.SECONDS_FORMAT.format(Instant.now()) + ")";
+        PV pv = null;
+        try {
+            pv = PVPool.getPV(pvName);
+            VType pvValue = pv.read();
+            return pvValue == null ? ArchivedStatus.NO : ArchivedStatus.YES;
+        } catch (Exception e) {
+            return ArchivedStatus.UNKNOWN;
+        }
+        finally {
+            if(pv != null){
+                PVPool.releasePV(pv);
+            }
+        }
+    }
+
+    private enum ArchivedStatus {
+        YES,            // Archiver data source returns a non-null value
+        NO,             // Archiver data source returns null
+        NOT_APPLICABLE, // sim and loc PVs
+        UNKNOWN,        // Initial state
+        LOADING         // UI shows retrieval is in progress
     }
 }

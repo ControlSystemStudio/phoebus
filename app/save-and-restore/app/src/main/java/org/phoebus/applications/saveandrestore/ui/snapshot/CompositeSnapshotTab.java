@@ -20,14 +20,16 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
+import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -46,18 +48,11 @@ import java.util.logging.Logger;
  * {@link SnapshotTab} is used to show actual snapshot data.
  * </p>
  */
-public class CompositeSnapshotTab extends SaveAndRestoreTab {
+public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
 
-    private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.contextMenuNewCompositeSnapshot);
-
-    private final SaveAndRestoreController saveAndRestoreController;
 
     public CompositeSnapshotTab(SaveAndRestoreController saveAndRestoreController) {
-        this.saveAndRestoreController = saveAndRestoreController;
-        configure();
-    }
 
-    private void configure() {
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
         loader.setResources(resourceBundle);
@@ -89,28 +84,10 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
 
         setContent(rootNode);
         setGraphic(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
-        textProperty().bind(tabTitleProperty);
-
-        setOnCloseRequest(event -> {
-            if (!((CompositeSnapshotController) controller).handleCompositeSnapshotTabClosed()) {
-                event.consume();
-            }
-        });
     }
 
-    public void setNodeName(String nodeName) {
-        Platform.runLater(() -> tabTitleProperty.set("[" + Messages.Edit + "] " + nodeName));
-    }
-
-    public void annotateDirty(boolean dirty) {
-        String tabTitle = tabTitleProperty.get();
-        if (dirty) {
-            Platform.runLater(() -> tabTitleProperty.set("* " + tabTitle));
-        }
-    }
 
     public void configureForNewCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
-        tabTitleProperty.set(Messages.contextMenuNewCompositeSnapshot);
         ((CompositeSnapshotController) controller).newCompositeSnapshot(parentNode, snapshotNodes);
     }
 
@@ -121,10 +98,8 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
      * @param snapshotNodes         A potentially empty (but non-null) list of snapshot nodes that should
      *                              be added to the list of references snapshots.
      */
-    public void editCompositeSnapshot(Node compositeSnapshotNode, List<Node> snapshotNodes) {
-        setId("edit_" + compositeSnapshotNode.getUniqueId());
-        setNodeName(compositeSnapshotNode.getName());
-        ((CompositeSnapshotController) controller).loadCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
+    public void editCompositeSnapshot(Node compositeSnapshotNode) {
+        ((CompositeSnapshotController) controller).loadCompositeSnapshot(compositeSnapshotNode);
     }
 
     /**
@@ -138,7 +113,13 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
     }
 
     @Override
-    public void nodeChanged(Node node) {
-
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
+        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_REMOVED)) {
+            String nodeId = (String) saveAndRestoreWebSocketMessage.payload();
+            if (getId() != null && nodeId.equals(getId())) {
+                Platform.runLater(() -> getTabPane().getTabs().remove(this));
+            }
+        }
     }
+
 }

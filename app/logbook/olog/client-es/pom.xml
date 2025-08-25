@@ -1,15 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>app-logbook-olog</artifactId>
         <groupId>org.phoebus</groupId>
-        <version>5.0.1-SNAPSHOT</version>
+        <version>5.0.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>app-logbook-olog-client-es</artifactId>
-
-    <dependencies>
+  <name>${project.groupId}:${project.artifactId}</name>
+  <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
@@ -40,22 +39,22 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-logbook</artifactId>
-            <version>5.0.1-SNAPSHOT</version>
+            <version>5.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-framework</artifactId>
-            <version>5.0.1-SNAPSHOT</version>
+            <version>5.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-util</artifactId>
-            <version>5.0.1-SNAPSHOT</version>
+            <version>5.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-security</artifactId>
-            <version>5.0.1-SNAPSHOT</version>
+            <version>5.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

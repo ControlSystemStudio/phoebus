@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -107,7 +107,7 @@ class ServerTCPListener
     // will each again create a 'tcp46' type of socket that might miss an already bound tcp4 channel.
     //
     // Workaround: Try to connect to 127.0.0.1 at desired port.
-    // Seems a wasteful, but servers tend to run for a long time, so the initial overhead hardly matters.
+    // Seems wasteful, but servers tend to run for a long time, so the initial overhead hardly matters.
     // It's noted that we can still miss an existing tcp4 server simply because the connection
     // takes too long and we time out, or the tcp4 server starts up just after we checked.
     /** Attempt to check for a tcp4 server on port
@@ -127,6 +127,11 @@ class ServerTCPListener
                     // Check for 1 second. Local connection is supposed to be much faster.
                     check.connect(existing_server, 1000);
                     // Managed to connect? Suggests existing IPv4 server on that port
+                    // If it is indeed a PVA server, it will send validation request.
+                    // But might also be other type of server, so best send nothing
+                    // and close connection
+                    check.shutdownInput();
+                    check.shutdownOutput();
                     return true;
                 }
                 catch (Exception ex)

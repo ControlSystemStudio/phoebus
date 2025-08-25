@@ -42,24 +42,16 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
         double initialValue = toolkit.isEditMode() ? (model_widget.propMinimum().getValue() + model_widget.propMaximum().getValue()) / 2.0
                                                    : Double.NaN;
 
-        double minimum, maximum;
-        double loLo, low, high, hiHi;
-        if (model_widget.propLimitsFromPV().getValue() && !toolkit.isEditMode()) {
-            minimum = Double.NaN;
-            maximum = Double.NaN;
-            loLo = Double.NaN;
-            low = Double.NaN;
-            high = Double.NaN;
-            hiHi = Double.NaN;
-        }
-        else {
-            minimum = model_widget.propMinimum().getValue();
-            maximum = model_widget.propMaximum().getValue();
-            loLo = model_widget.propLevelLoLo().getValue();
-            low = model_widget.propLevelLow().getValue();
-            high = model_widget.propLevelHigh().getValue();
-            hiHi = model_widget.propLevelHiHi().getValue();
-        }
+        // Set min, max, and alarm limits according to settings.
+        // Some or all of these may be overridden by the PV when
+        // values are received, if the option "Limits from PV"
+        // is not set to "No limits from PV".
+        double minimum = model_widget.propMinimum().getValue();
+        double maximum = model_widget.propMaximum().getValue();
+        double loLo = model_widget.propLevelLoLo().getValue();
+        double low = model_widget.propLevelLow().getValue();
+        double high = model_widget.propLevelHigh().getValue();
+        double hiHi = model_widget.propLevelHiHi().getValue();
 
         double minMaxTolerance = model_widget.propMinMaxTolerance().getValue();
 
@@ -84,7 +76,9 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                                   model_widget.propNeedleWidth().getValue(),
                                   widgetColorToAWTColor(model_widget.propNeedleColor().getValue()),
                                   model_widget.propKnobSize().getValue(),
-                                  widgetColorToAWTColor(model_widget.propKnobColor().getValue()));
+                                  widgetColorToAWTColor(model_widget.propKnobColor().getValue()),
+                                  model_widget.propShowWarnings().getValue());
+        meter.setDisplayMode(model_widget.propDisplayMode().getValue());
         meter.setSize(model_widget.propWidth().getValue(),model_widget.propHeight().getValue());
         meter.setHorizontal(model_widget.propDisplayHorizontal().getValue());
         meter.setManaged(false);
@@ -113,6 +107,11 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
         addUntypedWidgetPropertyListener(model_widget.propScaleVisible(), layoutChangedListener);
         addUntypedWidgetPropertyListener(model_widget.propFont(), layoutChangedListener);
         addUntypedWidgetPropertyListener(model_widget.propNeedleColor(), layoutChangedListener);
+
+        addWidgetPropertyListener(model_widget.propShowWarnings(), (property, oldValue, newValue) -> {
+            meter.setShowWarnings(newValue);
+            layoutChanged(null, null, null);
+        });
 
         addWidgetPropertyListener(model_widget.propShowUnits(), (property, old_value, new_value) -> {
             meter.setShowUnits(new_value);
@@ -161,26 +160,26 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
 
         addWidgetPropertyListener(model_widget.propMinimum(), (property, old_value, new_value) -> {
 
-            synchronized (meter) {
+            meter.withWriteLock(() -> {
                 boolean validRange = Double.isFinite(new_value) && Double.isFinite(model_widget.propMaximum().getValue());
                 meter.setRange(new_value, model_widget.propMaximum().getValue(), validRange);
                 if (toolkit.isEditMode() && validRange) {
                     meter.setCurrentValue((new_value + model_widget.propMaximum().getValue()) / 2.0);
                 }
-            }
+            });
 
             layoutChanged(null, null, null);
         });
 
         addWidgetPropertyListener(model_widget.propMaximum(), (property, old_value, new_value) -> {
 
-            synchronized (meter) {
+            meter.withWriteLock(() -> {
                 boolean validRange = Double.isFinite(new_value) && Double.isFinite(model_widget.propMinimum().getValue());
                 meter.setRange(model_widget.propMinimum().getValue(), new_value, validRange);
                 if (toolkit.isEditMode() && validRange) {
                     meter.setCurrentValue((new_value + model_widget.propMinimum().getValue()) / 2.0);
                 }
-            }
+            });
 
             layoutChanged(null, null, null);
         });
@@ -223,6 +222,11 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
             meter.setKnobSize(new_value);
             layoutChanged(null, null, null);
         });
+
+        addWidgetPropertyListener(model_widget.propDisplayMode(), (property, old_value, new_value) -> {
+            meter.setDisplayMode(new_value);
+            layoutChanged(null, null, null);
+        });
     }
 
     @Override
@@ -238,7 +242,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
         super.unregisterListeners();
     }
 
-    int minimumSize = 25;
+    int minimumSize = 2;
     private void widthChanged(WidgetProperty<Integer> prop, Integer old_value, Integer new_value)
     {
         if (new_value < minimumSize) {
@@ -261,13 +265,13 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
     {
         if (toolkit.isEditMode())
         {
-            synchronized(meter) {
+            meter.withWriteLock(() -> {
                 int w = model_widget.propWidth().getValue();
                 int h = model_widget.propHeight().getValue();
                 model_widget.propWidth().setValue(h);
                 model_widget.propHeight().setValue(w);
                 meter.setHorizontal(horizontal);
-            }
+            });
             layoutChanged(null, null, null);
         }
     }
@@ -284,81 +288,88 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
 
     private void valueChanged(WidgetProperty<?> property, Object old_value, Object new_value) {
         if (new_value instanceof VDouble) {
-            VDouble vDouble = ((VDouble) new_value);
-            double newValue = vDouble.getValue();
-            meter.setCurrentValue(newValue);
+            meter.withWriteLock(() -> {
+                VDouble vDouble = ((VDouble) new_value);
+                double newValue = vDouble.getValue();
 
-            if (!Double.isNaN(newValue)) {
-                if (Double.isNaN(observedMin) || newValue < observedMin) {
-                    observedMin = newValue;
-                    newObservedMinAndMaxValues = true;
-                }
-
-                if (Double.isNaN(observedMax) || newValue > observedMax) {
-                    observedMax = newValue;
-                    newObservedMinAndMaxValues = true;
-                }
-            }
-
-            Display display = vDouble.getDisplay();
-
-            // Set the units:
-            if (model_widget != null && model_widget.propShowUnits().getValue()) {
-                meter.setUnits(display.getUnit());
-            }
-
-            if (model_widget != null && model_widget.propLimitsFromPV().getValue()) {
-                Range displayRange = display.getDisplayRange();
-                if (displayRange != null
-                        && Double.isFinite(displayRange.getMinimum())
-                        && Double.isFinite(displayRange.getMaximum())
-                        && displayRange.getMaximum() - displayRange.getMinimum() > 0.0) {
-                    if (meter.linearMeterScale.getValueRange().getLow() != displayRange.getMinimum() || meter.linearMeterScale.getValueRange().getHigh() != displayRange.getMaximum() || !meter.getValidRange()) {
-                        meter.setRange(displayRange.getMinimum(), displayRange.getMaximum(), true);
+                if (!Double.isNaN(newValue)) {
+                    if (Double.isNaN(observedMin) || newValue < observedMin) {
+                        observedMin = newValue;
+                        newObservedMinAndMaxValues = true;
                     }
-                } else {
-                    Range controlRange = display.getControlRange();
-                    if (controlRange != null
-                            && Double.isFinite(controlRange.getMinimum())
-                            && Double.isFinite(controlRange.getMaximum())
-                            && controlRange.getMaximum() - controlRange.getMinimum() > 0.0) {
-                        if (meter.linearMeterScale.getValueRange().getLow() != controlRange.getMinimum() || meter.linearMeterScale.getValueRange().getHigh() != controlRange.getMaximum() || !meter.getValidRange()) {
-                            meter.setRange(controlRange.getMinimum(), controlRange.getMaximum(), true);
-                        }
-                    } else if (newObservedMinAndMaxValues && !Double.isNaN(observedMin) && !Double.isNaN(observedMax)) {
-                        meter.setRange(observedMin - 1, observedMax + 1, false);
-                        newObservedMinAndMaxValues = false;
-                    } else if (meter.linearMeterScale.getValueRange().getLow() != 0.0 || meter.linearMeterScale.getValueRange().getHigh() != 100) {
-                        meter.setRange(0.0, 100.0, false);
+
+                    if (Double.isNaN(observedMax) || newValue > observedMax) {
+                        observedMax = newValue;
+                        newObservedMinAndMaxValues = true;
                     }
                 }
 
-                {
-                    Range warningRange = display.getWarningRange();
-                    if (warningRange != null) {
-                        if (!Double.isNaN(warningRange.getMinimum()) && meter.getLow() != warningRange.getMinimum()) {
-                            meter.setLow(warningRange.getMinimum());
+                Display display = vDouble.getDisplay();
+
+                // Set the units:
+                if (model_widget != null && model_widget.propShowUnits().getValue()) {
+                    meter.setUnits(display.getUnit());
+                }
+                if (model_widget != null) {
+                    LinearMeterWidget.LimitsFromPV limitsFromPVSetting = model_widget.propLimitsFromPV().getValue();
+                    if (limitsFromPVSetting.equals(LinearMeterWidget.LimitsFromPV.LimitsFromPV) ||
+                            limitsFromPVSetting.equals(LinearMeterWidget.LimitsFromPV.MinAndMaxFromPV)) {
+                        Range displayRange = display.getDisplayRange();
+                        if (displayRange != null
+                                && Double.isFinite(displayRange.getMinimum())
+                                && Double.isFinite(displayRange.getMaximum())
+                                && displayRange.getMaximum() - displayRange.getMinimum() > 0.0) {
+                            if (meter.linearMeterScale.getValueRange().getLow() != displayRange.getMinimum() || meter.linearMeterScale.getValueRange().getHigh() != displayRange.getMaximum() || !meter.getValidRange()) {
+                                meter.setRange(displayRange.getMinimum(), displayRange.getMaximum(), true);
+                            }
+                        } else {
+                            Range controlRange = display.getControlRange();
+                            if (controlRange != null
+                                    && Double.isFinite(controlRange.getMinimum())
+                                    && Double.isFinite(controlRange.getMaximum())
+                                    && controlRange.getMaximum() - controlRange.getMinimum() > 0.0) {
+                                if (meter.linearMeterScale.getValueRange().getLow() != controlRange.getMinimum() || meter.linearMeterScale.getValueRange().getHigh() != controlRange.getMaximum() || !meter.getValidRange()) {
+                                    meter.setRange(controlRange.getMinimum(), controlRange.getMaximum(), true);
+                                }
+                            } else if (newObservedMinAndMaxValues && !Double.isNaN(observedMin) && !Double.isNaN(observedMax)) {
+                                meter.setRange(observedMin - 1, observedMax + 1, false);
+                                newObservedMinAndMaxValues = false;
+                            } else if (meter.linearMeterScale.getValueRange().getLow() != 0.0 || meter.linearMeterScale.getValueRange().getHigh() != 100) {
+                                meter.setRange(0.0, 100.0, false);
+                            }
+                        }
+                    }
+                    if (limitsFromPVSetting.equals(LinearMeterWidget.LimitsFromPV.LimitsFromPV) ||
+                            limitsFromPVSetting.equals(LinearMeterWidget.LimitsFromPV.AlarmLimitsFromPV)) {
+                        {
+                            Range warningRange = display.getWarningRange();
+                            if (warningRange != null) {
+                                if (!Double.isNaN(warningRange.getMinimum()) && meter.getLow() != warningRange.getMinimum()) {
+                                    meter.setLow(warningRange.getMinimum());
+                                }
+
+                                if (!Double.isNaN(warningRange.getMaximum()) && meter.getHigh() != warningRange.getMaximum()) {
+                                    meter.setHigh(warningRange.getMaximum());
+                                }
+                            }
                         }
 
-                        if (!Double.isNaN(warningRange.getMaximum()) && meter.getHigh() != warningRange.getMaximum()) {
-                            meter.setHigh(warningRange.getMaximum());
+                        {
+                            Range alarmRange = display.getAlarmRange();
+                            if (alarmRange != null) {
+                                if (!Double.isNaN(alarmRange.getMinimum()) && meter.getLoLo() != alarmRange.getMinimum()) {
+                                    meter.setLoLo(alarmRange.getMinimum());
+                                }
+
+                                if (!Double.isNaN(alarmRange.getMaximum()) && meter.getHiHi() != alarmRange.getMaximum()) {
+                                    meter.setHiHi(alarmRange.getMaximum());
+                                }
+                            }
                         }
                     }
                 }
-
-                {
-                    Range alarmRange = display.getAlarmRange();
-                    if (alarmRange != null) {
-                        if (!Double.isNaN(alarmRange.getMinimum()) && meter.getLoLo() != alarmRange.getMinimum()) {
-                            meter.setLoLo(alarmRange.getMinimum());
-                        }
-
-                        if (!Double.isNaN(alarmRange.getMaximum()) && meter.getHiHi() != alarmRange.getMaximum()) {
-                            meter.setHiHi(alarmRange.getMaximum());
-                        }
-                    }
-                }
-            }
+                meter.setCurrentValue(newValue);
+            });
         }
     }
 
@@ -369,7 +380,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
 
         if (dirty_look.checkAndClear())
         {
-            synchronized (meter) {
+            meter.withWriteLock(() -> {
                 boolean horizontal = model_widget.propDisplayHorizontal().getValue();
                 int width = model_widget.propWidth().getValue();
                 int height = model_widget.propHeight().getValue();
@@ -385,7 +396,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                 jfx_node.setPrefSize(width, height);
 
                 meter.setSize(width, height);
-            }
+            });
         }
     }
 

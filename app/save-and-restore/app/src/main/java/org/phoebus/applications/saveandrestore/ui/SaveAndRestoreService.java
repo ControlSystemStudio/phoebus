@@ -45,8 +45,8 @@ import org.phoebus.util.time.TimestampFormats;
 import javax.ws.rs.core.MultivaluedMap;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -59,11 +59,6 @@ import java.util.stream.Collectors;
 public class SaveAndRestoreService {
 
     private final ExecutorService executor;
-
-    private final List<NodeChangedListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList<>());
-    private final List<NodeAddedListener> nodeAddedListeners = Collections.synchronizedList(new ArrayList<>());
-
-    private final List<FilterChangeListener> filterChangeListeners = Collections.synchronizedList(new ArrayList<>());
 
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
@@ -113,21 +108,13 @@ public class SaveAndRestoreService {
         return null;
     }
 
-    public Node updateNode(Node nodeToUpdate) throws Exception {
-        return updateNode(nodeToUpdate, false);
-    }
-
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) throws Exception {
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.updateNode(nodeToUpdate, customTimeForMigration));
-        Node node = future.get();
-        notifyNodeChangeListeners(node);
-        return node;
+        return future.get();
     }
 
     public Node createNode(String parentNodeId, Node newTreeNode) throws Exception {
-        Future<Node> future = executor.submit(() -> saveAndRestoreClient.createNewNode(parentNodeId, newTreeNode));
-        notifyNodeAddedListeners(getNode(parentNodeId), Collections.singletonList(newTreeNode));
-        return future.get();
+        return executor.submit(() -> saveAndRestoreClient.createNewNode(parentNodeId, newTreeNode)).get();
     }
 
     public void deleteNodes(List<String> nodeIds) throws Exception {
@@ -145,17 +132,12 @@ public class SaveAndRestoreService {
 
     public Configuration createConfiguration(final Node parentNode, final Configuration configuration) throws Exception {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.createConfiguration(parentNode.getUniqueId(), configuration));
-        Configuration newConfiguration = future.get();
-        notifyNodeChangeListeners(parentNode);
-        return newConfiguration;
+        return future.get();
     }
 
     public Configuration updateConfiguration(Configuration configuration) throws Exception {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.updateConfiguration(configuration));
-        Configuration updatedConfiguration = future.get();
-        // Associated configuration Node may have a new name
-        notifyNodeChangeListeners(updatedConfiguration.getConfigurationNode());
-        return updatedConfiguration;
+        return future.get();
     }
 
     public List<Tag> getAllTags() throws Exception {
@@ -163,36 +145,12 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
-    public void addNodeChangeListener(NodeChangedListener nodeChangeListener) {
-        nodeChangeListeners.add(nodeChangeListener);
-    }
-
-    public void removeNodeChangeListener(NodeChangedListener nodeChangeListener) {
-        nodeChangeListeners.remove(nodeChangeListener);
-    }
-
-    private void notifyNodeChangeListeners(Node changedNode) {
-        nodeChangeListeners.forEach(listener -> listener.nodeChanged(changedNode));
-    }
-
-    public void addNodeAddedListener(NodeAddedListener nodeAddedListener) {
-        nodeAddedListeners.add(nodeAddedListener);
-    }
-
-    public void removeNodeAddedListener(NodeAddedListener nodeAddedListener) {
-        nodeAddedListeners.remove(nodeAddedListener);
-    }
-
-    private void notifyNodeAddedListeners(Node parentNode, List<Node> newNodes) {
-        nodeAddedListeners.forEach(listener -> listener.nodesAdded(parentNode, newNodes));
-    }
-
     /**
      * Moves the <code>sourceNode</code> to the <code>targetNode</code>. The target {@link Node} may not contain
      * any {@link Node} of same name and type as the source {@link Node}.
      * <p>
-     * Once the move completes successfully in the remote service, this method will updated both the source node's parent
-     * as well as the target node. This is needed in order to keep the view updated with the changes performed.
+     * Once the move completes successfully in the remote service, this method will update both the source node's parent
+     * and the target node. This is needed in order to keep the view updated with the changes performed.
      *
      * @param sourceNodes A list of {@link Node}s of type {@link NodeType#FOLDER} or {@link NodeType#CONFIGURATION}.
      * @param targetNode  A {@link Node} of type {@link NodeType#FOLDER}.
@@ -251,10 +209,7 @@ public class SaveAndRestoreService {
                 return saveAndRestoreClient.updateSnapshot(snapshot);
             }
         });
-        Snapshot updatedSnapshot = future.get();
-        // Notify listeners as the configuration node has a new child node.
-        notifyNodeChangeListeners(configurationNode);
-        return updatedSnapshot;
+        return future.get();
     }
 
     public List<Node> getCompositeSnapshotNodes(String compositeSnapshotNodeUniqueId) throws Exception {
@@ -272,17 +227,12 @@ public class SaveAndRestoreService {
     public CompositeSnapshot saveCompositeSnapshot(Node parentNode, CompositeSnapshot compositeSnapshot) throws Exception {
         Future<CompositeSnapshot> future =
                 executor.submit(() -> saveAndRestoreClient.createCompositeSnapshot(parentNode.getUniqueId(), compositeSnapshot));
-        CompositeSnapshot newCompositeSnapshot = future.get();
-        notifyNodeChangeListeners(parentNode);
-        return newCompositeSnapshot;
+        return future.get();
     }
 
     public CompositeSnapshot updateCompositeSnapshot(final CompositeSnapshot compositeSnapshot) throws Exception {
         Future<CompositeSnapshot> future = executor.submit(() -> saveAndRestoreClient.updateCompositeSnapshot(compositeSnapshot));
-        CompositeSnapshot updatedCompositeSnapshot = future.get();
-        // Associated composite snapshot Node may have a new name
-        notifyNodeChangeListeners(updatedCompositeSnapshot.getCompositeSnapshotNode());
-        return updatedCompositeSnapshot;
+        return future.get();
     }
 
     /**
@@ -318,9 +268,7 @@ public class SaveAndRestoreService {
     public Filter saveFilter(Filter filter) throws Exception {
         Future<Filter> future =
                 executor.submit(() -> saveAndRestoreClient.saveFilter(filter));
-        Filter addedOrUpdatedFilter = future.get();
-        notifyFilterAddedOrUpdated(addedOrUpdatedFilter);
-        return addedOrUpdatedFilter;
+        return future.get();
     }
 
     /**
@@ -339,7 +287,6 @@ public class SaveAndRestoreService {
      */
     public void deleteFilter(final Filter filter) throws Exception {
         executor.submit(() -> saveAndRestoreClient.deleteFilter(filter.getName())).get();
-        notifyFilterDeleted(filter);
     }
 
     /**
@@ -352,9 +299,7 @@ public class SaveAndRestoreService {
     public List<Node> addTag(TagData tagData) throws Exception {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.addTag(tagData));
-        List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(this::notifyNodeChangeListeners);
-        return updatedNodes;
+        return future.get();
     }
 
     /**
@@ -367,25 +312,7 @@ public class SaveAndRestoreService {
     public List<Node> deleteTag(TagData tagData) throws Exception {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.deleteTag(tagData));
-        List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(this::notifyNodeChangeListeners);
-        return updatedNodes;
-    }
-
-    public void addFilterChangeListener(FilterChangeListener filterChangeListener) {
-        filterChangeListeners.add(filterChangeListener);
-    }
-
-    public void removeFilterChangeListener(FilterChangeListener filterChangeListener) {
-        filterChangeListeners.remove(filterChangeListener);
-    }
-
-    private void notifyFilterAddedOrUpdated(Filter filter) {
-        filterChangeListeners.forEach(l -> l.filterAddedOrUpdated(filter));
-    }
-
-    private void notifyFilterDeleted(Filter filter) {
-        filterChangeListeners.forEach(l -> l.filterRemoved(filter));
+        return future.get();
     }
 
     /**
@@ -461,7 +388,7 @@ public class SaveAndRestoreService {
             snapshotItem.setConfigPv(configPv);
             snapshotItem.setValue(readFromArchiver(configPv.getPvName(), _time));
             if (configPv.getReadbackPvName() != null) {
-                snapshotItem.setValue(readFromArchiver(configPv.getReadbackPvName(), _time));
+                snapshotItem.setReadbackValue(readFromArchiver(configPv.getReadbackPvName(), _time));
             }
             snapshotItems.add(snapshotItem);
         });
@@ -483,13 +410,18 @@ public class SaveAndRestoreService {
         }
         // Prepend "archiver://"
         pvName = "archive://" + pvName + "(" + TimestampFormats.SECONDS_FORMAT.format(time) + ")";
+        PV pv = null;
+        VType pvValue = null;
         try {
-            PV pv = PVPool.getPV(pvName);
-            VType pvValue = pv.read();
-            PVPool.releasePV(pv);
-            return pvValue == null ? VDisconnectedData.INSTANCE : pvValue;
+            pv = PVPool.getPV(pvName);
+            pvValue = pv.read();
         } catch (Exception e) {
-            return VDisconnectedData.INSTANCE;
+            Logger.getLogger(SaveAndRestoreService.class.getName()).log(Level.WARNING, "Failed to read " + pvName, e);
+        } finally {
+            if (pv != null) {
+                PVPool.releasePV(pv);
+            }
         }
+        return pvValue == null ? VDisconnectedData.INSTANCE : pvValue;
     }
 }
