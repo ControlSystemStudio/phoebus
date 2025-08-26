@@ -118,7 +118,7 @@ public class WebSocketClientService {
         stompClient.setDefaultHeartbeat(new long[]{30000, 30000});
         StompSessionHandler sessionHandler = new StompSessionHandler();
         String _path = path;
-        String webSocketUrl = scheme + "://" + host + (port > -1 ? (":" + port) : "") + "/web-socket";
+        String webSocketUrl = scheme + "://" + host + (port > -1 ? (":" + port) : "") + _path + "/web-socket";
         JobManager.schedule("Connect to web socket", monitor -> {
             stompSession = stompClient.connect(webSocketUrl, sessionHandler).get();
             logger.log(Level.INFO, "Subscribing to messages on " + _path + "/web-socket/messages");

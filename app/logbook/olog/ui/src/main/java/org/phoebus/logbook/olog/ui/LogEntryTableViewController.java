@@ -527,7 +527,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
             }
         });
     }
-q
+
     @FXML
     @SuppressWarnings("unused")
     public void goToFirstPage() {
