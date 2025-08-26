@@ -260,7 +260,7 @@ public class WaterfallPlotWidget extends PVWidget {
         properties.add(major_tick_width = propMajorTickWidth.createProperty(this, 2.0));
         properties.add(minor_tick_length = propMinorTickLength.createProperty(this, 5.0));
         properties.add(minor_tick_width = propMinorTickWidth.createProperty(this, 1.0));
-        properties.add(time_axis = propTimeAxis.createProperty(this, TimeAxis.XAxis));
+        properties.add(time_axis = propTimeAxis.createProperty(this, TimeAxis.YAxis));
         properties.add(timespan = propTimespan.createProperty(this, "10 minutes"));
 
         // WidgetPropertyListeners to enable only one PV as input when "Input is a waveform" is enabled:
