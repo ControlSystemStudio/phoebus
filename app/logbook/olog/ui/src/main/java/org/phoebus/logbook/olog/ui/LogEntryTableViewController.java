@@ -701,8 +701,6 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
             WebSocketMessage webSocketMessage = objectMapper.readValue(message, WebSocketMessage.class);
             if(webSocketMessage.messageType().equals(MessageType.NEW_LOG_ENTRY)){
                 search();
-                webSocketClientService.close();
-                webSocketClientService.sendEcho("Hello World");
             }
         } catch (JsonProcessingException e) {
             logger.log(Level.WARNING, "Unable to deserialize message \"" + message + "\"");

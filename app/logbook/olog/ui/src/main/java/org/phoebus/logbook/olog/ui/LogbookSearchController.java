@@ -52,7 +52,6 @@ public abstract class LogbookSearchController {
      * @param errorHandler Client side error handler that should notify user.
      */
     public void search(Map<String, String> searchParams, final Consumer<SearchResult> resultHandler, final BiConsumer<String, Exception> errorHandler) {
-        cancelPeriodSearch();
         logbookSearchJob = LogbookSearchJob.submit(this.client,
                 searchParams,
                 resultHandler,
@@ -96,7 +95,6 @@ public abstract class LogbookSearchController {
      * Utility method to cancel any ongoing periodic search jobs.
      */
     public void shutdown() {
-        //cancelPeriodSearch();
         if(stompSession != null && stompSession.isConnected()){
             Logger.getLogger(LogbookSearchController.class.getName()).log(Level.INFO, "Disconnecting from web socket");
             stompSession.disconnect();

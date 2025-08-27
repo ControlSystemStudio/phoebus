@@ -23,7 +23,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,8 +65,11 @@ public class WebSocketClientService {
 
     private static final Logger logger = Logger.getLogger(WebSocketClientService.class.getName());
 
+    /**
+     * Constructor if connect/disconnect  callbacks are not needed.
+     */
+    @SuppressWarnings("unused")
     public WebSocketClientService() {
-
     }
 
     /**
@@ -80,10 +82,12 @@ public class WebSocketClientService {
         this.disconnectCallback = disconnectCallback;
     }
 
+    @SuppressWarnings("unused")
     public void setConnectCallback(Runnable connectCallback) {
         this.connectCallback = connectCallback;
     }
 
+    @SuppressWarnings("unused")
     public void setDisconnectCallback(Runnable disconnectCallback) {
         this.disconnectCallback = disconnectCallback;
     }
@@ -96,12 +100,16 @@ public class WebSocketClientService {
         webSocketMessageHandlers.remove(webSocketMessageHandler);
     }
 
-
+    /**
+     * For debugging purposes: peer should just echo back the message on the subscribed topic.
+     * @param message Message to echo
+     */
+    @SuppressWarnings("unused")
     public void sendEcho(String message) {
         stompSession.send(contextPath + "/web-socket/echo", message);
     }
 
-    public void close(){
+    public void close() {
         stompSession.disconnect();
     }
 
@@ -129,6 +137,9 @@ public class WebSocketClientService {
         doConnect();
     }
 
+    /**
+     *
+     */
     private void doConnect() {
         attemptReconnect.set(true);
         WebSocketClient webSocketClient = new StandardWebSocketClient();
@@ -173,13 +184,26 @@ public class WebSocketClientService {
      */
     private class StompSessionHandler extends StompSessionHandlerAdapter {
 
+        /**
+         * Logs that web socket frame has been received.
+         *
+         * @param headers the headers of the frame
+         * @param payload the payload, or {@code null} if there was no payload
+         */
         @Override
         public void handleFrame(StompHeaders headers, @Nullable Object payload) {
             if (payload != null) {
-                logger.log(Level.INFO, "WebSocket frame received: " + payload);
+                logger.log(Level.FINE, "WebSocket frame received: " + payload);
             }
         }
 
+        /**
+         * Handles connection success callback: thread to attempt connection is aborted,
+         * and connect callback is called, if set by API client.
+         *
+         * @param session          the client STOMP session
+         * @param connectedHeaders the STOMP CONNECTED frame headers
+         */
         @Override
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
             attemptReconnect.set(false);
@@ -189,6 +213,15 @@ public class WebSocketClientService {
             }
         }
 
+        /**
+         * Hit for instance if an attempt is made to send a message to peer after {@link StompSession} has been closed.
+         *
+         * @param session   the client STOMP session
+         * @param command   the STOMP command of the frame
+         * @param headers   the headers
+         * @param payload   the raw payload
+         * @param exception the exception
+         */
         @Override
         public void handleException(StompSession session, @Nullable StompCommand command,
                                     StompHeaders headers, byte[] payload, Throwable exception) {
@@ -196,19 +229,22 @@ public class WebSocketClientService {
         }
 
         /**
-         * Note that this is called both on connection failure and if remote web socket peer
-         * goes away for whatever reason.
-         * @param session the client STOMP session
+         * If remote peer goes away because the service is shut down, or because
+         * of a network connection issue, we get a {@link ConnectionLostException}. In this case
+         * a reconnection thread is started. If on the other hand a connection attempt fails, we get
+         * a different type of exception (javax.websocket.DeploymentException), in which case a
+         * reconnection thread is not started.
+         *
+         * @param session   the client STOMP session
          * @param exception the exception that occurred. This is evaluated to determine if a reconnection
          *                  thread should be launched.
          */
         @Override
         public void handleTransportError(StompSession session, Throwable exception) {
-            if(exception instanceof ConnectionLostException){
+            if (exception instanceof ConnectionLostException) {
                 logger.log(Level.WARNING, "Connection lost, will attempt to reconnect", exception);
                 doConnect();
-            }
-            else{
+            } else {
                 logger.log(Level.WARNING, "Handling transport exception", exception);
             }
             if (disconnectCallback != null) {
