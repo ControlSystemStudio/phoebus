@@ -109,7 +109,7 @@ public class WebSocketClientService {
         stompSession.send(contextPath + "/web-socket/echo", message);
     }
 
-    public void close() {
+    public void disconnect() {
         stompSession.disconnect();
     }
 
