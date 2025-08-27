@@ -63,6 +63,12 @@ public class Preferences {
     @Preference
     public static String default_restore_mode;
 
+    /**
+     * Allow empty descriptions / comments in SaR nodes
+     */
+    @Preference
+    public static boolean allow_empty_descriptions;
+
     static {
         AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");
     }

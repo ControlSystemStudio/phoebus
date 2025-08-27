@@ -232,12 +232,12 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 
                     <TableColumn fx:id="severityColumn" minWidth="140.0" prefWidth="200.0" sortable="false" styleClass="snapshot-table-centered" text="%tableColumnAlarmSeverity">
                         <columns>
-                            <TooltipTableColumn labelText="%tableColumnStored" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnStoredAlarmSeverity">
+                            <TooltipTableColumn fx:id="storedSeverityColumn" labelText="%tableColumnStored" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnStoredAlarmSeverity">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="storedSeverity" />
                                 </cellValueFactory>
                             </TooltipTableColumn>
-                            <TooltipTableColumn labelText="%tableColumnLive" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmSeverity">
+                            <TooltipTableColumn fx:id="liveSeverityColumn" labelText="%tableColumnLive" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmSeverity">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="liveSeverity" />
                                 </cellValueFactory>

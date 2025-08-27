@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -278,16 +278,16 @@ public class Network
         return udp;
     }
 
-    /** Configure IPv4 socket to receive local multicast messages
+    /** Get a local multicast group address for IPv4 socket
      *
      *  IPv4 unicasts are re-sent as local multicast,
      *  and this configures a socket to receive them
      *
-     *  @param udp UDP channel that should listen to multicast messages
+     *  @param udp UDP channel from which we plan to send multicast messages
      *  @param port Port to use
      *  @return Local multicast address, or <code>null</code> if no multicast support
      */
-    public static AddressInfo configureLocalIPv4Multicast(final DatagramChannel udp, final int port)
+    public static AddressInfo getLocalMulticastGroup(final DatagramChannel udp, final int port)
     {
         try
         {
@@ -301,12 +301,12 @@ public class Network
             {
                 final InetAddress group = InetAddress.getByName(PVASettings.EPICS_PVA_MULTICAST_GROUP);
                 final InetSocketAddress local_multicast = new InetSocketAddress(group, port);
-                udp.join(group, loopback);
-
                 logger.log(Level.CONFIG, "Local multicast of IPv4 unicast using group " + local_multicast + " using network interface " + loopback.getDisplayName());
+
+                udp.join(group, loopback);
+                // Default is TRUE anyway?
                 udp.setOption(StandardSocketOptions.IP_MULTICAST_LOOP, true);
                 udp.setOption(StandardSocketOptions.IP_MULTICAST_IF, loopback);
-
                 return new AddressInfo(false, local_multicast, 1, loopback);
             }
         }

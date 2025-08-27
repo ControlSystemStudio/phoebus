@@ -53,6 +53,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.converter.DoubleStringConverter;
 import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VEnum;
@@ -271,6 +272,12 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     protected TableColumn<TableEntry, ?> baseSnapshotColumn;
 
     @FXML
+    private TableColumn<TableEntry, AlarmSeverity> storedSeverityColumn;
+
+    @FXML
+    private TableColumn<TableEntry, AlarmSeverity> liveSeverityColumn;
+
+    @FXML
     protected TooltipTableColumn<VType> baseSnapshotValueColumn;
 
     @FXML
@@ -401,7 +408,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                         // TODO: support save (=update) a composite snapshot from the snapshot view. In the meanwhile, disable save button.
                         snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
-                                snapshotCommentProperty.isEmpty().get() ||
+                                (!Preferences.allow_empty_descriptions && snapshotCommentProperty.isEmpty().get()) ||
                                 userIdentity.isNull().get(),
                 snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
 
@@ -649,6 +656,9 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         liveReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
         storedReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
         readbackColumn.visibleProperty().bind(showReadbacks);
+
+        liveSeverityColumn.setCellFactory(a -> new AlarmSeverityCell());
+        storedSeverityColumn.setCellFactory(a -> new AlarmSeverityCell());
 
         timeColumn.visibleProperty().bind(compareViewEnabled.not());
         firstDividerColumn.visibleProperty().bind(compareViewEnabled);
@@ -1525,7 +1535,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         return (int) mText.getLayoutBounds().getWidth();
     }
 
-    /**
      * @param configurationData {@link ConfigurationData} obejct of a {@link org.phoebus.applications.saveandrestore.model.Configuration}
      * @return <code>true</code> if any if the {@link ConfigPv} items in {@link ConfigurationData#getPvList()} defines a non-null read-back
      * PV name, otherwise <code>false</code>.
@@ -1592,6 +1601,34 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                             setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
                 }
             }
+        }
+    }
+
+    /**
+     * {@link TableCell} customized for the alarm severity column such that alarm information is
+     * decorated in the same manner as in other applications.
+     */
+    private static class AlarmSeverityCell extends TableCell<TableEntry, AlarmSeverity> {
+
+        @Override
+        public void updateItem(AlarmSeverity alarmSeverity, boolean empty) {
+            if (empty) {
+                setText(null);
+                setStyle(TableCellColors.REGULAR_CELL_STYLE);
+            } else if (alarmSeverity == null) {
+                setText("---");
+                setStyle(TableCellColors.REGULAR_CELL_STYLE);
+            } else {
+                setText(alarmSeverity.toString());
+                switch (alarmSeverity) {
+                    case NONE -> setStyle(TableCellColors.ALARM_NONE_STYLE);
+                    case UNDEFINED -> setStyle(TableCellColors.ALARM_UNDEFINED_STYLE);
+                    case MINOR -> setStyle(TableCellColors.ALARM_MINOR_STYLE);
+                    case MAJOR -> setStyle(TableCellColors.ALARM_MAJOR_STYLE);
+                    case INVALID -> setStyle(TableCellColors.ALARM_INVALID_STYLE);
+                }
+            }
+
         }
     }
 }

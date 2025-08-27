@@ -21,8 +21,11 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import javafx.application.Platform;
@@ -39,10 +42,11 @@ import javax.imageio.ImageIO;
 
 /**
  * @author European Spallation Source ERIC
- * @version 1.1
+ * @version 1.2
  *
  * Version 1.0 implemented by Fredrik Söderberg.
  * Version 1.1 (some fixes and improvements) by Abraham Wolk.
+ * Version 1.2 ("Bar" mode in addition to "Needle" mode, more fine-grained concurrency, and some improvements) by Abraham Wolk.
  *
  * The Linear Meter graphics design is by Dirk Nordt and Fredrik Söderberg.
  *
@@ -51,9 +55,19 @@ import javax.imageio.ImageIO;
 @SuppressWarnings("nls")
 public class RTLinearMeter extends ImageView
 {
-    // Note: All methods that are called from different threads must ensure thread-safety by running
-    // relevant code on the JavaFX application thread. (The helper function runOnJavaFXThread() can
-    // be used for this.)
+    // Note: All methods must ensure thread-safety by acquiring
+    // readWriteLock.readLock() when reading fields, and by acquiring
+    // readWriteLock.writeLock() when writing to one or more fields.
+    //
+    // The helper functions
+    //
+    // - void withReadLock(Runnable runnable)
+    // - <T> T withReadLock(Supplier<T> supplier)
+    // - void withWriteLock(Runnable runnable)
+    //
+    // have been implemented to facilitate the acquiring and releasing
+    // of locks. When a read-lock is held, care must be taken not
+    // to try to acquire the write-lock, since it leads to a deadlock.
 
     public RTLinearMeter(double initialValue,
                          int width,
@@ -76,7 +90,8 @@ public class RTLinearMeter extends ImageView
                          int needleWidth,
                          Color needleColor,
                          int knobSize,
-                         Color knobColor)
+                         Color knobColor,
+                         boolean showWarnings)
     {
         if (warningTriangle == null) {
             try {
@@ -109,6 +124,7 @@ public class RTLinearMeter extends ImageView
         this.hiHi = hiHi;
         this.showUnits = showUnits;
         this.showLimits = showLimits;
+        this.showWarnings = showWarnings;
 
         layout();
 
@@ -128,41 +144,74 @@ public class RTLinearMeter extends ImageView
         requestLayout();
     }
 
-    private boolean showUnits;
-    private String units = "";
-    private boolean showLimits;
+    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    protected void withReadLock(Runnable runnable) {
+        readWriteLock.readLock().lock();
+        try {
+            runnable.run();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+    protected <T> T withReadLock(Supplier<T> supplier) {
+        readWriteLock.readLock().lock();
+        try {
+            return supplier.get();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+    protected void withWriteLock(Runnable runnable) {
+        readWriteLock.writeLock().lock();
+        try {
+            runnable.run();
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
+    }
 
-    private double loLo;
-    private double low;
-    private double high;
-    private double hiHi;
+    private boolean showUnits = true;
+    private String units = "";
+    private boolean showLimits = true;
+
+    private double loLo = 0.;
+    private double low =  .0;
+    private double high = 100.;
+    private double hiHi = 100.;
 
     private static Image warningTriangle = null;
 
     public void redrawLinearMeterScale() {
-        boolean isHorizontal = linearMeterScale.isHorizontal();
-        linearMeterScale = new LinearMeterScale(plot_part_listener,
-                                                linearMeterScale.getBounds().width,
-                                                linearMeterScale.getBounds().height,
-                                                linearMeterScale.isHorizontal(),
-                                                linearMeterScale.getValueRange().getLow(),
-                                                linearMeterScale.getValueRange().getHigh());
-        linearMeterScale.setHorizontal(isHorizontal);
-        if (font != null) {
-            linearMeterScale.setScaleFont(GraphicsUtils.convert(font));
-        }
+        withReadLock(() -> {
+            boolean isHorizontal = linearMeterScale.isHorizontal();
+            linearMeterScale = new LinearMeterScale(plot_part_listener,
+                    linearMeterScale.getBounds().width,
+                    linearMeterScale.getBounds().height,
+                    linearMeterScale.isHorizontal(),
+                    linearMeterScale.getValueRange().getLow(),
+                    linearMeterScale.getValueRange().getHigh());
+            linearMeterScale.setHorizontal(isHorizontal);
+        });
     }
 
     private enum WARNING {
-        NONE,
-        VALUE_LESS_THAN_MIN,
-        VALUE_GREATER_THAN_MAX,
-        MIN_AND_MAX_NOT_DEFINED,
-        LAG,
-        NO_UNIT
-    }
+        NONE(""),
+        VALUE_LESS_THAN_MIN("Value < Min"),
+        VALUE_GREATER_THAN_MAX("Value > Max"),
+        MIN_AND_MAX_NOT_DEFINED("Min and max are not set"),
+        LAG("Lag");
 
-    private WARNING currentWarning = WARNING.NONE;
+        private final String displayName;
+
+        private WARNING(String displayName) {
+            this.displayName = displayName;
+        };
+
+        @Override
+        public String toString() {
+            return this.displayName;
+        }
+    }
 
     /** Colors */
     private Color foreground = Color.BLACK;
@@ -181,11 +230,13 @@ public class RTLinearMeter extends ImageView
         public void refreshPlotPart(PlotPart plotPart) { }
     };
 
-    private boolean validRange;
-    private double minMaxTolerance;
+    private boolean validRange = false;
+    private double minMaxTolerance = 0.0;
 
     public boolean getValidRange() {
-        return validRange;
+        return withReadLock(() -> {
+            return validRange;
+        });
     }
 
     /** Optional scale of this linear meter */
@@ -215,17 +266,34 @@ public class RTLinearMeter extends ImageView
     private Color majorAlarmColorGradientStartPoint_highlighted = Color.RED;
     private Color majorAlarmColorGradientEndPoint_highlighted = Color.RED;
 
-    Paint normalStatusActiveColor_lowlighted, minorAlarmActiveColor_lowlighted, majorAlarmActiveColor_lowlighted;
+    Paint normalStatusActiveColor_lowlighted = Color.WHITE;
+    Paint minorAlarmActiveColor_lowlighted = Color.YELLOW;
+    Paint majorAlarmActiveColor_lowlighted = Color.RED;
 
-    Paint normalStatusActiveColor_highlighted, majorAlarmActiveColor_highlighted, minorAlarmActiveColor_highlighted;
+    Paint normalStatusActiveColor_highlighted = Color.WHITE;
+    Paint majorAlarmActiveColor_highlighted = Color.YELLOW;
+    Paint minorAlarmActiveColor_highlighted = Color.RED;
 
-    private int needleWidth;
+    private int needleWidth = 2;
 
-    private Color needleColor;
+    private Color needleColor = Color.BLACK;
 
-    private Boolean isGradientEnabled;
+    private boolean isGradientEnabled = false;
 
-    private Boolean isHighlightActiveRegionEnabled;
+    private boolean isHighlightActiveRegionEnabled = true;
+
+    enum DisplayMode {
+        NEEDLE,
+        BAR
+    }
+
+    public void setDisplayMode(DisplayMode newDisplayMode) {
+        withWriteLock(() -> {
+            this.displayMode = newDisplayMode;
+        });
+    }
+
+    private DisplayMode displayMode = DisplayMode.NEEDLE;
 
     private void runOnJavaFXThread(Runnable runnable) {
         if (Platform.isFxApplicationThread()) {
@@ -237,45 +305,49 @@ public class RTLinearMeter extends ImageView
     }
 
     public void setIsGradientEnabled(boolean isGradientEnabled) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.isGradientEnabled = isGradientEnabled;
             updateActiveColors();
         });
     }
 
     public void setIsHighlightActiveRegionEnabled(boolean isHighlightActiveRegionEnabled) {
-        runOnJavaFXThread(() -> this.isHighlightActiveRegionEnabled = isHighlightActiveRegionEnabled);
+        withWriteLock(() -> {
+            this.isHighlightActiveRegionEnabled = isHighlightActiveRegionEnabled;
+        });
     }
 
     private void updateActiveColors() {
-        if (isGradientEnabled) {
-            if (linearMeterScale.isHorizontal()) {
-                majorAlarmActiveColor_lowlighted = createVerticalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_lowlighted, majorAlarmColorGradientEndPoint_lowlighted);
-                minorAlarmActiveColor_lowlighted = createVerticalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_lowlighted, minorAlarmColorGradientEndPoint_lowlighted);
-                normalStatusActiveColor_lowlighted = createVerticalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted); // The normal status region is never lowlighted.
+        withWriteLock(() -> {
+            if (isGradientEnabled) {
+                if (linearMeterScale.isHorizontal()) {
+                    majorAlarmActiveColor_lowlighted = createVerticalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_lowlighted, majorAlarmColorGradientEndPoint_lowlighted);
+                    minorAlarmActiveColor_lowlighted = createVerticalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_lowlighted, minorAlarmColorGradientEndPoint_lowlighted);
+                    normalStatusActiveColor_lowlighted = createVerticalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted); // The normal status region is never lowlighted.
 
-                minorAlarmActiveColor_highlighted = createVerticalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_highlighted, minorAlarmColorGradientEndPoint_highlighted);
-                majorAlarmActiveColor_highlighted = createVerticalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_highlighted, majorAlarmColorGradientEndPoint_highlighted);
-                normalStatusActiveColor_highlighted = createVerticalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted);
-            } else {
-                majorAlarmActiveColor_lowlighted = createHorizontalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_lowlighted, majorAlarmColorGradientEndPoint_lowlighted);
-                minorAlarmActiveColor_lowlighted = createHorizontalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_lowlighted, minorAlarmColorGradientEndPoint_lowlighted);
-                normalStatusActiveColor_lowlighted = createHorizontalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted); // The normal status region is never lowlighted.
+                    minorAlarmActiveColor_highlighted = createVerticalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_highlighted, minorAlarmColorGradientEndPoint_highlighted);
+                    majorAlarmActiveColor_highlighted = createVerticalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_highlighted, majorAlarmColorGradientEndPoint_highlighted);
+                    normalStatusActiveColor_highlighted = createVerticalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted);
+                } else {
+                    majorAlarmActiveColor_lowlighted = createHorizontalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_lowlighted, majorAlarmColorGradientEndPoint_lowlighted);
+                    minorAlarmActiveColor_lowlighted = createHorizontalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_lowlighted, minorAlarmColorGradientEndPoint_lowlighted);
+                    normalStatusActiveColor_lowlighted = createHorizontalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted); // The normal status region is never lowlighted.
 
-                minorAlarmActiveColor_highlighted = createHorizontalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_highlighted, minorAlarmColorGradientEndPoint_highlighted);
-                majorAlarmActiveColor_highlighted = createHorizontalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_highlighted, majorAlarmColorGradientEndPoint_highlighted);
-                normalStatusActiveColor_highlighted = createHorizontalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted);
+                    minorAlarmActiveColor_highlighted = createHorizontalGradientPaint(lowRectangle, minorAlarmColorGradientStartPoint_highlighted, minorAlarmColorGradientEndPoint_highlighted);
+                    majorAlarmActiveColor_highlighted = createHorizontalGradientPaint(loLoRectangle, majorAlarmColorGradientStartPoint_highlighted, majorAlarmColorGradientEndPoint_highlighted);
+                    normalStatusActiveColor_highlighted = createHorizontalGradientPaint(normalRectangle, normalStatusColorGradientStartPoint_highlighted, normalStatusColorGradientEndPoint_highlighted);
+                }
             }
-        }
-        else {
-            normalStatusActiveColor_lowlighted = normalStatusColor_highlighted; // The normal status region is never lowlighted.
-            majorAlarmActiveColor_lowlighted = majorAlarmColor_lowlighted;
-            minorAlarmActiveColor_lowlighted = minorAlarmColor_lowlighted;
+            else {
+                normalStatusActiveColor_lowlighted = normalStatusColor_highlighted; // The normal status region is never lowlighted.
+                majorAlarmActiveColor_lowlighted = majorAlarmColor_lowlighted;
+                minorAlarmActiveColor_lowlighted = minorAlarmColor_lowlighted;
 
-            normalStatusActiveColor_highlighted = normalStatusColor_highlighted;
-            minorAlarmActiveColor_highlighted = minorAlarmColor_highlighted;
-            majorAlarmActiveColor_highlighted = majorAlarmColor_highlighted;
-        }
+                normalStatusActiveColor_highlighted = normalStatusColor_highlighted;
+                minorAlarmActiveColor_highlighted = minorAlarmColor_highlighted;
+                majorAlarmActiveColor_highlighted = majorAlarmColor_highlighted;
+            }
+        });
     }
 
     private Color computeGradientStartPoint(Color color) {
@@ -332,7 +404,7 @@ public class RTLinearMeter extends ImageView
     }
 
     public void setNormalStatusColor(Color normalStatusColor) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.normalStatusColor_lowlighted = computeLowlightedColor(normalStatusColor);
             this.normalStatusColor_highlighted = normalStatusColor;
 
@@ -347,7 +419,7 @@ public class RTLinearMeter extends ImageView
     }
 
     public void setMinorAlarmColor(Color minorAlarmColor) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.minorAlarmColor_lowlighted = computeLowlightedColor(minorAlarmColor);
             this.minorAlarmColor_highlighted = minorAlarmColor;
 
@@ -362,7 +434,7 @@ public class RTLinearMeter extends ImageView
     }
 
     public void setMajorAlarmColor(Color majorAlarmColor) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.majorAlarmColor_lowlighted = computeLowlightedColor(majorAlarmColor);
             this.majorAlarmColor_highlighted = majorAlarmColor;
 
@@ -377,64 +449,74 @@ public class RTLinearMeter extends ImageView
     }
 
     public void setNeedleWidth(int needleWidth) {
-        runOnJavaFXThread(() -> this.needleWidth = needleWidth);
+        withWriteLock(() -> {
+            this.needleWidth = needleWidth;
+        });
     }
 
     public void setNeedleColor(Color needleColor) {
-        runOnJavaFXThread(() -> this.needleColor = needleColor);
+        withWriteLock(() -> {
+            this.needleColor = needleColor;
+        });
     }
 
     public void setShowUnits(boolean newValue) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             showUnits = newValue;
-            updateMeterBackground();
-            redrawIndicator(currentValue, currentWarning);
+            redraw();
         });
     }
 
     public void setUnits(String newValue) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             if (!units.equals(newValue)) {
                 units = newValue;
-                updateMeterBackground();
-                redrawIndicator(currentValue, currentWarning);
+                redraw();
             }
         });
     }
 
+    private void logNewWarningIfDifferent(WARNING oldWarning, WARNING newWarning) {
+        if (oldWarning != newWarning) {
+            logger.log(Level.WARNING, newWarning.toString() + " on Linear Meter!");
+        }
+    }
     public void setShowLimits(boolean newValue) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
+            WARNING oldWarning = determineWarning();
             showLimits = newValue;
-            updateMeterBackground();
-            determineWarning();
-            redrawIndicator(currentValue, currentWarning);
+            WARNING newWarning = determineWarning();
+            logNewWarningIfDifferent(oldWarning, newWarning);
+            redraw();
         });
     }
 
     public void setRange(double minimum, double maximum, boolean validRange) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.validRange = validRange;
             linearMeterScale.setValueRange(minimum, maximum);
-
-            updateMeterBackground();
-            redrawIndicator(currentValue, currentWarning);
         });
+        redraw();
     }
 
     public void setMinMaxTolerance(double minMaxTolerance) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
+            WARNING oldWarning = determineWarning();
             this.minMaxTolerance = minMaxTolerance;
-            determineWarning();
-            redrawIndicator(currentValue, currentWarning);
+            WARNING newWarning = determineWarning();
+            logNewWarningIfDifferent(oldWarning, newWarning);
+            redrawIndicator(currentValue, newWarning);
         });
     }
 
     public double getLoLo() {
-        return loLo;
+        return withReadLock(() -> {
+            return loLo;
+        });
     }
 
     public void setLoLo(double loLo) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.loLo = loLo;
             layout();
             updateMeterBackground();
@@ -442,11 +524,13 @@ public class RTLinearMeter extends ImageView
     }
 
     public double getLow() {
-        return low;
+        return withReadLock(() -> {
+            return low;
+        });
     }
 
     public void setLow(double low) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.low = low;
             layout();
             updateMeterBackground();
@@ -454,11 +538,13 @@ public class RTLinearMeter extends ImageView
     }
 
     public double getHigh() {
-        return high;
+        return withReadLock(() -> {
+            return high;
+        });
     }
 
     public void setHigh(double high) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.high = high;
             layout();
             updateMeterBackground();
@@ -466,11 +552,13 @@ public class RTLinearMeter extends ImageView
     }
 
     public double getHiHi() {
-        return hiHi;
+        return withReadLock(() -> {
+            return hiHi;
+        });
     }
 
     public void setHiHi(double hiHi) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.hiHi = hiHi;
             layout();
             updateMeterBackground();
@@ -480,72 +568,120 @@ public class RTLinearMeter extends ImageView
     private Color knobColor = new Color(0, 0, 0, 255);
 
     public void setKnobColor(Color knobColor) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.knobColor = knobColor;
             requestLayout();
         });
     }
 
-    private int knobSize;
+    private int knobSize = 1;
 
     public void setKnobSize(int knobSize) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             this.knobSize = knobSize;
             requestLayout();
         });
     }
 
-    private BufferedImage meter_background = null;
+    private void redraw() {
+        withWriteLock(() -> {
+            updateMeterBackground();
+            redrawIndicator(currentValue, determineWarning());
+        });
+    }
 
-    private WritableImage awt_jfx_convert_buffer = null;
+    private record ImageBuffers(BufferedImage meterBackground,
+                                BufferedImage combinedBufferedImage,
+                                WritableImage awtJFXConvertBuffer,
+                                int width,
+                                int height) { }
 
-    /** Redraw on UI thread by adding needle to 'meter_background' */
-    private void redrawIndicator (double value, WARNING warning)
-    {
-        runOnJavaFXThread(() -> {
-            if (meter_background != null)
-            {
-                if (meter_background.getType() != BufferedImage.TYPE_INT_ARGB){
-                    throw new IllegalPathStateException("Need TYPE_INT_ARGB for direct buffer access, not " + meter_background.getType());
+    private Optional<ImageBuffers> maybeImageBuffers = Optional.empty();
+    /**
+     * Redraw on UI thread by adding needle to 'meter_background'
+     */
+    private void redrawIndicator(double value, WARNING warning) {
+        withReadLock(() -> {
+            if (maybeImageBuffers.isEmpty()) {
+                return;
+            }
+            else {
+                ImageBuffers imageBuffers = maybeImageBuffers.get();
+                BufferedImage meterBackground = imageBuffers.meterBackground();
+                BufferedImage combined = imageBuffers.combinedBufferedImage();
+                WritableImage awtJFXConvertBuffer = imageBuffers.awtJFXConvertBuffer;
+                int width = imageBuffers.width();
+                int height = imageBuffers.height();
+                if (meterBackground.getType() != BufferedImage.TYPE_INT_ARGB) {
+                    throw new IllegalPathStateException("Need TYPE_INT_ARGB for direct buffer access, not " + meterBackground.getType());
                 }
 
-                BufferedImage combined = new BufferedImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, BufferedImage.TYPE_INT_ARGB);
-                int[] src  = ((DataBufferInt) meter_background.getRaster().getDataBuffer()).getData();
+                int[] src = ((DataBufferInt) meterBackground.getRaster().getDataBuffer()).getData();
                 int[] dest = ((DataBufferInt) combined.getRaster().getDataBuffer()).getData();
-                System.arraycopy(src, 0, dest, 0, linearMeterScale.getBounds().width * linearMeterScale.getBounds().height);
+                System.arraycopy(src, 0, dest, 0, width * height);
 
                 // Add needle & label
                 Graphics2D gc = combined.createGraphics();
 
-                drawValue(gc, value);
-                drawWarning(gc, warning);
+                DisplayMode displayMode = this.displayMode;
+                if (displayMode.equals(DisplayMode.NEEDLE)) {
+                    redrawBorderAroundLinearMeter(gc); // When drawing a needle, redraw the border *before* drawing the needle.
+                    drawNeedle(gc, value);
+                }
+                else if (displayMode.equals(DisplayMode.BAR)) {
+                    drawBar(gc, value);
+                    redrawBorderAroundLinearMeter(gc); // When drawing a bar, redraw the border *after* drawing the bar.
+                }
+                else {
+                    throw new RuntimeException("Unhandled case");
+                }
+
+                if (warning != WARNING.NONE) {
+                    drawWarningText(gc, warning.toString());
+                }
                 if (showUnits) {
                     drawUnit(gc);
                 }
 
                 // Convert to JFX image and show
-                if (awt_jfx_convert_buffer == null  ||
-                        awt_jfx_convert_buffer.getWidth() != linearMeterScale.getBounds().width ||
-                        awt_jfx_convert_buffer.getHeight() != linearMeterScale.getBounds().height)
-                    awt_jfx_convert_buffer = new WritableImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height);
+                runOnJavaFXThread(() -> {
+                    withWriteLock(() -> {
+                        awtJFXConvertBuffer.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), dest, 0, width);
+                        setImage(awtJFXConvertBuffer);
+                    });
+                });
 
-                awt_jfx_convert_buffer.getPixelWriter().setPixels(0, 0, linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, PixelFormat.getIntArgbInstance(), dest, 0, linearMeterScale.getBounds().width);
-
-                setImage(awt_jfx_convert_buffer);
                 logger.log(Level.FINE, "Redraw meter");
             }
         });
-    };
+    }
+
+    private void redrawBorderAroundLinearMeter(Graphics2D gc) {
+        {
+            int width;
+            int height;
+
+            // Re-draw border around widget:
+            width = linearMeterScale.getBounds().width - marginLeft - marginRight - 1;
+            height = linearMeterScale.getBounds().height - marginAbove - marginBelow - 1;
+            paintRectangle(gc,
+                    new Rectangle(marginLeft,
+                            marginAbove,
+                            width,
+                            height),
+                    TRANSPARENT);
+        }
+    }
 
     /** Call to update size of meter
      *
      *  @param width
      *  @param height
      */
-    public void setSize(int width, int height)
-    {
-        runOnJavaFXThread(() -> {
+    public void setSize(int width, int height) {
+        withWriteLock(() -> {
             linearMeterScale.setBounds(0, 0, width, height);
+            updateMeterBackground();
             layout();
             updateActiveColors();
             requestLayout();
@@ -553,9 +689,8 @@ public class RTLinearMeter extends ImageView
     }
 
     /** @param color Foreground (labels, tick marks) color */
-    public void setForeground(javafx.scene.paint.Color color)
-    {
-        runOnJavaFXThread(() -> {
+    public void setForeground(javafx.scene.paint.Color color) {
+        withWriteLock(() -> {
             foreground = GraphicsUtils.convert(color);
             linearMeterScale.setColor(color);
         });
@@ -564,26 +699,35 @@ public class RTLinearMeter extends ImageView
     /** @param color Background color */
     public void setBackground(javafx.scene.paint.Color color)
     {
-        runOnJavaFXThread(() -> background = GraphicsUtils.convert(color));
+        withWriteLock(() -> {
+            background = GraphicsUtils.convert(color);
+        });
     }
 
     /** @param font Label font */
     public void setFont(javafx.scene.text.Font font)
     {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             linearMeterScale.setScaleFont(font);
             this.font = GraphicsUtils.convert(font);
         });
     }
 
+    private boolean showWarnings = true;
+
+    public void setShowWarnings(boolean showWarnings) {
+        withWriteLock(() -> {
+            this.showWarnings = showWarnings;
+        });
+    }
 
     private boolean lag = false;
-    private Boolean isValueWaitingToBeDrawn = false;
-    private double valueWaitingToBeDrawn;
+    private boolean isValueWaitingToBeDrawn = false;
+    private double valueWaitingToBeDrawn = Double.NaN;
     /** @param newValue Current value */
     public void setCurrentValue(double newValue)
     {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             valueWaitingToBeDrawn = newValue;
 
             if (isValueWaitingToBeDrawn) {
@@ -592,101 +736,87 @@ public class RTLinearMeter extends ImageView
             else {
                 isValueWaitingToBeDrawn = true;
 
-                Platform.runLater(() -> {
-                    drawNewValue(valueWaitingToBeDrawn);
-                    isValueWaitingToBeDrawn = false;
-                    lag = false;
-                });
+                drawNewValue(valueWaitingToBeDrawn);
+                isValueWaitingToBeDrawn = false;
+                lag = false;
+            }
+        });
+    }
+
+    private Optional<Integer> computeIndicatorPosition(double value) {
+        if (Double.isNaN(value)) {
+            return Optional.empty();
+        }
+        return withReadLock(() -> {
+            if (linearMeterScale.isHorizontal()) {
+                return Optional.of((int) Math.round(marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow())));
+            }
+            else {
+                return Optional.of((int) Math.round(linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow())));
             }
         });
     }
 
     private void drawNewValue(double newValue) {
-        double oldValue = currentValue;
-        currentValue = newValue;
+        withWriteLock(() -> {
+            WARNING oldWarning = determineWarning();
+            AtomicReference<Double> newValueAtomicReference = new AtomicReference<>(newValue); // Workaround, since captured variables need to be effectively final in Java.
+            double oldValue = currentValue;
+            Optional<Integer> maybeOldIndicatorPosition = computeIndicatorPosition(oldValue);
+            currentValue = newValueAtomicReference.get();
 
-        if (newValue > linearMeterScale.getValueRange().getHigh() && newValue <= linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
-            newValue = linearMeterScale.getValueRange().getHigh();
-        }
-        if (newValue < linearMeterScale.getValueRange().getLow() && newValue >= linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
-            newValue = linearMeterScale.getValueRange().getLow();
-        }
+            if (newValueAtomicReference.get() > linearMeterScale.getValueRange().getHigh() && newValueAtomicReference.get() <= linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
+                newValueAtomicReference.set(linearMeterScale.getValueRange().getHigh());
+            }
+            if (newValueAtomicReference.get() < linearMeterScale.getValueRange().getLow() && newValueAtomicReference.get() >= linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
+                newValueAtomicReference.set(linearMeterScale.getValueRange().getLow());
+            }
 
-        if (oldValue != newValue) {
-            if (!Double.isNaN(newValue)){
-                int newIndicatorPosition;
-                if (linearMeterScale.isHorizontal()) {
-                    newIndicatorPosition = (int) (marginLeft + pixelsPerScaleUnit * (newValue - linearMeterScale.getValueRange().getLow()));
+            WARNING newWarning = determineWarning();
+            logNewWarningIfDifferent(oldWarning, newWarning);
+
+            if (oldValue != newValueAtomicReference.get()) {
+                if (!Double.isNaN(newValueAtomicReference.get())){
+                    Optional<Integer> maybeNewIndicatorPosition = computeIndicatorPosition(newValue);
+                    boolean indicatorPositionHasChanged = maybeNewIndicatorPosition.isPresent() != maybeOldIndicatorPosition.isPresent() || maybeOldIndicatorPosition.isPresent() && maybeNewIndicatorPosition.isPresent() && maybeOldIndicatorPosition.get() != maybeNewIndicatorPosition.get();
+                    if (indicatorPositionHasChanged || determineWarning() != newWarning) {
+                        redrawIndicator(newValueAtomicReference.get(), newWarning);
+                    }
                 }
-                else {
-                    newIndicatorPosition = (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (newValue - linearMeterScale.getValueRange().getLow()));
-                }
-                WARNING newWarning = determineWarning();
-                if (currentIndicatorPosition == null || currentIndicatorPosition != newIndicatorPosition || currentWarning != newWarning) {
-                    redrawIndicator(newValue, newWarning);
+                else if (!Double.isNaN(oldValue)) {
+                    redrawIndicator(newValueAtomicReference.get(), newWarning);
                 }
             }
-            else if (!Double.isNaN(oldValue)) {
-                redrawIndicator(newValue, determineWarning());
-            }
-        }
+        });
     }
 
     private WARNING determineWarning() {
-        if (lag) {
-            return WARNING.LAG;
-        }
-        else if (showUnits && units.equals("")) {
-            return WARNING.NO_UNIT;
-        }
-        else if (!validRange) {
-            return WARNING.MIN_AND_MAX_NOT_DEFINED;
-        }
-        else if (currentValue < linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
-            return WARNING.VALUE_LESS_THAN_MIN;
-        }
-        else if (currentValue > linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
-            return WARNING.VALUE_GREATER_THAN_MAX;
-        }
-        else {
-            return WARNING.NONE;
-        }
-    }
-
-    private void drawWarning(Graphics2D gc, WARNING warning) {
-        if (warning != WARNING.NONE) {
-            String warningText = "";
-            if (warning == WARNING.VALUE_LESS_THAN_MIN) {
-                warningText = "VALUE < MIN";
-
+        return withReadLock(() -> {
+            if (!showWarnings) {
+                return WARNING.NONE;
             }
-            else if (warning == WARNING.VALUE_GREATER_THAN_MAX) {
-                warningText = "VALUE > MAX";
-
+            else if (lag) {
+                return WARNING.LAG;
             }
-            else if (warning == WARNING.NO_UNIT) {
-                warningText = "NO UNIT DEFINED";
+            else if (!validRange) {
+                return WARNING.MIN_AND_MAX_NOT_DEFINED;
             }
-            else if (warning == WARNING.MIN_AND_MAX_NOT_DEFINED) {
-                warningText = "MIN AND MAX ARE NOT SET";
-
+            else if (currentValue < linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
+                return WARNING.VALUE_LESS_THAN_MIN;
             }
-            else if (warning == WARNING.LAG) {
-                warningText = "LAG";
+            else if (currentValue > linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
+                return WARNING.VALUE_GREATER_THAN_MAX;
             }
-
-            drawWarningText(gc, warningText);
-            if (currentWarning != warning) {
-                logger.log(Level.WARNING, warningText + " on Linear Meter!");
+            else {
+                return WARNING.NONE;
             }
-        }
-        currentWarning = warning;
+        });
     }
 
     /** @param visible Whether the scale must be displayed or not. */
     public void setScaleVisible (boolean visible)
     {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             linearMeterScale.setVisible(visible);
             updateMeterBackground();
         });
@@ -695,26 +825,31 @@ public class RTLinearMeter extends ImageView
     /** Request a complete redraw with new layout */
     private void requestLayout()
     {
-        updateMeterBackground();
-        redrawIndicator(currentValue, currentWarning);
+        withWriteLock(() -> {
+            updateMeterBackground();
+            WARNING warning = determineWarning();
+            redrawIndicator(currentValue, warning);
+        });
     }
 
     private void computeLayout()
     {
-        logger.log(Level.FINE, "computeLayout");
-        layout();
+        withReadLock(() -> {
+            logger.log(Level.FINE, "computeLayout");
+            layout();
 
-        if (linearMeterScale.isHorizontal()) {
-            linearMeterScale.configure(
-                    loLoRectangle.x,
-                    lowRectangle.y + loLoRectangle.height,
-                    pixelsPerScaleUnit);
-        } else {
-            linearMeterScale.configure(
-                    linearMeterScale.getBounds().width - marginRight,
-                    linearMeterScale.getBounds().height - marginBelow,
-                    pixelsPerScaleUnit);
-        }
+            if (linearMeterScale.isHorizontal()) {
+                linearMeterScale.configure(
+                        loLoRectangle.x,
+                        lowRectangle.y + loLoRectangle.height,
+                        pixelsPerScaleUnit);
+            } else {
+                linearMeterScale.configure(
+                        linearMeterScale.getBounds().width - marginRight,
+                        linearMeterScale.getBounds().height - marginBelow,
+                        pixelsPerScaleUnit);
+            }
+        });
     }
 
     /** Draw meter background (scale) into image buffer
@@ -722,60 +857,68 @@ public class RTLinearMeter extends ImageView
      */
     private void updateMeterBackground()
     {
-        int width = linearMeterScale.getBounds().width;
-        int height = linearMeterScale.getBounds().height;
+        withWriteLock(() -> {
+            int width = linearMeterScale.getBounds().width;
+            int height = linearMeterScale.getBounds().height;
 
-        if (width <= 0 || height <= 0){
-            return;
-        }
+            if (width <= 0 || height <= 0){
+                return;
+            }
 
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D gc = image.createGraphics();
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D gc = image.createGraphics();
 
-        gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        gc.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-        gc.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-        gc.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            gc.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+            gc.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+            gc.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-        linearMeterScale.computeTicks(gc);
-        computeLayout();
+            linearMeterScale.computeTicks(gc);
+            computeLayout();
 
-        gc.setBackground(background);
-        gc.clearRect(0, 0, width, height);
+            gc.setBackground(background);
+            gc.clearRect(0, 0, width, height);
 
-        linearMeterScale.paint(gc, new Rectangle(0,0,0,0));
-        paintMeter(gc);
+            linearMeterScale.paint(gc, new Rectangle(0,0,0,0));
+            paintMeter(gc);
 
-        meter_background = image;
+            {
+                BufferedImage combined = new BufferedImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height, BufferedImage.TYPE_INT_ARGB);
+                WritableImage awtJFXConvertBuffer = new WritableImage(linearMeterScale.getBounds().width, linearMeterScale.getBounds().height);
+                maybeImageBuffers = Optional.of(new ImageBuffers(image, combined, awtJFXConvertBuffer, width, height));
+            }
+        });
     }
 
     private void paintMeter(Graphics2D graphics) {
-        Color color = graphics.getColor();
-        if (showLimits) {
-            if (isHighlightActiveRegionEnabled) {
-                paintRectangle(graphics, normalRectangle, normalStatusActiveColor_lowlighted);
-                paintRectangle(graphics, lowRectangle, minorAlarmActiveColor_lowlighted);
-                paintRectangle(graphics, highRectangle, minorAlarmActiveColor_lowlighted);
-                paintRectangle(graphics, loLoRectangle, majorAlarmActiveColor_lowlighted);
-                paintRectangle(graphics, hiHiRectangle, majorAlarmActiveColor_lowlighted);
+        withReadLock(() -> {
+            Color color = graphics.getColor();
+            if (showLimits) {
+                if (isHighlightActiveRegionEnabled) {
+                    paintRectangle(graphics, normalRectangle, normalStatusActiveColor_lowlighted);
+                    paintRectangle(graphics, lowRectangle, minorAlarmActiveColor_lowlighted);
+                    paintRectangle(graphics, highRectangle, minorAlarmActiveColor_lowlighted);
+                    paintRectangle(graphics, loLoRectangle, majorAlarmActiveColor_lowlighted);
+                    paintRectangle(graphics, hiHiRectangle, majorAlarmActiveColor_lowlighted);
+                }
+                else {
+                    paintRectangle(graphics, normalRectangle, normalStatusActiveColor_highlighted);
+                    paintRectangle(graphics, lowRectangle, minorAlarmActiveColor_highlighted);
+                    paintRectangle(graphics, highRectangle, minorAlarmActiveColor_highlighted);
+                    paintRectangle(graphics, loLoRectangle, majorAlarmActiveColor_highlighted);
+                    paintRectangle(graphics, hiHiRectangle, majorAlarmActiveColor_highlighted);
+                }
             }
             else {
-                paintRectangle(graphics, normalRectangle, normalStatusActiveColor_highlighted);
-                paintRectangle(graphics, lowRectangle, minorAlarmActiveColor_highlighted);
-                paintRectangle(graphics, highRectangle, minorAlarmActiveColor_highlighted);
-                paintRectangle(graphics, loLoRectangle, majorAlarmActiveColor_highlighted);
-                paintRectangle(graphics, hiHiRectangle, majorAlarmActiveColor_highlighted);
+                paintRectangle(graphics,
+                        new Rectangle(marginLeft,
+                                marginAbove,
+                                linearMeterScale.getBounds().width - marginLeft - marginRight,
+                                linearMeterScale.getBounds().height - marginAbove - marginBelow),
+                        normalStatusActiveColor_lowlighted);
             }
-        }
-        else {
-            paintRectangle(graphics,
-                           new Rectangle(marginLeft,
-                                         marginAbove,
-                                         linearMeterScale.getBounds().width - marginLeft - marginRight,
-                                         linearMeterScale.getBounds().height - marginAbove - marginBelow),
-                           normalStatusActiveColor_lowlighted);
-        }
-        graphics.setColor(color);
+            graphics.setColor(color);
+        });
     }
 
     private GradientPaint createHorizontalGradientPaint(Rectangle rectangle,
@@ -796,228 +939,327 @@ public class RTLinearMeter extends ImageView
         return gradientPaint;
     }
 
-    Integer currentIndicatorPosition;
     /** Draw needle and label for current value */
-    private void drawValue(Graphics2D gc, double value) {
-
-        if (Double.isNaN(value)) {
-            currentIndicatorPosition = null;
-        }
-        else {
-            Stroke oldStroke = gc.getStroke();
-            Paint oldPaint = gc.getPaint();
-            RenderingHints oldrenderingHints = gc.getRenderingHints();
-
-            gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            gc.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-            gc.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-            gc.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-
-            if (showLimits) {
-                if (isHighlightActiveRegionEnabled) {
-                    if (value <= loLo) {
-                        paintRectangle(gc, loLoRectangle, majorAlarmColor_highlighted);
-                    }
-                    else if (value >= hiHi) {
-                        paintRectangle(gc, hiHiRectangle, majorAlarmColor_highlighted);
-                    }
-                    else if (value <= low && value > loLo) {
-                        paintRectangle(gc, lowRectangle, minorAlarmActiveColor_highlighted);
-                    }
-                    else if (value >= high && value < hiHi) {
-                        paintRectangle(gc, highRectangle, minorAlarmActiveColor_highlighted);
-                    }
-                    else {
-                        paintRectangle(gc, normalRectangle, normalStatusActiveColor_highlighted);
-                    }
-                }
+    private void drawNeedle(Graphics2D gc, double value) {
+        withReadLock(() -> {
+            if (Double.isNaN(value)) {
+                return;
             }
+            else {
+                Stroke oldStroke = gc.getStroke();
+                Paint oldPaint = gc.getPaint();
+                RenderingHints oldrenderingHints = gc.getRenderingHints();
 
-            if (linearMeterScale.isHorizontal()) {
-                if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
+                gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                gc.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+                gc.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+                gc.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-                    currentIndicatorPosition = (int) (marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
-
-                    if (knobSize > 0) {
-                        int[] XVal = { currentIndicatorPosition - (int) Math.round((1.0 * knobSize) / 4.0),
-                                       currentIndicatorPosition + (int) Math.round((1.0 * knobSize) / 4.0),
-                                       currentIndicatorPosition };
-
-                        int[] YVal = { 0, 0, marginAbove - 2 };
-
-                        gc.setStroke(AxisPart.TICK_STROKE);
-                        gc.setColor(knobColor);
-                        gc.fillPolygon(XVal, YVal, 3);
-                        gc.setColor(knobColor);
-                        gc.drawPolygon(XVal, YVal, 3);
-                    }
-
-                    if (needleWidth > 0) {
-                        gc.setStroke(new BasicStroke((float) needleWidth));
-                        gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-                        gc.setPaint(needleColor);
-
-                        int y1 = marginAbove + needleWidth / 2 + 1;
-                        int y2 = linearMeterScale.getBounds().height - marginBelow - (needleWidth - 1) / 2 - 1;
-
-                        gc.drawLine(currentIndicatorPosition, y1, currentIndicatorPosition, y2);
+                if (showLimits) {
+                    if (isHighlightActiveRegionEnabled) {
+                        if (value <= loLo) {
+                            paintRectangle(gc, loLoRectangle, majorAlarmColor_highlighted);
+                        }
+                        else if (value >= hiHi) {
+                            paintRectangle(gc, hiHiRectangle, majorAlarmColor_highlighted);
+                        }
+                        else if (value <= low && value > loLo) {
+                            paintRectangle(gc, lowRectangle, minorAlarmActiveColor_highlighted);
+                        }
+                        else if (value >= high && value < hiHi) {
+                            paintRectangle(gc, highRectangle, minorAlarmActiveColor_highlighted);
+                        }
+                        else {
+                            paintRectangle(gc, normalRectangle, normalStatusActiveColor_highlighted);
+                        }
                     }
                 }
-            } else {
-                if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
 
-                    currentIndicatorPosition = (int) (linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow()));
+                if (linearMeterScale.isHorizontal()) {
+                    if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
 
-                    if (knobSize > 0) {
-                        int[] YVal = { currentIndicatorPosition + (int) Math.round((1.0 * knobSize / 4.0)),
-                                       currentIndicatorPosition - (int) Math.round((1.0 * knobSize / 4.0)),
-                                       currentIndicatorPosition };
+                        Optional<Integer> maybeCurrentIndicatorPosition = computeIndicatorPosition(value);
 
-                        int[] XVal = { 0, 0, marginLeft - 2 };
+                        if (maybeCurrentIndicatorPosition.isPresent()) {
+                            int currentIndicatorPosition = maybeCurrentIndicatorPosition.get();
 
-                        gc.setStroke(AxisPart.TICK_STROKE);
-                        gc.setColor(knobColor);
-                        gc.fillPolygon(XVal, YVal, 3);
-                        gc.setColor(knobColor);
-                        gc.drawPolygon(XVal, YVal, 3);
+                            if (knobSize > 0) {
+                                int[] XVal = { currentIndicatorPosition - (int) Math.round((1.0 * knobSize) / 4.0),
+                                        currentIndicatorPosition + (int) Math.round((1.0 * knobSize) / 4.0),
+                                        currentIndicatorPosition };
+
+                                int[] YVal = { 0, 0, marginAbove - 2 };
+
+                                gc.setStroke(AxisPart.TICK_STROKE);
+                                gc.setColor(knobColor);
+                                gc.fillPolygon(XVal, YVal, 3);
+                                gc.setColor(knobColor);
+                                gc.drawPolygon(XVal, YVal, 3);
+                            }
+
+                            if (needleWidth > 0) {
+                                gc.setStroke(new BasicStroke((float) needleWidth));
+                                gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+                                gc.setPaint(needleColor);
+
+                                int y1 = marginAbove + needleWidth / 2 + 1;
+                                int y2 = linearMeterScale.getBounds().height - marginBelow - (needleWidth - 1) / 2 - 2;
+
+                                gc.drawLine(currentIndicatorPosition, y1, currentIndicatorPosition, y2);
+                            }
+                        }
                     }
+                } else {
+                    if (value >= linearMeterScale.getValueRange().getLow() && value <= linearMeterScale.getValueRange().getHigh()) {
 
-                    if (needleWidth > 0) {
-                        gc.setStroke(new BasicStroke((float) needleWidth));
-                        gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-                        gc.setPaint(needleColor);
+                        Optional<Integer> maybeCurrentIndicatorPosition = computeIndicatorPosition(value);
+                        if (maybeCurrentIndicatorPosition.isPresent()) {
+                            int currentIndicatorPosition = maybeCurrentIndicatorPosition.get() - 1;
 
-                        int x1 = marginLeft + (needleWidth)/2 + 1;
-                        int x2 = linearMeterScale.getBounds().width - marginRight - (needleWidth+1)/2;
+                            if (knobSize > 0) {
+                                int[] YVal = { currentIndicatorPosition + (int) Math.round((1.0 * knobSize / 4.0)),
+                                        currentIndicatorPosition - (int) Math.round((1.0 * knobSize / 4.0)),
+                                        currentIndicatorPosition };
 
-                        gc.drawLine(x1, currentIndicatorPosition, x2, currentIndicatorPosition);
+                                int[] XVal = { 0, 0, marginLeft - 2 };
+
+                                gc.setStroke(AxisPart.TICK_STROKE);
+                                gc.setColor(knobColor);
+                                gc.fillPolygon(XVal, YVal, 3);
+                                gc.setColor(knobColor);
+                                gc.drawPolygon(XVal, YVal, 3);
+                            }
+
+                            if (needleWidth > 0) {
+                                gc.setStroke(new BasicStroke((float) needleWidth));
+                                gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+                                gc.setPaint(needleColor);
+
+                                int x1 = marginLeft + (needleWidth)/2 + 1;
+                                int x2 = linearMeterScale.getBounds().width - marginRight - (needleWidth+1)/2 - 1;
+
+                                gc.drawLine(x1, currentIndicatorPosition, x2, currentIndicatorPosition);
+                            }
+                        }
                     }
                 }
+
+                gc.setRenderingHints(oldrenderingHints);
+                gc.setStroke(oldStroke);
+                gc.setPaint(oldPaint);
             }
-            gc.setRenderingHints(oldrenderingHints);
-            gc.setStroke(oldStroke);
-            gc.setPaint(oldPaint);
-        }
+        });
+    }
+    private final Color TRANSPARENT = new Color(0, 0, 0, 0);
+
+    private void drawBar(Graphics2D gc, double value) {
+        withReadLock(() -> {
+            if (Double.isNaN(value)) {
+                return;
+            }
+            else {
+                Stroke oldStroke = gc.getStroke();
+                Paint oldPaint = gc.getPaint();
+                RenderingHints oldrenderingHints = gc.getRenderingHints();
+
+                gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                gc.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+                gc.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+                gc.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+                Optional<Integer> maybeCurrentIndicatorPosition = computeIndicatorPosition(value <= linearMeterScale.getValueRange().getHigh() ? value : linearMeterScale.getValueRange().getHigh());
+
+                if (maybeCurrentIndicatorPosition.isPresent()) {
+                    if (linearMeterScale.isHorizontal()) {
+                        int currentIndicatorPosition = maybeCurrentIndicatorPosition.get() + 1;
+                        if (value > linearMeterScale.getValueRange().getLow()) {
+                            if (isHighlightActiveRegionEnabled) {
+                                if (value <= loLo) {
+                                    gc.setPaint(majorAlarmColor_highlighted);
+                                }
+                                else if (value >= hiHi) {
+                                    gc.setPaint(majorAlarmColor_highlighted);
+                                }
+                                else if (value <= low && value > loLo) {
+                                    gc.setPaint(minorAlarmActiveColor_highlighted);
+                                }
+                                else if (value >= high && value < hiHi) {
+                                    gc.setPaint(minorAlarmActiveColor_highlighted);
+                                }
+                                else {
+                                    gc.setPaint(needleColor);
+                                }
+                            }
+                            else {
+                                gc.setPaint(needleColor);
+                            }
+                            // Draw the bar:
+                            gc.fillRect(marginLeft, marginAbove, currentIndicatorPosition - marginLeft, meterBreadth);
+                        }
+                    } else {
+                        int currentIndicatorPosition = maybeCurrentIndicatorPosition.get() - 1;
+                        if (value > linearMeterScale.getValueRange().getLow()) {
+                            if (isHighlightActiveRegionEnabled) {
+                                if (value <= loLo) {
+                                    gc.setPaint(majorAlarmColor_highlighted);
+                                }
+                                else if (value >= hiHi) {
+                                    gc.setPaint(majorAlarmColor_highlighted);
+                                }
+                                else if (value <= low && value > loLo) {
+                                    gc.setPaint(minorAlarmActiveColor_highlighted);
+                                }
+                                else if (value >= high && value < hiHi) {
+                                    gc.setPaint(minorAlarmActiveColor_highlighted);
+                                }
+                                else {
+                                    gc.setPaint(needleColor);
+                                }
+                            }
+                            else {
+                                gc.setPaint(needleColor);
+                            }
+                            // Draw the bar:
+                            gc.fillRect(marginLeft, currentIndicatorPosition, meterBreadth - 1, linearMeterScale.getBounds().height - currentIndicatorPosition - marginBelow);
+                        }
+                    }
+                }
+
+                gc.setRenderingHints(oldrenderingHints);
+                gc.setStroke(oldStroke);
+                gc.setPaint(oldPaint);
+            }
+        });
     }
 
     /** Should be invoked when meter no longer used to release resources */
     public void dispose()
     {
-        // Release memory ASAP
-        meter_background = null;
+        withWriteLock(() -> {
+            // Release memory ASAP
+            maybeImageBuffers = Optional.empty();
+        });
     }
 
     public void setHorizontal(boolean horizontal) {
-        runOnJavaFXThread(() -> {
+        withWriteLock(() -> {
             linearMeterScale.setHorizontal(horizontal);
             redrawLinearMeterScale();
             updateMeterBackground();
-            redrawIndicator(currentValue, currentWarning);
+            redrawIndicator(currentValue, determineWarning());
         });
     }
 
     private void drawUnit(Graphics2D gc) {
-        int center_x = marginLeft + (linearMeterScale.getBounds().width - marginLeft - marginRight) / 2;
-        int center_y = linearMeterScale.getBounds().height;
-        RenderingHints renderingHints = gc.getRenderingHints();
-        gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        gc.setFont(font);
-        gc.setColor(Color.BLACK);
-        FontMetrics fontMetrics = gc.getFontMetrics(gc.getFont());
-        String stringToPrint = "[" + units + "]";
-        int delta_x = fontMetrics.stringWidth(stringToPrint) / 2;
-        int delta_y = fontMetrics.getMaxDescent();
+        withReadLock(() -> {
+            int center_x = marginLeft + (linearMeterScale.getBounds().width - marginLeft - marginRight) / 2;
+            int center_y = linearMeterScale.getBounds().height;
+            RenderingHints renderingHints = gc.getRenderingHints();
+            gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            gc.setFont(font);
+            gc.setColor(Color.BLACK);
+            FontMetrics fontMetrics = gc.getFontMetrics(gc.getFont());
+            String stringToPrint = "[" + units + "]";
+            int delta_x = fontMetrics.stringWidth(stringToPrint) / 2;
+            int delta_y = fontMetrics.getMaxDescent();
 
-        gc.drawString(stringToPrint,
-                      center_x - delta_x,
-                      center_y - delta_y);
-        gc.setRenderingHints(renderingHints);
+            gc.drawString(stringToPrint,
+                    center_x - delta_x,
+                    center_y - delta_y);
+            gc.setRenderingHints(renderingHints);
+        });
     }
 
     private void drawWarning_horizontal(Graphics2D gc, String warningText) {
-        int center_x = marginLeft + (linearMeterScale.getBounds().width - marginLeft - marginRight) / 2;
-        int center_y = marginAbove + (linearMeterScale.getBounds().height - marginAbove - marginBelow) / 2;
-        gc.setFont(font);
-        gc.setColor(Color.BLACK);
-        FontMetrics fontMetrics = gc.getFontMetrics(gc.getFont());
-        int delta_x = (warningTriangle.getWidth(null) + fontMetrics.stringWidth(warningText)) / 2;
-        int delta_y = fontMetrics.getAscent() / 2;
+        withReadLock(() -> {
+            int center_x = marginLeft + (linearMeterScale.getBounds().width - marginLeft - marginRight) / 2;
+            int center_y = marginAbove + (linearMeterScale.getBounds().height - marginAbove - marginBelow) / 2;
+            gc.setFont(font);
+            gc.setColor(Color.BLACK);
+            FontMetrics fontMetrics = gc.getFontMetrics(gc.getFont());
+            int delta_x = (warningTriangle.getWidth(null) + fontMetrics.stringWidth(warningText)) / 2;
+            int delta_y = fontMetrics.getAscent() / 2;
 
-        gc.drawImage(warningTriangle,
-                     center_x - delta_x,
-                     center_y + delta_y - warningTriangle.getHeight(null) / 2 - 3 * fontMetrics.getAscent() / 8,
-                     null);
-        gc.drawString(warningText,
-                      center_x - delta_x + warningTriangle.getWidth(null) + 2,
-                      center_y + delta_y);
+            gc.drawImage(warningTriangle,
+                    center_x - delta_x,
+                    center_y + delta_y - warningTriangle.getHeight(null) / 2 - 3 * fontMetrics.getAscent() / 8,
+                    null);
+            gc.drawString(warningText,
+                    center_x - delta_x + warningTriangle.getWidth(null) + 2,
+                    center_y + delta_y);
+        });
     }
 
     private void drawWarningText(Graphics2D gc, String warningText) {
-        RenderingHints oldRenderingHints = gc.getRenderingHints();
-        gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        if (linearMeterScale.isHorizontal()) {
-            drawWarning_horizontal(gc, warningText);
-        }
-        else {
-            drawWarning_vertical(gc, warningText);
-        }
-        gc.setRenderingHints(oldRenderingHints);
+        withReadLock(() -> {
+            RenderingHints oldRenderingHints = gc.getRenderingHints();
+            gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (linearMeterScale.isHorizontal()) {
+                drawWarning_horizontal(gc, warningText);
+            }
+            else {
+                drawWarning_vertical(gc, warningText);
+            }
+            gc.setRenderingHints(oldRenderingHints);
+        });
     }
 
     private void drawWarning_vertical(Graphics2D gc, String warningText) {
-
-        gc.setFont(font);
-        gc.setColor(Color.BLACK);
-        FontMetrics fontMetrics = gc.getFontMetrics(gc.getFont());
-        String[] warningText_split;
-        if (fontMetrics.stringWidth(warningText) <= meterBreadth) {
-            warningText_split = new String[] { warningText };
-        } else {
-            String[] warningText_splitByWhitespace = warningText.split("\\s+");
-            if (Arrays.stream(warningText_splitByWhitespace).allMatch(subString -> fontMetrics.stringWidth(subString) <= meterBreadth)) {
-                warningText_split = warningText_splitByWhitespace;
+        withReadLock(() -> {
+            gc.setFont(font);
+            gc.setColor(Color.BLACK);
+            FontMetrics fontMetrics = gc.getFontMetrics(gc.getFont());
+            String[] warningText_split;
+            if (fontMetrics.stringWidth(warningText) <= meterBreadth) {
+                warningText_split = new String[] { warningText };
+            } else {
+                String[] warningText_splitByWhitespace = warningText.split("\\s+");
+                if (Arrays.stream(warningText_splitByWhitespace).allMatch(subString -> fontMetrics.stringWidth(subString) <= meterBreadth)) {
+                    warningText_split = warningText_splitByWhitespace;
+                }
+                else {
+                    warningText_split = warningText.split(""); // Split on every character
+                }
             }
-            else {
-                warningText_split = warningText.split(""); // Split on every character
+
+            int center_x = marginLeft + (linearMeterScale.getBounds().width - marginLeft - marginRight) / 2;
+            int center_y = marginAbove + (linearMeterScale.getBounds().height - marginAbove - marginBelow) / 2;
+            int warningTriangleHeight = warningTriangle.getHeight(null);
+            int fontSizeInPixels = fontMetrics.getHeight();
+            int delta_y = (warningTriangleHeight + warningText_split.length * fontSizeInPixels) / 2;
+
+            gc.drawImage(warningTriangle,
+                    center_x - warningTriangle.getWidth(null) / 2,
+                    center_y - delta_y,
+                    null);
+
+            for (int i = 0; i < warningText_split.length; i++) {
+                gc.drawString(warningText_split[i],
+                        center_x - fontMetrics.stringWidth(warningText_split[i]) / 2,
+                        center_y - delta_y + warningTriangleHeight + (fontSizeInPixels + 4) * (i + 1));
             }
-        }
-
-        int center_x = marginLeft + (linearMeterScale.getBounds().width - marginLeft - marginRight) / 2;
-        int center_y = marginAbove + (linearMeterScale.getBounds().height - marginAbove - marginBelow) / 2;
-        int warningTriangleHeight = warningTriangle.getHeight(null);
-        int fontSizeInPixels = fontMetrics.getHeight();
-        int delta_y = (warningTriangleHeight + warningText_split.length * fontSizeInPixels) / 2;
-
-        gc.drawImage(warningTriangle,
-                     center_x - warningTriangle.getWidth(null) / 2,
-                     center_y - delta_y,
-                     null);
-
-        for (int i = 0; i < warningText_split.length; i++) {
-            gc.drawString(warningText_split[i],
-                          center_x - fontMetrics.stringWidth(warningText_split[i]) / 2,
-                          center_y - delta_y + warningTriangleHeight + (fontSizeInPixels + 4) * (i + 1));
-        }
+        });
     }
 
     private void paintRectangle(Graphics2D gc, Rectangle rectangle, Paint paint){
+        withReadLock(() -> {
+            //Store old values of clip and color
+            Shape oldClip = gc.getClip();
+            Color oldColor = gc.getColor();
 
-        //Store old values of clip and color
-        Shape oldClip = gc.getClip();
-        Color oldColor = gc.getColor();
+            //Paint rectangle with specified gradient
+            gc.setClip(rectangle);
+            gc.setPaint(paint);
+            gc.fill(rectangle);
+            gc.setClip(oldClip);
 
-        //Paint rectangle with specified gradient
-        gc.setClip(rectangle);
-        gc.setPaint(paint);
-        gc.fill(rectangle);
-        gc.setClip(oldClip);
+            //Draw border of rectangle.
+            //TODO: can this be included in the paint?
+            gc.setColor(foreground);
+            gc.draw(rectangle);
 
-        //Draw border of rectangle.
-        //TODO: can this be included in the paint?
-        gc.setColor(foreground);
-        gc.draw(rectangle);
-
-        gc.setColor(oldColor);
+            gc.setColor(oldColor);
+        });
     }
 
     private Rectangle loLoRectangle;
@@ -1033,137 +1275,145 @@ public class RTLinearMeter extends ImageView
     private int meterBreadth = 0;
 
     private void layout() {
+        withReadLock(() -> {
+            double displayedLoLo;
+            double displayedLow;
+            double displayedHiHi;
+            double displayedHigh;
 
-        double displayedLoLo;
-        double displayedLow;
-        double displayedHiHi;
-        double displayedHigh;
+            double loLoValue = loLo;
+            double lowValue = low;
+            double highValue = high;
+            double hiHiValue = hiHi;
 
-        displayedLoLo = Double.isFinite(loLo) ? Math.max(loLo, linearMeterScale.getValueRange().getLow()) : linearMeterScale.getValueRange().getLow();
-        displayedLow = Double.isFinite(low) ? Math.max(Math.max(low, linearMeterScale.getValueRange().getLow()), displayedLoLo) : linearMeterScale.getValueRange().getLow();
+            displayedLoLo = Double.isFinite(loLoValue) ? Math.max(loLoValue, linearMeterScale.getValueRange().getLow()) : linearMeterScale.getValueRange().getLow();
+            displayedLow = Double.isFinite(lowValue) ? Math.max(Math.max(lowValue, linearMeterScale.getValueRange().getLow()), displayedLoLo) : linearMeterScale.getValueRange().getLow();
 
-        displayedHiHi = Double.isFinite(high) ? Math.min(hiHi, linearMeterScale.getValueRange().getHigh()) : linearMeterScale.getValueRange().getHigh();
-        displayedHigh = Double.isFinite(hiHi) ? Math.min(Math.min(high, linearMeterScale.getValueRange().getHigh()), displayedHiHi) : linearMeterScale.getValueRange().getHigh();
+            displayedHiHi = Double.isFinite(highValue) ? Math.min(hiHiValue, linearMeterScale.getValueRange().getHigh()) : linearMeterScale.getValueRange().getHigh();
+            displayedHigh = Double.isFinite(hiHiValue) ? Math.min(Math.min(highValue, linearMeterScale.getValueRange().getHigh()), displayedHiHi) : linearMeterScale.getValueRange().getHigh();
 
-        FontMetrics fontMetrics = null;
-        if (font != null) {
-            Canvas canvas = new Canvas();
-            fontMetrics = canvas.getFontMetrics(font);
-        }
+            FontMetrics fontMetrics = null;
+            if (font != null) {
+                Canvas canvas = new Canvas();
+                fontMetrics = canvas.getFontMetrics(font);
+            }
 
-        if (linearMeterScale.isHorizontal()) {
-            marginAbove = knobSize >= 1 ? knobSize + 2 : 0;
-            if (linearMeterScale.isVisible() && fontMetrics != null) {
-                var majorTicks = linearMeterScale.getTicks().getMajorTicks();
-                if (majorTicks.size() >= 2) {
-                    marginLeft = fontMetrics.stringWidth(majorTicks.get(0).getLabel()) / 2;
-                    marginRight = fontMetrics.stringWidth(majorTicks.get(majorTicks.size() - 1).getLabel()) / 2;
-                } else if (majorTicks.size() == 1) {
-                    marginRight = marginLeft = fontMetrics.stringWidth(majorTicks.get(0).getLabel()) / 2;
+            if (linearMeterScale.isHorizontal()) {
+                int knobSizeValue = knobSize;
+                marginAbove = displayMode == DisplayMode.NEEDLE && knobSizeValue >= 1 ? knobSizeValue + 2 : 0;
+                if (linearMeterScale.isVisible() && fontMetrics != null) {
+                    var majorTicks = linearMeterScale.getTicks().getMajorTicks();
+                    if (majorTicks.size() >= 2) {
+                        marginLeft = fontMetrics.stringWidth(majorTicks.get(0).getLabel()) / 2;
+                        marginRight = fontMetrics.stringWidth(majorTicks.get(majorTicks.size() - 1).getLabel()) / 2 - 1;
+                    } else if (majorTicks.size() == 1) {
+                        marginRight = marginLeft = fontMetrics.stringWidth(majorTicks.get(0).getLabel()) / 2;
+                    } else {
+                        marginRight = 0;
+                        marginLeft = 0;
+                    }
+                    marginBelow = (int) (0.5 * linearMeterScale.getTickLength() + 4 + fontMetrics.getAscent() + fontMetrics.getDescent());
+                } else {
+                    marginLeft = 0;
+                    marginRight = 0;
+                    marginBelow = 0;
+                }
+
+                if (showUnits && fontMetrics != null) {
+                    marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
+                }
+
+                pixelsPerScaleUnit = (linearMeterScale.getBounds().width - marginLeft - marginRight - 1) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
+                meterBreadth = Math.round(linearMeterScale.getBounds().height - marginAbove - marginBelow) - 1;
+
+                double x_loLoRectangle = marginLeft;
+                double x_lowRectangle = marginLeft + pixelsPerScaleUnit * (displayedLoLo - linearMeterScale.getValueRange().getLow());
+                double x_normalRectangle = marginLeft + pixelsPerScaleUnit * (displayedLow - linearMeterScale.getValueRange().getLow());
+                double x_highRectangle = marginLeft + pixelsPerScaleUnit * (displayedHigh - linearMeterScale.getValueRange().getLow());
+                double x_hiHiRectangle = marginLeft + pixelsPerScaleUnit * (displayedHiHi - linearMeterScale.getValueRange().getLow());
+
+                loLoRectangle = new Rectangle((int) Math.round(x_loLoRectangle),
+                        marginAbove,
+                        (int) (Math.round(x_lowRectangle) - Math.round(x_loLoRectangle)),
+                        meterBreadth);
+
+                lowRectangle = new Rectangle((int) Math.round(x_lowRectangle),
+                        marginAbove,
+                        (int) (Math.round(x_normalRectangle) - Math.round(x_lowRectangle)),
+                        meterBreadth);
+
+                normalRectangle = new Rectangle((int) Math.round(x_normalRectangle),
+                        marginAbove,
+                        (int) (Math.round(x_highRectangle) - Math.round(x_normalRectangle)),
+                        meterBreadth);
+
+                highRectangle = new Rectangle((int) Math.round(x_highRectangle),
+                        marginAbove,
+                        (int) (Math.round(x_hiHiRectangle) - Math.round(x_highRectangle)),
+                        meterBreadth);
+
+                hiHiRectangle = new Rectangle((int) Math.round(x_hiHiRectangle),
+                        marginAbove,
+                        (int) (Math.round(pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi))),
+                        meterBreadth);
+            }
+            else {
+                int knobSizeValue = knobSize;
+                marginLeft = displayMode == DisplayMode.NEEDLE && knobSizeValue >= 1 ? knobSizeValue + 2 : 0;
+                if (linearMeterScale.isVisible() && fontMetrics != null) {
+                    int maxTickLabelWidth = 0;
+                    maxTickLabelWidth = 0;
+                    var majorTicks = linearMeterScale.getTicks().getMajorTicks();
+                    for (var majorTick : majorTicks) {
+                        int labelStringWidth = fontMetrics.stringWidth(majorTick.getLabel());
+                        maxTickLabelWidth = Math.max(maxTickLabelWidth, labelStringWidth);
+                    }
+                    marginRight = RTLinearMeter.this.linearMeterScale.getTickLength() + maxTickLabelWidth + 1;
+                    marginAbove = fontMetrics.getAscent() / 2 + 1;
+                    marginBelow = fontMetrics.getAscent() / 2 + 1;
                 } else {
                     marginRight = 0;
-                    marginLeft = 0;
+                    marginAbove = 0;
+                    marginBelow = 0;
                 }
-                marginBelow = (int) (0.5 * linearMeterScale.getTickLength() + 4 + fontMetrics.getAscent() + fontMetrics.getDescent());
-            } else {
-                marginLeft = 0;
-                marginRight = 1;
-                marginBelow = 1;
-            }
 
-            if (showUnits && fontMetrics != null) {
-                marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
-            }
-
-            pixelsPerScaleUnit = (linearMeterScale.getBounds().width - marginLeft - marginRight) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
-            meterBreadth = Math.round(linearMeterScale.getBounds().height - marginAbove - marginBelow);
-
-            double x_loLoRectangle = marginLeft;
-            double x_lowRectangle = marginLeft + pixelsPerScaleUnit * (displayedLoLo - linearMeterScale.getValueRange().getLow());
-            double x_normalRectangle = marginLeft + pixelsPerScaleUnit * (displayedLow - linearMeterScale.getValueRange().getLow());
-            double x_highRectangle = marginLeft + pixelsPerScaleUnit * (displayedHigh - linearMeterScale.getValueRange().getLow());
-            double x_hiHiRectangle = marginLeft + pixelsPerScaleUnit * (displayedHiHi - linearMeterScale.getValueRange().getLow());
-
-            loLoRectangle = new Rectangle((int) Math.round(x_loLoRectangle),
-                                          marginAbove,
-                                          (int) (Math.round(x_lowRectangle) - Math.round(x_loLoRectangle)),
-                                          meterBreadth);
-
-            lowRectangle = new Rectangle((int) Math.round(x_lowRectangle),
-                                         marginAbove,
-                                         (int) (Math.round(x_normalRectangle) - Math.round(x_lowRectangle)),
-                                         meterBreadth);
-
-            normalRectangle = new Rectangle((int) Math.round(x_normalRectangle),
-                                            marginAbove,
-                                            (int) (Math.round(x_highRectangle) - Math.round(x_normalRectangle)),
-                                            meterBreadth);
-
-            highRectangle = new Rectangle((int) Math.round(x_highRectangle),
-                                          marginAbove,
-                                          (int) (Math.round(x_hiHiRectangle) - Math.round(x_highRectangle)),
-                                          meterBreadth);
-
-            hiHiRectangle = new Rectangle((int) Math.round(x_hiHiRectangle),
-                                          marginAbove,
-                                          (int) (Math.round(pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi))),
-                                          meterBreadth);
-        }
-        else {
-            marginLeft = knobSize >= 1 ? knobSize + 2 : 0;
-            if (linearMeterScale.isVisible() && fontMetrics != null) {
-                int maxTickLabelWidth = 0;
-                maxTickLabelWidth = 0;
-                var majorTicks = linearMeterScale.getTicks().getMajorTicks();
-                for (var majorTick : majorTicks) {
-                    int labelStringWidth = fontMetrics.stringWidth(majorTick.getLabel());
-                    maxTickLabelWidth = Math.max(maxTickLabelWidth, labelStringWidth);
+                if (showUnits && fontMetrics != null) {
+                    marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
                 }
-                marginRight = RTLinearMeter.this.linearMeterScale.getTickLength() + maxTickLabelWidth + 1;
-                marginAbove = fontMetrics.getAscent() / 2 + 1;
-                marginBelow = fontMetrics.getAscent() / 2 + 1;
-            } else {
-                marginRight = 1;
-                marginAbove = 0;
-                marginBelow = 1;
+
+                pixelsPerScaleUnit = (linearMeterScale.getBounds().height - marginAbove - marginBelow - 1) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
+                meterBreadth = Math.round(linearMeterScale.getBounds().width - marginLeft - marginRight);
+
+                double y_loLoRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedLoLo);
+                double y_lowRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedLow);
+                double y_normalRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHigh);
+                double y_highRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi);
+
+                loLoRectangle = new Rectangle(marginLeft,
+                        (int) Math.round(y_loLoRectangle),
+                        meterBreadth - 1,
+                        (int) (Math.round(pixelsPerScaleUnit * (displayedLoLo - linearMeterScale.getValueRange().getLow()))));
+
+                lowRectangle = new Rectangle(marginLeft,
+                        (int) Math.round(y_lowRectangle),
+                        meterBreadth - 1,
+                        (int) (Math.round(y_loLoRectangle) - Math.round(y_lowRectangle)));
+
+                normalRectangle =  new Rectangle(marginLeft,
+                        (int) Math.round(y_normalRectangle),
+                        meterBreadth - 1,
+                        (int) (Math.round(y_lowRectangle) - Math.round(y_normalRectangle)));
+
+                highRectangle = new Rectangle(marginLeft,
+                        (int) Math.round(y_highRectangle),
+                        meterBreadth - 1,
+                        (int) (Math.round(y_normalRectangle) - Math.round(y_highRectangle)));
+
+                hiHiRectangle = new Rectangle(marginLeft,
+                        marginAbove,
+                        meterBreadth - 1,
+                        (int) Math.round(y_highRectangle) - marginAbove);
             }
-
-            if (showUnits && fontMetrics != null) {
-                marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
-            }
-
-            pixelsPerScaleUnit = (linearMeterScale.getBounds().height - marginAbove - marginBelow) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
-            meterBreadth = Math.round(linearMeterScale.getBounds().width - marginLeft - marginRight);
-
-            double y_loLoRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedLoLo);
-            double y_lowRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedLow);
-            double y_normalRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHigh);
-            double y_highRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi);
-
-            loLoRectangle = new Rectangle(marginLeft,
-                                          (int) Math.round(y_loLoRectangle),
-                                          meterBreadth,
-                                          (int) (Math.round(pixelsPerScaleUnit * (displayedLoLo - linearMeterScale.getValueRange().getLow()) )));
-
-            lowRectangle = new Rectangle(marginLeft,
-                                         (int) Math.round(y_lowRectangle),
-                                         meterBreadth,
-                                         (int) (Math.round(y_loLoRectangle) - Math.round(y_lowRectangle)));
-
-            normalRectangle =  new Rectangle(marginLeft,
-                                             (int) Math.round(y_normalRectangle),
-                                             meterBreadth,
-                                             (int) (Math.round(y_lowRectangle) - Math.round(y_normalRectangle)));
-
-            highRectangle = new Rectangle(marginLeft,
-                                          (int) Math.round(y_highRectangle),
-                                          meterBreadth,
-                                          (int) (Math.round(y_normalRectangle) - Math.round(y_highRectangle)));
-
-            hiHiRectangle = new Rectangle(marginLeft,
-                                          marginAbove,
-                                          meterBreadth,
-                                          (int) Math.round(y_highRectangle) - marginAbove);
-        }
+        });
     }
 }

@@ -5,13 +5,13 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>5.0.3-SNAPSHOT</version>
   </parent>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>5.0.2-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
 
   </dependencies>

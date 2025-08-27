@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
 package org.epics.pva.client;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -17,9 +18,11 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAData;
+import org.epics.pva.data.PVAStructure;
 
 /** Command line tool for PVA client
  *
@@ -37,9 +40,17 @@ public class PVAClientMain
     private static boolean completion = false;
     private static String request = "";
 
+    /** Commands */
+    private static enum Cmd
+    {
+        info, get, monitor, put, call, beacons
+    }
+
     private static void help()
     {
-        System.out.println("USAGE: pvaclient info|get|monitor|put|beacons [options] <PV name>...");
+        System.out.println("USAGE: pvaclient " +
+            Arrays.stream(Cmd.values()).map(Object::toString).collect(Collectors.joining("|")) +
+            " [options] <PV name>...");
         System.out.println();
         System.out.println("Options:");
         System.out.println("  -h             Help");
@@ -54,6 +65,7 @@ public class PVAClientMain
         System.out.println("get     <PV name>          Read PV's value");
         System.out.println("monitor <PV name>          Subscribe to PV's value changes");
         System.out.println("put     <PV name> <value>  Write value to PV");
+        System.out.println("call    <PV name>          Call RPC PV (no request params)");
         System.out.println("beacons                    Display received beacons");
     }
 
@@ -85,6 +97,9 @@ public class PVAClientMain
                     final PVAChannel pv = iter.next();
                     if (pv.getState() == ClientChannelState.CONNECTED)
                     {
+                        PVASettings.logger.log(Level.INFO, "Server: " + pv.getTCP().getServerX509Name());
+                        PVASettings.logger.log(Level.INFO, "Client: " + pv.getTCP().getClientX509Name());
+
                         final PVAData data = pv.info(request).get(timeout_ms, TimeUnit.MILLISECONDS);
                         System.out.println(pv.getName() + " = " + data.formatType());
                         pv.close();
@@ -127,6 +142,9 @@ public class PVAClientMain
                     final PVAChannel pv = iter.next();
                     if (pv.getState() == ClientChannelState.CONNECTED)
                     {
+                        PVASettings.logger.log(Level.INFO, "Server: " + pv.getTCP().getServerX509Name());
+                        PVASettings.logger.log(Level.INFO, "Client: " + pv.getTCP().getClientX509Name());
+
                         final PVAData data = pv.read(request).get(timeout_ms, TimeUnit.MILLISECONDS);
                         System.out.println(pv.getName() + " = " + data);
                         pv.close();
@@ -170,6 +188,8 @@ public class PVAClientMain
                     {
                         try
                         {
+                            PVASettings.logger.log(Level.INFO, "Server: " + ch.getTCP().getServerX509Name());
+                            PVASettings.logger.log(Level.INFO, "Client: " + ch.getTCP().getClientX509Name());
                             ch.subscribe(request, listener);
                         }
                         catch (Exception ex)
@@ -227,6 +247,36 @@ public class PVAClientMain
             catch (TimeoutException ex)
             {
                 System.err.println("Write timed out");
+            }
+            pv.close();
+        }
+    }
+
+    private static void call(final String name, final PVAStructure request) throws Exception
+    {
+        try (final PVAClient pva = new PVAClient())
+        {
+            final CountDownLatch connected = new CountDownLatch(1);
+            final PVAChannel pv = pva.getChannel(name, (ch, state) ->
+            {
+                if (state == ClientChannelState.CONNECTED)
+                    connected.countDown();
+            });
+            final long timeout_ms = Math.round(seconds*1000);
+            if (! connected.await(timeout_ms, TimeUnit.MILLISECONDS))
+            {
+                System.err.println("Timeout waiting for " + name);
+                return;
+            }
+
+            try
+            {
+                PVAStructure result = pv.invoke(request).get(timeout_ms, TimeUnit.MILLISECONDS);
+                System.out.println(result);
+            }
+            catch (TimeoutException ex)
+            {
+                System.err.println("Call timed out");
             }
             pv.close();
         }
@@ -328,20 +378,26 @@ public class PVAClientMain
 
         final String command = names.remove(0);
 
-        if (command.equals("beacons") && names.size() == 0)
+        if (command.equals(Cmd.beacons.name()) && names.size() == 0)
             beacons();
-        else if (command.equals("info") && names.size() > 0)
+        else if (command.equals(Cmd.info.name()) && names.size() > 0)
             info(names);
-        else if (command.equals("get") && names.size() > 0)
+        else if (command.equals(Cmd.get.name()) && names.size() > 0)
             get(names);
-        else if (command.equals("monitor") && names.size() > 0)
+        else if (command.equals(Cmd.monitor.name()) && names.size() > 0)
             monitor(names);
-        else if (command.equals("put") && names.size() == 2)
+        else if (command.equals(Cmd.put.name()) && names.size() == 2)
         {
             // By default, write to the 'value' element data structure
             if (request.isEmpty())
                 request = "value";
             put(names.get(0), names.get(1));
+        }
+        else if (command.equals(Cmd.call.name()) && names.size() > 0)
+        {
+            // For now not supporting any request detail from cmdline
+            PVAStructure request = new PVAStructure("", "");
+            call(names.get(0), request);
         }
         else
             help();

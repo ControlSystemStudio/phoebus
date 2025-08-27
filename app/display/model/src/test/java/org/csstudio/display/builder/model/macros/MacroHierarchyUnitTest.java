@@ -83,7 +83,7 @@ public class MacroHierarchyUnitTest
         model.expandMacros(Preferences.getMacros());
 
         MacroValueProvider macros = model.getEffectiveMacros();
-        assertThat(macros.getValue("EXAMPLE_MACRO"), equalTo("Value from Preferences"));
+        assertThat(macros.getValue("EXAMPLE_MACRO"), nullValue());
 
         // Can also fall back to widget properties
         assertThat(macros.getValue("type"), nullValue());

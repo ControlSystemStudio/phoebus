@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-display</artifactId>
-    <version>5.0.2-SNAPSHOT</version>
+    <version>5.0.3-SNAPSHOT</version>
   </parent>
   <artifactId>app-display-representation</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
@@ -23,7 +23,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-model</artifactId>
-      <version>5.0.2-SNAPSHOT</version>
+      <version>5.0.3-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
