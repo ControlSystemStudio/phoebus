@@ -430,17 +430,21 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     }
 
     @Override
-    public boolean handleTabClosed() {
+    public boolean doCloseCheck() {
         if (dirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle(Messages.closeTabPrompt);
+            alert.setTitle(Messages.closeCompositeSnapshotTabPrompt);
             alert.setContentText(Messages.closeCompositeSnapshotWarning);
+            DialogHelper.positionDialog(alert, borderPane, -200, -200);
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
-        } else {
-            webSocketClientService.removeWebSocketMessageHandler(this);
-            return true;
         }
+        return true;
+    }
+
+    @Override
+    public void handleTabClosed(){
+        webSocketClientService.removeWebSocketMessageHandler(this);
     }
 
     /**

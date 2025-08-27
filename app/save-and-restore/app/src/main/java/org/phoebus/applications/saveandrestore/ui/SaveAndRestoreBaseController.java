@@ -76,8 +76,14 @@ public abstract class SaveAndRestoreBaseController {
     protected void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> webSocketMessage){
     }
 
+    /**
+     * Performs suitable cleanup, e.g. close web socket and PVs (where applicable).
+     */
+    public abstract void handleTabClosed();
 
-    protected boolean handleTabClosed(){
-        return true;
-    }
+    /**
+     * Checks if the tab may be closed, e.g. if data managed in the UI has been saved.
+     * @return <code>false</code> if tab contains unsaved data, otherwise <code>true</code>
+     */
+    public abstract boolean doCloseCheck();
 }

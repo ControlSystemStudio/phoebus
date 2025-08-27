@@ -5,7 +5,7 @@
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="root" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane fx:id="borderPane" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
     fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController">
     <center>
         <GridPane id="parent" fx:id="controlsPane" alignment="TOP_RIGHT" hgap="5.0" style="-fx-background-color: #f4f4f4;" BorderPane.alignment="TOP_LEFT">
