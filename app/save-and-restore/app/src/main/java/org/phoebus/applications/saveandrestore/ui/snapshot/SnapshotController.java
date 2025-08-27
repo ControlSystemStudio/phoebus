@@ -1535,6 +1535,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         return (int) mText.getLayoutBounds().getWidth();
     }
 
+    /**
      * @param configurationData {@link ConfigurationData} obejct of a {@link org.phoebus.applications.saveandrestore.model.Configuration}
      * @return <code>true</code> if any if the {@link ConfigPv} items in {@link ConfigurationData#getPvList()} defines a non-null read-back
      * PV name, otherwise <code>false</code>.
