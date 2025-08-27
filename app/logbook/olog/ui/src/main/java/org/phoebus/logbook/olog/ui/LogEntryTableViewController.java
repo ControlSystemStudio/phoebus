@@ -686,10 +686,10 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
 
         webSocketClientService = new WebSocketClientService(() -> {
             logger.log(Level.INFO, "Connected to web socket on " + webSocketUrl);
-            webSocketConnected.set(true);
+            Platform.runLater(() -> webSocketConnected.set(true));
         }, () -> {
             logger.log(Level.INFO, "Disconnected from web socket on " + webSocketUrl);
-            webSocketConnected.set(false);
+            Platform.runLater(() -> webSocketConnected.set(false));
         });
         webSocketClientService.addWebSocketMessageHandler(this);
         webSocketClientService.connect(webSocketUrl);
@@ -701,6 +701,8 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
             WebSocketMessage webSocketMessage = objectMapper.readValue(message, WebSocketMessage.class);
             if(webSocketMessage.messageType().equals(MessageType.NEW_LOG_ENTRY)){
                 search();
+                webSocketClientService.close();
+                webSocketClientService.sendEcho("Hello World");
             }
         } catch (JsonProcessingException e) {
             logger.log(Level.WARNING, "Unable to deserialize message \"" + message + "\"");
