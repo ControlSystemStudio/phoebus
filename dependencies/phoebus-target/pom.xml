@@ -558,6 +558,13 @@
       <artifactId>tika-core</artifactId>
       <version>3.2.0</version>
     </dependency>
+    
+    <!-- ChartFX library for the Waterfall Plot widget -->
+    <dependency>
+      <groupId>io.fair-acc</groupId>
+      <artifactId>chartfx</artifactId>
+      <version>11.3.1</version>
+    </dependency>
   </dependencies>
 
   <build>
