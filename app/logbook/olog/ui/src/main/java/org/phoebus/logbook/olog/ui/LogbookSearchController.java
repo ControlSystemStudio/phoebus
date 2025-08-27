@@ -126,6 +126,13 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
         try {
             WebSocketMessage webSocketMessage = objectMapper.readValue(message, WebSocketMessage.class);
             if (webSocketMessage.messageType().equals(MessageType.NEW_LOG_ENTRY)) {
+                // Add a random sleep 0 - 5 seconds to avoid an avalanche of search requests on the service.
+                long randomSleepTime = Math.round(5000 * Math.random());
+                try {
+                    Thread.sleep(randomSleepTime);
+                } catch (InterruptedException e) {
+                    logger.log(Level.WARNING, "Got exception when sleeping before search request", e);
+                }
                 search();
             }
         } catch (JsonProcessingException e) {
