@@ -1,12 +1,9 @@
 package org.phoebus.logbook.olog.ui;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,7 +12,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
@@ -32,20 +28,14 @@ import jfxtras.scene.control.agenda.Agenda;
 import jfxtras.scene.control.agenda.Agenda.Appointment;
 import jfxtras.scene.control.agenda.Agenda.AppointmentGroup;
 import jfxtras.scene.control.agenda.Agenda.AppointmentImplLocal;
-import org.phoebus.core.websocket.WebSocketMessageHandler;
-import org.phoebus.core.websocket.springframework.WebSocketClientService;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
-import org.phoebus.logbook.olog.ui.websocket.MessageType;
-import org.phoebus.logbook.olog.ui.websocket.WebSocketMessage;
-import org.phoebus.olog.es.api.Preferences;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
-import java.net.URI;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -65,7 +55,7 @@ import java.util.stream.Collectors;
  *
  * @author Kunal Shroff
  */
-public class LogEntryCalenderViewController extends LogbookSearchController implements WebSocketMessageHandler {
+public class LogEntryCalenderViewController extends LogbookSearchController {
 
     private static final Logger logger = Logger.getLogger(LogEntryCalenderViewController.class.getName());
 
@@ -97,15 +87,9 @@ public class LogEntryCalenderViewController extends LogbookSearchController impl
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
 
-    @SuppressWarnings("unused")
-    @FXML
-    private Label autoUpdateStatusLabel;
-
     private final OlogQueryManager ologQueryManager;
     private final ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
     private final SearchParameters searchParameters;
-    private final SimpleBooleanProperty webSocketConnected = new SimpleBooleanProperty();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public LogEntryCalenderViewController(LogClient logClient, OlogQueryManager ologQueryManager, SearchParameters searchParameters) {
         setClient(logClient);
@@ -114,7 +98,9 @@ public class LogEntryCalenderViewController extends LogbookSearchController impl
     }
 
     @FXML
+    @Override
     public void initialize() {
+        super.initialize();
 
         advancedSearchViewController.setSearchCallback(this::search);
         configureComboBox();
@@ -211,19 +197,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController impl
 
         search.disableProperty().bind(searchInProgress);
 
-        webSocketConnected.addListener((obs, o, n) -> {
-            Platform.runLater(() -> {
-                if(n){
-                    autoUpdateStatusLabel.setStyle("-fx-text-fill: black;");
-                    autoUpdateStatusLabel.setText(Messages.AutoRefreshOn);
-                }
-                else{
-                    autoUpdateStatusLabel.setStyle("-fx-text-fill: red;");
-                    autoUpdateStatusLabel.setText(Messages.AutoRefreshOff);
-                }
-            });
-        });
-
         connectWebSocket();
 
         search();
@@ -268,6 +241,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController impl
     }
 
     @FXML
+    @Override
     public void search() {
         String queryString = query.getEditor().getText();
         Map<String, String> params =
@@ -410,41 +384,5 @@ public class LogEntryCalenderViewController extends LogbookSearchController impl
                     }
                 });
 
-    }
-
-    private void connectWebSocket(){
-        String baseUrl = Preferences.olog_url;
-        URI uri = URI.create(baseUrl);
-        String scheme = uri.getScheme();
-        String host = uri.getHost();
-        int port = uri.getPort();
-        String path = uri.getPath();
-        if(path.endsWith("/")){
-            path = path.substring(0, path.length() - 1);
-        }
-        String webSocketScheme = scheme.toLowerCase().startsWith("https") ? "wss" : "ws";
-        String webSocketUrl = webSocketScheme + "://" + host + (port > -1 ? (":" + port) : "") + path;
-
-        webSocketClientService = new WebSocketClientService(() -> {
-            logger.log(Level.INFO, "Connected to web socket on " + webSocketUrl);
-            webSocketConnected.set(true);
-        }, () -> {
-            logger.log(Level.INFO, "Disconnected from web socket on " + webSocketUrl);
-            webSocketConnected.set(false);
-        });
-        webSocketClientService.addWebSocketMessageHandler(this);
-        webSocketClientService.connect(webSocketUrl);
-    }
-
-    @Override
-    public void handleWebSocketMessage(String message){
-        try {
-            WebSocketMessage webSocketMessage = objectMapper.readValue(message, WebSocketMessage.class);
-            if(webSocketMessage.messageType().equals(MessageType.NEW_LOG_ENTRY)){
-                search();
-            }
-        } catch (JsonProcessingException e) {
-            logger.log(Level.WARNING, "Unable to deserialize message \"" + message + "\"");
-        }
     }
 }
