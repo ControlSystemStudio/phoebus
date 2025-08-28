@@ -52,6 +52,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
@@ -101,6 +102,10 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     @SuppressWarnings("unused")
     @FXML
     private TableColumn<Node, Node> snapshotPathColumn;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private TableColumn<Node, String> snapshotDescriptionColumn;
 
     @SuppressWarnings("unused")
     @FXML
@@ -174,8 +179,6 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
         snapshotTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         snapshotTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
 
-        snapshotNameColumn.setComparator(Comparator.comparing(Node::getName));
-
         MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
                 new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
         deleteMenuItem.setOnAction(ae -> {
@@ -222,6 +225,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
                 };
             }
         });
+        snapshotPathColumn.setComparator(Comparator.comparing(n -> DirectoryUtilities.CreateLocationString(n, true).toLowerCase()));
 
         ContextMenu contextMenu = new ContextMenu();
         MenuItem removeMenuItem = new MenuItem("Remove Selected");
@@ -289,6 +293,9 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
                 };
             }
         });
+        snapshotNameColumn.setComparator(Comparator.comparing(n -> n.getName().toLowerCase()));
+
+        snapshotDescriptionColumn.setComparator(Comparator.comparing(String::toLowerCase));
 
         compositeSnapshotNameField.textProperty().bindBidirectional(compositeSnapshotNameProperty);
         compositeSnapshotNameField.disableProperty().bind(userIdentity.isNull());
@@ -304,7 +311,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
         descriptionChangeListener = (observableValue, oldValue, newValue) -> dirty.setValue(true);
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
-                        compositeSnapshotDescriptionProperty.isEmpty().get() ||
+                        (!Preferences.allow_empty_descriptions && compositeSnapshotDescriptionProperty.isEmpty().get()) ||
                         compositeSnapshotNameProperty.isEmpty().get() ||
                         userIdentity.isNull().get(),
                 dirty, compositeSnapshotDescriptionProperty, compositeSnapshotNameProperty, userIdentity));
@@ -423,17 +430,21 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     }
 
     @Override
-    public boolean handleTabClosed() {
+    public boolean doCloseCheck() {
         if (dirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle(Messages.closeTabPrompt);
+            alert.setTitle(Messages.closeCompositeSnapshotTabPrompt);
             alert.setContentText(Messages.closeCompositeSnapshotWarning);
+            DialogHelper.positionDialog(alert, borderPane, -200, -200);
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
-        } else {
-            webSocketClientService.removeWebSocketMessageHandler(this);
-            return true;
         }
+        return true;
+    }
+
+    @Override
+    public void handleTabClosed(){
+        webSocketClientService.removeWebSocketMessageHandler(this);
     }
 
     /**

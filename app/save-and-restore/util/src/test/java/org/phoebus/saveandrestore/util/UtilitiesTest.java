@@ -702,7 +702,8 @@ public class UtilitiesTest {
         assertEquals("a", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertFalse(result.isWithinThreshold());
-        assertEquals(0, result.getAbsoluteDelta(), 0.0);
+        int delta = ((VString) val1).getValue().compareTo(((VString) val2).getValue());
+        assertEquals(Math.abs(delta), result.getAbsoluteDelta(), 0.0);
     }
 
     /**

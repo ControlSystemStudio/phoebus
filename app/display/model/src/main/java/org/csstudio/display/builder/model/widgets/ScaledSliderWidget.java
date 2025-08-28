@@ -60,8 +60,6 @@ public class ScaledSliderWidget extends WritablePVWidget
             "Scaled Slider",
             "/icons/scaled_slider.png",
             "A scaled slider that can read/write a numeric PV",
-            // Can also represent "org.csstudio.opibuilder.widgets.knob",
-            // but using KnobWidget for that
             Arrays.asList("org.csstudio.opibuilder.widgets.scaledslider"))
     {
         @Override
