@@ -343,7 +343,6 @@ class ChannelSearch
     }
 
     /** Invoked by timer: Check searched channels for the next one to handle */
-    @SuppressWarnings("unchecked")
     private void runSearches()
     {
         // Determine current search bucket
