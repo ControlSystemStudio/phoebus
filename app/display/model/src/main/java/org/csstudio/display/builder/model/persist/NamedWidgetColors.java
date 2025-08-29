@@ -164,10 +164,11 @@ public class NamedWidgetColors extends ConfigFileParser
     public Optional<ColorDefinition> parseColorDefinition(final String colorDefinitionString)
     {
         String colorDefinitionStringTrimmed = colorDefinitionString.trim();
-        if (colorDefinitionStringTrimmed.startsWith("alias(")) {
-            if (colorDefinitionStringTrimmed.endsWith(")")) {
-                String colorName = colorDefinitionStringTrimmed.substring(6,colorDefinitionStringTrimmed.length()-1).trim();
-                if (colors.containsKey(colorDefinitionStringTrimmed)) {
+        if (colorDefinitionStringTrimmed.startsWith("alias")) {
+            String colorDefinitionsStringWithoutAlias = colorDefinitionStringTrimmed.substring(5).trim();
+            if (colorDefinitionsStringWithoutAlias.startsWith("(") && colorDefinitionsStringWithoutAlias.endsWith(")")) {
+                String colorName = colorDefinitionsStringWithoutAlias.substring(1,colorDefinitionsStringWithoutAlias.length()-1).trim();
+                if (colors.containsKey(colorName)) {
                     NamedWidgetColor color = colors.get(colorName);
                     return Optional.of(new Alias(color));
                 } else {
