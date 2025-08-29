@@ -4,7 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import org.phoebus.core.websocket.WebSocketMessageHandler;
 import org.phoebus.core.websocket.springframework.WebSocketClientService;
 import org.phoebus.framework.jobs.Job;
@@ -38,26 +39,22 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Logger logger = Logger.getLogger(LogbookSearchController.class.getName());
-    private final SimpleBooleanProperty webSocketConnected = new SimpleBooleanProperty();
-
-    @SuppressWarnings("unused")
-    @FXML
-    private Label autoUpdateStatusLabel;
+    protected final SimpleBooleanProperty serviceConnected = new SimpleBooleanProperty();
 
     protected WebSocketClientService webSocketClientService;
 
+    @SuppressWarnings("unused")
     @FXML
-    public void initialize(){
-        webSocketConnected.addListener((obs, o, n) -> {
-            if(n){
-                autoUpdateStatusLabel.setStyle("-fx-text-fill: black;");
-                autoUpdateStatusLabel.setText(Messages.AutoRefreshOn);
-            }
-            else{
-                autoUpdateStatusLabel.setStyle("-fx-text-fill: red;");
-                autoUpdateStatusLabel.setText(Messages.AutoRefreshOff);
-            }
-        });
+    private VBox errorPane;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private GridPane ViewSearchPane;
+
+    @FXML
+    public void initialize() {
+        errorPane.visibleProperty().bind(serviceConnected.not());
+        ViewSearchPane.visibleProperty().bind(serviceConnected);
     }
 
     public void setClient(LogClient client) {
@@ -112,10 +109,11 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
 
         webSocketClientService = new WebSocketClientService(() -> {
             logger.log(Level.INFO, "Connected to web socket on " + webSocketUrl);
-            webSocketConnected.set(true);
+            serviceConnected.setValue(true);
+            search();
         }, () -> {
             logger.log(Level.INFO, "Disconnected from web socket on " + webSocketUrl);
-            webSocketConnected.set(false);
+            serviceConnected.set(false);
         });
         webSocketClientService.addWebSocketMessageHandler(this);
         webSocketClientService.connect(webSocketUrl);

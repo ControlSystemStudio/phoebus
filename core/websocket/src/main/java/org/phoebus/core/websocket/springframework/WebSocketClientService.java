@@ -102,15 +102,23 @@ public class WebSocketClientService {
 
     /**
      * For debugging purposes: peer should just echo back the message on the subscribed topic.
-     * @param message Message to echo
+     * @param message Message for the service to echo
      */
     @SuppressWarnings("unused")
     public void sendEcho(String message) {
-        stompSession.send(contextPath + "/web-socket/echo", message);
+        if(stompSession != null && stompSession.isConnected()){
+            stompSession.send(contextPath + "/web-socket/echo", message);
+        }
+
     }
 
+    /**
+     * Disconnects the STOMP session if non-null and connected.
+     */
     public void disconnect() {
-        stompSession.disconnect();
+        if(stompSession != null && stompSession.isConnected()) {
+            stompSession.disconnect();
+        }
     }
 
     /**

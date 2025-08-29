@@ -34,6 +34,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
@@ -58,7 +60,6 @@ import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -112,6 +113,14 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
     @SuppressWarnings("unused")
     private TextField pageSizeTextField;
 
+    @SuppressWarnings("unused")
+    @FXML
+    private Pane logDetailView;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private VBox errorPane;
+
     @FXML
     @SuppressWarnings("unused")
     private Label openAdvancedSearchLabel;
@@ -125,7 +134,6 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
     private static final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
 
     private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty();
-
     private final SimpleBooleanProperty advancedSearchVisible = new SimpleBooleanProperty(false);
 
 
@@ -175,6 +183,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
         });
 
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        tableView.visibleProperty().bind(serviceConnected);
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> createLogEntryGroup());
@@ -326,9 +335,9 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                                 Messages.AdvancedSearchHide : Messages.AdvancedSearchOpen,
                         advancedSearchVisible));
 
-        connectWebSocket();
+        logDetailView.disableProperty().bind(serviceConnected.not());
 
-        search();
+        connectWebSocket();
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -404,7 +413,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                 },
                 (msg, ex) -> {
                     searchInProgress.set(false);
-                    ExceptionDetailsErrorDialog.openError(Messages.LogbooksSearchFailTitle, ex.getMessage(), null);
+                    //ExceptionDetailsErrorDialog.openError(Messages.LogbooksSearchFailTitle, ex.getMessage(), null);
                 });
     }
 
@@ -613,10 +622,6 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
     public void logEntryChanged(LogEntry logEntry) {
         search();
         setLogEntry(logEntry);
-    }
-
-    private void logEntryChanged(String logEntryId) {
-        search();
     }
 
     protected LogEntry getLogEntry() {

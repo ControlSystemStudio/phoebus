@@ -4,13 +4,14 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
 <SplitPane dividerPositions="0.3" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-border-color: #d8d8d8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryTableViewController">
     <items>
         <fx:include fx:id="advancedSearchView" source="AdvancedSearchView.fxml" />
         <SplitPane fx:id="splitPane" dividerPositions="0.33" prefHeight="160.0" prefWidth="200.0">
             <items>
-                <AnchorPane minHeight="0.0" minWidth="300.0" prefWidth="600.0">
+                <StackPane minHeight="0.0" minWidth="300.0" prefWidth="600.0">
                     <children>
                         <GridPane fx:id="ViewSearchPane" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <columnConstraints>
@@ -39,21 +40,14 @@
                                         <Insets left="5.0" right="5.0" />
                                     </GridPane.margin>
                                 </Button>
-                                <HBox GridPane.columnSpan="2" GridPane.rowIndex="1">
-                                    <Label fx:id="autoUpdateStatusLabel" style="-fx-text-fill: red;" text="%AutoRefreshOff" />
-                                    <Label maxWidth="1.7976931348623157E308" text="" HBox.hgrow="ALWAYS" />
-                                    <Label fx:id="openAdvancedSearchLabel" alignment="CENTER_RIGHT" style="-fx-text-fill: blue;" text="%AdvancedSearchOpen">
-                                        <cursor>
-                                            <Cursor fx:constant="HAND" />
-                                        </cursor>
-                                        <GridPane.margin>
-                                            <Insets bottom="3.0" right="5.0" />
-                                        </GridPane.margin>
-                                    </Label>
-                           <padding>
-                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-                           </padding>
-                                </HBox>
+                                <Label fx:id="openAdvancedSearchLabel" alignment="CENTER_RIGHT" style="-fx-text-fill: blue;" text="%AdvancedSearchOpen" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+                                   <cursor>
+                                       <Cursor fx:constant="HAND" />
+                                   </cursor>
+                                   <GridPane.margin>
+                                       <Insets bottom="3.0" right="5.0" />
+                                   </GridPane.margin>
+                                </Label>
                                 <StackPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
                                     <children>
                                         <VBox alignment="CENTER">
@@ -91,14 +85,22 @@
                                                     <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
                                                 </padding>
                                             </HBox>
-
                                         </VBox>
                                     </children>
                                 </StackPane>
                             </children>
                         </GridPane>
+                        <VBox fx:id="errorPane" alignment="CENTER" visible="false" StackPane.alignment="CENTER">
+                            <children>
+                                <Label text="%LogbookServiceUnavailable" GridPane.halignment="CENTER" GridPane.valignment="BOTTOM">
+                                    <font>
+                                        <Font size="15.0" />
+                                    </font>
+                                </Label>
+                            </children>
+                        </VBox>
                     </children>
-                </AnchorPane>
+                </StackPane>
                 <AnchorPane fx:id="logDetailView" minHeight="0.0" minWidth="0.0">
                     <fx:include fx:id="logEntryDisplay" source="LogEntryDisplay.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                 </AnchorPane>

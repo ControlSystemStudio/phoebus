@@ -23,8 +23,6 @@ public class Messages
             AttachmentsDirectoryNotWritable,
             AttachmentsFileNotDirectory,
             AttachmentsNoStorage,
-            AutoRefreshOn,
-            AutoRefreshOff,
             AvailableTemplates,
             Back,
             CloseRequestHeader,
