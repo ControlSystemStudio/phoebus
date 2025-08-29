@@ -9,6 +9,7 @@ package org.csstudio.display.builder.model.persist;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -133,6 +134,15 @@ public class NamedWidgetColors extends ConfigFileParser
         colors.put(color.getName(), color);
     }
 
+    /** Define a name to point to a named color
+     *  @param name Name of the color
+     *  @param color Named color
+     */
+    void defineAlias(String name, final NamedWidgetColor color)
+    {
+        colors.put(name, color);
+    }
+
     /** Get named color
      *  @param name Name of the color
      *  @return Named color, if known
@@ -140,6 +150,51 @@ public class NamedWidgetColors extends ConfigFileParser
     public Optional<NamedWidgetColor> getColor(final String name)
     {
         return Optional.ofNullable(colors.get(name));
+    }
+
+    sealed interface ColorDefinition permits RGBA, FromNamedWidgetColor, Alias {}
+    private record RGBA (int red, int green, int blue, int alpha) implements ColorDefinition { }
+    private record FromNamedWidgetColor(NamedWidgetColor namedWidgetColor) implements ColorDefinition { };
+    private record Alias (NamedWidgetColor color) implements ColorDefinition { };
+
+    /** Parse the color definition
+     *  @param colorDefinitionString Color definition
+     *  @return Optionally (when successful), an instance of ColorDefinition representing the result of parsing
+     */
+    public Optional<ColorDefinition> parseColorDefinition(final String colorDefinitionString)
+    {
+        String colorDefinitionStringTrimmed = colorDefinitionString.trim();
+        if (colorDefinitionStringTrimmed.startsWith("alias")) {
+            String colorDefinitionsStringWithoutAlias = colorDefinitionStringTrimmed.substring(5).trim();
+            if (colorDefinitionsStringWithoutAlias.startsWith("(") && colorDefinitionsStringWithoutAlias.endsWith(")")) {
+                String colorName = colorDefinitionsStringWithoutAlias.substring(1,colorDefinitionsStringWithoutAlias.length()-1).trim();
+                if (colors.containsKey(colorName)) {
+                    NamedWidgetColor color = colors.get(colorName);
+                    return Optional.of(new Alias(color));
+                } else {
+                    return Optional.empty();
+                }
+            }
+            else {
+                return Optional.empty();
+            }
+        }
+        else if (colors.containsKey(colorDefinitionStringTrimmed)) {
+            NamedWidgetColor color = colors.get(colorDefinitionStringTrimmed);
+            return Optional.of(new FromNamedWidgetColor(color));
+        }
+        else {
+            final StringTokenizer tokenizer = new StringTokenizer(colorDefinitionString, ",");
+            try {
+                final int red = Integer.parseInt(tokenizer.nextToken().trim());
+                final int green = Integer.parseInt(tokenizer.nextToken().trim());
+                final int blue = Integer.parseInt(tokenizer.nextToken().trim());
+                final int alpha = tokenizer.hasMoreTokens() ? Integer.parseInt(tokenizer.nextToken().trim()) : 255;
+                return Optional.of(new RGBA(red, green, blue, alpha));
+            } catch (Throwable throwable) {
+                return Optional.empty();
+            }
+        }
     }
 
     /** Resolve a named color
@@ -156,35 +211,26 @@ public class NamedWidgetColors extends ConfigFileParser
      */
     public Collection<NamedWidgetColor> getColors()
     {
-        return Collections.unmodifiableCollection(colors.values());
+        return Collections.unmodifiableSet(new HashSet<>(colors.values()));
     }
 
     @Override
     protected void parse ( final String name, final String value ) throws Exception {
+        Optional<ColorDefinition> optionalColorDefinition = parseColorDefinition(value);
 
-        Optional<NamedWidgetColor> optionalColor = getColor(value);
-
-        if ( optionalColor.isPresent() ) {
-
-            NamedWidgetColor namedColor = optionalColor.get();
-
-            define(new NamedWidgetColor(name, namedColor.getRed(), namedColor.getGreen(), namedColor.getBlue(), namedColor.getAlpha()));
-
+        if (optionalColorDefinition.isEmpty()) {
+            throw new Exception("Cannot parse color '" + name + "' from '" + value + "'");
         } else {
-
-            final StringTokenizer tokenizer = new StringTokenizer(value, ",");
-
-            try {
-
-                final int red = Integer.parseInt(tokenizer.nextToken().trim());
-                final int green = Integer.parseInt(tokenizer.nextToken().trim());
-                final int blue = Integer.parseInt(tokenizer.nextToken().trim());
-                final int alpha = tokenizer.hasMoreTokens() ? Integer.parseInt(tokenizer.nextToken().trim()) : 255;
-
-                define(new NamedWidgetColor(name, red, green, blue, alpha));
-
-            } catch ( Throwable ex ) {
-                throw new Exception("Cannot parse color '" + name + "' from '" + value + "'", ex);
+            ColorDefinition colorDefinition = optionalColorDefinition.get();
+            if (colorDefinition instanceof RGBA rgba) {
+                define(new NamedWidgetColor(name, rgba.red, rgba.green, rgba.blue, rgba.alpha));
+            } else if (colorDefinition instanceof FromNamedWidgetColor fromNamedWidgetColor) {
+                NamedWidgetColor namedWidgetColor = fromNamedWidgetColor.namedWidgetColor;
+                define(new NamedWidgetColor(name, namedWidgetColor.getRed(), namedWidgetColor.getGreen(), namedWidgetColor.getBlue(), namedWidgetColor.getAlpha()));
+            } else if (colorDefinition instanceof Alias alias) {
+                defineAlias(name, alias.color);
+            } else {
+                throw new Exception("Unhandled case: " + colorDefinition.toString()); // This should never happen.
             }
 
         }
