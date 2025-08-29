@@ -12,6 +12,7 @@ import static org.epics.pva.PVASettings.logger;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -38,13 +39,13 @@ import org.epics.pva.data.PVAStructure;
  *
  *  <p>When no longer in use, the channel should be {@link #close()}d.
  *
- * 
+ *
  * Note that several methods return a CompletableFuture.
  * This has been done because at this time the Futures used internally are indeed CompletableFutures
  * and this type offers an extensive API for composition and chaining of futures.
  * But note that user code must never call 'complete(..)' nor 'completeExceptionally()'
  * on the provided CompletableFutures.
- * 
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -63,7 +64,11 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
 
     private final PVAClient client;
     private final ClientChannelListener listener;
+    private final ClientAccessRightsListener access_rights_listener;
     private volatile int sid = -1;
+    // For compatibility with earlier implementation,
+    // assume channels are writable until access_rights_listener tells otherwise
+    private AtomicBoolean is_writable = new AtomicBoolean(true);
 
     /** State
      *
@@ -79,11 +84,14 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
 
     private final CopyOnWriteArrayList<MonitorRequest> subscriptions = new CopyOnWriteArrayList<>();
 
-    PVAChannel(final PVAClient client, final String name, final ClientChannelListener listener)
+    PVAChannel(final PVAClient client, final String name,
+               final ClientChannelListener listener,
+               final ClientAccessRightsListener access_rights_listener)
     {
         super(CID_Provider.incrementAndGet(), name);
         this.client = client;
         this.listener = listener;
+        this.access_rights_listener = access_rights_listener;
     }
 
     PVAClient getClient()
@@ -119,6 +127,21 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
     public boolean isConnected()
     {
         return getState() == ClientChannelState.CONNECTED;
+    }
+
+    /** @return <code>true</code> if channel has write permissions */
+    public boolean isWritable()
+    {
+        return is_writable.get();
+    }
+
+    /** Called by AccessRightsChangeHandler
+     *  @param may_write Is channel writable?
+     */
+    void updateAccessRights(final boolean may_write)
+    {
+        if (is_writable.getAndSet(may_write) != may_write)
+            access_rights_listener.channelAccessRightsChanged(this, may_write);
     }
 
     /** Wait for channel to connect

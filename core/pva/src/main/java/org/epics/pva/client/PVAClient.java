@@ -40,11 +40,13 @@ import org.epics.pva.server.Guid;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class PVAClient implements AutoCloseable
 {
-    /** Default channel listener logs state changes */
+    /** Default channel state listener logs state changes */
     private static final ClientChannelListener DEFAULT_CHANNEL_LISTENER = (ch, state) ->  logger.log(Level.INFO, ch.toString());
+
+    /** Default channel access rights listener does nothing */
+    private static final ClientAccessRightsListener DEFAULT_ACCESS_RIGHTS_LISTENER = (ch, write) ->  {};
 
     private final ClientUDPHandler udp;
 
@@ -166,7 +168,23 @@ public class PVAClient implements AutoCloseable
      */
     public PVAChannel getChannel(final String channel_name, final ClientChannelListener listener)
     {
-        final PVAChannel channel = new PVAChannel(this, channel_name, listener);
+        return getChannel(channel_name, listener, DEFAULT_ACCESS_RIGHTS_LISTENER);
+    }
+
+    /** Create channel by name
+     *
+     *  <p>Starts search.
+     *
+     *  @param channel_name PVA channel name
+     *  @param state_listener {@link ClientChannelListener} that will be invoked with connection state updates
+     *  @param access_rights_listener {@link ClientAccessRightsListener} that will be invoked with access rights updates
+     *  @return {@link PVAChannel}
+     */
+    public PVAChannel getChannel(final String channel_name,
+                                 final ClientChannelListener state_listener,
+                                 final ClientAccessRightsListener access_rights_listener)
+    {
+        final PVAChannel channel = new PVAChannel(this, channel_name, state_listener, access_rights_listener);
         channels_by_id.putIfAbsent(channel.getCID(), channel);
 
         // Register with search
