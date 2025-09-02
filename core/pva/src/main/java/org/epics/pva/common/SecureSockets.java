@@ -191,7 +191,7 @@ public class SecureSockets
                 //
                 // #1: ObjectId: 1.3.6.1.4.1.37427.1 Criticality=false
                 // 0000: 43 45 52 54 3A 53 54 41   54 55 53 3A 64 30 62 62  CERT:STATUS:d0bb...
-               //
+                //
                 // Certificate[2]:
                 // Owner: OU=EPICS Certificate Authority, O=ca.epics.org, C=US, CN=EPICS Root CA
                 // Issuer: OU=EPICS Certificate Authority, O=ca.epics.org, C=US, CN=EPICS Root CA

@@ -12,14 +12,20 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.Objects;
 import java.util.logging.Level;
+
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 
 import org.epics.pva.common.CommandHandlers;
 import org.epics.pva.common.PVAAuth;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.RequestEncoder;
 import org.epics.pva.common.SearchResponse;
+import org.epics.pva.common.SecureSockets;
 import org.epics.pva.common.SecureSockets.TLSHandshakeInfo;
 import org.epics.pva.common.TCPHandler;
 import org.epics.pva.data.PVASize;
@@ -67,6 +73,30 @@ class ServerTCPHandler extends TCPHandler
         this.socket = Objects.requireNonNull(client);
         this.server = Objects.requireNonNull(server);
         this.tls_info = tls_info;
+
+        // Log client's security info
+        if (tls_info != null  &&
+            client instanceof SSLSocket socket  &&
+            logger.isLoggable(Level.FINE))
+        {
+            final SSLSession session = socket.getSession();
+            logger.log(Level.FINE, "Client name: '" + SecureSockets.getPrincipalCN(session.getPeerPrincipal()) + "'");
+            for (Certificate cert : session.getPeerCertificates())
+                if (cert instanceof X509Certificate x509)
+                {
+                    logger.log(Level.FINE, "* " + x509.getSubjectX500Principal());
+                    if (session.getPeerPrincipal().equals(x509.getSubjectX500Principal()))
+                        logger.log(Level.FINE, "  - Client CN");
+                    if (x509.getBasicConstraints() >= 0)
+                        logger.log(Level.FINE, "  - Certificate Authority");
+                    logger.log(Level.FINE, "  - Expires " + x509.getNotAfter());
+                    if (x509.getSubjectX500Principal().equals(x509.getIssuerX500Principal()))
+                        logger.log(Level.FINE, "  - Self-signed");
+
+                    byte[] value = x509.getExtensionValue("1.3.6.1.4.1.37427.1");
+                    logger.log(Level.FINE, "  - Status PV: " + SecureSockets.decodeDERString(value));
+                }
+        }
 
         server.register(this);
         startReceiver();
