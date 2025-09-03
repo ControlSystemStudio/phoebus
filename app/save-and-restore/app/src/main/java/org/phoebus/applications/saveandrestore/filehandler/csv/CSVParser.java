@@ -187,17 +187,19 @@ public class CSVParser extends CSVCommon {
 
                     csvParser.getTags().add(tag);
                 }
-            } else if (!line.startsWith(COMMENT_PREFIX) && csvParser.getColumnHeaders().isEmpty()) {
-                csvParser.analyzeColumnHeader(line);
-            } else {
-                String[] columns = csvParser.split(line);
-
-                Map<String, String> entry = new HashMap<>();
-                for (int index = 0; index < columns.length; index++) {
-                    entry.put(csvParser.getColumnHeaders().get(index), columns[index]);
+            } else if (!line.startsWith(COMMENT_PREFIX)) {
+                if(csvParser.getColumnHeaders().isEmpty()){
+                    csvParser.analyzeColumnHeader(line);
                 }
+                else {
+                    String[] columns = csvParser.split(line);
 
-                csvParser.getEntries().add(entry);
+                    Map<String, String> entry = new HashMap<>();
+                    for (int index = 0; index < columns.length; index++) {
+                        entry.put(csvParser.getColumnHeaders().get(index), columns[index]);
+                    }
+                    csvParser.getEntries().add(entry);
+                }
             }
         }
 
