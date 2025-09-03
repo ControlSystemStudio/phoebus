@@ -228,6 +228,10 @@ class ServerTCPListener
                             try
                             {
                                 tls_info = TLSHandshakeInfo.fromSocket((SSLSocket) client);
+                                logger.log(Level.FINE, "Client TLS info: " + tls_info);
+                                // TODO Monitor status PV, close connection when PV shows expired/revoked cert
+                                // if (! tls_info.status_pv_name.isEmpty()  /* &&  PVASettings.CHECK_CERT_STATUS */)
+                                //    logger.log(Level.INFO, "Should check " + tls_info.status_pv_name);
                             }
                             catch (SSLHandshakeException ssl)
                             {

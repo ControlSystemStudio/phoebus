@@ -276,6 +276,14 @@ public class SecureSockets
         /** Host of the peer */
         public String hostname;
 
+        /** PV for client certificate status */
+        public String status_pv_name;
+
+        @Override
+        public String toString()
+        {
+            return "Name " + name + ", host " + hostname + ", cert status PV " + status_pv_name;
+        }
 
         /** Get TLS/SSH info from socket
          *  @param socket {@link SSLSocket}
@@ -296,9 +304,40 @@ public class SecureSockets
 
             try
             {
+                // Log certificate chain, grep cert status PV name
+                String status_pv_name = "";
+                final SSLSession session = socket.getSession();
+                logger.log(Level.FINER, "Client name: '" + SecureSockets.getPrincipalCN(session.getPeerPrincipal()) + "'");
+                for (Certificate cert : session.getPeerCertificates())
+                    if (cert instanceof X509Certificate x509)
+                    {
+                        // Is this the cert for the client principal, or one of the authorities?
+                        boolean is_principal_cert = false;
+
+                        logger.log(Level.FINER, "* " + x509.getSubjectX500Principal());
+                        if (session.getPeerPrincipal().equals(x509.getSubjectX500Principal()))
+                        {
+                            logger.log(Level.FINER, "  - Client CN");
+                            is_principal_cert = true;
+                        }
+                        if (x509.getBasicConstraints() >= 0)
+                            logger.log(Level.FINER, "  - Certificate Authority");
+                        logger.log(Level.FINER, "  - Expires " + x509.getNotAfter());
+                        if (x509.getSubjectX500Principal().equals(x509.getIssuerX500Principal()))
+                            logger.log(Level.FINER, "  - Self-signed");
+
+                        byte[] value = x509.getExtensionValue("1.3.6.1.4.1.37427.1");
+                        String pv_name = SecureSockets.decodeDERString(value);
+                        logger.log(Level.FINER, "  - Status PV: " + pv_name);
+
+                        if (is_principal_cert  &&  pv_name != null  &&  !pv_name.isBlank())
+                            status_pv_name = pv_name;
+                    }
+
+
                 // No way to check if there is peer info (certificates, principal, ...)
                 // other then success vs. exception..
-                final Principal principal = socket.getSession().getPeerPrincipal();
+                final Principal principal = session.getPeerPrincipal();
                 String name = getPrincipalCN(principal);
                 if (name == null)
                 {
@@ -309,6 +348,7 @@ public class SecureSockets
                 final TLSHandshakeInfo info = new TLSHandshakeInfo();
                 info.name = name;
                 info.hostname = socket.getInetAddress().getHostName();
+                info.status_pv_name = status_pv_name;
 
                 return info;
             }
