@@ -146,7 +146,8 @@ public class WebSocketClientService {
     }
 
     /**
-     *
+     * Attempts to connect to the remote peer, both in initial connection and in a reconnection scenario.
+     * If connection fails, new attempts are made every 10s until successful.
      */
     private void doConnect() {
         attemptReconnect.set(true);

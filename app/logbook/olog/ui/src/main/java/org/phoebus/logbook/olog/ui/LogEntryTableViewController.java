@@ -413,7 +413,6 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                 },
                 (msg, ex) -> {
                     searchInProgress.set(false);
-                    //ExceptionDetailsErrorDialog.openError(Messages.LogbooksSearchFailTitle, ex.getMessage(), null);
                 });
     }
 

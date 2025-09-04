@@ -555,9 +555,6 @@ public class LogEntryEditorController {
         getServerSideStaticData();
 
         setupTextAreaContextMenu();
-
-        //doStompStuff();
-
     }
 
     /**
@@ -1078,42 +1075,6 @@ public class LogEntryEditorController {
             levelSelector.getSelectionModel().select(0);
             selectedTags.forEach(t -> updateDropDown(tagDropDown, t, false));
             selectedLogbooks.forEach(l -> updateDropDown(logbookDropDown, l, false));
-        }
-    }
-
-    private void doStompStuff(){
-        WebSocketClient webSocketClient = new StandardWebSocketClient();
-        WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
-        stompClient.setMessageConverter(new StringMessageConverter());
-        String url = "ws://localhost:8080/web-socket";
-        StompSessionHandler sessionHandler = new MyStompSessionHandler();
-        try {
-            StompSession stompSession = stompClient.connect(url, sessionHandler).get();
-            stompSession.subscribe("/messages", new StompFrameHandler() {
-                @Override
-                public Type getPayloadType(StompHeaders headers) {
-                    return String.class;
-                }
-
-                @Override
-                public void handleFrame(StompHeaders headers, Object payload) {
-                    System.out.println(payload);
-                }
-            });
-            StompSession.Receiptable receiptable = stompSession.send("/websocket/echo", "Hello World");
-            receiptable.getReceiptId();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static class MyStompSessionHandler extends StompSessionHandlerAdapter {
-
-        @Override
-        public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-            System.out.println();
         }
     }
 }
