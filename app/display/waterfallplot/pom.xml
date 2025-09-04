@@ -30,6 +30,17 @@
             <groupId>io.fair-acc</groupId>
             <artifactId>chartfx</artifactId>
             <version>11.3.1</version>
+            <exclusions>
+                <!-- Use the Phoebus versions of javafx-base and javafx-controls: -->
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-base</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-controls</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
