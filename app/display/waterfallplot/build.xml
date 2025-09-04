@@ -1,8 +1,8 @@
-<project default="app-waterfall-plot">
+<project default="app-display-waterfallplot">
   <import file="../../dependencies/ant_settings.xml"/>
 
-  <target name="app-waterfall-plot" depends="compile-app">
-    <jar destfile="${build}/app-waterfall-plot-${version}.jar">
+  <target name="app-display-waterfallplot" depends="compile-app">
+    <jar destfile="${build}/app-display-waterfallplot-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
