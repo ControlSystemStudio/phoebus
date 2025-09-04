@@ -34,11 +34,14 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import org.phoebus.core.websocket.WebSocketMessageHandler;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -57,7 +60,6 @@ import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,7 +77,7 @@ import java.util.stream.Collectors;
  *
  * @author Kunal Shroff
  */
-public class LogEntryTableViewController extends LogbookSearchController {
+public class LogEntryTableViewController extends LogbookSearchController implements WebSocketMessageHandler {
 
     @FXML
     @SuppressWarnings("unused")
@@ -111,20 +113,29 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @SuppressWarnings("unused")
     private TextField pageSizeTextField;
 
+    @SuppressWarnings("unused")
+    @FXML
+    private Pane logDetailView;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private VBox errorPane;
+
     @FXML
     @SuppressWarnings("unused")
     private Label openAdvancedSearchLabel;
     // Model
     private SearchResult searchResult;
+
     /**
      * List of selected log entries
      */
     private final ObservableList<LogEntry> selectedLogEntries = FXCollections.observableArrayList();
-    private final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
+    private static final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
 
     private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty advancedSearchVisible = new SimpleBooleanProperty(false);
 
-    private final SimpleBooleanProperty advancedSearchVisibile = new SimpleBooleanProperty(false);
 
     /**
      * Constructor.
@@ -156,7 +167,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
     protected Optional<LogEntryTable.GoBackAndGoForwardActions> goBackAndGoForwardActions = Optional.empty();
 
     @FXML
+    @Override
     public void initialize() {
+        super.initialize();
 
         logEntryDisplayController.setLogEntryTableViewController(this);
 
@@ -170,6 +183,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         });
 
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        tableView.visibleProperty().bind(serviceConnected);
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> createLogEntryGroup());
@@ -317,11 +331,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
         openAdvancedSearchLabel.setOnMouseClicked(e -> resize());
 
         openAdvancedSearchLabel.textProperty()
-                .bind(Bindings.createStringBinding(() -> advancedSearchVisibile.get() ?
+                .bind(Bindings.createStringBinding(() -> advancedSearchVisible.get() ?
                                 Messages.AdvancedSearchHide : Messages.AdvancedSearchOpen,
-                        advancedSearchVisibile));
+                        advancedSearchVisible));
 
-        search();
+        logDetailView.disableProperty().bind(serviceConnected.not());
+
+        connectWebSocket();
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -333,13 +349,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
         if (!moving.compareAndExchangeAcquire(false, true)) {
             Duration cycleDuration = Duration.millis(400);
             Timeline timeline;
-            if (advancedSearchVisibile.get()) {
+            if (advancedSearchVisible.get()) {
                 query.disableProperty().set(false);
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), 0);
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().maxWidthProperty(), 0);
                 timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.setOnFinished(event -> {
-                    advancedSearchVisibile.set(false);
+                    advancedSearchVisible.set(false);
                     moving.set(false);
                     search();
                 });
@@ -350,7 +366,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().prefWidthProperty(), width);
                 timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.setOnFinished(event -> {
-                    advancedSearchVisibile.set(true);
+                    advancedSearchVisible.set(true);
                     moving.set(false);
                     query.disableProperty().set(true);
                 });
@@ -364,6 +380,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
      * the UI is updated and a periodic search is launched using the same query. If on the other hand
      * the search fails (service off-line or invalid query), a periodic search is NOT launched.
      */
+    @Override
     public void search() {
         // In case the page size text field is empty, or the value is zero, set the page size to the default
         if ("".equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
@@ -388,8 +405,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 searchResult1 -> {
                     searchInProgress.set(false);
                     setSearchResult(searchResult1);
-                    logger.log(Level.INFO, "Starting periodic search: " + queryString);
-                    periodicSearch(params, this::setSearchResult);
                     List<OlogQuery> queries = ologQueryManager.getQueries();
                     Platform.runLater(() -> {
                         ologQueries.setAll(queries);
@@ -398,7 +413,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 },
                 (msg, ex) -> {
                     searchInProgress.set(false);
-                    ExceptionDetailsErrorDialog.openError(Messages.LogbooksSearchFailTitle, ex.getMessage(), null);
                 });
     }
 
