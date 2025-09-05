@@ -83,6 +83,8 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         horizontal = model_widget.propHorizontal().getValue();
         addLEDs(pane);
         pane.setManaged(false);
+        Platform.runLater(() -> pane.layout());
+
         return pane;
     }
 
@@ -428,20 +430,25 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 for (int i = 0; i < N; i++)
                 {
                     leds[i].setFill(save_values[i]);
-                    if (save_labels[i] != null && square_led)
-                    {
-                        // Compare brightness of LED with text.
-                        final double brightness = Brightness.of(save_values[i]);
-                        if (Math.abs(text_brightness - brightness) < Brightness.SIMILARITY_THRESHOLD)
-                        {   // Colors of text and LED are very close in brightness.
-                            // Make text visible by forcing black resp. white
-                            if (brightness > Brightness.BRIGHT_THRESHOLD)
-                                save_labels[i].setTextFill(Color.BLACK);
+                    if (save_labels[i] != null) {
+                        if (square_led)
+                        {
+                            // Compare brightness of LED with text.
+                            final double brightness = Brightness.of(save_values[i]);
+                            if (Math.abs(text_brightness - brightness) < Brightness.SIMILARITY_THRESHOLD)
+                            {   // Colors of text and LED are very close in brightness.
+                                // Make text visible by forcing black resp. white
+                                if (brightness > Brightness.BRIGHT_THRESHOLD)
+                                    save_labels[i].setTextFill(Color.BLACK);
+                                else
+                                    save_labels[i].setTextFill(Color.WHITE);
+                            }
                             else
-                                save_labels[i].setTextFill(Color.WHITE);
+                                save_labels[i].setTextFill(text_color);
                         }
-                        else
+                        else {
                             save_labels[i].setTextFill(text_color);
+                        }
                         save_labels[i].layout();
                     }
                 }
