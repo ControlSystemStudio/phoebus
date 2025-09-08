@@ -122,6 +122,14 @@ public class WebSocketClientService {
     }
 
     /**
+     * Disconnects the socket if connected and terminates connection thread.
+     */
+    public void shutdown(){
+        disconnect();
+        attemptReconnect.set(false);
+    }
+
+    /**
      * Attempts to connect to remote web socket.
      *
      * @param baseUrl The &quot;base&quot; URL of the web socket peer, must start with ws:// or wss://. Note that &quot;web-socket&quot; will be

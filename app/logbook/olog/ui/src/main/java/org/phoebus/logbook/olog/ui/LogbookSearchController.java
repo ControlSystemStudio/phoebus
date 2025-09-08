@@ -87,8 +87,8 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
      */
     public void shutdown() {
         if (webSocketClientService != null) {
-            Logger.getLogger(LogbookSearchController.class.getName()).log(Level.INFO, "Disconnecting from web socket");
-            webSocketClientService.disconnect();
+            Logger.getLogger(LogbookSearchController.class.getName()).log(Level.INFO, "Shutting down web socket");
+            webSocketClientService.shutdown();
         }
     }
 
