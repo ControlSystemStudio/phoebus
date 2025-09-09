@@ -260,6 +260,7 @@ public class Messages
                          WidgetProperties_LineColor,
                          WidgetProperties_LineWidth,
                          WidgetProperties_Locale,
+                         WidgetProperties_LogScale,
                          WidgetProperties_Macros,
                          WidgetProperties_MajorTickSpace,
                          WidgetProperties_MajorTickStepHint,
