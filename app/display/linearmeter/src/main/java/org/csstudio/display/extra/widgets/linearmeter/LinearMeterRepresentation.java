@@ -109,6 +109,11 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
         addUntypedWidgetPropertyListener(model_widget.propFont(), layoutChangedListener);
         addUntypedWidgetPropertyListener(model_widget.propNeedleColor(), layoutChangedListener);
 
+        addWidgetPropertyListener(model_widget.propLogScale(), (property, oldValue, newValue) -> {
+            meter.setLogScale(newValue);
+            layoutChanged(null, null, null);
+        });
+
         addWidgetPropertyListener(model_widget.propShowWarnings(), (property, oldValue, newValue) -> {
             meter.setShowWarnings(newValue);
             layoutChanged(null, null, null);
