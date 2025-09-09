@@ -301,7 +301,6 @@ public class RTLinearMeter extends ImageView
     public void setLogScale(boolean logScale) {
         withWriteLock(() -> {
             linearMeterScale.setLogarithmic(logScale);
-            redraw();
         });
     }
 
