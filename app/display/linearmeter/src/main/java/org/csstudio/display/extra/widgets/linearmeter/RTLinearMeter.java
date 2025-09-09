@@ -91,7 +91,8 @@ public class RTLinearMeter extends ImageView
                          Color needleColor,
                          int knobSize,
                          Color knobColor,
-                         boolean showWarnings)
+                         boolean showWarnings,
+                         boolean logScale)
     {
         if (warningTriangle == null) {
             try {
