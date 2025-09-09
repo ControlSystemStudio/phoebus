@@ -38,7 +38,6 @@ import java.util.List;
 public abstract class SaveAndRestoreTab extends Tab implements WebSocketMessageHandler {
 
     protected SaveAndRestoreBaseController controller;
-    protected WebSocketClientService webSocketClientService;
 
     public SaveAndRestoreTab() {
         ContextMenu contextMenu = new ContextMenu();
@@ -63,17 +62,13 @@ public abstract class SaveAndRestoreTab extends Tab implements WebSocketMessageH
         contextMenu.getItems().addAll(closeAll, closeOthers);
         setContextMenu(contextMenu);
 
-        webSocketClientService = WebSocketClientService.getInstance();
-
         setOnCloseRequest(event -> {
-            if (!controller.handleTabClosed()) {
-                event.consume();
+            if (doCloseCheck()) {
+                handleTabClosed();
             } else {
-                webSocketClientService.removeWebSocketMessageHandler(this);
+                event.consume();
             }
         });
-
-        webSocketClientService.addWebSocketMessageHandler(this);
     }
 
     /**
@@ -88,5 +83,20 @@ public abstract class SaveAndRestoreTab extends Tab implements WebSocketMessageH
     @Override
     public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
 
+    }
+
+    /**
+     * Performs suitable cleanup, e.g. close web socket and PVs (where applicable).
+     */
+    public void handleTabClosed() {
+        controller.handleTabClosed();
+    }
+
+    /**
+     * Checks if the tab may be closed, e.g. if data managed in the UI has been saved.
+     * @return <code>false</code> if tab contains unsaved data, otherwise <code>true</code>
+     */
+    public boolean doCloseCheck() {
+        return controller.doCloseCheck();
     }
 }

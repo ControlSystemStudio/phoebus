@@ -19,19 +19,11 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.paint.Color;
-import org.phoebus.saveandrestore.util.Utilities;
-import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
-import org.phoebus.ui.Preferences;
+import org.phoebus.saveandrestore.util.Utilities;
+import org.phoebus.saveandrestore.util.VNoData;
 
 import java.util.Formatter;
 
@@ -44,8 +36,6 @@ import java.util.Formatter;
  */
 public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
 
-    private static final Image WARNING_IMAGE = new Image(
-            SnapshotController.class.getResourceAsStream("/icons/hprio_tsk.png"));
     private final Tooltip tooltip = new Tooltip();
 
     private boolean showDeltaPercentage = false;
@@ -92,10 +82,9 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
                         setText(vtc.getString());
                     }
                     if (!vtc.isWithinThreshold()) {
-                        setGraphic(new ImageView(WARNING_IMAGE));
+                        setStyle(TableCellColors.ALARM_MAJOR_STYLE);
                     }
                 }
-
                 tooltip.setText(item.toString());
                 setTooltip(tooltip);
             }

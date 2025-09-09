@@ -104,7 +104,7 @@
                                         <PropertyValueFactory property="path"/>
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn prefWidth="${parent.width * 0.3}" text="%snapshotDescription"
+                                <TableColumn fx:id="snapshotDescriptionColumn" prefWidth="${parent.width * 0.3}" text="%snapshotDescription"
                                              editable="false">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="description"/>

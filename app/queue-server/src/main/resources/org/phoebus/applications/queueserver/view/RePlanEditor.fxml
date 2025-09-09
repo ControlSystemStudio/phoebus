@@ -19,23 +19,23 @@
             </columns>
         </TableView>
         <HBox alignment="CENTER_LEFT" layoutY="1.0" spacing="10.0" AnchorPane.leftAnchor="0.0">
-         <children>
-            <RadioButton fx:id="planRadBtn" mnemonicParsing="false" text="Plan" />
-            <RadioButton fx:id="instrRadBtn" mnemonicParsing="false" text="Instruction" />
-            <ChoiceBox fx:id="choiceBox" />
-         </children>
+            <children>
+                <RadioButton fx:id="planRadBtn" mnemonicParsing="false" text="Plan" />
+                <RadioButton fx:id="instrRadBtn" mnemonicParsing="false" text="Instruction" />
+                <ChoiceBox fx:id="choiceBox" />
+            </children>
         </HBox>
         <HBox alignment="CENTER_LEFT" layoutY="194.0" spacing="7.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
             <children>
-            <Button fx:id="batchBtn" mnemonicParsing="false" text="Batch Upload" />
-            <HBox alignment="CENTER_RIGHT" spacing="7.0" HBox.hgrow="ALWAYS">
-               <children>
-                      <Button fx:id="addBtn" mnemonicParsing="false" text="Add to Queue" />
-                      <Button fx:id="saveBtn" mnemonicParsing="false" prefWidth="80.0" text="Save" />
-                  <Button fx:id="resetBtn" mnemonicParsing="false" prefWidth="80.0" text="Reset" />
-                  <Button fx:id="cancelBtn" mnemonicParsing="false" prefWidth="80.0" text="Cancel" />
-               </children>
-            </HBox>
+                <Button fx:id="batchBtn" mnemonicParsing="false" text="Batch Upload" />
+                <HBox alignment="CENTER_RIGHT" spacing="7.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Button fx:id="addBtn" mnemonicParsing="false" text="Add to Queue" />
+                        <Button fx:id="saveBtn" mnemonicParsing="false" prefWidth="80.0" text="Save" />
+                        <Button fx:id="resetBtn" mnemonicParsing="false" prefWidth="80.0" text="Reset" />
+                        <Button fx:id="cancelBtn" mnemonicParsing="false" prefWidth="80.0" text="Cancel" />
+                    </children>
+                </HBox>
             </children>
             <padding>
                 <Insets top="6.0" />

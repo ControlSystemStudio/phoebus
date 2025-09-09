@@ -158,6 +158,11 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
+            <artifactId>app-display-waterfallplot</artifactId>
+            <version>5.0.3-SNAPSHOT</version>
+        </dependency>	
+        <dependency>
+            <groupId>org.phoebus</groupId>
             <artifactId>app-display-editor</artifactId>
             <version>5.0.3-SNAPSHOT</version>
         </dependency>

@@ -937,11 +937,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     @Override
-    public boolean handleTabClosed() {
+    public void handleTabClosed() {
+        tabPane.getTabs().forEach(t -> ((SaveAndRestoreTab)t).handleTabClosed());
         saveLocalState();
         webSocketClientService.closeWebSocket();
         filterActivators.forEach(FilterActivator::stop);
-        return true;
     }
 
     /**
@@ -1436,7 +1436,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage saveAndRestoreWebSocketMessage) {
+    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
         switch (saveAndRestoreWebSocketMessage.messageType()) {
             case NODE_ADDED -> nodeAdded((String) saveAndRestoreWebSocketMessage.payload());
             case NODE_REMOVED -> nodeRemoved((String) saveAndRestoreWebSocketMessage.payload());
@@ -1495,5 +1495,15 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private void handleWebSocketDisconnected() {
         serviceConnected.setValue(false);
         saveLocalState();
+    }
+
+    @Override
+    public boolean doCloseCheck(){
+        for(Tab tab : tabPane.getTabs()){
+            if(!((SaveAndRestoreTab)tab).doCloseCheck()){
+                return false;
+            }
+        }
+        return true;
     }
 }

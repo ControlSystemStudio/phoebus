@@ -75,12 +75,4 @@ public class SearchAndFilterTab extends SaveAndRestoreTab {
         setText(Messages.search);
         setGraphic(new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search_18x18.png")));
     }
-
-    public void filterActivated(String filterName){
-        ((SearchAndFilterViewController)controller).filterActivated(filterName);
-    }
-
-    public void filterDeactivated(String filterName){
-        ((SearchAndFilterViewController)controller).filterDeactivated(filterName);
-    }
 }
