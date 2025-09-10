@@ -163,7 +163,7 @@ public class DAOTestIT {
         config = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), config);
         Node snapshot = nodeDAO.createNode(config.getUniqueId(), Node.builder().name("node").nodeType(NodeType.SNAPSHOT).build());
 
-        nodeDAO.deleteNode(topLevelFolderNode.getUniqueId());
+        nodeDAO.deleteNodes(List.of(topLevelFolderNode.getUniqueId()));
 
         try {
             nodeDAO.getNode(config.getUniqueId());
@@ -211,7 +211,7 @@ public class DAOTestIT {
         Node config = nodeDAO.createNode(folder1.getUniqueId(),
                 Node.builder().nodeType(NodeType.CONFIGURATION).name("Config").build());
 
-        nodeDAO.deleteNode(folder1.getUniqueId());
+        nodeDAO.deleteNodes(List.of(folder1.getUniqueId()));
         root = nodeDAO.getNode(rootNode.getUniqueId());
         assertTrue(root.getLastModified().getTime() > rootLastModified.getTime());
         try {
@@ -230,7 +230,7 @@ public class DAOTestIT {
 
     @Test
     public void testDeleteRootFolder() {
-        assertThrows(IllegalArgumentException.class, () -> nodeDAO.deleteNode(nodeDAO.getRootNode().getUniqueId()));
+        assertThrows(IllegalArgumentException.class, () -> nodeDAO.deleteNodes(List.of(nodeDAO.getRootNode().getUniqueId())));
     }
 
     @Test
@@ -320,9 +320,9 @@ public class DAOTestIT {
 
         compositeSnapshot = nodeDAO.createCompositeSnapshot(topLevelFolderNode.getUniqueId(), compositeSnapshot);
 
-        assertThrows(RuntimeException.class, () -> nodeDAO.deleteNode(snapshotNode.getUniqueId()));
+        assertThrows(RuntimeException.class, () -> nodeDAO.deleteNodes(List.of(snapshotNode.getUniqueId())));
 
-        nodeDAO.deleteNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
+        nodeDAO.deleteNodes(List.of((compositeSnapshot.getCompositeSnapshotNode().getUniqueId())));
     }
 
     @Test
@@ -402,7 +402,7 @@ public class DAOTestIT {
         assertEquals("Updated description", compositeSnapshot.getCompositeSnapshotNode().getDescription());
         assertEquals(2, compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes().size());
 
-        nodeDAO.deleteNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
+        nodeDAO.deleteNodes(List.of(compositeSnapshot.getCompositeSnapshotNode().getUniqueId()));
 
     }
 
@@ -455,7 +455,7 @@ public class DAOTestIT {
 
         assertEquals(20, all.size());
 
-        compositeSnapshotNodeIds.forEach(id -> nodeDAO.deleteNode(id));
+        compositeSnapshotNodeIds.forEach(id -> nodeDAO.deleteNodes(List.of(id)));
 
     }
 
@@ -502,7 +502,7 @@ public class DAOTestIT {
         List<Node> snapshots = nodeDAO.getSnapshots(config.getUniqueId());
         assertEquals(1, snapshots.size());
 
-        nodeDAO.deleteNode(snapshot.getSnapshotNode().getUniqueId());
+        nodeDAO.deleteNodes(List.of(snapshot.getSnapshotNode().getUniqueId()));
 
         snapshots = nodeDAO.getSnapshots(config.getUniqueId());
         assertTrue(snapshots.isEmpty());
@@ -1584,8 +1584,8 @@ public class DAOTestIT {
         // Make sure referenced nodes have been copied to copied composite snapshot
         assertEquals(1, nodeDAO.getCompositeSnapshotData(childNodes.get(0).getUniqueId()).getReferencedSnapshotNodes().size());
 
-        nodeDAO.deleteNode(childNodes.get(0).getUniqueId());
-        nodeDAO.deleteNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
+        nodeDAO.deleteNodes(List.of(childNodes.get(0).getUniqueId()));
+        nodeDAO.deleteNodes(List.of(compositeSnapshot.getCompositeSnapshotNode().getUniqueId()));
     }
 
     @Test
@@ -1648,7 +1648,7 @@ public class DAOTestIT {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.copyNodes(List.of(compositeSnapshotId), config2Id, "user"));
 
-        nodeDAO.deleteNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
+        nodeDAO.deleteNodes(List.of(compositeSnapshot.getCompositeSnapshotNode().getUniqueId()));
     }
 
     @Test
@@ -1660,14 +1660,14 @@ public class DAOTestIT {
         folderNode.setNodeType(NodeType.FOLDER);
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
-        nodeDAO.deleteNode(folderNode.getUniqueId());
+        nodeDAO.deleteNodes(List.of(folderNode.getUniqueId()));
         assertTrue(nodeDAO.getChildNodes(rootNode.getUniqueId()).isEmpty());
     }
 
     @Test
     public void testDeleteNodeInvalid() {
         assertThrows(NodeNotFoundException.class,
-                () -> nodeDAO.deleteNode("invalid"));
+                () -> nodeDAO.deleteNodes(List.of("invalid")));
     }
 
     @Test
@@ -1684,7 +1684,7 @@ public class DAOTestIT {
         folderNode2.setNodeType(NodeType.FOLDER);
         nodeDAO.createNode(folderNode.getUniqueId(), folderNode2);
 
-        nodeDAO.deleteNode(folderNode.getUniqueId());
+        nodeDAO.deleteNodes(List.of(folderNode.getUniqueId()));
         assertTrue(nodeDAO.getChildNodes(rootNode.getUniqueId()).isEmpty());
     }
 
@@ -1986,7 +1986,7 @@ public class DAOTestIT {
         assertEquals(1, duplicates.size());
         assertEquals("pv1", duplicates.get(0));
 
-        nodeDAO.deleteNode(compositeSnapshotNode.getUniqueId());
+        nodeDAO.deleteNodes(List.of(compositeSnapshotNode.getUniqueId()));
     }
 
     @Test
@@ -2152,7 +2152,7 @@ public class DAOTestIT {
 
         assertEquals(4, snapshotItems.size());
 
-        nodeDAO.deleteNode(compositeSnapshotNode.getUniqueId());
+        nodeDAO.deleteNodes(List.of(compositeSnapshotNode.getUniqueId()));
     }
 
     @Test
@@ -2268,7 +2268,7 @@ public class DAOTestIT {
     }
 
     @Test
-    public void testSnapshotContainedInCompositeSnapshot() throws Exception{
+    public void testSnapshotContainedInCompositeSnapshot(){
         Node rootNode = nodeDAO.getRootNode();
         Node folderNode =
                 Node.builder().name("folder").build();
@@ -2339,17 +2339,17 @@ public class DAOTestIT {
                 snapshot2.getSnapshotNode().getUniqueId()));
         compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
 
-        compositeSnapshot = nodeDAO.createCompositeSnapshot(folderNode.getUniqueId(), compositeSnapshot);
+        nodeDAO.createCompositeSnapshot(folderNode.getUniqueId(), compositeSnapshot);
         //************  End create composite snapshot ************/
 
         MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<>();
-        searchParameters.put("containedin", List.of(newSnapshot1.getUniqueId()));
+        searchParameters.put("referenced", List.of(newSnapshot1.getUniqueId()));
         searchParameters.put("from", List.of("0"));
         searchParameters.put("size", List.of("100"));
 
-        List<Node> nodes = nodeDAO.containedInCompositeSnapshot(searchParameters);
+        List<Node> nodes = nodeDAO.search(searchParameters).getNodes();
 
-        assertEquals(nodes.size(), 1);
+        assertEquals( 1, nodes.size());
 
         //************  Create another composite snapshot ************/
         Node compositeSnapshotNode2 = Node.builder().name("My composite snapshot 2").nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
@@ -2367,21 +2367,22 @@ public class DAOTestIT {
         nodeDAO.createCompositeSnapshot(folderNode.getUniqueId(), compositeSnapshot2);
         //************  End create another composite snapshot ************/
 
-        nodes = nodeDAO.containedInCompositeSnapshot(searchParameters);
+        nodes = nodeDAO.search(searchParameters).getNodes();
 
-        assertEquals(nodes.size(), 2);
+        assertEquals(2, nodes.size());
 
-        searchParameters.put("containedin", List.of("non-existing"));
+        searchParameters.put("referenced", List.of("non-existing"));
 
-        nodes = nodeDAO.containedInCompositeSnapshot(searchParameters);
+        nodes = nodeDAO.search(searchParameters).getNodes();
 
-        assertEquals(nodes.size(), 0);
+        assertEquals(0, nodes.size());
 
-        searchParameters.put("containedin", Collections.emptyList());
+        searchParameters.put("referenced", Collections.emptyList());
+        nodes = nodeDAO.search(searchParameters).getNodes();
 
-        assertThrows(IllegalArgumentException.class, () -> nodeDAO.containedInCompositeSnapshot(searchParameters));
+        assertTrue(nodes.isEmpty());
 
-        nodeDAO.deleteNode(compositeSnapshotNode.getUniqueId());
-        nodeDAO.deleteNode(compositeSnapshotNode2.getUniqueId());
+        nodeDAO.deleteNodes(List.of(compositeSnapshotNode.getUniqueId()));
+        nodeDAO.deleteNodes(List.of(compositeSnapshotNode2.getUniqueId()));
     }
 }

@@ -131,15 +131,6 @@ public class ElasticsearchDAO implements NodeDAO {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
-    public void deleteNode(String nodeId) {
-        deleteNodes(List.of(nodeId));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void deleteNodes(List<String> nodeIds) {
         List<Node> nodesToDelete = new ArrayList<>();
         for (String nodeId : nodeIds) {
@@ -1113,7 +1104,15 @@ public class ElasticsearchDAO implements NodeDAO {
             augmented.putAll(searchParameters);
             augmented.put("uniqueid", uniqueIds);
             return elasticsearchTreeRepository.search(augmented);
-        } else {
+        }
+        // Did client specify search for references of a node?
+        else if(searchParameters.keySet().stream().anyMatch(k -> k.strip().toLowerCase().contains("referenced"))){
+            if(searchParameters.get("referenced").isEmpty()){
+                return new SearchResult(0, Collections.emptyList());
+            }
+            return compositeSnapshotDataRepository.referenced(searchParameters);
+        }
+        else {
             return elasticsearchTreeRepository.search(searchParameters);
         }
     }
@@ -1288,17 +1287,5 @@ public class ElasticsearchDAO implements NodeDAO {
             int index2 = Integer.parseInt(s2.substring(copyIndex2 + 5));
             return index1 - index2;
         }
-    }
-
-    public List<Node> containedInCompositeSnapshot(MultiValueMap<String, String> searchParameters){
-        List<CompositeSnapshotData> compositeSnapshotDataList = compositeSnapshotDataRepository.containedIn(searchParameters);
-        List<String> compositeSnapshotIds = compositeSnapshotDataList.stream().map(CompositeSnapshotData::getUniqueId).toList();
-
-        Iterable<ESTreeNode> esTreeNodes = elasticsearchTreeRepository.findAllById(compositeSnapshotIds);
-
-        List<Node> list = new ArrayList<>();
-        esTreeNodes.iterator().forEachRemaining(es -> list.add(es.getNode()));
-
-        return list;
     }
 }
