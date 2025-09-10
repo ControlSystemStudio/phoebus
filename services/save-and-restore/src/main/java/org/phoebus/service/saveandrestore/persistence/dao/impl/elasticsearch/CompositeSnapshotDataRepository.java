@@ -22,6 +22,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchPhraseQuery;
 import co.elastic.clients.elasticsearch.core.CountRequest;
 import co.elastic.clients.elasticsearch.core.CountResponse;
 import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
@@ -40,12 +41,15 @@ import co.elastic.clients.transport.endpoints.BooleanResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
+import org.phoebus.service.saveandrestore.model.ESTreeNode;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -62,12 +66,16 @@ import java.util.stream.Collectors;
 @Repository
 public class CompositeSnapshotDataRepository implements CrudRepository<CompositeSnapshotData, String> {
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
     private String ES_COMPOSITE_SNAPSHOT_INDEX;
 
     @Autowired
     @Qualifier("client")
     ElasticsearchClient client;
+
+    @Autowired
+    private SearchUtil searchUtil;
 
     private final Logger logger = Logger.getLogger(CompositeSnapshotDataRepository.class.getName());
 
@@ -231,6 +239,18 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
             logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " CompositeSnapshot objects");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to delete all CompositeSnapshot objects", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<CompositeSnapshotData> containedIn(MultiValueMap<String, String> searchParameters){
+
+        SearchRequest searchRequest = searchUtil.buildSearchRequest(searchParameters);
+        try {
+            SearchResponse<CompositeSnapshotData> response = client.search(searchRequest, CompositeSnapshotData.class);
+            return response.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to search for referenced snapshot nodes", e);
             throw new RuntimeException(e);
         }
     }

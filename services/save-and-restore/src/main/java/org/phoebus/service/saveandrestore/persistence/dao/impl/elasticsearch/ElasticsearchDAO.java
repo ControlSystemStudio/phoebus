@@ -1289,4 +1289,16 @@ public class ElasticsearchDAO implements NodeDAO {
             return index1 - index2;
         }
     }
+
+    public List<Node> containedInCompositeSnapshot(MultiValueMap<String, String> searchParameters){
+        List<CompositeSnapshotData> compositeSnapshotDataList = compositeSnapshotDataRepository.containedIn(searchParameters);
+        List<String> compositeSnapshotIds = compositeSnapshotDataList.stream().map(CompositeSnapshotData::getUniqueId).toList();
+
+        Iterable<ESTreeNode> esTreeNodes = elasticsearchTreeRepository.findAllById(compositeSnapshotIds);
+
+        List<Node> list = new ArrayList<>();
+        esTreeNodes.iterator().forEachRemaining(es -> list.add(es.getNode()));
+
+        return list;
+    }
 }

@@ -44,6 +44,9 @@ public class SearchUtil {
     @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
     private String ES_CONFIGURATION_INDEX;
     @SuppressWarnings("unused")
+    @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
+    private String ES_COMPOSITE_SNAPSHOT_INDEX;
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.result.size.search.default:100}")
     private int defaultSearchSize;
     @SuppressWarnings("unused")
@@ -75,7 +78,8 @@ public class SearchUtil {
         LOG.info("  searchParameters: " + searchParameters);
 
         for (Entry<String, List<String>> parameter : searchParameters.entrySet()) {
-            switch (parameter.getKey().strip().toLowerCase()) {
+            String s = parameter.getKey().strip().toLowerCase();
+            switch (s) {
                 case "uniqueid":
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split("[|,;]")) {
@@ -211,6 +215,8 @@ public class SearchUtil {
                         from = Integer.parseInt(maxFrom.get());
                     }
                     break;
+                case "containedin":
+                    return buildSearchRequestForContainedIn(searchParameters);
                 default:
                     // Unsupported search parameters ignored
                     break;
@@ -384,5 +390,47 @@ public class SearchUtil {
         //...but remove empty strings, which are "leftovers" when quoted terms are removed
         terms.addAll(remaining.stream().filter(t -> t.length() > 0).collect(Collectors.toList()));
         return terms;
+    }
+
+    /**
+     * Constructs a {@link SearchRequest} search for composite snapshots containing a node id.
+     * @param searchParameters Map of search parameters where key &quot;containedin&quot; must be present and
+     *                         contain at least one value. Note however that only first value is considered.
+     *                         If no value is specified, an {@link IllegalArgumentException} is thrown.
+     * @return A suitable {@link SearchRequest}
+     */
+    private SearchRequest buildSearchRequestForContainedIn(MultiValueMap<String, String> searchParameters){
+        List<String> value = searchParameters.get("containedin");
+        if(value.isEmpty()){
+            throw new IllegalArgumentException("At least one value must be specified for 'containedin'");
+        }
+        int from = 0;
+        List<String> parameter = searchParameters.get("from");
+        if(parameter != null){
+            Optional<String> maxFrom = parameter.stream().max(Comparator.comparing(Integer::valueOf));
+            if (maxFrom.isPresent()) {
+                from = Integer.parseInt(maxFrom.get());
+            }
+        }
+        int size = maxSearchSize;
+        parameter = searchParameters.get("size");
+        if(parameter != null){
+            Optional<String> maxFrom = parameter.stream().max(Comparator.comparing(Integer::valueOf));
+            if (maxFrom.isPresent()) {
+                size = Integer.parseInt(maxFrom.get());
+            }
+        }
+
+        // Only consider first node id value if multiple are specified
+        String nodeId = value.get(0);
+        int _from = from;
+        int _size = size;
+        MatchPhraseQuery matchPhraseQuery = MatchPhraseQuery.of(m ->
+                m.field("referencedSnapshotNodes").query(nodeId));
+        return SearchRequest.of(s -> s.index(ES_COMPOSITE_SNAPSHOT_INDEX)
+                .query(matchPhraseQuery._toQuery())
+                .timeout("60s")
+                .from(_from)
+                .size(_size));
     }
 }
