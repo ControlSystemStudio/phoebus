@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.phoebus</groupId>
+    <artifactId>parent</artifactId>
+    <version>5.0.3-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>core-pv-influx2</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>epics-util</artifactId>
+      <version>${epics.util.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>vtype</artifactId>
+      <version>${vtype.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-pv</artifactId>
+      <version>5.0.3-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-framework</artifactId>
+      <version>5.0.3-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.influxdb</groupId>
+      <artifactId>influxdb-client-java</artifactId>
+      <version>${influxdb2Client.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>RELEASE</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.8.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>4.5.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>4.5.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <version>5.2.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

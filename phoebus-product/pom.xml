@@ -24,6 +24,11 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-influx2</artifactId>
+            <version>5.0.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
             <artifactId>core-pv-opva</artifactId>
             <version>5.0.3-SNAPSHOT</version>
         </dependency>
