@@ -83,8 +83,6 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         horizontal = model_widget.propHorizontal().getValue();
         addLEDs(pane);
         pane.setManaged(false);
-        Platform.runLater(() -> pane.layout());
-
         return pane;
     }
 
