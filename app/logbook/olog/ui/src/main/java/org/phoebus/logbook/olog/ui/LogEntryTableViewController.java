@@ -378,7 +378,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         Map<String, String> params =
                 LogbookQueryUtil.parseHumanReadableQueryString(ologQueryManager.getOrAddQuery(queryString).getQuery());
-        params.put("sort", advancedSearchViewController.getSortAscending().get() ? "up" : "down");
+        params.put("sort", advancedSearchViewController.getSortAscending() ? "up" : "down");
         params.put("from", Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         params.put("size", Integer.toString(pageSizeProperty.get()));
 
@@ -444,7 +444,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
 
                 List<LogEntry> logEntries = searchResult.getLogs();
-                logEntries.sort((o1, o2) -> -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
+                logEntries.sort((o1, o2) -> advancedSearchViewController.getSortAscending() ? o1.getCreatedDate().compareTo(o2.getCreatedDate()) :
+                        -(o1.getCreatedDate().compareTo(o2.getCreatedDate())));
 
                 boolean showDetailsBoolean = showDetails.get();
                 var logs = logEntries.stream().map(le -> new TableViewListItem(le, showDetailsBoolean)).toList();
