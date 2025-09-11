@@ -123,7 +123,7 @@ public class OlogClient implements LogClient {
         private ScopedAuthenticationToken getCredentialsFromSecureStore() {
             try {
                 SecureStore secureStore = new SecureStore();
-                return secureStore.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
+                return secureStore.getScopedAuthenticationToken(new OlogAuthenticationScope());
             } catch (Exception e) {
                 Logger.getLogger(OlogClient.class.getName()).log(Level.WARNING, "Unable to instantiate SecureStore", e);
                 return null;

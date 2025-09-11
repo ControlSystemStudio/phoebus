@@ -62,6 +62,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+
+import org.phoebus.applications.logbook.authentication.OlogAuthenticationScope;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 
 import javafx.util.Callback;
@@ -756,7 +758,7 @@ public class LogEntryEditorController {
                     try {
                         SecureStore store = new SecureStore();
                         ScopedAuthenticationToken scopedAuthenticationToken =
-                                new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, usernameProperty.get(), passwordProperty.get());
+                                new ScopedAuthenticationToken(new OlogAuthenticationScope(), usernameProperty.get(), passwordProperty.get());
                         store.setScopedAuthentication(scopedAuthenticationToken);
                     } catch (Exception ex) {
                         logger.log(Level.WARNING, "Secure Store file not found.", ex);
@@ -980,7 +982,7 @@ public class LogEntryEditorController {
             // Get the SecureStore. Retrieve username and password.
             try {
                 SecureStore store = new SecureStore();
-                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
+                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(new OlogAuthenticationScope());
                 // Could be accessed from JavaFX Application Thread when updating, so synchronize.
                 synchronized (usernameProperty) {
                     usernameProperty.set(scopedAuthenticationToken == null ? "" : scopedAuthenticationToken.getUsername());

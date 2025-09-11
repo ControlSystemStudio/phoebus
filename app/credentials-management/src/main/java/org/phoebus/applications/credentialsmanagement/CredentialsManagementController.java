@@ -53,22 +53,28 @@ import java.util.stream.Collectors;
  */
 public class CredentialsManagementController {
 
+    @SuppressWarnings("unused")
     @FXML
     private Node parent;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableView<ServiceItem> tableView;
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<ServiceItem, Void> actionButtonColumn;
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<ServiceItem, String> usernameColumn;
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<ServiceItem, String> passwordColumn;
+    @SuppressWarnings("unused")
     @FXML
     private Button clearAllCredentialsButton;
-
+    @SuppressWarnings("unused")
     @FXML
-    private TableColumn scopeColumn;
+    private TableColumn<ServiceItem, String> scopeColumn;
 
     private final SimpleBooleanProperty listEmpty = new SimpleBooleanProperty(true);
     private final ObservableList<ServiceItem> serviceItems =
@@ -84,10 +90,11 @@ public class CredentialsManagementController {
         this.secureStore = secureStore;
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void initialize() {
 
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        tableView.getStylesheets().add(getClass().getResource("/css/credentials-management-style.css").toExternalForm());
         clearAllCredentialsButton.disableProperty().bind(listEmpty);
         Callback<TableColumn<ServiceItem, Void>, TableCell<ServiceItem, Void>> actionColumnCellFactory = new Callback<>() {
             @Override
@@ -129,9 +136,12 @@ public class CredentialsManagementController {
         usernameColumn.setCellFactory(c -> new UsernameTableCell());
         passwordColumn.setCellFactory(c -> new PasswordTableCell());
 
+        scopeColumn.setStyle( "-fx-alignment: CENTER-LEFT;");
+
         updateTable();
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void logOutFromAll() {
         try {
@@ -181,19 +191,19 @@ public class CredentialsManagementController {
             // Match saved tokens with an authentication provider, where applicable
             List<ServiceItem> serviceItems = savedTokens.stream().map(token -> {
                 ServiceAuthenticationProvider provider =
-                        authenticationProviders.stream().filter(p-> p.getAuthenticationScope().equals(token.getAuthenticationScope())).findFirst().orElse(null);
+                        authenticationProviders.stream().filter(p-> p.getAuthenticationScope().getScope().equals(token.getAuthenticationScope().getScope())).findFirst().orElse(null);
                 return new ServiceItem(provider, token.getUsername(), token.getPassword());
             }).collect(Collectors.toList());
             // Also need to add ServiceItems for providers not matched with a saved token, i.e. for logged-out services
             authenticationProviders.forEach(p -> {
                 Optional<ServiceItem> serviceItem =
                         serviceItems.stream().filter(si ->
-                                p.getAuthenticationScope().equals(si.getAuthenticationScope())).findFirst();
+                                p.getAuthenticationScope().getScope().equals(si.getAuthenticationScope().getScope())).findFirst();
                 if(serviceItem.isEmpty()){
                     serviceItems.add(new ServiceItem(p));
                 }
             });
-            serviceItems.sort(Comparator.comparing(ServiceItem::getAuthenticationScope));
+            serviceItems.sort(Comparator.comparing(i -> i.getAuthenticationScope().getDisplayName()));
             Platform.runLater(() -> {
                 this.serviceItems.setAll(serviceItems);
                 listEmpty.set(savedTokens.isEmpty());
@@ -241,7 +251,13 @@ public class CredentialsManagementController {
         @SuppressWarnings("unused")
         public String getScope(){
             return serviceAuthenticationProvider != null ?
-                    serviceAuthenticationProvider.getAuthenticationScope().getName() : "";
+                    serviceAuthenticationProvider.getAuthenticationScope().getScope() : "";
+        }
+
+        @SuppressWarnings("unused")
+        public String getDisplayName(){
+            return serviceAuthenticationProvider != null ?
+                    serviceAuthenticationProvider.getAuthenticationScope().getDisplayName() : "";
         }
 
         public String getPassword(){
@@ -260,7 +276,8 @@ public class CredentialsManagementController {
             return loginAction;
         }
     }
-    private class UsernameTableCell extends TableCell<ServiceItem, String>{
+
+    private static class UsernameTableCell extends TableCell<ServiceItem, String>{
         private final TextField textField = new TextField();
 
         public UsernameTableCell(){

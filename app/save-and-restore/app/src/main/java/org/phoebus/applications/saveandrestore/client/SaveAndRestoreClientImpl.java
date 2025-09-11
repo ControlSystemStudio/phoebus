@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
+import org.phoebus.applications.saveandrestore.authentication.SaveAndRestoreAuthenticationScope;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
@@ -80,7 +81,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     private String getBasicAuthenticationHeader() {
         try {
             SecureStore store = new SecureStore();
-            ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
+            ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(new SaveAndRestoreAuthenticationScope());
             if (scopedAuthenticationToken != null) {
                 String username = scopedAuthenticationToken.getUsername();
                 String password = scopedAuthenticationToken.getPassword();

@@ -27,6 +27,12 @@ import java.util.logging.Logger;
 
 public class OlogServiceAuthenticationProvider implements ServiceAuthenticationProvider {
 
+    private final AuthenticationScope ologAuthenticationScope;
+
+    public OlogServiceAuthenticationProvider(){
+        ologAuthenticationScope = new OlogAuthenticationScope();
+    }
+
     @Override
     public void authenticate(String username, String password){
         try {
@@ -45,6 +51,6 @@ public class OlogServiceAuthenticationProvider implements ServiceAuthenticationP
 
     @Override
     public AuthenticationScope getAuthenticationScope() {
-        return AuthenticationScope.LOGBOOK;
+        return ologAuthenticationScope;
     }
 }
