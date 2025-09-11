@@ -17,14 +17,12 @@ import javafx.util.Pair;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class WaterfallPlotController {
 
@@ -310,7 +308,7 @@ public class WaterfallPlotController {
         previousT2[0] = Optional.of(t2);
 
         LinkedList<Double> timeValuesLinkedList = new LinkedList<>();
-        LinkedList<LinkedList<Double>> zValuesLinkedList = new LinkedList<>();
+        LinkedList<ArrayList<Double>> zValuesLinkedList = new LinkedList<>();
         int waveformLength = 1;
 
         double minFromPV = Double.NaN;
@@ -321,7 +319,7 @@ public class WaterfallPlotController {
             minFromPV = waveformPVData.minFromPV().get();
             maxFromPV = waveformPVData.maxFromPV().get();
 
-            ConcurrentSkipListMap<Instant, LinkedList<Double>> instantToWaveform = waveformPVData.instantToValue();
+            ConcurrentSkipListMap<Instant, ArrayList<Double>> instantToWaveform = waveformPVData.instantToValue();
             Instant startKey = instantToWaveform.ceilingKey(Instant.MIN);
             for (Instant t = t1.plus(stepsize); t.compareTo(t2) <= 0; t = t.plus(stepsize)) {
                 timeValuesLinkedList.add(((double) t.toEpochMilli()) / 1000.0);
@@ -332,7 +330,7 @@ public class WaterfallPlotController {
                 else {
                     var instant = instantToWaveform.floorKey(t);
 
-                    LinkedList<Double> waveform = instantToWaveform.get(instant);
+                    ArrayList<Double> waveform = instantToWaveform.get(instant);
                     waveformLength = Math.max(waveformLength, waveform.size());
                     zValuesLinkedList.add(waveform);
                 }
@@ -348,7 +346,7 @@ public class WaterfallPlotController {
 
             for (Instant t = t1.plus(stepsize); t.compareTo(t2) <= 0; t = t.plus(stepsize)) {
                 timeValuesLinkedList.add(((double) t.toEpochMilli()) / 1000.0);
-                LinkedList<Double> zValues = new LinkedList<>();
+                ArrayList<Double> zValues = new ArrayList<>();
 
                 for (var pvNameAndInstantToValue : pvNameToInstantToValue) {
                     String pvName = pvNameAndInstantToValue.getKey();
@@ -367,7 +365,7 @@ public class WaterfallPlotController {
 
                 // Append the last value one more time in order to
                 // fix the plotting when there is only 1 scalar PV:
-                var lastValue = zValues.getLast();
+                var lastValue = zValues.get(zValues.size()-1);
                 zValues.add(lastValue);
 
                 zValuesLinkedList.add(zValues);
@@ -396,7 +394,7 @@ public class WaterfallPlotController {
             }
 
             for (int n = 0; n < zValuesLinkedList.size(); n++) {
-                LinkedList<Double> waveformValues = zValuesLinkedList.get(n);
+                ArrayList<Double> waveformValues = zValuesLinkedList.get(n);
 
                 for (int m = 0; m < waveformLength; m++) {
                     double value;
@@ -435,7 +433,7 @@ public class WaterfallPlotController {
             }
 
             for (int n = 0; n < zValuesLinkedList.size(); n++) {
-                LinkedList<Double> waveformValues = zValuesLinkedList.get(n);
+                ArrayList<Double> waveformValues = zValuesLinkedList.get(n);
 
                 for (int m = 0; m < waveformLength; m++) {
                     double value;

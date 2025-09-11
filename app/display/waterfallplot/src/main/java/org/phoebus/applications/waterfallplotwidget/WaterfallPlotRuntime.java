@@ -22,6 +22,7 @@ import org.epics.vtype.VType;
 import org.python.google.common.util.concurrent.AtomicDouble;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -71,7 +72,7 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
     // The type ConcurrentSkipListMap is used for the data points to allow for concurrent insertions and deletions:
     public record WaveformPVData (AtomicDouble minFromPV,
                                   AtomicDouble maxFromPV,
-                                  ConcurrentSkipListMap<Instant, LinkedList<Double>> instantToValue) implements PVData {}
+                                  ConcurrentSkipListMap<Instant, ArrayList<Double>> instantToValue) implements PVData {}
     public record ScalarPVsData (AtomicDouble minFromPV,
                                  AtomicDouble maxFromPV,
                                  LinkedList<Pair<String, ConcurrentSkipListMap<Instant, Double>>> pvNameToInstantToValue) implements PVData {}
@@ -144,7 +145,8 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                 runtimePV.addListener((pv, vType) -> {
                     if (vType instanceof VNumberArray vNumberArray) {
 
-                        LinkedList<Double> waveform = new LinkedList<>();
+                        int size = vNumberArray.getData().size();
+                        ArrayList<Double> waveform = new ArrayList<>(size);
                         for (int m = 0; m < vNumberArray.getData().size(); m++) {
                             var value = vNumberArray.getData().getDouble(m);
                             waveform.add(value);
@@ -160,7 +162,8 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                         }
                     } else if (vType instanceof VEnumArray vEnumArray) {
 
-                        LinkedList<Double> waveform = new LinkedList<>();
+                        int size = vEnumArray.getData().size();
+                        ArrayList<Double> waveform = new ArrayList<>(size);
                         ListNumber listNumber = vEnumArray.getIndexes();
                         for (int m = 0; m < vEnumArray.getData().size(); m++) {
                             var value = listNumber.getDouble(m);
@@ -188,7 +191,8 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                                     for (var vtype : values) {
                                         if (vtype instanceof VNumberArray vNumberArray) {
 
-                                            LinkedList<Double> waveform = new LinkedList<>();
+                                            int size = vNumberArray.getData().size();
+                                            ArrayList<Double> waveform = new ArrayList<>(size);
                                             for (int m = 0; m < vNumberArray.getData().size(); m++) {
                                                 var value = vNumberArray.getData().getDouble(m);
                                                 waveform.add(value);
@@ -198,7 +202,8 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                                         }
                                         else if (vtype instanceof VEnumArray vEnumArray) {
 
-                                            LinkedList<Double> waveform = new LinkedList<>();
+                                            int size = vEnumArray.getData().size();
+                                            ArrayList<Double> waveform = new ArrayList<>(size);
                                             ListNumber listNumber = vEnumArray.getIndexes();
                                             for (int m = 0; m < vEnumArray.getData().size(); m++) {
                                                 var value = listNumber.getDouble(m);
