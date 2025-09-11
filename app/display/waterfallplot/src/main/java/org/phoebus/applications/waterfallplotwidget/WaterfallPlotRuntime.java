@@ -62,7 +62,7 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
         else {
             pvData = new ScalarPVsData(new AtomicDouble(Double.NaN),
                                        new AtomicDouble(Double.NaN),
-                                       new LinkedList<>());
+                                       new ArrayList<>());
         }
         retrieveHistoricValuesFromTheArchiver = waterfallPlotWidget.propRetrieveHistoricValuesFromTheArchiver().getValue();
         pvNames = waterfallPlotWidget.propInputPVs().getValue().stream().map(widgetProperty -> widgetProperty.getValue()).collect(Collectors.toUnmodifiableList());
@@ -75,7 +75,7 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                                   ConcurrentSkipListMap<Instant, ArrayList<Double>> instantToValue) implements PVData {}
     public record ScalarPVsData (AtomicDouble minFromPV,
                                  AtomicDouble maxFromPV,
-                                 LinkedList<Pair<String, ConcurrentSkipListMap<Instant, Double>>> pvNameToInstantToValue) implements PVData {}
+                                 ArrayList<Pair<String, ConcurrentSkipListMap<Instant, Double>>> pvNameToInstantToValue) implements PVData {}
 
     @Override
     public void start() {

@@ -336,7 +336,7 @@ public class WaterfallPlotController {
                 }
             }
         } else if (pvData instanceof WaterfallPlotRuntime.ScalarPVsData scalarPVsData) {
-            LinkedList<Pair<String, ConcurrentSkipListMap<Instant, Double>>> pvNameToInstantToValue = scalarPVsData.pvNameToInstantToValue();
+            ArrayList<Pair<String, ConcurrentSkipListMap<Instant, Double>>> pvNameToInstantToValue = scalarPVsData.pvNameToInstantToValue();
             pvNameToInstantToValue.forEach(pvNameAndInstantToValueAtomicReference -> garbageCollectInstantToValue(pvNameAndInstantToValueAtomicReference.getValue(), t1));
 
             minFromPV = scalarPVsData.minFromPV().get();
