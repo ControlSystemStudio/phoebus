@@ -6,6 +6,8 @@ import java.awt.geom.AffineTransform;
 import org.csstudio.javafx.rtplot.internal.*;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 
+import static org.csstudio.javafx.rtplot.internal.util.Log10.log10;
+
 
 public class LinearMeterScale extends NumericAxis
 {
@@ -105,12 +107,12 @@ public class LinearMeterScale extends NumericAxis
 
             for (MajorTick<Double> tick : ticks.getMajorTicks()) {
                 if (isLogarithmic()) {
-                    gc.drawLine((int) ((start_x + this.scale * (Math.log10(tick.getValue()) - Math.log10(offset)) )),
+                    gc.drawLine((int) ((start_x + this.scale * (log10(tick.getValue()) - log10(offset)) )),
                             (int) ((start_y - 0.5 * TICK_LENGTH)),
-                            (int) ((start_x + this.scale * (Math.log10(tick.getValue()) - Math.log10(offset)) )),
+                            (int) ((start_x + this.scale * (log10(tick.getValue()) - log10(offset)) )),
                             (int) ((start_y + 0.5 * TICK_LENGTH)));
                     drawTickLabel(gc,
-                            (int) ((start_x + this.scale * (Math.log10(tick.getValue()) - Math.log10(offset)) - scale_font_fontMetrics.stringWidth(tick.getLabel())/2)),
+                            (int) ((start_x + this.scale * (log10(tick.getValue()) - log10(offset)) - scale_font_fontMetrics.stringWidth(tick.getLabel())/2)),
                             (int) (start_y + 0.5 * TICK_LENGTH + 2 + Math.round(Math.ceil((72.0 * (scale_font_fontMetrics.getAscent())) / 96.0))),
                             tick.getLabel());
                 }
@@ -129,12 +131,12 @@ public class LinearMeterScale extends NumericAxis
             for (MajorTick<Double> tick : ticks.getMajorTicks()) {
                 if (isLogarithmic()) {
                     gc.drawLine((int) (start_x - 0.5 * TICK_LENGTH),
-                                (int) (start_y - this.scale * (Math.log10(tick.getValue()) - Math.log10(offset))),
+                                (int) (start_y - this.scale * (log10(tick.getValue()) - log10(offset))),
                                 (int) (start_x + 0.5 * TICK_LENGTH),
-                                (int) (start_y - this.scale * (Math.log10(tick.getValue()) - Math.log10(offset))));
+                                (int) (start_y - this.scale * (log10(tick.getValue()) - log10(offset))));
                     drawTickLabel(gc,
                                   (int) (start_x + 4),
-                                  (int) (start_y - this.scale * (Math.log10(tick.getValue()) - Math.log10(offset)) + Math.round((72.0 * scale_font.getSize()) / (96.0 * 2.0))),
+                                  (int) (start_y - this.scale * (log10(tick.getValue()) - log10(offset)) + Math.round((72.0 * scale_font.getSize()) / (96.0 * 2.0))),
                                   tick.getLabel());
                 }
                 else {
