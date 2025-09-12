@@ -22,10 +22,10 @@ import org.epics.vtype.VType;
 import org.python.google.common.util.concurrent.AtomicDouble;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -57,28 +57,25 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
         if (isWaveform) {
             pvData = new WaveformPVData(new AtomicDouble(Double.NaN),
                                         new AtomicDouble(Double.NaN),
-                                        new AtomicReference<>(new TreeMap<>()));
+                                        new ConcurrentSkipListMap<>());
         }
         else {
             pvData = new ScalarPVsData(new AtomicDouble(Double.NaN),
                                        new AtomicDouble(Double.NaN),
-                                       new LinkedList<>());
+                                       new ArrayList<>());
         }
         retrieveHistoricValuesFromTheArchiver = waterfallPlotWidget.propRetrieveHistoricValuesFromTheArchiver().getValue();
         pvNames = waterfallPlotWidget.propInputPVs().getValue().stream().map(widgetProperty -> widgetProperty.getValue()).collect(Collectors.toUnmodifiableList());
     }
 
     public sealed interface PVData permits WaveformPVData, ScalarPVsData {}
-    // In order to be able to garbage collect data points that are no longer needed,
-    // the TreeMap<> instantToValue is contained in an AtomicReference<>, so that we
-    // can set the map to a new map without values that are no longer needed. This is
-    // the case for both 'WaveformPVData' and 'ScalarPVsData'.
+    // The type ConcurrentSkipListMap is used for the data points to allow for concurrent insertions and deletions:
     public record WaveformPVData (AtomicDouble minFromPV,
                                   AtomicDouble maxFromPV,
-                                  AtomicReference<TreeMap<Instant, LinkedList<Double>>> instantToValue) implements PVData {}
+                                  ConcurrentSkipListMap<Instant, ArrayList<Double>> instantToValue) implements PVData {}
     public record ScalarPVsData (AtomicDouble minFromPV,
                                  AtomicDouble maxFromPV,
-                                 LinkedList<Pair<String, AtomicReference<TreeMap<Instant, Double>>>> pvNameToInstantToValue) implements PVData {}
+                                 ArrayList<Pair<String, ConcurrentSkipListMap<Instant, Double>>> pvNameToInstantToValue) implements PVData {}
 
     @Override
     public void start() {
@@ -90,32 +87,28 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                 try {
                     RuntimePV runtimePV = PVFactory.getPV(pvName);
                     super.addPV(runtimePV, false);
-                    AtomicReference<TreeMap<Instant, Double>> instantToValueAtomicReference = new AtomicReference<>(new TreeMap<>());
-                    scalarPVsData.pvNameToInstantToValue.add(new Pair(pvName, instantToValueAtomicReference));
+                    ConcurrentSkipListMap<Instant, Double> instantToValue = new ConcurrentSkipListMap<>();
+                    scalarPVsData.pvNameToInstantToValue.add(new Pair(pvName, instantToValue));
                     runtimePV.addListener((pv, vType) -> {
                         if (vType instanceof VNumber vnumber) {
-                            synchronized (pvData) {
-                                instantToValueAtomicReference.get().put(vnumber.getTime().getTimestamp(), vnumber.getValue().doubleValue());
-                                {
-                                    Range displayRange = vnumber.getDisplay().getDisplayRange();
-                                    double minFromPV = displayRange.getMinimum();
-                                    scalarPVsData.minFromPV.set(minFromPV);
-                                    double maxFromPV = displayRange.getMaximum();
-                                    scalarPVsData.maxFromPV.set(maxFromPV);
-                                }
+                            instantToValue.put(vnumber.getTime().getTimestamp(), vnumber.getValue().doubleValue());
+                            {
+                                Range displayRange = vnumber.getDisplay().getDisplayRange();
+                                double minFromPV = displayRange.getMinimum();
+                                scalarPVsData.minFromPV.set(minFromPV);
+                                double maxFromPV = displayRange.getMaximum();
+                                scalarPVsData.maxFromPV.set(maxFromPV);
                             }
                         }
                         else if (vType instanceof VEnum vEnum) {
-                            synchronized (pvData) {
-                                instantToValueAtomicReference.get().put(vEnum.getTime().getTimestamp(), (double) vEnum.getIndex());
+                            instantToValue.put(vEnum.getTime().getTimestamp(), (double) vEnum.getIndex());
 
-                                {
-                                    int enumSize = vEnum.getDisplay().getChoices().size();
-                                    double minFromPV = 0;
-                                    scalarPVsData.minFromPV.set(minFromPV);
-                                    double maxFromPV = enumSize - 1;
-                                    scalarPVsData.maxFromPV.set(maxFromPV);
-                                }
+                            {
+                                int enumSize = vEnum.getDisplay().getChoices().size();
+                                double minFromPV = 0;
+                                scalarPVsData.minFromPV.set(minFromPV);
+                                double maxFromPV = enumSize - 1;
+                                scalarPVsData.maxFromPV.set(maxFromPV);
                             }
                         }
                         else {
@@ -128,18 +121,13 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                                 Instant.now().minusSeconds(timeSpanInSeconds),
                                 Instant.now(),
                                 values -> {
-                                    synchronized (pvData) {
-                                        for (var vtype : values) {
-                                            if (vtype instanceof VNumber vnumber) {
-                                                instantToValueAtomicReference.get().put(vnumber.getTime().getTimestamp(), vnumber.getValue().doubleValue());
-                                            }
-                                            else if (vtype instanceof VStatistics vstatistics) {
-                                                instantToValueAtomicReference.get().put(vstatistics.getTime().getTimestamp(), vstatistics.getAverage());
-                                            }
-                                            else if (vtype instanceof VEnum vEnum) {
-                                                instantToValueAtomicReference.get().put(vEnum.getTime().getTimestamp(), (double) vEnum.getIndex());
-                                            }
-
+                                    for (var vtype : values) {
+                                        if (vtype instanceof VNumber vnumber) {
+                                            instantToValue.put(vnumber.getTime().getTimestamp(), vnumber.getValue().doubleValue());
+                                        } else if (vtype instanceof VStatistics vstatistics) {
+                                            instantToValue.put(vstatistics.getTime().getTimestamp(), vstatistics.getAverage());
+                                        } else if (vtype instanceof VEnum vEnum) {
+                                            instantToValue.put(vEnum.getTime().getTimestamp(), (double) vEnum.getIndex());
                                         }
                                     }
                                 });
@@ -157,43 +145,39 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                 runtimePV.addListener((pv, vType) -> {
                     if (vType instanceof VNumberArray vNumberArray) {
 
-                        LinkedList<Double> waveform = new LinkedList<>();
+                        int size = vNumberArray.getData().size();
+                        ArrayList<Double> waveform = new ArrayList<>(size);
                         for (int m = 0; m < vNumberArray.getData().size(); m++) {
                             var value = vNumberArray.getData().getDouble(m);
                             waveform.add(value);
                         }
+                        waveformPVData.instantToValue.put(vNumberArray.getTime().getTimestamp(), waveform);
 
-                        synchronized (pvData) {
-                            waveformPVData.instantToValue.get().put(vNumberArray.getTime().getTimestamp(), waveform);
-
-                            {
-                                Range displayRange = vNumberArray.getDisplay().getDisplayRange();
-                                double minFromPV = displayRange.getMinimum();
-                                waveformPVData.minFromPV.set(minFromPV);
-                                double maxFromPV = displayRange.getMaximum();
-                                waveformPVData.maxFromPV.set(maxFromPV);
-                            }
+                        {
+                            Range displayRange = vNumberArray.getDisplay().getDisplayRange();
+                            double minFromPV = displayRange.getMinimum();
+                            waveformPVData.minFromPV.set(minFromPV);
+                            double maxFromPV = displayRange.getMaximum();
+                            waveformPVData.maxFromPV.set(maxFromPV);
                         }
-                    }
-                    else if (vType instanceof VEnumArray vEnumArray) {
+                    } else if (vType instanceof VEnumArray vEnumArray) {
 
-                        LinkedList<Double> waveform = new LinkedList<>();
+                        int size = vEnumArray.getData().size();
+                        ArrayList<Double> waveform = new ArrayList<>(size);
                         ListNumber listNumber = vEnumArray.getIndexes();
                         for (int m = 0; m < vEnumArray.getData().size(); m++) {
                             var value = listNumber.getDouble(m);
                             waveform.add(value);
                         }
 
-                        synchronized (pvData) {
-                            waveformPVData.instantToValue.get().put(vEnumArray.getTime().getTimestamp(), waveform);
+                        waveformPVData.instantToValue.put(vEnumArray.getTime().getTimestamp(), waveform);
 
-                            {
-                                int enumSize = vEnumArray.getDisplay().getChoices().size();
-                                double minFromPV = 0;
-                                waveformPVData.minFromPV.set(minFromPV);
-                                double maxFromPV = enumSize - 1;
-                                waveformPVData.maxFromPV.set(maxFromPV);
-                            }
+                        {
+                            int enumSize = vEnumArray.getDisplay().getChoices().size();
+                            double minFromPV = 0;
+                            waveformPVData.minFromPV.set(minFromPV);
+                            double maxFromPV = enumSize - 1;
+                            waveformPVData.maxFromPV.set(maxFromPV);
                         }
                     }
                 });
@@ -207,24 +191,26 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                                     for (var vtype : values) {
                                         if (vtype instanceof VNumberArray vNumberArray) {
 
-                                            LinkedList<Double> waveform = new LinkedList<>();
+                                            int size = vNumberArray.getData().size();
+                                            ArrayList<Double> waveform = new ArrayList<>(size);
                                             for (int m = 0; m < vNumberArray.getData().size(); m++) {
                                                 var value = vNumberArray.getData().getDouble(m);
                                                 waveform.add(value);
                                             }
 
-                                            waveformPVData.instantToValue.get().put(vNumberArray.getTime().getTimestamp(), waveform);
+                                            waveformPVData.instantToValue.put(vNumberArray.getTime().getTimestamp(), waveform);
                                         }
                                         else if (vtype instanceof VEnumArray vEnumArray) {
 
-                                            LinkedList<Double> waveform = new LinkedList<>();
+                                            int size = vEnumArray.getData().size();
+                                            ArrayList<Double> waveform = new ArrayList<>(size);
                                             ListNumber listNumber = vEnumArray.getIndexes();
                                             for (int m = 0; m < vEnumArray.getData().size(); m++) {
                                                 var value = listNumber.getDouble(m);
                                                 waveform.add(value);
                                             }
 
-                                            waveformPVData.instantToValue.get().put(vEnumArray.getTime().getTimestamp(), waveform);
+                                            waveformPVData.instantToValue.put(vEnumArray.getTime().getTimestamp(), waveform);
                                         }
                                     }
                                 }
