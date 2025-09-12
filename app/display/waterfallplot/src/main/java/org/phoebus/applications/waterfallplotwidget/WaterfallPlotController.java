@@ -18,6 +18,7 @@ import javafx.util.Pair;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -321,6 +322,8 @@ public class WaterfallPlotController {
 
             ConcurrentSkipListMap<Instant, ArrayList<Double>> instantToWaveform = waveformPVData.instantToValue();
             Instant startKey = instantToWaveform.ceilingKey(Instant.MIN);
+
+            Optional<Instant> previousInstant = Optional.empty();
             for (Instant t = t1.plus(stepsize); t.compareTo(t2) <= 0; t = t.plus(stepsize)) {
                 timeValuesLinkedList.add(((double) t.toEpochMilli()) / 1000.0);
 
@@ -333,6 +336,15 @@ public class WaterfallPlotController {
                     ArrayList<Double> waveform = instantToWaveform.get(instant);
                     waveformLength = Math.max(waveformLength, waveform.size());
                     zValuesLinkedList.add(waveform);
+
+                    if (previousInstant.isPresent()) {
+                        // Optimization: Remove data points that are not plotted.
+                        for (var key : instantToWaveform.subMap(previousInstant.get(), false, instant, false).keySet()) {
+                            instantToWaveform.remove(key);
+                        }
+                    }
+
+                    previousInstant = Optional.of(instant);
                 }
             }
         } else if (pvData instanceof WaterfallPlotRuntime.ScalarPVsData scalarPVsData) {
@@ -343,6 +355,12 @@ public class WaterfallPlotController {
             maxFromPV = scalarPVsData.maxFromPV().get();
 
             waveformLength = 2 * pvNameToInstantToValue.size() + 1;
+
+            HashMap<String, Optional<Instant>> pvNameToPreviousInstant = new HashMap<>();
+            for (var pvNameAndInstantToValue : pvNameToInstantToValue) {
+                String pvName = pvNameAndInstantToValue.getKey();
+                pvNameToPreviousInstant.put(pvName, Optional.empty());
+            }
 
             for (Instant t = t1.plus(stepsize); t.compareTo(t2) <= 0; t = t.plus(stepsize)) {
                 timeValuesLinkedList.add(((double) t.toEpochMilli()) / 1000.0);
@@ -360,6 +378,16 @@ public class WaterfallPlotController {
                     } else {
                         zValues.add(instantToValue.get(instant));
                         zValues.add(instantToValue.get(instant));
+
+                        Optional<Instant> previousInstant = pvNameToPreviousInstant.get(pvName);
+                        if (previousInstant.isPresent()) {
+                            // Optimization: Remove data points that are not plotted.
+                            for (var key : instantToValue.subMap(previousInstant.get(), false, instant, false).keySet()) {
+                                instantToValue.remove(key);
+                            }
+                        }
+
+                        pvNameToPreviousInstant.put(pvName, Optional.of(instant));
                     }
                 }
 
