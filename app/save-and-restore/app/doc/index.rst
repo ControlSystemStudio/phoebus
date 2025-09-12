@@ -88,7 +88,8 @@ Brief description of all items in the context menu (details on actions are outli
 * Restore from client - restore a snapshot or composite snapshot from the client application.
 * Restore from service - restore a snapshot or composite snapshot from the service.
 * Edit - edit a configuration.
-* Rename - rename a folder or configuration.
+* Find references - locates composite snapshot nodes referencing the selected node.
+* Rename - rename a folder.
 * Copy - put selected items on clipboard.
 * Paste - paste items from clipboard.
 * Delete - delete selected items.

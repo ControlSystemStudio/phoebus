@@ -86,6 +86,7 @@ import org.phoebus.applications.saveandrestore.ui.contextmenu.CopyUniqueIdToClip
 import org.phoebus.applications.saveandrestore.ui.contextmenu.CreateSnapshotMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.EditCompositeMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.ExportToCSVMenuItem;
+import org.phoebus.applications.saveandrestore.ui.contextmenu.FindReferencesMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.ImportFromCSVMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.NewCompositeSnapshotMenuItem;
@@ -232,6 +233,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     }),
             new SeparatorMenuItem(),
             new EditCompositeMenuItem(this, selectedItemsProperty, this::editCompositeSnapshot),
+            new FindReferencesMenuItem(this, selectedItemsProperty, this::findReferences),
             new RenameFolderMenuItem(this, selectedItemsProperty, this::renameNode),
             copyMenuItem,
             pasteMenuItem,
@@ -525,7 +527,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * Opens a new snapshot view tab associated with the selected configuration.
      */
-    public void openConfigurationForSnapshot() {
+    private void openConfigurationForSnapshot() {
         TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
         tab.newSnapshot(treeItem.getValue());
@@ -634,7 +636,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * Launches the composite snapshot editor view. Note that a tab showing this view uses the "edit_" prefix
      * for the id since it would otherwise clash with a restore view of a composite snapshot.
      */
-    public void editCompositeSnapshot() {
+    private void editCompositeSnapshot() {
         Node compositeSnapshotNode = browserSelectionModel.getSelectedItem().getValue();
         editCompositeSnapshot(compositeSnapshotNode, Collections.emptyList());
     }
@@ -709,11 +711,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * Creates a new configuration in the selected tree node.
      */
-    public void createNewConfiguration() {
+    private void createNewConfiguration() {
         launchTabForNewConfiguration(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
-    public void createNewCompositeSnapshot() {
+    private void createNewCompositeSnapshot() {
         launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue(),
                 Collections.emptyList());
     }
@@ -1505,5 +1507,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             }
         }
         return true;
+    }
+
+    private void findReferences(){
+        SearchAndFilterTab searchAndFilterTab = openSearchWindow();
+        searchAndFilterTab.getController().findReferencesForSnapshot(treeView.getSelectionModel().getSelectedItems().get(0).getValue().getUniqueId());
     }
 }

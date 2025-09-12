@@ -3,14 +3,24 @@ package org.phoebus.service.saveandrestore.search;
 import co.elastic.clients.elasticsearch._types.FieldSort;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
+import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
+import co.elastic.clients.elasticsearch._types.query_dsl.DisMaxQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.FuzzyQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.IdsQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchPhraseQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.NestedQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.ldap.core.support.AbstractContextSource;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,12 +28,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A utility class for creating a search query for log entries based on time,
@@ -43,6 +55,9 @@ public class SearchUtil {
     @SuppressWarnings("unused")
     @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
     private String ES_CONFIGURATION_INDEX;
+    @SuppressWarnings("unused")
+    @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
+    private String ES_COMPOSITE_SNAPSHOT_INDEX;
     @SuppressWarnings("unused")
     @Value("${elasticsearch.result.size.search.default:100}")
     private int defaultSearchSize;
@@ -75,7 +90,8 @@ public class SearchUtil {
         LOG.info("  searchParameters: " + searchParameters);
 
         for (Entry<String, List<String>> parameter : searchParameters.entrySet()) {
-            switch (parameter.getKey().strip().toLowerCase()) {
+            String s = parameter.getKey().strip().toLowerCase();
+            switch (s) {
                 case "uniqueid":
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split("[|,;]")) {
@@ -90,10 +106,9 @@ public class SearchUtil {
                         for (String pattern : getSearchTerms(value)) {
                             String term = pattern.trim().toLowerCase();
                             // Quoted strings will be mapped to a phrase query
-                            if(term.startsWith("\"") && term.endsWith("\"")){
+                            if (term.startsWith("\"") && term.endsWith("\"")) {
                                 nodeNamePhraseTerms.add(term.substring(1, term.length() - 1));
-                            }
-                            else{
+                            } else {
                                 // add wildcards inorder to search for sub-strings
                                 nodeNameTerms.add("*" + term + "*");
                             }
@@ -174,10 +189,9 @@ public class SearchUtil {
                             BoolQuery.Builder bqb = new BoolQuery.Builder();
                             // This handles a special case where search is done on name only, e.g. tags=golden
                             if (tagsSearchFields[0] != null && !tagsSearchFields[0].isEmpty() && (tagsSearchFields[1] == null || tagsSearchFields[1].isEmpty())) {
-                                if(!tagsSearchFields[0].equalsIgnoreCase(Tag.GOLDEN)){
+                                if (!tagsSearchFields[0].equalsIgnoreCase(Tag.GOLDEN)) {
                                     bqb.must(WildcardQuery.of(w -> w.caseInsensitive(true).field("node.tags.name").value(tagsSearchFields[0].trim().toLowerCase()))._toQuery());
-                                }
-                                else{
+                                } else {
                                     MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.tags.name").query(Tag.GOLDEN));
                                     NestedQuery innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(matchQuery._toQuery()));
                                     NestedQuery outerNestedQuery = NestedQuery.of(n2 -> n2.path("node").query(innerNestedQuery._toQuery()));
@@ -194,7 +208,7 @@ public class SearchUtil {
                         }
                     }
                     DisMaxQuery disMaxQuery = tagsQuery.build();
-                    if(!disMaxQuery.queries().isEmpty()){
+                    if (!disMaxQuery.queries().isEmpty()) {
                         boolQueryBuilder.must(disMaxQuery._toQuery());
                     }
                     break;
@@ -211,6 +225,8 @@ public class SearchUtil {
                         from = Integer.parseInt(maxFrom.get());
                     }
                     break;
+                case "referenced":
+                    return buildSearchRequestForContainedIn(searchParameters);
                 default:
                     // Unsupported search parameters ignored
                     break;
@@ -260,7 +276,7 @@ public class SearchUtil {
         }
 
         // Add uniqueId query
-        if(!uniqueIdTerms.isEmpty()){
+        if (!uniqueIdTerms.isEmpty()) {
             boolQueryBuilder.must(IdsQuery.of(id -> id.values(uniqueIdTerms))._toQuery());
         }
 
@@ -324,6 +340,7 @@ public class SearchUtil {
     /**
      * Builds a query on the configuration index to find {@link org.phoebus.applications.saveandrestore.model.ConfigurationData}
      * documents containing any of the PV names passed to this method. Both setpoint and readback PV names are considered.
+     *
      * @param pvNames List of PV names. Query will user or-strategy.
      * @return A {@link SearchRequest} object, no limit on result size except maximum Elastic limit.
      */
@@ -384,5 +401,48 @@ public class SearchUtil {
         //...but remove empty strings, which are "leftovers" when quoted terms are removed
         terms.addAll(remaining.stream().filter(t -> t.length() > 0).collect(Collectors.toList()));
         return terms;
+    }
+
+    /**
+     * Constructs a {@link SearchRequest} search for composite snapshots containing a node id.
+     *
+     * @param searchParameters Map of search parameters where key &quot;containedin&quot; must be present and
+     *                         contain at least one value. Note however that only first value is considered.
+     *                         If no value is specified, an {@link IllegalArgumentException} is thrown.
+     * @return A suitable {@link SearchRequest}
+     */
+    private SearchRequest buildSearchRequestForContainedIn(MultiValueMap<String, String> searchParameters) {
+        List<String> value = searchParameters.get("referenced");
+        if (value.isEmpty()) {
+            throw new IllegalArgumentException("At least one value must be specified for 'referenced'");
+        }
+        int from = 0;
+        List<String> parameter = searchParameters.get("from");
+        if (parameter != null) {
+            Optional<String> maxFrom = parameter.stream().max(Comparator.comparing(Integer::valueOf));
+            if (maxFrom.isPresent()) {
+                from = Integer.parseInt(maxFrom.get());
+            }
+        }
+        int size = maxSearchSize;
+        parameter = searchParameters.get("size");
+        if (parameter != null) {
+            Optional<String> maxFrom = parameter.stream().max(Comparator.comparing(Integer::valueOf));
+            if (maxFrom.isPresent()) {
+                size = Integer.parseInt(maxFrom.get());
+            }
+        }
+
+        // Only consider first node id value if multiple are specified
+        String nodeId = value.get(0);
+        int _from = from;
+        int _size = size;
+        MatchPhraseQuery matchPhraseQuery = MatchPhraseQuery.of(m ->
+                m.field("referencedSnapshotNodes").query(nodeId));
+        return SearchRequest.of(s -> s.index(ES_COMPOSITE_SNAPSHOT_INDEX)
+                .query(matchPhraseQuery._toQuery())
+                .timeout("60s")
+                .from(_from)
+                .size(_size));
     }
 }

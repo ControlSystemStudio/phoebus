@@ -41,7 +41,8 @@ public class SearchQueryUtil {
         FROM("from"),
         SIZE("size"),
         GOLDEN("golden"),
-        PVS("pvs");
+        PVS("pvs"),
+        REFERENCED("referenced");
 
         private final String name;
 
@@ -58,7 +59,7 @@ public class SearchQueryUtil {
             return getName();
         }
 
-        protected static final Map<String, Keys> lookupTable = new HashMap<>();
+        private static final Map<String, Keys> lookupTable = new HashMap<>();
 
         static {
             lookupTable.put("name", Keys.NAME);
@@ -70,6 +71,7 @@ public class SearchQueryUtil {
             lookupTable.put("type", Keys.TYPE);
             lookupTable.put("golden", Keys.GOLDEN);
             lookupTable.put("pvs", Keys.PVS);
+            lookupTable.put("referenced", Keys.REFERENCED);
         }
 
         public static Keys findKey(String keyName) {
