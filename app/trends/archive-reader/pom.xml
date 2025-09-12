@@ -45,6 +45,11 @@
             <version>0.0.10</version>
         </dependency>
         <dependency>
+            <groupId>com.influxdb</groupId>
+            <artifactId>influxdb-client-java</artifactId>
+            <version>${influxdb2Client.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-ui</artifactId>
             <version>5.0.3-SNAPSHOT</version>
