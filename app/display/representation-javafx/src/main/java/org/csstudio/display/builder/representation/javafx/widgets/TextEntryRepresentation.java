@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2015-2024 Oak Ridge National Laboratory.
+ * Copyright (c) 2025 Thales.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,12 +10,23 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import java.util.stream.Stream;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
+import javafx.stage.Popup;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -25,14 +37,13 @@ import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
-import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.Alarm;
+import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
-import org.phoebus.ui.javafx.Styles;
+import org.phoebus.ui.vtype.FormatOption;
 import org.phoebus.ui.vtype.FormatOptionHandler;
 
-import javafx.scene.Cursor;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -61,7 +72,14 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     private final WidgetPropertyListener<String> pvNameListener = this::pvnameChanged;
     private volatile String value_text = "<?>";
 
-    private static WidgetColor active_color = WidgetColorService.getColor(NamedWidgetColors.ACTIVE_TEXT);
+    // autocomplete
+    private List<String> items = List.of();
+    private Popup suggestionsPopup;
+    private ListView<String> suggestionsListView;
+    private ObservableList<String> suggestions;
+    private javafx.beans.value.ChangeListener<String> textChangeListener;
+
+    private static final WidgetColor active_color = WidgetColorService.getColor(NamedWidgetColors.ACTIVE_TEXT);
 
     private volatile Pos pos;
 
@@ -69,17 +87,17 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
      * Pseudo class used to right align text in multi-line {@link TextArea} widget,
      * see opibuilder.css.
      */
-    private PseudoClass rightAlignedText = PseudoClass.getPseudoClass("right");
+    private final PseudoClass rightAlignedText = PseudoClass.getPseudoClass("right");
     /**
      * Pseudo class used to center text in multi-line {@link TextArea} widget,
      * see opibuilder.css.
      */
-    private PseudoClass centeredText = PseudoClass.getPseudoClass("center");
+    private final PseudoClass centeredText = PseudoClass.getPseudoClass("center");
     /**
      * Pseudo class used to left align text in multi-line {@link TextArea} widget,
      * see opibuilder.css.
      */
-    private PseudoClass leftAlignedText = PseudoClass.getPseudoClass("left");
+    private final PseudoClass leftAlignedText = PseudoClass.getPseudoClass("left");
 
     @Override
     public TextInputControl createJFXNode() throws Exception
@@ -104,81 +122,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
 
         if (! toolkit.isEditMode())
         {
-            // Initially used 'focus' to activate the widget, but
-            // when a display is opened, one of the text fields likely has the focus.
-            // That widget will then NOT show any value, because we're active as if the
-            // user just navigated into the field to edit it.
-            // Now requiring key press, including use of cursor keys, to activate.
-            text.setOnKeyPressed(event ->
-            {
-                switch (event.getCode())
-                {
-                case TAB:
-                    // For multiline, it's like any other entered key.
-                    if (model_widget.propMultiLine().getValue()  &&  ! event.isShiftDown())
-                        setActive(true);
-                    // Otherwise results in lost focus and is handled as thus
-                    break;
-                case ESCAPE:
-                    if (active)
-                    {   // Revert original value, leave active state
-                        restore();
-                        setActive(false);
-                    }
-                    break;
-                case ENTER:
-                    // With Java 8, the main keyboard sent 'ENTER',
-                    // but the numeric keypad's enter key sent UNDEFINED?!
-                    // -> Was handled by checking for char 13 in onKeyTyped handler.
-                    // With Java 9, always get ENTER in here,
-                    // and _not_ receiving char 13 in onKeyTyped any more,
-                    // so all enter keys handled in here.
-
-                    // Single line mode uses plain ENTER.
-                    // Multi line mode requires Control or Command-ENTER.
-                    if (!isMultiLine()  ||  event.isShortcutDown())
-                    {
-                        // Submit value, leave active state
-                        submit();
-                        setActive(false);
-                    }
-                    break;
-                default:
-                    // Any other key results in active state
-                    setActive(true);
-                }
-            });
-            // Clicking into widget also activates
-            text.setOnMouseClicked(event -> {
-                // Secondary mouse button should bring up context menu
-                // but not enable editing.
-                if(event.getButton().equals(MouseButton.PRIMARY)){
-                    setActive(true);
-                }
-                else{
-                    text.setEditable(false);
-                }
-            });
-            // While getting the focus does not activate the widget
-            // (first need to type something or click),
-            // _loosing_ focus de-activates the widget.
-            // Otherwise widget where one moves the cursor, then clicks
-            // someplace else would remain active and not show any updates
-            text.focusedProperty().addListener((prop, old, focused) ->
-            {
-                if (active  &&  !focused)
-                {
-                    // For multi-line, submit on exit because users
-                    // cannot remember Ctrl-Enter.
-                    // For plain text field, require Enter to submit
-                    // and cancel editing when focus is lost.
-                    if (isMultiLine())
-                        submit();
-                    else
-                        restore();
-                    setActive(false);
-                }
-            });
+            initPopup();
+            setupEventHandlers(text);
         }
 
         // Non-managed widget reduces expensive Node.notifyParentOfBoundsChange() calls.
@@ -199,6 +144,368 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     protected boolean isFilteringEditModeClicks()
     {
         return true;
+    }
+
+
+    /**
+     * Initializes the suggestions popup and its ListView.
+     * The popup will display a list of suggestions based on user input.
+     */
+    private void initPopup()
+    {
+        suggestionsPopup = new Popup();
+        suggestionsPopup.setAutoHide(false);
+        suggestionsPopup.setHideOnEscape(false);
+        suggestionsPopup.setConsumeAutoHidingEvents(false);
+
+        suggestions = FXCollections.observableArrayList();
+        suggestionsListView = new ListView<>(suggestions);
+        suggestionsListView.setFocusTraversable(false);
+
+        suggestionsListView.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item);
+                setStyle(isSelected() ? "-fx-text-fill: white;" : "-fx-background-color: transparent;");
+            }
+        });
+
+        suggestionsListView.setStyle(
+            "-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-width: 1px; " +
+                "-fx-border-radius: 3px; -fx-background-radius: 3px; -fx-focus-color: transparent; " +
+                "-fx-faint-focus-color: transparent; -fx-selection-bar-non-focused: #3498db;"
+        );
+
+        suggestionsListView.setOnMouseClicked(e -> {
+            String selected = suggestionsListView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                selectSuggestion(selected);
+            }
+        });
+
+        suggestionsPopup.getContent().add(suggestionsListView);
+    }
+
+    /**
+     * Method to set up once all listeners and actions on the TextField.
+     *
+     * @param textField AutoComplete JavaFX TextField.
+     */
+    private void setupEventHandlers(TextInputControl textField)
+    {
+        textChangeListener = (obs, old, text) -> updateSuggestions(text);
+        textField.textProperty().addListener(textChangeListener);
+
+        textField.setOnMouseClicked(e -> {
+            if (!textField.isDisabled() && textField.isEditable() && e.getButton() == MouseButton.PRIMARY) {
+                showSuggestions();
+            }
+        });
+
+        textField.setOnKeyPressed(this::handleKeyPressed);
+
+        textField.focusedProperty().addListener((obs, old, focused) -> {
+            if (focused) {
+                showSuggestions();
+            } else {
+                // For multi-line, submit on exit because users
+                // cannot remember Ctrl-Enter.
+                // For plain text field, require Enter to submit
+                // and cancel editing when focus is lost.
+                if (isMultiLine())
+                    submit();
+                setActive(false);
+
+                suggestionsPopup.hide();
+                textField.textProperty().removeListener(textChangeListener);
+                restore();
+                textField.textProperty().addListener(textChangeListener);
+            }
+        });
+    }
+
+    /**
+     * Handles key presses in the TextField to navigate through suggestions.
+     * - DOWN: Selects the next suggestion.
+     * - UP: Selects the previous suggestion.
+     * - ENTER: Selects the currently highlighted suggestion.
+     * - ESCAPE: Hides the suggestions popup and resets the text field.
+     *
+     * @param event KeyEvent triggered by user input.
+     */
+    private void handleKeyPressed(KeyEvent event)
+    {
+        switch (event.getCode()) {
+            case TAB -> {
+                // For multiline, it's like any other entered key.
+                if (model_widget.propMultiLine().getValue() && !event.isShiftDown())
+                    setActive(true);
+                // Otherwise results in lost focus and is handled as thus
+                event.consume();
+            }
+            case DOWN -> {
+                if (isMultiLine())
+                    return;
+
+                navigateSuggestions(1);
+                event.consume();
+            }
+            case UP -> {
+                if (isMultiLine())
+                    return;
+
+                navigateSuggestions(-1);
+                event.consume();
+            }
+            case ENTER -> {
+                if (suggestionsPopup.isShowing()) {
+                    String selected = suggestionsListView.getSelectionModel().getSelectedItem();
+
+                    if (selected == null && !suggestionsListView.getItems().isEmpty()) {
+                        int idx = suggestionsListView.getSelectionModel().getSelectedIndex();
+                        if (idx < 0) idx = 0;
+                        suggestionsListView.getSelectionModel().select(idx);
+                        selected = suggestionsListView.getSelectionModel().getSelectedItem();
+                    }
+
+                    if (selected != null) {
+                        selectSuggestion(selected);
+                        event.consume();
+                        return;
+                    }
+                }
+
+                if (isMultiLine() && !event.isShortcutDown()) {
+                    suggestionsPopup.hide();
+                    setActive(true);
+                    event.consume();
+                    return;
+                }
+
+                if (!model_widget.propCustom().getValue() && !suggestions.isEmpty())
+                    restore();
+                submit();
+                setActive(false);
+                event.consume();
+            }
+            case ESCAPE -> {
+                jfx_node.getParent().requestFocus();
+                suggestionsPopup.hide();
+                restore();
+                setActive(false);
+                event.consume();
+            }
+        }
+    }
+
+    /**
+     * Navigate through the suggestions list based on the direction.
+     * If direction is positive, it moves down; if negative, it moves up.
+     *
+     * @param direction 1 for down, -1 for up.
+     */
+    private void navigateSuggestions(int direction)
+    {
+        if (suggestions == null || suggestions.isEmpty())
+            return;
+
+        final int size = suggestions.size();
+        final MultipleSelectionModel<String> sm = suggestionsListView.getSelectionModel();
+        int currentIndex = sm.getSelectedIndex();
+
+        if (currentIndex < 0) {
+            currentIndex = (direction > 0) ? 0 : size - 1;
+        } else {
+            if (direction > 0) {
+                currentIndex = (currentIndex + 1) % size;
+            } else {
+                currentIndex = (currentIndex - 1 + size) % size;
+            }
+        }
+
+        sm.select(currentIndex);
+        if (currentIndex >= 0 && currentIndex < size) {
+            suggestionsListView.scrollTo(currentIndex);
+        }
+    }
+
+    /**
+     * Method called when user is typing in the text field in order to update suggestions based
+     * on filtering option.
+     *
+     * @param inputText new text input string.
+     */
+    private void updateSuggestions(String inputText)
+    {
+        if (inputText == null) {
+            inputText = "";
+        }
+
+        int min = model_widget.propMinCharacters().getValue();
+
+        if (inputText.length() < min) {
+            showSuggestions();
+            return;
+        }
+
+        showFilteredSuggestions(model_widget.getFilteredSuggestions(inputText));
+    }
+
+    /**
+     * Show suggestions based on the current text in the TextField.
+     * If the TextField is empty, show all items.
+     * If there are no items, hide the suggestions popup.
+     */
+    private void showSuggestions()
+    {
+        if (!jfx_node.isFocused()) {
+            suggestionsPopup.hide();
+            return;
+        }
+        if (jfx_node.isDisabled() || !jfx_node.isEditable() || items.isEmpty()) return;
+
+        String text = jfx_node.getText();
+        List<String> toShow = (text == null || text.isEmpty())
+            ? items
+            : model_widget.getFilteredSuggestions(text);
+
+        showFilteredSuggestions(toShow);
+    }
+
+    /**
+     * Show the filtered suggestions in the popup.
+     *
+     * @param filtered List of filtered suggestions to display.
+     */
+    private void showFilteredSuggestions(List<String> filtered)
+    {
+        if (!jfx_node.isFocused()) {
+            suggestionsPopup.hide();
+            return;
+        }
+
+        if (filtered.isEmpty()) {
+            suggestionsPopup.hide();
+            return;
+        }
+
+        suggestions.setAll(filtered);
+
+        if (!suggestionsPopup.isShowing()) {
+            if (!isMultiLine()) {
+                showPopup(filtered.size());
+            }
+        } else {
+            updatePopupSize(filtered.size());
+        }
+    }
+
+    /**
+     * Show the suggestions popup below the text field.
+     *
+     * @param itemCount number of items to show in the popup.
+     */
+    private void showPopup(int itemCount) {
+        Bounds bounds = jfx_node.localToScreen(jfx_node.getBoundsInLocal());
+
+        updatePopupSize(itemCount);
+
+        suggestionsPopup.show(jfx_node, bounds.getMinX(), bounds.getMaxY());
+    }
+
+    /**
+     * Update the size of the suggestions popup based on the number of items.
+     *
+     * @param itemCount number of items in the suggestions list.
+     */
+    private void updatePopupSize(int itemCount)
+    {
+        double width = jfx_node.getWidth();
+        suggestionsListView.setPrefWidth(width);
+        suggestionsListView.setMaxWidth(width);
+        suggestionsListView.setMinWidth(width);
+
+        double maxHeight = Math.min(itemCount * 23.5, 300);
+        suggestionsListView.setPrefHeight(maxHeight);
+        suggestionsListView.setMaxHeight(maxHeight);
+    }
+
+    /**
+     * Selection of a suggestion in the dropdown.
+     *
+     * @param suggestion selected suggestion.
+     */
+    private void selectSuggestion(String suggestion)
+    {
+        jfx_node.textProperty().removeListener(textChangeListener);
+        jfx_node.setText(suggestion);
+        jfx_node.textProperty().addListener(textChangeListener);
+
+        suggestionsPopup.hide();
+
+        if (model_widget.runtimePropPVWritable().getValue()) {
+            confirmValue(suggestion);
+        }
+    }
+
+    /**
+     * Confirm selected value and write it to PV or local variable.
+     *
+     * @param value Selected value by user.
+     */
+    private void confirmValue(String value)
+    {
+        if (!model_widget.runtimePropPVWritable().getValue() || value == null) return;
+
+        if (!model_widget.propCustom().getValue()) {
+            boolean valid = items.stream().anyMatch(item ->
+                model_widget.propCaseSensitive().getValue() ?
+                    item.equals(value) : item.equalsIgnoreCase(value));
+            if (!valid) {
+                restore();
+                return;
+            }
+        }
+
+        if (model_widget.propConfirmDialog().getValue()) {
+            String password = model_widget.propPassword().getValue();
+            String message = model_widget.propConfirmMessage().getValue();
+
+            if (!password.isEmpty()) {
+                if (toolkit.showPasswordDialog(model_widget, message, password) == null) return;
+            } else if (!toolkit.showConfirmationDialog(model_widget, message)) {
+                return;
+            }
+        }
+
+        try {
+            VType currentPvValue = model_widget.runtimePropValue().getValue();
+            Object mappedValue = (currentPvValue instanceof VEnum) ?
+                FormatOptionHandler.parse(currentPvValue, value, FormatOption.DEFAULT) :
+                parseValue(value);
+
+            toolkit.fireWrite(model_widget, mappedValue);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Error writing to PV", e);
+        }
+    }
+
+    /**
+     * Parses a string value into an appropriate type (Integer or Double).
+     * If the value cannot be parsed, it returns the original string.
+     *
+     * @param value String value to parse.
+     * @return Parsed value as Integer, Double, or original String if parsing fails.
+     */
+    private Object parseValue(String value)
+    {
+        try {
+            return value.contains(".") ? Double.parseDouble(value) : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            VType converted = VType.toVType(value);
+            return converted != null ? converted : value;
+        }
     }
 
     private void setActive(final boolean active)
@@ -296,8 +603,36 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         model_widget.propHorizontalAlignment().addUntypedPropertyListener(styleListener);
         model_widget.propVerticalAlignment().addUntypedPropertyListener(styleListener);
 
+        Stream.of(
+            model_widget.propPlaceholder(), model_widget.propItemsFromPV(),
+            model_widget.propItems(), model_widget.propCustom()
+        ).forEach(prop -> prop.addUntypedPropertyListener(contentListener));
 
         contentChanged(null, null, null);
+    }
+
+    /**
+     * Add a value to the list of suggestion items.
+     *
+     * @return List of computed items.
+     */
+    private List<String> computeItems()
+    {
+        VType value = model_widget.runtimePropValue().getValue();
+
+        if (model_widget.propItemsFromPV().getValue() && value instanceof VEnum) {
+            return ((VEnum) value).getDisplay().getChoices();
+        }
+
+        String itemsString = model_widget.propItems().getValue();
+        if (itemsString == null || itemsString.trim().isEmpty()) {
+            return List.of();
+        }
+
+        return Arrays.stream(itemsString.split("\n"))
+            .map(String::trim)
+            .filter(item -> !item.isEmpty())
+            .toList();
     }
 
     @Override
@@ -317,6 +652,12 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         model_widget.propPVName().removePropertyListener(pvNameListener);
         model_widget.propHorizontalAlignment().removePropertyListener(styleListener);
         model_widget.propVerticalAlignment().removePropertyListener(styleListener);
+
+        Stream.of(
+            model_widget.propPlaceholder(), model_widget.propItemsFromPV(),
+            model_widget.propItems(), model_widget.propCustom()
+        ).forEach(prop -> prop.removePropertyListener(contentListener));
+
         super.unregisterListeners();
     }
 
@@ -371,6 +712,12 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     private void contentChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         value_text = computeText(model_widget.runtimePropValue().getValue());
+        items = computeItems();
+
+        if (!toolkit.isEditMode()) {
+            model_widget.setItems(items);
+        }
+
         dirty_content.mark();
         if (! active)
             toolkit.scheduleUpdate(this);

@@ -15,7 +15,7 @@
       </font>
     </font>
     <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
+      <color name="Text" red="204" green="204" blue="204">
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>
@@ -118,7 +118,7 @@
     <width>250</width>
     <height>70</height>
     <font>
-      <font name="Oddball" family="PakTypeNaqsh" style="REGULAR" size="40.0">
+      <font name="Oddball" family="Comic Sans MS" style="REGULAR" size="40.0">
       </font>
     </font>
     <background_color>
@@ -148,7 +148,7 @@ Pressing 'Enter' confirms editing and writes the entered value to the PV.</text>
       </font>
     </font>
     <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
+      <color name="Text" red="204" green="204" blue="204">
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>
@@ -200,7 +200,7 @@ To cancel editing and revert to the original value, press 'Escape'.
       </font>
     </font>
     <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
+      <color name="Text" red="204" green="204" blue="204">
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>
@@ -228,7 +228,286 @@ Press 'Escape', 'Tab', or click elsewhere to abort.</text>
       </font>
     </font>
     <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
+      <color name="Text" red="204" green="204" blue="204">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>A Text Entry can have suggestions.</text>
+    <x>850</x>
+    <y>71</y>
+    <width>481</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_7</name>
+    <pv_name>loc://suggestions_test&lt;VString&gt;</pv_name>
+    <x>850</x>
+    <y>101</y>
+    <width>220</width>
+    <autocompleteitems>a suggestion
+something
+something else
+possibly
+nothing</autocompleteitems>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Like a Combo Box, suggestions can be based on PV value.</text>
+    <x>850</x>
+    <y>131</y>
+    <width>481</width>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_8</name>
+    <pv_name>loc://suggestions_test1&lt;VEnum&gt;(0, "NORTH", "SOUTH", "EAST", "WEST")</pv_name>
+    <x>850</x>
+    <y>161</y>
+    <width>220</width>
+    <autocompleteitems>a suggestion
+something
+something else
+possibly
+nothing</autocompleteitems>
+    <items_from_pv>true</items_from_pv>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>Suggestions</text>
+    <x>850</x>
+    <y>31</y>
+    <width>201</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>Miscellaneous options:</text>
+    <x>850</x>
+    <y>201</y>
+    <width>481</width>
+    <height>30</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_10</name>
+    <pv_name>loc://suggestions_test2&lt;VEnum&gt;(0, "NORTH", "SOUTH", "EAST", "WEST")</pv_name>
+    <x>1000</x>
+    <y>230</y>
+    <width>220</width>
+    <autocompleteitems>a suggestion
+something
+something else
+possibly
+nothing</autocompleteitems>
+    <items_from_pv>true</items_from_pv>
+    <show_confirm_dialog>true</show_confirm_dialog>
+    <password>test</password>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <text>Password:</text>
+    <x>850</x>
+    <y>231</y>
+    <width>80</width>
+    <height>30</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_11</name>
+    <pv_name>loc://suggestions_test3&lt;VEnum&gt;(0, "NORTH", "SOUTH", "EAST", "WEST")</pv_name>
+    <x>1000</x>
+    <y>261</y>
+    <width>220</width>
+    <autocompleteitems>a suggestion
+something
+something else
+possibly
+nothing</autocompleteitems>
+    <items_from_pv>true</items_from_pv>
+    <case_sensitive>true</case_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <text>Case sensitive:</text>
+    <x>850</x>
+    <y>262</y>
+    <width>150</width>
+    <height>30</height>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_12</name>
+    <pv_name>loc://suggestions_test4&lt;VEnum&gt;(0, "NORTH", "SOUTH", "EAST", "WEST")</pv_name>
+    <x>1000</x>
+    <y>292</y>
+    <width>220</width>
+    <autocompleteitems>a suggestion
+something
+something else
+possibly
+nothing</autocompleteitems>
+    <items_from_pv>true</items_from_pv>
+    <min_characters>3</min_characters>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <text>Minimum characters:</text>
+    <x>850</x>
+    <y>293</y>
+    <width>150</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>Pattern matching:</text>
+    <x>850</x>
+    <y>323</y>
+    <width>481</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <text>fuzzy*:</text>
+    <x>850</x>
+    <y>353</y>
+    <width>201</width>
+    <height>18</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <class>COMMENT</class>
+    <text>*Fuzzy string searching (or approximate string matching):
+It is the technique of finding strings that match a pattern approximately</text>
+    <x>850</x>
+    <y>410</y>
+    <width>370</width>
+    <height>80</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="204" green="204" blue="204">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_14</name>
+    <pv_name>loc://suggestions_test5&lt;VString&gt;</pv_name>
+    <x>850</x>
+    <y>371</y>
+    <width>220</width>
+    <autocompleteitems>banana
+strawberry
+raspberry
+blueberry
+apple
+pineapple
+pear
+kiwi
+blackberry
+lemon
+orange
+apricot
+mango
+avocado
+cherry
+bilberry
+peach
+satsuma
+persimmon</autocompleteitems>
+    <items_from_pv>true</items_from_pv>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_15</name>
+    <pv_name>loc://suggestions_test5&lt;VString&gt;</pv_name>
+    <x>1080</x>
+    <y>371</y>
+    <width>220</width>
+    <autocompleteitems>banana
+strawberry
+raspberry
+blueberry
+apple
+pineapple
+pear
+kiwi
+blackberry
+lemon
+orange
+apricot
+mango
+avocado
+cherry
+bilberry
+peach
+satsuma
+persimmon</autocompleteitems>
+    <items_from_pv>true</items_from_pv>
+    <filter_mode>starts_with</filter_mode>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_16</name>
+    <pv_name>loc://suggestions_test5&lt;VString&gt;</pv_name>
+    <x>1310</x>
+    <y>371</y>
+    <width>220</width>
+    <autocompleteitems>banana
+strawberry
+raspberry
+blueberry
+apple
+pineapple
+pear
+kiwi
+blackberry
+lemon
+orange
+apricot
+mango
+avocado
+cherry
+bilberry
+peach
+satsuma
+persimmon</autocompleteitems>
+    <items_from_pv>true</items_from_pv>
+    <filter_mode>contains</filter_mode>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>starts_with*:</text>
+    <x>1080</x>
+    <y>353</y>
+    <width>201</width>
+    <height>18</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>contains*:</text>
+    <x>1310</x>
+    <y>353</y>
+    <width>201</width>
+    <height>18</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_27</name>
+    <class>COMMENT</class>
+    <text>Unlike a Combobox, the suggestion system has no limits on the number of suggestions it can make.</text>
+    <x>850</x>
+    <y>500</y>
+    <width>370</width>
+    <height>80</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="204" green="204" blue="204">
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>

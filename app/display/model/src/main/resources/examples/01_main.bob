@@ -15,7 +15,7 @@
 Note you can also navigate between buttons via &lt;Tab&gt; key or &lt;Shift&gt; and cursor keys,
 then press &lt;SPACE&gt; to activate button.</text>
     <x>10</x>
-    <y>490</y>
+    <y>520</y>
     <width>640</width>
     <height>80</height>
     <font use_class="true">
@@ -23,7 +23,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </font>
     </font>
     <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
+      <color name="Text" red="204" green="204" blue="204">
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>
@@ -42,7 +42,7 @@ then press &lt;SPACE&gt; to activate button.</text>
       </font>
     </font>
     <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
+      <color name="Text" red="204" green="204" blue="204">
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>
@@ -62,9 +62,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button</name>
     <actions>
       <action type="open_display">
+        <description>Introduction</description>
         <file>02_intro.bob</file>
         <target>replace</target>
-        <description>Introduction</description>
       </action>
     </actions>
     <y>80</y>
@@ -76,9 +76,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_7</name>
     <actions>
       <action type="open_display">
+        <description>Properties</description>
         <file>03_properties.bob</file>
         <target>replace</target>
-        <description>Properties</description>
       </action>
     </actions>
     <y>120</y>
@@ -90,9 +90,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_25</name>
     <actions>
       <action type="open_display">
+        <description>Classes</description>
         <file>use_classes.bob</file>
         <target>replace</target>
-        <description>Classes</description>
       </action>
     </actions>
     <y>160</y>
@@ -104,9 +104,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_9</name>
     <actions>
       <action type="open_display">
+        <description>Macros</description>
         <file>04_macros.bob</file>
         <target>replace</target>
-        <description>Macros</description>
       </action>
     </actions>
     <y>200</y>
@@ -118,9 +118,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_10</name>
     <actions>
       <action type="open_display">
+        <description>Actions</description>
         <file>05_actions.bob</file>
         <target>replace</target>
-        <description>Actions</description>
       </action>
     </actions>
     <y>240</y>
@@ -132,9 +132,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_37</name>
     <actions>
       <action type="open_display">
+        <description>Rules</description>
         <file>09_rules.bob</file>
         <target>replace</target>
-        <description>Rules</description>
       </action>
     </actions>
     <y>280</y>
@@ -146,9 +146,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_6</name>
     <actions>
       <action type="open_display">
+        <description>Scripts</description>
         <file>10_scripts.bob</file>
         <target>replace</target>
-        <description>Scripts</description>
       </action>
     </actions>
     <y>320</y>
@@ -160,9 +160,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_40</name>
     <actions>
       <action type="open_display">
+        <description>Datasources</description>
         <file>11_datasources.bob</file>
         <target>replace</target>
-        <description>Datasources</description>
       </action>
     </actions>
     <y>360</y>
@@ -174,9 +174,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_41</name>
     <actions>
       <action type="open_display">
+        <description>Formulas</description>
         <file>12_formulas.bob</file>
         <target>replace</target>
-        <description>Formulas</description>
       </action>
     </actions>
     <y>400</y>
@@ -188,9 +188,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_26</name>
     <actions>
       <action type="open_display">
+        <description>Enablement</description>
         <file>enablement.bob</file>
         <target>replace</target>
-        <description>Enablement</description>
       </action>
     </actions>
     <y>440</y>
@@ -226,9 +226,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_1</name>
     <actions>
       <action type="open_display">
+        <description>Label</description>
         <file>graphics_label.bob</file>
         <target>replace</target>
-        <description>Label</description>
       </action>
     </actions>
     <x>190</x>
@@ -241,9 +241,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_8</name>
     <actions>
       <action type="open_display">
+        <description>Picture</description>
         <file>graphics_picture.bob</file>
         <target>replace</target>
-        <description>Picture</description>
       </action>
     </actions>
     <x>190</x>
@@ -256,9 +256,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_17</name>
     <actions>
       <action type="open_display">
+        <description>Rectangle</description>
         <file>graphics_rect.bob</file>
         <target>replace</target>
-        <description>Rectangle</description>
       </action>
     </actions>
     <x>190</x>
@@ -271,9 +271,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_38</name>
     <actions>
       <action type="open_display">
+        <description>Arc</description>
         <file>graphics_arc.bob</file>
         <target>replace</target>
-        <description>Arc</description>
       </action>
     </actions>
     <x>190</x>
@@ -286,9 +286,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_39</name>
     <actions>
       <action type="open_display">
+        <description>Polygon/line</description>
         <file>graphics_poly.bob</file>
         <target>replace</target>
-        <description>Polygon/line</description>
       </action>
     </actions>
     <x>190</x>
@@ -313,9 +313,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_2</name>
     <actions>
       <action type="open_display">
+        <description>Text Update</description>
         <file>monitors_textupdate.bob</file>
         <target>replace</target>
-        <description>Text Update</description>
       </action>
     </actions>
     <x>330</x>
@@ -328,9 +328,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_3</name>
     <actions>
       <action type="open_display">
+        <description>LED</description>
         <file>monitors_led.bob</file>
         <target>replace</target>
-        <description>LED</description>
       </action>
     </actions>
     <x>330</x>
@@ -343,9 +343,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_20</name>
     <actions>
       <action type="open_display">
+        <description>Byte Monitor</description>
         <file>monitors_bytemonitor.bob</file>
         <target>replace</target>
-        <description>Byte Monitor</description>
       </action>
     </actions>
     <x>330</x>
@@ -358,9 +358,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_34</name>
     <actions>
       <action type="open_display">
+        <description>Tank</description>
         <file>monitors_tank.bob</file>
         <target>replace</target>
-        <description>Tank</description>
       </action>
     </actions>
     <x>330</x>
@@ -373,9 +373,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_35</name>
     <actions>
       <action type="open_display">
+        <description>Table</description>
         <file>monitors_table.bob</file>
         <target>replace</target>
-        <description>Table</description>
       </action>
     </actions>
     <x>330</x>
@@ -388,9 +388,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_27</name>
     <actions>
       <action type="open_display">
+        <description>Gauges</description>
         <file>monitors_gauge.bob</file>
         <target>replace</target>
-        <description>Gauges</description>
       </action>
     </actions>
     <x>330</x>
@@ -408,9 +408,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_28</name>
     <actions>
       <action type="open_display">
+        <description>Meters</description>
         <file>monitors_meter.bob</file>
         <target>replace</target>
-        <description>Meters</description>
       </action>
     </actions>
     <x>330</x>
@@ -428,9 +428,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_32</name>
     <actions>
       <action type="open_display">
+        <description>Symbols</description>
         <file>monitors_symbols.bob</file>
         <target>replace</target>
-        <description>Symbols</description>
       </action>
     </actions>
     <x>330</x>
@@ -455,9 +455,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_14</name>
     <actions>
       <action type="open_display">
+        <description>Text Entry</description>
         <file>controls_textentry.bob</file>
         <target>replace</target>
-        <description>Text Entry</description>
       </action>
     </actions>
     <x>470</x>
@@ -470,9 +470,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_15</name>
     <actions>
       <action type="open_display">
+        <description>Toggle Buttons</description>
         <file>controls_toggle_buttons.bob</file>
         <target>replace</target>
-        <description>Toggle Buttons</description>
       </action>
     </actions>
     <x>470</x>
@@ -485,9 +485,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_16</name>
     <actions>
       <action type="open_display">
+        <description>Action Buttons</description>
         <file>controls_action_buttons.bob</file>
         <target>replace</target>
-        <description>Action Buttons</description>
       </action>
     </actions>
     <x>470</x>
@@ -500,9 +500,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_18</name>
     <actions>
       <action type="open_display">
+        <description>Incr. Controls</description>
         <file>controls_spinner_slider_scrollbar.bob</file>
         <target>replace</target>
-        <description>Incr. Controls</description>
       </action>
     </actions>
     <x>470</x>
@@ -515,9 +515,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_19</name>
     <actions>
       <action type="open_display">
+        <description>Combo Box</description>
         <file>controls_combo.bob</file>
         <target>replace</target>
-        <description>Combo Box</description>
       </action>
     </actions>
     <x>470</x>
@@ -530,9 +530,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_36</name>
     <actions>
       <action type="open_display">
+        <description>Check Boxes</description>
         <file>controls_checkboxes_slidebuttons.bob</file>
         <target>replace</target>
-        <description>Check Boxes</description>
       </action>
     </actions>
     <x>470</x>
@@ -545,9 +545,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_23</name>
     <actions>
       <action type="open_display">
+        <description>Radio Button</description>
         <file>controls_radio.bob</file>
         <target>replace</target>
-        <description>Radio Button</description>
       </action>
     </actions>
     <x>470</x>
@@ -560,9 +560,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_22</name>
     <actions>
       <action type="open_display">
+        <description>File Selector</description>
         <file>controls_fileselector.bob</file>
         <target>replace</target>
-        <description>File Selector</description>
       </action>
     </actions>
     <x>470</x>
@@ -572,12 +572,32 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
+    <name>Action Button_33</name>
+    <actions>
+      <action type="open_display">
+        <description>Knob</description>
+        <file>controls_knob.bob</file>
+        <target>replace</target>
+      </action>
+    </actions>
+    <x>470</x>
+    <y>440</y>
+    <width>120</width>
+    <height>26</height>
+    <scripts>
+      <script file="scripts/disable_missing.py">
+        <pv_name>loc://knob("knob")</pv_name>
+      </script>
+    </scripts>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
     <name>Action Button_34</name>
     <actions>
       <action type="open_display">
+        <description>Thumb Wheel</description>
         <file>controls_thumbwheel.bob</file>
         <target>replace</target>
-        <description>Thumb Wheel</description>
       </action>
     </actions>
     <x>470</x>
@@ -607,9 +627,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>XY</name>
     <actions>
       <action type="open_display">
+        <description>X/Y Plot</description>
         <file>plots_xy.bob</file>
         <target>replace</target>
-        <description>X/Y Plot</description>
       </action>
     </actions>
     <x>610</x>
@@ -622,9 +642,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Strip</name>
     <actions>
       <action type="open_display">
+        <description>Strip Chart</description>
         <file>plots_strip.bob</file>
         <target>replace</target>
-        <description>Strip Chart</description>
       </action>
     </actions>
     <x>610</x>
@@ -637,9 +657,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>DB</name>
     <actions>
       <action type="open_display">
+        <description>Data Browser</description>
         <file>plots_databrowser.bob</file>
         <target>replace</target>
-        <description>Data Browser</description>
       </action>
     </actions>
     <x>610</x>
@@ -652,9 +672,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Image</name>
     <actions>
       <action type="open_display">
+        <description>Image</description>
         <file>plots_image.bob</file>
         <target>replace</target>
-        <description>Image</description>
       </action>
     </actions>
     <x>610</x>
@@ -679,9 +699,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_13</name>
     <actions>
       <action type="open_display">
+        <description>Group</description>
         <file>structure_group.bob</file>
         <target>replace</target>
-        <description>Group</description>
       </action>
     </actions>
     <x>750</x>
@@ -694,9 +714,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_11</name>
     <actions>
       <action type="open_display">
+        <description>Embedded</description>
         <file>embedded/structure_embedded.bob</file>
         <target>replace</target>
-        <description>Embedded</description>
       </action>
     </actions>
     <x>750</x>
@@ -709,9 +729,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_12</name>
     <actions>
       <action type="open_display">
+        <description>Tabs</description>
         <file>structure_tabs.bob</file>
         <target>replace</target>
-        <description>Tabs</description>
       </action>
     </actions>
     <x>750</x>
@@ -724,9 +744,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_31</name>
     <actions>
       <action type="open_display">
+        <description>Navigation Tabs</description>
         <file>structure_navtabs.bob</file>
         <target>replace</target>
-        <description>Navigation Tabs</description>
       </action>
     </actions>
     <x>750</x>
@@ -739,9 +759,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_30</name>
     <actions>
       <action type="open_display">
+        <description>Array</description>
         <file>structure_array.bob</file>
         <target>replace</target>
-        <description>Array</description>
       </action>
     </actions>
     <x>750</x>
@@ -754,9 +774,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_21</name>
     <actions>
       <action type="open_display">
+        <description>Template &amp; Inst.</description>
         <file>template_and_instance/example.bob</file>
         <target>replace</target>
-        <description>Template &amp; Inst.</description>
       </action>
     </actions>
     <x>750</x>
@@ -781,9 +801,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_20</name>
     <actions>
       <action type="open_display">
+        <description>Web Browser</description>
         <file>misc_webbrowser.bob</file>
         <target>replace</target>
-        <description>Web Browser</description>
       </action>
     </actions>
     <x>890</x>
@@ -796,9 +816,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_24</name>
     <actions>
       <action type="open_display">
+        <description>Clocks</description>
         <file>misc_clock.bob</file>
         <target>replace</target>
-        <description>Clocks</description>
       </action>
     </actions>
     <x>890</x>
@@ -816,9 +836,9 @@ then press &lt;SPACE&gt; to activate button.</text>
     <name>Action Button_29</name>
     <actions>
       <action type="open_display">
+        <description>Fishtank</description>
         <file>fishtank/heater.bob</file>
         <target>replace</target>
-        <description>Fishtank</description>
       </action>
     </actions>
     <x>890</x>
