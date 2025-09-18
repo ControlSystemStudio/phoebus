@@ -10,12 +10,13 @@ package org.epics.pva.server;
 import static org.epics.pva.PVASettings.logger;
 
 import java.util.BitSet;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
+import org.epics.pva.common.AccessRightsChange;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
@@ -74,9 +75,12 @@ public class ServerPV implements AutoCloseable
     /** Handler for write access. May be READONLY_WRITE_HANDLER */
     private final WriteEventHandler write_handler;
 
-    /** Map of TCP handlers,
-     *  i.e. TCP connections to clients that access this PV,
-     *  by client ID
+    /** Is the PV writable? */
+    private final AtomicBoolean writable;
+
+    /** Map of TCP handlers and client IDs.
+     *  PV has one server ID.
+     *  Client ID is provided by client for each TCP connection.
      */
     private final ConcurrentHashMap<ServerTCPHandler, Integer> cid_by_client = new ConcurrentHashMap<>();
 
@@ -96,6 +100,7 @@ public class ServerPV implements AutoCloseable
         this.data = data.cloneData();
         rpc = DEFAULT_RPC_SERVICE;
         this.write_handler = write_handler;
+        writable = new AtomicBoolean(write_handler != READONLY_WRITE_HANDLER);
     }
 
     /** Create PV for handling RPC calls
@@ -110,6 +115,7 @@ public class ServerPV implements AutoCloseable
         this.data = RPC_SERVICE_VALUE;
         this.rpc = rpc;
         write_handler = READONLY_WRITE_HANDLER;
+        writable = new AtomicBoolean(false);
     }
 
 
@@ -131,7 +137,7 @@ public class ServerPV implements AutoCloseable
      */
     void addClient(final ServerTCPHandler tcp, final int cid)
     {
-        // A client should create a PV just once.
+        // Each client should create a PV just once.
         // If client creates PV several times, we only track the last CID
         // and issue a warning.
         final Integer other = cid_by_client.put(tcp, cid);
@@ -226,9 +232,26 @@ public class ServerPV implements AutoCloseable
         }
     }
 
-    boolean isWritable()
+    /** @return Is the PV writable? */
+    public boolean isWritable()
     {
-        return write_handler != READONLY_WRITE_HANDLER;
+        return writable.get();
+    }
+
+    /** Update write access
+     *
+     *  To enable write access, PV must have been created with {@link WriteEventHandler}
+     *
+     *  @param writable Should the PV be writable?
+     */
+    public void setWritable(final boolean writable)
+    {
+        if (write_handler != READONLY_WRITE_HANDLER  &&  this.writable.compareAndSet(!writable, writable))
+        {
+            logger.log(Level.FINE, () ->  "Update ACL " + this + (writable ? " to writable" : " to read-only"));
+            cid_by_client.forEach((tcp, cid) ->
+                tcp.submit((version, buffer) -> AccessRightsChange.encode(buffer, cid, writable)));
+        }
     }
 
     /** Notification that a client wrote to the PV
@@ -256,18 +279,14 @@ public class ServerPV implements AutoCloseable
     @Override
     public void close()
     {
-        for (Entry<ServerTCPHandler, Integer> client : cid_by_client.entrySet())
-        {
-            final ServerTCPHandler tcp = client.getKey();
-            final int cid = client.getValue();
+        cid_by_client.forEach((tcp, cid) ->
             tcp.submit( (version, buffer) ->
-            {
+            {   // Send CMD_DESTROY_CHANNEL for this PV to all clients
                 logger.log(Level.FINE, () -> "Sending destroy channel command for SID " + sid + ", CID " + cid);
                 PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_DESTROY_CHANNEL, 4+4);
                 buffer.putInt(sid);
                 buffer.putInt(cid);
-            });
-        }
+            }));
 
         server.deletePV(this);
     }
