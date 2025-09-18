@@ -26,6 +26,7 @@ import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -212,6 +213,5 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 }
