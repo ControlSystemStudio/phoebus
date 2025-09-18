@@ -4,14 +4,61 @@
 
 package org.phoebus.saveandrestore.util;
 
-import org.epics.pva.data.*;
-import org.epics.util.array.*;
-import org.epics.vtype.*;
+import org.epics.pva.data.PVABoolArray;
+import org.epics.pva.data.PVAByteArray;
+import org.epics.pva.data.PVADoubleArray;
+import org.epics.pva.data.PVAFloatArray;
+import org.epics.pva.data.PVAIntArray;
+import org.epics.pva.data.PVALongArray;
+import org.epics.pva.data.PVAShortArray;
+import org.epics.pva.data.PVAStringArray;
+import org.epics.util.array.ArrayBoolean;
+import org.epics.util.array.ArrayByte;
+import org.epics.util.array.ArrayDouble;
+import org.epics.util.array.ArrayFloat;
+import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayLong;
+import org.epics.util.array.ArrayShort;
+import org.epics.util.array.ArrayUByte;
+import org.epics.util.array.ArrayUInteger;
+import org.epics.util.array.ArrayULong;
+import org.epics.util.array.ArrayUShort;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
+import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
+import org.epics.vtype.VBooleanArray;
+import org.epics.vtype.VByte;
+import org.epics.vtype.VByteArray;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
+import org.epics.vtype.VFloat;
+import org.epics.vtype.VFloatArray;
+import org.epics.vtype.VInt;
+import org.epics.vtype.VIntArray;
+import org.epics.vtype.VLong;
+import org.epics.vtype.VLongArray;
+import org.epics.vtype.VShort;
+import org.epics.vtype.VShortArray;
+import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
+import org.epics.vtype.VTable;
+import org.epics.vtype.VType;
+import org.epics.vtype.VUByte;
+import org.epics.vtype.VUByteArray;
+import org.epics.vtype.VUInt;
+import org.epics.vtype.VUIntArray;
+import org.epics.vtype.VULong;
+import org.epics.vtype.VULongArray;
+import org.epics.vtype.VUShort;
+import org.epics.vtype.VUShortArray;
 import org.junit.jupiter.api.Test;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.core.vtypes.VTypeHelper;
-import org.phoebus.saveandrestore.util.Threshold;
-import org.phoebus.saveandrestore.util.Utilities;
 
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -19,7 +66,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class UtilitiesTest {
 
@@ -145,61 +200,61 @@ public class UtilitiesTest {
 
         VType val = VDouble.of(5d, alarm, time, display);
         VType result = Utilities.valueFromString("5.0", val);
-        assertTrue(result instanceof VDouble);
+        assertInstanceOf(VDouble.class, result);
         assertEquals(5.0, ((VDouble) result).getValue(), 0);
 
         result = Utilities.valueFromString("", val);
-        assertTrue(result instanceof VDouble);
+        assertInstanceOf(VDouble.class, result);
         assertEquals(5.0, ((VDouble) result).getValue(), 0);
 
         val = VFloat.of(5f, alarm, time, display);
         result = Utilities.valueFromString("5.0", val);
-        assertTrue(result instanceof VFloat);
+        assertInstanceOf(VFloat.class, result);
         assertEquals(5.0f, ((VFloat) result).getValue(), 0);
 
         val = VLong.of(5L, alarm, time, display);
         result = Utilities.valueFromString("5", val);
-        assertTrue(result instanceof VLong);
+        assertInstanceOf(VLong.class, result);
         assertEquals(5L, ((VLong) result).getValue().longValue());
 
         val = VULong.of(5L, alarm, time, display);
         result = Utilities.valueFromString("5", val);
-        assertTrue(result instanceof VULong);
+        assertInstanceOf(VULong.class, result);
         assertEquals(5L, ((VULong) result).getValue().longValue());
 
         val = VUInt.of(5, alarm, time, display);
         result = Utilities.valueFromString("5", val);
-        assertTrue(result instanceof VUInt);
+        assertInstanceOf(VUInt.class, result);
         assertEquals(5, ((VUInt) result).getValue().intValue());
 
         val = VInt.of(5, alarm, time, display);
         result = Utilities.valueFromString("5", val);
-        assertTrue(result instanceof VInt);
+        assertInstanceOf(VInt.class, result);
         assertEquals(5, ((VInt) result).getValue().intValue());
 
         val = VShort.of((short) 5, alarm, time, display);
         result = Utilities.valueFromString("5", val);
-        assertTrue(result instanceof VShort);
+        assertInstanceOf(VShort.class, result);
         assertEquals((short) 5, ((VShort) result).getValue().shortValue());
 
         val = VUShort.of((short) 5, alarm, time, display);
         result = Utilities.valueFromString("5", val);
-        assertTrue(result instanceof VUShort);
+        assertInstanceOf(VUShort.class, result);
         assertEquals((short) 5, ((VUShort) result).getValue().shortValue());
 
         val = VByte.of((byte) 5, alarm, time, display);
         result = Utilities.valueFromString("5", val);
-        assertTrue(result instanceof VByte);
+        assertInstanceOf(VByte.class, result);
         assertEquals((byte) 5, ((VByte) result).getValue().byteValue());
 
         val = VUByte.of((byte) 5, alarm, time, display);
         result = Utilities.valueFromString("5", val);
-        assertTrue(result instanceof VUByte);
+        assertInstanceOf(VUByte.class, result);
         assertEquals((byte) 5, ((VUByte) result).getValue().byteValue());
 
         val = VEnum.of(1, EnumDisplay.of("first", "second", "third"), alarm, time);
         result = Utilities.valueFromString("second", val);
-        assertTrue(result instanceof VEnum);
+        assertInstanceOf(VEnum.class, result);
         assertEquals("second", ((VEnum) result).getValue());
 
         val = VEnum.of(1, EnumDisplay.of("first", "second", "third"), alarm, time);
@@ -212,12 +267,12 @@ public class UtilitiesTest {
 
         val = VBoolean.of(false, alarm, time);
         result = Utilities.valueFromString("false", val);
-        assertTrue(result instanceof VBoolean);
+        assertInstanceOf(VBoolean.class, result);
         assertEquals(false, ((VBoolean) result).getValue());
 
         val = VString.of("third", alarm, time);
         result = Utilities.valueFromString("third", val);
-        assertTrue(result instanceof VString);
+        assertInstanceOf(VString.class, result);
         assertEquals("third", ((VString) result).getValue());
 
 
@@ -267,30 +322,30 @@ public class UtilitiesTest {
 
         val = VStringArray.of(Arrays.asList("first", "second", "third"), alarm, time);
         result = Utilities.valueFromString("[\"first\", \"second\", \"third\"]", val);
-        assertTrue(result instanceof VStringArray);
+        assertInstanceOf(VStringArray.class, result);
         assertArrayEquals(new String[]{"first", "second", "third"}, ((VStringArray) result).getData().toArray(new String[0]));
 
         val = VLongArray.of(ArrayLong.of(1, 2, 3, 4, 5), alarm, time, display);
         result = Utilities.valueFromString("1, 2, 3, 4, 5", val);
-        assertTrue(result instanceof VLongArray);
+        assertInstanceOf(VLongArray.class, result);
         assertNotNull(((VLongArray) result).getData());
 
         val = VBooleanArray.of(ArrayBoolean.of(true, true, false, true), alarm, time);
         result = Utilities.valueFromString("[1, 1, 0, 2]", val);
-        assertTrue(result instanceof VBooleanArray);
+        assertInstanceOf(VBooleanArray.class, result);
         assertNotNull(((VBooleanArray) result).getData());
 
         val = VDisconnectedData.INSTANCE;
         result = Utilities.valueFromString("5", val);
-        assertTrue(result instanceof VLong);
+        assertInstanceOf(VLong.class, result);
         assertEquals(5L, ((VLong) result).getValue().longValue());
 
         result = Utilities.valueFromString("5.1", val);
-        assertTrue(result instanceof VDouble);
+        assertInstanceOf(VDouble.class, result);
         assertEquals(5.1, ((VDouble) result).getValue(), 0);
 
         result = Utilities.valueFromString("string", val);
-        assertTrue(result instanceof VString);
+        assertInstanceOf(VString.class, result);
         assertEquals("string", ((VString) result).getValue());
     }
 
@@ -499,7 +554,7 @@ public class UtilitiesTest {
         assertEquals("[1.0, 2.0, 3.0]", result.getString());
         assertNotEquals(0, result.getValuesEqual());
         assertFalse(result.isWithinThreshold());
-        assertEquals(0, result.getAbsoluteDelta(), 0.0);
+        assertEquals(1, result.getAbsoluteDelta(), 0.0);
 
         //compare long values: equal, first less than second, second less than first
         val1 = VLong.of(6L, alarm, time, display);
@@ -631,7 +686,7 @@ public class UtilitiesTest {
         assertEquals("val2", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertFalse(result.isWithinThreshold());
-        assertEquals(0, result.getAbsoluteDelta(), 0.0);
+        assertEquals(1, result.getAbsoluteDelta(), 0.0);
 
         val1 = VEnum.of(2, labels, alarm, time);
         val2 = VEnum.of(1, labels, alarm, time);
@@ -639,7 +694,7 @@ public class UtilitiesTest {
         assertEquals("val3", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
-        assertEquals(0, result.getAbsoluteDelta(), 0.0);
+        assertEquals(1, result.getAbsoluteDelta(), 0.0);
 
         val1 = VByte.of((byte) 5, alarm, time, display);
         val2 = VByte.of((byte) 6, alarm, time, display);
@@ -695,6 +750,14 @@ public class UtilitiesTest {
         assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
         assertEquals(0, result.getAbsoluteDelta(), 0.0);
+
+        val1 = VBoolean.of(false, alarm, time);
+        val2 = VBoolean.of(true, alarm, time);
+        result = Utilities.valueToCompareString(val1, val2, Optional.empty());
+        assertEquals("false", result.getString());
+        assertEquals(-1, result.getValuesEqual());
+        assertFalse(result.isWithinThreshold());
+        assertEquals(1, result.getAbsoluteDelta(), 0.0);
 
         val1 = VString.of("a", alarm, time);
         val2 = VString.of("b", alarm, time);
@@ -1554,5 +1617,20 @@ public class UtilitiesTest {
         assertEquals(3, ((PVAStringArray) converted).get().length);
         assertArrayEquals(new String[]{"a", "b", "c"}, ((PVAStringArray) converted).get());
         assertEquals("strings", ((PVAStringArray) converted).getName());
+    }
+
+    @Test
+    public void testSorting() {
+        VLongArray longs1 = VLongArray.of(ArrayLong.of(-1, 2, 3), Alarm.none(), Time.now(), Display.none());
+        VLongArray longs2 = VLongArray.of(ArrayLong.of(1, 2, 3), Alarm.none(), Time.now(), Display.none());
+
+        Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(longs1, longs2, Optional.empty());
+
+        VEnum vEnum1 = VEnum.of(0, EnumDisplay.of("negative", "b"), Alarm.none(), Time.now());
+        VEnum vEnum2 = VEnum.of(0, EnumDisplay.of("negative", "b"), Alarm.none(), Time.now());
+
+        Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(vEnum1, vEnum2, Optional.empty());
+
+        assertEquals(1, Double.compare(vtc1.getAbsoluteDelta(), vtc2.getAbsoluteDelta()));
     }
 }
