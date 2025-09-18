@@ -384,6 +384,16 @@ public class CredentialsManagementController {
                 textField.getStyleClass().add("text-field-styling");
                 textField.textProperty().bindBidirectional(getTableRow().getItem().username);
                 textField.disableProperty().bind(getTableRow().getItem().userLoggedIn);
+                ServiceItem serviceItem = getTableRow().getItem();
+                textField.setOnKeyPressed(keyEvent -> {
+                    if (keyEvent.getCode() == KeyCode.ENTER &&
+                            !serviceItem.username.isNull().get() &&
+                            !serviceItem.username.get().isEmpty() &&
+                            !serviceItem.password.isNull().get() &&
+                            !serviceItem.password.get().isEmpty()) {
+                        CredentialsManagementController.this.login(serviceItem);
+                    }
+                });
                 setGraphic(textField);
             }
         }
@@ -405,9 +415,14 @@ public class CredentialsManagementController {
                 passwordField.setText(item.get() == null ? null : "dummypass"); // Hack to not reveal password length
                 passwordField.textProperty().bindBidirectional(getTableRow().getItem().password);
                 passwordField.disableProperty().bind(getTableRow().getItem().userLoggedIn);
+                ServiceItem serviceItem = getTableRow().getItem();
                 passwordField.setOnKeyPressed(keyEvent -> {
-                    if (keyEvent.getCode() == KeyCode.ENTER) {
-                        CredentialsManagementController.this.login(getTableRow().getItem());
+                    if (keyEvent.getCode() == KeyCode.ENTER &&
+                            !serviceItem.username.isNull().get() &&
+                            !serviceItem.username.get().isEmpty() &&
+                            !serviceItem.password.isNull().get() &&
+                            !serviceItem.password.get().isEmpty()) {
+                        CredentialsManagementController.this.login(serviceItem);
                     }
                 });
                 setGraphic(passwordField);
