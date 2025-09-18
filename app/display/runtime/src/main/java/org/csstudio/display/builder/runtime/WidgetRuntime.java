@@ -26,6 +26,7 @@ import org.csstudio.display.actions.WritePVAction;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.pv.PVPool.TypedName;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -235,7 +236,9 @@ public class WidgetRuntime<MW extends Widget> {
                     final String pv_name = ((WritePVAction) action).getPV();
                     try {
                         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
-                        final RuntimePV pv = PVFactory.getPV(expanded);
+                        // Manage default datasource if not ca
+                        final TypedName type_name = TypedName.analyze(expanded);
+                        final RuntimePV pv = PVFactory.getPV(type_name.toString());
                         action_pvs.add(pv);
                         addPV(pv, true);
                     } catch (Exception ex) {
@@ -395,8 +398,12 @@ public class WidgetRuntime<MW extends Widget> {
     public void writePV(final String pv_name, final Object value) throws Exception {
         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
         String name_to_check = expanded;
+        // Check for default datasource to manage custom datasource
+        final TypedName type_name = TypedName.analyze(name_to_check);
+        name_to_check = type_name != null ? type_name.toString() : name_to_check;
+        String dataType = type_name != null ? type_name.type : null;
         // For local PV,
-        if (name_to_check.startsWith("loc://")) {
+        if (dataType != null && dataType.equals("loc")) {
             // strip optional data type ...
             int sep = name_to_check.indexOf('<');
             if (sep > 0)
