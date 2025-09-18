@@ -2,6 +2,7 @@
 package org.csstudio.display.extra.widgets.linearmeter;
 
 import static org.csstudio.javafx.rtplot.Activator.logger;
+import static org.csstudio.javafx.rtplot.internal.util.Log10.log10;
 
 import java.awt.BasicStroke;
 import java.awt.Canvas;
@@ -91,7 +92,8 @@ public class RTLinearMeter extends ImageView
                          Color needleColor,
                          int knobSize,
                          Color knobColor,
-                         boolean showWarnings)
+                         boolean showWarnings,
+                         boolean logScale)
     {
         if (warningTriangle == null) {
             try {
@@ -115,7 +117,8 @@ public class RTLinearMeter extends ImageView
                                                 height,
                                                 isHorizontal,
                                                 min,
-                                                max);
+                                                max,
+                                                logScale);
 
         this.minMaxTolerance = minMaxTolerance;
         this.loLo = loLo;
@@ -189,7 +192,8 @@ public class RTLinearMeter extends ImageView
                     linearMeterScale.getBounds().height,
                     linearMeterScale.isHorizontal(),
                     linearMeterScale.getValueRange().getLow(),
-                    linearMeterScale.getValueRange().getHigh());
+                    linearMeterScale.getValueRange().getHigh(),
+                    linearMeterScale.isLogarithmic());
             linearMeterScale.setHorizontal(isHorizontal);
         });
     }
@@ -294,6 +298,12 @@ public class RTLinearMeter extends ImageView
     }
 
     private DisplayMode displayMode = DisplayMode.NEEDLE;
+
+    public void setLogScale(boolean logScale) {
+        withWriteLock(() -> {
+            linearMeterScale.setLogarithmic(logScale);
+        });
+    }
 
     private void runOnJavaFXThread(Runnable runnable) {
         if (Platform.isFxApplicationThread()) {
@@ -749,10 +759,20 @@ public class RTLinearMeter extends ImageView
         }
         return withReadLock(() -> {
             if (linearMeterScale.isHorizontal()) {
-                return Optional.of((int) Math.round(marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow())));
+                if (linearMeterScale.isLogarithmic()) {
+                    return Optional.of((int) Math.round(marginLeft + pixelsPerScaleUnit * (log10(value) - log10(linearMeterScale.getValueRange().getLow()))));
+                }
+                else {
+                    return Optional.of((int) Math.round(marginLeft + pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow())));
+                }
             }
             else {
-                return Optional.of((int) Math.round(linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow())));
+                if (linearMeterScale.isLogarithmic()) {
+                    return Optional.of((int) Math.round(linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (log10(value) - log10(linearMeterScale.getValueRange().getLow()))));
+                }
+                else {
+                    return Optional.of((int) Math.round(linearMeterScale.getBounds().height - marginBelow - pixelsPerScaleUnit * (value - linearMeterScale.getValueRange().getLow())));
+                }
             }
         });
     }
@@ -1323,14 +1343,34 @@ public class RTLinearMeter extends ImageView
                     marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
                 }
 
-                pixelsPerScaleUnit = (linearMeterScale.getBounds().width - marginLeft - marginRight - 1) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
+                if (linearMeterScale.isLogarithmic()) {
+                    pixelsPerScaleUnit = (linearMeterScale.getBounds().width - marginLeft - marginRight - 1) / (log10(linearMeterScale.getValueRange().getHigh()) - log10(linearMeterScale.getValueRange().getLow()));
+                }
+                else {
+                    pixelsPerScaleUnit = (linearMeterScale.getBounds().width - marginLeft - marginRight - 1) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
+                }
                 meterBreadth = Math.round(linearMeterScale.getBounds().height - marginAbove - marginBelow) - 1;
 
-                double x_loLoRectangle = marginLeft;
-                double x_lowRectangle = marginLeft + pixelsPerScaleUnit * (displayedLoLo - linearMeterScale.getValueRange().getLow());
-                double x_normalRectangle = marginLeft + pixelsPerScaleUnit * (displayedLow - linearMeterScale.getValueRange().getLow());
-                double x_highRectangle = marginLeft + pixelsPerScaleUnit * (displayedHigh - linearMeterScale.getValueRange().getLow());
-                double x_hiHiRectangle = marginLeft + pixelsPerScaleUnit * (displayedHiHi - linearMeterScale.getValueRange().getLow());
+                double x_loLoRectangle;
+                double x_lowRectangle;
+                double x_normalRectangle;
+                double x_highRectangle;
+                double x_hiHiRectangle;
+                if (linearMeterScale.isLogarithmic()) {
+                    x_loLoRectangle = marginLeft;
+                    x_lowRectangle = marginLeft + pixelsPerScaleUnit * (log10(displayedLoLo) - log10(linearMeterScale.getValueRange().getLow()));
+                    x_normalRectangle = marginLeft + pixelsPerScaleUnit * (log10(displayedLow) - log10(linearMeterScale.getValueRange().getLow()));
+                    x_highRectangle = marginLeft + pixelsPerScaleUnit * (log10(displayedHigh) - log10(linearMeterScale.getValueRange().getLow()));
+                    x_hiHiRectangle = marginLeft + pixelsPerScaleUnit * (log10(displayedHiHi) - log10(linearMeterScale.getValueRange().getLow()));
+                }
+                else {
+                    x_loLoRectangle = marginLeft;
+                    x_lowRectangle = marginLeft + pixelsPerScaleUnit * (displayedLoLo - linearMeterScale.getValueRange().getLow());
+                    x_normalRectangle = marginLeft + pixelsPerScaleUnit * (displayedLow - linearMeterScale.getValueRange().getLow());
+                    x_highRectangle = marginLeft + pixelsPerScaleUnit * (displayedHigh - linearMeterScale.getValueRange().getLow());
+                    x_hiHiRectangle = marginLeft + pixelsPerScaleUnit * (displayedHiHi - linearMeterScale.getValueRange().getLow());
+
+                }
 
                 loLoRectangle = new Rectangle((int) Math.round(x_loLoRectangle),
                         marginAbove,
@@ -1352,9 +1392,16 @@ public class RTLinearMeter extends ImageView
                         (int) (Math.round(x_hiHiRectangle) - Math.round(x_highRectangle)),
                         meterBreadth);
 
+                int hihiWidth;
+                if (linearMeterScale.isLogarithmic()) {
+                    hihiWidth = (int) (Math.round(pixelsPerScaleUnit * (log10(linearMeterScale.getValueRange().getHigh()) - log10(displayedHiHi))));
+                }
+                else {
+                    hihiWidth = (int) (Math.round(pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi)));
+                }
                 hiHiRectangle = new Rectangle((int) Math.round(x_hiHiRectangle),
                         marginAbove,
-                        (int) (Math.round(pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi))),
+                        hihiWidth,
                         meterBreadth);
             }
             else {
@@ -1381,13 +1428,30 @@ public class RTLinearMeter extends ImageView
                     marginBelow += 1 + fontMetrics.getMaxAscent() + fontMetrics.getMaxDescent();
                 }
 
-                pixelsPerScaleUnit = (linearMeterScale.getBounds().height - marginAbove - marginBelow - 1) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
+                if (linearMeterScale.isLogarithmic()) {
+                    pixelsPerScaleUnit = (linearMeterScale.getBounds().height - marginAbove - marginBelow - 1) / (log10(linearMeterScale.getValueRange().getHigh()) - log10(linearMeterScale.getValueRange().getLow()));
+                }
+                else {
+                    pixelsPerScaleUnit = (linearMeterScale.getBounds().height - marginAbove - marginBelow - 1) / (linearMeterScale.getValueRange().getHigh() - linearMeterScale.getValueRange().getLow());
+                }
                 meterBreadth = Math.round(linearMeterScale.getBounds().width - marginLeft - marginRight);
 
-                double y_loLoRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedLoLo);
-                double y_lowRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedLow);
-                double y_normalRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHigh);
-                double y_highRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi);
+                double y_loLoRectangle;
+                double y_lowRectangle;
+                double y_normalRectangle;
+                double y_highRectangle;
+                if (linearMeterScale.isLogarithmic()) {
+                    y_loLoRectangle = marginAbove + pixelsPerScaleUnit * (log10(linearMeterScale.getValueRange().getHigh()) - log10(displayedLoLo));
+                    y_lowRectangle = marginAbove + pixelsPerScaleUnit * (log10(linearMeterScale.getValueRange().getHigh()) - log10(displayedLow));
+                    y_normalRectangle = marginAbove + pixelsPerScaleUnit * (log10(linearMeterScale.getValueRange().getHigh()) - log10(displayedHigh));
+                    y_highRectangle = marginAbove + pixelsPerScaleUnit * (log10(linearMeterScale.getValueRange().getHigh()) - log10(displayedHiHi));
+                }
+                else {
+                    y_loLoRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedLoLo);
+                    y_lowRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedLow);
+                    y_normalRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHigh);
+                    y_highRectangle = marginAbove + pixelsPerScaleUnit * (linearMeterScale.getValueRange().getHigh() - displayedHiHi);
+                }
 
                 loLoRectangle = new Rectangle(marginLeft,
                         (int) Math.round(y_loLoRectangle),

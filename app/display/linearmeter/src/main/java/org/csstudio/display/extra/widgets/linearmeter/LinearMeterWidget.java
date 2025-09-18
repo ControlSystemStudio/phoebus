@@ -160,6 +160,10 @@ public class LinearMeterWidget extends PVWidget {
                 }
             };
 
+    private WidgetProperty<Boolean> logScale;
+    public static WidgetPropertyDescriptor<Boolean> propLogScale =
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "logScale", Messages.WidgetProperties_LogScale);
+
     public static WidgetPropertyDescriptor<WidgetColor> propNeedleColor =
             newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "needle_color", Messages.WidgetProperties_NeedleColor);
 
@@ -253,6 +257,7 @@ public class LinearMeterWidget extends PVWidget {
         super.defineProperties(properties);
 
         properties.add(display_mode = propDisplayMode.createProperty(this, RTLinearMeter.DisplayMode.NEEDLE));
+        properties.add(logScale = propLogScale.createProperty(this, false));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(format = propFormat.createProperty(this, FormatOption.DEFAULT));
         properties.add(show_units = propShowUnits.createProperty(this, true));
@@ -437,6 +442,10 @@ public class LinearMeterWidget extends PVWidget {
 
     public WidgetProperty<RTLinearMeter.DisplayMode> propDisplayMode() {
         return display_mode;
+    }
+
+    public WidgetProperty<Boolean> propLogScale() {
+        return logScale;
     }
 
 }
