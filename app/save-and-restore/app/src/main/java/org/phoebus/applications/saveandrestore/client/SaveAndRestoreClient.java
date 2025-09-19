@@ -35,6 +35,7 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.ConnectException;
 import java.util.List;
 
 /**
@@ -251,7 +252,7 @@ public interface SaveAndRestoreClient {
      * @return A {@link UserData} object if login is successful, otherwise implementation should throw
      * an exception.
      */
-    UserData authenticate(String userName, String password);
+    UserData authenticate(String userName, String password) throws ConnectException;
 
     /**
      * Requests service to restore the specified {@link SnapshotItem}s

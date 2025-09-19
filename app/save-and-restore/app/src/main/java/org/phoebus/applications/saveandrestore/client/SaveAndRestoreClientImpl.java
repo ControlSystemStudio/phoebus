@@ -28,11 +28,11 @@ import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.QueryParamsHelper;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.ConnectException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -43,7 +43,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -578,7 +577,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
      * @return {@inheritDoc}
      */
     @Override
-    public UserData authenticate(String userName, String password) {
+    public UserData authenticate(String userName, String password) throws ConnectException {
         try {
             String stringBuilder = Preferences.jmasarServiceUrl +
                     "/login";
@@ -589,6 +588,8 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                     .build();
             HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             return OBJECT_MAPPER.readValue(response.body(), UserData.class);
+        } catch (ConnectException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

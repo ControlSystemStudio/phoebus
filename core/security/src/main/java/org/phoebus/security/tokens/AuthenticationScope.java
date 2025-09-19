@@ -34,11 +34,4 @@ public interface AuthenticationScope{
      */
     String getDisplayName();
 
-    /**
-     * Utility...
-     * @return <code>true</code> if the scope name is valid.
-     */
-    default boolean isScopeNameValid(){
-        return getScope() != null && getScope().matches("[a-z-]*");
-    }
 }
