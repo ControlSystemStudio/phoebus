@@ -17,13 +17,13 @@ import javafx.util.Pair;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class WaterfallPlotController {
 
@@ -309,7 +309,7 @@ public class WaterfallPlotController {
         previousT2[0] = Optional.of(t2);
 
         LinkedList<Double> timeValuesLinkedList = new LinkedList<>();
-        LinkedList<LinkedList<Double>> zValuesLinkedList = new LinkedList<>();
+        LinkedList<ArrayList<Double>> zValuesLinkedList = new LinkedList<>();
         int waveformLength = 1;
 
         double minFromPV = Double.NaN;
@@ -320,21 +320,35 @@ public class WaterfallPlotController {
             minFromPV = waveformPVData.minFromPV().get();
             maxFromPV = waveformPVData.maxFromPV().get();
 
-            TreeMap<Instant, LinkedList<Double>> instantToWaveform = waveformPVData.instantToValue().get();
+            ConcurrentSkipListMap<Instant, ArrayList<Double>> instantToWaveform = waveformPVData.instantToValue();
+            Instant startKey = instantToWaveform.ceilingKey(Instant.MIN);
+
+            Optional<Instant> previousInstant = Optional.empty();
             for (Instant t = t1.plus(stepsize); t.compareTo(t2) <= 0; t = t.plus(stepsize)) {
                 timeValuesLinkedList.add(((double) t.toEpochMilli()) / 1000.0);
 
-                var instant = instantToWaveform.floorKey(t);
-                if (instant != null) {
-                    LinkedList<Double> waveform = instantToWaveform.get(instant);
+                if (startKey == null || t.isBefore(startKey)) {
+                    zValuesLinkedList.add(null); // null means absence of data for this point in time
+                }
+                else {
+                    var instant = instantToWaveform.floorKey(t);
+
+                    ArrayList<Double> waveform = instantToWaveform.get(instant);
                     waveformLength = Math.max(waveformLength, waveform.size());
                     zValuesLinkedList.add(waveform);
-                } else {
-                    zValuesLinkedList.add(null); // null means absence of data for this point in time
+
+                    if (previousInstant.isPresent()) {
+                        // Optimization: Remove data points that are not plotted.
+                        for (var key : instantToWaveform.subMap(previousInstant.get(), false, instant, false).keySet()) {
+                            instantToWaveform.remove(key);
+                        }
+                    }
+
+                    previousInstant = Optional.of(instant);
                 }
             }
         } else if (pvData instanceof WaterfallPlotRuntime.ScalarPVsData scalarPVsData) {
-            LinkedList<Pair<String, AtomicReference<TreeMap<Instant, Double>>>> pvNameToInstantToValue = scalarPVsData.pvNameToInstantToValue();
+            ArrayList<Pair<String, ConcurrentSkipListMap<Instant, Double>>> pvNameToInstantToValue = scalarPVsData.pvNameToInstantToValue();
             pvNameToInstantToValue.forEach(pvNameAndInstantToValueAtomicReference -> garbageCollectInstantToValue(pvNameAndInstantToValueAtomicReference.getValue(), t1));
 
             minFromPV = scalarPVsData.minFromPV().get();
@@ -342,14 +356,20 @@ public class WaterfallPlotController {
 
             waveformLength = 2 * pvNameToInstantToValue.size() + 1;
 
+            HashMap<String, Optional<Instant>> pvNameToPreviousInstant = new HashMap<>();
+            for (var pvNameAndInstantToValue : pvNameToInstantToValue) {
+                String pvName = pvNameAndInstantToValue.getKey();
+                pvNameToPreviousInstant.put(pvName, Optional.empty());
+            }
+
             for (Instant t = t1.plus(stepsize); t.compareTo(t2) <= 0; t = t.plus(stepsize)) {
                 timeValuesLinkedList.add(((double) t.toEpochMilli()) / 1000.0);
-                LinkedList<Double> zValues = new LinkedList<>();
+                ArrayList<Double> zValues = new ArrayList<>();
 
                 for (var pvNameAndInstantToValue : pvNameToInstantToValue) {
                     String pvName = pvNameAndInstantToValue.getKey();
 
-                    TreeMap<Instant, Double> instantToValue = pvNameAndInstantToValue.getValue().get();
+                    ConcurrentSkipListMap<Instant, Double> instantToValue = pvNameAndInstantToValue.getValue();
 
                     var instant = instantToValue.floorKey(t);
                     if (instant == null) {
@@ -358,12 +378,22 @@ public class WaterfallPlotController {
                     } else {
                         zValues.add(instantToValue.get(instant));
                         zValues.add(instantToValue.get(instant));
+
+                        Optional<Instant> previousInstant = pvNameToPreviousInstant.get(pvName);
+                        if (previousInstant.isPresent()) {
+                            // Optimization: Remove data points that are not plotted.
+                            for (var key : instantToValue.subMap(previousInstant.get(), false, instant, false).keySet()) {
+                                instantToValue.remove(key);
+                            }
+                        }
+
+                        pvNameToPreviousInstant.put(pvName, Optional.of(instant));
                     }
                 }
 
                 // Append the last value one more time in order to
                 // fix the plotting when there is only 1 scalar PV:
-                var lastValue = zValues.getLast();
+                var lastValue = zValues.get(zValues.size()-1);
                 zValues.add(lastValue);
 
                 zValuesLinkedList.add(zValues);
@@ -392,7 +422,7 @@ public class WaterfallPlotController {
             }
 
             for (int n = 0; n < zValuesLinkedList.size(); n++) {
-                LinkedList<Double> waveformValues = zValuesLinkedList.get(n);
+                ArrayList<Double> waveformValues = zValuesLinkedList.get(n);
 
                 for (int m = 0; m < waveformLength; m++) {
                     double value;
@@ -431,7 +461,7 @@ public class WaterfallPlotController {
             }
 
             for (int n = 0; n < zValuesLinkedList.size(); n++) {
-                LinkedList<Double> waveformValues = zValuesLinkedList.get(n);
+                ArrayList<Double> waveformValues = zValuesLinkedList.get(n);
 
                 for (int m = 0; m < waveformLength; m++) {
                     double value;
@@ -479,14 +509,13 @@ public class WaterfallPlotController {
         }
     }
 
-    private synchronized static <T> void garbageCollectInstantToValue(AtomicReference<TreeMap<Instant, T>> instantToValueAtomicReference, Instant t1) {
+    private synchronized static <T> void garbageCollectInstantToValue(ConcurrentSkipListMap<Instant, T> instantToWaveform, Instant t1) {
         // Garbage collect old values that are no longer needed:
-        TreeMap<Instant, T> instantToWaveform = instantToValueAtomicReference.get();
         Instant instantOfOldestRelevantKey = instantToWaveform.floorKey(t1);
         if (instantOfOldestRelevantKey != null) {
-            SortedMap<Instant, T> instantToWaveformGarbageCollectedSortedMap = instantToWaveform.subMap(instantOfOldestRelevantKey, Instant.MAX);
-            TreeMap<Instant, T> instantToWaveformGarbageCollected = new TreeMap<>(instantToWaveformGarbageCollectedSortedMap);
-            instantToValueAtomicReference.set(instantToWaveformGarbageCollected);
+            for (var key : instantToWaveform.subMap(Instant.MIN, instantOfOldestRelevantKey).keySet()) {
+                instantToWaveform.remove(key);
+            }
         }
     }
 

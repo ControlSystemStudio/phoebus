@@ -110,12 +110,10 @@ public class WaterfallPlotWidgetRepresentation extends JFXBaseRepresentation<Pan
             }
 
             WaterfallPlotRuntime.PVData pvData = waterfallPlotRuntime.getPVData();
-            synchronized (pvData) {
-                try {
-                    waterfallPlotController.redraw(pvData);
-                } catch (Exception e) {
-                    // Catch exceptions in order to retry redrawing again if an exception occurs.
-                }
+            try {
+                waterfallPlotController.redraw(pvData);
+            } catch (Exception e) {
+                // Catch exceptions in order to retry redrawing again if an exception occurs.
             }
         };
 
