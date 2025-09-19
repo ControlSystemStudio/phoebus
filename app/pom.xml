@@ -20,6 +20,7 @@
     <module>filebrowser</module>
     <module>logbook</module>
     <module>rtplot</module>
+    <module>chartbrowser</module>
     <module>databrowser</module>
     <module>databrowser-json</module>
     <module>databrowser-timescale</module>

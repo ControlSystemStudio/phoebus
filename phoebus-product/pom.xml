@@ -118,6 +118,11 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
+            <artifactId>app-chartbrowser</artifactId>
+            <version>5.0.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
             <artifactId>app-databrowser</artifactId>
             <version>5.0.3-SNAPSHOT</version>
         </dependency>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.ComboBox?>
+
+<?import javafx.scene.control.ToggleButton?>
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="org.phoebus.applications.chartbrowser.view.ChartBrowserController">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <top>
+        <VBox spacing="5">
+            <GridPane hgap="5" vgap="5">
+                <padding>
+                    <Insets bottom="5"/>
+                </padding>
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER" minWidth="100"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <Label text="PV Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    <TextField fx:id="txtPVName" promptText="Enter PV name" onAction="#onPVFieldAction"
+                      HBox.hgrow="ALWAYS"/>
+                    <Button text="Add" onAction="#onAddPVAction"/>
+                </HBox>
+            </GridPane>
+        </VBox>
+    </top>
+
+    <center>
+        <BorderPane fx:id="chartContainer" prefHeight="800" prefWidth="600"/>
+    </center>
+
+    <bottom>
+        <VBox spacing="5">
+            <padding>
+                <Insets top="10"/>
+            </padding>
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <ToggleButton fx:id="toggleCrosshair" mnemonicParsing="false"
+                  prefWidth="25" prefHeight="25"/>
+                <ToggleButton fx:id="toggleCloseTabPane" mnemonicParsing="false"
+                  prefWidth="25" prefHeight="25" onAction="#onToggleCloseTabPaneAction"/>
+                <Button fx:id="btnSavePlt" text="Save .plt" onAction="#onSavePlt"/>
+                <Button fx:id="btnLoadPlt" text="Load .plt" onAction="#onLoadPlt"/>
+            </HBox>
+            <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE">
+                <Tab text="Traces">
+                    <VBox spacing="5">
+                        <TableView fx:id="pvTable" prefHeight="150">
+                            <columns>
+                                <TableColumn fx:id="nameColumn" text="PV Name" prefWidth="250"/>
+                                <TableColumn fx:id="archiveColumn" text="Use Archive" prefWidth="100"/>
+                                <TableColumn fx:id="rawDataColumn" text="Raw Data"/>
+                                <TableColumn fx:id="bufferSizeColumn" text="Buffer Size" prefWidth="100"/>
+                                <TableColumn fx:id="meanValueColumn" text="Mean Time" prefWidth="100"/>
+                            </columns>
+                        </TableView>
+                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                            <Button fx:id="removePVButton" text="Remove Selected PV" onAction="#onRemovePVAction"/>
+                        </HBox>
+                    </VBox>
+                </Tab>
+                <Tab text="Statistics" closable="false" fx:id="statsTab">
+                    <VBox spacing="10">
+                        <padding>
+                            <Insets top="10" right="10" bottom="10" left="10"/>
+                        </padding>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Button fx:id="refreshStatsButton" text="Refresh Statistics"/>
+                        </HBox>
+                        <TableView fx:id="statsTable" VBox.vgrow="ALWAYS" prefHeight="150">
+                            <columns>
+                                <TableColumn fx:id="statsPVNameColumn" text="PV Name" prefWidth="150"/>
+                                <TableColumn fx:id="statsSampleCountColumn" text="Samples"/>
+                                <TableColumn fx:id="statsMeanColumn" text="Mean" prefWidth="100"/>
+                                <TableColumn fx:id="statsMedianColumn" text="Median" prefWidth="100"/>
+                                <TableColumn fx:id="statsStdDevColumn" text="StdDev" prefWidth="100"/>
+                                <TableColumn fx:id="statsMinColumn" text="Min" prefWidth="100"/>
+                                <TableColumn fx:id="statsMaxColumn" text="Max" prefWidth="100"/>
+                                <TableColumn fx:id="statsSumColumn" text="Sum" prefWidth="100"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </bottom>
+</BorderPane>
