@@ -40,33 +40,11 @@ public class SecureStoreTest {
 
     private static SecureStore memorySecureStore;
 
-    private static AuthenticationScope scope1 = new AuthenticationScope() {
-        @Override
-        public String getScope() {
-            return "service1";
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "";
-        }
-    };
-
-    private static AuthenticationScope scope2 = new AuthenticationScope() {
-        @Override
-        public String getScope() {
-            return "service2";
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "";
-        }
-    };
+    private static List<ServiceAuthenticationProvider> authenticationProviders;
 
     @BeforeAll
     public static void setup() throws Exception {
-        List<ServiceAuthenticationProvider> authenticationProviders =
+        authenticationProviders =
                 ServiceLoader.load(ServiceAuthenticationProvider.class).stream().map(ServiceLoader.Provider::get)
                         .collect(Collectors.toList());
         File secureStoreFile;
@@ -184,19 +162,9 @@ public class SecureStoreTest {
         assertNotNull(token);
         assertNull(token.getAuthenticationScope());
 
-        token = secureStore.getScopedAuthenticationToken(new AuthenticationScope() {
-            @Override
-            public String getScope() {
-                return "service1";
-            }
-
-            @Override
-            public String getDisplayName() {
-                return "";
-            }
-        });
+        token = secureStore.getScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope());
         assertNotNull(token);
-        assertEquals("service1", token.getAuthenticationScope());
+        assertEquals("service1", token.getAuthenticationScope().getScope());
         assertEquals("username1", token.getUsername());
 
         token = secureStore.getScopedAuthenticationToken(null);
@@ -215,9 +183,9 @@ public class SecureStoreTest {
         assertNotNull(token);
         assertNull(token.getAuthenticationScope());
 
-        token = memorySecureStore.getScopedAuthenticationToken(scope1);
+        token = memorySecureStore.getScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope());
         assertNotNull(token);
-        assertEquals("service1", token.getAuthenticationScope());
+        assertEquals("service1", token.getAuthenticationScope().getScope());
         assertEquals("username1", token.getUsername());
 
         token = memorySecureStore.getScopedAuthenticationToken(null);
@@ -248,8 +216,8 @@ public class SecureStoreTest {
     @Test
     public void testSetScopedAuthenticationToken() throws Exception {
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("username", "password"));
-        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope1, "username1", "password1"));
-        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope2, "username2", "password2"));
+        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope(), "username1", "password1"));
+        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(1).getAuthenticationScope(), "username2", "password2"));
 
         List<ScopedAuthenticationToken> tokens = secureStore.getAuthenticationTokens();
         assertEquals(3, tokens.size());
@@ -257,9 +225,9 @@ public class SecureStoreTest {
         secureStore.deleteAllScopedAuthenticationTokens();
 
         memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken("username", "password"));
-        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope1, "username1", "password1"));
-        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope2, "username2", "password2"));
-        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope2, "username3", "password3"));
+        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope(), "username1", "password1"));
+        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(1).getAuthenticationScope(), "username2", "password2"));
+        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(1).getAuthenticationScope(), "username3", "password3"));
 
         tokens = memorySecureStore.getAuthenticationTokens();
         assertEquals(3, tokens.size());
@@ -333,8 +301,8 @@ public class SecureStoreTest {
     public void testDeleteAllScopedAuthenticationTokens() throws Exception {
 
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("username", "password"));
-        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope1, "username1", "password1"));
-        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope2, "username2", "password2"));
+        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope(), "username1", "password1"));
+        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(1).getAuthenticationScope(), "username2", "password2"));
 
         List<ScopedAuthenticationToken> tokens = secureStore.getAuthenticationTokens();
         assertEquals(3, tokens.size());
@@ -344,8 +312,8 @@ public class SecureStoreTest {
         assertEquals(0, tokens.size());
 
         memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken("username", "password"));
-        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope1, "username1", "password1"));
-        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope2, "username2", "password2"));
+        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope(), "username1", "password1"));
+        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(1).getAuthenticationScope(), "username2", "password2"));
 
         tokens = memorySecureStore.getAuthenticationTokens();
         assertEquals(3, tokens.size());
@@ -357,22 +325,22 @@ public class SecureStoreTest {
 
     @Test
     public void testOverwriteScopedAuthentication() throws Exception {
-        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope1, "username1", "password1"));
+        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope(), "username1", "password1"));
 
-        ScopedAuthenticationToken token = secureStore.getScopedAuthenticationToken(scope1);
+        ScopedAuthenticationToken token = secureStore.getScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope());
         assertEquals("username1", token.getUsername());
 
-        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope1, "username2", "password1"));
-        token = secureStore.getScopedAuthenticationToken(scope1);
+        secureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope(), "username2", "password1"));
+        token = secureStore.getScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope());
         assertEquals("username2", token.getUsername());
 
-        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope1, "username1", "password1"));
+        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope(), "username1", "password1"));
 
-        token = memorySecureStore.getScopedAuthenticationToken(scope1);
+        token = memorySecureStore.getScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope());
         assertEquals("username1", token.getUsername());
 
-        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(scope1, "username2", "password1"));
-        token = memorySecureStore.getScopedAuthenticationToken(scope1);
+        memorySecureStore.setScopedAuthentication(new ScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope(), "username2", "password1"));
+        token = memorySecureStore.getScopedAuthenticationToken(authenticationProviders.get(0).getAuthenticationScope());
         assertEquals("username2", token.getUsername());
     }
 }
