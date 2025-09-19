@@ -10,6 +10,7 @@
     <module>pva</module>
     <module>pv</module>
     <module>pv-ca</module>
+    <module>pv-influx2</module>
     <module>pv-jackie</module>
     <module>pv-mqtt</module>
     <module>pv-opva</module>
