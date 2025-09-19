@@ -27,6 +27,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.applications.saveandrestore.authentication.SaveAndRestoreAuthenticationScope;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
@@ -34,7 +35,6 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
@@ -90,11 +90,11 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
         try {
             SecureStore secureStore = new SecureStore();
             ScopedAuthenticationToken token =
-                    secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
+                    secureStore.getScopedAuthenticationToken(new SaveAndRestoreAuthenticationScope());
             return token != null;
         } catch (Exception e) {
             Logger.getLogger(ContextMenuCreateSaveset.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
-                    AuthenticationScope.SAVE_AND_RESTORE.getName() + " scope", e);
+                    new SaveAndRestoreAuthenticationScope().getScope() + " scope", e);
             return false;
         }
     }

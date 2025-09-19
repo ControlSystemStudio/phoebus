@@ -19,32 +19,39 @@
 package org.phoebus.applications.logbook.authentication;
 
 import org.phoebus.olog.es.api.OlogHttpClient;
+import org.phoebus.security.authorization.ServiceAuthenticationException;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
 
+import java.net.ConnectException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class OlogServiceAuthenticationProvider implements ServiceAuthenticationProvider {
 
+    private final AuthenticationScope ologAuthenticationScope;
+
+    public OlogServiceAuthenticationProvider(){
+        ologAuthenticationScope = new OlogAuthenticationScope();
+    }
+
     @Override
-    public void authenticate(String username, String password){
+    public void authenticate(String username, String password) throws ConnectException{
         try {
             OlogHttpClient.builder().build().authenticate(username, password);
-        } catch (Exception e) {
+        }
+        catch(ConnectException e){
+            throw e;
+        }
+        catch (Exception e) {
             Logger.getLogger(OlogServiceAuthenticationProvider.class.getName())
                     .log(Level.WARNING, "Failed to authenticate user " + username + " with logbook service", e);
-            throw new RuntimeException(e);
+            throw new ServiceAuthenticationException("Failed to authenticate user " + username + " with logbook service");
         }
     }
 
     @Override
-    public void logout(String token) {
-        // Not implemented for Olog. Yet?
-    }
-
-    @Override
     public AuthenticationScope getAuthenticationScope() {
-        return AuthenticationScope.LOGBOOK;
+        return ologAuthenticationScope;
     }
 }

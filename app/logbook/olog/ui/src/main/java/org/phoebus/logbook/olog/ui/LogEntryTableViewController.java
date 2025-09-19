@@ -39,6 +39,7 @@ import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import org.phoebus.applications.logbook.authentication.OlogAuthenticationScope;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -202,7 +203,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         contextMenu.setOnShowing(e -> {
             try {
                 SecureStore store = new SecureStore();
-                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
+                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(new OlogAuthenticationScope());
                 userHasSignedIn.set(scopedAuthenticationToken != null);
             } catch (Exception ex) {
                 logger.log(Level.WARNING, "Secure Store file not found.", ex);

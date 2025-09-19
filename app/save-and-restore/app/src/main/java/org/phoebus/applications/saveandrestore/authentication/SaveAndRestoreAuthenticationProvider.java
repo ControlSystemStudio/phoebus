@@ -19,12 +19,12 @@
 
 package org.phoebus.applications.saveandrestore.authentication;
 
-import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
 
+import java.net.ConnectException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,14 +33,24 @@ import java.util.logging.Logger;
  */
 public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticationProvider {
 
+    private final AuthenticationScope saveAndRestoreAuthenticationScope;
+
+    public SaveAndRestoreAuthenticationProvider() {
+        saveAndRestoreAuthenticationScope = new SaveAndRestoreAuthenticationScope();
+    }
+
     @Override
-    public void authenticate(String username, String password) {
+    public void authenticate(String username, String password) throws ConnectException{
         SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
         try {
             UserData userData = saveAndRestoreService.authenticate(username, password);
             Logger.getLogger(SaveAndRestoreAuthenticationProvider.class.getName())
                     .log(Level.INFO, "User " + userData.getUserName() + " successfully signed in");
-        } catch (Exception e) {
+        }
+        catch(ConnectException e){
+            throw e;
+        }
+        catch (Exception e) {
             // NOTE!!! Exception message and/or stack trace could contain request URL and consequently
             // user's password, so do not log or propagate it.
             Logger.getLogger(SaveAndRestoreAuthenticationProvider.class.getName())
@@ -50,13 +60,8 @@ public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticati
     }
 
     @Override
-    public void logout(String token) {
-        // Not implemented for save&restore
-    }
-
-    @Override
     public AuthenticationScope getAuthenticationScope() {
-        return AuthenticationScope.SAVE_AND_RESTORE;
+        return saveAndRestoreAuthenticationScope;
     }
 
 }

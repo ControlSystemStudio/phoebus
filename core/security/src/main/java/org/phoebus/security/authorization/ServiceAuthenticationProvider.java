@@ -18,7 +18,10 @@
 
 package org.phoebus.security.authorization;
 
+import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
+
+import java.net.ConnectException;
 
 /**
  * Implementations of this interface are used to announce support for
@@ -31,13 +34,19 @@ public interface ServiceAuthenticationProvider {
      * @param username User name
      * @param password Password
      */
-    void authenticate(String username, String password);
+    void authenticate(String username, String password) throws ConnectException;
 
     /**
      * Signs out user from the service.
-     * @param token Username or other type of token (e.g. session cookie).
      */
-    void logout(String token);
+    default void logout(){
+        try {
+            SecureStore secureStore = new SecureStore();
+            secureStore.deleteScopedAuthenticationToken(getAuthenticationScope());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * The identity of the announced service. This must be unique between all implementations.

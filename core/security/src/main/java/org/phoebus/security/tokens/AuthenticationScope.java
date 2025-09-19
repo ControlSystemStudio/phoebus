@@ -19,42 +19,19 @@
 
 package org.phoebus.security.tokens;
 
-import java.util.Arrays;
-
 /**
- * Enum constants for authentication scopes used in dedicated use cases and applications.
- * Restrictions on the name of an {@link AuthenticationScope} value:
- * <ul>
- *     <li>Must match regexp [a-z-]*, i.e. lower case alphanumeric chars, except digits, plus hyphen (-)</li>
- *     <li>Must be unique among other enum names</li>
- * </ul>
+ * Interface defining how to interact with {@link AuthenticationScope}s
  */
-public enum AuthenticationScope {
-
-    LOGBOOK("logbook"),
-    SAVE_AND_RESTORE("save-and-restore");
-
-    private String name = null;
-
-    private String supportedNamePattern = "[a-z-]*";
+public interface AuthenticationScope{
 
     /**
-     * Internal use.
-     * @param name Valid name
-     * @throws IllegalArgumentException if the name does not match [a-z-]*.
+     * @return A string that must be unique between implementations and must match regular expression [a-z-]*
      */
-    AuthenticationScope(String name) throws IllegalArgumentException{
-        if(!name.matches(supportedNamePattern)){
-            throw new IllegalArgumentException("Name " + name + " invalid");
-        }
-        this.name = name;
-    }
+    String getScope();
 
-    public String getName(){
-        return name;
-    }
+    /**
+     * @return A string intended for whatever UI.
+     */
+    String getDisplayName();
 
-    public static AuthenticationScope fromString(String s){
-        return Arrays.stream(values()).filter(a -> a.name.equals(s)).findFirst().orElse(null);
-    }
 }

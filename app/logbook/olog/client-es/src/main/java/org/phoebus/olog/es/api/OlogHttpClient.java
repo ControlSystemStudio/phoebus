@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.phoebus.applications.logbook.authentication.OlogAuthenticationScope;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -112,7 +113,7 @@ public class OlogHttpClient implements LogClient {
         private ScopedAuthenticationToken getCredentialsFromSecureStore() {
             try {
                 SecureStore secureStore = new SecureStore();
-                return secureStore.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
+                return secureStore.getScopedAuthenticationToken(new OlogAuthenticationScope());
             } catch (Exception e) {
                 Logger.getLogger(OlogHttpClient.class.getName()).log(Level.WARNING, "Unable to instantiate SecureStore", e);
                 return null;
