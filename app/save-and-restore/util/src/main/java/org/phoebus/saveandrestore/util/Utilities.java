@@ -655,13 +655,13 @@ public final class Utilities {
             String str = valueToString(value);
             boolean b = ((VBoolean) value).getValue();
             boolean c = ((VBoolean) baseValue).getValue();
-            return new VTypeComparison(str, Boolean.compare(b, c), b == c);
+            return new VTypeComparison(str, Boolean.compare(b, c), b == c, Math.abs(Boolean.compare(b, c)));
         } else if (value instanceof VEnum && baseValue instanceof VEnum) {
             String str = valueToString(value);
             String b = ((VEnum) value).getValue();
             String c = ((VEnum) baseValue).getValue();
             int diff = b == null ? (c == null ? 0 : 1) : (c == null ? -1 : b.compareTo(c));
-            return new VTypeComparison(str, diff, diff == 0);
+            return new VTypeComparison(str, diff, diff == 0, Math.abs(diff));
         } else if (value instanceof VString && baseValue instanceof VString) {
             String b = ((VString) value).getValue();
             String c = ((VString) baseValue).getValue();
@@ -670,7 +670,7 @@ public final class Utilities {
         } else if (value instanceof VNumberArray && baseValue instanceof VNumberArray) {
             String sb = valueToString(value);
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
-            return new VTypeComparison(sb, equal ? 0 : 1, equal);
+            return new VTypeComparison(sb, equal ? 0 : 1, equal, equal ? 0 : 1);
         } else {
             String str = valueToString(value);
             boolean valuesEqual = areValuesEqual(value, baseValue, Optional.empty());
@@ -970,7 +970,7 @@ public final class Utilities {
                 if (threshold.isPresent()) {
                     return ((Threshold<BigInteger>) threshold.get()).isWithinThreshold(data, base);
                 }
-                return data.compareTo(base) == 0;
+                return data == base;
             } else if (v1 instanceof VLong) {
                 long data = ((VLong) v1).getValue();
                 long base = ((VNumber) v2).getValue().longValue();

@@ -36,16 +36,20 @@ import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.service.saveandrestore.model.ESTreeNode;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -62,12 +66,19 @@ import java.util.stream.Collectors;
 @Repository
 public class CompositeSnapshotDataRepository implements CrudRepository<CompositeSnapshotData, String> {
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
     private String ES_COMPOSITE_SNAPSHOT_INDEX;
 
     @Autowired
+    private ElasticsearchTreeRepository elasticsearchTreeRepository;
+
+    @Autowired
     @Qualifier("client")
     ElasticsearchClient client;
+
+    @Autowired
+    private SearchUtil searchUtil;
 
     private final Logger logger = Logger.getLogger(CompositeSnapshotDataRepository.class.getName());
 
@@ -137,19 +148,20 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
      * Retrieves all {@link CompositeSnapshotData} documents. Note that to work around the limits in
      * Elasticsearch (e.g. max 10000 documents in a search request), the implementation uses paginated search to repeatedly
      * query for next round of hits. A page size of 100 is used for each query.
+     *
      * @return An {@link Iterable} of {@link CompositeSnapshotData} objects, potentially empty.
      */
     @Override
-    public Iterable<CompositeSnapshotData>  findAll() {
+    public Iterable<CompositeSnapshotData> findAll() {
         List<CompositeSnapshotData> result = new ArrayList<>();
         int pageSize = 100;
         int from = 0;
-        while(true){
+        while (true) {
             try {
                 SearchResponse<CompositeSnapshotData> searchResponse = runPagedMatchAll(pageSize, from);
                 result.addAll(searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList()));
                 from += searchResponse.hits().hits().size();
-                if(searchResponse.hits().hits().size() < pageSize){
+                if (searchResponse.hits().hits().size() < pageSize) {
                     break;
                 }
             } catch (IOException e) {
@@ -160,13 +172,13 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
         return result;
     }
 
-    private SearchResponse<CompositeSnapshotData> runPagedMatchAll(int pageSize, int from) throws IOException{
+    private SearchResponse<CompositeSnapshotData> runPagedMatchAll(int pageSize, int from) throws IOException {
         SearchRequest searchRequest =
                 SearchRequest.of(s ->
-                    s.index(ES_COMPOSITE_SNAPSHOT_INDEX)
-                            .query(new MatchAllQuery.Builder().build()._toQuery())
-                            .size(pageSize)
-                            .from(from));
+                        s.index(ES_COMPOSITE_SNAPSHOT_INDEX)
+                                .query(new MatchAllQuery.Builder().build()._toQuery())
+                                .size(pageSize)
+                                .from(from));
         return client.search(searchRequest, CompositeSnapshotData.class);
     }
 
@@ -177,14 +189,13 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
 
     @Override
     public long count() {
-        try{
+        try {
             CountRequest countRequest = CountRequest.of(c ->
                     c.index(ES_COMPOSITE_SNAPSHOT_INDEX));
             CountResponse countResponse = client.count(countRequest);
             return countResponse.count();
-        }
-        catch(Exception e){
-            logger.log(Level.SEVERE, "Failed to count CompositeSnapshot objects" , e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to count CompositeSnapshot objects", e);
             throw new RuntimeException(e);
         }
     }
@@ -195,10 +206,9 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
             DeleteRequest deleteRequest = DeleteRequest.of(d ->
                     d.index(ES_COMPOSITE_SNAPSHOT_INDEX).id(s).refresh(Refresh.True));
             DeleteResponse deleteResponse = client.delete(deleteRequest);
-            if(deleteResponse.result().equals(Result.Deleted)){
+            if (deleteResponse.result().equals(Result.Deleted)) {
                 logger.log(Level.WARNING, "Composite snapshot with id " + s + " deleted.");
-            }
-            else{
+            } else {
                 logger.log(Level.WARNING, "Composite snapshot with id " + s + " NOT deleted.");
             }
         } catch (IOException e) {
@@ -231,6 +241,30 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
             logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " CompositeSnapshot objects");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to delete all CompositeSnapshot objects", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Finds {@link Node}s of type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT} referencing
+     * the node id present in the search parameters.
+     *
+     * @param searchParameters {@link MultiValueMap} that should contain an element keyed &quot;referenced&quot;
+     * @return A potentially empty {@link SearchResult}
+     */
+    public SearchResult referenced(MultiValueMap<String, String> searchParameters) {
+
+        SearchRequest searchRequest = searchUtil.buildSearchRequest(searchParameters);
+        try {
+            SearchResponse<CompositeSnapshotData> response = client.search(searchRequest, CompositeSnapshotData.class);
+            HitsMetadata<CompositeSnapshotData> hitsMetadata = response.hits();
+            List<CompositeSnapshotData> compositeSnapshotDataList = hitsMetadata.hits().stream().map(Hit::source).toList();
+            Iterable<ESTreeNode> esTreeNodes = elasticsearchTreeRepository.findAllById(compositeSnapshotDataList.stream().map(CompositeSnapshotData::getUniqueId).toList());
+            List<Node> list = new ArrayList<>();
+            esTreeNodes.iterator().forEachRemaining(es -> list.add(es.getNode()));
+            return new SearchResult((int) hitsMetadata.total().value(), list);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to search for referenced snapshot nodes", e);
             throw new RuntimeException(e);
         }
     }

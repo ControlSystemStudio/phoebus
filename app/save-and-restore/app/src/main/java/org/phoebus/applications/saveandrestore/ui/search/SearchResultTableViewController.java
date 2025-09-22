@@ -419,8 +419,13 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
         }
     }
 
-    public boolean handleTabClosed() {
+    @Override
+    public void handleTabClosed() {
         webSocketClientService.removeWebSocketMessageHandler(this);
+    }
+
+    @Override
+    public boolean doCloseCheck(){
         return true;
     }
 }

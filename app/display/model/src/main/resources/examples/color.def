@@ -1,11 +1,23 @@
 # Named colors
 #
 # Format:
-#   NameOfColor = red, green, blue [, alpha ] | PreviouslyDefinedNameOfColor
+#   NameOfColor = red, green, blue [, alpha ] | PreviouslyDefinedNameOfColor | alias(PreviouslyDefinedNameOfColor)
 # with values in 0..255 range.
 #
 # Whenever possible, use named colors in displays
 # instead of arbitrary red/green/blue values.
+#
+# Writing 'NameOfColor = PreviouslyDefinedNameOfColor' defines
+# a new color with the name 'NameOfColor', whose RGB-values
+# are identical to the RGB-values of 'PreviouslyDefinedNameOfColor'.
+#
+# In contrast, writing 'NameOfColor = alias(PreviouslyDefinedNameOfColor)'
+# will result in the color name 'NameOfColor' redirecting to the color
+# 'PreviouslyDefinedNameOfColor'. The effect is that the color
+# 'PreviouslyDefinedColor' replaces occurrences of the color 'NameOfColor'.
+#
+# Color names as well as the keyword 'alias' are case-sensitive.
+#
 
 # ------- Predefined colors ----------------
 # May be overridden in here

@@ -5,11 +5,13 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -51,6 +53,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.converter.DoubleStringConverter;
 import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VEnum;
@@ -105,10 +108,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -272,6 +272,12 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     protected TableColumn<TableEntry, ?> baseSnapshotColumn;
 
     @FXML
+    private TableColumn<TableEntry, AlarmSeverity> storedSeverityColumn;
+
+    @FXML
+    private TableColumn<TableEntry, AlarmSeverity> liveSeverityColumn;
+
+    @FXML
     protected TooltipTableColumn<VType> baseSnapshotValueColumn;
 
     @FXML
@@ -279,8 +285,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
     @FXML
     protected VBox progressIndicator;
-
-    protected final Map<String, SaveAndRestorePV> pvs = new HashMap<>();
 
     protected Node configurationNode;
 
@@ -292,7 +296,6 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     private final SimpleStringProperty tabIdProperty = new SimpleStringProperty();
 
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
-    private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
     protected final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
@@ -312,10 +315,9 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     private final SimpleObjectProperty<RestoreMode> restoreModeProperty = new SimpleObjectProperty<>(RestoreMode.CLIENT_RESTORE);
 
     /**
-     * List of snapshots used managed in this controller. Index 0 is always the base snapshot,
-     * all others are snapshots added in the compare use-case.
+     * List of snapshots added when user chooses to compare base snapshot with other snapshots.
      */
-    protected List<Snapshot> snapshots = new ArrayList<>();
+    protected List<Snapshot> additionalSnapshots = new ArrayList<>();
 
     private final SimpleBooleanProperty selectionInverted = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty showReadbacks = new SimpleBooleanProperty(false);
@@ -326,6 +328,16 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      */
     private final SimpleObjectProperty<NodeType> nodeTypeProperty = new SimpleObjectProperty<>(NodeType.SNAPSHOT);
 
+    /**
+     * {@link StringProperty} holding the text of the filter {@link TextField}.
+     */
+    private final StringProperty filterTextProperty = new SimpleStringProperty("");
+
+    /**
+     * {@link BooleanProperty} holding state of the Preserve selection checkbox
+     */
+    private final BooleanProperty preserveSelectionProperty = new SimpleBooleanProperty(false);
+
     private SnapshotUtil snapshotUtil;
     /**
      * Used to disable portions of the UI when long-lasting operations are in progress, e.g.
@@ -334,19 +346,22 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     protected final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
     /**
-     * The final {@link Snapshot} object holding the data for this controller. When user performs operations (loading,
-     * taking and saving snapshots), the fields of this object are updated accordingly.
+     * The {@link Snapshot} object holding the data for this controller.
      */
-    private final Snapshot snapshot = new Snapshot();
-
+    private Snapshot snapshot;
 
     /**
-     * {@link Map} of {@link TableEntry} items corresponding to the snapshot data, i.e.
-     * one per PV as defined in the snapshot's configuration. This map is used to
+     * {@link List} of {@link TableEntry} items corresponding to the snapshot data, i.e.
+     * one per PV as defined in the snapshot's configuration. This {@link List} is used to
      * populate the {@link TableView}, but other parameters (e.g. hideEqualItems) may
-     * determine which elements in the {@link Map} to actually represent.
+     * determine which elements in the {@link List} to actually represent.
+     *
+     * <p>
+     *     Note that the list is cleared and recreated whenever snapshot data has changed, i.e.
+     *     when retrieved from service or when taking a snapshot.
+     * </p>
      */
-    protected final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
+    protected final List<TableEntry> tableEntryItems = new ArrayList<>();
 
     public SnapshotController(SnapshotTab snapshotTab) {
         snapshotTab.textProperty().bind(tabTitleProperty);
@@ -356,13 +371,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         snapshotTab.setGraphic(imageView);
     }
 
-
-
     @FXML
     public void initialize() {
-
-        Node snapshotNode = Node.builder().nodeType(NodeType.SNAPSHOT).build();
-        snapshot.setSnapshotNode(snapshotNode);
 
         // Locate registered SaveAndRestoreEventReceivers
         eventReceivers = ServiceLoader.load(SaveAndRestoreEventReceiver.class);
@@ -396,7 +406,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         // TODO: support save (=update) a composite snapshot from the snapshot view. In the meanwhile, disable save button.
-                                snapshotDataDirty.not().get() ||
+                        snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
                                 (!Preferences.allow_empty_descriptions && snapshotCommentProperty.isEmpty().get()) ||
                                 userIdentity.isNull().get(),
@@ -443,32 +453,13 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
         String filterShortcutName = (new KeyCodeCombination(KeyCode.F, KeyCombination.SHORTCUT_DOWN)).getDisplayText();
         filterTextField.setPromptText("* for all matching and , as or separator, & as and separator. Start with / for regex. All if empty. (" + filterShortcutName + ")");
-
-        filterTextField.addEventHandler(KeyEvent.ANY, event -> {
-            String filterText = filterTextField.getText().trim();
-
-            List<String> filters = Arrays.asList(filterText.split(","));
-            regexPatterns = filters.stream()
-                    .map(item -> {
-                        if (item.startsWith("/")) {
-                            return List.of(Pattern.compile(item.substring(1, item.length() - 1).trim()));
-                        } else {
-                            return Arrays.stream(item.split("&"))
-                                    .map(andItem -> andItem.replaceAll("\\*", ".*"))
-                                    .map(andItem -> Pattern.compile(andItem.trim()))
-                                    .collect(Collectors.toList());
-                        }
-                    }).collect(Collectors.toList());
-
-            applyFilter(filterText, preserveSelectionCheckBox.isSelected(), regexPatterns);
-        });
-
-        preserveSelectionCheckBox.selectedProperty()
-                .addListener((observableValue, aBoolean, isSelected) -> applyPreserveSelection(isSelected));
+        filterTextField.textProperty().bindBidirectional(filterTextProperty);
+        filterTextProperty.addListener((obs, o, n) -> applyFilter());
+        preserveSelectionCheckBox.selectedProperty().bindBidirectional(preserveSelectionProperty);
 
         showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
         showLiveReadbackButton.selectedProperty()
-                .addListener((a, o, n) ->{
+                .addListener((a, o, n) -> {
                     this.showReadbacks.set(n);
                     actionResultReadbackColumn.visibleProperty().setValue(actionResultReadbackColumn.getGraphic() != null);
                 });
@@ -484,10 +475,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                         this.showDeltaPercentage.set(n));
 
         hideEqualItemsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/hide_show_equal_items.png"))));
-        hideEqualItemsProperty.bind(hideEqualItemsButton.selectedProperty());
-        hideEqualItemsButton.selectedProperty()
-                .addListener((a, o, n) ->
-                        hideEqualItems());
+        hideEqualItemsButton.selectedProperty().bindBidirectional(hideEqualItemsProperty);
+        hideEqualItemsProperty.addListener((obs, o, n) -> updateTable());
 
         logAction.selectedProperty().bindBidirectional(logActionProperty);
 
@@ -668,6 +657,9 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         storedReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
         readbackColumn.visibleProperty().bind(showReadbacks);
 
+        liveSeverityColumn.setCellFactory(a -> new AlarmSeverityCell());
+        storedSeverityColumn.setCellFactory(a -> new AlarmSeverityCell());
+
         timeColumn.visibleProperty().bind(compareViewEnabled.not());
         firstDividerColumn.visibleProperty().bind(compareViewEnabled);
         statusColumn.visibleProperty().bind(compareViewEnabled.not());
@@ -731,6 +723,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             List<ConfigPv> configPvs = configurationData.getPvList();
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(configurationToSnapshotItems(configPvs));
+            this.snapshot = new Snapshot();
             this.snapshot.setSnapshotData(snapshotData);
             updateUi();
             Platform.runLater(() -> actionResultReadbackColumn.visibleProperty().setValue(false));
@@ -752,8 +745,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     actionResultColumn.visibleProperty().set(true);
                     actionResultReadbackColumn.visibleProperty().set(true);
                 });
-                this.snapshot.setSnapshotNode(snapshot.get().getSnapshotNode());
-                this.snapshot.setSnapshotData(snapshot.get().getSnapshotData());
+                this.snapshot = snapshot.get();
                 updateUi();
             }
         });
@@ -763,7 +755,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * Restores snapshot meta-data properties to indicate that the UI
      * is not showing persisted {@link Snapshot} data.
      */
-    private void resetMetaData(){
+    private void resetMetaData() {
         tabTitleProperty.setValue(Messages.unnamedSnapshot);
         snapshotNameProperty.setValue(null);
         snapshotCommentProperty.setValue(null);
@@ -850,33 +842,35 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     /**
-     * Handles clean-up when the associated {@link SnapshotTab} is closed.
      * A check is made if content is dirty, in which case user is prompted to cancel or close anyway.
      *
      * @return <code>true</code> if content is not dirty or user chooses to close anyway,
      * otherwise <code>false</code>.
      */
     @Override
-    public boolean handleTabClosed() {
+    public boolean doCloseCheck() {
         if (snapshotDataDirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle(Messages.closeTabPrompt);
-            alert.setContentText(Messages.promptCloseSnapshotTabContent);
-            DialogHelper.positionDialog(alert, borderPane, -150, -150);
+            alert.setTitle(Messages.closeSnapshotWarning);
+            alert.setContentText(Messages.closeSnapshotWarning);
+            DialogHelper.positionDialog(alert, borderPane, -200, -200);
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
-        } else {
-            webSocketClientService.removeWebSocketMessageHandler(this);
-            dispose();
-            return true;
         }
+        return true;
+    }
+
+    @Override
+    public void handleTabClosed(){
+        webSocketClientService.removeWebSocketMessageHandler(this);
+        dispose();
     }
 
     /**
      * Releases PV resources.
      */
     private void dispose() {
-        pvs.values().forEach(SaveAndRestorePV::dispose);
+        tableEntryItems.forEach(TableEntry::dispose);
     }
 
     private void showLoggingError(String cause) {
@@ -900,16 +894,13 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         disabledUi.set(true);
         JobManager.schedule("Load snapshot items", monitor -> {
             try {
-                Snapshot snapshot = getSnapshotFromService(snapshotNode);
-                this.snapshot.setSnapshotNode(snapshot.getSnapshotNode());
-                this.snapshot.setSnapshotData(snapshot.getSnapshotData());
+                this.snapshot = getSnapshotFromService(snapshotNode);
                 boolean configurationHasReadbacks = configurationHasReadbackPvs(snapshot.getSnapshotData());
                 Platform.runLater(() -> {
                     nodeTypeProperty.set(snapshot.getSnapshotNode().getNodeType());
                     showLiveReadbackButton.setSelected(configurationHasReadbacks);
                     actionResultColumn.visibleProperty().setValue(false);
                     actionResultReadbackColumn.visibleProperty().setValue(false);
-                    snapshotRestorableProperty.set(true);
                     selectedColumn.visibleProperty().set(true);
                     tabTitleProperty.setValue(snapshotNode.getName());
                     tabIdProperty.setValue(snapshotNode.getUniqueId());
@@ -926,6 +917,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     @FXML
     public void restore() {
         disabledUi.setValue(true);
+        tableEntryItems.forEach(tableEntry -> tableEntry.setActionResult(ActionResult.PENDING));
         restore(restoreModeProperty.get(), restoreResultList -> {
             disabledUi.setValue(false);
             if (logActionProperty.get()) {
@@ -1080,7 +1072,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     private void takeSnapshotReadPVs(Consumer<Optional<Snapshot>> consumer) {
         JobManager.schedule("Take snapshot", monitor -> {
             // Clear snapshots array
-            snapshots.clear();
+            additionalSnapshots.clear();
             List<SnapshotItem> snapshotItems;
             try {
                 snapshotItems = SaveAndRestoreService.getInstance().takeSnapshot(configurationNode.getUniqueId());
@@ -1135,19 +1127,18 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         for (SnapshotItem snapshotItem : snapshotItems) {
             if (snapshotItem.getValue().equals(VDisconnectedData.INSTANCE)) {
                 disconnectedPvEncountered.set(true);
-                Platform.runLater(() -> {
-                    actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
-                });
+                Platform.runLater(() ->
+                    actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png"))));
                 break;
             }
         }
-        for(SnapshotItem snapshotItem : snapshotItems){
+        for (SnapshotItem snapshotItem : snapshotItems) {
             if (snapshotItem.getConfigPv().getReadbackPvName() != null && snapshotItem.getReadbackValue() != null &&
                     snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
                 disconnectedReadbackPvEncountered.set(true);
-                Platform.runLater(() -> {
-                    actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
-                });
+                Platform.runLater(() ->
+                    actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png"))));
+
                 break;
             }
         }
@@ -1155,33 +1146,26 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             if (!disconnectedPvEncountered.get()) {
                 actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
             }
-            if(!disconnectedReadbackPvEncountered.get()){
+            if (!disconnectedReadbackPvEncountered.get()) {
                 actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
             }
         });
     }
 
+    /**
+     * Computes thresholds on scalar data types. The threshold is used to indicate that a delta value within threshold
+     * should not decorate the delta column, i.e. consider saved and live values equal.
+     *
+     * @param threshold Threshold in percent
+     */
     private void updateThreshold(double threshold) {
-        snapshot.getSnapshotData().getSnapshotItems().forEach(item -> {
-            VType vtype = item.getValue();
-            VNumber diffVType;
-
-            double ratio = threshold / 100;
-
-            TableEntry tableEntry = tableEntryItems.get(item.getConfigPv().getPvName());
-            if (tableEntry == null) {
-                tableEntry = tableEntryItems.get(item.getConfigPv().getPvName());
-            }
-
-            if (!item.getConfigPv().equals(tableEntry.getConfigPv())) {
-                return;
-            }
-
+        double ratio = threshold / 100;
+        tableEntryItems.forEach(tableEntry -> {
+            VType vtype = tableEntry.getSnapshotVal().get();
+            // Only scalars considered
             if (vtype instanceof VNumber) {
-                diffVType = SafeMultiply.multiply((VNumber) vtype, ratio);
-                VNumber vNumber = diffVType;
+                VNumber vNumber = SafeMultiply.multiply((VNumber) vtype, ratio);
                 boolean isNegative = vNumber.getValue().doubleValue() < 0;
-
                 tableEntry.setThreshold(Optional.of(new Threshold<>(isNegative ? SafeMultiply.multiply(vNumber.getValue(), -1.0) : vNumber.getValue())));
             }
         });
@@ -1193,81 +1177,75 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * @param multiplier The (double) factor used to change the snapshot set-points used in restore operation.
      */
     private void updateSnapshotValues(double multiplier) {
-        snapshot.getSnapshotData().getSnapshotItems()
-                .forEach(item -> {
-                    TableEntry tableEntry = tableEntryItems.get(item.getConfigPv().getPvName());
-                    VType vtype = tableEntry.storedSnapshotValue().get();
-                    VType newVType;
+        tableEntryItems.forEach(tableEntry -> {
+            VType vtype = tableEntry.storedSnapshotValue().get();
+            VType newVType;
 
-                    if (vtype instanceof VNumber) {
-                        newVType = SafeMultiply.multiply((VNumber) vtype, multiplier);
-                    } else if (vtype instanceof VNumberArray) {
-                        newVType = SafeMultiply.multiply((VNumberArray) vtype, multiplier);
-                    } else {
-                        return;
-                    }
+            if (vtype instanceof VNumber) {
+                newVType = SafeMultiply.multiply((VNumber) vtype, multiplier);
+            } else if (vtype instanceof VNumberArray) {
+                newVType = SafeMultiply.multiply((VNumberArray) vtype, multiplier);
+            } else {
+                return;
+            }
 
-                    item.setValue(newVType);
+            tableEntry.getSnapshotItem().setValue(newVType);
+            tableEntry.snapshotValProperty().set(newVType);
 
-                    tableEntry.snapshotValProperty().set(newVType);
-
-                    ObjectProperty<VTypePair> value = tableEntry.valueProperty();
-                    value.setValue(new VTypePair(value.get().base, newVType, value.get().threshold));
-                });
+            ObjectProperty<VTypePair> value = tableEntry.valueProperty();
+            value.setValue(new VTypePair(value.get().base, newVType, value.get().threshold));
+        });
     }
 
-    private void applyFilter(String filterText, boolean preserveSelection, List<List<Pattern>> regexPatterns) {
-        if (filterText.isEmpty()) {
-            List<TableEntry> arrayList = tableEntryItems.values().stream()
+    /**
+     * Applies the filter pattern, if any, to compute which entries to hide/show in the table.
+     * PV names matching user specified patterns (comma separated) will be maintained in the view.
+     * Only entries in the view will be subject to restore.
+     * If however user has ticked the Preserve selection... checkbox, non-matching entries will be hidden,
+     * but still considered as selected and hence subject to restore.
+     */
+    private void applyFilter() {
+        if (filterTextProperty.isEmpty().get() && preserveSelectionProperty.not().get()) {
+            List<TableEntry> arrayList = tableEntryItems.stream()
                     .peek(item -> {
-                        if (!preserveSelection) {
-                            if (!item.readOnlyProperty().get()) {
-                                item.selectedProperty().set(true);
-                            }
+                        if (!item.readOnlyProperty().get()) {
+                            item.selectedProperty().set(true);
                         }
                     }).collect(Collectors.toList());
-
             Platform.runLater(() -> updateTable(arrayList));
-            return;
-        }
-
-        List<TableEntry> filteredEntries = tableEntryItems.values().stream()
-                .filter(item -> {
-                    boolean matchEither = false;
-                    for (List<Pattern> andPatternList : regexPatterns) {
-                        boolean matchAnd = true;
-                        for (Pattern pattern : andPatternList) {
-                            matchAnd &= pattern.matcher(item.pvNameProperty().get()).find();
+        } else {
+            List<String> filters = Arrays.asList(filterTextProperty.get().split(","));
+            List<List<Pattern>> regexPatterns = filters.stream()
+                    .map(item -> {
+                        if (item.startsWith("/")) {
+                            return List.of(Pattern.compile(item.substring(1, item.length() - 1).trim()));
+                        } else {
+                            return Arrays.stream(item.split("&"))
+                                    .map(andItem -> andItem.replaceAll("\\*", ".*"))
+                                    .map(andItem -> Pattern.compile(andItem.trim()))
+                                    .collect(Collectors.toList());
+                        }
+                    }).toList();
+            List<TableEntry> filteredEntries = tableEntryItems.stream()
+                    .filter(item -> {
+                        boolean matchEither = false;
+                        for (List<Pattern> andPatternList : regexPatterns) {
+                            boolean matchAnd = true;
+                            for (Pattern pattern : andPatternList) {
+                                matchAnd &= pattern.matcher(item.pvNameProperty().get()).find();
+                            }
+                            matchEither |= matchAnd;
                         }
 
-                        matchEither |= matchAnd;
-                    }
+                        if (preserveSelectionProperty.not().get()) {
+                            item.selectedProperty().setValue(matchEither);
+                        }
 
-                    if (!preserveSelection) {
-                        item.selectedProperty().setValue(matchEither);
-                    } else {
-                        matchEither |= item.selectedProperty().get();
-                    }
+                        return matchEither;
+                    }).collect(Collectors.toList());
 
-                    return matchEither;
-                }).collect(Collectors.toList());
-
-        Platform.runLater(() -> updateTable(filteredEntries));
-    }
-
-    private void applyPreserveSelection(boolean preserve) {
-        if (preserve) {
-            boolean allSelected = tableEntryItems.values().stream().allMatch(item -> item.selectedProperty().get());
-            if (allSelected) {
-                tableEntryItems.values()
-                        .forEach(item -> item.selectedProperty().set(false));
-            }
+            Platform.runLater(() -> updateTable(filteredEntries));
         }
-    }
-
-    private void hideEqualItems() {
-        ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
-        Platform.runLater(() -> updateTable(arrayList));
     }
 
     /**
@@ -1283,10 +1261,9 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             List<RestoreResult> restoreResultList = null;
             try {
                 switch (restoreMode) {
-                    case CLIENT_RESTORE ->
-                            restoreResultList = snapshotUtil.restore(getSnapshotItemsToRestore(snapshot));
+                    case CLIENT_RESTORE -> restoreResultList = snapshotUtil.restore(getSnapshotItemsToRestore());
                     case SERVICE_RESTORE ->
-                            restoreResultList = SaveAndRestoreService.getInstance().restore(getSnapshotItemsToRestore(snapshot));
+                            restoreResultList = SaveAndRestoreService.getInstance().restore(getSnapshotItemsToRestore());
                 }
             } catch (Exception e) {
                 Platform.runLater(() -> {
@@ -1313,9 +1290,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * @param restoreResultList Data created through a restore operation.
      */
     private void showRestoreResult(List<RestoreResult> restoreResultList) {
-        List<TableEntry> tableEntries = snapshotTableView.getItems();
         AtomicBoolean disconnectedPvEncountered = new AtomicBoolean(false);
-        for (TableEntry tableEntry : tableEntries) {
+        for (TableEntry tableEntry : tableEntryItems) {
             Optional<RestoreResult> tableEntryOptional = restoreResultList.stream().filter(r -> r.getSnapshotItem().getConfigPv().getPvName().equals(tableEntry.getConfigPv().getPvName())).findFirst();
             if (tableEntryOptional.isPresent()) {
                 disconnectedPvEncountered.set(true);
@@ -1329,8 +1305,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         Platform.runLater(() -> {
             if (!disconnectedPvEncountered.get()) {
                 actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/ok.png")));
-            }
-            else{
+            } else {
                 actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
             }
         });
@@ -1338,31 +1313,26 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
     /**
      * Compiles a list of {@link SnapshotItem}s based on the snapshot's PVs (and potential read-only property setting)
-     * as well as user's choice to exclude items in the UI.
+     * as well as user's choice to exclude items in the UI using a filter
      *
-     * @param snapshot {@link Snapshot} contents.
      * @return A list of {@link SnapshotItem}s to be subject to a restore operation.
      */
-    private List<SnapshotItem> getSnapshotItemsToRestore(Snapshot snapshot) {
+    private List<SnapshotItem> getSnapshotItemsToRestore() {
         List<SnapshotItem> itemsToRestore = new ArrayList<>();
-
-        for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
-            TableEntry e = tableEntryItems.get(entry.getConfigPv().getPvName());
-
-            boolean restorable = e.selectedProperty().get() &&
-                    !e.readOnlyProperty().get() &&
-                    entry.getValue() != null &&
-                    !entry.getValue().equals(VNoData.INSTANCE);
-
+        tableEntryItems.forEach(tableEntry -> {
+            boolean restorable = tableEntry.selectedProperty().get() &&
+                    tableEntry.readOnlyProperty().not().get() &&
+                    tableEntry.getSnapshotVal().get() != null &&
+                    !tableEntry.getSnapshotVal().get().equals(VNoData.INSTANCE);
             if (restorable) {
-                itemsToRestore.add(entry);
+                itemsToRestore.add(tableEntry.getSnapshotItem());
             }
-        }
+        });
         return itemsToRestore;
     }
 
     private void addSnapshot(Snapshot snapshot) {
-        snapshots.add(snapshot);
+        additionalSnapshots.add(snapshot);
 
         snapshotTableView.getColumns().clear();
 
@@ -1379,10 +1349,10 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             compareColumn = new TableColumn<>(Messages.storedValues);
             compareColumn.getStyleClass().add("snapshot-table-centered");
 
-            String baseSnapshotTimeStamp = snapshots.get(0).getSnapshotNode().getCreated() == null ?
+            String baseSnapshotTimeStamp = this.snapshot.getSnapshotNode().getCreated() == null ?
                     "" :
-                    " (" + TimestampFormats.SECONDS_FORMAT.format(snapshots.get(0).getSnapshotNode().getCreated().toInstant()) + ")";
-            String snapshotName = snapshots.get(0).getSnapshotNode().getName() + baseSnapshotTimeStamp;
+                    " (" + TimestampFormats.SECONDS_FORMAT.format(this.snapshot.getSnapshotNode().getCreated().toInstant()) + ")";
+            String snapshotName = this.snapshot.getSnapshotNode().getName() + baseSnapshotTimeStamp;
 
             baseSnapshotColumn = new TableColumn<>(snapshotName);
             baseSnapshotColumn.getStyleClass().add("snapshot-table-centered");
@@ -1397,8 +1367,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
                 value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
                 updateLoadedSnapshot(e.getRowValue(), updatedValue);
-                for (int i = 1; i < snapshots.size(); i++) {
-                    ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i);
+                for (int i = 0; i < additionalSnapshots.size(); i++) {
+                    ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i + 1);
                     compareValue.setValue(new VTypePair(updatedValue, compareValue.get().value, compareValue.get().threshold));
                 }
             });
@@ -1415,38 +1385,36 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
         compareColumn.getColumns().add(0, baseSnapshotColumn);
 
-        for (int s = 1; s < snapshots.size(); s++) {
-            Node snapshotNode = snapshots.get(s).getSnapshotNode();
+        for (int s = 0; s < additionalSnapshots.size(); s++) {
+            Node snapshotNode = additionalSnapshots.get(s).getSnapshotNode();
             String snapshotName = snapshotNode.getName();
-
             List<SnapshotItem> entries = snapshot.getSnapshotData().getSnapshotItems();
-            String nodeName;
-            TableEntry tableEntry;
-            // Base snapshot data
-            List<TableEntry> baseSnapshotTableEntries = new ArrayList<>(tableEntryItems.values());
-            SnapshotItem entry;
+            // Base snapshot data. Create a copy as tableEntryItems should always contain full list.
+            List<TableEntry> baseSnapshotTableEntries = new ArrayList<>(tableEntryItems);
+            SnapshotItem snpshotItem;
             for (int i = 0; i < entries.size(); i++) {
-                entry = entries.get(i);
-                nodeName = entry.getConfigPv().getPvName();
-                tableEntry = tableEntryItems.get(nodeName);
+                snpshotItem = entries.get(i);
+                String pvName = snpshotItem.getConfigPv().getPvName();
+                Optional<TableEntry> tableEntryOptional =
+                        tableEntryItems.stream().filter(t -> t.getConfigPv().getPvName().equals(pvName)).findFirst();
                 // tableEntry is null if the added snapshot has more items than the base snapshot.
-                if (tableEntry == null) {
-                    tableEntry = new TableEntry();
+                TableEntry tableEntry;
+                if (tableEntryOptional.isEmpty()) {
+                    tableEntry = new TableEntry(snpshotItem);
                     tableEntry.idProperty().setValue(tableEntryItems.size() + i + 1);
-                    tableEntry.pvNameProperty().setValue(nodeName);
-                    tableEntry.setConfigPv(entry.getConfigPv());
-                    tableEntryItems.put(nodeName, tableEntry);
-                    tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
+                    tableEntryItems.add(tableEntry);
+                    tableEntry.connect();
+                } else {
+                    tableEntry = tableEntryOptional.get();
                 }
-                tableEntry.setSnapshotValue(entry.getValue(), snapshots.size());
-                tableEntry.setStoredReadbackValue(entry.getReadbackValue(), snapshots.size());
-                tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
+                tableEntry.setSnapshotValue(snpshotItem.getValue(), additionalSnapshots.size());
+                tableEntry.setStoredReadbackValue(snpshotItem.getReadbackValue(), additionalSnapshots.size());
                 baseSnapshotTableEntries.remove(tableEntry);
             }
             // If added snapshot has more items than base snapshot, the base snapshot's values for those
             // table rows need to be set to DISCONNECTED.
             for (TableEntry te : baseSnapshotTableEntries) {
-                te.setSnapshotValue(VDisconnectedData.INSTANCE, snapshots.size());
+                te.setSnapshotValue(VDisconnectedData.INSTANCE, additionalSnapshots.size());
             }
 
             TableColumn<TableEntry, ?> headerColumn = new TableColumn<>(snapshotName + " (" +
@@ -1457,7 +1425,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     Messages.setpoint,
                     Messages.toolTipTableColumnSetpointPVValue, minWidth);
 
-            setpointValueCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshots.size()));
+            setpointValueCol.setCellValueFactory(e -> e.getValue().compareValueProperty(additionalSnapshots.size()));
             setpointValueCol.setCellFactory(e -> new VTypeCellEditor<>());
             setpointValueCol.setEditable(false);
             setpointValueCol.setSortable(false);
@@ -1466,7 +1434,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             TooltipTableColumn<VTypePair> deltaCol = new TooltipTableColumn<>(
                     Utilities.DELTA_CHAR + " " + Messages.baseSetpoint,
                     "", minWidth);
-            deltaCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshots.size()));
+            deltaCol.setCellValueFactory(e -> e.getValue().compareValueProperty(additionalSnapshots.size()));
             deltaCol.setCellFactory(e -> {
                 VDeltaCellEditor<VTypePair> vDeltaCellEditor = new VDeltaCellEditor<>();
                 vDeltaCellEditor.setShowDeltaPercentage(showDeltaPercentage.get());
@@ -1478,7 +1446,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
             headerColumn.getColumns().addAll(setpointValueCol, deltaCol, new DividerTableColumn());
 
-            compareColumn.getColumns().add(s, headerColumn);
+            compareColumn.getColumns().add(s + 1, headerColumn);
         }
 
         columns.add(compareColumn);
@@ -1487,59 +1455,52 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
         snapshotTableView.getColumns().addAll(columns);
 
-        connectPVs();
-        updateTable(null);
-    }
-
-    private void showSnapshotInTable() {
-        if (snapshots.isEmpty()) {
-            snapshots.add(snapshot);
-        } else {
-            snapshots.set(0, snapshot);
-        }
-        AtomicInteger counter = new AtomicInteger(0);
-        snapshot.getSnapshotData().getSnapshotItems().forEach(entry -> {
-            TableEntry tableEntry = new TableEntry();
-            String name = entry.getConfigPv().getPvName();
-            tableEntry.idProperty().setValue(counter.incrementAndGet());
-            tableEntry.pvNameProperty().setValue(name);
-            tableEntry.setConfigPv(entry.getConfigPv());
-            tableEntry.setSnapshotValue(entry.getValue(), 0);
-            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
-            if (entry.getValue() == null || entry.getValue().equals(VDisconnectedData.INSTANCE)) {
-                tableEntry.setActionResult(ActionResult.FAILED);
-            }
-            else {
-                tableEntry.setActionResult(ActionResult.OK);
-            }
-            if (entry.getConfigPv().getReadbackPvName() != null){
-                if(entry.getReadbackValue() == null || entry.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
-                    tableEntry.setActionResultReadback(ActionResult.FAILED);
-                }
-                else{
-                    tableEntry.setActionResultReadback(ActionResult.OK);
-                }
-            }
-            tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
-            tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
-            tableEntryItems.put(name, tableEntry);
-        });
-
-        updateTable(null);
-        connectPVs();
+        updateTable();
     }
 
     /**
-     * Sets new table entries for this table, but do not change the structure of the table.
+     * This clears the list of {@link TableEntry}s in the view and creates new objects based
+     * on the contents of the current {@link Snapshot}.
+     */
+    private void showSnapshotInTable() {
+        AtomicInteger counter = new AtomicInteger(0);
+        tableEntryItems.forEach(TableEntry::dispose);
+        tableEntryItems.clear();
+        snapshot.getSnapshotData().getSnapshotItems().forEach(snapshotItem -> {
+            TableEntry tableEntry = new TableEntry(snapshotItem);
+            tableEntry.idProperty().setValue(counter.incrementAndGet());
+            tableEntry.setSnapshotValue(snapshotItem.getValue(), 0);
+            tableEntry.setStoredReadbackValue(snapshotItem.getReadbackValue(), 0);
+            tableEntryItems.add(tableEntry);
+        });
+
+        JobManager.schedule("Connect to PVs", monitor ->
+           tableEntryItems.forEach(TableEntry::connect));
+
+        updateTable();
+    }
+
+    /**
+     * Updates the {@link TableView} with the full list of {@link TableEntry} objects as created from
+     * the {@link Snapshot} data.
+     */
+    private void updateTable() {
+        updateTable(tableEntryItems);
+    }
+
+    /**
+     * Updates the table showing the {@link TableEntry}s. Note though that while the full list of {@link TableEntry}s
+     * associated with a snapshot is maintained in this class, the supplied {@link List} of {@link TableEntry}s
+     * may be a subset, e.g. if user selects to filter or hide items where store setpoint and live value are equal.
      *
-     * @param entries the entries to set
+     * @param entries The entries to show in the table.
      */
     private void updateTable(List<TableEntry> entries) {
         final ObservableList<TableEntry> items = snapshotTableView.getItems();
         final boolean notHide = hideEqualItemsProperty.not().get();
         Platform.runLater(() -> {
             items.clear();
-            tableEntryItems.forEach((key, value) -> {
+            entries.forEach(value -> {
                 // there is no harm if this is executed more than once, because only one line is allowed for these
                 // two properties (see SingleListenerBooleanProperty for more details)
                 value.liveStoredEqualProperty().addListener((a, o, n) -> {
@@ -1575,37 +1536,20 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     /**
-     * Attempts to connect to all the PVs of the configuration/snapshot and binds the created {@link SaveAndRestorePV} objects
-     * to the {@link TableEntry} objects matched on PV name.
-     */
-    private void connectPVs() {
-        JobManager.schedule("Connect PVs", monitor -> tableEntryItems.values().forEach(e -> {
-            SaveAndRestorePV pv = pvs.get(e.getConfigPv().getPvName());
-            if (pv == null) {
-                pvs.put(e.getConfigPv().getPvName(), new SaveAndRestorePV(e));
-            } else {
-                pv.setSnapshotTableEntry(e);
-            }
-        }));
-    }
-
-    /**
-     *
      * @param configurationData {@link ConfigurationData} obejct of a {@link org.phoebus.applications.saveandrestore.model.Configuration}
      * @return <code>true</code> if any if the {@link ConfigPv} items in {@link ConfigurationData#getPvList()} defines a non-null read-back
      * PV name, otherwise <code>false</code>.
      */
-    private boolean configurationHasReadbackPvs(ConfigurationData configurationData){
+    private boolean configurationHasReadbackPvs(ConfigurationData configurationData) {
         return configurationData.getPvList().stream().anyMatch(cp -> cp.getReadbackPvName() != null);
     }
 
     /**
-     *
      * @param snapshotData {@link SnapshotData} obejct of a {@link org.phoebus.applications.saveandrestore.model.Snapshot}
      * @return <code>true</code> if any if the {@link ConfigPv} items in {@link SnapshotData#getSnapshotItems()} defines a non-null read-back
      * PV name, otherwise <code>false</code>.
      */
-    private boolean configurationHasReadbackPvs(SnapshotData snapshotData){
+    private boolean configurationHasReadbackPvs(SnapshotData snapshotData) {
         return snapshotData.getSnapshotItems().stream().anyMatch(si -> si.getConfigPv().getReadbackPvName() != null);
     }
 
@@ -1644,7 +1588,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     /**
      * {@link TableCell} implementation for the action result columns.
      */
-    private class ActionResultTableCell extends TableCell<TableEntry, ActionResult> {
+    private static class ActionResultTableCell extends TableCell<TableEntry, ActionResult> {
         @Override
         public void updateItem(org.phoebus.applications.saveandrestore.ui.snapshot.ActionResult actionResult, boolean empty) {
             if (empty) {
@@ -1658,6 +1602,34 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                             setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png")));
                 }
             }
+        }
+    }
+
+    /**
+     * {@link TableCell} customized for the alarm severity column such that alarm information is
+     * decorated in the same manner as in other applications.
+     */
+    private static class AlarmSeverityCell extends TableCell<TableEntry, AlarmSeverity> {
+
+        @Override
+        public void updateItem(AlarmSeverity alarmSeverity, boolean empty) {
+            if (empty) {
+                setText(null);
+                setStyle(TableCellColors.REGULAR_CELL_STYLE);
+            } else if (alarmSeverity == null) {
+                setText("---");
+                setStyle(TableCellColors.REGULAR_CELL_STYLE);
+            } else {
+                setText(alarmSeverity.toString());
+                switch (alarmSeverity) {
+                    case NONE -> setStyle(TableCellColors.ALARM_NONE_STYLE);
+                    case UNDEFINED -> setStyle(TableCellColors.ALARM_UNDEFINED_STYLE);
+                    case MINOR -> setStyle(TableCellColors.ALARM_MINOR_STYLE);
+                    case MAJOR -> setStyle(TableCellColors.ALARM_MAJOR_STYLE);
+                    case INVALID -> setStyle(TableCellColors.ALARM_INVALID_STYLE);
+                }
+            }
+
         }
     }
 }
