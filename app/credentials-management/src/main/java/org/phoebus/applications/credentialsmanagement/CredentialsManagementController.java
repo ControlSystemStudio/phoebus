@@ -229,7 +229,7 @@ public class CredentialsManagementController {
                 stage.close();
             }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to delete all authentication tokens from key store", e);
+            LOGGER.log(Level.WARNING, "Failed to login to all services", e);
         }
     }
 
@@ -252,6 +252,9 @@ public class CredentialsManagementController {
                 serviceItem.setLoginResultMessage("OK");
                 if(expectedLoginCount == loggedInCount.get()){
                     stage.close();
+                }
+                else{
+                    return;
                 }
             } catch (Exception exception) {
                 LOGGER.log(Level.WARNING, "Failed to store credentials", exception);

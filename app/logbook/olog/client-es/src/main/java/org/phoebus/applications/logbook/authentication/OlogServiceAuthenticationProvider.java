@@ -45,7 +45,7 @@ public class OlogServiceAuthenticationProvider implements ServiceAuthenticationP
         }
         catch (Exception e) {
             Logger.getLogger(OlogServiceAuthenticationProvider.class.getName())
-                    .log(Level.WARNING, "Failed to authenticate user " + username + " with logbook service", e);
+                    .log(Level.WARNING, "Failed to authenticate user " + username + " with logbook service");
             throw new ServiceAuthenticationException("Failed to authenticate user " + username + " with logbook service");
         }
     }
