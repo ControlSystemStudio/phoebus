@@ -568,7 +568,7 @@ public class OlogHttpClient implements LogClient {
                     response.body(), new TypeReference<Set<LogEntryLevel>>() {
                     });
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Unable to get templates from service", e);
+            LOGGER.log(Level.WARNING, "Unable to get levels from service", e);
             return Collections.emptySet();
         }
     }

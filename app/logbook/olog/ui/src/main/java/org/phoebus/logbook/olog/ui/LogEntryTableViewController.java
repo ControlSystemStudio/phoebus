@@ -86,7 +86,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
     // elements associated with the various search
     @FXML
     @SuppressWarnings("unused")
-    private GridPane ViewSearchPane;
+    private GridPane viewSearchPane;
 
     // elements related to the table view of the log entries
     @FXML
@@ -167,9 +167,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
     protected Optional<LogEntryTable.GoBackAndGoForwardActions> goBackAndGoForwardActions = Optional.empty();
 
     @FXML
-    @Override
     public void initialize() {
-        super.initialize();
 
         logEntryDisplayController.setLogEntryTableViewController(this);
 
@@ -183,7 +181,6 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
         });
 
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        tableView.visibleProperty().bind(serviceConnected);
 
         MenuItem groupSelectedEntries = new MenuItem(Messages.GroupSelectedEntries);
         groupSelectedEntries.setOnAction(e -> createLogEntryGroup());
@@ -335,9 +332,13 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                                 Messages.AdvancedSearchHide : Messages.AdvancedSearchOpen,
                         advancedSearchVisible));
 
-        logDetailView.disableProperty().bind(serviceConnected.not());
+        determineConnectivity(() -> {
+            switch (connectivityModeObjectProperty.get()){
+                case HTTP_ONLY -> search();
+                case WEB_SOCKETS_SUPPORTED -> connectWebSocket();
+            }
+        });
 
-        connectWebSocket();
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
@@ -361,7 +362,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                 });
             } else {
                 searchParameters.setQuery(query.getEditor().getText());
-                double width = ViewSearchPane.getWidth() / 2.5;
+                double width = viewSearchPane.getWidth() / 2.5;
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().prefWidthProperty(), width);
                 timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
@@ -406,6 +407,10 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                     searchInProgress.set(false);
                     setSearchResult(searchResult1);
                     List<OlogQuery> queries = ologQueryManager.getQueries();
+                    if(connectivityModeObjectProperty.get().equals(ConnectivityMode.HTTP_ONLY)){
+                        logger.log(Level.INFO, "Starting periodic search: " + queryString);
+                        periodicSearch(params, this::setSearchResult);
+                    }
                     Platform.runLater(() -> {
                         ologQueries.setAll(queries);
                         query.getSelectionModel().select(ologQueries.get(0));

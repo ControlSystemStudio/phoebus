@@ -2,13 +2,17 @@ package org.phoebus.logbook.olog.ui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import org.phoebus.core.websocket.WebSocketMessageHandler;
 import org.phoebus.core.websocket.springframework.WebSocketClientService;
 import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.SearchResult;
@@ -19,6 +23,11 @@ import org.phoebus.olog.es.api.Preferences;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -39,9 +48,17 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Logger logger = Logger.getLogger(LogbookSearchController.class.getName());
-    protected final SimpleBooleanProperty serviceConnected = new SimpleBooleanProperty();
+    protected final SimpleBooleanProperty webSocketConnected = new SimpleBooleanProperty();
+    private static final int SEARCH_JOB_INTERVAL = 30; // 30 seconds
+    private ScheduledFuture<?> runningTask;
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private Job logbookSearchJob;
+    protected final ObjectProperty<ConnectivityMode> connectivityModeObjectProperty =
+            new SimpleObjectProperty<>(ConnectivityMode.NOT_CONNECTED);
 
     protected WebSocketClientService webSocketClientService;
+    private final String webSocketUrl;
+    private final CountDownLatch connectivityCheckerCountDownLatch = new CountDownLatch(1);
 
     @SuppressWarnings("unused")
     @FXML
@@ -49,12 +66,44 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
 
     @SuppressWarnings("unused")
     @FXML
-    private GridPane ViewSearchPane;
+    private GridPane viewSearchPane;
 
-    @FXML
-    public void initialize() {
-        errorPane.visibleProperty().bind(serviceConnected.not());
-        ViewSearchPane.visibleProperty().bind(serviceConnected);
+    public LogbookSearchController() {
+        String baseUrl = Preferences.olog_url;
+        URI uri = URI.create(baseUrl);
+        String scheme = uri.getScheme();
+        String host = uri.getHost();
+        int port = uri.getPort();
+        String path = uri.getPath();
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        String webSocketScheme = scheme.toLowerCase().startsWith("https") ? "wss" : "ws";
+        this.webSocketUrl = webSocketScheme + "://" + host + (port > -1 ? (":" + port) : "") + path;
+    }
+
+    protected void determineConnectivity(Runnable completionHandler){
+
+        // Try to determine the connection mode: is the remote service available at all?
+        // If so, does it accept web socket connections?
+        JobManager.schedule("Connection mode probe", monitor -> {
+            String serviceInfo = client.serviceInfo();
+            if (serviceInfo != null && !serviceInfo.isEmpty()) { // service online, check web socket availability
+                if (WebSocketClientService.checkAvailability(this.webSocketUrl)) {
+                    connectivityModeObjectProperty.set(ConnectivityMode.WEB_SOCKETS_SUPPORTED);
+                } else {
+                    connectivityModeObjectProperty.set(ConnectivityMode.HTTP_ONLY);
+                }
+            }
+            connectivityCheckerCountDownLatch.countDown();
+            if (connectivityModeObjectProperty.get().equals(ConnectivityMode.NOT_CONNECTED)) {
+                Platform.runLater(() -> {
+                    errorPane.visibleProperty().set(true);
+                    viewSearchPane.visibleProperty().set(false);
+                });
+            }
+            completionHandler.run();
+        });
     }
 
     public void setClient(LogClient client) {
@@ -73,10 +122,42 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
      * @param errorHandler  Client side error handler that should notify user.
      */
     public void search(Map<String, String> searchParams, final Consumer<SearchResult> resultHandler, final BiConsumer<String, Exception> errorHandler) {
+        cancelPeriodSearch();
         LogbookSearchJob.submit(this.client,
                 searchParams,
                 resultHandler,
                 errorHandler);
+    }
+
+    /**
+     * Starts a search job every {@link #SEARCH_JOB_INTERVAL} seconds. If a search fails (e.g. service off-line or invalid search parameters),
+     * the period search is cancelled. User will need to implicitly start it again through a "manual" search in the UI.
+     *
+     * @param searchParams  The search parameters
+     * @param resultHandler Handler taking care of the search result.
+     */
+    public void periodicSearch(Map<String, String> searchParams, final Consumer<SearchResult> resultHandler) {
+        cancelPeriodSearch();
+        runningTask = executor.scheduleAtFixedRate(() -> logbookSearchJob = LogbookSearchJob.submit(this.client,
+                searchParams,
+                resultHandler,
+                (url, ex) -> {
+                    searchInProgress.set(false);
+                    cancelPeriodSearch();
+                }), SEARCH_JOB_INTERVAL, SEARCH_JOB_INTERVAL, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Stops periodic search and ongoing search jobs, if any.
+     */
+    private void cancelPeriodSearch() {
+        if (runningTask != null) {
+            runningTask.cancel(true);
+        }
+
+        if (logbookSearchJob != null) {
+            logbookSearchJob.cancel();
+        }
     }
 
     @Deprecated
@@ -90,33 +171,35 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
             Logger.getLogger(LogbookSearchController.class.getName()).log(Level.INFO, "Shutting down web socket");
             webSocketClientService.shutdown();
         }
+        if(connectivityModeObjectProperty.get().equals(ConnectivityMode.HTTP_ONLY)){
+            cancelPeriodSearch();
+        }
     }
 
     protected abstract void search();
 
     protected void connectWebSocket() {
-        String baseUrl = Preferences.olog_url;
-        URI uri = URI.create(baseUrl);
-        String scheme = uri.getScheme();
-        String host = uri.getHost();
-        int port = uri.getPort();
-        String path = uri.getPath();
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
+        try {
+            if(connectivityCheckerCountDownLatch.await(3000, TimeUnit.MILLISECONDS)){
+                if (connectivityModeObjectProperty.get().equals(ConnectivityMode.WEB_SOCKETS_SUPPORTED)) {
+                    webSocketClientService = new WebSocketClientService(() -> {
+                        logger.log(Level.INFO, "Connected to web socket on " + webSocketUrl);
+                        webSocketConnected.setValue(true);
+                        errorPane.visibleProperty().set(false);
+                        search();
+                    }, () -> {
+                        logger.log(Level.INFO, "Disconnected from web socket on " + webSocketUrl);
+                        webSocketConnected.set(false);
+                        errorPane.visibleProperty().set(true);
+                    });
+                    webSocketClientService.addWebSocketMessageHandler(this);
+                    webSocketClientService.connect(webSocketUrl);
+                }
+            }
+        } catch (InterruptedException e) {
+            Logger.getLogger(LogbookSearchController.class.getName()).log(Level.WARNING, "Timed out waiting for connectivity check");
+            connectivityModeObjectProperty.set(ConnectivityMode.NOT_CONNECTED);
         }
-        String webSocketScheme = scheme.toLowerCase().startsWith("https") ? "wss" : "ws";
-        String webSocketUrl = webSocketScheme + "://" + host + (port > -1 ? (":" + port) : "") + path;
-
-        webSocketClientService = new WebSocketClientService(() -> {
-            logger.log(Level.INFO, "Connected to web socket on " + webSocketUrl);
-            serviceConnected.setValue(true);
-            search();
-        }, () -> {
-            logger.log(Level.INFO, "Disconnected from web socket on " + webSocketUrl);
-            serviceConnected.set(false);
-        });
-        webSocketClientService.addWebSocketMessageHandler(this);
-        webSocketClientService.connect(webSocketUrl);
     }
 
     @Override
@@ -136,5 +219,11 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
         } catch (JsonProcessingException e) {
             logger.log(Level.WARNING, "Unable to deserialize message \"" + message + "\"");
         }
+    }
+
+    protected enum ConnectivityMode {
+        NOT_CONNECTED,
+        HTTP_ONLY,
+        WEB_SOCKETS_SUPPORTED
     }
 }

@@ -23,6 +23,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -102,11 +103,12 @@ public class WebSocketClientService {
 
     /**
      * For debugging purposes: peer should just echo back the message on the subscribed topic.
+     *
      * @param message Message for the service to echo
      */
     @SuppressWarnings("unused")
     public void sendEcho(String message) {
-        if(stompSession != null && stompSession.isConnected()){
+        if (stompSession != null && stompSession.isConnected()) {
             stompSession.send(contextPath + "/web-socket/echo", message);
         }
 
@@ -116,7 +118,7 @@ public class WebSocketClientService {
      * Disconnects the STOMP session if non-null and connected.
      */
     public void disconnect() {
-        if(stompSession != null && stompSession.isConnected()) {
+        if (stompSession != null && stompSession.isConnected()) {
             stompSession.disconnect();
         }
     }
@@ -124,7 +126,7 @@ public class WebSocketClientService {
     /**
      * Disconnects the socket if connected and terminates connection thread.
      */
-    public void shutdown(){
+    public void shutdown() {
         disconnect();
         attemptReconnect.set(false);
     }
@@ -268,5 +270,30 @@ public class WebSocketClientService {
                 disconnectCallback.run();
             }
         }
+    }
+
+    /**
+     * Utility method to check availability of a web socket connection. Tries to connect once,
+     * and - if successful - subsequently closes the web socket connection.
+     *
+     * @param webSocketConnectUrl The web socket URL
+     * @return <code>true</code> if connection to web socket succeeds within 3000 ms.
+     */
+    public static boolean checkAvailability(String webSocketConnectUrl) {
+        WebSocketClient webSocketClient = new StandardWebSocketClient();
+        WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
+        try {
+            StompSession stompSession = stompClient.connect(webSocketConnectUrl + "/web-socket", new StompSessionHandlerAdapter() {
+                @Override
+                public Type getPayloadType(StompHeaders headers) {
+                    return super.getPayloadType(headers);
+                }
+            }).get(3000, TimeUnit.MILLISECONDS);
+            stompSession.disconnect();
+            return true;
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Remote service on " + webSocketConnectUrl + " does not support web socket connection", e);
+        }
+        return false;
     }
 }

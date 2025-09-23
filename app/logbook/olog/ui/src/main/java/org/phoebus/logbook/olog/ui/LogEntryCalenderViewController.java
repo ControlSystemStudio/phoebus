@@ -97,9 +97,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     }
 
     @FXML
-    @Override
     public void initialize() {
-        super.initialize();
 
         advancedSearchViewController.setSearchCallback(this::search);
         configureComboBox();
@@ -196,9 +194,12 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
         search.disableProperty().bind(searchInProgress);
 
-        connectWebSocket();
-
-        search();
+        determineConnectivity(() -> {
+            switch (connectivityModeObjectProperty.get()){
+                case HTTP_ONLY -> search();
+                case WEB_SOCKETS_SUPPORTED -> connectWebSocket();
+            }
+        });
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored

@@ -13,7 +13,7 @@
             <items>
                 <StackPane minHeight="0.0" minWidth="300.0" prefWidth="600.0">
                     <children>
-                        <GridPane fx:id="ViewSearchPane" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <GridPane fx:id="viewSearchPane" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <columnConstraints>
                                 <ColumnConstraints />
                                 <ColumnConstraints />

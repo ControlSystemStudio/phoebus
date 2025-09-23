@@ -10,7 +10,7 @@
         <fx:include fx:id="advancedSearchView" source="AdvancedSearchView.fxml" />
         <StackPane>
             <children>
-                <GridPane fx:id="ViewSearchPane">
+                <GridPane fx:id="viewSearchPane">
                     <columnConstraints>
                         <ColumnConstraints />
                         <ColumnConstraints />
