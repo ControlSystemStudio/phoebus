@@ -172,7 +172,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     public abstract void setLogs(List<LogEntry> logs);
 
     /**
-     * Utility method to cancel any ongoing periodic search jobs.
+     * Utility method to cancel any ongoing periodic search jobs or close web socket.
      */
     public void shutdown() {
         if (webSocketClientService != null) {
@@ -193,11 +193,13 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
                     webSocketClientService = new WebSocketClientService(() -> {
                         logger.log(Level.INFO, "Connected to web socket on " + webSocketConnectUrl);
                         webSocketConnected.setValue(true);
+                        viewSearchPane.visibleProperty().set(true);
                         errorPane.visibleProperty().set(false);
                         search();
                     }, () -> {
                         logger.log(Level.INFO, "Disconnected from web socket on " + webSocketConnectUrl);
                         webSocketConnected.set(false);
+                        viewSearchPane.visibleProperty().set(false);
                         errorPane.visibleProperty().set(true);
                     }, webSocketConnectUrl, subscriptionEndpoint, null);
                     webSocketClientService.addWebSocketMessageHandler(this);
