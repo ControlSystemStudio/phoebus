@@ -57,7 +57,8 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
             new SimpleObjectProperty<>(ConnectivityMode.NOT_CONNECTED);
 
     protected WebSocketClientService webSocketClientService;
-    private final String webSocketUrl;
+    private final String webSocketConnectUrl;
+    private final String subscriptionEndpoint;
     private final CountDownLatch connectivityCheckerCountDownLatch = new CountDownLatch(1);
 
     @SuppressWarnings("unused")
@@ -79,9 +80,16 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
             path = path.substring(0, path.length() - 1);
         }
         String webSocketScheme = scheme.toLowerCase().startsWith("https") ? "wss" : "ws";
-        this.webSocketUrl = webSocketScheme + "://" + host + (port > -1 ? (":" + port) : "") + path;
+        this.webSocketConnectUrl = webSocketScheme + "://" + host + (port > -1 ? (":" + port) : "") + path + "/web-socket";
+        this.subscriptionEndpoint = path + "/web-socket/messages";
     }
 
+    /**
+     * Determines how the client may connect to the remote service. The service info endpoint is called to establish
+     * availability of the service. If available, then a single web socket connection is attempted to determine
+     * if the service supports web sockets.
+     * @param completionHandler {@link Runnable} called when connection mode has been determined.
+     */
     protected void determineConnectivity(Runnable completionHandler){
 
         // Try to determine the connection mode: is the remote service available at all?
@@ -89,7 +97,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
         JobManager.schedule("Connection mode probe", monitor -> {
             String serviceInfo = client.serviceInfo();
             if (serviceInfo != null && !serviceInfo.isEmpty()) { // service online, check web socket availability
-                if (WebSocketClientService.checkAvailability(this.webSocketUrl)) {
+                if (WebSocketClientService.checkAvailability(this.webSocketConnectUrl)) {
                     connectivityModeObjectProperty.set(ConnectivityMode.WEB_SOCKETS_SUPPORTED);
                 } else {
                     connectivityModeObjectProperty.set(ConnectivityMode.HTTP_ONLY);
@@ -183,17 +191,17 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
             if(connectivityCheckerCountDownLatch.await(3000, TimeUnit.MILLISECONDS)){
                 if (connectivityModeObjectProperty.get().equals(ConnectivityMode.WEB_SOCKETS_SUPPORTED)) {
                     webSocketClientService = new WebSocketClientService(() -> {
-                        logger.log(Level.INFO, "Connected to web socket on " + webSocketUrl);
+                        logger.log(Level.INFO, "Connected to web socket on " + webSocketConnectUrl);
                         webSocketConnected.setValue(true);
                         errorPane.visibleProperty().set(false);
                         search();
                     }, () -> {
-                        logger.log(Level.INFO, "Disconnected from web socket on " + webSocketUrl);
+                        logger.log(Level.INFO, "Disconnected from web socket on " + webSocketConnectUrl);
                         webSocketConnected.set(false);
                         errorPane.visibleProperty().set(true);
-                    });
+                    }, webSocketConnectUrl, subscriptionEndpoint, null);
                     webSocketClientService.addWebSocketMessageHandler(this);
-                    webSocketClientService.connect(webSocketUrl);
+                    webSocketClientService.connect();
                 }
             }
         } catch (InterruptedException e) {
@@ -221,6 +229,9 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
         }
     }
 
+    /**
+     * Enum to indicate if and how the client may connect to remote Olog service.
+     */
     protected enum ConnectivityMode {
         NOT_CONNECTED,
         HTTP_ONLY,
