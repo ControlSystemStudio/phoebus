@@ -219,7 +219,7 @@ public class PVASettings
     public static int EPICS_PVA_TCP_SOCKET_TMO = 5;
 
     /** Maximum number of array elements shown when printing data */
-    public static int EPICS_PVA_MAX_ARRAY_FORMATTING = 256;
+    public static int EPICS_PVA_MAX_ARRAY_FORMATTING = 50;
 
     /** Range of beacon periods in seconds recognized as "fast, new" beacons
      *  that re-start searches for disconnected channels.
@@ -275,6 +275,11 @@ public class PVASettings
         EPICS_PVAS_TLS_OPTIONS = get("EPICS_PVAS_TLS_OPTIONS", EPICS_PVAS_TLS_OPTIONS);
         require_client_cert =  EPICS_PVAS_TLS_OPTIONS.contains("client_cert=require");
         EPICS_PVA_TLS_KEYCHAIN = get("EPICS_PVA_TLS_KEYCHAIN", EPICS_PVA_TLS_KEYCHAIN);
+        if (EPICS_PVA_TLS_KEYCHAIN.isEmpty()  &&  !EPICS_PVAS_TLS_KEYCHAIN.isEmpty())
+        {
+            EPICS_PVA_TLS_KEYCHAIN = EPICS_PVAS_TLS_KEYCHAIN;
+            logger.log(Level.CONFIG, "EPICS_PVA_TLS_KEYCHAIN (empty) updated from EPICS_PVAS_TLS_KEYCHAIN");
+        }
         EPICS_PVA_SEND_BUFFER_SIZE = get("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
         EPICS_PVA_FAST_BEACON_MIN = get("EPICS_PVA_FAST_BEACON_MIN", EPICS_PVA_FAST_BEACON_MIN);
         EPICS_PVA_FAST_BEACON_MAX = get("EPICS_PVA_FAST_BEACON_MAX", EPICS_PVA_FAST_BEACON_MAX);
