@@ -1,0 +1,14 @@
+/* Use a mono font for every part of a signature (preference settings, API endpoint, etc.) */
+.sig:not(.sig-inline) {
+	font-family: SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, Courier, monospace;
+}
+
+/* Make the RtD theme respect whitespaces */
+.property {
+	display: inline !important;
+	padding-right: 0 !important;
+}
+
+.sig-prename {
+	font-weight: normal;
+}
