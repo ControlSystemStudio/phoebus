@@ -213,7 +213,7 @@ public class SecureSockets
                             logger.log(Level.FINE, "  - Self-signed");
 
                         byte[] value = x509.getExtensionValue("1.3.6.1.4.1.37427.1");
-                        logger.log(Level.FINE, "  - Status PV: " + decodeDERString(value));
+                        logger.log(Level.FINE, "  - Status PV: '" + decodeDERString(value) + "'");
                     }
             }
             catch (Exception ex)
@@ -227,13 +227,13 @@ public class SecureSockets
 
     /** Decode DER String
      *  @param der_value
-     *  @return
+     *  @return String, never null
      *  @throws Exception on error
      */
     public static String decodeDERString(final byte[] der_value) throws Exception
     {
         if (der_value == null)
-            return null;
+            return "";
         // https://en.wikipedia.org/wiki/X.690#DER_encoding:
         // Type 4, length 0..127, characters
         if (der_value.length < 2)
@@ -328,7 +328,7 @@ public class SecureSockets
 
                         byte[] value = x509.getExtensionValue("1.3.6.1.4.1.37427.1");
                         String pv_name = SecureSockets.decodeDERString(value);
-                        logger.log(Level.FINER, "  - Status PV: " + pv_name);
+                        logger.log(Level.FINER, "  - Status PV: '" + pv_name + "'");
 
                         if (is_principal_cert  &&  pv_name != null  &&  !pv_name.isBlank())
                             status_pv_name = pv_name;
