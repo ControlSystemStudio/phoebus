@@ -24,15 +24,14 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
-import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.security.authorization.ServiceAuthenticationException;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.QueryParamsHelper;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.net.ConnectException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -577,21 +576,17 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
      * @return {@inheritDoc}
      */
     @Override
-    public UserData authenticate(String userName, String password) throws ConnectException {
-        try {
-            String stringBuilder = Preferences.jmasarServiceUrl +
-                    "/login";
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(stringBuilder))
-                    .header("Content-Type", CONTENT_TYPE_JSON)
-                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
-                    .build();
-            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-            return OBJECT_MAPPER.readValue(response.body(), UserData.class);
-        } catch (ConnectException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public void authenticate(String userName, String password) throws Exception {
+        String stringBuilder = Preferences.jmasarServiceUrl +
+                "/login";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(stringBuilder))
+                .header("Content-Type", CONTENT_TYPE_JSON)
+                .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
+                .build();
+        HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 401) {
+            throw new ServiceAuthenticationException("User not authenticated with save&restore service");
         }
     }
 

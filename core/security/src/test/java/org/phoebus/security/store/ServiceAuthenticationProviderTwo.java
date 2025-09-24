@@ -4,16 +4,15 @@
 
 package org.phoebus.security.store;
 
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
-
-import java.net.ConnectException;
 
 public class ServiceAuthenticationProviderTwo implements ServiceAuthenticationProvider {
 
     @Override
-    public void authenticate(String username, String password) throws ConnectException {
-
+    public AuthenticationStatus authenticate(String username, String password) {
+        return AuthenticationStatus.AUTHENTICATED;
     }
 
     @Override

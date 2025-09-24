@@ -20,7 +20,6 @@ package org.phoebus.applications.credentialsmanagement;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -45,15 +44,13 @@ import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.security.authorization.ServiceAuthenticationException;
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.slf4j.LoggerFactory;
 
-import java.net.ConnectException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -66,8 +63,6 @@ import java.util.stream.Collectors;
  */
 public class CredentialsManagementController {
 
-
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(CredentialsManagementController.class);
     @SuppressWarnings("unused")
     @FXML
     private Node parent;
@@ -175,7 +170,8 @@ public class CredentialsManagementController {
                         btn.getStyleClass().add("button-style");
                         btn.setOnAction((ActionEvent event) -> {
                             ServiceItem serviceItem = getTableRow().getItem();
-                            if (serviceItem != null && serviceItem.userLoggedIn.get()) {
+                            if (serviceItem != null && (serviceItem.authenticationStatus.get().equals(AuthenticationStatus.AUTHENTICATED) ||
+                                    serviceItem.authenticationStatus.get().equals(AuthenticationStatus.CACHED))) {
                                 logOut(serviceItem);
                             } else {
                                 login(serviceItem, 1);
@@ -206,7 +202,7 @@ public class CredentialsManagementController {
 
     @SuppressWarnings("unused")
     @FXML
-    public void logoutFromAll() {
+    public synchronized void logoutFromAll() {
         try {
             tableView.getItems().forEach(s -> logOut(s));
         } catch (Exception e) {
@@ -217,7 +213,7 @@ public class CredentialsManagementController {
 
     @SuppressWarnings("unused")
     @FXML
-    public void loginToAll() {
+    public synchronized void loginToAll() {
         logoutFromAll();
         try {
             for (ServiceItem serviceItem : tableView.getItems()) {
@@ -239,46 +235,26 @@ public class CredentialsManagementController {
      * @param serviceItem The {@link ServiceItem} defining the scope, and implicitly the authentication service.
      * @return <code>true</code> if login succeeds.
      */
-    private void login(ServiceItem serviceItem, int expectedLoginCount) {
-        try {
-            serviceItem.getServiceAuthenticationProvider().authenticate(serviceItem.getUsername().get(), serviceItem.getPassword().get());
-            try {
-                secureStore.setScopedAuthentication(new ScopedAuthenticationToken(serviceItem.getAuthenticationScope(),
-                        serviceItem.getUsername().get(),
-                        serviceItem.getPassword().get()));
-                loggedInCount.set(loggedInCount.get() + 1);
-                serviceItem.userLoggedIn.set(true);
-                serviceItem.setLoginResult(LoginResult.OK);
-                serviceItem.setLoginResultMessage("OK");
-                if(expectedLoginCount == loggedInCount.get()){
-                    stage.close();
-                }
-                else{
-                    return;
-                }
-            } catch (Exception exception) {
-                LOGGER.log(Level.WARNING, "Failed to store credentials", exception);
+    private synchronized void login(ServiceItem serviceItem, int expectedLoginCount) {
+        AuthenticationStatus authenticationResult = serviceItem.login();
+        if (authenticationResult.equals(AuthenticationStatus.AUTHENTICATED)) {
+            loggedInCount.set(loggedInCount.get() + 1);
+            if (expectedLoginCount == loggedInCount.get()) {
+                stage.close();
             }
-        } catch (ConnectException e) {
-            serviceItem.setLoginResultMessage(Messages.ServiceConnectionFailure);
-        } catch (ServiceAuthenticationException exception) {
-            serviceItem.setLoginResultMessage(Messages.UserNotAuthenticated);
         }
-        serviceItem.setLoginResult(LoginResult.FAILED);
     }
 
-    private void logOut(ServiceItem serviceItem) {
-        if (serviceItem.userLoggedIn.not().get()) {
-            return;
-        }
-        try {
-            serviceItem.serviceAuthenticationProvider.logout();
-            serviceItem.setLoggedOut();
-            loggedInCount.set(loggedInCount.get() - 1);
-            Platform.runLater(() -> tableView.requestFocus());
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to logout from service " + serviceItem.getDisplayName(), e);
-            ExceptionDetailsErrorDialog.openError(parent, Messages.ErrorDialogTitle, Messages.ErrorDialogBody, e);
+    private synchronized void logOut(ServiceItem serviceItem) {
+        if (serviceItem.authenticationStatus.get().equals(AuthenticationStatus.AUTHENTICATED)
+                || serviceItem.authenticationStatus.get().equals(AuthenticationStatus.CACHED)) {
+            try {
+                serviceItem.logout();
+                loggedInCount.set(loggedInCount.get() - 1);
+                Platform.runLater(() -> tableView.requestFocus());
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Failed to logout from service " + serviceItem.getDisplayName(), e);
+            }
         }
     }
 
@@ -290,7 +266,7 @@ public class CredentialsManagementController {
                 ServiceAuthenticationProvider provider =
                         authenticationProviders.stream().filter(p -> p.getAuthenticationScope().getScope().equals(token.getAuthenticationScope().getScope())).findFirst().orElse(null);
                 loggedInCount.set(loggedInCount.get() + 1);
-                return new ServiceItem(provider, token.getUsername(), token.getPassword());
+                return new ServiceItem(provider, AuthenticationStatus.CACHED, token.getUsername(), token.getPassword());
             }).collect(Collectors.toList());
             // Also need to add ServiceItems for providers not matched with a saved token, i.e. for logged-out services
             authenticationProviders.forEach(p -> {
@@ -298,7 +274,7 @@ public class CredentialsManagementController {
                         serviceItems.stream().filter(si ->
                                 p.getAuthenticationScope().getScope().equals(si.getAuthenticationScope().getScope())).findFirst();
                 if (serviceItem.isEmpty()) {
-                    serviceItems.add(new ServiceItem(p));
+                    serviceItems.add(new ServiceItem(p, AuthenticationStatus.UNDETERMINED, null, null));
                 }
             });
             serviceItems.sort(Comparator.comparing(i -> i.getAuthenticationScope().getDisplayName()));
@@ -314,33 +290,51 @@ public class CredentialsManagementController {
     /**
      * Model class for the table view
      */
-    public static class ServiceItem {
+    public class ServiceItem {
         private final ServiceAuthenticationProvider serviceAuthenticationProvider;
         private final StringProperty username = new SimpleStringProperty();
         private final StringProperty password = new SimpleStringProperty();
-        private final BooleanProperty userLoggedIn = new SimpleBooleanProperty();
         private final StringProperty buttonTextProperty = new SimpleStringProperty();
         private final StringProperty loginResultMessage = new SimpleStringProperty();
-        private final ObjectProperty<LoginResult> loginResult = new SimpleObjectProperty<>(LoginResult.OK);
+        private final ObjectProperty<AuthenticationStatus> authenticationStatus = new SimpleObjectProperty<>();
 
-        public ServiceItem(ServiceAuthenticationProvider serviceAuthenticationProvider, String username, String password) {
+        public ServiceItem(ServiceAuthenticationProvider serviceAuthenticationProvider, AuthenticationStatus authenticationResult, String username, String password) {
+            setupChangeListeners();
             this.serviceAuthenticationProvider = serviceAuthenticationProvider;
             this.username.set(username);
             this.password.set(password);
-            this.userLoggedIn.set(true);
-            buttonTextProperty.set(Messages.LogoutButtonText);
-            userLoggedIn.addListener((obs, o, n) -> buttonTextProperty.set(n ? Messages.LogoutButtonText : Messages.LoginButtonText));
+            this.authenticationStatus.set(authenticationResult);
         }
 
-        public ServiceItem(ServiceAuthenticationProvider serviceAuthenticationProvider) {
-            this.serviceAuthenticationProvider = serviceAuthenticationProvider;
-            this.userLoggedIn.set(false);
-            buttonTextProperty.set(Messages.LoginButtonText);
-            userLoggedIn.addListener((obs, o, n) -> buttonTextProperty.set(n ? Messages.LogoutButtonText : Messages.LoginButtonText));
-        }
-
-        public StringProperty getUsername() {
-            return username;
+        private void setupChangeListeners() {
+            this.authenticationStatus.addListener((obs, o, n) -> {
+                switch (n) {
+                    case UNDETERMINED -> {
+                        loginResultMessage.set(null);
+                        buttonTextProperty.set(Messages.LoginButtonText);
+                    }
+                    case CACHED -> {
+                        loginResultMessage.set(null);
+                        buttonTextProperty.set(Messages.LogoutButtonText);
+                    }
+                    case AUTHENTICATED -> {
+                        loginResultMessage.set("OK");
+                        buttonTextProperty.set(Messages.LogoutButtonText);
+                    }
+                    case BAD_CREDENTIALS -> {
+                        loginResultMessage.set(Messages.UserNotAuthenticated);
+                        buttonTextProperty.set(Messages.LoginButtonText);
+                    }
+                    case SERVICE_OFFLINE -> {
+                        loginResultMessage.set(Messages.ServiceConnectionFailure);
+                        buttonTextProperty.set(Messages.LoginButtonText);
+                    }
+                    case UNKNOWN_ERROR -> {
+                        loginResultMessage.set(Messages.UnknownError);
+                        buttonTextProperty.set(Messages.LoginButtonText);
+                    }
+                }
+            });
         }
 
         @SuppressWarnings("unused")
@@ -368,28 +362,30 @@ public class CredentialsManagementController {
                     serviceAuthenticationProvider.getAuthenticationScope().getDisplayName() : "";
         }
 
-        public StringProperty getPassword() {
-            return password;
+        public void setAuthenticationStatus(AuthenticationStatus authenticationStatus) {
+            this.authenticationStatus.set(authenticationStatus);
         }
 
-        public ServiceAuthenticationProvider getServiceAuthenticationProvider() {
-            return serviceAuthenticationProvider;
-        }
-
-        public void setLoginResultMessage(String result) {
-            loginResultMessage.set(result);
-        }
-
-        public void setLoginResult(LoginResult loginResult) {
-            this.loginResult.set(loginResult);
-        }
-
-        public void setLoggedOut() {
-            userLoggedIn.set(false);
+        public void logout() {
+            serviceAuthenticationProvider.logout();
+            authenticationStatus.set(AuthenticationStatus.UNDETERMINED);
             username.set(null);
             password.set(null);
-            loginResultMessage.set(null);
-            loginResult.set(LoginResult.OK);
+        }
+
+        public AuthenticationStatus login() {
+            AuthenticationStatus authenticationStatus = serviceAuthenticationProvider.authenticate(username.get(), password.get());
+            if (authenticationStatus.equals(AuthenticationStatus.AUTHENTICATED)) {
+                try {
+                    secureStore.setScopedAuthentication(new ScopedAuthenticationToken(getAuthenticationScope(),
+                            username.get(),
+                            password.get()));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            this.authenticationStatus.set(authenticationStatus);
+            return authenticationStatus;
         }
     }
 
@@ -401,11 +397,12 @@ public class CredentialsManagementController {
             if (empty) {
                 setGraphic(null);
             } else {
+                ServiceItem serviceItem = getTableRow().getItem();
                 TextField textField = new TextField();
                 textField.getStyleClass().add("text-field-styling");
-                textField.textProperty().bindBidirectional(getTableRow().getItem().username);
-                textField.disableProperty().bind(getTableRow().getItem().userLoggedIn);
-                ServiceItem serviceItem = getTableRow().getItem();
+                textField.textProperty().bindBidirectional(serviceItem.username);
+                textField.disableProperty().bind(Bindings.createBooleanBinding(() -> serviceItem.authenticationStatus.get().equals(AuthenticationStatus.AUTHENTICATED),
+                        serviceItem.authenticationStatus));
                 textField.setOnKeyPressed(keyEvent -> {
                     if (keyEvent.getCode() == KeyCode.ENTER &&
                             !serviceItem.username.isNull().get() &&
@@ -432,8 +429,11 @@ public class CredentialsManagementController {
                 passwordField.getStyleClass().add("text-field-styling");
                 ServiceItem serviceItem = getTableRow().getItem();
                 passwordField.textProperty().bindBidirectional(serviceItem.password);
-                passwordField.disableProperty().bind(serviceItem.userLoggedIn);
-                serviceItem.password.set(serviceItem.userLoggedIn.not().get() ? null : "dummypass"); // Hack to not reveal password length
+                passwordField.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                                serviceItem.authenticationStatus.get().equals(AuthenticationStatus.AUTHENTICATED) || serviceItem.authenticationStatus.get().equals(AuthenticationStatus.CACHED),
+                        serviceItem.authenticationStatus));
+                serviceItem.password.set(serviceItem.authenticationStatus.get().equals(AuthenticationStatus.AUTHENTICATED) || serviceItem.authenticationStatus.get().equals(AuthenticationStatus.CACHED)
+                        ? "dummypass" : null); // Hack to not reveal password length
 
                 passwordField.setOnKeyPressed(keyEvent -> {
                     if (keyEvent.getCode() == KeyCode.ENTER &&
@@ -460,22 +460,16 @@ public class CredentialsManagementController {
                 ServiceItem serviceItem = getTableRow().getItem();
                 Label label = new Label();
                 label.textProperty().bind(serviceItem.loginResultMessage);
-                serviceItem.loginResult.addListener((obs, o, n) -> {
-                    if (n.equals(LoginResult.OK)) {
-                        label.getStyleClass().remove("error");
-                    } else {
-                        label.getStyleClass().add("error");
+                serviceItem.authenticationStatus.addListener((obs, o, n) -> {
+                    switch (n){
+                        case CACHED, AUTHENTICATED -> label.getStyleClass().remove("error");
+                        default -> label.getStyleClass().add("error");
                     }
                     label.setTooltip(new Tooltip(serviceItem.loginResultMessage.get()));
                 });
                 setGraphic(label);
             }
         }
-    }
-
-    private enum LoginResult {
-        OK,
-        FAILED
     }
 
     public void setStage(Stage stage) {

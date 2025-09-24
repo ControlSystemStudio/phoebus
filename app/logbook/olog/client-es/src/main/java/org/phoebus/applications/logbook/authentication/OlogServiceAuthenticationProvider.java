@@ -19,6 +19,7 @@
 package org.phoebus.applications.logbook.authentication;
 
 import org.phoebus.olog.es.api.OlogHttpClient;
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.authorization.ServiceAuthenticationException;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
@@ -31,22 +32,29 @@ public class OlogServiceAuthenticationProvider implements ServiceAuthenticationP
 
     private final AuthenticationScope ologAuthenticationScope;
 
-    public OlogServiceAuthenticationProvider(){
+    private final Logger logger = Logger.getLogger(OlogServiceAuthenticationProvider.class.getName());
+
+    public OlogServiceAuthenticationProvider() {
         ologAuthenticationScope = new OlogAuthenticationScope();
     }
 
     @Override
-    public void authenticate(String username, String password) throws ConnectException{
+    public AuthenticationStatus authenticate(String username, String password) {
         try {
             OlogHttpClient.builder().build().authenticate(username, password);
-        }
-        catch(ConnectException e){
-            throw e;
+            return AuthenticationStatus.AUTHENTICATED;
+        } catch (ConnectException e) {
+            logger.log(Level.WARNING, "Unable to connect to logbook service");
+            return AuthenticationStatus.SERVICE_OFFLINE;
+        } catch (ServiceAuthenticationException e){
+            logger.log(Level.WARNING, "User " + username + " not authenticated");
+            return AuthenticationStatus.BAD_CREDENTIALS;
         }
         catch (Exception e) {
-            Logger.getLogger(OlogServiceAuthenticationProvider.class.getName())
-                    .log(Level.WARNING, "Failed to authenticate user " + username + " with logbook service");
-            throw new ServiceAuthenticationException("Failed to authenticate user " + username + " with logbook service");
+            // NOTE!!! Exception message and/or stack trace could contain request URL and consequently
+            // user's password, so do not log or propagate it.
+            logger.log(Level.WARNING, "Failed to authenticate user " + username + " with logbook service, reason unknown");
+            return AuthenticationStatus.UNKNOWN_ERROR;
         }
     }
 

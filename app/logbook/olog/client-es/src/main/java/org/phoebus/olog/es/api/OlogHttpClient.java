@@ -26,6 +26,7 @@ import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
 import org.phoebus.olog.es.authentication.LoginCredentials;
+import org.phoebus.security.authorization.ServiceAuthenticationException;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -35,6 +36,7 @@ import org.phoebus.util.http.QueryParamsHelper;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URI;
@@ -362,7 +364,6 @@ public class OlogHttpClient implements LogClient {
      * @throws Exception if the login fails, e.g. bad credentials or service off-line.
      */
     public void authenticate(String userName, String password) throws Exception {
-
         String stringBuilder = Preferences.olog_url +
                 "/login";
         HttpRequest request = HttpRequest.newBuilder()
@@ -372,9 +373,7 @@ public class OlogHttpClient implements LogClient {
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 401) {
-            throw new Exception("Failed to login: user unauthorized");
-        } else if (response.statusCode() != 200) {
-            throw new Exception("Failed to login, got HTTP status " + response.statusCode());
+            throw new ServiceAuthenticationException("Failed to login: user not authorized");
         }
     }
 

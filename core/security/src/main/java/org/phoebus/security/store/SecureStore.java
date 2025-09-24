@@ -167,7 +167,7 @@ public class SecureStore
 
     /**
      * Retrieves all {@link ScopedAuthenticationToken}s in the secure store. A {@link ScopedAuthenticationToken}
-     * must be composed of both a user name and a password, i.e. items in the secure store that are not
+     * must be composed of both a username and a password, i.e. items in the secure store that are not
      * considered to be a part of an authentication token are ignored.
      * @return List of {@link ScopedAuthenticationToken}s.
      * @throws Exception on error

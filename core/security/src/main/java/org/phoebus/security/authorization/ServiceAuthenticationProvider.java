@@ -21,8 +21,6 @@ package org.phoebus.security.authorization;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 
-import java.net.ConnectException;
-
 /**
  * Implementations of this interface are used to announce support for
  * a log in procedure to a service.
@@ -33,8 +31,9 @@ public interface ServiceAuthenticationProvider {
      * Authenticates with the announced service.
      * @param username User name
      * @param password Password
+     * @return An {@link AuthenticationStatus} indicating the outcome.
      */
-    void authenticate(String username, String password) throws ConnectException;
+    AuthenticationStatus authenticate(String username, String password);
 
     /**
      * Signs out user from the service.

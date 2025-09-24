@@ -92,7 +92,7 @@ public class HttpClientTestIT {
     }
 
     @Test
-    public void testAuthenticate() throws ConnectException {
+    public void testAuthenticate() throws Exception {
         saveAndRestoreClient.authenticate("admin", "adminPass");
     }
 
