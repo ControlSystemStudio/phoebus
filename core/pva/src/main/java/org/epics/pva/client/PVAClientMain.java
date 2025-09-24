@@ -71,7 +71,10 @@ public class PVAClientMain
 
     private static void setLogLevel(final Level level)
     {
-        PVASettings.logger.setLevel(level);
+        // Cannot use PVASettings.logger here because that would
+        // construct it and log CONFIG messages before we might be
+        // able to disable them
+        Logger.getLogger("org.epics.pva").setLevel(level);
         Logger.getLogger("jdk.event.security").setLevel(level);
     }
 
