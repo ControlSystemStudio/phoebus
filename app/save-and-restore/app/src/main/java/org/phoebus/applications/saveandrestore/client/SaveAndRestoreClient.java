@@ -32,6 +32,7 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.security.authorization.AuthenticationStatus;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
@@ -247,9 +248,9 @@ public interface SaveAndRestoreClient {
      *
      * @param userName User's account name
      * @param password User's password
-     * @throws Exception e.g. if service is off-line or if user credentials are rejected.
+     * @return An {@link AuthenticationStatus} to indicate the outcome of the login attempt.
      */
-    void authenticate(String userName, String password) throws Exception;
+    AuthenticationStatus authenticate(String userName, String password);
 
     /**
      * Requests service to restore the specified {@link SnapshotItem}s

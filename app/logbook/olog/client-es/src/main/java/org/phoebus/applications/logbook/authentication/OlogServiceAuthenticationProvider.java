@@ -20,19 +20,12 @@ package org.phoebus.applications.logbook.authentication;
 
 import org.phoebus.olog.es.api.OlogHttpClient;
 import org.phoebus.security.authorization.AuthenticationStatus;
-import org.phoebus.security.authorization.ServiceAuthenticationException;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
-
-import java.net.ConnectException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class OlogServiceAuthenticationProvider implements ServiceAuthenticationProvider {
 
     private final AuthenticationScope ologAuthenticationScope;
-
-    private final Logger logger = Logger.getLogger(OlogServiceAuthenticationProvider.class.getName());
 
     public OlogServiceAuthenticationProvider() {
         ologAuthenticationScope = new OlogAuthenticationScope();
@@ -40,22 +33,7 @@ public class OlogServiceAuthenticationProvider implements ServiceAuthenticationP
 
     @Override
     public AuthenticationStatus authenticate(String username, String password) {
-        try {
-            OlogHttpClient.builder().build().authenticate(username, password);
-            return AuthenticationStatus.AUTHENTICATED;
-        } catch (ConnectException e) {
-            logger.log(Level.WARNING, "Unable to connect to logbook service");
-            return AuthenticationStatus.SERVICE_OFFLINE;
-        } catch (ServiceAuthenticationException e){
-            logger.log(Level.WARNING, "User " + username + " not authenticated");
-            return AuthenticationStatus.BAD_CREDENTIALS;
-        }
-        catch (Exception e) {
-            // NOTE!!! Exception message and/or stack trace could contain request URL and consequently
-            // user's password, so do not log or propagate it.
-            logger.log(Level.WARNING, "Failed to authenticate user " + username + " with logbook service, reason unknown");
-            return AuthenticationStatus.UNKNOWN_ERROR;
-        }
+        return OlogHttpClient.builder().build().authenticate(username, password);
     }
 
     @Override

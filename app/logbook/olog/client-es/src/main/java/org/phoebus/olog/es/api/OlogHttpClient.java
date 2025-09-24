@@ -26,9 +26,8 @@ import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
 import org.phoebus.olog.es.authentication.LoginCredentials;
-import org.phoebus.security.authorization.ServiceAuthenticationException;
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.HttpRequestMultipartBody;
 import org.phoebus.util.http.QueryParamsHelper;
@@ -131,14 +130,13 @@ public class OlogHttpClient implements LogClient {
      * Disallow instantiation.
      */
     private OlogHttpClient(String userName, String password) {
-        if(Preferences.connectTimeout > 0){
+        if (Preferences.connectTimeout > 0) {
             httpClient = HttpClient.newBuilder()
                     .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
                     .followRedirects(HttpClient.Redirect.ALWAYS)
                     .connectTimeout(Duration.ofMillis(Preferences.connectTimeout))
                     .build();
-        }
-        else{
+        } else {
             httpClient = HttpClient.newBuilder()
                     .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
                     .followRedirects(HttpClient.Redirect.ALWAYS)
@@ -361,20 +359,30 @@ public class OlogHttpClient implements LogClient {
      *
      * @param userName Username, must not be <code>null</code>.
      * @param password Password, must not be <code>null</code>.
-     * @throws Exception if the login fails, e.g. bad credentials or service off-line.
+     * @return An {@link AuthenticationStatus} to indicate the outcome of the login attempt.
      */
-    public void authenticate(String userName, String password) throws Exception {
+    public AuthenticationStatus authenticate(String userName, String password) {
         String stringBuilder = Preferences.olog_url +
                 "/login";
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(stringBuilder))
-                .header("Content-Type", CONTENT_TYPE_JSON)
-                .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
-                .build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() == 401) {
-            throw new ServiceAuthenticationException("Failed to login: user not authorized");
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(stringBuilder))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 401) {
+                LOGGER.log(Level.WARNING, "User not authenticated with logbook service");
+                return AuthenticationStatus.BAD_CREDENTIALS;
+            }
+        } catch (ConnectException e) {
+            LOGGER.log(Level.WARNING, "Cannot connect to logbook service");
+            return AuthenticationStatus.SERVICE_OFFLINE;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Unable to send authentication request to service, reason unknown");
+            return AuthenticationStatus.UNKNOWN_ERROR;
         }
+        return AuthenticationStatus.AUTHENTICATED;
     }
 
     /**
@@ -469,7 +477,7 @@ public class OlogHttpClient implements LogClient {
                     .GET()
                     .build();
             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-            if(response.statusCode() >= 300) {
+            if (response.statusCode() >= 300) {
                 LOGGER.log(Level.WARNING, "failed to obtain attachment: " + new String(response.body().readAllBytes()));
                 return null;
             }
@@ -556,7 +564,7 @@ public class OlogHttpClient implements LogClient {
     }
 
     @Override
-    public Collection<LogEntryLevel> listLevels(){
+    public Collection<LogEntryLevel> listLevels() {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(Preferences.olog_url + "/levels"))
                 .GET()

@@ -162,7 +162,7 @@ public class CredentialsManagementController {
         Callback<TableColumn<ServiceItem, ServiceItem>, TableCell<ServiceItem, ServiceItem>> actionColumnCellFactory = new Callback<>() {
             @Override
             public TableCell<ServiceItem, ServiceItem> call(final TableColumn<ServiceItem, ServiceItem> param) {
-                final TableCell<ServiceItem, ServiceItem> cell = new TableCell<>() {
+                return new TableCell<>() {
 
                     private final Button btn = new Button(Messages.LogoutButtonText);
 
@@ -194,7 +194,6 @@ public class CredentialsManagementController {
                         }
                     }
                 };
-                return cell;
             }
         };
         actionButtonColumn.setCellFactory(actionColumnCellFactory);
@@ -381,7 +380,7 @@ public class CredentialsManagementController {
                             username.get(),
                             password.get()));
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    LOGGER.log(Level.WARNING, "Failed to store user credentials");
                 }
             }
             this.authenticationStatus.set(authenticationStatus);

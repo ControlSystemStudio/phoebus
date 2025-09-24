@@ -39,6 +39,7 @@ import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.saveandrestore.util.VNoData;
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.util.time.TimestampFormats;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -319,10 +320,10 @@ public class SaveAndRestoreService {
      *
      * @param userName User's account name
      * @param password User's password
-     * @throws Exception if authentication fails, e.g. service off-line or invalid credentials
+     * @return An {@link AuthenticationStatus} to indicate the outcome of the login attempt.
      */
-    public void authenticate(String userName, String password) throws Exception {
-        saveAndRestoreClient.authenticate(userName, password);
+    public AuthenticationStatus authenticate(String userName, String password) {
+        return saveAndRestoreClient.authenticate(userName, password);
     }
 
     /**

@@ -26,12 +26,13 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.security.authorization.ServiceAuthenticationException;
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.QueryParamsHelper;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.ConnectException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -576,18 +577,28 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
      * @return {@inheritDoc}
      */
     @Override
-    public void authenticate(String userName, String password) throws Exception {
+    public AuthenticationStatus authenticate(String userName, String password) {
         String stringBuilder = Preferences.jmasarServiceUrl +
                 "/login";
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(stringBuilder))
-                .header("Content-Type", CONTENT_TYPE_JSON)
-                .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
-                .build();
-        HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() == 401) {
-            throw new ServiceAuthenticationException("User not authenticated with save&restore service");
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(stringBuilder))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 401) {
+                LOGGER.log(Level.WARNING, "User not authenticated with save&restore service");
+                return AuthenticationStatus.BAD_CREDENTIALS;
+            }
+        } catch (ConnectException e) {
+            LOGGER.log(Level.WARNING, "Cannot connect to save&restore service");
+            return AuthenticationStatus.SERVICE_OFFLINE;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Unable to send authentication request to service, reason unknown");
+            return AuthenticationStatus.UNKNOWN_ERROR;
         }
+        return AuthenticationStatus.AUTHENTICATED;
     }
 
     /**
