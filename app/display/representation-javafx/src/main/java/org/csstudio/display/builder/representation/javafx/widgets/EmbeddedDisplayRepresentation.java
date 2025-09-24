@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.Resize;
 import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.DisplayAndGroup;
@@ -81,12 +82,16 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
     private final DirtyFlag dirty_sizes = new DirtyFlag();
     private final DirtyFlag dirty_background = new DirtyFlag();
     private final DirtyFlag get_size_again = new DirtyFlag();
+    private final DirtyFlag dirty_enablement = new DirtyFlag();
     private final UntypedWidgetPropertyListener backgroundChangedListener = this::backgroundChanged;
     private final UntypedWidgetPropertyListener fileChangedListener = this::fileChanged;
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
+    private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
 
     private volatile double zoom_factor_x = 1.0;
     private volatile double zoom_factor_y = 1.0;
+    
+    protected volatile boolean enabled = true;
 
 
     /** Inner pane that holds child widgets
@@ -181,6 +186,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         model_widget.propMacros().addUntypedPropertyListener(fileChangedListener);
 
         model_widget.propTransparent().addUntypedPropertyListener(backgroundChangedListener);
+        
+        model_widget.propEnabled().addPropertyListener(enablementChangedListener);
 
         fileChanged(null, null, null);
     }
@@ -253,6 +260,12 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         // Load embedded display in background thread
         toolkit.onRepresentationStarted();
         JobManager.schedule("Embedded Display", this::updatePendingDisplay);
+    }
+    
+    private void enablementChanged(final WidgetProperty<Boolean> property, final Boolean old_value, final Boolean new_value)
+    {
+        dirty_enablement.mark();
+        toolkit.scheduleUpdate(this);
     }
 
     /** Update to the next pending display
@@ -469,6 +482,11 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         }
         if (dirty_background.checkAndClear())
             inner.setBackground(inner_background);
+        if (dirty_enablement.checkAndClear())
+        {
+            enabled = model_widget.propEnabled().getValue();
+            setDisabledLook(enabled, jfx_node.getChildren());        
+        }
     }
 
     @Override

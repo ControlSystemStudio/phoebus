@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
@@ -279,6 +280,7 @@ public class EmbeddedDisplayWidget extends MacroWidget
     private volatile WidgetProperty<String> group_name;
     private volatile WidgetProperty<DisplayModel> embedded_model;
     private volatile WidgetProperty<Boolean> transparent;
+    private volatile WidgetProperty<Boolean> enabled;
 
     /** Constructor */
     public EmbeddedDisplayWidget()
@@ -295,6 +297,7 @@ public class EmbeddedDisplayWidget extends MacroWidget
         properties.add(group_name = propGroupName.createProperty(this, ""));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
         properties.add(transparent = propTransparent.createProperty(this, false));
+        properties.add(enabled = propEnabled.createProperty(this, true));
         BorderSupport.addBorderProperties(this, properties);
     }
 
@@ -335,6 +338,12 @@ public class EmbeddedDisplayWidget extends MacroWidget
     public WidgetProperty<Boolean> propTransparent()
     {
         return transparent;
+    }
+    
+    /** @return 'enabled' property */
+    public WidgetProperty<Boolean> propEnabled()
+    {
+        return enabled;
     }
 
     @Override

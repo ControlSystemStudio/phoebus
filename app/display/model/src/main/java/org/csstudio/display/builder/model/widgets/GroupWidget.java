@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
@@ -207,6 +208,7 @@ public class GroupWidget extends MacroWidget
     private volatile WidgetProperty<Boolean> transparent;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<int[]> insets;
+    private volatile WidgetProperty<Boolean> enabled;
 
     /** Constructor */
     public GroupWidget()
@@ -226,6 +228,7 @@ public class GroupWidget extends MacroWidget
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(transparent = propTransparent.createProperty(this, false));
         properties.add(insets = runtimePropExtendedInsets.createProperty(this, new int[] { 0, 0, 0, 0 }));
+        properties.add(enabled = propEnabled.createProperty(this, true));
     }
 
     @Override
@@ -307,5 +310,11 @@ public class GroupWidget extends MacroWidget
     public WidgetProperty<int[]> runtimePropInsets()
     {
         return insets;
+    }
+    
+    /** @return 'enabled' property */
+    public WidgetProperty<Boolean> propEnabled()
+    {
+        return enabled;
     }
 }

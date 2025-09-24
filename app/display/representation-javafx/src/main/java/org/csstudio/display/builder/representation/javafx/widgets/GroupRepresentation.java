@@ -12,6 +12,7 @@ import java.util.List;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget.Style;
@@ -51,7 +52,9 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     );
 
     private final DirtyFlag dirty_border = new DirtyFlag();
+    private final DirtyFlag dirty_enablement = new DirtyFlag();
     private final UntypedWidgetPropertyListener borderChangedListener = this::borderChanged;
+    private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
 
     // top-level 'Pane' provides background color and border
 
@@ -64,6 +67,8 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     private volatile boolean firstUpdate = true;
     private volatile int inset = 10;
     private volatile Color foreground_color, line_color, background_color;
+    
+    protected volatile boolean enabled = true;
 
     @Override
     public Pane createJFXNode() throws Exception
@@ -95,6 +100,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
         model_widget.propFont().addUntypedPropertyListener(borderChangedListener);
         model_widget.propWidth().addUntypedPropertyListener(borderChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(borderChangedListener);
+        model_widget.propEnabled().addPropertyListener(enablementChangedListener);
     }
 
     @Override
@@ -116,6 +122,12 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     {
         computeColors();
         dirty_border.mark();
+        toolkit.scheduleUpdate(this);
+    }
+    
+    private void enablementChanged(final WidgetProperty<Boolean> property, final Boolean old_value, final Boolean new_value)
+    {
+        dirty_enablement.mark();
         toolkit.scheduleUpdate(this);
     }
 
@@ -258,6 +270,11 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
 
             jfx_node.relocate(x, y);
             jfx_node.setPrefSize(width, height);
+        }
+        if (dirty_enablement.checkAndClear())
+        {
+            enabled = model_widget.propEnabled().getValue();
+            setDisabledLook(enabled, jfx_node.getChildren());        
         }
     }
 }
