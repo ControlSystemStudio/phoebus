@@ -361,8 +361,14 @@ public class CredentialsManagementController {
                     serviceAuthenticationProvider.getAuthenticationScope().getDisplayName() : "";
         }
 
-        public void setAuthenticationStatus(AuthenticationStatus authenticationStatus) {
-            this.authenticationStatus.set(authenticationStatus);
+        @SuppressWarnings("unused")
+        public StringProperty getUsername(){
+            return username;
+        }
+
+        @SuppressWarnings("unused")
+        public StringProperty getPassword(){
+            return password;
         }
 
         public void logout() {
