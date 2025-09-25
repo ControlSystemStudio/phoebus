@@ -8,7 +8,6 @@
  */
 package org.csstudio.display.builder.representation.javafx.widgets;
 
-
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,7 +22,6 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.SlideButtonWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
-import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -33,7 +31,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
-
 
 /**
  * JavaFX representation of the SlideButton model.
@@ -64,24 +61,27 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     protected volatile int     value        = 0;
 
     private volatile ToggleSwitch button;
-    private volatile Label        label;
+    private volatile Label        label, emptyLabel;
 
     private volatile Color  foreground;
     private volatile String state_colors;
 
     private volatile AtomicBoolean updating = new AtomicBoolean();
+	private Pos alignment;
 
     @Override
     public void updateChanges ( ) {
 
         super.updateChanges();
 
+       
         if ( dirty_size.checkAndClear() ) {
             if ( model_widget.propAutoSize().getValue() ) {
                 jfx_node.setPrefSize(-1, -1);
                 jfx_node.autosize();
                 model_widget.propWidth().setValue((int) jfx_node.getWidth());
                 model_widget.propHeight().setValue((int) jfx_node.getHeight());
+              button.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
             }
             else
                 jfx_node.setPrefSize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
@@ -102,7 +102,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
             setDisabledLook(enabled, jfx_node.getChildren());
 
             // Since jfx_node.isManaged() == false, need to trigger layout
-            jfx_node.layout();
+            jfx_node.layout();            
 
             if (model_widget.propAutoSize().getValue())
                 sizeChanged(null, null, null);
@@ -114,14 +114,38 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
                 updating.set(false);
             }
         }
+        
+        // Define border
+        // Set label position
+        label.setAlignment(Pos.CENTER_RIGHT);
+        label.setScaleShape(enabled);
+        label.setCenterShape(enabled);
+               
+        // Assign vertical scale to label height
+        button.setScaleY(label.getHeight()/20);
+        
+        // Assign horizontal scale according to vertical scale
+        button.setScaleX(button.getScaleY());
+        button.setAlignment(Pos.CENTER_LEFT);
 
-    }
+        // Create and set the left empty string
+        char[] myCharArray = new char[(int)label.getText().length()/8];
+
+        for (int i = 0; i < myCharArray.length; i++)
+        {
+            myCharArray[i] = ' '; // Remplit le tableau avec des lettres de 'A' à 'J'
+        }   
+        
+        emptyLabel.setAlignment(Pos.CENTER_LEFT);
+        emptyLabel.setFont(label.getFont());
+        emptyLabel.setText(String.valueOf(myCharArray));        
+        }
+   
 
     @Override
     public HBox createJFXNode ( ) throws Exception {
 
         button = new ToggleSwitch();
-
         button.setMinSize(37, 20);
         button.setPrefSize(37, 20);
         button.setGraphicTextGap(0);
@@ -137,19 +161,37 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
                 }
                 event.consume();
             });
-
+        // Label
         label = new Label(labelContent);
-
         label.setMaxWidth(Double.MAX_VALUE);
         label.setMnemonicParsing(false);
+        
+        // Empty label
+        emptyLabel = new Label();
+        
         HBox.setHgrow(label, Priority.ALWAYS);
-        HBox hbox = new HBox(6, button, label);
-        hbox.setAlignment(Pos.CENTER_RIGHT);
+        HBox hbox = new HBox(6,emptyLabel, button, label);
+        hbox.setAlignment(Pos.CENTER);
+        hbox.setCenterShape(true);
+        button.setCenterShape(true);
+        
+        /*
+        // Border
+        float space = 6f;
+        BorderWidths width = new BorderWidths(space, space, space, space, true, true, true, true);
+        Insets insets = new Insets((int)space, (int)space, (int)space, (int)space);
+        CornerRadii cornerRadii = new CornerRadii(space);
+        Paint paint = Paint.valueOf("Blue");
+        BorderStroke stroke = new BorderStroke(paint, BorderStrokeStyle.SOLID, cornerRadii, width, insets); 
+        Border border = new Border(stroke);
+        hbox.setBorder(border);
+        */
+        
         return hbox;
 
     }
 
-    @Override
+	@Override
     protected boolean isFilteringEditModeClicks()
     {
         return true;
