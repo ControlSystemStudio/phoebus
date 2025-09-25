@@ -771,6 +771,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             List<SnapshotItem> snapshotItems = snapshot.getSnapshotData().getSnapshotItems();
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(snapshotItems);
+            snapshotData.setUniqueId(snapshot.getSnapshotNode().getUniqueId());
             this.snapshot.setSnapshotData(snapshotData);
             Node snapshotNode =
                     Node.builder()
