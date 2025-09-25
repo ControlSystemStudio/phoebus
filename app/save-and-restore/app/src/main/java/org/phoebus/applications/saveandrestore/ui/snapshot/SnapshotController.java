@@ -771,6 +771,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             List<SnapshotItem> snapshotItems = snapshot.getSnapshotData().getSnapshotItems();
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(snapshotItems);
+            snapshotData.setUniqueId(snapshot.getSnapshotNode().getUniqueId());
             this.snapshot.setSnapshotData(snapshotData);
             Node snapshotNode =
                     Node.builder()
@@ -819,6 +820,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
 
     private void updateLoadedSnapshot(TableEntry rowValue, VType newValue) {
+        snapshotDataDirty.set(true);
         snapshot.getSnapshotData().getSnapshotItems().stream()
                 .filter(item -> item.getConfigPv().equals(rowValue.getConfigPv()))
                 .findFirst()
@@ -892,6 +894,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      */
     public void loadSnapshot(Node snapshotNode) {
         disabledUi.set(true);
+        storedValueColumn.editableProperty().set(snapshotNode.getNodeType().equals(NodeType.SNAPSHOT));
         JobManager.schedule("Load snapshot items", monitor -> {
             try {
                 this.snapshot = getSnapshotFromService(snapshotNode);
