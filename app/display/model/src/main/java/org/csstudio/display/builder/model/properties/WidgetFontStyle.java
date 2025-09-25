@@ -22,7 +22,13 @@ public enum WidgetFontStyle
     /** Italic */
     ITALIC(Messages.FontStyle_Italic),
     /** Bold and italic */
-    BOLD_ITALIC(Messages.FontStyle_BoldItalic);
+    BOLD_ITALIC(Messages.FontStyle_BoldItalic),
+    /** Underline */
+    UNDERLINE(Messages.FontStyle_Underline),
+    /** Underline and bold */
+    UNDERLINE_BOLD(Messages.FontStyle_UnderlineBold),
+    /** Underline and italic*/
+    UNDERLINE_ITALIC(Messages.FontStyle_UnderlineItalic);
 
     private final String name;
 
