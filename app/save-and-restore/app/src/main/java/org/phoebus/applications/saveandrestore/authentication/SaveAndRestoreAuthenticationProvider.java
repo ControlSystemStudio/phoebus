@@ -19,44 +19,30 @@
 
 package org.phoebus.applications.saveandrestore.authentication;
 
-import org.phoebus.applications.saveandrestore.Preferences;
-import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Authentication provider for the save-and-restore service.
  */
 public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticationProvider {
 
-    @Override
-    public void authenticate(String username, String password) {
-        SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
-        try {
-            UserData userData = saveAndRestoreService.authenticate(username, password);
-            Logger.getLogger(SaveAndRestoreAuthenticationProvider.class.getName())
-                    .log(Level.INFO, "User " + userData.getUserName() + " successfully signed in");
-        } catch (Exception e) {
-            // NOTE!!! Exception message and/or stack trace could contain request URL and consequently
-            // user's password, so do not log or propagate it.
-            Logger.getLogger(SaveAndRestoreAuthenticationProvider.class.getName())
-                    .log(Level.WARNING, "Failed to authenticate user " + username + " with save&restore service");
-            throw new RuntimeException("Failed to authenticate user " + username + " with save&restore service");
-        }
+    private final AuthenticationScope saveAndRestoreAuthenticationScope;
+
+    public SaveAndRestoreAuthenticationProvider() {
+        saveAndRestoreAuthenticationScope = new SaveAndRestoreAuthenticationScope();
     }
 
     @Override
-    public void logout(String token) {
-        // Not implemented for save&restore
+    public AuthenticationStatus authenticate(String username, String password) {
+        return SaveAndRestoreService.getInstance().authenticate(username, password);
     }
 
     @Override
     public AuthenticationScope getAuthenticationScope() {
-        return AuthenticationScope.SAVE_AND_RESTORE;
+        return saveAndRestoreAuthenticationScope;
     }
 
 }

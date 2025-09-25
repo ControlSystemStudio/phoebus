@@ -61,7 +61,6 @@ public class CredentialsManagementStage extends Stage {
         try {
             fxmlLoader.load();
             Scene scene = new Scene(fxmlLoader.getRoot());
-            scene.getStylesheets().add(getClass().getResource("/css/credentials-management-style.css").toExternalForm());
             setTitle(Messages.Title);
             setScene(scene);
         } catch (Exception exception) {

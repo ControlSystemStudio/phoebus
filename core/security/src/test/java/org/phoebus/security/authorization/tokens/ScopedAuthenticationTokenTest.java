@@ -43,16 +43,24 @@ public class ScopedAuthenticationTokenTest {
         scopedAuthenticationToken = new ScopedAuthenticationToken(null, "username", "password");
         assertNull(scopedAuthenticationToken.getAuthenticationScope());
 
-        scopedAuthenticationToken = new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, "username", "password");
-        assertEquals(AuthenticationScope.LOGBOOK, scopedAuthenticationToken.getAuthenticationScope());
     }
 
     @Test
     public void testEqualsAndHashCode() {
         ScopedAuthenticationToken scopedAuthenticationToken1 = new ScopedAuthenticationToken("username", "password");
         ScopedAuthenticationToken scopedAuthenticationToken2 = new ScopedAuthenticationToken("username", "somethingelse");
-        ScopedAuthenticationToken scopedAuthenticationToken3 = new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, "username", "somethingelse");
-        ScopedAuthenticationToken scopedAuthenticationToken4 = new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, "username1", "somethingelse");
+        ScopedAuthenticationToken scopedAuthenticationToken3 = new ScopedAuthenticationToken(new AuthenticationScope() {
+            @Override
+            public String getScope() {
+                return "key";
+            }
+
+            @Override
+            public String getDisplayName() {
+                return "";
+            }
+        }, "username", "somethingelse");
+        ScopedAuthenticationToken scopedAuthenticationToken4 = new ScopedAuthenticationToken(new TestAuthenticationScope(), "username1", "somethingelse");
 
         assertEquals(scopedAuthenticationToken1, scopedAuthenticationToken2);
         assertNotEquals(scopedAuthenticationToken1, scopedAuthenticationToken3);
@@ -66,8 +74,16 @@ public class ScopedAuthenticationTokenTest {
         assertNotEquals(scopedAuthenticationToken1.hashCode(), scopedAuthenticationToken2.hashCode());
     }
 
-    @Test
-    public void testFromString(){
-        assertEquals(AuthenticationScope.SAVE_AND_RESTORE, AuthenticationScope.fromString(AuthenticationScope.SAVE_AND_RESTORE.getName()));
+
+    private class TestAuthenticationScope implements AuthenticationScope{
+        @Override
+        public String getScope(){
+            return "key";
+        }
+
+        @Override
+        public String getDisplayName(){
+            return "Display name";
+        }
     }
 }

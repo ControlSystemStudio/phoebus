@@ -33,20 +33,19 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
-import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.saveandrestore.util.VNoData;
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.util.time.TimestampFormats;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -316,17 +315,15 @@ public class SaveAndRestoreService {
     }
 
     /**
-     * Authenticate user, needed for all non-GET endpoints if service requires it
+     * Authenticate user, needed for all non-GET endpoints if service requires it. Note that
+     * this is executed in a synchronous manner, i.e. an {@link ExecutorService} is not used.
      *
      * @param userName User's account name
      * @param password User's password
-     * @return A {@link UserData} object
-     * @throws Exception if authentication fails
+     * @return An {@link AuthenticationStatus} to indicate the outcome of the login attempt.
      */
-    public UserData authenticate(String userName, String password) throws Exception {
-        Future<UserData> future =
-                executor.submit(() -> saveAndRestoreClient.authenticate(userName, password));
-        return future.get();
+    public AuthenticationStatus authenticate(String userName, String password) {
+        return saveAndRestoreClient.authenticate(userName, password);
     }
 
     /**

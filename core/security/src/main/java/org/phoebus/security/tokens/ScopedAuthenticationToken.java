@@ -46,7 +46,7 @@ public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
     public ScopedAuthenticationToken(AuthenticationScope scope, String username, String password){
         this(username, password);
         if(scope != null){
-            if(scope.getName().trim().isEmpty()){
+            if(scope.getScope().trim().isEmpty()){
                 this.scope = null;
             }
             else{
@@ -76,6 +76,6 @@ public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
 
     @Override
     public String toString(){
-        return "Scope: " + (scope != null ? scope.getName() : "") + ", username: " + getUsername();
+        return "Scope: " + (scope != null ? scope.getScope() : "") + ", username: " + getUsername();
     }
 }
