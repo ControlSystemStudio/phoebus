@@ -894,6 +894,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      */
     public void loadSnapshot(Node snapshotNode) {
         disabledUi.set(true);
+        storedValueColumn.editableProperty().set(snapshotNode.getNodeType().equals(NodeType.SNAPSHOT));
         JobManager.schedule("Load snapshot items", monitor -> {
             try {
                 this.snapshot = getSnapshotFromService(snapshotNode);
