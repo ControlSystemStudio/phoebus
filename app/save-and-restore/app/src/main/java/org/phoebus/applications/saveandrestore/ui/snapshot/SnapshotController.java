@@ -820,6 +820,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
 
     private void updateLoadedSnapshot(TableEntry rowValue, VType newValue) {
+        snapshotDataDirty.set(true);
         snapshot.getSnapshotData().getSnapshotItems().stream()
                 .filter(item -> item.getConfigPv().equals(rowValue.getConfigPv()))
                 .findFirst()
