@@ -44,6 +44,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntryLevel;
 import org.phoebus.logbook.Logbook;
@@ -317,18 +318,21 @@ public class AdvancedSearchViewController {
             }
         });
 
-        levelsList.addAll(logClient.listLevels().stream().map(LogEntryLevel::name).sorted().toList());
-        levelsList.forEach(level -> {
-            LevelSelection levelSelection = new LevelSelection(level, false);
-            levelSelections.add(levelSelection);
-            CheckBox checkBox = new CheckBox(level);
-            LevelSelectionMenuItem levelSelectionMenuItem = new LevelSelectionMenuItem(checkBox);
-            levelSelectionMenuItem.setHideOnClick(false);
-            checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                levelSelection.selected = newValue;
-                setSelectedLevelsString();
+        // Fetch levels from service on separate thread
+        JobManager.schedule("Get logbook levels", monitor -> {
+            levelsList.addAll(logClient.listLevels().stream().map(LogEntryLevel::name).sorted().toList());
+            levelsList.forEach(level -> {
+                LevelSelection levelSelection = new LevelSelection(level, false);
+                levelSelections.add(levelSelection);
+                CheckBox checkBox = new CheckBox(level);
+                LevelSelectionMenuItem levelSelectionMenuItem = new LevelSelectionMenuItem(checkBox);
+                levelSelectionMenuItem.setHideOnClick(false);
+                checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                    levelSelection.selected = newValue;
+                    setSelectedLevelsString();
+                });
+                levelsContextMenu.getItems().add(levelSelectionMenuItem);
             });
-            levelsContextMenu.getItems().add(levelSelectionMenuItem);
         });
 
         sortOrderProperty.addListener(searchOnSortChange);
