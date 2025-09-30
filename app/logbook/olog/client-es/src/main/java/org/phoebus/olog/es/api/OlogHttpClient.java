@@ -189,7 +189,11 @@ public class OlogHttpClient implements LogClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() >= 300) {
+            if(response.statusCode() == 401){
+                LOGGER.log(Level.SEVERE, "Failed to create log entry: user not authenticated");
+                throw new LogbookException(Messages.SubmissionFailedInvalidCredentials);
+            }
+            else if (response.statusCode() >= 300) {
                 LOGGER.log(Level.SEVERE, "Failed to create log entry: " + response.body());
                 throw new LogbookException(response.body());
             } else {
