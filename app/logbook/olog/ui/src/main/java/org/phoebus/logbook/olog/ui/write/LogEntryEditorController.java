@@ -396,15 +396,11 @@ public class LogEntryEditorController {
                 logbooksLabel.setTextFill(Color.BLACK);
         });
 
-        logbooksSelection.textProperty().bind(Bindings.createStringBinding(() -> {
-            if (selectedLogbooks.isEmpty()) {
-                return "";
-            }
-            StringBuilder stringBuilder = new StringBuilder();
-            selectedLogbooks.forEach(l -> stringBuilder.append(l).append(", "));
-            String text = stringBuilder.toString();
-            return text.substring(0, text.length() - 2);
-        }, selectedLogbooks));
+        logbooksSelection.textProperty().bind(Bindings.createStringBinding(() ->
+                selectedLogbooks.stream().collect(Collectors.joining(",")), selectedLogbooks));
+
+        tagsSelection.textProperty().bind(Bindings.createStringBinding(() ->
+                selectedTags.stream().collect(Collectors.joining(",")), selectedTags));
 
         logbooksDropdownButton.focusedProperty().addListener((changeListener, oldVal, newVal) ->
         {
