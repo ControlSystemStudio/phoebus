@@ -88,29 +88,30 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
      * Determines how the client may connect to the remote service. The service info endpoint is called to establish
      * availability of the service. If available, then a single web socket connection is attempted to determine
      * if the service supports web sockets.
-     * @param completionHandler {@link Runnable} called when connection mode has been determined.
+     * @param consumer {@link Consumer} called when the connectivity mode has been determined.
      */
-    protected void determineConnectivity(Runnable completionHandler){
+    protected void determineConnectivity(Consumer<ConnectivityMode> consumer){
 
         // Try to determine the connection mode: is the remote service available at all?
         // If so, does it accept web socket connections?
         JobManager.schedule("Connection mode probe", monitor -> {
+            ConnectivityMode connectivityMode = ConnectivityMode.NOT_CONNECTED;
             String serviceInfo = client.serviceInfo();
             if (serviceInfo != null && !serviceInfo.isEmpty()) { // service online, check web socket availability
                 if (WebSocketClientService.checkAvailability(this.webSocketConnectUrl)) {
-                    connectivityModeObjectProperty.set(ConnectivityMode.WEB_SOCKETS_SUPPORTED);
+                    connectivityMode = ConnectivityMode.WEB_SOCKETS_SUPPORTED;
                 } else {
-                    connectivityModeObjectProperty.set(ConnectivityMode.HTTP_ONLY);
+                    connectivityMode = ConnectivityMode.HTTP_ONLY;
                 }
             }
             connectivityCheckerCountDownLatch.countDown();
-            if (connectivityModeObjectProperty.get().equals(ConnectivityMode.NOT_CONNECTED)) {
+            consumer.accept(connectivityMode);
+            if (connectivityMode.equals(ConnectivityMode.NOT_CONNECTED)) {
                 Platform.runLater(() -> {
                     errorPane.visibleProperty().set(true);
                     viewSearchPane.visibleProperty().set(false);
                 });
             }
-            completionHandler.run();
         });
     }
 
@@ -180,7 +181,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
             webSocketClientService.removeWebSocketMessageHandler(this);
             webSocketClientService.shutdown();
         }
-        if(connectivityModeObjectProperty.get().equals(ConnectivityMode.HTTP_ONLY)){
+        else if(connectivityModeObjectProperty.get().equals(ConnectivityMode.HTTP_ONLY)){
             cancelPeriodSearch();
         }
     }

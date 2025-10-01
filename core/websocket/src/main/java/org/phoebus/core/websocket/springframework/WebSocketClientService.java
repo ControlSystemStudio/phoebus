@@ -138,8 +138,8 @@ public class WebSocketClientService {
      * Disconnects the socket if connected and terminates connection thread.
      */
     public void shutdown() {
-        disconnect();
         attemptReconnect.set(false);
+        disconnect();
     }
 
     /**

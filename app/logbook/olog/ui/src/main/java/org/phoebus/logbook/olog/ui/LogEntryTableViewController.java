@@ -332,8 +332,9 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                                 Messages.AdvancedSearchHide : Messages.AdvancedSearchOpen,
                         advancedSearchVisible));
 
-        determineConnectivity(() -> {
-            switch (connectivityModeObjectProperty.get()){
+        determineConnectivity(connectivityMode -> {
+            connectivityModeObjectProperty.set(connectivityMode);
+            switch (connectivityMode){
                 case HTTP_ONLY -> search();
                 case WEB_SOCKETS_SUPPORTED -> connectWebSocket();
             }
