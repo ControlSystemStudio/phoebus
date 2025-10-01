@@ -19,7 +19,6 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,15 +58,15 @@ public class WebSocketClientService {
     /**
      * Full path to the web socket connection URL, e.g. ws://localhost:8080/Olog/web-socket
      */
-    private String connectUrl;
+    private final String connectUrl;
     /**
      * Subscription endpoint, e.g. /Olog/web-socket/messages
      */
-    private String subscriptionEndpoint;
+    private final String subscriptionEndpoint;
     /**
      * Echo endpoint /Olog/web-socket/echo
      */
-    private String echoEndpoint;
+    private final String echoEndpoint;
 
     private static final Logger logger = Logger.getLogger(WebSocketClientService.class.getName());
 
@@ -82,12 +81,12 @@ public class WebSocketClientService {
     }
 
     /**
-     * @param connectCallback    The non-null method called when connection to the remote web socket has been successfully established.
-     * @param disconnectCallback The non-null method called when connection to the remote web socket has been lost, e.g.
-     *                           remote peer has been shut down.
-     * @param connectUrl URL to the service web socket, e.g. ws://localhost:8080/Olog/web.socket
+     * @param connectCallback      The non-null method called when connection to the remote web socket has been successfully established.
+     * @param disconnectCallback   The non-null method called when connection to the remote web socket has been lost, e.g.
+     *                             remote peer has been shut down.
+     * @param connectUrl           URL to the service web socket, e.g. ws://localhost:8080/Olog/web.socket
      * @param subscriptionEndpoint E.g. /Olog/web-socket/messages
-     * @param echoEndpoint E.g. /Olog/web-socket/echo. May be <code>null</code> if client has no need for echo messages.
+     * @param echoEndpoint         E.g. /Olog/web-socket/echo. May be <code>null</code> if client has no need for echo messages.
      */
     public WebSocketClientService(Runnable connectCallback, Runnable disconnectCallback, String connectUrl, String subscriptionEndpoint, String echoEndpoint) {
         this(connectUrl, subscriptionEndpoint, echoEndpoint);

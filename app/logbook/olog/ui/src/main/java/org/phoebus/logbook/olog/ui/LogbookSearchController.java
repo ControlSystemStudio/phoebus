@@ -175,8 +175,9 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
      * Utility method to cancel any ongoing periodic search jobs or close web socket.
      */
     public void shutdown() {
-        if (webSocketClientService != null) {
+        if (connectivityModeObjectProperty.get().equals(ConnectivityMode.WEB_SOCKETS_SUPPORTED) && webSocketClientService != null) {
             Logger.getLogger(LogbookSearchController.class.getName()).log(Level.INFO, "Shutting down web socket");
+            webSocketClientService.removeWebSocketMessageHandler(this);
             webSocketClientService.shutdown();
         }
         if(connectivityModeObjectProperty.get().equals(ConnectivityMode.HTTP_ONLY)){
