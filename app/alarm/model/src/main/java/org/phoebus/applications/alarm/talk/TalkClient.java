@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.talk;
 
 import static java.lang.Thread.sleep;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
+import static org.phoebus.applications.alarm.AlarmSystem.nag_period_ms;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -194,7 +195,12 @@ public class TalkClient
                     } catch (final Exception ex) {
                         logger.log(Level.WARNING, "Talk error for " + SeverityLevel.UNDEFINED + ", " + "Alarm Server Disconnected", ex);
                     }
-                    nextDisconnectedAnnunciation = Optional.of(now.plus(disconnectionAnnunciationPeriod));
+                    if (nag_period_ms > 0) {
+                        nextDisconnectedAnnunciation = Optional.of(now.plus(disconnectionAnnunciationPeriod)); // Annunciate disconnect again after nag period_ms
+                    }
+                    else {
+                        nextDisconnectedAnnunciation = Optional.of(Instant.MAX); // When nag_period_ms == 0, don't annunciate the disconnection again.
+                    }
                 }
             } else {
                 nextDisconnectedAnnunciation = Optional.empty(); // Connection to the Alarm Server exists.
