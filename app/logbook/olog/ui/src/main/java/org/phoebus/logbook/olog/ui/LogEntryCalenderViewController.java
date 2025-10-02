@@ -196,6 +196,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
         determineConnectivity(connectivityMode -> {
             connectivityModeObjectProperty.set(connectivityMode);
+            connectivityCheckerCountDownLatch.countDown();
             switch (connectivityModeObjectProperty.get()){
                 case HTTP_ONLY -> search();
                 case WEB_SOCKETS_SUPPORTED -> connectWebSocket();

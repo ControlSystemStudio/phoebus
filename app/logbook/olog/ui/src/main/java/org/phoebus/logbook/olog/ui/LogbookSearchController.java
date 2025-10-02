@@ -59,7 +59,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     protected WebSocketClientService webSocketClientService;
     private final String webSocketConnectUrl;
     private final String subscriptionEndpoint;
-    private final CountDownLatch connectivityCheckerCountDownLatch = new CountDownLatch(1);
+    protected final CountDownLatch connectivityCheckerCountDownLatch = new CountDownLatch(1);
 
     @SuppressWarnings("unused")
     @FXML
@@ -104,7 +104,6 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
                     connectivityMode = ConnectivityMode.HTTP_ONLY;
                 }
             }
-            connectivityCheckerCountDownLatch.countDown();
             consumer.accept(connectivityMode);
             if (connectivityMode.equals(ConnectivityMode.NOT_CONNECTED)) {
                 Platform.runLater(() -> {
@@ -176,6 +175,11 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
      * Utility method to cancel any ongoing periodic search jobs or close web socket.
      */
     public void shutdown() {
+        try {
+            connectivityCheckerCountDownLatch.await(10000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Logger.getLogger(LogbookSearchController.class.getName()).log(Level.WARNING, "Got InterruptedException waiting for connectivity mode result");
+        }
         if (connectivityModeObjectProperty.get().equals(ConnectivityMode.WEB_SOCKETS_SUPPORTED) && webSocketClientService != null) {
             Logger.getLogger(LogbookSearchController.class.getName()).log(Level.INFO, "Shutting down web socket");
             webSocketClientService.removeWebSocketMessageHandler(this);
@@ -189,29 +193,20 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     protected abstract void search();
 
     protected void connectWebSocket() {
-        try {
-            if(connectivityCheckerCountDownLatch.await(3000, TimeUnit.MILLISECONDS)){
-                if (connectivityModeObjectProperty.get().equals(ConnectivityMode.WEB_SOCKETS_SUPPORTED)) {
-                    webSocketClientService = new WebSocketClientService(() -> {
-                        logger.log(Level.INFO, "Connected to web socket on " + webSocketConnectUrl);
-                        webSocketConnected.setValue(true);
-                        viewSearchPane.visibleProperty().set(true);
-                        errorPane.visibleProperty().set(false);
-                        search();
-                    }, () -> {
-                        logger.log(Level.INFO, "Disconnected from web socket on " + webSocketConnectUrl);
-                        webSocketConnected.set(false);
-                        viewSearchPane.visibleProperty().set(false);
-                        errorPane.visibleProperty().set(true);
-                    }, webSocketConnectUrl, subscriptionEndpoint, null);
-                    webSocketClientService.addWebSocketMessageHandler(this);
-                    webSocketClientService.connect();
-                }
-            }
-        } catch (InterruptedException e) {
-            Logger.getLogger(LogbookSearchController.class.getName()).log(Level.WARNING, "Timed out waiting for connectivity check");
-            connectivityModeObjectProperty.set(ConnectivityMode.NOT_CONNECTED);
-        }
+        webSocketClientService = new WebSocketClientService(() -> {
+            logger.log(Level.INFO, "Connected to web socket on " + webSocketConnectUrl);
+            webSocketConnected.setValue(true);
+            viewSearchPane.visibleProperty().set(true);
+            errorPane.visibleProperty().set(false);
+            search();
+        }, () -> {
+            logger.log(Level.INFO, "Disconnected from web socket on " + webSocketConnectUrl);
+            webSocketConnected.set(false);
+            viewSearchPane.visibleProperty().set(false);
+            errorPane.visibleProperty().set(true);
+        }, webSocketConnectUrl, subscriptionEndpoint, null);
+        webSocketClientService.addWebSocketMessageHandler(this);
+        webSocketClientService.connect();
     }
 
     @Override
