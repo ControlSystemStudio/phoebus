@@ -155,6 +155,10 @@ This includes the average, min, max, and element count
 
 **arrayMin(VNumberArray array)** - Returns a VDouble with the smallest value of the given array
 
+**arraySampleWithLTTB(VNumberArray array, VNumber threshold)** - Returns a VNumberArray which is a down-sampled version of the input array.
+The threshold parameter defines the maximum number of data points to return.
+The down-sampling is performed using the Largest-Triangle-Three-Buckets (LTTB) algorithm.
+
 **arraySampleWithStride(VNumberArray array, VNumber stride, VNumber offset)** - Returns a VNumberArray where each element is defined as array\[x \* stride + offset\].
 
 **arrayCumSum(VNumberArray array)** - Returns a VNumberArray where each element is defined as the cumulative sum of the input array.
