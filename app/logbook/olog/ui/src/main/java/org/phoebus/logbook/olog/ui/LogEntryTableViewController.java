@@ -41,6 +41,7 @@ import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import org.phoebus.applications.logbook.authentication.OlogAuthenticationScope;
 import org.phoebus.core.websocket.WebSocketMessageHandler;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
@@ -57,7 +58,6 @@ import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 
@@ -213,7 +213,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
         contextMenu.setOnShowing(e -> {
             try {
                 SecureStore store = new SecureStore();
-                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
+                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(new OlogAuthenticationScope());
                 userHasSignedIn.set(scopedAuthenticationToken != null);
             } catch (Exception ex) {
                 logger.log(Level.WARNING, "Secure Store file not found.", ex);
@@ -335,7 +335,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
         determineConnectivity(connectivityMode -> {
             connectivityModeObjectProperty.set(connectivityMode);
             connectivityCheckerCountDownLatch.countDown();
-            switch (connectivityMode){
+            switch (connectivityMode) {
                 case HTTP_ONLY -> search();
                 case WEB_SOCKETS_SUPPORTED -> connectWebSocket();
             }
@@ -409,7 +409,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                     searchInProgress.set(false);
                     setSearchResult(searchResult1);
                     List<OlogQuery> queries = ologQueryManager.getQueries();
-                    if(connectivityModeObjectProperty.get().equals(ConnectivityMode.HTTP_ONLY)){
+                    if (connectivityModeObjectProperty.get().equals(ConnectivityMode.HTTP_ONLY)) {
                         logger.log(Level.INFO, "Starting periodic search: " + queryString);
                         periodicSearch(params, this::setSearchResult);
                     }

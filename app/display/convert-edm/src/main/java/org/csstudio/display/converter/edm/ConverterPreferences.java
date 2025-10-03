@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -66,6 +66,7 @@ public class ConverterPreferences
             logger.log(Level.WARNING, "Cannot parse font_mappings", ex);
         }
 
+        edm_paths_config = edm_paths_config.strip();
         if (! edm_paths_config.isEmpty())
             try
             {
@@ -76,8 +77,8 @@ public class ConverterPreferences
                 logger.log(Level.WARNING, "Cannot parse paths from " + edm_paths_config, ex);
             }
 
-        final String dir = prefs.get("auto_converter_dir");
-        if (dir.isBlank())
+        final String dir = prefs.get("auto_converter_dir").strip();
+        if (dir.isEmpty())
             auto_converter_dir = null;
         else
         {
