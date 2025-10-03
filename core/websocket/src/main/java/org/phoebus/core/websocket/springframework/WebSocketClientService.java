@@ -154,22 +154,26 @@ public class WebSocketClientService {
         StompSessionHandler sessionHandler = new StompSessionHandler();
         logger.log(Level.INFO, "Attempting web socket connection to " + connectUrl);
         new Thread(() -> {
-            while (attemptReconnect.get()) {
-                try {
+            while (true) {
+                try{
                     synchronized (WebSocketClientService.this) {
-                        stompSession = stompClient.connect(connectUrl, sessionHandler).get();
-                        stompSession.subscribe(this.subscriptionEndpoint, new StompFrameHandler() {
-                            @Override
-                            public Type getPayloadType(StompHeaders headers) {
-                                return String.class;
-                            }
+                        if(attemptReconnect.get()) {
+                            stompSession = stompClient.connect(connectUrl, sessionHandler).get();
+                            stompSession.subscribe(this.subscriptionEndpoint, new StompFrameHandler() {
+                                @Override
+                                public Type getPayloadType(StompHeaders headers) {
+                                    return String.class;
+                                }
 
-                            @Override
-                            public void handleFrame(StompHeaders headers, Object payload) {
-                                logger.log(Level.INFO, "Handling subscription frame: " + payload);
-                                webSocketMessageHandlers.forEach(h -> h.handleWebSocketMessage((String) payload));
-                            }
-                        });
+                                @Override
+                                public void handleFrame(StompHeaders headers, Object payload) {
+                                    logger.log(Level.INFO, "Handling subscription frame: " + payload);
+                                    webSocketMessageHandlers.forEach(h -> h.handleWebSocketMessage((String) payload));
+                                }
+                            });
+                            attemptReconnect.set(false);
+                        }
+                        break;
                     }
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Got exception when trying to connect", e);
@@ -210,7 +214,6 @@ public class WebSocketClientService {
          */
         @Override
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-            attemptReconnect.set(false);
             logger.log(Level.INFO, "Connected to web socket");
             if (connectCallback != null) {
                 connectCallback.run();
