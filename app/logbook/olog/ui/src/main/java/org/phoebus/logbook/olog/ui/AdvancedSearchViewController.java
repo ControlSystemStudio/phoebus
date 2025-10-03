@@ -362,45 +362,47 @@ public class AdvancedSearchViewController {
      * @param queryString Query string containing search terms and values
      */
     private void updateControls(String queryString) {
-        Map<String, String> queryStringParameters = LogbookQueryUtil.parseHumanReadableQueryString(queryString);
-        queryStringParameters.entrySet().forEach(entry -> {
-            Keys keys = Keys.findKey(entry.getKey());
-            if (keys != null) {
-                if (keys.equals(Keys.LEVEL)) {
-                    List<String> validatedLevels = getValidatedLevelsSelection(entry.getValue());
-                    if (validatedLevels.isEmpty()) {
-                        searchParameters.levelsProperty().setValue(null);
-                    } else {
-                        String selectedLevels =
-                                String.join(",", validatedLevels);
-                        searchParameters.levelsProperty().setValue(selectedLevels);
+        JobManager.schedule("Update controls from server data", monitor -> {
+            Map<String, String> queryStringParameters = LogbookQueryUtil.parseHumanReadableQueryString(queryString);
+            queryStringParameters.entrySet().forEach(entry -> {
+                Keys keys = Keys.findKey(entry.getKey());
+                if (keys != null) {
+                    if (keys.equals(Keys.LEVEL)) {
+                        List<String> validatedLevels = getValidatedLevelsSelection(entry.getValue());
+                        if (validatedLevels.isEmpty()) {
+                            searchParameters.levelsProperty().setValue(null);
+                        } else {
+                            String selectedLevels =
+                                    String.join(",", validatedLevels);
+                            searchParameters.levelsProperty().setValue(selectedLevels);
+                        }
+                        levelsContextMenu.getItems().forEach(mi -> {
+                            LevelSelectionMenuItem levelSelectionMenuItem =
+                                    (LevelSelectionMenuItem) mi;
+                            levelSelectionMenuItem.setSelected(validatedLevels.contains(levelSelectionMenuItem.getCheckBox().getText()));
+                        });
+                    } else if (keys.equals(Keys.LOGBOOKS)) {
+                        List<String> validatedLogbookNames = getValidatedLogbooksSelection(entry.getValue());
+                        if (validatedLogbookNames.isEmpty()) {
+                            searchParameters.logbooksProperty().setValue(null);
+                        } else {
+                            String selectedLogbooks =
+                                    String.join(",", validatedLogbookNames);
+                            searchParameters.logbooksProperty().setValue(selectedLogbooks);
+                        }
+                        logbookSearchPopover.setSelected(validatedLogbookNames);
+                    } else if (keys.equals(Keys.TAGS)) {
+                        List<String> validatedTagsNames = getValidatedTagsSelection(entry.getValue());
+                        if (validatedTagsNames.isEmpty()) {
+                            searchParameters.tagsProperty().setValue(null);
+                        } else {
+                            String selectedTags = String.join(",", validatedTagsNames);
+                            searchParameters.tagsProperty().setValue(selectedTags);
+                        }
+                        tagSearchPopover.setSelected(validatedTagsNames);
                     }
-                    levelsContextMenu.getItems().forEach(mi -> {
-                        LevelSelectionMenuItem levelSelectionMenuItem =
-                                (LevelSelectionMenuItem) mi;
-                        levelSelectionMenuItem.setSelected(validatedLevels.contains(levelSelectionMenuItem.getCheckBox().getText()));
-                    });
-                } else if (keys.equals(Keys.LOGBOOKS)) {
-                    List<String> validatedLogbookNames = getValidatedLogbooksSelection(entry.getValue());
-                    if (validatedLogbookNames.isEmpty()) {
-                        searchParameters.logbooksProperty().setValue(null);
-                    } else {
-                        String selectedLogbooks =
-                                String.join(",", validatedLogbookNames);
-                        searchParameters.logbooksProperty().setValue(selectedLogbooks);
-                    }
-                    logbookSearchPopover.setSelected(validatedLogbookNames);
-                } else if (keys.equals(Keys.TAGS)) {
-                    List<String> validatedTagsNames = getValidatedTagsSelection(entry.getValue());
-                    if (validatedTagsNames.isEmpty()) {
-                        searchParameters.tagsProperty().setValue(null);
-                    } else {
-                        String selectedTags = String.join(",", validatedTagsNames);
-                        searchParameters.tagsProperty().setValue(selectedTags);
-                    }
-                    tagSearchPopover.setSelected(validatedTagsNames);
                 }
-            }
+            });
         });
     }
 
