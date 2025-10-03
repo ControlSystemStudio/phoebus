@@ -46,6 +46,10 @@ import java.util.logging.Logger;
  *         <li>Publish a topic named /path/web-socket/messages, where path is optional.</li>
  *     </ul>
  * </p>
+ * <p>
+ *     <b>NOTE:</b> client code <i>must</i> call the {@link #shutdown()} method to not
+ *     leave the web socket connection alive.
+ * </p>
  */
 public class WebSocketClientService {
 
@@ -122,24 +126,16 @@ public class WebSocketClientService {
         if (stompSession != null && stompSession.isConnected() && echoEndpoint != null) {
             stompSession.send(echoEndpoint, message);
         }
-
-    }
-
-    /**
-     * Disconnects the STOMP session if non-null and connected.
-     */
-    public void disconnect() {
-        if (stompSession != null && stompSession.isConnected()) {
-            stompSession.disconnect();
-        }
     }
 
     /**
      * Disconnects the socket if connected and terminates connection thread.
      */
-    public void shutdown() {
+    public synchronized void shutdown() {
         attemptReconnect.set(false);
-        disconnect();
+        if (stompSession != null && stompSession.isConnected()) {
+            stompSession.disconnect();
+        }
     }
 
     /**
@@ -156,23 +152,25 @@ public class WebSocketClientService {
         stompClient.setTaskScheduler(threadPoolTaskScheduler);
         stompClient.setDefaultHeartbeat(new long[]{30000, 30000});
         StompSessionHandler sessionHandler = new StompSessionHandler();
+        logger.log(Level.INFO, "Attempting web socket connection to " + connectUrl);
         new Thread(() -> {
             while (attemptReconnect.get()) {
-                logger.log(Level.INFO, "Attempting web socket connection to " + connectUrl);
                 try {
-                    stompSession = stompClient.connect(connectUrl, sessionHandler).get();
-                    stompSession.subscribe(this.subscriptionEndpoint, new StompFrameHandler() {
-                        @Override
-                        public Type getPayloadType(StompHeaders headers) {
-                            return String.class;
-                        }
+                    synchronized (WebSocketClientService.this) {
+                        stompSession = stompClient.connect(connectUrl, sessionHandler).get();
+                        stompSession.subscribe(this.subscriptionEndpoint, new StompFrameHandler() {
+                            @Override
+                            public Type getPayloadType(StompHeaders headers) {
+                                return String.class;
+                            }
 
-                        @Override
-                        public void handleFrame(StompHeaders headers, Object payload) {
-                            logger.log(Level.INFO, "Handling subscription frame: " + payload);
-                            webSocketMessageHandlers.forEach(h -> h.handleWebSocketMessage((String) payload));
-                        }
-                    });
+                            @Override
+                            public void handleFrame(StompHeaders headers, Object payload) {
+                                logger.log(Level.INFO, "Handling subscription frame: " + payload);
+                                webSocketMessageHandlers.forEach(h -> h.handleWebSocketMessage((String) payload));
+                            }
+                        });
+                    }
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Got exception when trying to connect", e);
                 }
