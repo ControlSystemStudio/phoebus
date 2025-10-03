@@ -261,10 +261,7 @@ public class PVAServer implements AutoCloseable
     void shutdownConnection(final ServerTCPHandler tcp_connection)
     {
         for (ServerPV pv : pv_by_name.values())
-        {
             pv.removeClient(tcp_connection, -1);
-            pv.unregisterSubscription(tcp_connection, -1);
-        }
 
         // If this is still a known handler, close it, but don't wait
         if (tcp_handlers.remove(tcp_connection))
