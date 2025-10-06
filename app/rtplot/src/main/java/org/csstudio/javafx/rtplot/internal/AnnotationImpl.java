@@ -179,7 +179,7 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
             throw new TimeoutException("Cannot update annotation, no lock on " + data);
         try
         {
-            final int index = search.findSampleLessOrEqual(data, location);
+            final int index = search.findClosestSample(data, location);
             if (index < 0)
                 return false;
             final PlotDataItem<XTYPE> sample = data.get(index);
