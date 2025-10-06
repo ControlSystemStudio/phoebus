@@ -1,5 +1,6 @@
 package org.csstudio.apputil.formula.array;
 
+import org.csstudio.apputil.formula.Formula;
 import org.epics.util.array.*;
 import org.epics.vtype.*;
 import org.phoebus.core.vtypes.VTypeHelper;
@@ -7,6 +8,7 @@ import org.phoebus.core.vtypes.VTypeHelper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * @author Kunal Shroff
@@ -108,12 +110,13 @@ public class ArraySampleWithLTTBFunction extends BaseArrayFunction {
             throw new Exception("Function " + getName() +
                     " requires 2 arguments but received " + Arrays.toString(args));
         }
-        if (!VTypeHelper.isNumericArray(args[0]))
-            throw new Exception("Function " + getName() +
+        if (!VTypeHelper.isNumericArray(args[0])) {
+            Formula.logger.log(Level.WARNING, "Function " + getName() +
                     " takes array but received " + Arrays.toString(args));
-
-        double buckets = VTypeHelper.toDouble(args[1]);
-
-        return getArrayData((VNumberArray) args[0], buckets);
+            return DEFAULT_NAN_DOUBLE_ARRAY;
+        } else {
+            double buckets = VTypeHelper.toDouble(args[1]);
+            return getArrayData((VNumberArray) args[0], buckets);
+        }
     }
 }
