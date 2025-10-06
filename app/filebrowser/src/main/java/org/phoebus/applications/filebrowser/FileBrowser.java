@@ -55,19 +55,50 @@ public class FileBrowser implements AppInstance
             content = new Label("Cannot load UI");
         }
 
+        // final DockItem tab = new DockItem(this, content);
+        // DockPane.getActiveDockPane().addTab(tab);
+
+        // if (controller != null  &&  file != null){
+        //     if(file.isDirectory()){
+        //         controller.setRoot(file);
+        //     }
+        //     else{
+        //         controller.setRootAndHighlight(file);
+        //     }
+        // }
+
+        // tab.addClosedNotification(controller::shutdown);
         final DockItem tab = new DockItem(this, content);
         DockPane.getActiveDockPane().addTab(tab);
 
-        if (controller != null  &&  file != null){
-            if(file.isDirectory()){
-                controller.setRoot(file);
-            }
-            else{
-                controller.setRootAndHighlight(file);
-            }
+        // Initial title
+        if (file != null)
+        {
+            String folderName = file.getName().isEmpty() ? file.getPath() : file.getName();
+            tab.setLabel(app.getDisplayName() + " \\" + folderName);
         }
 
-        tab.addClosedNotification(controller::shutdown);
+        // When the user navigates, update the tab name dynamically
+        if (controller != null)
+        {
+            controller.addRootChangeListener(newRoot -> {
+                if (newRoot != null)
+                {
+                    String folderName = newRoot.getName().isEmpty() ? newRoot.getPath() : newRoot.getName();
+                    tab.setLabel(app.getDisplayName() + " \\" + folderName);
+                }
+            });
+
+            if (file != null)
+            {
+                if (file.isDirectory())
+                    controller.setRoot(file);
+                else
+                    controller.setRootAndHighlight(file);
+            }
+
+            tab.addClosedNotification(controller::shutdown);
+        }
     }
 
     @Override
