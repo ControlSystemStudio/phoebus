@@ -1,11 +1,14 @@
 package org.csstudio.apputil.formula.array;
 
 import org.csstudio.apputil.formula.Formula;
-import org.epics.util.array.*;
-import org.epics.vtype.*;
+import org.epics.util.array.CollectionNumbers;
+import org.epics.util.array.ListNumber;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
