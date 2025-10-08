@@ -1,5 +1,6 @@
 package org.csstudio.apputil.formula.array;
 
+import org.csstudio.apputil.formula.Formula;
 import org.epics.util.array.ListDouble;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.Alarm;
@@ -10,6 +11,7 @@ import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * A formula function for extracting elements from the given array at regular intervals (stride),
@@ -104,13 +106,16 @@ public class ArraySampleWithStrideFunction extends BaseArrayFunction {
             throw new Exception("Function " + getName() +
                     " requires 2 or 3 arguments but received " + Arrays.toString(args));
         }
-        if (!VTypeHelper.isNumericArray(args[0]))
-            throw new Exception("Function " + getName() +
+        if (!VTypeHelper.isNumericArray(args[0])) {
+            Formula.logger.log(Level.WARNING, "Function " + getName() +
                     " takes array but received " + Arrays.toString(args));
+            return DEFAULT_NAN_DOUBLE_ARRAY;
 
-        double stride = VTypeHelper.toDouble(args[1]);
-        double offset = (args.length == 3) ? VTypeHelper.toDouble(args[2]) : 0; // Default offset to 0
+        } else {
+            double stride = VTypeHelper.toDouble(args[1]);
+            double offset = (args.length == 3) ? VTypeHelper.toDouble(args[2]) : 0; // Default offset to 0
 
-        return getArrayData((VNumberArray) args[0], stride, offset);
+            return getArrayData((VNumberArray) args[0], stride, offset);
+        }
     }
 }
