@@ -58,11 +58,11 @@ public class FileBrowser implements AppInstance
         final DockItem tab = new DockItem(this, content);
         DockPane.getActiveDockPane().addTab(tab);
 
-        // Initial title
+        // Initial title for the tab
         if (file != null)
         {
             String folderName = file.getName().isEmpty() ? file.getPath() : file.getName();
-            tab.setLabel(app.getDisplayName() + " \\" + folderName);
+            tab.setLabel(app.getDisplayName() + " (" + folderName + ")");
         }
 
         // When the user navigates, update the tab name dynamically
@@ -72,7 +72,7 @@ public class FileBrowser implements AppInstance
                 if (newRoot != null)
                 {
                     String folderName = newRoot.getName().isEmpty() ? newRoot.getPath() : newRoot.getName();
-                    tab.setLabel(app.getDisplayName() + " \\" + folderName);
+                    tab.setLabel(app.getDisplayName() + " (" + folderName + ")");
                 }
             });
 
