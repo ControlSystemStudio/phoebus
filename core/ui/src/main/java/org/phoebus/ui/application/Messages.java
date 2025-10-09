@@ -184,6 +184,7 @@ public class Messages
     public static String WebBrowser;
     public static String Welcome;
     public static String Window;
+    public static String WindowTitleFormat;
 
     static
     {
