@@ -55,19 +55,6 @@ public class FileBrowser implements AppInstance
             content = new Label("Cannot load UI");
         }
 
-        // final DockItem tab = new DockItem(this, content);
-        // DockPane.getActiveDockPane().addTab(tab);
-
-        // if (controller != null  &&  file != null){
-        //     if(file.isDirectory()){
-        //         controller.setRoot(file);
-        //     }
-        //     else{
-        //         controller.setRootAndHighlight(file);
-        //     }
-        // }
-
-        // tab.addClosedNotification(controller::shutdown);
         final DockItem tab = new DockItem(this, content);
         DockPane.getActiveDockPane().addTab(tab);
 

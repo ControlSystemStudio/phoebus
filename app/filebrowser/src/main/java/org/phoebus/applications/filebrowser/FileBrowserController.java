@@ -73,18 +73,20 @@ public class FileBrowserController {
     private final Menu openWith = new Menu(Messages.OpenWith, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
 
+    /**
+     * Create a listener for changes in the selected directory
+     */
     private final List<Consumer<File>> root_change_listeners = new ArrayList<>();
-
-    public void addRootChangeListener(Consumer<File> listener)
-    {
+    public void addRootChangeListener(Consumer<File> listener) {
         root_change_listeners.add(listener);
     }
 
-    private void notifyRootChange(File newRoot)
-    {
+    private void notifyRootChange(File newRoot) {
+        // Notify that the directory has changed
         for (Consumer<File> listener : root_change_listeners)
             listener.accept(newRoot);
     }
+    
 
     private ExpandedCountChangeListener expandedCountChangeListener;
 

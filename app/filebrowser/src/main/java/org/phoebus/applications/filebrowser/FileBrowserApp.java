@@ -43,12 +43,6 @@ public class FileBrowserApp implements AppResourceDescriptor {
         return createWithRoot(default_root);
     }
 
-    // @Override
-    // public AppInstance create(final URI resource)
-    // {
-    //     return createWithRoot(new File(resource));
-    // }
-
     @Override
     public AppInstance create(final URI resource)
     {
