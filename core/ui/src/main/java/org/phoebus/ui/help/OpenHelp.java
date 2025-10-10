@@ -63,7 +63,8 @@ public class OpenHelp implements MenuEntry
     public static String determineHelpLocation()
     {
         if (!Preferences.documentation_location.isEmpty()) {
-            return Preferences.documentation_location;
+            String suffix = Preferences.documentation_location.endsWith("/") ? "index.html" : "/index.html";
+            return Preferences.documentation_location + suffix;
         }
 
         final File phoenix_install = Locations.install();
