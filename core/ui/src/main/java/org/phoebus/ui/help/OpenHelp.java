@@ -8,6 +8,7 @@
 package org.phoebus.ui.help;
 
 import org.phoebus.framework.workbench.Locations;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
@@ -61,6 +62,11 @@ public class OpenHelp implements MenuEntry
 
     public static String determineHelpLocation()
     {
+        if (!Preferences.documentation_location.isEmpty()) {
+            String suffix = Preferences.documentation_location.endsWith("/") ? "index.html" : "/index.html";
+            return Preferences.documentation_location + suffix;
+        }
+
         final File phoenix_install = Locations.install();
 
         // The distribution includes a lib/ and a doc/ folder.
