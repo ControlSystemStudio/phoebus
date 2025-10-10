@@ -62,8 +62,8 @@ public class OpenHelp implements MenuEntry
 
     public static String determineHelpLocation()
     {
-        if (!Preferences.phoebus_documentation_location.isEmpty()) {
-            return Preferences.phoebus_documentation_location;
+        if (!Preferences.documentation_location.isEmpty()) {
+            return Preferences.documentation_location;
         }
 
         final File phoenix_install = Locations.install();
