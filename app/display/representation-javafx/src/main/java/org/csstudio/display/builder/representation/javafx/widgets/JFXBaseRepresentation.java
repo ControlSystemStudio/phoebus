@@ -27,6 +27,7 @@ import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.WidgetRepresentation;
 import org.csstudio.display.builder.representation.javafx.Cursors;
+import org.csstudio.display.builder.representation.javafx.JFXPreferences;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 
 import javafx.collections.ObservableList;
@@ -371,10 +372,15 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     public void setDisabledLook(Boolean enabled, ObservableList<Node> children) {
         if (!toolkit.isEditMode()) {
             jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
-            if (children != null) {
+            if (children != null && !enabled) {
                 for (Node node : children)
                 {
-                    Styles.update(node, Styles.NOT_ENABLED, !enabled);
+                	if (!JFXPreferences.not_enabled_style.equals(""))
+                        // Apply users 'not enabled' style
+                        node.setStyle(node.getStyle()+" "+JFXPreferences.not_enabled_style);
+                    else
+                        // Apply default 'not_enabled' style
+                        Styles.update(node, Styles.NOT_ENABLED, !enabled);
                 }   
             }
         }
