@@ -372,15 +372,31 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     public void setDisabledLook(Boolean enabled, ObservableList<Node> children) {
         if (!toolkit.isEditMode()) {
             jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
-            if (children != null && !enabled) {
+            if (children != null) {
                 for (Node node : children)
                 {
-                	if (!JFXPreferences.not_enabled_style.equals(""))
-                        // Apply users 'not enabled' style
-                        node.setStyle(node.getStyle()+" "+JFXPreferences.not_enabled_style);
-                    else
-                        // Apply default 'not_enabled' style
-                        Styles.update(node, Styles.NOT_ENABLED, !enabled);
+                    // Apply default 'not_enabled' style
+                    Styles.update(node, Styles.NOT_ENABLED, !enabled);
+                    Boolean useCustomStyling = !JFXPreferences.not_enabled_style.equals("");
+                    if (useCustomStyling)
+                    {
+                        // Remove 'default' not_enabled styling
+                        Styles.update(node, Styles.NOT_ENABLED, false);
+                        String customCss = "/*CustomCSS START*/" + JFXPreferences.not_enabled_style
+                                + "/*END*/";
+                        
+                        if (!enabled)
+                        {
+                            // Apply users 'not enabled' style
+                            node.setStyle(node.getStyle()+customCss);
+                        }    
+                        else 
+                        {
+                            // Remove the users disabled style from the current style
+                            String removeDisabled = node.getStyle().replace(customCss, "");
+                            node.setStyle(removeDisabled);
+                        }
+                    }
                 }   
             }
         }
