@@ -3,7 +3,7 @@ package org.phoebus.ui.docking;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;
 import javafx.stage.Stage;
-import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.Preferences;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -56,13 +56,13 @@ public class StageTitleManager {
                     // If the dock pane is not active, don't do anything
                     return;
                 }
-                StringExpression exp = Bindings.format(Messages.WindowTitleFormat, dockItem.labelTextProperty());
+                StringExpression exp = Bindings.format(Preferences.window_title_format, dockItem.labelTextProperty());
                 stage.titleProperty().bind(exp);
             }
         });
     }
 
     private static void setStageTitleToDefault(Stage stage) {
-        stage.setTitle(Messages.FixedTitle);
+        stage.setTitle(Preferences.default_window_title);
     }
 }
