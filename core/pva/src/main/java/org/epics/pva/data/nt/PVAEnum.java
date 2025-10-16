@@ -24,12 +24,12 @@ import org.epics.pva.data.PVAStructure;
 
 /**
  * Normative enum type
- * 
+ *
  * An enum_t describes an enumeration. The field is a structure describing a
  * value drawn from a given set of valid values also given.
- * 
+ *
  * enum_t :=
- * 
+ *
  * <ul>
  * <li>structure
  * <ul>
@@ -45,7 +45,7 @@ public class PVAEnum extends PVAStructure {
     private PVAStringArray choices;
 
     /**
-     * Constructor 
+     * Constructor
      * @param name Name of the enum
      * @param index The index of the current value of the enumeration in the array choices below.
      * @param choices An array of strings specifying the set of labels for the valid values of the enumeration.
@@ -55,7 +55,7 @@ public class PVAEnum extends PVAStructure {
     }
 
     /**
-     * Constructor 
+     * Constructor
      * @param name Name of the enum
      * @param index The index of the current value of the enumeration in the array choices below.
      * @param choices An array of strings specifying the set of labels for the valid values of the enumeration.
@@ -68,7 +68,7 @@ public class PVAEnum extends PVAStructure {
 
     /**
      * String of the enum output
-     * 
+     *
      * @return The resulting string of the enum_t
      */
     public String enumString() {
@@ -81,9 +81,36 @@ public class PVAEnum extends PVAStructure {
         return null;
     }
 
+    /** @param new_value Number for index or String to select option
+     *  @throws Exception on error
+     */
+    @Override
+    public void setValue(Object new_value) throws Exception
+    {
+        // Set numeric index
+        if (new_value instanceof Number num)
+            index.set(num.intValue());
+        // or find string in options
+        else if (new_value instanceof String str)
+        {
+            int i=0;
+            for (String choice : choices.get())
+            {
+                if (choice.equals(str))
+                {
+                    index.set(i);
+                    break;
+                }
+                ++i;
+            }
+        }
+        else
+            super.setValue(new_value);
+    }
+
     /**
      * Converts from a generic PVAStruture to PVAEnum
-     * 
+     *
      * @param structure Input structure
      * @return Representative Enum
      */

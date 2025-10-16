@@ -21,12 +21,15 @@ package org.phoebus.logbook.olog.ui.write;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.SimpleType;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableStringValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -47,11 +50,25 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+
+
+import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+import org.phoebus.applications.logbook.authentication.OlogAuthenticationScope;
+import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
+
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import org.phoebus.framework.autocomplete.Proposal;
@@ -70,7 +87,6 @@ import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.olog.ui.HelpViewer;
-import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
 import org.phoebus.olog.es.api.model.OlogLog;
@@ -83,6 +99,15 @@ import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
+import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.simp.stomp.StompFrameHandler;
+import org.springframework.messaging.simp.stomp.StompHeaders;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSessionHandler;
+import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.web.socket.client.WebSocketClient;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -191,6 +216,8 @@ public class LogEntryEditorController {
     @SuppressWarnings("unused")
     private Node attachmentsPane;
 
+
+
     private final ContextMenu logbookDropDown = new ContextMenu();
     private final ContextMenu tagDropDown = new ContextMenu();
 
@@ -208,7 +235,7 @@ public class LogEntryEditorController {
     private final ObservableList<String> availableLevels = FXCollections.observableArrayList();
     private final SimpleStringProperty titleProperty = new SimpleStringProperty();
     private final SimpleStringProperty descriptionProperty = new SimpleStringProperty();
-    private final SimpleStringProperty selectedLevelProperty = new SimpleStringProperty();
+    private final StringProperty selectedLevelProperty = new SimpleStringProperty();
     private final SimpleStringProperty usernameProperty = new SimpleStringProperty();
     private final SimpleStringProperty passwordProperty = new SimpleStringProperty();
 
@@ -269,6 +296,7 @@ public class LogEntryEditorController {
 
     @FXML
     public void initialize() {
+
 
         // Remote log service not reachable, so show error pane.
         if (!checkConnectivity()) {
@@ -382,25 +410,11 @@ public class LogEntryEditorController {
                 logbooksLabel.setTextFill(Color.BLACK);
         });
 
-        logbooksSelection.textProperty().bind(Bindings.createStringBinding(() -> {
-            if (selectedLogbooks.isEmpty()) {
-                return "";
-            }
-            StringBuilder stringBuilder = new StringBuilder();
-            selectedLogbooks.forEach(l -> stringBuilder.append(l).append(", "));
-            String text = stringBuilder.toString();
-            return text.substring(0, text.length() - 2);
-        }, selectedLogbooks));
+        logbooksSelection.textProperty().bind(Bindings.createStringBinding(() ->
+                selectedLogbooks.stream().collect(Collectors.joining(",")), selectedLogbooks));
 
-        tagsSelection.textProperty().bind(Bindings.createStringBinding(() -> {
-            if (selectedTags.isEmpty()) {
-                return "";
-            }
-            StringBuilder stringBuilder = new StringBuilder();
-            selectedTags.forEach(l -> stringBuilder.append(l).append(", "));
-            String text = stringBuilder.toString();
-            return text.substring(0, text.length() - 2);
-        }, selectedTags));
+        tagsSelection.textProperty().bind(Bindings.createStringBinding(() ->
+                selectedTags.stream().collect(Collectors.joining(",")), selectedTags));
 
         logbooksDropdownButton.focusedProperty().addListener((changeListener, oldVal, newVal) ->
         {
@@ -447,16 +461,6 @@ public class LogEntryEditorController {
             tagsPopOver.setAvailable(availableTagsAsStringList, newSelection);
             tagsPopOver.setSelected(newSelection);
             newSelection.forEach(t -> updateDropDown(tagDropDown, t, true));
-        });
-
-        selectedLogbooks.addListener((ListChangeListener<String>) change -> {
-            if (change.getList() == null) {
-                return;
-            }
-            List<String> newSelection = new ArrayList<>(change.getList());
-            logbooksPopOver.setAvailable(availableLogbooksAsStringList, newSelection);
-            logbooksPopOver.setSelected(newSelection);
-            newSelection.forEach(l -> updateDropDown(logbookDropDown, l, true));
         });
 
         AutocompleteMenu autocompleteMenu = new AutocompleteMenu(new ProposalService(new ProposalProvider() {
@@ -547,7 +551,147 @@ public class LogEntryEditorController {
 
         // Note: logbooks and tags are retrieved asynchronously from service
         getServerSideStaticData();
+
+        setupTextAreaContextMenu();
     }
+
+    /**
+     * Sets up the context menu for the {@link TextArea}. While a {@link TextArea} comes with a default
+     * context menu containing the standard items (copy, paste...), the ability to access this context
+     * menu is not possible since Java9, see <a href="https://stackoverflow.com/questions/71053358/javafx-17-custom-textarea-textfield-right-click-menu">this post</a>.
+     * Any customization means the whole context menu must be built from scratch.
+     */
+    private void setupTextAreaContextMenu() {
+        // Create the context menu with default items
+        ContextMenu contextMenu = new ContextMenu();
+
+        // Standard text editing items
+        MenuItem undo = new MenuItem(Messages.TextAreaContextMenuUndo);
+        undo.setOnAction(e -> textArea.undo());
+
+        MenuItem redo = new MenuItem(Messages.TextAreaContextMenuRedo);
+        redo.setOnAction(e -> textArea.redo());
+
+        MenuItem cut = new MenuItem(Messages.TextAreaContextMenuCut);
+        cut.setOnAction(e -> textArea.cut());
+
+        MenuItem copy = new MenuItem(Messages.TextAreaContextMenuCopy);
+        copy.setOnAction(e -> textArea.copy());
+
+        MenuItem paste = new MenuItem(Messages.TextAreaContextMenuPaste);
+        paste.setOnAction(e -> textArea.paste());
+
+        MenuItem delete = new MenuItem(Messages.TextAreaContextMenuDelete);
+        delete.setOnAction(e -> textArea.replaceSelection(""));
+
+        MenuItem selectAll = new MenuItem(Messages.TextAreaContextMenuSelectAll);
+        selectAll.setOnAction(e -> textArea.selectAll());
+
+        // Our custom menu item
+        MenuItem pasteUrlItem = new MenuItem(Messages.TextAreaContextMenuPasteURLAsMarkdown);
+        pasteUrlItem.setOnAction(event -> handleSmartPaste());
+        pasteUrlItem.setAccelerator(new KeyCodeCombination(KeyCode.V,
+                KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
+
+        // Add all items to the menu
+        contextMenu.getItems().addAll(
+                undo,
+                redo,
+                new SeparatorMenuItem(),
+                cut,
+                copy,
+                paste,
+                delete,
+                new SeparatorMenuItem(),
+                selectAll,
+                new SeparatorMenuItem(),
+                pasteUrlItem
+        );
+
+        // Bind the menu items to the text area's state
+        undo.disableProperty().bind(textArea.undoableProperty().not());
+        redo.disableProperty().bind(textArea.redoableProperty().not());
+        cut.disableProperty().bind(textArea.selectedTextProperty().isEmpty());
+        copy.disableProperty().bind(textArea.selectedTextProperty().isEmpty());
+        delete.disableProperty().bind(textArea.selectedTextProperty().isEmpty());
+        contextMenu.setOnShowing(e -> {
+            String clipboardContent = Clipboard.getSystemClipboard().getString();
+            pasteUrlItem.setDisable(clipboardContent == null || !clipboardContent.toLowerCase().startsWith("http"));
+        });
+        // Set the context menu on the text area
+        textArea.setContextMenu(contextMenu);
+    }
+
+    private void handleSmartPaste() {
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        if (!clipboard.hasString()) {
+            return;
+        }
+
+        String clipboardText = clipboard.getString();
+        String ologUrl = extractOlogUrl(clipboardText);
+        String selectedText = textArea.getSelectedText();
+
+        if (ologUrl != null) {
+            // It's an Olog URL
+            String logNumber = extractLogNumber(ologUrl);
+            if (logNumber != null) {
+                if (selectedText != null && !selectedText.isEmpty()) {
+                    // Use selected text as link text for the Olog reference
+                    String markdownLink = String.format("[%s](%s)", selectedText, ologUrl);
+                    textArea.replaceSelection(markdownLink);
+                } else {
+                    // No selection - create a standard log entry reference
+                    String markdownLink = String.format("[%s](%s)", logNumber, ologUrl);
+                    textArea.replaceSelection(markdownLink);
+                }
+            }
+            return;
+        }
+
+        // Try to identify if clipboard content is a regular URL
+        try {
+            new URL(clipboardText);
+
+            if (selectedText != null && !selectedText.isEmpty()) {
+                // Replace selection with markdown link using selected text
+                String markdownLink = String.format("[%s](%s)", selectedText, clipboardText);
+                textArea.replaceSelection(markdownLink);
+            } else {
+                // No selection - use URL as both link text and target
+                String markdownLink = String.format("[%s](%s)", clipboardText, clipboardText);
+                textArea.replaceSelection(markdownLink);
+            }
+        } catch (MalformedURLException e) {
+            // Not a URL - do nothing
+        }
+    }
+
+    private String extractOlogUrl(String text) {
+        String rootUrl = LogbookUIPreferences.web_client_root_URL;
+        if (rootUrl == null || rootUrl.isEmpty()) {
+            return null;
+        }
+
+        if (text.toLowerCase().contains("olog") &&
+                text.matches(".*?/logs/\\d+/?$")) {
+            return text;
+        }
+        return null;
+    }
+
+    private String extractLogNumber(String url) {
+        if (url == null) {
+            return null;
+        }
+        Pattern pattern = Pattern.compile("/logs/(\\d+)/?$");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
 
     /**
      * Handler for Cancel button. Note that any selections in the {@link SelectionService} are
@@ -621,7 +765,7 @@ public class LogEntryEditorController {
                     try {
                         SecureStore store = new SecureStore();
                         ScopedAuthenticationToken scopedAuthenticationToken =
-                                new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, usernameProperty.get(), passwordProperty.get());
+                                new ScopedAuthenticationToken(new OlogAuthenticationScope(), usernameProperty.get(), passwordProperty.get());
                         store.setScopedAuthentication(scopedAuthenticationToken);
                     } catch (Exception ex) {
                         logger.log(Level.WARNING, "Secure Store file not found.", ex);
@@ -758,7 +902,7 @@ public class LogEntryEditorController {
             List<String> preSelectedLogbooks =
                     logEntry.getLogbooks().stream().map(Logbook::getName).toList();
             List<String> defaultLogbooks = Arrays.asList(LogbookUIPreferences.default_logbooks);
-            availableLogbooksAsStringList.forEach(logbook -> {
+            for (String logbook : availableLogbooksAsStringList) {
                 CheckBox checkBox = new CheckBox(logbook);
                 CustomMenuItem newLogbook = new CustomMenuItem(checkBox);
                 newLogbook.setHideOnClick(false);
@@ -779,7 +923,7 @@ public class LogEntryEditorController {
                     selectedLogbooks.add(logbook);
                 }
                 logbookDropDown.getItems().add(newLogbook);
-            });
+            }
 
             availableTags = logClient.listTags();
             availableTagsAsStringList =
@@ -830,11 +974,11 @@ public class LogEntryEditorController {
             Optional<LogEntryLevel> optionalLevel = levels.stream().filter(LogEntryLevel::defaultLevel).findFirst();
             String defaultLevel = null;
             if(optionalLevel.isPresent()){
-                // One level value should be the default level
+                // One level value *should* be the default level
                defaultLevel = optionalLevel.get().name();
             }
             selectedLevelProperty.set(logEntry.getLevel() != null ? logEntry.getLevel() : defaultLevel);
-            levelSelector.getSelectionModel().select(selectedLevelProperty.get());
+            Platform.runLater(() -> levelSelector.getSelectionModel().select(selectedLevelProperty.get()));
         });
     }
 
@@ -845,7 +989,7 @@ public class LogEntryEditorController {
             // Get the SecureStore. Retrieve username and password.
             try {
                 SecureStore store = new SecureStore();
-                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
+                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(new OlogAuthenticationScope());
                 // Could be accessed from JavaFX Application Thread when updating, so synchronize.
                 synchronized (usernameProperty) {
                     usernameProperty.set(scopedAuthenticationToken == null ? "" : scopedAuthenticationToken.getUsername());

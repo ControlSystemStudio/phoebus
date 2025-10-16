@@ -88,7 +88,8 @@ Brief description of all items in the context menu (details on actions are outli
 * Restore from client - restore a snapshot or composite snapshot from the client application.
 * Restore from service - restore a snapshot or composite snapshot from the service.
 * Edit - edit a configuration.
-* Rename - rename a folder or configuration.
+* Find references - locates composite snapshot nodes referencing the selected node.
+* Rename - rename a folder.
 * Copy - put selected items on clipboard.
 * Paste - paste items from clipboard.
 * Delete - delete selected items.
@@ -221,7 +222,9 @@ This will open the snapshot view:
    :width: 80%
 
 The left-most column will show live values for the list of PVs in the configuration. If the application fails to
-connect to a PV, this will be indicated accordingly.
+connect to a PV, this will be indicated accordingly (one PV in this snapshot). Note that since the configuration
+for this snapshot defines one non-empty read-back PV, the read-back PV related columns are automatically set to visible
+when the snapshot is loaded.
 
 Clicking the Take Snapshot button will disable the UI while all PVs are read. Once the read operation completes,
 values are displayed in the view:
@@ -229,7 +232,10 @@ values are displayed in the view:
 .. image:: images/snapshot-taken.png
    :width: 80%
 
-Note that the Timestamp column shows the timestamp as provided by the PV record, i.e. it need not be the current timestamp.
+Upon completion of the operation additional columns will indicate the outcome. In this example one PV is disconnected,
+which is indicated in the extra column header as well as in the corresponding row. This is particularly useful if
+disconnected PVs are outside the visible portion of the list: the header icon will indicate that a disconnected
+PVs can be found when scrolling down the list.
 
 Once a snapshot has been taken, user must provide a case sensitive name and comment to be able to save it. Snapshot names
 for the same configuration must be unique. User may choose to take a new snapshot in the same view before saving it.
@@ -291,8 +297,8 @@ toolbar is used to toggle between show/hide:
 .. image:: images/toggle-delta-zero.png
    :width: 80%
 
-The snapshot view does by default not show PV read-back values if such have been defined in the configuration.
-The left-most columns in the toolbar can be used to show/hide columns associated with such read-back PVs:
+If any item in a configuration contains a non-empty read-back PV name, then columns associated with read-back PV data
+are shown by default. The left-most columns in the toolbar can be used to show/hide these columns:
 
 .. image:: images/toggle-readback.png
    :width: 80%
@@ -319,21 +325,47 @@ Prior to restore user has the option to:
 
 Restoring from a composite snapshot works in the same manner as the restore operation from a single-snapshot.
 
+Filter PV items in list
+^^^^^^^^^^^^^^^^^^^^^^^
+The list of items in the snapshot view can be filtered based on the PV name. See screenshot for highlighted UI element
+where user may specify a string pattern to match PV names. Non-matching items will be hidden from the list view and
+**also excluded from a restore operation**.
+
+To filter the view without excluding PV items from a restore operation, user needs to tick the “Preserve selection…” checkbox.
+
+.. image:: images/filter-pv-items.png
+   :width: 80%
+
+
 Restore from context menu
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 User may invoke a restore operation (from client or from service) from context menu items in the tree
-view or in the search-and-filer view. In this case user will not have the possibility to unselect specific PVs.
-However, PV items configured as read-only will not be restored.
+view or in the search-and-filter view. In this case user will not have the possibility to deselect specific PVs.
+Filtering/exclusion based on PV name will not be possible either.
+However, PV items configured as read-only will always be excluded from a restore operation.
+
+Restore result
+^^^^^^^^^^^^^^
+
+Once the restore operation completes, the UI will indicate potential write failures.
+The additional column to the left will indicate such failures through the column header and on each individual
+failed PV row:
+
+.. image:: images/restore-failed.png
+   :width: 80%
+
 
 Comparing Snapshots
 -------------------
 
 To compare two (or more) snapshots, user must first open an existing snapshot (double click in tree view). Using the
-Compare Snapshots context menu item for a snapshot node user may choose a snapshot to load for comparison.
+Compare Snapshots context menu item for a snapshot node user may choose a snapshot to load for comparison:
 
-Once the additional snapshot has been loaded, the snapshot view will show stored values from both snapshots. In this view
-the :math:`{\Delta}` Base Snapshot column will show the difference to the reference snapshot values:
+.. image:: images/compare-to-other-snapshot.png
+
+Once the additional snapshot data has been loaded, the snapshot view will show stored values from both snapshots. In this view
+the :math:`{\Delta}` Base Snapshot column will show the difference to the reference snapshot values.
 
 .. image:: images/compare-snapshots-view.png
    :width: 80%
@@ -362,6 +394,12 @@ The search tool is launched as a separate view through the icon on top of the tr
 
 .. image:: images/launch-search.png
 
+If no filters have been saved, the drop-down widget will show but one item: <no filter>. Selection of this item always
+disables filtering in the tree view.
+
+The Auto checkbox is hidden if no auto-filter activators are available. Filter activators are site specific plugins that
+- based on custom business rules - will select particular filters and automatically apply them if the checkbox is ticked.
+
 The search tool is rendered as a separate tab and will always be the left-most tab in the right-hand side pane of the
 save&restore UI:
 
@@ -379,11 +417,12 @@ disabled.
 The bottom-right pane in the search tool shows all saved filters, which can be edited or deleted. If a filter is edited
 and saved it under the same name, user will be prompted whether to overwrite as filter names must be unique.
 
-In the tree view user may select to enable and chose a saved filter:
+In the tree view user may select chose a saved filter, e.g. match on configuration nodes only.
 
 .. image:: images/filter-highlight.png
 
-Nodes in the tree view matching a filter will be highlighted, i.e. non-matching items are not hidden from the view.
+Nodes matching the filter are highlighted by rendering non-matching items as if disabled. Note however that user may
+still interact with non-matching items.
 
 **NOTE:** When selecting a filter in the tree view, only matching items already present in the view will be highlighted.
 There may be additional nodes matching the current filter, but these will be rendered and highlighted only when their parent nodes

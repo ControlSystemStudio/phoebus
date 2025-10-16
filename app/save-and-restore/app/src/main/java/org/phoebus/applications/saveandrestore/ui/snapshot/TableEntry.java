@@ -28,17 +28,23 @@ import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
+import org.phoebus.applications.saveandrestore.ui.VTypePair;
+import org.phoebus.core.vtypes.VDisconnectedData;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 import org.phoebus.saveandrestore.util.Threshold;
 import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
-import org.phoebus.applications.saveandrestore.ui.VTypePair;
-import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <code>TableEntry</code> represents a single line in the snapshot viewer table. It provides values for all columns in
@@ -47,17 +53,22 @@ import java.util.Optional;
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  * <p>
  * This code has been modified at the European Spallation Source (ESS), Lund, Sweden.
+ * </p>
  */
 public class TableEntry {
 
+    /**
+     * Holds result of a take snapshot or restore action for the PV.
+     */
+    private final ObjectProperty<ActionResult> actionResult = new SimpleObjectProperty<>(this, "actionResult", ActionResult.PENDING);
     private final IntegerProperty id = new SimpleIntegerProperty(this, "id");
     private final SingleListenerBooleanProperty selected = new SingleListenerBooleanProperty(this, "selected", true);
     private final StringProperty pvName = new SimpleStringProperty(this, "pvName");
     private final ObjectProperty<Instant> timestamp = new SimpleObjectProperty<>(this, "timestamp");
     private final StringProperty liveStatus = new SimpleStringProperty(this, "liveStatus", "---");
     private final StringProperty storedStatus = new SimpleStringProperty(this, "storedStatus", PVAAlarm.AlarmStatus.UNDEFINED.name());
-    private final StringProperty liveSeverity = new SimpleStringProperty(this, "liveSeverity", "---");
-    private final StringProperty storedSeverity = new SimpleStringProperty(this, "storedSeverity", AlarmSeverity.UNDEFINED.toString());
+    private final ObjectProperty<AlarmSeverity> liveSeverity = new SimpleObjectProperty<>(this, "liveSeverity", null);
+    private final ObjectProperty<AlarmSeverity> storedSeverity = new SimpleObjectProperty<>(this, "storedSeverity", null);
     /**
      * Snapshot value set either when user takes snapshot, or when snapshot data is loaded from remote service. Note that this
      * can be modified if user chooses to use a multiplier before triggering a restore operation, or if the value is
@@ -90,13 +101,27 @@ public class TableEntry {
     private Optional<Threshold<?>> threshold = Optional.empty();
     private final BooleanProperty readOnly = new SimpleBooleanProperty(this, "readOnly", false);
 
+    /**
+     * Holds result of a take snapshot for the read-back PV. Unlike the <code>actionResult</code> field this only
+     * applies to tale snapshot action as read-back PVs are not subject to restore.
+     */
+    private final ObjectProperty<ActionResult> actionResultReadback = new SimpleObjectProperty<>(this, "actionResultReadback", ActionResult.PENDING);
 
-    private ConfigPv configPv;
+    private final ConfigPv configPv;
+    private final SnapshotItem snapshotItem;
+
+    private PV pv;
+    private PV readbackPv;
+    /**
+     * The time between updates of dynamic data in the table, in ms.
+     */
+    private static final long TABLE_UPDATE_INTERVAL = 500;
 
     /**
      * Construct a new table entry.
      */
-    public TableEntry() {
+    public TableEntry(SnapshotItem snapshotItem) {
+        this.snapshotItem = snapshotItem;
         //when read only is set to true, unselect this PV
         readOnly.addListener((a, o, n) -> {
             if (n) {
@@ -109,12 +134,27 @@ public class TableEntry {
                 selected.set(false);
             }
         });
+        readOnlyProperty().setValue(snapshotItem.getConfigPv().isReadOnly());
+        pvNameProperty().set(snapshotItem.getConfigPv().getPvName());
+        readbackNameProperty().set(snapshotItem.getConfigPv().getReadbackPvName());
+        setReadbackValue(snapshotItem.getReadbackValue());
+        if (snapshotItem.getValue() == null || snapshotItem.getValue().equals(VDisconnectedData.INSTANCE)) {
+            setActionResult(ActionResult.FAILED);
+        } else {
+            setActionResult(ActionResult.OK);
+        }
+        if (snapshotItem.getConfigPv().getReadbackPvName() != null) {
+            if (snapshotItem.getReadbackValue() == null || snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
+                setActionResultReadback(ActionResult.FAILED);
+            } else {
+                setActionResultReadback(ActionResult.OK);
+            }
+        }
+        this.configPv = snapshotItem.getConfigPv();
     }
 
-    public void setConfigPv(ConfigPv configPv) {
-        this.configPv = configPv;
-        pvName.setValue(configPv.getPvName());
-        readbackName.setValue(configPv.getReadbackPvName());
+    public SnapshotItem getSnapshotItem() {
+        return snapshotItem;
     }
 
     public ConfigPv getConfigPv() {
@@ -174,7 +214,7 @@ public class TableEntry {
      * @return the property providing the alarm severity of the PV value
      */
     @SuppressWarnings("unused")
-    public StringProperty liveSeverityProperty() {
+    public ObjectProperty<AlarmSeverity> liveSeverityProperty() {
         return liveSeverity;
     }
 
@@ -243,7 +283,7 @@ public class TableEntry {
     }
 
     @SuppressWarnings("unused")
-    public StringProperty storedSeverityProperty() {
+    public ObjectProperty<AlarmSeverity> storedSeverityProperty() {
         return storedSeverity;
     }
 
@@ -283,27 +323,27 @@ public class TableEntry {
         if (index == 0) {
             if (val instanceof VNumber) {
                 storedStatus.set(((VNumber) val).getAlarm().getStatus().name());
-                storedSeverity.set(((VNumber) val).getAlarm().getSeverity().toString());
+                storedSeverity.set(((VNumber) val).getAlarm().getSeverity());
                 timestamp.set(((VNumber) val).getTime().getTimestamp());
             } else if (val instanceof VNumberArray) {
                 storedStatus.set(((VNumberArray) val).getAlarm().getStatus().name());
-                storedSeverity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
+                storedSeverity.set(((VNumberArray) val).getAlarm().getSeverity());
                 timestamp.set(((VNumberArray) val).getTime().getTimestamp());
             } else if (val instanceof VEnum) {
                 storedStatus.set(((VEnum) val).getAlarm().getStatus().name());
-                storedSeverity.set(((VEnum) val).getAlarm().getSeverity().toString());
+                storedSeverity.set(((VEnum) val).getAlarm().getSeverity());
                 timestamp.set(((VEnum) val).getTime().getTimestamp());
             } else if (val instanceof VEnumArray) {
                 storedStatus.set(((VEnumArray) val).getAlarm().getStatus().name());
-                storedSeverity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
+                storedSeverity.set(((VEnumArray) val).getAlarm().getSeverity());
                 timestamp.set(((VEnumArray) val).getTime().getTimestamp());
             } else if (val instanceof VNoData) {
                 storedStatus.set("---");
-                storedSeverity.set("---");
+                storedSeverity.set(null);
                 timestamp.set(null);
             } else {
                 storedStatus.set(AlarmSeverity.NONE.toString());
-                storedSeverity.set("---");
+                storedSeverity.set(null);
                 timestamp.set(null);
             }
             snapshotVal.set(val);
@@ -377,26 +417,26 @@ public class TableEntry {
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));
         if (val instanceof VNumber) {
             liveStatus.set(((VNumber) val).getAlarm().getStatus().name());
-            liveSeverity.set(((VNumber) val).getAlarm().getSeverity().toString());
+            liveSeverity.set(((VNumber) val).getAlarm().getSeverity());
             timestamp.set(((VNumber) val).getTime().getTimestamp());
         } else if (val instanceof VNumberArray) {
             liveStatus.set(((VNumberArray) val).getAlarm().getStatus().name());
-            liveSeverity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
+            liveSeverity.set(((VNumberArray) val).getAlarm().getSeverity());
             timestamp.set(((VNumberArray) val).getTime().getTimestamp());
         } else if (val instanceof VEnum) {
             liveStatus.set(((VEnum) val).getAlarm().getStatus().name());
-            liveSeverity.set(((VEnum) val).getAlarm().getSeverity().toString());
+            liveSeverity.set(((VEnum) val).getAlarm().getSeverity());
             timestamp.set(((VEnum) val).getTime().getTimestamp());
         } else if (val instanceof VEnumArray) {
             liveStatus.set(((VEnumArray) val).getAlarm().getStatus().name());
-            liveSeverity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
+            liveSeverity.set(((VEnumArray) val).getAlarm().getSeverity());
             timestamp.set(((VEnumArray) val).getTime().getTimestamp());
         } else if (val instanceof VDisconnectedData) {
-            liveSeverity.set("---");
+            liveSeverity.set(AlarmSeverity.UNDEFINED);
             liveStatus.set("---");
             timestamp.set(null);
         } else {
-            liveSeverity.set(AlarmSeverity.NONE.toString());
+            liveSeverity.set(null);
             liveStatus.set("---");
             timestamp.set(null);
         }
@@ -426,4 +466,54 @@ public class TableEntry {
         return snapshotVal;
     }
 
+
+
+    @SuppressWarnings("unused")
+    public ObjectProperty<ActionResult> actionResultProperty() {
+        return actionResult;
+    }
+
+    public void setActionResult(ActionResult actionResult) {
+        this.actionResult.set(actionResult);
+    }
+
+    public ObjectProperty<ActionResult> actionResultReadbackProperty() {
+        return actionResultReadback;
+    }
+
+    public void setActionResultReadback(ActionResult actionResult) {
+        this.actionResultReadback.set(actionResult);
+    }
+
+    /**
+     * Connects to PV and read-back PV (if defined).
+     */
+    public void connect() {
+        try {
+            pv = PVPool.getPV(pvNameProperty().get());
+            pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
+                    .subscribe(value -> setLiveValue(PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value));
+            if(readbackName.isNotNull().get() && !readbackName.get().isEmpty()) {
+                readbackPv = PVPool.getPV(readbackName.get());
+                readbackPv.onValueEvent()
+                        .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
+                        .subscribe(value -> setReadbackValue(PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value));
+            }
+            else {
+                // If configuration does not define read-back PV, then UI should show "no data" rather than "disconnected"
+                setReadbackValue(VNoData.INSTANCE);
+            }
+        } catch (Exception e) {
+            Logger.getLogger(TableEntry.class.getName()).log(Level.INFO, "Error connecting to PV", e);
+        }
+    }
+
+    void dispose() {
+        if (pv != null) {
+            PVPool.releasePV(pv);
+        }
+        if (readbackPv != null) {
+            PVPool.releasePV(readbackPv);
+        }
+    }
 }

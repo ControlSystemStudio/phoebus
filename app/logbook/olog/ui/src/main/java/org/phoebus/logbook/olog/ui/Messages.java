@@ -59,6 +59,15 @@ public class Messages
             SelectFolder,
             ShowHideDetails,
             SizeLimitsText,
+            TextAreaContextMenuCopy,
+            TextAreaContextMenuCut,
+            TextAreaContextMenuDelete,
+            TextAreaContextMenuPaste,
+            TextAreaContextMenuPasteURLAsMarkdown,
+            TextAreaContextMenuRedo,
+            TextAreaContextMenuSelectAll,
+            TextAreaContextMenuUndo,
+            UnsupportedFileType,
             UpdateLogEntry;
 
     static

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.csstudio.display.converter.edm;
 import static org.csstudio.display.converter.edm.Converter.logger;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
@@ -142,7 +143,11 @@ public class EdmAutoConverter implements DisplayAutoConverter
         // Convert EDM input
         logger.log(Level.INFO, "Converting " + input + " into " + output);
         locator.setPrefix(new File(display_file).getParent());
-        new EdmConverter(input, locator).write(output);
+        final EdmConverter converter = new EdmConverter(input, locator);
+
+        // Save EDM file to potentially new folder
+        Files.createDirectories(output.getParentFile().toPath());
+        converter.write(output);
 
         // Return DisplayModel of the converted file
         return ModelLoader.loadModel(output.getPath());

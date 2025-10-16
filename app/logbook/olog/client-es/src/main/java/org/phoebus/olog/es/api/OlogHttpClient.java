@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.phoebus.applications.logbook.authentication.OlogAuthenticationScope;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
@@ -25,8 +26,8 @@ import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
 import org.phoebus.olog.es.authentication.LoginCredentials;
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.HttpRequestMultipartBody;
 import org.phoebus.util.http.QueryParamsHelper;
@@ -34,6 +35,7 @@ import org.phoebus.util.http.QueryParamsHelper;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URI;
@@ -112,7 +114,7 @@ public class OlogHttpClient implements LogClient {
         private ScopedAuthenticationToken getCredentialsFromSecureStore() {
             try {
                 SecureStore secureStore = new SecureStore();
-                return secureStore.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
+                return secureStore.getScopedAuthenticationToken(new OlogAuthenticationScope());
             } catch (Exception e) {
                 Logger.getLogger(OlogHttpClient.class.getName()).log(Level.WARNING, "Unable to instantiate SecureStore", e);
                 return null;
@@ -128,14 +130,13 @@ public class OlogHttpClient implements LogClient {
      * Disallow instantiation.
      */
     private OlogHttpClient(String userName, String password) {
-        if(Preferences.connectTimeout > 0){
+        if (Preferences.connectTimeout > 0) {
             httpClient = HttpClient.newBuilder()
                     .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
                     .followRedirects(HttpClient.Redirect.ALWAYS)
                     .connectTimeout(Duration.ofMillis(Preferences.connectTimeout))
                     .build();
-        }
-        else{
+        } else {
             httpClient = HttpClient.newBuilder()
                     .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
                     .followRedirects(HttpClient.Redirect.ALWAYS)
@@ -189,7 +190,11 @@ public class OlogHttpClient implements LogClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() >= 300) {
+            if(response.statusCode() == 401){
+                LOGGER.log(Level.SEVERE, "Failed to create log entry: user not authenticated");
+                throw new LogbookException(Messages.SubmissionFailedInvalidCredentials);
+            }
+            else if (response.statusCode() >= 300) {
                 LOGGER.log(Level.SEVERE, "Failed to create log entry: " + response.body());
                 throw new LogbookException(response.body());
             } else {
@@ -358,23 +363,30 @@ public class OlogHttpClient implements LogClient {
      *
      * @param userName Username, must not be <code>null</code>.
      * @param password Password, must not be <code>null</code>.
-     * @throws Exception if the login fails, e.g. bad credentials or service off-line.
+     * @return An {@link AuthenticationStatus} to indicate the outcome of the login attempt.
      */
-    public void authenticate(String userName, String password) throws Exception {
-
+    public AuthenticationStatus authenticate(String userName, String password) {
         String stringBuilder = Preferences.olog_url +
                 "/login";
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(stringBuilder))
-                .header("Content-Type", CONTENT_TYPE_JSON)
-                .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
-                .build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() == 401) {
-            throw new Exception("Failed to login: user unauthorized");
-        } else if (response.statusCode() != 200) {
-            throw new Exception("Failed to login, got HTTP status " + response.statusCode());
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(stringBuilder))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
+                    .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 401) {
+                LOGGER.log(Level.WARNING, "User not authenticated with logbook service");
+                return AuthenticationStatus.BAD_CREDENTIALS;
+            }
+        } catch (ConnectException e) {
+            LOGGER.log(Level.WARNING, "Cannot connect to logbook service");
+            return AuthenticationStatus.SERVICE_OFFLINE;
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Unable to send authentication request to service, reason unknown");
+            return AuthenticationStatus.UNKNOWN_ERROR;
         }
+        return AuthenticationStatus.AUTHENTICATED;
     }
 
     /**
@@ -469,6 +481,10 @@ public class OlogHttpClient implements LogClient {
                     .GET()
                     .build();
             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            if (response.statusCode() >= 300) {
+                LOGGER.log(Level.WARNING, "failed to obtain attachment: " + new String(response.body().readAllBytes()));
+                return null;
+            }
             return response.body();
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "failed to obtain attachment", e);
@@ -552,7 +568,7 @@ public class OlogHttpClient implements LogClient {
     }
 
     @Override
-    public Collection<LogEntryLevel> listLevels(){
+    public Collection<LogEntryLevel> listLevels() {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(Preferences.olog_url + "/levels"))
                 .GET()
@@ -564,7 +580,7 @@ public class OlogHttpClient implements LogClient {
                     response.body(), new TypeReference<Set<LogEntryLevel>>() {
                     });
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Unable to get templates from service", e);
+            LOGGER.log(Level.WARNING, "Unable to get levels from service", e);
             return Collections.emptySet();
         }
     }

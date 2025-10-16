@@ -54,7 +54,7 @@ public class TakeSnapshotController extends BaseController {
         ConfigurationData configurationData = nodeDAO.getConfigurationData(configNodeId);
         List<SnapshotItem> snapshotItems;
         try {
-            snapshotItems = snapshotUtil.takeSnapshot(configurationData);
+            snapshotItems = snapshotUtil.takeSnapshot(configurationData, connectionTimeout);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -78,7 +78,7 @@ public class TakeSnapshotController extends BaseController {
     public Snapshot takeSnapshotAndSave(@PathVariable String configNodeId,
                                         @RequestParam(name = "name", required = false) String snapshotName,
                                         @RequestParam(name = "comment", required = false) String comment) {
-       if (snapshotName != null) {
+        if (snapshotName != null) {
             String _snapshotName = snapshotName;
             List<Node> childNodes = nodeDAO.getChildNodes(configNodeId);
             if (childNodes.stream().anyMatch(n -> n.getName().equals(_snapshotName) &&

@@ -213,7 +213,7 @@ public class AttachmentsViewController {
      */
     private void showImageAttachment() {
         URI uri = selectedAttachment.get().getFile().toURI();
-        URI withWatermark = URI.create(uri + "?watermark=true");
+        URI withWatermark = URI.create(uri + "?watermark=" + LogbookUIPreferences.show_log_watermark);
         ApplicationLauncherService.openResource(withWatermark,
                 false, null);
     }
@@ -278,7 +278,7 @@ public class AttachmentsViewController {
      * @param attachment The image {@link Attachment} selected by user.
      */
     private void showImagePreview(Attachment attachment) {
-        if (attachment.getFile() != null) {
+        if (attachment.getFile() != null && attachment.getFile().exists()) {
             // Load image data off UI thread...
             JobManager.schedule("Show image attachment", monitor -> {
                 try {

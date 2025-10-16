@@ -19,7 +19,7 @@
 package org.phoebus.logbook.olog.ui;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -36,6 +36,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -43,8 +44,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.phoebus.logbook.LogEntryLevel;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntryLevel;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
@@ -132,7 +134,8 @@ public class AdvancedSearchViewController {
 
     private final SearchParameters searchParameters;
 
-    private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
+    private final SimpleObjectProperty<SortOrder> sortOrderProperty =
+            new SimpleObjectProperty<>(SortOrder.DESCENDING);
     private final ObservableList<LevelSelection> levelSelections = FXCollections.observableArrayList();
     private final SimpleStringProperty selectedLevelsString = new SimpleStringProperty();
     private final List<String> levelsList = new ArrayList<>();
@@ -181,7 +184,6 @@ public class AdvancedSearchViewController {
         endTime.textProperty().bindBidirectional(this.searchParameters.endTimeProperty());
         endTime.setOnKeyReleased(this::searchOnEnter);
         searchParameters.addListener((observable, oldValue, newValue) -> updateControls(newValue));
-        sortAscending.addListener(searchOnSortChange);
 
         attachmentTypes.textProperty().bindBidirectional(this.searchParameters.attachmentsProperty());
         attachmentTypes.setOnKeyReleased(this::searchOnEnter);
@@ -316,28 +318,33 @@ public class AdvancedSearchViewController {
             }
         });
 
-        levelsList.addAll(logClient.listLevels().stream().map(LogEntryLevel::name).sorted().toList());
-        levelsList.forEach(level -> {
-            LevelSelection levelSelection = new LevelSelection(level, false);
-            levelSelections.add(levelSelection);
-            CheckBox checkBox = new CheckBox(level);
-            LevelSelectionMenuItem levelSelectionMenuItem = new LevelSelectionMenuItem(checkBox);
-            levelSelectionMenuItem.setHideOnClick(false);
-            checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                levelSelection.selected = newValue;
-                setSelectedLevelsString();
+        // Fetch levels from service on separate thread
+        JobManager.schedule("Get logbook levels", monitor -> {
+            levelsList.addAll(logClient.listLevels().stream().map(LogEntryLevel::name).sorted().toList());
+            levelsList.forEach(level -> {
+                LevelSelection levelSelection = new LevelSelection(level, false);
+                levelSelections.add(levelSelection);
+                CheckBox checkBox = new CheckBox(level);
+                LevelSelectionMenuItem levelSelectionMenuItem = new LevelSelectionMenuItem(checkBox);
+                levelSelectionMenuItem.setHideOnClick(false);
+                checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                    levelSelection.selected = newValue;
+                    setSelectedLevelsString();
+                });
+                levelsContextMenu.getItems().add(levelSelectionMenuItem);
             });
-            levelsContextMenu.getItems().add(levelSelectionMenuItem);
         });
 
-        sortAscending.addListener((observable, oldValue, newValue) -> {
-            sortDescRadioButton.selectedProperty().set(!newValue);
-            sortAscRadioButton.selectedProperty().set(newValue);
-        });
+        sortOrderProperty.addListener(searchOnSortChange);
 
-        sortDescRadioButton.setOnAction(ae -> sortAscending.set(false));
+        sortDescRadioButton.setUserData(SortOrder.DESCENDING);
+        sortAscRadioButton.setUserData(SortOrder.ASCENDING);
 
-        sortAscRadioButton.setOnAction(ae -> sortAscending.set(true));
+        ToggleGroup toggleGroup = new ToggleGroup();
+        toggleGroup.getToggles().addAll(sortDescRadioButton, sortAscRadioButton);
+        toggleGroup.selectToggle(sortDescRadioButton);
+        toggleGroup.selectedToggleProperty().addListener((obs, o, n) ->
+                sortOrderProperty.set((SortOrder) n.getUserData()));
 
         gridPane.setOnMouseClicked(e -> levelsToggleButton.setSelected(false));
 
@@ -355,45 +362,47 @@ public class AdvancedSearchViewController {
      * @param queryString Query string containing search terms and values
      */
     private void updateControls(String queryString) {
-        Map<String, String> queryStringParameters = LogbookQueryUtil.parseHumanReadableQueryString(queryString);
-        queryStringParameters.entrySet().forEach(entry -> {
-            Keys keys = Keys.findKey(entry.getKey());
-            if (keys != null) {
-                if (keys.equals(Keys.LEVEL)) {
-                    List<String> validatedLevels = getValidatedLevelsSelection(entry.getValue());
-                    if (validatedLevels.isEmpty()) {
-                        searchParameters.levelsProperty().setValue(null);
-                    } else {
-                        String selectedLevels =
-                                String.join(",", validatedLevels);
-                        searchParameters.levelsProperty().setValue(selectedLevels);
+        JobManager.schedule("Update controls from server data", monitor -> {
+            Map<String, String> queryStringParameters = LogbookQueryUtil.parseHumanReadableQueryString(queryString);
+            queryStringParameters.entrySet().forEach(entry -> {
+                Keys keys = Keys.findKey(entry.getKey());
+                if (keys != null) {
+                    if (keys.equals(Keys.LEVEL)) {
+                        List<String> validatedLevels = getValidatedLevelsSelection(entry.getValue());
+                        if (validatedLevels.isEmpty()) {
+                            searchParameters.levelsProperty().setValue(null);
+                        } else {
+                            String selectedLevels =
+                                    String.join(",", validatedLevels);
+                            searchParameters.levelsProperty().setValue(selectedLevels);
+                        }
+                        levelsContextMenu.getItems().forEach(mi -> {
+                            LevelSelectionMenuItem levelSelectionMenuItem =
+                                    (LevelSelectionMenuItem) mi;
+                            levelSelectionMenuItem.setSelected(validatedLevels.contains(levelSelectionMenuItem.getCheckBox().getText()));
+                        });
+                    } else if (keys.equals(Keys.LOGBOOKS)) {
+                        List<String> validatedLogbookNames = getValidatedLogbooksSelection(entry.getValue());
+                        if (validatedLogbookNames.isEmpty()) {
+                            searchParameters.logbooksProperty().setValue(null);
+                        } else {
+                            String selectedLogbooks =
+                                    String.join(",", validatedLogbookNames);
+                            searchParameters.logbooksProperty().setValue(selectedLogbooks);
+                        }
+                        logbookSearchPopover.setSelected(validatedLogbookNames);
+                    } else if (keys.equals(Keys.TAGS)) {
+                        List<String> validatedTagsNames = getValidatedTagsSelection(entry.getValue());
+                        if (validatedTagsNames.isEmpty()) {
+                            searchParameters.tagsProperty().setValue(null);
+                        } else {
+                            String selectedTags = String.join(",", validatedTagsNames);
+                            searchParameters.tagsProperty().setValue(selectedTags);
+                        }
+                        tagSearchPopover.setSelected(validatedTagsNames);
                     }
-                    levelsContextMenu.getItems().forEach(mi -> {
-                        LevelSelectionMenuItem levelSelectionMenuItem =
-                                (LevelSelectionMenuItem) mi;
-                        levelSelectionMenuItem.setSelected(validatedLevels.contains(levelSelectionMenuItem.getCheckBox().getText()));
-                    });
-                } else if (keys.equals(Keys.LOGBOOKS)) {
-                    List<String> validatedLogbookNames = getValidatedLogbooksSelection(entry.getValue());
-                    if (validatedLogbookNames.isEmpty()) {
-                        searchParameters.logbooksProperty().setValue(null);
-                    } else {
-                        String selectedLogbooks =
-                                String.join(",", validatedLogbookNames);
-                        searchParameters.logbooksProperty().setValue(selectedLogbooks);
-                    }
-                    logbookSearchPopover.setSelected(validatedLogbookNames);
-                } else if (keys.equals(Keys.TAGS)) {
-                    List<String> validatedTagsNames = getValidatedTagsSelection(entry.getValue());
-                    if (validatedTagsNames.isEmpty()) {
-                        searchParameters.tagsProperty().setValue(null);
-                    } else {
-                        String selectedTags = String.join(",", validatedTagsNames);
-                        searchParameters.tagsProperty().setValue(selectedTags);
-                    }
-                    tagSearchPopover.setSelected(validatedTagsNames);
                 }
-            }
+            });
         });
     }
 
@@ -428,8 +437,8 @@ public class AdvancedSearchViewController {
         return levelsFromQueryString.stream().filter(levelsList::contains).collect(Collectors.toList());
     }
 
-    public SimpleBooleanProperty getSortAscending() {
-        return sortAscending;
+    public boolean getSortAscending() {
+        return sortOrderProperty.get().equals(SortOrder.ASCENDING);
     }
 
     private void searchOnEnter(KeyEvent e) {
@@ -440,7 +449,8 @@ public class AdvancedSearchViewController {
 
     private final ChangeListener<? super String> searchOnTextChange = (options, oldValue, newValue) -> searchCallback.run();
 
-    private final ChangeListener<? super Boolean> searchOnSortChange = (options, oldValue, newValue) -> searchCallback.run();
+    private final ChangeListener<? super SortOrder> searchOnSortChange =
+            (options, oldValue, newValue) -> searchCallback.run();
 
     private void setSelectedLevelsString() {
         selectedLevelsString.set(levelSelections.stream().filter(LevelSelection::isSelected)
@@ -498,4 +508,8 @@ public class AdvancedSearchViewController {
         }
     }
 
+    private enum SortOrder {
+        DESCENDING,
+        ASCENDING
+    }
 }

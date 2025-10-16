@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -27,6 +28,7 @@ import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.Alarm;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.Styles;
 import org.phoebus.ui.vtype.FormatOptionHandler;
@@ -49,6 +51,9 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
      *  but also read when receiving new value
      */
     private boolean active = false;
+    private volatile boolean enabled = true;
+    private final String node_id = UUID.randomUUID().toString();;
+
 
     private final DirtyFlag dirty_size = new DirtyFlag();
     private final DirtyFlag dirty_style = new DirtyFlag();
@@ -99,6 +104,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             text = new TextField();
         text.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         text.getStyleClass().add("text_entry");
+        text.setId(node_id);
 
         if (! toolkit.isEditMode())
         {
@@ -236,35 +242,37 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     /** Submit value entered by user */
     private void submit()
     {
-        // Strip 'units' etc. from text
-        final String text = jfx_node.getText();
-
-        final Object value = FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), text,
-                                                       model_widget.propFormat().getValue());
-        logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
-        toolkit.fireWrite(model_widget, value);
-
-        // Wrote value. Expected is either
-        // a) PV receives that value, PV updates to
-        //    submitted value or maybe a 'clamped' value
-        // --> We'll receive contentChanged() and display PV's latest.
-        // b) PV doesn't receive the value and never sends
-        //    an update. JFX control is stuck with the 'text'
-        //    the user entered, not reflecting the actual PV
-        // --> Request an update to the last known 'value_text'.
-        //
-        // This could result in a little flicker:
-        // User enters "new_value".
-        // We send that, but restore "old_value" to handle case b)
-        // PV finally sends "new_value", and we show that.
-        //
-        // In practice, this rarely happens because we only schedule an update.
-        // By the time it executes, we already have case a.
-        // If it does turn into a problem, could introduce toolkit.scheduleDelayedUpdate()
-        // so that case b) only restores the old 'value_text' after some delay,
-        // increasing the chance of a) to happen.
-        dirty_content.mark();
-        toolkit.scheduleUpdate(this);
+        if (enabled) {
+            // Strip 'units' etc. from text
+            final String text = jfx_node.getText();
+    
+            final Object value = FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), text,
+                                                           model_widget.propFormat().getValue());
+            logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
+            toolkit.fireWrite(model_widget, value);
+    
+            // Wrote value. Expected is either
+            // a) PV receives that value, PV updates to
+            //    submitted value or maybe a 'clamped' value
+            // --> We'll receive contentChanged() and display PV's latest.
+            // b) PV doesn't receive the value and never sends
+            //    an update. JFX control is stuck with the 'text'
+            //    the user entered, not reflecting the actual PV
+            // --> Request an update to the last known 'value_text'.
+            //
+            // This could result in a little flicker:
+            // User enters "new_value".
+            // We send that, but restore "old_value" to handle case b)
+            // PV finally sends "new_value", and we show that.
+            //
+            // In practice, this rarely happens because we only schedule an update.
+            // By the time it executes, we already have case a.
+            // If it does turn into a problem, could introduce toolkit.scheduleDelayedUpdate()
+            // so that case b) only restores the old 'value_text' after some delay,
+            // increasing the chance of a) to happen.
+            dirty_content.mark();
+            toolkit.scheduleUpdate(this);
+        }
     }
 
     @Override
@@ -342,7 +350,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
      */
     private String computeText(final VType value)
     {
-        if (value == null)
+        Alarm alarm = Alarm.alarmOf(value);
+        if (value == null || alarm.equals(Alarm.disconnected()))
             return "<" + model_widget.propPVName().getValue() + ">";
         if (value == PVWidget.RUNTIME_VALUE_NO_PV)
             return "";
@@ -399,14 +408,14 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
             // Enable if enabled by user and there's write access
-            final boolean enabled = model_widget.propEnabled().getValue()  &&
+            enabled = model_widget.propEnabled().getValue()  &&
                                     model_widget.runtimePropPVWritable().getValue();
             // Don't disable the widget, because that would also remove the
             // context menu etc.
             // Just apply a style that matches the disabled look.
             jfx_node.setEditable(enabled);
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
-            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+            setDisabledLook(enabled, jfx_node.getChildrenUnmodifiable());
+
 
             if(jfx_node instanceof TextField){
                 ((TextField)jfx_node).setAlignment(pos);
@@ -420,6 +429,13 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                 String alignment = model_widget.propHorizontalAlignment().getValue().toString().toLowerCase();
                 PseudoClass alignmentClass = PseudoClass.getPseudoClass(alignment);
                 jfx_node.pseudoClassStateChanged(alignmentClass, true);
+                
+                if (jfx_node.getScene() != null && !enabled) {
+                    // Need to get the TextArea 'content' node to set the cursor
+                    // for the whole widget otherwise it will only show on the borders.
+                    jfx_node.getScene().lookup("#"+node_id+" .content").setCursor(Cursors.NO_WRITE);
+                    jfx_node.layout();
+                }
             }
         }
         if (! active)

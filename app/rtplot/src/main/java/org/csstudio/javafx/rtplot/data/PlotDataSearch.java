@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot.data;
 
+import java.util.Date;
+import java.time.Instant;
+
 /** Search for samples in a haystack.
  *  @author Kay Kasemir
  */
@@ -124,5 +127,68 @@ public class PlotDataSearch<XTYPE extends Comparable<XTYPE>>
                 return i;
         }
         return -1;
+    }
+
+    /** Find the sample closest to the given value.
+     * @param data Data, must already be locked
+     * @param x The value to look for.
+     * @return Index of sample closest to x, or -1 if data is empty or type unsupported.
+     */
+    public int findClosestSample(final PlotDataProvider<XTYPE> data, final XTYPE x) {
+        int low = 0;
+        int high = data.size() - 1;
+
+        if (high < 0) return -1;
+
+        int bestIndex = -1;
+        double bestDistance = Double.MAX_VALUE;
+
+        double target;
+        try {
+            target = toDouble(x);
+        } catch (IllegalArgumentException e) {
+            return -1;
+        }
+
+        double distance;
+
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            PlotDataItem<XTYPE> sample = data.get(mid);
+            XTYPE sampleX = sample.getPosition();
+            int cmp = sampleX.compareTo(x);
+
+            try{
+                distance = Math.abs(toDouble(sampleX) - target);
+            } catch (IllegalArgumentException e) {
+                return -1;
+            }
+
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestIndex = mid;
+            }
+
+            if (cmp == 0) {
+                return mid;
+            } else if (cmp < 0) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        return bestIndex;
+    }
+
+    /** Convert supported XTYPE to double for distance comparison */
+    private double toDouble(XTYPE x) {
+        if (x instanceof Number)
+            return ((Number) x).doubleValue();
+        if (x instanceof Instant)
+            return ((Instant) x).toEpochMilli();
+        if (x instanceof Date)
+            return ((Date) x).getTime();
+        throw new IllegalArgumentException("Unsupported XTYPE: " + x.getClass());
     }
 }

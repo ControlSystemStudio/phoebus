@@ -572,26 +572,6 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
-    <name>Action Button_33</name>
-    <actions>
-      <action type="open_display">
-        <file>controls_knob.bob</file>
-        <target>replace</target>
-        <description>Knob</description>
-      </action>
-    </actions>
-    <x>470</x>
-    <y>440</y>
-    <width>120</width>
-    <height>26</height>
-    <scripts>
-      <script file="scripts/disable_missing.py">
-        <pv_name>loc://knob("knob")</pv_name>
-      </script>
-    </scripts>
-    <tooltip>$(actions)</tooltip>
-  </widget>
-  <widget type="action_button" version="3.0.0">
     <name>Action Button_34</name>
     <actions>
       <action type="open_display">

@@ -16,6 +16,7 @@
 package org.csstudio.scan.server.condition;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
 import org.csstudio.scan.command.Comparison;
@@ -23,6 +24,7 @@ import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.DeviceListener;
 
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.util.text.Strings;
 
 /** Condition that waits for a Device to reach a certain string value.
  *
@@ -119,6 +121,12 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
         }
     }
 
+    private boolean containsValue(String value) {
+        return Strings.parseStringList(desired_value).stream().anyMatch(
+                v -> v.equals(value) || v.equals(value.strip())  // strip input value just to be sure
+        );
+    }
+
     /** Determine if the condition is currently met
      *  @return <code>true</code> if condition is met
      *  @throws Exception on error reading from the device
@@ -140,6 +148,10 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
             return value.compareTo(desired_value) <= 0;
         case BELOW:
             return value.compareTo(desired_value) < 0;
+        case IN:
+            return containsValue(value);
+        case NOT_IN:
+            return !containsValue(value);
         default:
             throw new Error("Condition not implemented for strings: " + comparison);
         }

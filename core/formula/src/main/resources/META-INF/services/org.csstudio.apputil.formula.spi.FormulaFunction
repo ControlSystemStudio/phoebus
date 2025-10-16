@@ -59,6 +59,7 @@ org.csstudio.apputil.formula.array.ArrayScalarDivisionFunction
 org.csstudio.apputil.formula.array.ArrayInverseScalarDivisionFunction
 org.csstudio.apputil.formula.array.ArrayOfFunction
 org.csstudio.apputil.formula.array.ArrayRangeOfFunction
+org.csstudio.apputil.formula.array.ArraySampleWithLTTBFunction
 org.csstudio.apputil.formula.array.ArraySampleWithStrideFunction
 org.csstudio.apputil.formula.array.ArrayStatsFunction
 org.csstudio.apputil.formula.array.ArrayMaxFunction

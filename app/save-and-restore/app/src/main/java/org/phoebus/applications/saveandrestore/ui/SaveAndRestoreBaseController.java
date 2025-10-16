@@ -20,9 +20,9 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.property.SimpleStringProperty;
+import org.phoebus.applications.saveandrestore.authentication.SaveAndRestoreAuthenticationScope;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import java.util.List;
@@ -42,7 +42,7 @@ public abstract class SaveAndRestoreBaseController {
         try {
             SecureStore secureStore = new SecureStore();
             ScopedAuthenticationToken token =
-                    secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
+                    secureStore.getScopedAuthenticationToken(new SaveAndRestoreAuthenticationScope());
             if (token != null) {
                 userIdentity.set(token.getUsername());
             } else {
@@ -50,14 +50,14 @@ public abstract class SaveAndRestoreBaseController {
             }
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestoreBaseController.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
-                    AuthenticationScope.SAVE_AND_RESTORE.getName() + " scope", e);
+                    new SaveAndRestoreAuthenticationScope().getScope()+ " scope", e);
         }
     }
 
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         Optional<ScopedAuthenticationToken> token =
                 validTokens.stream()
-                        .filter(t -> t.getAuthenticationScope().equals(AuthenticationScope.SAVE_AND_RESTORE)).findFirst();
+                        .filter(t -> t.getAuthenticationScope().getScope().equals(new SaveAndRestoreAuthenticationScope().getScope())).findFirst();
         if (token.isPresent()) {
             userIdentity.set(token.get().getUsername());
         } else {
@@ -76,8 +76,14 @@ public abstract class SaveAndRestoreBaseController {
     protected void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> webSocketMessage){
     }
 
+    /**
+     * Performs suitable cleanup, e.g. close web socket and PVs (where applicable).
+     */
+    public abstract void handleTabClosed();
 
-    protected boolean handleTabClosed(){
-        return true;
-    }
+    /**
+     * Checks if the tab may be closed, e.g. if data managed in the UI has been saved.
+     * @return <code>false</code> if tab contains unsaved data, otherwise <code>true</code>
+     */
+    public abstract boolean doCloseCheck();
 }

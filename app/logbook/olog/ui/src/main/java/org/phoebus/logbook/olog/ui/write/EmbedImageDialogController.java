@@ -45,6 +45,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -55,26 +56,37 @@ import java.util.logging.Logger;
  */
 public class EmbedImageDialogController implements Initializable{
 
+    @SuppressWarnings("unused")
     @FXML
     private DialogPane dialogPane;
+    @SuppressWarnings("unused")
     @FXML
     private Label fileLabel;
+    @SuppressWarnings("unused")
     @FXML
     private Label widthLabel;
+    @SuppressWarnings("unused")
     @FXML
     private Label heightLabel;
+    @SuppressWarnings("unused")
     @FXML
     private Button browseButton;
+    @SuppressWarnings("unused")
     @FXML
     private Button clipboardButton;
+    @SuppressWarnings("unused")
     @FXML
     private TextField fileName;
+    @SuppressWarnings("unused")
     @FXML
     private TextField width;
+    @SuppressWarnings("unused")
     @FXML
     private TextField height;
+    @SuppressWarnings("unused")
     @FXML
     private Label scaleLabel;
+    @SuppressWarnings("unused")
     @FXML
     private TextField scale;
 
@@ -82,22 +94,22 @@ public class EmbedImageDialogController implements Initializable{
      * This is set when image is selected from file or clipboard. It is not bound to
      * a UI component.
      */
-    private IntegerProperty widthProperty = new SimpleIntegerProperty();
+    private final IntegerProperty widthProperty = new SimpleIntegerProperty();
     /**
      * This is the computed width value rendered in the UI component.
      */
-    private IntegerProperty scaledWidthProperty = new SimpleIntegerProperty();
+    private final IntegerProperty scaledWidthProperty = new SimpleIntegerProperty();
     /**
      * This is set when image is selected from file or clipboard. It is not bound to
      * a UI component.
      */
-    private IntegerProperty heightProperty = new SimpleIntegerProperty();
+    private final IntegerProperty heightProperty = new SimpleIntegerProperty();
     /**
      * This is the computed width value rendered in the UI component.
      */
-    private IntegerProperty scaledHeightProperty = new SimpleIntegerProperty();
-    private SimpleStringProperty filenameProperty = new SimpleStringProperty();
-    private DoubleProperty scaleProperty = new SimpleDoubleProperty(1.0);
+    private final IntegerProperty scaledHeightProperty = new SimpleIntegerProperty();
+    private final SimpleStringProperty filenameProperty = new SimpleStringProperty();
+    private final DoubleProperty scaleProperty = new SimpleDoubleProperty(1.0);
 
     private String id;
 
@@ -127,13 +139,14 @@ public class EmbedImageDialogController implements Initializable{
         dialogPane.lookupButton(ButtonType.OK).disableProperty().bind(okButtonBinding);
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void browse(){
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(Messages.SelectFile);
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Image files (jpg, png, gif)", "*.jpg", "*.png", "*.gif"),
-                new FileChooser.ExtensionFilter("All files", "*.*")
+                new FileChooser.ExtensionFilter("Image files (jpg, jpeg, png, gif)", "*.jpg", "*.jpeg", "*.png", "*.gif")
+
         );
 
         File file = fileChooser.showOpenDialog(dialogPane.getScene().getWindow());
@@ -152,6 +165,7 @@ public class EmbedImageDialogController implements Initializable{
         }
     }
 
+    @SuppressWarnings("unused")
     @FXML
     public void pasteClipboard(){
         image = Clipboard.getSystemClipboard().getImage();

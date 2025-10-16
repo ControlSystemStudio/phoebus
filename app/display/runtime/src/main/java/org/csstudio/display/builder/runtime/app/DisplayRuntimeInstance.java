@@ -244,9 +244,22 @@ public class DisplayRuntimeInstance implements AppInstance
     {
         memento.getString(TAG_ZOOM).ifPresent(level ->
         {
-            // Simulate user input: Set value, invoke handler
-            zoom_action.setValue(level);
-            zoom_action.getOnAction().handle(null);
+            Platform.runLater(() -> {
+                // Simulate user input: Set value, invoke handler
+                //
+                // Run this inside Platform.runLater(), since
+                // the constructor of ZoomAction also sets the zoom-
+                // level (to the value set by the option
+                // 'default_zoom_factor', which by default is set
+                // to 100%) using Platform.runLater(). When
+                // restoring an instance of Display Runtime,
+                // DisplayRuntime.restore() is called _after_
+                // the constructor of ZoomAction is called and
+                // Platform.runLater() preserves the relative
+                // ordering of Runnables when running them.
+                zoom_action.setValue(level);
+                zoom_action.getOnAction().handle(null);
+            });
         });
         memento.getBoolean(TAG_TOOLBAR).ifPresent(this::showToolbar);
     }

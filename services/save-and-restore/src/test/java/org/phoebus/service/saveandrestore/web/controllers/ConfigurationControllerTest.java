@@ -49,6 +49,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.reset;
@@ -104,6 +105,9 @@ public class ConfigurationControllerTest {
         configurationData.setPvList(List.of(ConfigPv.builder().pvName("foo").readbackPvName("bar").build()));
 
         configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.anyString(), Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON).content(objectMapper.writeValueAsString(configuration));
@@ -118,6 +122,12 @@ public class ConfigurationControllerTest {
 
         Configuration configuration = new Configuration();
         configuration.setConfigurationNode(Node.builder().build());
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(Collections.emptyList());
+        configuration.setConfigurationData(configurationData);
+
+        when(nodeDAO.createConfiguration(Mockito.anyString(), Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
 
         MockHttpServletRequestBuilder request = put("/config?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
@@ -167,6 +177,8 @@ public class ConfigurationControllerTest {
         configuration.setConfigurationNode(configurationNode);
 
         when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
+        when(nodeDAO.updateConfiguration(Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
 
         MockHttpServletRequestBuilder request = post("/config")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
@@ -186,6 +198,8 @@ public class ConfigurationControllerTest {
         configuration.setConfigurationNode(configurationNode);
 
         when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
+        when(nodeDAO.updateConfiguration(Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
 
         MockHttpServletRequestBuilder request = post("/config")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
@@ -204,6 +218,8 @@ public class ConfigurationControllerTest {
         configuration.setConfigurationNode(configurationNode);
 
         when(nodeDAO.getNode("uniqueId")).thenReturn(configurationNode);
+        when(nodeDAO.updateConfiguration(Mockito.any(Configuration.class)))
+                .thenReturn(configuration);
 
         MockHttpServletRequestBuilder request = post("/config")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
