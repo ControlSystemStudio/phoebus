@@ -6,7 +6,6 @@ import javafx.stage.Stage;
 import org.phoebus.ui.Preferences;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Helper class to manage the window title.
