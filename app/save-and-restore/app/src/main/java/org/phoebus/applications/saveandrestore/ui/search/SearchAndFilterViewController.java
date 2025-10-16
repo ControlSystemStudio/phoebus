@@ -208,6 +208,8 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
 
     private final SimpleBooleanProperty goldenOnlyProperty = new SimpleBooleanProperty();
 
+    private final SimpleStringProperty referencedProperty = new SimpleStringProperty();
+
     private static final Logger LOGGER = Logger.getLogger(SearchAndFilterViewController.class.getName());
 
     private final SimpleBooleanProperty disableUi = new SimpleBooleanProperty();
@@ -534,6 +536,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
                 map.put(Keys.TAGS.getName(), tags + "," + Tag.GOLDEN);
             }
         }
+        if (referencedProperty.get() != null && !referencedProperty.get().trim().isEmpty()) {
+            map.put(Keys.REFERENCED.getName(), referencedProperty.get());
+        }
         return SearchQueryUtil.toQueryString(map);
     }
 
@@ -648,11 +653,18 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
         }
     }
 
-    public void filterActivated(String filterName){
-
+    @Override
+    public void handleTabClosed() {
+        webSocketClientService.removeWebSocketMessageHandler(this);
     }
 
-    public void filterDeactivated(String filterName){
+    @Override
+    public boolean doCloseCheck() {
+        return true;
+    }
 
+    public void findReferencesForSnapshot(String nodeId) {
+        referencedProperty.setValue(nodeId);
+        updateParametersAndSearch();
     }
 }

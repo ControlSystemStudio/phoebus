@@ -342,17 +342,13 @@ class ChannelSearch
         }
     }
 
-    /** List of channels to search, re-used within runSearches */
-    private final ArrayList<PVAChannel> to_search = new ArrayList<>();
-
     /** Invoked by timer: Check searched channels for the next one to handle */
-    @SuppressWarnings("unchecked")
     private void runSearches()
     {
         // Determine current search bucket
         final int current = current_search_bucket.getAndUpdate(i -> (i + 1) % search_buckets.size());
         // Collect channels to be searched while sync'ed
-        to_search.clear();
+        final ArrayList<SearchRequest.Channel> to_search = new ArrayList<>();
         synchronized (this)
         {
             final Set<SearchedChannel> bucket = search_buckets.get(current);
@@ -406,7 +402,7 @@ class ChannelSearch
             int count = 0;
             while (start + count < to_search.size()  &&  count < Short.MAX_VALUE-1)
             {
-                final PVAChannel channel = to_search.get(start + count);
+                final SearchRequest.Channel channel = to_search.get(start + count);
                 int size = 4 + PVAString.getEncodedSize(channel.getName());
                 if (payload + size < MAX_SEARCH_PAYLOAD)
                 {
@@ -428,9 +424,9 @@ class ChannelSearch
             if (count == 0)
                 break;
 
-            final List<PVAChannel> batch = to_search.subList(start, start + count);
-            // PVAChannel extends SearchRequest.Channel, so use List<PVAChannel> as Collection<SR.Channel>
-            search((Collection<SearchRequest.Channel>) (List<? extends SearchRequest.Channel>)batch);
+            // Submit one batch from 'to_search'
+            final List<SearchRequest.Channel> batch = to_search.subList(start, start + count);
+            search(batch);
             start += count;
         }
     }

@@ -30,9 +30,9 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
-import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.security.authorization.AuthenticationStatus;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
@@ -248,10 +248,9 @@ public interface SaveAndRestoreClient {
      *
      * @param userName User's account name
      * @param password User's password
-     * @return A {@link UserData} object if login is successful, otherwise implementation should throw
-     * an exception.
+     * @return An {@link AuthenticationStatus} to indicate the outcome of the login attempt.
      */
-    UserData authenticate(String userName, String password);
+    AuthenticationStatus authenticate(String userName, String password);
 
     /**
      * Requests service to restore the specified {@link SnapshotItem}s

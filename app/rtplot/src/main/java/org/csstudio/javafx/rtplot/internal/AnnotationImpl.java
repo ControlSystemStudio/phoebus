@@ -43,6 +43,8 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
 
     private static final Stroke DASH = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[] { 3f, 3f }, 1.0f);
 
+    private boolean searchLessOrEqual;
+
     /** What part of this annotation has been selected by the mouse? */
     public static enum Selection
     {   /** Nothing */
@@ -65,6 +67,7 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
     public AnnotationImpl(final boolean internal, final Trace<XTYPE> trace, final XTYPE position, final double value, final Point2D offset, final String text)
     {
         super(internal, trace, position, value, offset, text);
+        searchLessOrEqual = true;
     }
 
     /** Set to new position
@@ -179,7 +182,15 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
             throw new TimeoutException("Cannot update annotation, no lock on " + data);
         try
         {
-            final int index = search.findSampleLessOrEqual(data, location);
+            final int index;
+            if (searchLessOrEqual){
+                index = search.findSampleLessOrEqual(data, location);
+            }
+            else{
+                index = search.findSampleGreaterOrEqual(data, location);
+            }
+            searchLessOrEqual = !searchLessOrEqual;
+
             if (index < 0)
                 return false;
             final PlotDataItem<XTYPE> sample = data.get(index);

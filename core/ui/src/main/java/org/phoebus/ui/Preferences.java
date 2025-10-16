@@ -93,6 +93,8 @@ public class Preferences
     /** cache_hint_for_picture_and_symbol_widgets */
     @Preference public static String cache_hint_for_picture_and_symbol_widgets;
     @Preference public static boolean save_credentials;
+    /** documentation_location */
+    @Preference public static String documentation_location;
 
     static
     {

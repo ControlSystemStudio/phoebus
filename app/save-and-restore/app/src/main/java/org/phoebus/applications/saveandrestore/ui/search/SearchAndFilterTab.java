@@ -25,7 +25,6 @@ import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.javafx.ImageCache;
@@ -65,7 +64,7 @@ public class SearchAndFilterTab extends SaveAndRestoreTab {
             Node node = loader.load();
             controller = loader.getController();
             setContent(node);
-            setOnCloseRequest(event -> ((SearchAndFilterViewController)controller).handleSaveAndFilterTabClosed());
+            setOnCloseRequest(event -> ((SearchAndFilterViewController) controller).handleSaveAndFilterTabClosed());
         } catch (IOException e) {
             Logger.getLogger(SearchAndFilterTab.class.getName())
                     .log(Level.SEVERE, "Unable to load search tab content fxml", e);
@@ -76,11 +75,7 @@ public class SearchAndFilterTab extends SaveAndRestoreTab {
         setGraphic(new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search_18x18.png")));
     }
 
-    public void filterActivated(String filterName){
-        ((SearchAndFilterViewController)controller).filterActivated(filterName);
-    }
-
-    public void filterDeactivated(String filterName){
-        ((SearchAndFilterViewController)controller).filterDeactivated(filterName);
+    public SearchAndFilterViewController getController() {
+        return (SearchAndFilterViewController) controller;
     }
 }

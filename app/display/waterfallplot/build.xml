@@ -1,0 +1,25 @@
+<project default="app-display-waterfallplot">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-display-waterfallplot">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
+        <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
+        <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
+        <pathelement path="../runtime/${build}/app-display-runtime-${version}.jar"/>
+        <pathelement path="../../databrowser/${build}/app-databrowser-${version}.jar"/>
+        <pathelement path="../../rtplot/${build}/app-rtplot-${version}.jar"/>
+      </classpath>
+    </javac>
+
+    <jar destfile="${build}/app-display-waterfallplot-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+
+</project>

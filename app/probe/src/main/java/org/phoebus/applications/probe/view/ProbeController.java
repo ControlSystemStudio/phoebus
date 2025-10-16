@@ -345,6 +345,7 @@ public class ProbeController {
         else if (value instanceof VNumber)
         {
             final Display dis = ((VNumber) value).getDisplay();
+            buf.append(Messages.Description).append(dis.getDescription()).append("\n");
             buf.append(Messages.Units).append(dis.getUnit()).append("\n");
             buf.append(Messages.Format).append(dis.getFormat().format(0.123456789)).append("\n");
             buf.append(Messages.DisplayRange).append(dis.getDisplayRange().getMinimum()).append(" .. ").append(dis.getDisplayRange().getMaximum()).append("\n");

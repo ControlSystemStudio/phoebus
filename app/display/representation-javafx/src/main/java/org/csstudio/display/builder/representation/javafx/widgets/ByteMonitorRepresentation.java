@@ -447,5 +447,14 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 }
             }
         }
+
+        if (jfx_node != null) {
+            jfx_node.layout();
+        }
+        for (Label label : labels) {
+            if (label != null) {
+                label.layout();
+            }
+        }
     }
 }

@@ -51,6 +51,7 @@ import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import javafx.util.converter.DoubleStringConverter;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.ComparisonMode;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -66,6 +67,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
@@ -85,7 +87,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
     @FXML
     @SuppressWarnings("unused")
-    private BorderPane root;
+    private BorderPane borderPane;
 
     @FXML
     @SuppressWarnings("unused")
@@ -349,7 +351,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
         descriptionChangeListener = (observableValue, oldValue, newValue) -> dirty.setValue(true);
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
-                        configurationDescriptionProperty.isEmpty().get() ||
+                        (!Preferences.allow_empty_descriptions && configurationDescriptionProperty.isEmpty().get()) ||
                         configurationNameProperty.isEmpty().get() ||
                         userIdentity.isNull().get(),
                 dirty, configurationDescriptionProperty, configurationNameProperty, userIdentity));
@@ -484,7 +486,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             try {
                 configurationData = saveAndRestoreService.getConfiguration(node.getUniqueId());
             } catch (Exception e) {
-                Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e));
+                Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(borderPane, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e));
                 return;
             }
 
@@ -512,24 +514,28 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     }
 
     /**
-     * Handles clean-up when the associated {@link ConfigurationTab} is closed.
      * A check is made if content is dirty, in which case user is prompted to cancel or close anyway.
      *
      * @return <code>true</code> if content is not dirty or user chooses to close anyway,
      * otherwise <code>false</code>.
      */
     @Override
-    public boolean handleTabClosed() {
+    public boolean doCloseCheck() {
         if (dirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle(Messages.closeTabPrompt);
+            alert.setTitle(Messages.closeConfigurationTabPrompt);
             alert.setContentText(Messages.closeConfigurationWarning);
+            DialogHelper.positionDialog(alert, borderPane, -200, -200);
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
-        } else {
-            webSocketClientService.removeWebSocketMessageHandler(this);
-            return true;
         }
+
+        return true;
+    }
+
+    @Override
+    public void handleTabClosed(){
+        webSocketClientService.removeWebSocketMessageHandler(this);
     }
 
     @Override

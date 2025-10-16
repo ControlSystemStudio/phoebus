@@ -34,7 +34,6 @@ import org.epics.pva.common.SecureSockets.TLSHandshakeInfo;;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class ServerTCPListener
 {
     private final ExecutorService thread_pool = Executors.newCachedThreadPool(runnable ->
@@ -222,12 +221,13 @@ class ServerTCPListener
                     {   // Check TLS
                         final Socket client = tls_server_socket.accept();
                         TLSHandshakeInfo tls_info = null;
-                        if (client instanceof SSLSocket)
+                        if (client instanceof SSLSocket ssl_client)
                         {
                             logger.log(Level.FINE, () -> Thread.currentThread().getName() + " accepted TLS client " + client.getRemoteSocketAddress());
                             try
                             {
-                                tls_info = TLSHandshakeInfo.fromSocket((SSLSocket) client);
+                                tls_info = TLSHandshakeInfo.fromSocket(ssl_client);
+                                logger.log(Level.FINE, "Client TLS info: " + tls_info);
                             }
                             catch (SSLHandshakeException ssl)
                             {

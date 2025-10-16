@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,7 +45,6 @@ import org.phoebus.framework.macros.Macros;
 /** Widget with tabs to select amongst several embedded displays
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class NavigationTabsWidget extends VisibleWidget
 {
     /** Widget descriptor */
@@ -210,7 +209,7 @@ public class NavigationTabsWidget extends VisibleWidget
     {
         final Macros base = super.getEffectiveMacros();
         // Join macros of active tab
-        final int index;
+        int index;
 
         // To fetch the effective macros, we want to add those of the selected tab.
         // But if we get the tab index via active.getValue(), AND 'active' itself contains macros,
@@ -228,7 +227,13 @@ public class NavigationTabsWidget extends VisibleWidget
             return base;
         }
 
-        if (index >= 0  &&  index < tabs.size())
+        if (index >= tabs.size())
+        {
+            logger.log(Level.WARNING, this + " active tab " + index + " needs to be within 0 ... " + (tabs.size() - 1));
+            index = tabs.size()-1;
+        }
+
+        if (index >= 0)
             try
             {
                 final Macros selected = tabs.getElement(index).macros().getValue();

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
+import org.phoebus.applications.saveandrestore.authentication.SaveAndRestoreAuthenticationScope;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
@@ -23,15 +24,15 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
-import org.phoebus.applications.saveandrestore.model.UserData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.QueryParamsHelper;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.ConnectException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -42,7 +43,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,7 +80,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     private String getBasicAuthenticationHeader() {
         try {
             SecureStore store = new SecureStore();
-            ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
+            ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(new SaveAndRestoreAuthenticationScope());
             if (scopedAuthenticationToken != null) {
                 String username = scopedAuthenticationToken.getUsername();
                 String password = scopedAuthenticationToken.getPassword();
@@ -577,20 +577,28 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
      * @return {@inheritDoc}
      */
     @Override
-    public UserData authenticate(String userName, String password) {
+    public AuthenticationStatus authenticate(String userName, String password) {
+        String stringBuilder = Preferences.jmasarServiceUrl +
+                "/login";
         try {
-            String stringBuilder = Preferences.jmasarServiceUrl +
-                    "/login";
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(stringBuilder))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(new LoginCredentials(userName, password))))
                     .build();
             HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-            return OBJECT_MAPPER.readValue(response.body(), UserData.class);
+            if (response.statusCode() == 401) {
+                LOGGER.log(Level.WARNING, "User not authenticated with save&restore service");
+                return AuthenticationStatus.BAD_CREDENTIALS;
+            }
+        } catch (ConnectException e) {
+            LOGGER.log(Level.WARNING, "Cannot connect to save&restore service");
+            return AuthenticationStatus.SERVICE_OFFLINE;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            LOGGER.log(Level.WARNING, "Unable to send authentication request to service, reason unknown");
+            return AuthenticationStatus.UNKNOWN_ERROR;
         }
+        return AuthenticationStatus.AUTHENTICATED;
     }
 
     /**

@@ -21,6 +21,7 @@
     <module>adapters</module>
     <module>thumbwheel</module>
     <module>linearmeter</module>
+    <module>waterfallplot</module>
     <module>actions</module>
   </modules>
 </project>

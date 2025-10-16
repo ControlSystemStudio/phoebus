@@ -23,6 +23,7 @@ public class Messages
     public static String ControlRange;
     public static String Copy;
     public static String CopyWithValue;
+    public static String Description;
     public static String DisplayRange;
     public static String EnumLbls;
     public static String Format;

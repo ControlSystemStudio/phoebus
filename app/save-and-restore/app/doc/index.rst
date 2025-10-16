@@ -88,7 +88,8 @@ Brief description of all items in the context menu (details on actions are outli
 * Restore from client - restore a snapshot or composite snapshot from the client application.
 * Restore from service - restore a snapshot or composite snapshot from the service.
 * Edit - edit a configuration.
-* Rename - rename a folder or configuration.
+* Find references - locates composite snapshot nodes referencing the selected node.
+* Rename - rename a folder.
 * Copy - put selected items on clipboard.
 * Paste - paste items from clipboard.
 * Delete - delete selected items.
@@ -324,12 +325,25 @@ Prior to restore user has the option to:
 
 Restoring from a composite snapshot works in the same manner as the restore operation from a single-snapshot.
 
+Filter PV items in list
+^^^^^^^^^^^^^^^^^^^^^^^
+The list of items in the snapshot view can be filtered based on the PV name. See screenshot for highlighted UI element
+where user may specify a string pattern to match PV names. Non-matching items will be hidden from the list view and
+**also excluded from a restore operation**.
+
+To filter the view without excluding PV items from a restore operation, user needs to tick the “Preserve selection…” checkbox.
+
+.. image:: images/filter-pv-items.png
+   :width: 80%
+
+
 Restore from context menu
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 User may invoke a restore operation (from client or from service) from context menu items in the tree
-view or in the search-and-filer view. In this case user will not have the possibility to unselect specific PVs.
-However, PV items configured as read-only will not be restored.
+view or in the search-and-filter view. In this case user will not have the possibility to deselect specific PVs.
+Filtering/exclusion based on PV name will not be possible either.
+However, PV items configured as read-only will always be excluded from a restore operation.
 
 Restore result
 ^^^^^^^^^^^^^^

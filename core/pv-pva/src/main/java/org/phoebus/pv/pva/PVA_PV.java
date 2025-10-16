@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,7 +44,9 @@ public class PVA_PV extends PV
         // Analyze base_name, determine channel and request
         name_helper = PVNameHelper.forName(base_name);
         logger.log(Level.FINE, () -> "PVA '" + base_name + "' -> " + name_helper);
-        channel = PVA_Context.getInstance().getClient().getChannel(name_helper.getChannel(), this::channelStateChanged);
+        channel = PVA_Context.getInstance().getClient().getChannel(name_helper.getChannel(),
+                                                                   this::channelStateChanged,
+                                                                   this::accessRightsChanged);
     }
 
     private void channelStateChanged(final PVAChannel channel, final ClientChannelState state)
@@ -65,6 +67,11 @@ public class PVA_PV extends PV
             // Was connected, so now disconnected
             notifyListenersOfDisconnect();
         }
+    }
+
+    private void accessRightsChanged(final PVAChannel channel, final boolean is_writable)
+    {
+        notifyListenersOfPermissions(! is_writable);
     }
 
     private void handleMonitor(final PVAChannel channel,

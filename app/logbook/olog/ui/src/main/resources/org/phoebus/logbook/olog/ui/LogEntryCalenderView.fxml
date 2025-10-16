@@ -3,36 +3,54 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<SplitPane dividerPositions="0.6020066889632107" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="302.0" prefWidth="333.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCalenderViewController">
+<SplitPane dividerPositions="0.6020066889632107" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="435.0" prefWidth="688.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCalenderViewController">
     <items>
         <fx:include fx:id="advancedSearchView" source="AdvancedSearchView.fxml" />
-        <GridPane fx:id="ViewSearchPane">
-            <columnConstraints>
-                <ColumnConstraints minWidth="10.0" prefWidth="60.0" />
-                <ColumnConstraints  minWidth="10.0" />
-                <ColumnConstraints minWidth="10.0" prefWidth="60" hgrow="ALWAYS"/>
-                <ColumnConstraints minWidth="10.0" prefWidth="60" />
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" />
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-            </rowConstraints>
+        <StackPane>
             <children>
-                <Button fx:id="resize" alignment="TOP_LEFT" contentDisplay="TOP" mnemonicParsing="false" onMouseClicked="#resize" prefHeight="25.0" prefWidth="25.0" text="&gt;" />
-                <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" text="Query: " GridPane.columnIndex="1" />
-                <ComboBox fx:id="query" editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
-                    <GridPane.margin>
-                        <Insets bottom="10.0" top="10.0" />
-                    </GridPane.margin>
-                </ComboBox>
-                <Button fx:id="search" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#search" prefHeight="25.0" text="search" GridPane.columnIndex="3">
-                    <GridPane.margin>
-                        <Insets left="3.0" />
-                    </GridPane.margin>
-                </Button>
-                <AnchorPane fx:id="agendaPane" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" HBox.hgrow="ALWAYS" />
+                <GridPane fx:id="viewSearchPane">
+                    <columnConstraints>
+                        <ColumnConstraints />
+                        <ColumnConstraints />
+                        <ColumnConstraints />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                    <ColumnConstraints />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+                    </rowConstraints>
+                    <children>
+                        <Button fx:id="resize" alignment="TOP_LEFT" contentDisplay="TOP" mnemonicParsing="false" onMouseClicked="#resize" prefHeight="25.0" prefWidth="25.0" text="&gt;" GridPane.columnIndex="1" />
+                        <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" text="Query: " GridPane.columnIndex="2">
+                       <GridPane.margin>
+                          <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                       </GridPane.margin></Label>
+                        <ComboBox fx:id="query" editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
+                            <GridPane.margin>
+                                <Insets bottom="10.0" top="10.0" />
+                            </GridPane.margin>
+                        </ComboBox>
+                        <Button fx:id="search" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#search" prefHeight="25.0" text="search" GridPane.columnIndex="4">
+                            <GridPane.margin>
+                                <Insets left="3.0" />
+                            </GridPane.margin>
+                        </Button>
+                        <AnchorPane fx:id="agendaPane" GridPane.columnSpan="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" HBox.hgrow="ALWAYS" />
+                    </children>
+                </GridPane>
+                <VBox fx:id="errorPane" alignment="CENTER" visible="false">
+                    <children>
+                        <Label text="%LogbookServiceUnavailable" GridPane.halignment="CENTER" GridPane.valignment="BOTTOM">
+                            <font>
+                                <Font size="15.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </VBox>
             </children>
-        </GridPane>
+        </StackPane>
     </items>
 </SplitPane>

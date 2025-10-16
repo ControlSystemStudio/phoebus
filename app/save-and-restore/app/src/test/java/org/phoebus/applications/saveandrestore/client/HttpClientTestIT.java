@@ -11,6 +11,7 @@ import org.epics.vtype.VInt;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.phoebus.applications.saveandrestore.authentication.SaveAndRestoreAuthenticationScope;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -34,6 +35,7 @@ import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.ConnectException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,7 +65,7 @@ public class HttpClientTestIT {
         try {
             SecureStore store = new SecureStore();
             ScopedAuthenticationToken scopedAuthenticationToken =
-                    new ScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE, "admin", "adminPass");
+                    new ScopedAuthenticationToken(new SaveAndRestoreAuthenticationScope(), "admin", "adminPass");
             store.setScopedAuthentication(scopedAuthenticationToken);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -90,7 +92,7 @@ public class HttpClientTestIT {
     }
 
     @Test
-    public void testAuthenticate() {
+    public void testAuthenticate() throws Exception {
         saveAndRestoreClient.authenticate("admin", "adminPass");
     }
 
