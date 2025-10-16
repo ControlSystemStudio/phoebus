@@ -95,6 +95,10 @@ public class Preferences
     @Preference public static boolean save_credentials;
     /** documentation_location */
     @Preference public static String documentation_location;
+    /** window_title_format **/
+    @Preference public static String window_title_format;
+    /** default_window_title **/
+    @Preference public static String default_window_title;
 
     static
     {

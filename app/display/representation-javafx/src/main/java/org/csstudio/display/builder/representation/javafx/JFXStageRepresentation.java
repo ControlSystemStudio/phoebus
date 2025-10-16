@@ -49,7 +49,6 @@ public class JFXStageRepresentation extends JFXRepresentation
     public Parent configureStage(final DisplayModel model, final Consumer<DisplayModel> close_request_handler)
     {
         final String name = model.getDisplayName();
-        stage.setTitle(name);
 
         //  The following trick is necessary because keys cannot be longer than 80 characters.
         final String hexName = Integer.toHexString(name.hashCode()).toLowerCase();
