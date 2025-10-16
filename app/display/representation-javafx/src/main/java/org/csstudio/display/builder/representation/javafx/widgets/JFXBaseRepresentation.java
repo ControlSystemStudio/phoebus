@@ -27,7 +27,6 @@ import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.WidgetRepresentation;
 import org.csstudio.display.builder.representation.javafx.Cursors;
-import org.csstudio.display.builder.representation.javafx.JFXPreferences;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 
 import javafx.collections.ObservableList;
@@ -375,28 +374,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
             if (children != null) {
                 for (Node node : children)
                 {
-                    // Apply default 'not_enabled' style
                     Styles.update(node, Styles.NOT_ENABLED, !enabled);
-                    Boolean useCustomStyling = !JFXPreferences.not_enabled_style.equals("");
-                    if (useCustomStyling)
-                    {
-                        // Remove 'default' not_enabled styling
-                        Styles.update(node, Styles.NOT_ENABLED, false);
-                        String customCss = "/*CustomCSS START*/" + JFXPreferences.not_enabled_style
-                                + "/*END*/";
-                        
-                        if (!enabled)
-                        {
-                            // Apply users 'not enabled' style
-                            node.setStyle(node.getStyle()+customCss);
-                        }    
-                        else 
-                        {
-                            // Remove the users disabled style from the current style
-                            String removeDisabled = node.getStyle().replace(customCss, "");
-                            node.setStyle(removeDisabled);
-                        }
-                    }
                 }   
             }
         }
