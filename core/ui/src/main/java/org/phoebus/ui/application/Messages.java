@@ -50,7 +50,6 @@ public class Messages
     public static String File;
     public static String FileDoesNotExist;
     public static String FileExists;
-    public static String FixedTitle;
     public static String Help;
     public static String HelpAbout;
     public static String HelpAboutAppFea;

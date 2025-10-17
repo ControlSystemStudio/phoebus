@@ -520,11 +520,6 @@ public class DockPane extends TabPane
                 throw new IllegalStateException("Expected DockItem, got " + tab);
             stage.titleProperty().bind(((DockItem)tab).labelTextProperty());
         }
-        else
-        {   // Fixed title
-            stage.titleProperty().unbind();
-            stage.setTitle(Messages.FixedTitle);
-        }
     }
 
     /** @param tabs One or more tabs to add */
@@ -533,6 +528,8 @@ public class DockPane extends TabPane
         getTabs().addAll(tabs);
         // Select the newly added tab
         getSelectionModel().select(getTabs().size()-1);
+        // Set this as the active dock pane
+        setActiveDockPane(this);
     }
 
     /** @return All {@link DockItem}s in this pane (safe copy) */
