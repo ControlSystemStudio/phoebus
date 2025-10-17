@@ -1,4 +1,3 @@
-
 Process Variables
 =================
 
@@ -20,11 +19,9 @@ Examples::
     ca://SomePVName
     SomeMotor.RBV
 
-Channel Access settings are configured via :ref:`preference_settings`, most important::
-    
-    # Channel Access address list
-    org.phoebus.pv.ca/addr_list=...
-    
+Channel Access settings are configured via settings
+under the :prefs:pack:`org.phoebus.pv.ca` package,
+such as :prefs:pref:`org.phoebus.pv.ca/addr_list`.
 
 PV Access
 ---------

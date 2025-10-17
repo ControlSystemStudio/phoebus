@@ -146,6 +146,10 @@ change these settings in your :ref:`preference_settings`  ::
     org.phoebus.archive.reader.rdb/user=report
     org.phoebus.archive.reader.rdb/password=$report
 
+See the :prefs:pack:`org.csstudio.trends.databrowser3`
+and :prefs:pack:`org.phoebus.archive.reader.rdb` preferences
+for more information.
+
 The ``MySQL.dbd`` used to install the archive tables adds a few demo samples
 for ``sim://sine(0, 10, 50, 0.1)`` around 2004-01-10 13:01, so you can simply
 add that channel to a Data Browser and find data at that time.
@@ -221,9 +225,8 @@ To start the archive engine for a configuration::
 The engine name ('Demo') needs to match a previously imported configuration name,
 and the port number (4812) needs to match the port number used when importing the configuration.
 
-The settings (my_settings.ini) typically contain the EPICS CA address list settings
-as well as archive engine configuration details, see archive engine settings
-in :ref:`preference_settings`.
+The settings (``my_settings.ini``) typically contain the EPICS CA address list settings
+as well as archive engine configuration details, see the :prefs:pack:`org.csstudio.archive` settings.
 
 In a production setup, the archive engine is best run under ``procServ``
 (https://github.com/ralphlange/procServ).
