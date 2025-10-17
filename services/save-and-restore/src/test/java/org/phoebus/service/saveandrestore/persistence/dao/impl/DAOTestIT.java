@@ -400,6 +400,7 @@ public class DAOTestIT {
         assertEquals(compositeSnapshotNode.getUniqueId(), compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
         assertEquals("Updated name", compositeSnapshot.getCompositeSnapshotNode().getName());
         assertEquals("Updated description", compositeSnapshot.getCompositeSnapshotNode().getDescription());
+        assertEquals(compositeSnapshotNode.getUniqueId(), compositeSnapshot.getCompositeSnapshotData().getUniqueId());
         assertEquals(2, compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes().size());
 
         nodeDAO.deleteNodes(List.of(compositeSnapshot.getCompositeSnapshotNode().getUniqueId()));
@@ -563,6 +564,7 @@ public class DAOTestIT {
         snapshotNode = snapshot.getSnapshotNode();
         assertEquals("other snapshot name", snapshotNode.getName());
         assertEquals("other comment", snapshotNode.getDescription());
+        assertEquals(snapshot.getSnapshotNode().getUniqueId(), snapshot.getSnapshotData().getUniqueId());
 
     }
 
@@ -810,8 +812,11 @@ public class DAOTestIT {
         configuration.setConfigurationData(configurationData);
 
         configuration = nodeDAO.updateConfiguration(configuration);
+
+        assertEquals(configuration.getConfigurationNode().getUniqueId(), configuration.getConfigurationData().getUniqueId());
         // Verify the list of PVs
         assertEquals(3, configuration.getConfigurationData().getPvList().size());
+
     }
 
     @Test
