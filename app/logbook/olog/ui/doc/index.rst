@@ -21,6 +21,12 @@ Features
 
 - Log entry viewers offer search capabilities based on meta data and content.
 
+Missing features
+----------------
+In contrast to other markup implementations, HTML tags are **not** supported. Any such tags entered by user will
+be rendered as plain text.
+
+
 Launching the log entry editor
 ------------------------------
 The log entry editor is launched as a non-modal window using one of the following methods:

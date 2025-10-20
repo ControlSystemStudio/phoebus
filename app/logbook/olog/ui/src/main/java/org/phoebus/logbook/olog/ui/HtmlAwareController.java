@@ -29,30 +29,38 @@ import java.util.List;
 
 public class HtmlAwareController {
 
-    private Parser parser;
-    private HtmlRenderer htmlRenderer;
+    private final Parser parser;
+    private final HtmlRenderer htmlRenderer;
 
+    /**
+     * Constructor to generate html code for HTML preview feature in LogEntryEditor or detailed log entry view.
+     * @param serviceUrl Olog service url
+     */
     public HtmlAwareController(String serviceUrl){
-        List<Extension> extensions =
-                Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
-        this.parser = Parser.builder().extensions(extensions).build();
-        htmlRenderer = HtmlRenderer.builder()
-                .attributeProviderFactory(context -> new OlogAttributeProvider(serviceUrl))
-                .extensions(extensions).build();
+       this(new OlogAttributeProvider(serviceUrl));
     }
 
     /**
-     * To create HtmlAwareController object to generate html code for HTML preview feature in LogEntryEditor.
+     * Constructor to generate html code for HTML preview feature in LogEntryEditor or detailed log entry view.
      * @param serviceUrl Olog service url.
      * @param preview Set true when preview button is clicked.
      * @param attachments The current attachments list from AttachmentsEditorController.
      */
     public HtmlAwareController(String serviceUrl, boolean preview, List<Attachment> attachments){
+       this(new OlogAttributeProvider(serviceUrl, preview, attachments));
+    }
+
+    /**
+     * Private constructor to avoid code duplication.
+     * @param ologAttributeProvider The {@link OlogAttributeProvider} particular to the use case.
+     */
+    private HtmlAwareController(OlogAttributeProvider ologAttributeProvider){
         List<Extension> extensions =
                 Arrays.asList(TablesExtension.create(), ImageAttributesExtension.create());
         this.parser = Parser.builder().extensions(extensions).build();
         htmlRenderer = HtmlRenderer.builder()
-                .attributeProviderFactory(context -> new OlogAttributeProvider(serviceUrl, preview, attachments))
+                .escapeHtml(true)
+                .attributeProviderFactory(context -> ologAttributeProvider)
                 .extensions(extensions).build();
     }
 
