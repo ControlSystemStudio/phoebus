@@ -148,7 +148,7 @@ public class DisplayRuntimeInstance implements AppInstance
 
         new ContextMenuSupport(this);
 
-        if (last_toolbar_visible)
+        if (last_toolbar_visible && !dock_pane.isStandAloneWindow())
             layout.setTop(toolbar);
 
         layout.setCenter(representation.createModelRoot());

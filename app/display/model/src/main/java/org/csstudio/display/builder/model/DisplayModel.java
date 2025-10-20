@@ -144,6 +144,7 @@ public class DisplayModel extends Widget
     private volatile WidgetProperty<Integer> gridStepX;
     private volatile WidgetProperty<Integer> gridStepY;
     private volatile ChildrenProperty children;
+    private boolean standalone;
 
     /** Create display model */
     public DisplayModel()
@@ -155,6 +156,16 @@ public class DisplayModel extends Widget
     public Version getVersion()
     {
         return VERSION;
+    }
+    
+    public boolean isStandAlone()
+    {
+        return standalone;
+    }
+    
+    public void setStandAlone(boolean standalone)
+    {
+        this.standalone = standalone;
     }
 
     /** Get display name

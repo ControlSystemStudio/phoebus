@@ -116,6 +116,21 @@ public class DockStage
     {
         return configureStage(stage, new Geometry(null), tabs);
     }
+    
+    /** Helper to configure a Stage for docking
+    *
+    *  <p>Adds a Scene with a BorderPane layout and a DockPane in the center
+    *
+    *  @param stage Stage, should be empty
+    *  @param geometry A geometry specification "{width}x{height}+{x}+{y}", see {@link Geometry}
+    *  @param tabs Zero or more initial {@link DockItem}s
+    *
+    *  @return {@link DockPane} that was added to the {@link Stage}
+    */
+   public static DockPane configureStage(final Stage stage, final Geometry geometry, final DockItem... tabs)
+   {
+       return configureStage(stage, geometry, false, tabs);
+   }
 
     /** Helper to configure a Stage for docking
      *
@@ -123,11 +138,12 @@ public class DockStage
      *
      *  @param stage Stage, should be empty
      *  @param geometry A geometry specification "{width}x{height}+{x}+{y}", see {@link Geometry}
+     *  @param standalone Should this be configured as a standalone window
      *  @param tabs Zero or more initial {@link DockItem}s
      *
      *  @return {@link DockPane} that was added to the {@link Stage}
      */
-    public static DockPane configureStage(final Stage stage, final Geometry geometry, final DockItem... tabs)
+    public static DockPane configureStage(final Stage stage, final Geometry geometry, boolean standalone, final DockItem... tabs)
     {
         stage.addEventFilter(MouseEvent.MOUSE_MOVED, mouseEvent -> {
             // Filtering MOUSE_MOVED events from unfocused windows prevents tooltips
@@ -221,6 +237,9 @@ public class DockStage
                 PhoebusApplication.closeAllTabs();
             }
         });
+
+        if (standalone)
+            pane.setAsStandAloneWindow(true);
 
         return pane;
     }

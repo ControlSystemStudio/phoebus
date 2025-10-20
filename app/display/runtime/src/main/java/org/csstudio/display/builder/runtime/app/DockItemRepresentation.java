@@ -20,6 +20,7 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.docking.Geometry;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -59,7 +60,7 @@ public class DockItemRepresentation extends JFXRepresentation
         final Stage new_stage = new Stage();
 
         // Configure for docking, i.e. with DockPane
-        DockStage.configureStage(new_stage);
+        DockStage.configureStage(new_stage, new Geometry(null), model.isStandAlone());
 
         // Use location and size from model for the window
         double x = model.propX().getValue();
@@ -91,6 +92,13 @@ public class DockItemRepresentation extends JFXRepresentation
         // New DockPane is now the 'active' one,
         // model will be opened in it.
         return representModelInNewDockItem(model);
+    }
+    
+    @Override
+    public ToolkitRepresentation<Parent, Node> openStandaloneWindow(final DisplayModel model,
+                                                                    final Consumer<DisplayModel> close_handler)
+    {
+        return openNewWindow(model, close_handler);
     }
 
     @Override
