@@ -68,6 +68,7 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Memento tags */
     private static final String TAG_ZOOM = "ZOOM";
     private static final String TAG_TOOLBAR = "toolbar";
+    private static final String TAG_STANDALONE = "standalone";
 
     /** Global tracker of last user's decision to show toolbar.
      *  Used when opening new display
@@ -262,6 +263,10 @@ public class DisplayRuntimeInstance implements AppInstance
             });
         });
         memento.getBoolean(TAG_TOOLBAR).ifPresent(this::showToolbar);
+        memento.getBoolean(TAG_STANDALONE).ifPresent(standalone ->
+        {
+            dock_item.getDockPane().setAsStandAloneWindow(standalone);
+        });
     }
 
     @Override
@@ -271,6 +276,8 @@ public class DisplayRuntimeInstance implements AppInstance
         if (! JFXRepresentation.DEFAULT_ZOOM_LEVEL.equals(zoom))
             memento.setString(TAG_ZOOM, zoom);
         memento.setBoolean(TAG_TOOLBAR, isToolbarVisible());
+        if (dock_item.getDockPane().isStandAloneWindow())
+            memento.setBoolean(TAG_STANDALONE, dock_item.getDockPane().isStandAloneWindow());
     }
 
     /** Handle Alt-left & right as navigation keys */
