@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.phoebus.ui.javafx;
 
+import org.phoebus.ui.Preferences;
+
 import javafx.scene.Node;
 import javafx.scene.Scene;
 
@@ -24,6 +26,10 @@ public class Styles
     {
         final String css = Styles.class.getResource("csstudio.css").toExternalForm();
         set(scene, css);
+        if (!Preferences.custom_css_styling.isEmpty())
+        {
+            set(scene, Preferences.custom_css_styling);
+        }
     }
 
     /** Apply style sheet to scene (but only once)
