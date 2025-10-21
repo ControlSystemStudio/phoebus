@@ -724,6 +724,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(configurationToSnapshotItems(configPvs));
             this.snapshot = new Snapshot();
+            this.snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).build());
             this.snapshot.setSnapshotData(snapshotData);
             updateUi();
             Platform.runLater(() -> actionResultReadbackColumn.visibleProperty().setValue(false));
