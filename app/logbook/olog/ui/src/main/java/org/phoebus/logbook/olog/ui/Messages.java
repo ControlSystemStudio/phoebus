@@ -55,6 +55,7 @@ public class Messages
             PreviewOpenErrorTitle,
             ReplyToLogEntry,
             RequestTooLarge,
+            SearchFailed,
             SelectFile,
             SelectFolder,
             ShowHideDetails,
