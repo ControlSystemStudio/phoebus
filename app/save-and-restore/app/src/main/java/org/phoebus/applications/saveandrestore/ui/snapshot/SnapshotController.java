@@ -758,11 +758,16 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      */
     private void resetMetaData() {
         tabTitleProperty.setValue(Messages.unnamedSnapshot);
-        snapshotNameProperty.setValue(null);
-        snapshotCommentProperty.setValue(null);
         createdDateTextProperty.setValue(null);
         lastModifiedDateTextProperty.setValue(null);
         createdByTextProperty.setValue(null);
+    }
+
+    public static Throwable getRootCause(Throwable throwable) {
+        if (throwable.getCause() != null)
+            return getRootCause(throwable.getCause());
+
+        return throwable;
     }
 
     @SuppressWarnings("unused")
@@ -796,7 +801,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                 Platform.runLater(() -> {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle(Messages.errorActionFailed);
-                    alert.setContentText(e.getMessage());
+                    // get root cause of exception because the nested exception names are not very friendly
+                    alert.setContentText(getRootCause(e).getMessage());
                     alert.setHeaderText(Messages.saveSnapshotErrorContent);
                     DialogHelper.positionDialog(alert, borderPane, -150, -150);
                     alert.showAndWait();
@@ -1102,7 +1108,14 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             });
             showTakeSnapshotResult(snapshotItems);
             Snapshot snapshot = new Snapshot();
-            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).build());
+            snapshot.setSnapshotNode(
+                    Node.builder()
+                        .nodeType(NodeType.SNAPSHOT)
+                        // set name and description to preserve the name / comment fields
+                        .name(snapshotNameProperty.getValue())
+                        .description(snapshotCommentProperty.getValue())
+                        .build()
+            );
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(snapshotItems);
             snapshot.setSnapshotData(snapshotData);
