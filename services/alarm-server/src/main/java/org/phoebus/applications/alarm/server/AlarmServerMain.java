@@ -43,8 +43,6 @@ import org.phoebus.util.shell.CommandShell;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.common.config.ConfigResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Alarm Server
  *  @author Kay Kasemir
@@ -52,7 +50,6 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("nls")
 public class AlarmServerMain implements ServerModelListener
 {
-    private static final Logger log = LoggerFactory.getLogger(AlarmServerMain.class);
     private final SynchronousQueue<Boolean> restart = new SynchronousQueue<>();
 
     private volatile ServerModel  model;
