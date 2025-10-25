@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 aquenos GmbH.
+ * Copyright (c) 2024-2025 aquenos GmbH.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import com.aquenos.epics.jackie.common.value.ChannelAccessSimpleOnlyFloat;
 import com.aquenos.epics.jackie.common.value.ChannelAccessSimpleOnlyLong;
 import com.aquenos.epics.jackie.common.value.ChannelAccessSimpleOnlyShort;
 import com.aquenos.epics.jackie.common.value.ChannelAccessSimpleOnlyString;
+import com.aquenos.epics.jackie.common.value.ChannelAccessSimpleOnlyValue;
 import com.aquenos.epics.jackie.common.value.ChannelAccessTimeValue;
 import com.aquenos.epics.jackie.common.value.ChannelAccessValueFactory;
 import org.apache.commons.lang3.ArrayUtils;
@@ -42,6 +43,10 @@ import org.epics.vtype.VShortArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.mockito.verification.VerificationMode;
+import org.phoebus.pv.jackie.JackiePreferences;
+import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
@@ -69,9 +74,7 @@ public class ValueConverterTest {
     @Test
     public void byteArrayToChannelAccessValue() {
         final byte[] value = new byte[] {2, 4};
-        final var ca_value = (ChannelAccessSimpleOnlyChar) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyChar) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(ByteBuffer.wrap(value), ca_value.getValue());
     }
 
@@ -81,9 +84,7 @@ public class ValueConverterTest {
     @Test
     public void byteToChannelAccessValue() {
         final byte value = 3;
-        final var ca_value = (ChannelAccessSimpleOnlyChar) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyChar) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(value, ca_value.getValue().get(0));
     }
 
@@ -555,9 +556,7 @@ public class ValueConverterTest {
     @Test
     public void doubleArrayToChannelAccessValue() {
         final double[] value = new double[] {2.0, 4.0};
-        final var ca_value = (ChannelAccessSimpleOnlyDouble) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyDouble) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(DoubleBuffer.wrap(value), ca_value.getValue());
     }
 
@@ -567,9 +566,7 @@ public class ValueConverterTest {
     @Test
     public void doubleToChannelAccessValue() {
         final double value = 3.0;
-        final var ca_value = (ChannelAccessSimpleOnlyDouble) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyDouble) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(value, ca_value.getValue().get(0));
     }
 
@@ -579,9 +576,7 @@ public class ValueConverterTest {
     @Test
     public void floatArrayToChannelAccessValue() {
         final float[] value = new float[] {2.0f, 4.0f};
-        final var ca_value = (ChannelAccessSimpleOnlyFloat) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyFloat) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(FloatBuffer.wrap(value), ca_value.getValue());
     }
 
@@ -591,9 +586,7 @@ public class ValueConverterTest {
     @Test
     public void floatToChannelAccessValue() {
         final float value = 3.0f;
-        final var ca_value = (ChannelAccessSimpleOnlyFloat) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyFloat) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(value, ca_value.getValue().get(0));
     }
 
@@ -603,9 +596,7 @@ public class ValueConverterTest {
     @Test
     public void intArrayToChannelAccessValue() {
         final int[] value = new int[] {2, 4};
-        final var ca_value = (ChannelAccessSimpleOnlyLong) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyLong) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(IntBuffer.wrap(value), ca_value.getValue());
     }
 
@@ -615,10 +606,73 @@ public class ValueConverterTest {
     @Test
     public void intToChannelAccessValue() {
         final int value = 3;
-        final var ca_value = (ChannelAccessSimpleOnlyLong) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyLong) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(value, ca_value.getValue().get(0));
+    }
+
+    /**
+     * Test conversion of a <code>long[]</code> to a CA value.
+     */
+    @Test
+    public void longArrayToChannelAccessValue() {
+        // Test an array that has a value that is too small.
+        var original = new long[] {15L, 23L, Integer.MIN_VALUE - 1L};
+        var coerced = new int[]{15, 23, Integer.MIN_VALUE};
+        var converted = new double[]{
+                15.0, 23.0, (double) (Integer.MIN_VALUE - 1L)};
+        var truncated = new int[]{15, 23, Integer.MAX_VALUE};
+        testLong(original, coerced, converted, truncated, false);
+        // Test an array that has a value that is too large.
+        original = new long[] {15L, 23L, Integer.MAX_VALUE + 1L};
+        coerced = new int[]{15, 23, Integer.MAX_VALUE};
+        converted = new double[]{15.0, 23.0, (double) (Integer.MAX_VALUE + 1L)};
+        truncated = new int[]{15, 23, Integer.MIN_VALUE};
+        testLong(original, coerced, converted, truncated, false);
+        // Test an array where all values are within the allowed range.
+        original = new long[] {15L, 23L, Integer.MIN_VALUE, Integer.MAX_VALUE};
+        coerced = new int[]{15, 23, Integer.MIN_VALUE, Integer.MAX_VALUE};
+        // converted is not used when all elements are within the limits.
+        converted = null;
+        truncated = coerced;
+        testLong(original, coerced, converted, truncated, true);
+    }
+
+    /**
+     * Test conversion of a {@link Long} to a CA value.
+     */
+    @Test
+    public void longToChannelAccessValue() {
+        // Test a value that is too small.
+        var original = Integer.MIN_VALUE - 1L;
+        var coerced = Integer.MIN_VALUE;
+        var converted = (double) (Integer.MIN_VALUE - 1L);
+        var truncated = Integer.MAX_VALUE;
+        testLong(original, coerced, converted, truncated, false);
+        // Test a value that is too large.
+        original = Integer.MAX_VALUE + 1L;
+        coerced = Integer.MAX_VALUE;
+        converted = (double) (Integer.MAX_VALUE + 1L);
+        truncated = Integer.MIN_VALUE;
+        testLong(original, coerced, converted, truncated, false);
+        // Test values in the allowed range. The converted value does not
+        // matter in this context, because it is never used.
+        original = 15L;
+        coerced = (int) original;
+        converted = Double.NaN;
+        truncated = (int) original;
+        testLong(original, coerced, converted, truncated, true);
+        original = 23L;
+        coerced = (int) original;
+        truncated = (int) original;
+        testLong(original, coerced, converted, truncated, true);
+        original = Integer.MIN_VALUE;
+        coerced = (int) original;
+        truncated = (int) original;
+        testLong(original, coerced, converted, truncated, true);
+        original = Integer.MAX_VALUE;
+        coerced = (int) original;
+        truncated = (int) original;
+        testLong(original, coerced, converted, truncated, true);
     }
 
     /**
@@ -627,9 +681,7 @@ public class ValueConverterTest {
     @Test
     public void shortArrayToChannelAccessValue() {
         final short[] value = new short[] {2, 4};
-        final var ca_value = (ChannelAccessSimpleOnlyShort) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyShort) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(ShortBuffer.wrap(value), ca_value.getValue());
     }
 
@@ -639,9 +691,7 @@ public class ValueConverterTest {
     @Test
     public void shortToChannelAccessValue() {
         final short value = 3;
-        final var ca_value = (ChannelAccessSimpleOnlyShort) ValueConverter
-                .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+        final var ca_value = (ChannelAccessSimpleOnlyShort) objectToChannelAccessSimpleOnlyValue(value);
         assertEquals(value, ca_value.getValue().get(0));
     }
 
@@ -653,19 +703,31 @@ public class ValueConverterTest {
         var value = new String[] {"abc", "123"};
         var ca_value = (ChannelAccessSimpleOnlyString) ValueConverter
                 .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+                        "",
+                        value,
+                        UTF_8,
+                        false,
+                        JackiePreferences.LongConversionMode.FAIL);
         assertEquals(Arrays.asList(value), ca_value.getValue());
         // For an array with multiple elements, it should not make a difference
         // if we enable the convert_string_as_long_string option.
         ca_value = (ChannelAccessSimpleOnlyString) ValueConverter
                 .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, true);
+                        "",
+                        value,
+                        UTF_8,
+                        true,
+                        JackiePreferences.LongConversionMode.FAIL);
         assertEquals(Arrays.asList(value), ca_value.getValue());
         // For a single-element array, we expect a different result.
         value = new String[] {"a single string"};
         final var ca_char_array = (ChannelAccessSimpleOnlyChar) ValueConverter
                 .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, true);
+                        "",
+                        value,
+                        UTF_8,
+                        true,
+                        JackiePreferences.LongConversionMode.FAIL);
         assertEquals(
                 value[0], UTF_8.decode(ca_char_array.getValue()).toString());
     }
@@ -678,13 +740,21 @@ public class ValueConverterTest {
         final String value = "some string";
         final var ca_value = (ChannelAccessSimpleOnlyString) ValueConverter
                 .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, false);
+                        "",
+                        value,
+                        UTF_8,
+                        false,
+                        JackiePreferences.LongConversionMode.FAIL);
         assertEquals(value, ca_value.getValue().get(0));
         // When setting convert_string_as_long_string to true, we expect a
         // ChannelAccessSimpleOnlyChar instead.
         final var ca_char_array = (ChannelAccessSimpleOnlyChar) ValueConverter
                 .objectToChannelAccessSimpleOnlyValue(
-                        value, UTF_8, true);
+                        "",
+                        value,
+                        UTF_8,
+                        true,
+                        JackiePreferences.LongConversionMode.FAIL);
         assertEquals(value, UTF_8.decode(ca_char_array.getValue()).toString());
     }
 
@@ -753,6 +823,12 @@ public class ValueConverterTest {
         assertEquals(controls_value.getLabels(),display.getChoices());
     }
 
+    private static void checkWarnCalled(
+            Logger logger_mock, VerificationMode verification_mode) {
+        Mockito.verify(logger_mock, verification_mode).warn(
+                Mockito.anyString(), (Object[]) Mockito.any());
+    }
+
     private static void checkTime(
             ChannelAccessTimeValue<?> time_value,
             TimeProvider time_provider) {
@@ -762,6 +838,162 @@ public class ValueConverterTest {
                         + ValueConverter.OFFSET_EPICS_TO_UNIX_EPOCH_SECONDS,
                 instant.getEpochSecond());
         assertEquals(time_value.getTimeNanoseconds(), instant.getNano());
+    }
+
+    private static ChannelAccessSimpleOnlyValue<?> objectToChannelAccessSimpleOnlyValue(
+            Object value) {
+        return ValueConverter.objectToChannelAccessSimpleOnlyValue(
+                "test_pv",
+                value,
+                UTF_8,
+                false,
+                JackiePreferences.LongConversionMode.FAIL);
+    }
+
+    private static ChannelAccessSimpleOnlyValue<?> objectToChannelAccessSimpleOnlyValue(
+            Object value,
+            JackiePreferences.LongConversionMode long_conversion_mode,
+            Logger logger) {
+        final var original_logger = ValueConverter.log;
+        try {
+            if (logger != null) {
+                ValueConverter.log = logger;
+            }
+            return ValueConverter.objectToChannelAccessSimpleOnlyValue(
+                    "test_pv",
+                    value,
+                    UTF_8,
+                    false,
+                    long_conversion_mode);
+        } finally {
+            if (logger != null) {
+                ValueConverter.log = original_logger;
+            }
+        }
+    }
+
+    private static void testLong(
+            long original,
+            int coerced,
+            double converted,
+            int truncated,
+            boolean in_limits) {
+        testLong(
+                original,
+                new int[]{coerced},
+                new double[]{converted},
+                new int[]{truncated},
+                in_limits);
+    }
+
+    private static void testLong(
+            Object original,
+            int[] coerced,
+            double[] converted,
+            int[] truncated,
+            boolean in_limits) {
+        // Test the COERCE mode.
+        var logger_mock = Mockito.mock(Logger.class);
+        var ca_value = objectToChannelAccessSimpleOnlyValue(
+                original,
+                JackiePreferences.LongConversionMode.COERCE,
+                logger_mock);
+        assertEquals(
+                IntBuffer.wrap(coerced),
+                ((ChannelAccessSimpleOnlyLong) ca_value).getValue());
+        checkWarnCalled(logger_mock, Mockito.never());
+        // Test the COERCE_AND_WARN mode.
+        logger_mock = Mockito.mock(Logger.class);
+        ca_value = objectToChannelAccessSimpleOnlyValue(
+                original,
+                JackiePreferences.LongConversionMode.COERCE_AND_WARN,
+                logger_mock);
+        assertEquals(
+                IntBuffer.wrap(coerced),
+                ((ChannelAccessSimpleOnlyLong) ca_value).getValue());
+        if (in_limits) {
+            checkWarnCalled(logger_mock, Mockito.never());
+        } else {
+            checkWarnCalled(logger_mock, Mockito.times(1));
+        }
+        // Test the CONVERT mode.
+        logger_mock = Mockito.mock(Logger.class);
+        ca_value = objectToChannelAccessSimpleOnlyValue(
+                original,
+                JackiePreferences.LongConversionMode.CONVERT, logger_mock);
+        if (in_limits) {
+            assertEquals(
+                    IntBuffer.wrap(truncated),
+                    ((ChannelAccessSimpleOnlyLong) ca_value).getValue());
+            checkWarnCalled(logger_mock, Mockito.never());
+        } else {
+            assertEquals(
+                    DoubleBuffer.wrap(converted),
+                    ((ChannelAccessSimpleOnlyDouble) ca_value).getValue());
+            checkWarnCalled(logger_mock, Mockito.never());
+        }
+        // Test the CONVERT_AND_WARN mode.
+        logger_mock = Mockito.mock(Logger.class);
+        ca_value = objectToChannelAccessSimpleOnlyValue(
+                original,
+                JackiePreferences.LongConversionMode.CONVERT_AND_WARN,
+                logger_mock);
+        if (in_limits) {
+            assertEquals(
+                    IntBuffer.wrap(truncated),
+                    ((ChannelAccessSimpleOnlyLong) ca_value).getValue());
+            checkWarnCalled(logger_mock, Mockito.never());
+        } else {
+            assertEquals(
+                    DoubleBuffer.wrap(converted),
+                    ((ChannelAccessSimpleOnlyDouble) ca_value).getValue());
+            checkWarnCalled(logger_mock, Mockito.times(1));
+        }
+        // Test the FAIL mode.
+        logger_mock = Mockito.mock(Logger.class);
+        if (in_limits) {
+            ca_value = objectToChannelAccessSimpleOnlyValue(
+                    original,
+                    JackiePreferences.LongConversionMode.FAIL,
+                    logger_mock);
+            assertEquals(
+                    IntBuffer.wrap(truncated),
+                    ((ChannelAccessSimpleOnlyLong) ca_value).getValue());
+            checkWarnCalled(logger_mock, Mockito.never());
+        } else {
+            final var final_logger_mock = logger_mock;
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> objectToChannelAccessSimpleOnlyValue(
+                            original,
+                            JackiePreferences.LongConversionMode.FAIL,
+                            final_logger_mock));
+            checkWarnCalled(logger_mock, Mockito.never());
+        }
+        // Test the TRUNCATE mode.
+        logger_mock = Mockito.mock(Logger.class);
+        ca_value = objectToChannelAccessSimpleOnlyValue(
+                original,
+                JackiePreferences.LongConversionMode.TRUNCATE,
+                logger_mock);
+        assertEquals(
+                IntBuffer.wrap(truncated),
+                ((ChannelAccessSimpleOnlyLong) ca_value).getValue());
+        checkWarnCalled(logger_mock, Mockito.never());
+        // Test the TRUNCATE_AND_WARN mode.
+        logger_mock = Mockito.mock(Logger.class);
+        ca_value = objectToChannelAccessSimpleOnlyValue(
+                original,
+                JackiePreferences.LongConversionMode.TRUNCATE_AND_WARN,
+                logger_mock);
+        assertEquals(
+                IntBuffer.wrap(truncated),
+                ((ChannelAccessSimpleOnlyLong) ca_value).getValue());
+        if (in_limits) {
+            checkWarnCalled(logger_mock, Mockito.never());
+        } else {
+            checkWarnCalled(logger_mock, Mockito.times(1));
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2024 aquenos GmbH.
+ * Copyright (c) 2017-2025 aquenos GmbH.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -261,10 +261,12 @@ public class JackiePV extends PV {
                 // Use ca_put_callback.
                 final var listenable_future = channel.put(
                         ValueConverter.objectToChannelAccessSimpleOnlyValue(
+                                channel.getName(),
                                 new_value,
                                 channel.getClient().getConfiguration()
                                         .getCharset(),
-                                treat_char_as_long_string));
+                                treat_char_as_long_string,
+                                preferences.long_conversion_mode()));
                 final var completable_future = new CompletableFuture<Void>();
                 listenable_future.addCompletionListener((future) -> {
                     try {
@@ -304,10 +306,12 @@ public class JackiePV extends PV {
                 // Use ca_put without a callback.
                 channel.putNoCallback(
                         ValueConverter.objectToChannelAccessSimpleOnlyValue(
+                                channel.getName(),
                                 new_value,
                                 channel.getClient().getConfiguration()
                                         .getCharset(),
-                                treat_char_as_long_string));
+                                treat_char_as_long_string,
+                                preferences.long_conversion_mode()));
             }
             case YES -> {
                 // Wait for the write operation to complete. This allows code

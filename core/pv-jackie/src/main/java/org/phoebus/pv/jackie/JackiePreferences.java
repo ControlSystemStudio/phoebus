@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 aquenos GmbH.
+ * Copyright (c) 2024-2025 aquenos GmbH.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -133,9 +133,72 @@ public record JackiePreferences(
         boolean dbe_property_supported,
         boolean honor_zero_precision,
         String hostname,
+        LongConversionMode long_conversion_mode,
         ChannelAccessEventMask monitor_mask,
         boolean rtyp_value_only,
         String username) {
+
+    /**
+     * Mode for handling integer numbers that are too large to fit into the
+     * {@link Integer} type.
+     */
+    public enum LongConversionMode {
+        /**
+         * Limit the {@link Long} value to the {@link Integer} range.
+         *
+         * A value that is greater than {@link Integer#MAX_VALUE} is converted
+         * to {@link Integer#MAX_VALUE}, and a value that is less than
+         * {@link Integer#MIN_VALUE} is converted to {@link Integer#MIN_VALUE}.
+         */
+        COERCE,
+
+        /**
+         * Limit the {@link Long} value to the {@link Integer} range and log a
+         * warning.
+         *
+         * This essentially is the same behavior as {@link #COERCE}, but a
+         * warning message is written to the log.
+         */
+        COERCE_AND_WARN,
+
+        /**
+         * Convert the {@link Long} value to a {@link Double}.
+         *
+         * This means that some precision is lost.
+         */
+        CONVERT,
+
+        /**
+         * Convert the {@link Long} value to a {@link Double} and log a
+         * warning.
+         *
+         * This essentially is the same behavior as {@link #CONVERT}, but a
+         * warning message is written to the log.
+         */
+        CONVERT_AND_WARN,
+
+        /**
+         * Raise an {@link IllegalArgumentException}.
+         */
+        FAIL,
+
+        /**
+         * Cast the {@link Long} value to an {@link Integer}.
+         *
+         * This means that the value will overflow (e.g.
+         * <code>Integer.MAX_VALUE + 1</code> becomes
+         * <code>Integer.MIN_VALUE</code>.
+         */
+        TRUNCATE,
+
+        /**
+         * Cast the {@link Long} value to an {@link Integer} and log a warning.
+         *
+         * This essentially is the same behavior as {@link #CAST}, but a
+         * warning message is written to the log.
+         */
+        TRUNCATE_AND_WARN,
+    }
 
     private final static JackiePreferences DEFAULT_INSTANCE;
 
@@ -215,6 +278,18 @@ public record JackiePreferences(
         var hostname = preference_reader.get("hostname");
         if (hostname.isEmpty()) {
             hostname = null;
+        }
+        final var long_conversion_mode_string = preference_reader.get(
+                "long_conversion_mode");
+        LongConversionMode long_conversion_mode;
+        try {
+            long_conversion_mode = LongConversionMode.valueOf(
+                    long_conversion_mode_string);
+        } catch (IllegalArgumentException|NullPointerException e) {
+            logger.severe(
+                    "Invalid long conversion mode: "
+                            + long_conversion_mode_string);
+            long_conversion_mode = LongConversionMode.COERCE_AND_WARN;
         }
         final var monitor_mask_string = preference_reader.get("monitor_mask");
         ChannelAccessEventMask monitor_mask;
@@ -493,6 +568,7 @@ public record JackiePreferences(
         logger.config("dbe_property_supported = " + dbe_property_supported);
         logger.config("honor_zero_precision = " + honor_zero_precision);
         logger.config("hostname = " + hostname);
+        logger.config("long_conversion_mode = " + long_conversion_mode);
         logger.config("monitor_mask = " + monitor_mask);
         logger.config("rtyp_value_only = " + rtyp_value_only);
         logger.config("use_env = " + use_env);
@@ -513,6 +589,7 @@ public record JackiePreferences(
                 dbe_property_supported,
                 honor_zero_precision,
                 hostname,
+                long_conversion_mode,
                 monitor_mask,
                 rtyp_value_only,
                 username);
