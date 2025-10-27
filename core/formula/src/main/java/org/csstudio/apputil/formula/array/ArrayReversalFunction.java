@@ -36,7 +36,7 @@ public class ArrayReversalFunction extends BaseArrayFunction {
 
     @Override
     public String getName() {
-        return "arrayReverse";
+        return "arrayReversal";
     }
 
     @Override
