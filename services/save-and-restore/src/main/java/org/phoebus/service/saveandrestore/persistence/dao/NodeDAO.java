@@ -63,12 +63,6 @@ public interface NodeDAO {
      */
     List<Node> getNodes(List<String> uniqueNodeIds);
 
-    /**
-     * This is deprecated, use {@link #deleteNodes} instead.
-     *
-     * @param nodeId The unique id of the node to delete.
-     */
-    void deleteNode(String nodeId);
 
     /**
      * Checks that each of the node ids passed to this method exist, and that none of them

@@ -122,12 +122,12 @@ public class PVASettings
      *  <p>Next, multicast groups may be added.
      *  Each multicast group must include an interface.
      *  <pre>
-     *  224.0.1.1,1@127.0.0.1     - Listen to local IPv4 multicasts
+     *  224.0.0.128,1@127.0.0.1   - Listen to local IPv4 multicasts
      *  [ff02::42:1],1@::1        - Listen to local IPv6 multicasts
      *  [ff02::42:1],1@en1        - Listen to IPv6 multicasts on network interface en1
      *  </pre>
      */
-    public static String EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0 [::] 224.0.1.1,1@127.0.0.1 [ff02::42:1],1@::1";
+    public static String EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0 [::] 224.0.0.128,1@127.0.0.1 [ff02::42:1],1@::1";
 
     /** PVA server port for name searches and beacons */
     public static int EPICS_PVAS_BROADCAST_PORT = EPICS_PVA_BROADCAST_PORT;
@@ -219,7 +219,7 @@ public class PVASettings
     public static int EPICS_PVA_TCP_SOCKET_TMO = 5;
 
     /** Maximum number of array elements shown when printing data */
-    public static int EPICS_PVA_MAX_ARRAY_FORMATTING = 256;
+    public static int EPICS_PVA_MAX_ARRAY_FORMATTING = 50;
 
     /** Range of beacon periods in seconds recognized as "fast, new" beacons
      *  that re-start searches for disconnected channels.
@@ -250,11 +250,11 @@ public class PVASettings
 
 
 
-    /** Whether to allow PVA to use IPv6 
+    /** Whether to allow PVA to use IPv6
      *
-     *  <p> If this is false then PVA will not attempt to 
+     *  <p> If this is false then PVA will not attempt to
      *   use any IPv6 capability at all. This is useful if your
-     *   system does not have any IPv6 support.  
+     *   system does not have any IPv6 support.
      */
     public static boolean EPICS_PVA_ENABLE_IPV6 = true;
 
@@ -275,6 +275,11 @@ public class PVASettings
         EPICS_PVAS_TLS_OPTIONS = get("EPICS_PVAS_TLS_OPTIONS", EPICS_PVAS_TLS_OPTIONS);
         require_client_cert =  EPICS_PVAS_TLS_OPTIONS.contains("client_cert=require");
         EPICS_PVA_TLS_KEYCHAIN = get("EPICS_PVA_TLS_KEYCHAIN", EPICS_PVA_TLS_KEYCHAIN);
+        if (EPICS_PVA_TLS_KEYCHAIN.isEmpty()  &&  !EPICS_PVAS_TLS_KEYCHAIN.isEmpty())
+        {
+            EPICS_PVA_TLS_KEYCHAIN = EPICS_PVAS_TLS_KEYCHAIN;
+            logger.log(Level.CONFIG, "EPICS_PVA_TLS_KEYCHAIN (empty) updated from EPICS_PVAS_TLS_KEYCHAIN");
+        }
         EPICS_PVA_SEND_BUFFER_SIZE = get("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
         EPICS_PVA_FAST_BEACON_MIN = get("EPICS_PVA_FAST_BEACON_MIN", EPICS_PVA_FAST_BEACON_MIN);
         EPICS_PVA_FAST_BEACON_MAX = get("EPICS_PVA_FAST_BEACON_MAX", EPICS_PVA_FAST_BEACON_MAX);

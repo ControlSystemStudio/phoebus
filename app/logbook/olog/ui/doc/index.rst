@@ -21,6 +21,12 @@ Features
 
 - Log entry viewers offer search capabilities based on meta data and content.
 
+Missing features
+----------------
+In contrast to other markup implementations, HTML tags are **not** supported. Any such tags entered by user will
+be rendered as plain text.
+
+
 Launching the log entry editor
 ------------------------------
 The log entry editor is launched as a non-modal window using one of the following methods:
@@ -76,6 +82,10 @@ Here user may attach any number of files of arbitrary types:
 **NOTE**: The Olog service will not accept upload of attachments larger than the configured limit of 50MB. The Olog service
 can be configured to use a different limit, but users should keep in mind that download of large attachments to
 the log viewer may incur delays in terms of UI updates.
+
+**NOTE**: Since iOS 11 the default camera image format is HEIC/HEIF (High-Efficiency Image Format). This type of
+image file is not supported. Consequently upload of HEIC files is blocked by the application. Moreover, HEIC files converted to JPEG
+in native Mac OS applications (e.g. Preview) may also fail to render and are also blocked from upload.
 
 Embedded images
 ---------------

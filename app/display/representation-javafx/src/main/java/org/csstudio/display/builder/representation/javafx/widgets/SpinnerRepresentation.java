@@ -24,6 +24,7 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
@@ -49,6 +50,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 {
     /** Is user actively editing the content, so updates should be suppressed? */
     private volatile boolean active = false;
+    private volatile boolean enabled = true;
 
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
@@ -167,40 +169,42 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     /** Submit value entered by user */
     private void submit()
     {
-        //The value factory retains the old values, and will be updated as scheduled below.
-        final String text = jfx_node.getEditor().getText();
-        Object value =
-                FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), text, model_widget.propFormat().getValue());
-        if (value instanceof Number)
-        {
-            if (((Number)value).doubleValue() < value_min)
-                value = value_min;
-            else if (((Number)value).doubleValue() > value_max)
-                value = value_max;
+        if (enabled) {
+            //The value factory retains the old values, and will be updated as scheduled below.
+            final String text = jfx_node.getEditor().getText();
+            Object value =
+                    FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), text, model_widget.propFormat().getValue());
+            if (value instanceof Number)
+            {
+                if (((Number)value).doubleValue() < value_min)
+                    value = value_min;
+                else if (((Number)value).doubleValue() > value_max)
+                    value = value_max;
+            }
+            logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
+            toolkit.fireWrite(model_widget, value);
+    
+            // Wrote value. Expected is either
+            // a) PV receives that value, PV updates to
+            //    submitted value or maybe a 'clamped' value
+            // --> We'll receive contentChanged() and update the value factory.
+            // b) PV doesn't receive the value and never sends
+            //    an update. The value factory retains the old value,
+            // --> Schedule an update to the new value.
+            //
+            // This could result in a little flicker:
+            // User enters "new_value".
+            // We send that, but retain "old_value" to handle case b)
+            // PV finally sends "new_value", and we show that.
+            //
+            // In practice, this rarely happens because we only schedule an update.
+            // By the time it executes, we already have case a.
+            // If it does turn into a problem, could introduce toolkit.scheduleDelayedUpdate()
+            // so that case b) only restores the old 'value_text' after some delay,
+            // increasing the chance of a) to happen.
+            dirty_content.mark();
+            toolkit.scheduleUpdate(this);
         }
-        logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
-        toolkit.fireWrite(model_widget, value);
-
-        // Wrote value. Expected is either
-        // a) PV receives that value, PV updates to
-        //    submitted value or maybe a 'clamped' value
-        // --> We'll receive contentChanged() and update the value factory.
-        // b) PV doesn't receive the value and never sends
-        //    an update. The value factory retains the old value,
-        // --> Schedule an update to the new value.
-        //
-        // This could result in a little flicker:
-        // User enters "new_value".
-        // We send that, but retain "old_value" to handle case b)
-        // PV finally sends "new_value", and we show that.
-        //
-        // In practice, this rarely happens because we only schedule an update.
-        // By the time it executes, we already have case a.
-        // If it does turn into a problem, could introduce toolkit.scheduleDelayedUpdate()
-        // so that case b) only restores the old 'value_text' after some delay,
-        // increasing the chance of a) to happen.
-        dirty_content.mark();
-        toolkit.scheduleUpdate(this);
     }
 
     private SpinnerValueFactory<String> createSVF()
@@ -349,18 +353,20 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
         private void writeResultingValue(double change)
         {
-            double value;
-            if (!(getVTypeValue() instanceof VNumber))
-            {
-                scheduleContentUpdate();
-                return;
+            if (enabled) {
+                double value;
+                if (!(getVTypeValue() instanceof VNumber))
+                {
+                    scheduleContentUpdate();
+                    return;
+                }
+                value = ((VNumber)getVTypeValue()).getValue().doubleValue();
+                if (Double.isNaN(value) || Double.isInfinite(value)) return;
+                value += change;
+                if (value < getMin()) value = getMin();
+                else if (value > getMax()) value = getMax();
+                toolkit.fireWrite(model_widget, value);
             }
-            value = ((VNumber)getVTypeValue()).getValue().doubleValue();
-            if (Double.isNaN(value) || Double.isInfinite(value)) return;
-            value += change;
-            if (value < getMin()) value = getMin();
-            else if (value > getMax()) value = getMax();
-            toolkit.fireWrite(model_widget, value);
         }
     };
 
@@ -369,7 +375,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
      */
     private String computeText(final VType value)
     {
-        if (value == null)
+        Alarm alarm = Alarm.alarmOf(value);
+        if (value == null || alarm.equals(Alarm.disconnected()))
             return "<" + model_widget.propPVName().getValue() + ">";
         return FormatOptionHandler.format(value,
                                           model_widget.propFormat().getValue(),
@@ -505,11 +512,10 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
             jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
 
             // Enable if enabled by user and there's write access
-            final boolean enabled = model_widget.propEnabled().getValue()  &&
+            enabled = model_widget.propEnabled().getValue()  &&
                                     model_widget.runtimePropPVWritable().getValue();
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            setDisabledLook(enabled, jfx_node.getChildrenUnmodifiable());
             jfx_node.setEditable(!toolkit.isEditMode() && enabled);
-            jfx_node.getEditor().setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
 
             jfx_node.getEditor().setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 

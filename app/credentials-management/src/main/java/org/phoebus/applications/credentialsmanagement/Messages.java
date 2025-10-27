@@ -30,6 +30,9 @@ public class Messages {
     public static String SecureStoreErrorTitle;
     public static String SecureStoreErrorBody;
     public static String Title;
+    public static String ServiceConnectionFailure;
+    public static String UnknownError;
+    public static String UserNotAuthenticated;
 
     static
     {

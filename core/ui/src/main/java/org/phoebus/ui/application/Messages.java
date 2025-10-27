@@ -50,7 +50,6 @@ public class Messages
     public static String File;
     public static String FileDoesNotExist;
     public static String FileExists;
-    public static String FixedTitle;
     public static String Help;
     public static String HelpAbout;
     public static String HelpAboutAppFea;
@@ -128,6 +127,8 @@ public class Messages
     public static String SaveLayoutWarningApplicationNoSaveFileTitle;
     public static String SaveSnapshot;
     public static String SaveSnapshotSelectFilename;
+    public static String SaveSnapshotToClipboard;
+    public static String SaveSnapshotToFile;
     public static String Saving;
     public static String SavingAlert;
     public static String SavingAlertTitle;

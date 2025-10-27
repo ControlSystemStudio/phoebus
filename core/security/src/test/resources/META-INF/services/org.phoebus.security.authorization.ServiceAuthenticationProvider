@@ -1,0 +1,6 @@
+#
+# Copyright (C) 2025 European Spallation Source ERIC.
+#
+
+org.phoebus.security.store.ServiceAuthenticationProviderOne
+org.phoebus.security.store.ServiceAuthenticationProviderTwo

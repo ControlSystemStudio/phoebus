@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.phoebus.security.PhoebusSecurity;
+import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
@@ -99,13 +101,13 @@ public class SecureStore
     public ScopedAuthenticationToken getScopedAuthenticationToken(AuthenticationScope scope) throws Exception{
         String username;
         String password;
-        if(scope == null || scope.getName().trim().isEmpty()){
+        if(scope == null || scope.getScope().trim().isEmpty()){
             username = get(USERNAME_TAG);
             password = get(PASSWORD_TAG);
         }
         else{
-            username = get(scope.getName().toLowerCase() + "." + USERNAME_TAG);
-            password = get(scope.getName().toLowerCase() + "." + PASSWORD_TAG);
+            username = get(scope.getScope().toLowerCase() + "." + USERNAME_TAG);
+            password = get(scope.getScope().toLowerCase() + "." + PASSWORD_TAG);
         }
         if(username == null || password == null){
             return null;
@@ -118,13 +120,13 @@ public class SecureStore
      */
     public void deleteScopedAuthenticationToken(AuthenticationScope scope) throws Exception{
         LOGGER.log(Level.INFO, "Deleting authentication token for scope: " + scope);
-        if(scope == null || scope.getName().trim().isEmpty()){
+        if(scope == null || scope.getScope().trim().isEmpty()){
             delete(USERNAME_TAG);
             delete(PASSWORD_TAG);
         }
         else{
-            delete(scope.getName() + "." + USERNAME_TAG);
-            delete(scope.getName() + "." + PASSWORD_TAG);
+            delete(scope.getScope() + "." + USERNAME_TAG);
+            delete(scope.getScope() + "." + PASSWORD_TAG);
         }
         notifyChangeListeners();
     }
@@ -151,13 +153,13 @@ public class SecureStore
             throw new RuntimeException("Username and password must both be non-null and non-empty");
         }
         AuthenticationScope scope = scopedAuthenticationToken.getAuthenticationScope();
-        if(scope == null || scope.getName().trim().isEmpty()){
+        if(scope == null || scope.getScope().trim().isEmpty()){
             set(USERNAME_TAG, username);
             set(PASSWORD_TAG, password);
         }
         else{
-            set(scope.getName() + "." + USERNAME_TAG, username);
-            set(scope.getName() + "." + PASSWORD_TAG, password);
+            set(scope.getScope() + "." + USERNAME_TAG, username);
+            set(scope.getScope() + "." + PASSWORD_TAG, password);
         }
         notifyChangeListeners();
         LOGGER.log(Level.INFO, "Storing scoped authentication token " + scopedAuthenticationToken);
@@ -165,7 +167,7 @@ public class SecureStore
 
     /**
      * Retrieves all {@link ScopedAuthenticationToken}s in the secure store. A {@link ScopedAuthenticationToken}
-     * must be composed of both a user name and a password, i.e. items in the secure store that are not
+     * must be composed of both a username and a password, i.e. items in the secure store that are not
      * considered to be a part of an authentication token are ignored.
      * @return List of {@link ScopedAuthenticationToken}s.
      * @throws Exception on error
@@ -197,8 +199,8 @@ public class SecureStore
             String username;
             String password;
             AuthenticationScope scope = null;
-            // Non-scoped alias?
-            if(tokens.length == 1 && USERNAME_TAG.equals(tokens[0])){
+
+            if(tokens.length == 1 && USERNAME_TAG.equals(tokens[0])){ // Non-scoped alias
                 // It is assumed that the secure store can contain zero or one entries named "username" or "password".
                 // It is further assumed that these are "matching" items, i.e. they constitute a non-scoped authentication
                 // token that was persisted at some point.
@@ -206,9 +208,12 @@ public class SecureStore
                 password = get(PASSWORD_TAG);
             }
             else{
-                scope = AuthenticationScope.fromString(tokens[0]);
-                username = get(scope.getName() + "." + USERNAME_TAG);
-                password = get(scope.getName() + "." + PASSWORD_TAG);
+                scope = findAuthenticationScopeFromProviders(tokens[0]);
+                if(scope == null){
+                    throw new IllegalArgumentException("No authentication provider found matching scope \"" + tokens[0] + "\"");
+                }
+                username = get(tokens[0] + "." + USERNAME_TAG);
+                password = get(scope.getScope() + "." + PASSWORD_TAG);
             }
             // Add only if password was found.
             if(password != null){
@@ -216,6 +221,18 @@ public class SecureStore
             }
         }
         return allScopedAuthenticationTokens;
+    }
+
+    private AuthenticationScope findAuthenticationScopeFromProviders(String key){
+        List<ServiceAuthenticationProvider> authenticationProviders =
+                ServiceLoader.load(ServiceAuthenticationProvider.class).stream().map(ServiceLoader.Provider::get)
+                        .collect(Collectors.toList());
+        for(ServiceAuthenticationProvider serviceAuthenticationProvider : authenticationProviders){
+            if(serviceAuthenticationProvider.getAuthenticationScope().getScope().equals(key)){
+                return serviceAuthenticationProvider.getAuthenticationScope();
+            }
+        }
+        return null;
     }
 
     private void notifyChangeListeners(){

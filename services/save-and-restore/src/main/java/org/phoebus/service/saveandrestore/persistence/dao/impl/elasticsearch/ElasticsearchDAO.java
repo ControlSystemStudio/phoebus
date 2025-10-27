@@ -131,15 +131,6 @@ public class ElasticsearchDAO implements NodeDAO {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
-    public void deleteNode(String nodeId) {
-        deleteNodes(List.of(nodeId));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void deleteNodes(List<String> nodeIds) {
         List<Node> nodesToDelete = new ArrayList<>();
         for (String nodeId : nodeIds) {
@@ -712,6 +703,7 @@ public class ElasticsearchDAO implements NodeDAO {
         // Update last modified date
         existingConfigurationNode = updateNode(existingConfigurationNode, false);
 
+        configuration.getConfigurationData().setUniqueId(configuration.getConfigurationNode().getUniqueId());
         ConfigurationData updatedConfigurationData = configurationDataRepository.save(configuration.getConfigurationData());
 
         return Configuration.builder()
@@ -770,6 +762,7 @@ public class ElasticsearchDAO implements NodeDAO {
         SnapshotData newSnapshotData;
         Snapshot newSnapshot = new Snapshot();
         try {
+            snapshot.getSnapshotData().setUniqueId(snapshot.getSnapshotNode().getUniqueId());
             newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
             Node updatedNode = updateNode(existingSnapshotNode, false);
             newSnapshot.setSnapshotData(newSnapshotData);
@@ -1039,6 +1032,7 @@ public class ElasticsearchDAO implements NodeDAO {
         existingCompositeSnapshotNode.setLastModified(new Date());
         existingCompositeSnapshotNode = updateNode(existingCompositeSnapshotNode, false);
 
+        compositeSnapshot.getCompositeSnapshotData().setUniqueId(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
         CompositeSnapshotData updatedCompositeSnapshotData =
                 compositeSnapshotDataRepository.save(compositeSnapshot.getCompositeSnapshotData());
 
@@ -1113,7 +1107,15 @@ public class ElasticsearchDAO implements NodeDAO {
             augmented.putAll(searchParameters);
             augmented.put("uniqueid", uniqueIds);
             return elasticsearchTreeRepository.search(augmented);
-        } else {
+        }
+        // Did client specify search for references of a node?
+        else if(searchParameters.keySet().stream().anyMatch(k -> k.strip().toLowerCase().contains("referenced"))){
+            if(searchParameters.get("referenced").isEmpty()){
+                return new SearchResult(0, Collections.emptyList());
+            }
+            return compositeSnapshotDataRepository.referenced(searchParameters);
+        }
+        else {
             return elasticsearchTreeRepository.search(searchParameters);
         }
     }

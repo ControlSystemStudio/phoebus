@@ -55,10 +55,20 @@ public class Messages
             PreviewOpenErrorTitle,
             ReplyToLogEntry,
             RequestTooLarge,
+            SearchFailed,
             SelectFile,
             SelectFolder,
             ShowHideDetails,
             SizeLimitsText,
+            TextAreaContextMenuCopy,
+            TextAreaContextMenuCut,
+            TextAreaContextMenuDelete,
+            TextAreaContextMenuPaste,
+            TextAreaContextMenuPasteURLAsMarkdown,
+            TextAreaContextMenuRedo,
+            TextAreaContextMenuSelectAll,
+            TextAreaContextMenuUndo,
+            UnsupportedFileType,
             UpdateLogEntry;
 
     static

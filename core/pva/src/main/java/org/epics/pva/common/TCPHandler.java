@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,7 +16,6 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,10 +62,15 @@ abstract public class TCPHandler
 
     /** TCP socket to PVA peer
      *
+     *  Server got this client socket from `accept`.
+     *  Client needs to create the socket and connect to server's address.
+     *
      *  Reading and writing is handled by receive and send threads,
      *  but 'protected' so that derived classes may peek at socket properties.
+     *
+     *  @see {@link #initializeSocket()}
      */
-    protected final Socket socket;
+    protected Socket socket = null;
 
     /** Flag to indicate that 'close' was called to close the 'socket' */
     protected volatile boolean running = true;
@@ -117,13 +121,11 @@ abstract public class TCPHandler
      *  but will only start sending them when the
      *  send thread is running
      *
-     *  @param socket Socket to read/write
      *  @param client_mode Is this the client, expecting to receive messages from server?
      *  @see #startSender()
      */
-    public TCPHandler(final Socket socket, final boolean client_mode)
+    public TCPHandler(final boolean client_mode)
     {
-        this.socket = Objects.requireNonNull(socket);
         this.client_mode = client_mode;
 
         // Receive buffer byte order is set based on header flag of each received message.
@@ -132,6 +134,18 @@ abstract public class TCPHandler
         // For client, order is updated during connection validation (PVAHeader.CTRL_SET_BYTE_ORDER)
         send_buffer.order(ByteOrder.nativeOrder());
     }
+
+    /** Initialize the {@link #socket}. Called by receiver.
+     *
+     *  Server received socket from `accept` during construction and this may be a NOP.
+     *  Client will have to create socket and connect to server's address in here.
+     *
+     *  @return Success?
+     */
+    abstract protected boolean initializeSocket();
+
+    /** @return Remote address of the TCP socket */
+    abstract public InetSocketAddress getRemoteAddress();
 
     /** Start receiving data
      *  To be called by Client/ServerTCPHandler when fully constructed
@@ -154,12 +168,6 @@ abstract public class TCPHandler
             send_thread = thread_pool.submit(this::sender);
         else
             throw new Exception("Send thread already running");
-    }
-
-    /** @return Remote address of this end of the TCP socket */
-    public InetSocketAddress getRemoteAddress()
-    {
-        return new InetSocketAddress(socket.getInetAddress(), socket.getPort());
     }
 
     /** @return Is the send queue idle/empty? */
@@ -260,6 +268,12 @@ abstract public class TCPHandler
     {
         try
         {
+            // Establish connection
+            Thread.currentThread().setName("TCP receiver");
+            if (! initializeSocket())
+                return null;
+
+            // Listen on the connection
             Thread.currentThread().setName("TCP receiver " + socket.getLocalSocketAddress());
             logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started for " + socket.getRemoteSocketAddress());
             logger.log(Level.FINER, "Native byte order " + receive_buffer.order());
@@ -325,8 +339,8 @@ abstract public class TCPHandler
         }
         finally
         {
-            onReceiverExited(running);
             logger.log(Level.FINER, Thread.currentThread().getName() + " done.");
+            onReceiverExited(running);
         }
         return null;
     }
@@ -380,14 +394,14 @@ abstract public class TCPHandler
      */
     private void handleMessage(final ByteBuffer buffer) throws Exception
     {
-        final byte flags = buffer.get(2);
+        final byte flags = buffer.get(PVAHeader.HEADER_OFFSET_FLAGS);
         final byte segemented = (byte) (flags & PVAHeader.FLAG_SEGMENT_MASK);
         if (segemented != 0)
             handleSegmentedMessage(segemented, buffer);
         else
         {
             final boolean control = (flags & PVAHeader.FLAG_CONTROL) != 0;
-            final byte command = buffer.get(3);
+            final byte command = buffer.get(PVAHeader.HEADER_OFFSET_COMMAND);
             // Move to start of potential payload
             if (buffer.limit() >= 8)
                 buffer.position(8);
@@ -448,11 +462,11 @@ abstract public class TCPHandler
             if (segments == null  ||  segments.position() <= 0)
                 throw new Exception("Received " + (last ? "last" : "middle") + " message segment without first segment");
             // Check if command matches the one in first segment
-            final byte seg_command = segments.get(3);
-            if (seg_command != buffer.get(3))
+            final byte seg_command = segments.get(PVAHeader.HEADER_OFFSET_COMMAND);
+            if (seg_command != buffer.get(PVAHeader.HEADER_OFFSET_COMMAND))
                 throw new Exception(String.format("Received " + (last ? "last" : "middle") +
                                                   " message segment for command 0x%02X after first segment for command 0x%02X",
-                                                  buffer.get(3), seg_command));
+                                                  buffer.get(PVAHeader.HEADER_OFFSET_COMMAND), seg_command));
 
             // Size of segments accumulated so far..
             final int seg_size = segments.getInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,11 +16,13 @@ import java.net.StandardProtocolFamily;
 import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.Arrays;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
+import org.epics.pva.common.OriginTag;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.SearchRequest;
 import org.epics.pva.common.SearchResponse;
@@ -86,7 +88,6 @@ class ClientUDPHandler extends UDPHandler
     // with the understanding that it will only receive broadcasts;
     // since they are often blocked by firewall, may receive nothing, ever.
     private final DatagramChannel udp_beacon;
-    private final ByteBuffer beacon_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
 
     private volatile Thread search_thread4, search_thread6, beacon_thread;
 
@@ -99,20 +100,22 @@ class ClientUDPHandler extends UDPHandler
         // IPv4 socket, also used to send broadcasts and for the local re-sending
         udp_search4 = Network.createUDP(StandardProtocolFamily.INET, null, 0);
         udp_search4.socket().setBroadcast(true);
-        local_multicast = Network.configureLocalIPv4Multicast(udp_search4, PVASettings.EPICS_PVA_BROADCAST_PORT);
+        local_multicast = Network.getLocalMulticastGroup(udp_search4, PVASettings.EPICS_PVA_BROADCAST_PORT);
         udp_localaddr4 = (InetSocketAddress) udp_search4.getLocalAddress();
 
         String ipV6Msg;
 
         // IPv6 sockets
         // Beacon socket only receives, does not send broadcasts
-        if (PVASettings.EPICS_PVA_ENABLE_IPV6) {
+        if (PVASettings.EPICS_PVA_ENABLE_IPV6)
+        {
             udp_search6 = Network.createUDP(StandardProtocolFamily.INET6, null, 0);
             udp_localaddr6 = (InetSocketAddress) udp_search6.getLocalAddress();
             ipV6Msg = String.format(" and %s", udp_localaddr6);
             udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
         }
-        else {
+        else
+        {
             udp_search6 = null;
             udp_beacon = Network.createUDP(StandardProtocolFamily.INET, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
             udp_localaddr6 = null;
@@ -149,11 +152,8 @@ class ClientUDPHandler extends UDPHandler
         }
         else
         {
-            if (!PVASettings.EPICS_PVA_ENABLE_IPV6) {
-                throw new Exception(
-                    "EPICS_PVA_ENABLE_IPV6 must be enabled to use IPv6 address!"
-                );
-            }
+            if (!PVASettings.EPICS_PVA_ENABLE_IPV6)
+                throw new Exception("EPICS_PVA_ENABLE_IPV6 must be enabled to use IPv6 address!");
 
             synchronized (udp_search6)
             {
@@ -176,13 +176,15 @@ class ClientUDPHandler extends UDPHandler
         search_thread4.setDaemon(true);
         search_thread4.start();
 
-        if (PVASettings.EPICS_PVA_ENABLE_IPV6) {
+        if (PVASettings.EPICS_PVA_ENABLE_IPV6)
+        {
             final ByteBuffer receive_buffer6 = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
             search_thread6 = new Thread(() -> listen(udp_search6, receive_buffer6), "UDP6-receiver " + Network.getLocalAddress(udp_search6));
             search_thread6.setDaemon(true);
             search_thread6.start();
         }
 
+        final ByteBuffer beacon_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
         beacon_thread = new Thread(() -> listen(udp_beacon, beacon_buffer), "UDP-beacon-receiver " + Network.getLocalAddress(udp_beacon));
         beacon_thread.setDaemon(true);
         beacon_thread.start();
@@ -196,6 +198,9 @@ class ClientUDPHandler extends UDPHandler
         {
         case PVAHeader.CMD_BEACON:
             return handleBeacon(from, version, payload, buffer);
+        case PVAHeader.CMD_ORIGIN_TAG:
+            // Will be decoded with CMD_SEARCH
+            break;
         case PVAHeader.CMD_SEARCH:
             return handleSearchRequest(from, version, payload, buffer);
         case PVAHeader.CMD_SEARCH_RESPONSE:
@@ -289,7 +294,8 @@ class ClientUDPHandler extends UDPHandler
     private boolean handleSearchRequest(final InetSocketAddress from, final byte version,
                                         final int payload, final ByteBuffer buffer)
     {
-        final SearchRequest search = SearchRequest.decode(from, version, payload, buffer);
+        final OriginTag origin = OriginTag.testForOriginOfSearch(from, buffer);
+        final SearchRequest search = SearchRequest.decode(origin, from, version, payload, buffer);
         try
         {
             if (local_multicast != null  &&  search != null  &&  search.unicast)
@@ -299,7 +305,8 @@ class ClientUDPHandler extends UDPHandler
                     if (search.reply_required)
                     {
                         forward_buffer.clear();
-                        SearchRequest.encode(false, 0, null, search.client, search.tls, forward_buffer);
+                        OriginTag.encode(udp_search4, forward_buffer);
+                        SearchRequest.encode(false, search.reply_to_src_port, 0, null, search.client, search.tls, forward_buffer);
                         forward_buffer.flip();
                         logger.log(Level.FINER, () -> "Forward search to list servers to " + local_multicast + "\n" + Hexdump.toHexdump(forward_buffer));
                         send(forward_buffer, local_multicast);
@@ -308,7 +315,8 @@ class ClientUDPHandler extends UDPHandler
                 else
                 {
                     forward_buffer.clear();
-                    SearchRequest.encode(false, search.seq, search.channels, search.client, search.tls, forward_buffer);
+                    OriginTag.encode(udp_search4, forward_buffer);
+                    SearchRequest.encode(false, search.reply_to_src_port, search.seq, search.channels, search.client, search.tls, forward_buffer);
                     forward_buffer.flip();
                     logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(forward_buffer));
                     send(forward_buffer, local_multicast);
@@ -337,7 +345,15 @@ class ClientUDPHandler extends UDPHandler
 
             // Server may reply with list of PVs that it does _not_ have...
             if (! response.found)
-                search_response.handleSearchResponse(-1, server, version, response.guid, response.tls);
+            {
+                // Did server provide list of channels that it _doesn't_ know?!
+                if (response.cid.length > 0)
+                    logger.log(Level.FINE,
+                               "Server " + from + " sent search reply for not-found channels " +
+                               Arrays.toString(response.cid));
+                else // Server simply indicates its presence, no channel detail
+                    search_response.handleSearchResponse(-1, server, version, response.guid, response.tls);
+            }
             else
                 for (int cid : response.cid)
                     search_response.handleSearchResponse(cid, server, version, response.guid, response.tls);

@@ -148,6 +148,9 @@ and toIndex. The indexes must be valid, e.g. fromIndex > 0, fromIndex < toIndex 
 **arrayRangeOf(VNumberArray array)** - Returns a Display Range of the given array
 This includes the display min, max
 
+**arrayReversal(VNumberArray array)** - Returns a VNumberArray with the elements in reverse order
+(the first element becomes the last, the last becomes the first).
+
 **arrayStats(VNumberArray array)** - Returns a VStatistic with the statistical information of the given array
 This includes the average, min, max, and element count
 
@@ -155,12 +158,14 @@ This includes the average, min, max, and element count
 
 **arrayMin(VNumberArray array)** - Returns a VDouble with the smallest value of the given array
 
+**arraySampleWithLTTB(VNumberArray array, VNumber threshold)** - Returns a VNumberArray which is a down-sampled version of the input array.
+The threshold parameter defines the maximum number of data points to return.
+The down-sampling is performed using the Largest-Triangle-Three-Buckets (LTTB) algorithm.
+
 **arraySampleWithStride(VNumberArray array, VNumber stride, VNumber offset)** - Returns a VNumberArray where each element is defined as array\[x \* stride + offset\].
 
 **arrayCumSum(VNumberArray array)** - Returns a VNumberArray where each element is defined as the cumulative sum of the input array.
 
-String
-------
 **concat(String s...)** - Concatenate a list of strings of a string array.
 
 **strEqual(String s1, String s2)** - Compare value of 2 strings. Return true if s1 equals s2, else false.

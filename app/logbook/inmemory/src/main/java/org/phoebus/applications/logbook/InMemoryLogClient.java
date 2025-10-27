@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -128,7 +129,7 @@ public class InMemoryLogClient implements LogClient {
                     ext = file.getName().substring(i);
                 }
                 File tempFile = File.createTempFile(prefix, ext);
-                Files.copy(file.toPath(), tempFile.toPath());
+                Files.copy(file.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 tempFile.deleteOnExit();
                 String mimeType = URLConnection.guessContentTypeFromName(tempFile.getName());
                 return AttachmentImpl.of(tempFile, mimeType != null ? mimeType : ext, false);

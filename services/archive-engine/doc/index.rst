@@ -17,6 +17,7 @@ archive settings and as a service to write samples from PVs to the RDB.
 You can build the archive engine from sources or fetch a binary from
 https://controlssoftware.sns.ornl.gov/css_phoebus
 
+Below are examples using either MySQL or PostgreSQL.
 
 Install MySQL (Centos Example)
 ------------------------------
@@ -39,10 +40,40 @@ To start RDB when computer boots::
     sudo systemctl enable mariadb.service
 
 
+Install PostgreSQL (RHEL 9.6)
+-----------------------------
+
+Install::
+
+    sudo yum install postgresql-server
+
+Key setup steps from `/usr/share/doc/postgresql/README.rpm-dist`::
+
+    sudo postgresql-setup --initdb
+    sudo systemctl start postgresql.service
+    sudo systemctl enable postgresql.service
+
+By default, access to the database is extremely limited.
+In later examples, we want to allow a user ``archive`` to
+write data and a user ``report`` to read.
+An easy way to allow this from localhost is the following::
+
+    sudo su - postgres
+
+    # Add this to /var/lib/pgsql/data/pg_hba.conf
+    host all  all     127.0.0.1/32      password
+
+    pg_ctl reload
+
+Note that the ``password`` type of access is not secure.
+Study the PostgreSQL documentation for secure alternatives
+that meet your requirements.
+
+
 Create archive tables
 ---------------------
 
-Connect to mysql as root::
+For MySQL, connect to mysql as root::
 
     mysql -u root -p'$root'
 
@@ -64,6 +95,44 @@ as "storage" and enforcing the correctness of the data inside the archive engine
 when it is importing a configuration or adding samples.
 For a production setup, you may want to add or remove constraints as desired.
 
+For PostgreSQL, connect to the database as the ``postgres`` super user::
+
+    sudo su - postgres -c psql
+
+and create the archive tables as shown in
+https://github.com/ControlSystemStudio/phoebus/blob/master/services/archive-engine/dbd/postgres_schema.txt
+
+You should not simply copy/paste the whole file into the psql shell.
+For example, commands for creating accounts and setting permissions are shown in the file as comments,
+where some of them need to be executed _before_ and others _after_ creating all the archive tables.
+You need to decide if you want to paste those commands as shown in the comment,
+or change for example the passwords to your liking.
+
+To test access, try this from any user account on the same host::
+
+    psql -h 127.0.0.1 -U archive -W archive
+    Password: $archive
+    SELECT * FROM channel;
+    \q
+
+    psql -h 127.0.0.1 -U report -W archive
+    Password: $report
+    SELECT * FROM channel;
+    \q
+
+Example for python access::
+
+    pip install psycopg
+
+    python3
+
+    import psycopg
+    with psycopg.connect("host=127.0.0.1 user=report password=$report dbname=archive") as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT channel_id, name FROM channel")
+            for row in cur:
+                print("#%5d - %s" % (row[0], row[1]))
+
 
 View Archive Data
 -----------------
@@ -74,11 +143,20 @@ change these settings in your :ref:`preference_settings`  ::
 
     org.csstudio.trends.databrowser3/urls=jdbc:mysql://my.host.site.org/archive|RDB
     org.csstudio.trends.databrowser3/archives=jdbc:mysql://my.host.site.org/archive|RDB
+    org.phoebus.archive.reader.rdb/user=report
+    org.phoebus.archive.reader.rdb/password=$report
 
 The ``MySQL.dbd`` used to install the archive tables adds a few demo samples
 for ``sim://sine(0, 10, 50, 0.1)`` around 2004-01-10 13:01, so you can simply
 add that channel to a Data Browser and find data at that time.
 
+For PostgreSQL, change the URLs to 
+``jdbc:postgresql://my.host.site.org:5432/archive``
+
+In case of connection problems, you may want to start with ``my.host.site.org``
+replaced by ``127.0.0.1`` and running on the database host.
+Use the MySQL or PostgreSQL command line tools to test connections with
+the same host, port, user and password.
 
 
 List, Export and Import Configurations
@@ -91,13 +169,7 @@ List configurations::
     ID  Name     Description        URL
      1  Demo     Demo Engine        http://localhost:4812
 
-
-<<<<<<< Updated upstream
 Extract configuration into an XML file::
-=======
-     
-Extract configuration into an XML file::
->>>>>>> Stashed changes
 
     archive-engine.sh -engine Demo -export Demo.xml
 
@@ -145,15 +217,10 @@ Run the Archive Engine
 To start the archive engine for a configuration::
 
     archive-engine.sh -engine Demo -port 4812 -settings my_settings.ini
-<<<<<<< Updated upstream
 
 The engine name ('Demo') needs to match a previously imported configuration name,
 and the port number (4812) needs to match the port number used when importing the configuration.
-=======
-    
-The engine name ('Demo') needs to match a previously imported configuration name,
-and the port number (4812) needs to match the port number used when importing the configuration.
->>>>>>> Stashed changes
+
 The settings (my_settings.ini) typically contain the EPICS CA address list settings
 as well as archive engine configuration details, see archive engine settings
 in :ref:`preference_settings`.

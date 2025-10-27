@@ -195,7 +195,6 @@ public class WaitCommand extends ScanCommand
     public void readXML(final Element element) throws Exception
     {
         setDeviceName(XMLUtil.getChildString(element, ScanCommandProperty.TAG_DEVICE).orElse(""));
-        setDesiredValue(StringOrDouble.parse(XMLUtil.getChildString(element, ScanCommandProperty.TAG_VALUE).orElse("0")));
         try
         {
             setComparison(Comparison.valueOf(XMLUtil.getChildString(element, "comparison").orElse(Comparison.EQUALS.toString())));
@@ -203,6 +202,14 @@ public class WaitCommand extends ScanCommand
         catch (Throwable ex)
         {
             setComparison(Comparison.EQUALS);
+        }
+        if (getComparison() == Comparison.IN || getComparison() == Comparison.NOT_IN) {
+            // don't remove string quotes!
+            // must be parsed later to an array of values using Strings.parseStringList!
+            setDesiredValue(XMLUtil.getChildString(element, ScanCommandProperty.TAG_VALUE).orElse("0"));
+        }
+        else {
+            setDesiredValue(StringOrDouble.parse(XMLUtil.getChildString(element, ScanCommandProperty.TAG_VALUE).orElse("0")));
         }
         setTolerance(XMLUtil.getChildDouble(element, ScanCommandProperty.TAG_TOLERANCE).orElse(0.1));
         setTimeout(XMLUtil.getChildDouble(element, ScanCommandProperty.TAG_TIMEOUT).orElse(0.0));

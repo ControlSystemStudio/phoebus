@@ -73,6 +73,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     // Model
     List<LogEntry> logEntries;
 
+    @SuppressWarnings("unused")
     @FXML
     private AnchorPane agendaPane;
     @FXML
@@ -80,14 +81,15 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
     // Model
     private Map<Appointment, LogEntry> map;
-    private Map<String, Agenda.AppointmentGroup> appointmentGroupMap = new TreeMap<String, Agenda.AppointmentGroup>();
+    private Map<String, Agenda.AppointmentGroup> appointmentGroupMap = new TreeMap<>();
 
+    @SuppressWarnings("unused")
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
 
     private final OlogQueryManager ologQueryManager;
     private final ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
-    private SearchParameters searchParameters;
+    private final SearchParameters searchParameters;
 
     public LogEntryCalenderViewController(LogClient logClient, OlogQueryManager ologQueryManager, SearchParameters searchParameters) {
         setClient(logClient);
@@ -103,9 +105,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         // Set the search parameters in the advanced search controller so that it operates on the same object.
         ologQueries.setAll(ologQueryManager.getQueries());
 
-        searchParameters.addListener((observable, oldValue, newValue) -> {
-            query.getEditor().setText(newValue);
-        });
+        searchParameters.addListener((observable, oldValue, newValue) -> query.getEditor().setText(newValue));
 
         agenda = new Agenda();
         agenda.setEditAppointmentCallback(new Callback<Agenda.Appointment, Void>() {
@@ -195,13 +195,21 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
         search.disableProperty().bind(searchInProgress);
 
-        search();
+        determineConnectivity(connectivityMode -> {
+            connectivityModeObjectProperty.set(connectivityMode);
+            connectivityCheckerCountDownLatch.countDown();
+            switch (connectivityModeObjectProperty.get()){
+                case HTTP_ONLY -> search();
+                case WEB_SOCKETS_SUPPORTED -> connectWebSocket();
+            }
+        });
     }
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
     // until a give resize action is completed
-    private AtomicBoolean moving = new AtomicBoolean(false);
+    private final AtomicBoolean moving = new AtomicBoolean(false);
 
+    @SuppressWarnings("unused")
     @FXML
     public void resize() {
         if (!moving.compareAndExchangeAcquire(false, true)) {
@@ -236,6 +244,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     }
 
     @FXML
+    @Override
     public void search() {
         String queryString = query.getEditor().getText();
         Map<String, String> params =
@@ -246,8 +255,6 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 searchResult1 -> {
                     searchInProgress.set(false);
                     setSearchResult(searchResult1);
-                    logger.log(Level.INFO, "Starting periodic search: " + queryString);
-                    periodicSearch(params, searchResult -> setSearchResult(searchResult));
                     List<OlogQuery> queries = ologQueryManager.getQueries();
                     Platform.runLater(() -> {
                         ologQueries.setAll(queries);
@@ -256,8 +263,8 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 },
                 (msg, ex) -> {
                     searchInProgress.set(false);
-                    ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex);
-                });
+                    ExceptionDetailsErrorDialog.openError(agenda, Messages.SearchFailed, "", ex);
+        });
     }
 
     public String getQuery() {
@@ -285,11 +292,15 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                         LocalDateTime.ofInstant(logentry.getCreatedDate().plusSeconds(2400), ZoneId.systemDefault()));
                 List<String> logbookNames = getLogbookNames();
                 if (logbookNames != null && !logbookNames.isEmpty()) {
-                    int index = logbookNames.indexOf(logentry.getLogbooks().iterator().next().getName());
-                    if (index >= 0 && index <= 22) {
-                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", (index + 1))));
-                    } else {
-                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", 23)));
+                    try {
+                        int index = logbookNames.indexOf(logentry.getLogbooks().iterator().next().getName());
+                        if (index >= 0 && index <= 22) {
+                            appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", (index + 1))));
+                        } else {
+                            appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", 23)));
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
                 }
                 return appointment;
@@ -318,7 +329,8 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     }
 
     private void setSearchResult(SearchResult searchResult) {
-        setLogs(searchResult.getLogs());List<OlogQuery> queries = ologQueryManager.getQueries();
+        setLogs(searchResult.getLogs());
+        List<OlogQuery> queries = ologQueryManager.getQueries();
         Platform.runLater(() -> {
             ologQueries.setAll(queries);
             // Top-most query is the one used in the search.

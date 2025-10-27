@@ -107,12 +107,12 @@ public class ComparisonControllerTestIT {
 
         } finally {
             if(compositeSnapshot1 != null && compositeSnapshot1.getCompositeSnapshotNode() != null && compositeSnapshot1.getCompositeSnapshotNode().getUniqueId() != null){
-                nodeDAO.deleteNode(compositeSnapshot1.getCompositeSnapshotNode().getUniqueId());
+                nodeDAO.deleteNodes(List.of(compositeSnapshot1.getCompositeSnapshotNode().getUniqueId()));
             }
             if(compositeSnapshot2 != null && compositeSnapshot2.getCompositeSnapshotNode() != null && compositeSnapshot2.getCompositeSnapshotNode().getUniqueId() != null){
-                nodeDAO.deleteNode(compositeSnapshot2.getCompositeSnapshotNode().getUniqueId());
+                nodeDAO.deleteNodes(List.of(compositeSnapshot2.getCompositeSnapshotNode().getUniqueId()));
             }
-            nodeDAO.deleteNode(topLevelFolder.getUniqueId());
+            nodeDAO.deleteNodes(List.of(topLevelFolder.getUniqueId()));
         }
     }
 }

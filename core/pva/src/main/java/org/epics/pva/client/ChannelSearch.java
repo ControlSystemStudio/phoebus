@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,10 +13,11 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -99,27 +100,59 @@ class ChannelSearch
             // Otherwise run risk of getting reply without being able
             // to handle it
         }
+
+        // Searches are identified by CID because we might have the
+        // same channel name in different searches when we try to access
+        // the same channel with different field(...) qualifiers.
+        // One could try to optimize this by fetching "field()" (everything)
+        // and then picking the subelements in the client,
+        // but in case there's only a single PV for
+        //     pva://GigaBytePV/substruct/double_field
+        // we'd want to use "field(substruct.double_field)"
+        // and avoid fetching the complete structure.
+        // ... unless there is later a PV "pva://GigaBytePV",
+        // but we don't know, yet?
+
+        // Hash by CID
+        @Override
+        public int hashCode()
+        {
+            return channel.getCID();
+        }
+
+        // Compare by CID
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (obj instanceof SearchedChannel other)
+                return other.channel.getCID() == channel.getCID();
+            return false;
+        }
     }
 
     // SearchedChannels are tracked in two data structures
     //
-    // - searched_channels (concurrent)
+    // - searched_channels
     //   Fast lookup of channel by ID,
-    //   efficient `computeIfAbsent(cid, ..` mechanism for creating
-    //   at most one SearchedChannel per CID.
+    //   creating at most one SearchedChannel per CID.
     //   Allows checking if a channel is indeed searched,
     //   and locating the channel for a search reply.
     //
-    //  - search_buckets (need to SYNC)
+    //  - search_buckets
     //   Efficiently schedule the search messages for all channels
     //   up to MAX_SEARCH_PERIOD.
+    //
+    //  Access to either one needs to be synchronized
 
-    /**  Map of searched channels by channel ID */
-    private ConcurrentHashMap<Integer, SearchedChannel> searched_channels = new ConcurrentHashMap<>();
+    /**  Map of searched channels by channel ID
+     *
+     *   Access only from synchronized method
+     */
+    private HashMap<Integer, SearchedChannel> searched_channels = new HashMap<>();
 
     /** Search buckets
      *
-     *  <p>The {@link #current_search_bucket} selects the list
+     *  <p>The {@link #current_search_bucket} selects the set
      *  of channels to be searched by {@link #runSearches()},
      *  which runs roughly once per second, each time moving to
      *  the next search bucket in a ring buffer fashion.
@@ -136,13 +169,13 @@ class ChannelSearch
      *  which would result in an endless loop.
      *
      *  <p>Access to either {@link #search_buckets} or {@link #current_search_bucket}
-     *  must SYNC on {@link #search_buckets}.
+     *  must only occur in a 'synchronized' method.
      */
-    private final ArrayList<LinkedList<SearchedChannel>> search_buckets = new ArrayList<>();
+    private final ArrayList<Set<SearchedChannel>> search_buckets = new ArrayList<>(MAX_SEARCH_PERIOD+2);
 
     /** Index of current search bucket, i.e. the one about to be searched.
      *
-     *  <p>Access must SYNC on {@link #search_buckets}.
+     *  <p>Access must only occur in a 'synchronized' method.
      */
     private final AtomicInteger current_search_bucket = new AtomicInteger();
 
@@ -185,11 +218,9 @@ class ChannelSearch
         this.udp = udp;
         this.tcp_provider = tcp_provider;
 
-        synchronized (search_buckets)
-        {
-            for (int i=0; i<MAX_SEARCH_PERIOD+2; ++i)
-                search_buckets.add(new LinkedList<>());
-        }
+        // Each bucket holds set of channels to search in that time slot
+        for (int i=0; i<MAX_SEARCH_PERIOD+2; ++i)
+            search_buckets.add(new HashSet<>());
 
         // Searches sent to multicast (IPv4, IPv6) or broadcast addresses (IPv4) reach every PVA server
         // on that multicast group or bcast subnet.
@@ -227,7 +258,7 @@ class ChannelSearch
 
     public void start()
     {
-        // +-jitter to prevent multiple clients from sending concurrent search requests
+        // 1 second +-jitter to prevent multiple clients from sending concurrent search requests
         final long period = SEARCH_PERIOD_MS + (new Random().nextInt(2*SEARCH_JITTER_MS+1) - SEARCH_JITTER_MS);
 
         logger.log(Level.FINER,
@@ -246,19 +277,20 @@ class ChannelSearch
     {
         logger.log(Level.FINE, () -> "Register search for " + channel + (now ? " now" : " soon"));
 
-        final ClientChannelState old = channel.setState(ClientChannelState.SEARCHING);
-        if (old == ClientChannelState.SEARCHING)
-            logger.log(Level.WARNING, "Registering channel " + channel + " to be searched more than once ");
-
-        final SearchedChannel sc = searched_channels.computeIfAbsent(channel.getCID(), id -> new SearchedChannel(channel));
-
-        synchronized (search_buckets)
+        synchronized (this)
         {
+            final ClientChannelState old = channel.setState(ClientChannelState.SEARCHING);
+            if (old == ClientChannelState.SEARCHING)
+                logger.log(Level.WARNING, "Registering channel " + channel + " to be searched more than once ");
+
+            final SearchedChannel sc = searched_channels.computeIfAbsent(channel.getCID(), id -> new SearchedChannel(channel));
+
             int bucket = current_search_bucket.get();
             if (!now)
-                bucket = (bucket + SEARCH_SOON_DELAY)  % search_buckets.size();
+                bucket = (bucket + SEARCH_SOON_DELAY) % search_buckets.size();
             search_buckets.get(bucket).add(sc);
         }
+
         // Jumpstart search instead of waiting up to ~1 second for current bucket to be handled
         if (now)
             timer.execute(this::runSearches);
@@ -268,17 +300,15 @@ class ChannelSearch
      *  @param channel_id
      *  @return {@link PVAChannel}, <code>null</code> when channel wasn't searched any more
      */
-    public PVAChannel unregister(final int channel_id)
+    public synchronized PVAChannel unregister(final int channel_id)
     {
         final SearchedChannel searched = searched_channels.remove(channel_id);
         if (searched != null)
         {
             logger.log(Level.FINE, () -> "Unregister search for " + searched.channel.getName() + " " + channel_id);
-            // NOT removing `searched` from all `search_buckets`.
-            // Removal would be a slow, linear operation.
-            // `runSearches()` will drop the channel from `search_buckets`
-            // because it's no longer listed in `searched_channels`
-
+            // Remove `searched` from all `search_buckets`.
+            for (Set<SearchedChannel> bucket : search_buckets)
+                bucket.remove(searched);
             return searched.channel;
         }
         return null;
@@ -288,7 +318,7 @@ class ChannelSearch
      *
      *  <p>Resets their search counter so they're searched "real soon".
      */
-    public void boost()
+    public synchronized void boost()
     {
         for (SearchedChannel searched : searched_channels.values())
         {
@@ -299,12 +329,9 @@ class ChannelSearch
             if (period == MIN_SEARCH_PERIOD)
             {
                 logger.log(Level.FINE, () -> "Restart search for '" + searched.channel.getName() + "'");
-                synchronized (search_buckets)
-                {
-                    final LinkedList<SearchedChannel> bucket = search_buckets.get(current_search_bucket.get());
-                    if (! bucket.contains(searched))
-                        bucket.add(searched);
-                }
+
+                final Set<SearchedChannel> bucket = search_buckets.get(current_search_bucket.get());
+                bucket.add(searched);
             }
             // Not sending search right now:
             //   search(channel);
@@ -315,24 +342,20 @@ class ChannelSearch
         }
     }
 
-    /** List of channels to search, re-used within runSearches */
-    private final ArrayList<PVAChannel> to_search = new ArrayList<>();
-
     /** Invoked by timer: Check searched channels for the next one to handle */
-    @SuppressWarnings("unchecked")
     private void runSearches()
     {
-        to_search.clear();
-        synchronized (search_buckets)
+        // Determine current search bucket
+        final int current = current_search_bucket.getAndUpdate(i -> (i + 1) % search_buckets.size());
+        // Collect channels to be searched while sync'ed
+        final ArrayList<SearchRequest.Channel> to_search = new ArrayList<>();
+        synchronized (this)
         {
-            // Determine current search bucket
-            final int current = current_search_bucket.getAndUpdate(i -> (i + 1) % search_buckets.size());
-            final LinkedList<SearchedChannel> bucket = search_buckets.get(current);
+            final Set<SearchedChannel> bucket = search_buckets.get(current);
             logger.log(Level.FINEST, () -> "Search bucket " + current);
 
             // Remove searched channels from the current bucket
-            SearchedChannel sc;
-            while ((sc = bucket.poll()) != null)
+            for (SearchedChannel sc : bucket)
             {
                 if (sc.channel.getState() == ClientChannelState.SEARCHING  &&
                     searched_channels.containsKey(sc.channel.getCID()))
@@ -349,8 +372,8 @@ class ChannelSearch
                     // in case that search bucket is quite full
                     final int i_n   = (current + period) % search_buckets.size();
                     final int i_n_n = (i_n + 1)          % search_buckets.size();
-                    final LinkedList<SearchedChannel> next = search_buckets.get(i_n);
-                    final LinkedList<SearchedChannel> next_next = search_buckets.get(i_n_n);
+                    final Set<SearchedChannel> next      = search_buckets.get(i_n);
+                    final Set<SearchedChannel> next_next = search_buckets.get(i_n_n);
                     if (i_n == current  ||  i_n_n == current)
                         throw new IllegalStateException("Current, next and nextnext search indices for " + sc.channel + " are " +
                                                         current + ", " + i_n + ", " + i_n_n);
@@ -362,8 +385,8 @@ class ChannelSearch
                 else
                     logger.log(Level.FINE, "Dropping channel from search: " + sc.channel);
             }
+            bucket.clear();
         }
-
 
         // Search batch..
         // Size of a search request is close to 50 bytes
@@ -379,7 +402,7 @@ class ChannelSearch
             int count = 0;
             while (start + count < to_search.size()  &&  count < Short.MAX_VALUE-1)
             {
-                final PVAChannel channel = to_search.get(start + count);
+                final SearchRequest.Channel channel = to_search.get(start + count);
                 int size = 4 + PVAString.getEncodedSize(channel.getName());
                 if (payload + size < MAX_SEARCH_PAYLOAD)
                 {
@@ -401,9 +424,9 @@ class ChannelSearch
             if (count == 0)
                 break;
 
-            final List<PVAChannel> batch = to_search.subList(start, start + count);
-            // PVAChannel extends SearchRequest.Channel, so use List<PVAChannel> as Collection<SR.Channel>
-            search((Collection<SearchRequest.Channel>) (List<? extends SearchRequest.Channel>)batch);
+            // Submit one batch from 'to_search'
+            final List<SearchRequest.Channel> batch = to_search.subList(start, start + count);
+            search(batch);
             start += count;
         }
     }
@@ -439,8 +462,8 @@ class ChannelSearch
             // This is configured in EPICS_PVA_NAME_SERVERS via prefix pvas://
             final ClientTCPHandler tcp = tcp_provider.apply(name_server.getAddress(), name_server.isTLS());
 
-            // In case of connection errors (TCP connection blocked by firewall),
-            // tcp will be null
+            // In older implementation, tcp was null in case of connection errors (TCP connection blocked by firewall).
+            // No longer expected to happen but check anyway
             if (tcp != null)
             {
                 final RequestEncoder search_request = (version, buffer) ->
@@ -455,7 +478,7 @@ class ChannelSearch
                     // Use 'any' reply address since reply will be via this TCP socket
                     final InetSocketAddress response_address = new InetSocketAddress(0);
 
-                    SearchRequest.encode(true, seq, channels, response_address, tls , buffer);
+                    SearchRequest.encode(true, true, seq, channels, response_address, tls , buffer);
                 };
                 tcp.submit(search_request);
             }
@@ -490,7 +513,7 @@ class ChannelSearch
         {
             send_buffer.clear();
             final InetSocketAddress response = udp.getResponseAddress(addr);
-            SearchRequest.encode(true, seq, channels, response, tls, send_buffer);
+            SearchRequest.encode(true, true, seq, channels, response, tls, send_buffer);
             send_buffer.flip();
             try
             {
@@ -508,7 +531,7 @@ class ChannelSearch
         {
             send_buffer.clear();
             final InetSocketAddress response = udp.getResponseAddress(addr);
-            SearchRequest.encode(false, seq, channels, response, tls, send_buffer);
+            SearchRequest.encode(false, true, seq, channels, response, tls, send_buffer);
             send_buffer.flip();
             try
             {
@@ -526,8 +549,10 @@ class ChannelSearch
     /** Stop searching channels */
     public void close()
     {
-        searched_channels.clear();
-
+        synchronized (this)
+        {
+            searched_channels.clear();
+        }
         timer.shutdown();
     }
 }

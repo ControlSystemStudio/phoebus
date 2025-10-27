@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,8 +26,12 @@ public class PVAHeader
     /** PVA protocol magic */
     public static final byte PVA_MAGIC = (byte)0xCA;
 
-    /** PVA protocol revision (implemented by this library) */
-    public static final byte PVA_PROTOCOL_REVISION = 2;
+    /** PVA protocol revision (implemented by this library)
+     *
+     *  <br>v2: Server's Echo reply includes the request payload
+     *  <br>v3: SearchRequest FLAG_REPLY_SRC_PORT
+     */
+    public static final byte PVA_PROTOCOL_REVISION = 3;
 
     /** Oldest PVA protocol revision handled by this library */
     public static final byte REQUIRED_PVA_PROTOCOL_REVISION = 1;
@@ -67,6 +71,9 @@ public class PVAHeader
 
     /** Application command: Reply to search */
     public static final byte CMD_SEARCH_RESPONSE = 0x04;
+
+    /** Application command: Access Control (List) Channel */
+    public static final byte CMD_ACL_CHANGE = 0x06;
 
     /** Application command: Create Channel */
     public static final byte CMD_CREATE_CHANNEL = 0x07;
@@ -133,12 +140,18 @@ public class PVAHeader
     /** Offset from start of common PVA message header to byte version */
     public static final int HEADER_OFFSET_VERSION = 1;
 
+    /** Offset from start of common PVA message header to byte flags */
+    public static final int HEADER_OFFSET_FLAGS = 2;
+
+    /** Offset from start of common PVA message header to byte command */
+    public static final int HEADER_OFFSET_COMMAND = 3;
+
     /** Offset from start of common PVA message header to int payload_size */
     public static final int HEADER_OFFSET_PAYLOAD_SIZE = 4;
 
 
     /** Encode common PVA message header
-     *  @param buffer Buffer into which to encode
+     *  @param buffer Buffer into which to encode, must be positioned at desired address (usually 'clear()'ed)
      *  @param flags  Combination of FLAG_
      *  @param command Command
      *  @param payload_size Size of payload that follows
@@ -150,7 +163,6 @@ public class PVAHeader
             flags |= FLAG_BIG_ENDIAN;
         else
             flags &= ~FLAG_BIG_ENDIAN;
-        buffer.clear();
         buffer.put(PVA_MAGIC);
         buffer.put(PVA_PROTOCOL_REVISION);
         buffer.put(flags);

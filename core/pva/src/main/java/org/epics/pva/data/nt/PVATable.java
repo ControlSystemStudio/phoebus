@@ -48,9 +48,9 @@ import java.util.*;
  */
 public class PVATable extends PVAStructure {
     public static final String STRUCT_NAME = "epics:nt/NTTable:1.0";
-    private static final String LABELS_NAME = "labels";
-    private static final String VALUE_NAME = "value";
-    private static final String DESCRIPTOR_NAME = "descriptor";
+    public static final String LABELS_NAME = "labels";
+    public static final String VALUE_NAME = "value";
+    public static final String DESCRIPTOR_NAME = "descriptor";
 
     private final PVAStringArray labels;
     private final PVAStructure value;

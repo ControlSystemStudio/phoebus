@@ -41,9 +41,7 @@ public class SnapshotUtil {
 
     private final Logger LOG = Logger.getLogger(SnapshotUtil.class.getName());
 
-    private final int connectionTimeout = Preferences.connectionTimeout;
-
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     public SnapshotUtil() {
         final File site_settings = new File("settings.ini");
@@ -70,13 +68,30 @@ public class SnapshotUtil {
      * @param snapshotItems {@link SnapshotItem}
      */
     public synchronized List<RestoreResult> restore(List<SnapshotItem> snapshotItems) {
+        return restore(snapshotItems, Preferences.connectionTimeout);
+    }
+
+    /**
+     * Restore PV values from a list of snapshot items
+     *
+     * <p>
+     * Writes concurrently the pv value to the non-null set PVs in
+     * the snapshot items.
+     * Uses synchronized to ensure only one frontend can write at a time.
+     * Returns a list of the snapshot items you have set, with an error message if
+     * an error occurred.
+     *
+     * @param snapshotItems {@link SnapshotItem}
+     * @param connectionTimeout The timeout in ms to use for EPICS connection.
+     */
+    public synchronized List<RestoreResult> restore(List<SnapshotItem> snapshotItems, long connectionTimeout) {
         // First clean the list of SnapshotItems from read-only elements.
         List<SnapshotItem> cleanedSnapshotItems = cleanSnapshotItems(snapshotItems);
         List<RestoreResult> restoreResultList = new ArrayList<>();
 
         List<RestoreCallable> callables = new ArrayList<>();
         for (SnapshotItem si : cleanedSnapshotItems) {
-            RestoreCallable restoreCallable = new RestoreCallable(si, restoreResultList);
+            RestoreCallable restoreCallable = new RestoreCallable(si, restoreResultList, connectionTimeout);
             callables.add(restoreCallable);
         }
 
@@ -98,25 +113,53 @@ public class SnapshotUtil {
      * {@link ConfigPv} item in {@link ConfigurationData} a {@link SnapshotItem} is created holding the
      * values read.
      * Read operations are concurrent using a thread pool. Failed connections/reads will cause a wait of at most
-     * {@link #connectionTimeout} ms on each thread.
+     * {@link Preferences#connectionTimeout} ms on each thread.
      *
      * @param configurationData Identifies which {@link Configuration} user selected to create a snapshot.
      * @return A list of {@link SnapshotItem}s holding the values read from IOCs.
      */
     public List<SnapshotItem> takeSnapshot(ConfigurationData configurationData) {
-        return takeSnapshot(configurationData.getPvList());
+        return takeSnapshot(configurationData.getPvList(), Preferences.connectionTimeout);
+    }
+
+    /**
+     * Reads all PVs and read-back PVs as defined in the {@link ConfigurationData} argument. For each
+     * {@link ConfigPv} item in {@link ConfigurationData} a {@link SnapshotItem} is created holding the
+     * values read.
+     * Read operations are concurrent using a thread pool. Failed connections/reads will cause a wait of at most
+     * <code>connectionTimeout</code> ms on each thread.
+     *
+     * @param configurationData Identifies which {@link Configuration} user selected to create a snapshot.
+     * @return A list of {@link SnapshotItem}s holding the values read from IOCs.
+     */
+    public List<SnapshotItem> takeSnapshot(ConfigurationData configurationData, long connectionTimeout) {
+        return takeSnapshot(configurationData.getPvList(), connectionTimeout);
     }
 
     /**
      * Reads all PVs and read-back PVs as defined in the {@link ConfigurationData} argument. For each
      * {@link ConfigPv} item in {@link ConfigurationData} a {@link SnapshotItem} is created.
      * Read operations are concurrent using a thread pool. Failed connections/reads will cause a wait of at most
-     * {@link #connectionTimeout} ms on each thread.
+     * {@link Preferences#connectionTimeout} ms on each thread.
      *
      * @param configPvs List of {@link ConfigPv}s defining a {@link Configuration}.
      * @return A list of {@link SnapshotItem}s holding the values read from IOCs.
      */
     public List<SnapshotItem> takeSnapshot(final List<ConfigPv> configPvs) {
+        return takeSnapshot(configPvs, Preferences.connectionTimeout);
+    }
+
+    /**
+     * Reads all PVs and read-back PVs as defined in the {@link ConfigurationData} argument. For each
+     * {@link ConfigPv} item in {@link ConfigurationData} a {@link SnapshotItem} is created.
+     * Read operations are concurrent using a thread pool. Failed connections/reads will cause a wait of at most
+     * <code>connectionTimeout</code> ms on each thread.
+     *
+     * @param configPvs List of {@link ConfigPv}s defining a {@link Configuration}.
+     * @param connectionTimeout The timeout in ms to use for EPICS connection.
+     * @return A list of {@link SnapshotItem}s holding the values read from IOCs.
+     */
+    public List<SnapshotItem> takeSnapshot(final List<ConfigPv> configPvs, long connectionTimeout) {
         List<SnapshotItem> snapshotItems = new ArrayList<>();
         List<Callable<Void>> callables = new ArrayList<>();
         Map<String, VType> pvValues = Collections.synchronizedMap(new HashMap<>());
@@ -232,10 +275,12 @@ public class SnapshotUtil {
         private final List<RestoreResult> restoreResultList;
         private PV pv;
         private final SnapshotItem snapshotItem;
+        private final long connectionTimeout;
 
-        public RestoreCallable(SnapshotItem snapshotItem, List<RestoreResult> restoreResultList) {
+        public RestoreCallable(SnapshotItem snapshotItem, List<RestoreResult> restoreResultList, long connectionTimeout) {
             this.snapshotItem = snapshotItem;
             this.restoreResultList = restoreResultList;
+            this.connectionTimeout = connectionTimeout;
         }
 
         @Override
