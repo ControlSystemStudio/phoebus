@@ -66,14 +66,13 @@ public class WidgetRuntimeTest {
            //Test if the new value is ok
            assertThat(readValue, equalTo(newValue));
            
+           //Generate a stacktrace to fix in LocalPVFactory
+           ofWidget.stop();
+           
        } catch (Exception e) {
            e.printStackTrace();
            fail(e);
        }
-       
-      
-      
-       
     }
     
 }

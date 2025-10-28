@@ -26,7 +26,6 @@ import org.csstudio.display.actions.WritePVAction;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
-import org.phoebus.pv.PVPool.TypedName;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -107,7 +106,8 @@ public class WidgetRuntime<MW extends Widget> {
      */
     // This is empty for most widgets, or contains very few PVs,
     // so using List with linear lookup by name and not a HashMap
-    private volatile List<RuntimePV> writable_pvs = null;
+    // Set pv_name as Key to find the corresponding RuntimePV
+    private volatile Map<String,RuntimePV> writable_pvs = null;
 
     /**
      * Handlers for widget's behaviorScripts property,
@@ -230,16 +230,14 @@ public class WidgetRuntime<MW extends Widget> {
         // Prepare action-related PVs
         final List<ActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0) {
-            final List<RuntimePV> action_pvs = new ArrayList<>();
+            final Map<String, RuntimePV> action_pvs = new HashMap<>();
             for (final ActionInfo action : actions) {
                 if (action instanceof WritePVAction) {
                     final String pv_name = ((WritePVAction) action).getPV();
                     try {
                         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
-                        // Manage default datasource if not ca
-                        final TypedName type_name = TypedName.analyze(expanded);
-                        final RuntimePV pv = PVFactory.getPV(type_name.toString());
-                        action_pvs.add(pv);
+                        final RuntimePV pv = PVFactory.getPV(expanded);
+                        action_pvs.put(expanded, pv);
                         addPV(pv, true);
                     } catch (Exception ex) {
                         logger.log(Level.WARNING, widget + " cannot start action to write PV '" + pv_name + "'", ex);
@@ -398,12 +396,8 @@ public class WidgetRuntime<MW extends Widget> {
     public void writePV(final String pv_name, final Object value) throws Exception {
         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
         String name_to_check = expanded;
-        // Check for default datasource to manage custom datasource
-        final TypedName type_name = TypedName.analyze(name_to_check);
-        name_to_check = type_name != null ? type_name.toString() : name_to_check;
-        String dataType = type_name != null ? type_name.type : null;
         // For local PV,
-        if (dataType != null && dataType.equals("loc")) {
+        if (name_to_check.startsWith("loc://")) {
             // strip optional data type ...
             int sep = name_to_check.indexOf('<');
             if (sep > 0)
@@ -414,18 +408,20 @@ public class WidgetRuntime<MW extends Widget> {
                 name_to_check = name_to_check.substring(0, sep);
         }
         awaitStartup();
-        final List<RuntimePV> safe_pvs = writable_pvs;
-        if (safe_pvs != null)
-            for (final RuntimePV pv : safe_pvs)
-                if (pv.getName().equals(name_to_check)) {
+        final Map<String, RuntimePV> safe_pvs = writable_pvs;
+        if (safe_pvs != null) {
+            final RuntimePV pv = safe_pvs.get(name_to_check);
+            if(pv != null) {
                     try {
                         pv.write(value);
                     } catch (final Exception ex) {
                         throw new Exception("Failed to write " + value + " to PV " + name_to_check, ex);
                     }
-                    return;
                 }
-        throw new Exception("Unknown PV '" + pv_name + "' (expanded: '" + name_to_check + "')");
+            else {
+                throw new Exception("Unknown PV '" + pv_name + "' (expanded: '" + name_to_check + "')");
+            }
+        }
     }
 
     /**
@@ -448,13 +444,15 @@ public class WidgetRuntime<MW extends Widget> {
         awaitStartup();
         widget.propClass().removePropertyListener(update_widget_class);
 
-        final List<RuntimePV> safe_pvs = writable_pvs;
-        if (safe_pvs != null) {
-            for (final RuntimePV pv : safe_pvs) {
-                removePV(pv);
-                PVFactory.releasePV(pv);
+        if(writable_pvs != null && !writable_pvs.isEmpty()) {
+            final Collection<RuntimePV> safe_pvs = writable_pvs.values();
+            if (safe_pvs != null) {
+                for (final RuntimePV pv : safe_pvs) {
+                    removePV(pv);
+                    PVFactory.releasePV(pv);
+                }
+                writable_pvs = null;
             }
-            writable_pvs = null;
         }
 
         final PVNameToValueBinding binding = pv_name_binding.getAndSet(null);
