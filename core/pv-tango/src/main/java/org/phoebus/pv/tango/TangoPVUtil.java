@@ -213,7 +213,7 @@ public class TangoPVUtil {
                                 alarmState= Alarm.of(AlarmSeverity.MAJOR, AlarmStatus.UNDEFINED, state.toString());
                                 break;
                         }
-                        resultType = VString.of(state.toString(), alarmState, time);
+                        resultType = VEnum.of(state.value(), enumDisplay, alarmState, time);
                     } else {
                         resultType = VString.of(result.toString(), alarm, time);
                     }
@@ -452,6 +452,32 @@ public class TangoPVUtil {
 
     private static boolean isLong64(String fieldName) {
         return fieldName != null && fieldName.contains(TangoConstHelper.LONG_NAME + "64");
+    }
+    
+    protected static EnumDisplay getAttributeQualityEnumDisplay(AttributeInfo info) {
+        EnumDisplay enumDisplay = null;
+        if(info != null) {
+            NumberFormat numberFormat = Display.defaultNumberFormat();
+            Range noRange = Range.undefined();
+           // Build Attribute Quality enumeration
+            Range limit = Range.of(0, TangoConstHelper.ATTR_QUALITY_LABEL.length);
+            Display display = Display.of(limit, noRange, noRange, limit, "", numberFormat, "Quality of attribute " + info.name);
+            enumDisplay = AdvancedEnumDisplay.of(display, TangoConstHelper.ATTR_QUALITY_LABEL);
+        }
+        return enumDisplay;
+    }
+    
+    protected static EnumDisplay getDevStateEnumDisplay(String device) {
+       EnumDisplay enumDisplay = null;
+       if(device != null) {
+           NumberFormat numberFormat = Display.defaultNumberFormat();
+           Range noRange = Range.undefined();
+          // Build Attribute Quality enumeration
+           Range limit = Range.of(0, TangoConstHelper.STATE_LABEL.length);
+           Display display = Display.of(limit, noRange, noRange, limit, "", numberFormat, "State of device " + device );
+           enumDisplay = AdvancedEnumDisplay.of(display, TangoConstHelper.STATE_LABEL);
+       }
+       return enumDisplay;
     }
 
 }

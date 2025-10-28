@@ -3,6 +3,8 @@ package org.phoebus.pv.tango;
 import java.lang.reflect.Field;
 
 import fr.esrf.Tango.AttrDataFormat;
+import fr.esrf.Tango.AttrQuality;
+import fr.esrf.Tango.DevState;
 import fr.esrf.TangoDs.TangoConst;
 
 /** 
@@ -41,6 +43,23 @@ public class TangoConstHelper {
     public static final String STATE_NAME = "STATE";
     public static final String STATUS_NAME = "STATUS";
     private final static String[] STRING_LABEL = new String[] { "STRING", STATE_NAME, STATUS_NAME};
+    
+    private static final int NB_QUALITY = 5;
+    public static final String[] ATTR_QUALITY_LABEL = new String[NB_QUALITY];
+    
+    private static final int NB_STATE = 14;
+    public static final String[] STATE_LABEL = new String[NB_STATE];
+  
+    static {
+        for (int i = 0; i < NB_QUALITY; i++) {
+            ATTR_QUALITY_LABEL[i] = AttrQuality.from_int(i).toString();
+        }
+        
+        for (int i = 0; i < NB_STATE; i++) {
+            STATE_LABEL[i] = DevState.from_int(i).toString();
+        }
+    }
+    
 
     /**
      * Return simple type according a TangoConst_DEV_* type. *

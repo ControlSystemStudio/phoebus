@@ -23,13 +23,16 @@ public class TangoPVFactory implements PVFactory {
     @Override
     public PV createPV(String name, String base_name) throws Exception {
 
-        String actual_name = name;
+        String actual_name = getCoreName(name);
         // Actual name: tango://the_pv
         // Add tango://prefix if not exist
         if(!name.startsWith(TangoPVFactory.TYPE + "://")) {
             actual_name = PVPool.TypedName.format(TangoPVFactory.TYPE, name);
         }
         TangoPV tangopv = tango_pvs.get(actual_name);
+        
+        //Check TANGO HOST
+        
         if (tangopv == null) {
             synchronized (tango_pvs) {
                 tangopv = new TangoPV(actual_name, base_name);
@@ -38,6 +41,17 @@ public class TangoPVFactory implements PVFactory {
         }
 
         return tangopv;
+    }
+    
+    @Override
+    public String getCoreName(String name) {
+        String actual_name = name;
+        // Actual name: tango://the_pv
+        // Add tango://prefix if not exist
+        if(!name.startsWith(TangoPVFactory.TYPE + "://")) {
+            actual_name = PVPool.TypedName.format(TangoPVFactory.TYPE, name);
+        }
+        return actual_name;
     }
 
     protected static void releasePV(TangoPV tangopv) {

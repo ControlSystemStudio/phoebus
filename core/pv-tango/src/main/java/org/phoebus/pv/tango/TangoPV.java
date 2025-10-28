@@ -1,5 +1,6 @@
 package org.phoebus.pv.tango;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
+import org.epics.vtype.VEnum;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
@@ -35,7 +37,7 @@ import fr.soleil.tango.clientapi.InsertExtractUtils;
 public class TangoPV extends PV {
 
     private static enum MetaData {
-        DESC, LABEL, WRITE, EGU, HOPR, HIHI, HIGH, LOPR, LOW, LOLO
+        DESC, LABEL, WRITE, EGU, HOPR, HIHI, HIGH, LOPR, LOW, LOLO, STAT
     };
 
     private static final String DOT = ".";
@@ -58,16 +60,23 @@ public class TangoPV extends PV {
 
     public TangoPV(String name, String baseName) {
         super(name);
-        // First remove .DESC field
-        String fullDeviceName = baseName;
-        // Test if it is a metadata
-        metaData = getMetadata(fullDeviceName);
-        if (metaData != null) {
-            fullDeviceName = fullDeviceName.replace(DOT + metaData.toString(), "");
+        if (TangoPreferences.getInstance().isTangoDbEnable()) {
+            // First remove .DESC field
+            String fullDeviceName = baseName;
+            // Test if it is a metadata
+            metaData = getMetadata(fullDeviceName);
+            if (metaData != null) {
+                fullDeviceName = fullDeviceName.replace(DOT + metaData.toString(), "");
+            }
+            device = TangoDeviceHelper.getDeviceName(fullDeviceName);
+            entityName = TangoDeviceHelper.getEntityName(fullDeviceName);
+
+            initTangoEntity();
+        } else {
+            // No attribute info found
+            VType initValue = VString.of("--", Alarm.disconnected(), Time.now());
+            notifyListenersOfValue(initValue);
         }
-        device = TangoDeviceHelper.getDeviceName(fullDeviceName);
-        entityName = TangoDeviceHelper.getEntityName(fullDeviceName);
-        initTangoEntity();
     }
 
     private MetaData getMetadata(String fullDeviceName) {
@@ -85,7 +94,7 @@ public class TangoPV extends PV {
     }
 
     private boolean isMetaData() {
-        return metaData != null && metaData != MetaData.WRITE;
+        return metaData != null && metaData != MetaData.WRITE && metaData != MetaData.STAT;
     }
 
     private void initTangoEntity() {
@@ -110,9 +119,19 @@ public class TangoPV extends PV {
                                 description = attributeInfo.toString();
                             }
                             attributeInfoEx = TangoAttributeHelper.getAttributeInfoEx(device, entityName);
-                            display = TangoPVUtil.buildDisplayFromAttributeInfo(attributeInfo, attributeInfoEx,
-                                    description);
-                            enumDisplay = TangoPVUtil.buildEnumDisplayFromAttributeInfo(attributeInfoEx, display);
+                            if (metaData != null && metaData == MetaData.STAT) {
+                                enumDisplay = TangoPVUtil.getAttributeQualityEnumDisplay(attributeInfo);
+                                display = ((AdvancedEnumDisplay) enumDisplay).getDisplay();
+
+                            } else if (entityName.equalsIgnoreCase("State")) {
+                                // Build State enumeration
+                                enumDisplay = TangoPVUtil.getDevStateEnumDisplay(device);
+                                display = ((AdvancedEnumDisplay) enumDisplay).getDisplay();
+                            } else {
+                                display = TangoPVUtil.buildDisplayFromAttributeInfo(attributeInfo, attributeInfoEx,
+                                        description);
+                                enumDisplay = TangoPVUtil.buildEnumDisplayFromAttributeInfo(attributeInfoEx, display);
+                            }
                             // It is not a description, read attribute value
                             if (!isMetaData()) {
                                 initValue = readValue();
@@ -335,22 +354,30 @@ public class TangoPV extends PV {
                 DeviceAttribute deviceAttribute = TangoAttributeHelper.getDeviceAttribute(deviceProxy, entityName);
                 int type = deviceAttribute.getType();
                 AttrDataFormat dataFormat = deviceAttribute.getDataFormat();
-                Object result = null;
-                if (metaData != null && metaData == MetaData.WRITE) {
-                    result = InsertExtractUtils.extractWrite(deviceAttribute, attributeInfo.writable, dataFormat);
-                } else {
-                    result = InsertExtractUtils.extractRead(deviceAttribute, dataFormat);
-                }
                 Alarm alarm = TangoPVUtil.buildAlarmFromAttribute(deviceAttribute);
                 long time = deviceAttribute.getTime();
-                boolean isArray = dataFormat != null
-                        && (dataFormat == AttrDataFormat.SPECTRUM || dataFormat == AttrDataFormat.IMAGE);
-                int[] sizes = null;
-                if (dataFormat == AttrDataFormat.IMAGE) {
-                    sizes = new int[] { deviceAttribute.getDimX(), deviceAttribute.getDimY() };
+                if (metaData != null && metaData == MetaData.STAT) {
+                    // Read Quality of attribute
+                    int attributeQuality = TangoAttributeHelper.getAttributeQuality(deviceAttribute);
+                    Time t = Time.of(Instant.ofEpochMilli(time));
+                    rValue = VEnum.of(attributeQuality, enumDisplay, alarm, t);
+                } else {
+                    Object result = null;
+                    if (metaData != null && metaData == MetaData.WRITE) {
+                        result = InsertExtractUtils.extractWrite(deviceAttribute, attributeInfo.writable, dataFormat);
+                    } else {
+                        result = InsertExtractUtils.extractRead(deviceAttribute, dataFormat);
+                    }
+
+                    boolean isArray = dataFormat != null
+                            && (dataFormat == AttrDataFormat.SPECTRUM || dataFormat == AttrDataFormat.IMAGE);
+                    int[] sizes = null;
+                    if (dataFormat == AttrDataFormat.IMAGE) {
+                        sizes = new int[] { deviceAttribute.getDimX(), deviceAttribute.getDimY() };
+                    }
+                    rValue = TangoPVUtil.convertResultToVtype(isArray, sizes, type, result, alarm, time, display,
+                            enumDisplay);
                 }
-                rValue = TangoPVUtil.convertResultToVtype(isArray, sizes, type, result, alarm, time, display,
-                        enumDisplay);
             } catch (Exception e) {
                 String errorMessage = TangoExceptionHelper.getErrorMessage(e);
                 rValue = VString.of(errorMessage, Alarm.disconnected(), Time.now());
@@ -405,7 +432,7 @@ public class TangoPV extends PV {
     @Override
     public boolean isReadonly() {
         boolean isRO = true;
-        if (!isMetaData()) {
+        if (!isMetaData() && metaData != MetaData.STAT) {
             if (attributeInfo != null) {
                 AttrWriteType writable = attributeInfo.writable;
                 isRO = writable == AttrWriteType.READ;
@@ -429,5 +456,6 @@ public class TangoPV extends PV {
             cb = null;
         }
         TangoPVFactory.releasePV(this);
+        super.close();
     }
 }
