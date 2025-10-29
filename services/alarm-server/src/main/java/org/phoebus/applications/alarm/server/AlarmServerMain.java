@@ -80,6 +80,18 @@ public class AlarmServerMain implements ServerModelListener
                         "\trestart          - Re-load alarm configuration and restart.\n" +
                         "\tshutdown         - Shut alarm server down and exit.\n";
 
+    /**
+     * Ensure that the required Kafka topics exist and are correctly configured.
+     * <p>
+     * Creates and configures the main alarm topic (compacted) and command/talk topics (deleted).
+     * For more details on alarm topic configuration, see:
+     * Refer to <a href="https://github.com/ControlSystemStudio/phoebus/tree/master/app/alarm#configure-alarm-topics">Configure Alarm Topics</a>
+     *
+     * @param server           Kafka server
+     * @param topic            Base topic name
+     * @param kafka_props_file Extra Kafka properties file
+     * @throws Exception
+     */
     private static void ensureKafkaTopics(String server, String topic, String kafka_props_file) throws Exception {
         try (AdminClient admin = AdminClient.create(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, server))) {
             Set<String> topics = admin.listTopics().names().get(60, TimeUnit.SECONDS);
@@ -101,6 +113,13 @@ public class AlarmServerMain implements ServerModelListener
         }
     }
 
+    /**
+     * Create topics
+     *
+     * @param admin Admin client
+     * @param topic Topic name
+     * @throws Exception
+     */
     private static void createTopic(AdminClient admin, String topic) throws Exception {
         NewTopic newTopic = new NewTopic(topic, 1, (short) 1);
         try {
@@ -115,28 +134,48 @@ public class AlarmServerMain implements ServerModelListener
         }
     }
 
+    /**
+     * Configure topic for alarm state storage with compaction to retain latest state.
+     * For configuration information, see:
+     * <p>
+     * Refer to <a href="https://github.com/ControlSystemStudio/phoebus/tree/master/app/alarm#configure-alarm-topics">Configure Alarm Topics</a>
+     *
+     * @param admin Admin client
+     * @param topic Topic name
+     * @throws Exception
+     */
     private static void setCompactedConfig(AdminClient admin, String topic) throws Exception {
         ConfigResource resource = new ConfigResource(ConfigResource.Type.TOPIC, topic);
         List<AlterConfigOp> configOps = List.of(
-            new AlterConfigOp(new ConfigEntry("cleanup.policy", "compact"), AlterConfigOp.OpType.SET),
-            new AlterConfigOp(new ConfigEntry("segment.ms", "10000"), AlterConfigOp.OpType.SET),
-            new AlterConfigOp(new ConfigEntry("min.cleanable.dirty.ratio", "0.01"), AlterConfigOp.OpType.SET),
-            new AlterConfigOp(new ConfigEntry("min.compaction.lag.ms", "1000"), AlterConfigOp.OpType.SET)
+                new AlterConfigOp(new ConfigEntry("cleanup.policy", "compact"), AlterConfigOp.OpType.SET),
+                new AlterConfigOp(new ConfigEntry("segment.ms", "10000"), AlterConfigOp.OpType.SET),
+                new AlterConfigOp(new ConfigEntry("min.cleanable.dirty.ratio", "0.01"), AlterConfigOp.OpType.SET),
+                new AlterConfigOp(new ConfigEntry("min.compaction.lag.ms", "1000"), AlterConfigOp.OpType.SET)
         );
         admin.incrementalAlterConfigs(Map.of(resource, configOps)).all().get();
         logger.info("Set compacted config for topic: " + topic);
     }
 
+    /**
+     * Configure topic for command/talk messages with time-based deletion.
+     * For configuration information, see:
+     *
+     * Refer to <a href="https://github.com/ControlSystemStudio/phoebus/tree/master/app/alarm#configure-alarm-topics">Configure Alarm Topics</a>
+     *
+     * @param admin Admin client
+     * @param topic Topic name
+     * @throws Exception
+     */
     private static void setDeletedConfig(AdminClient admin, String topic) throws Exception {
         ConfigResource resource = new ConfigResource(ConfigResource.Type.TOPIC, topic);
         List<AlterConfigOp> configOps = List.of(
-            new AlterConfigOp(new ConfigEntry("cleanup.policy", "delete"), AlterConfigOp.OpType.SET),
-            new AlterConfigOp(new ConfigEntry("segment.ms", "10000"), AlterConfigOp.OpType.SET),
-            new AlterConfigOp(new ConfigEntry("min.cleanable.dirty.ratio", "0.01"), AlterConfigOp.OpType.SET),
-            new AlterConfigOp(new ConfigEntry("min.compaction.lag.ms", "1000"), AlterConfigOp.OpType.SET),
-            new AlterConfigOp(new ConfigEntry("retention.ms", "20000"), AlterConfigOp.OpType.SET),
-            new AlterConfigOp(new ConfigEntry("delete.retention.ms", "1000"), AlterConfigOp.OpType.SET),
-            new AlterConfigOp(new ConfigEntry("file.delete.delay.ms", "1000"), AlterConfigOp.OpType.SET)
+                new AlterConfigOp(new ConfigEntry("cleanup.policy", "delete"), AlterConfigOp.OpType.SET),
+                new AlterConfigOp(new ConfigEntry("segment.ms", "10000"), AlterConfigOp.OpType.SET),
+                new AlterConfigOp(new ConfigEntry("min.cleanable.dirty.ratio", "0.01"), AlterConfigOp.OpType.SET),
+                new AlterConfigOp(new ConfigEntry("min.compaction.lag.ms", "1000"), AlterConfigOp.OpType.SET),
+                new AlterConfigOp(new ConfigEntry("retention.ms", "20000"), AlterConfigOp.OpType.SET),
+                new AlterConfigOp(new ConfigEntry("delete.retention.ms", "1000"), AlterConfigOp.OpType.SET),
+                new AlterConfigOp(new ConfigEntry("file.delete.delay.ms", "1000"), AlterConfigOp.OpType.SET)
         );
         admin.incrementalAlterConfigs(Map.of(resource, configOps)).all().get();
         logger.info("Set deleted config for topic: " + topic);
