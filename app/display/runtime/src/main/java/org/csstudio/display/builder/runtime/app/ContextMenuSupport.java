@@ -256,7 +256,7 @@ class ContextMenuSupport {
         // If the editor is available, add "Open in Editor"
         final AppResourceDescriptor editor = ApplicationService.findApplication("display_editor");
         if (editor != null && AuthorizationService.hasAuthorization("edit_display"))
-            items.add(new OpenInEditorAction(editor, widget));
+            items.add(new OpenInEditorAction(editor, widget, setFocus));
 
         items.add(new SeparatorMenuItem());
 

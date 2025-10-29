@@ -25,9 +25,11 @@ public class OpenInEditorAction extends WeakRefWidgetAction
 {
     /** @param editor Editor to use
      *  @param the_widget Widget
+     *  @param setFocus set the focus to the dock pane
      */
     public OpenInEditorAction(final AppResourceDescriptor editor,
-                              final Widget the_widget)
+                              final Widget the_widget,
+                              Runnable setFocus)
     {
         super(Messages.OpenInEditor,
               ImageCache.getImageView(DisplayModel.class, "/icons/display.png"),
@@ -35,6 +37,7 @@ public class OpenInEditorAction extends WeakRefWidgetAction
 
         setOnAction(event ->
         {
+            setFocus.run();
             try
             {
                 final Widget widget = getWidget();
