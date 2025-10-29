@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <height>800</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>TANGO TEST</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>780</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>tango://sys/tg_test/1/ampli</pv_name>
+    <x>170</x>
+    <y>71</y>
+    <width>120</width>
+    <scripts>
+      <script file="script/AttributeQualityRule.py">
+        <pv_name>$(pv_name).STAT</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>tango://sys/tg_test/1/float_scalar</pv_name>
+    <x>170</x>
+    <y>111</y>
+    <width>120</width>
+    <scripts>
+      <script file="script/AttributeQualityRule.py">
+        <pv_name>$(pv_name).STAT</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>tango://sys/tg_test/1/ampli.LABEL</pv_name>
+    <x>46</x>
+    <y>73</y>
+    <transparent>true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>tango://sys/tg_test/1/float_scalar.LABEL</pv_name>
+    <x>46</x>
+    <y>113</y>
+    <transparent>true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_4</name>
+    <pv_name>tango://sys/tg_test/1/State</pv_name>
+    <x>170</x>
+    <y>151</y>
+    <width>120</width>
+    <rules>
+      <rule name="DevStateRule" prop_id="background_color" out_exp="false">
+        <exp bool_exp="pv0 == 0">
+          <value>
+            <color name="ON/OPEN/EXTRACT" red="0" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 1">
+          <value>
+            <color name="OFF/CLOSE/INSERT" red="255" green="255" blue="255">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 2">
+          <value>
+            <color name="OFF/CLOSE/INSERT" red="255" green="255" blue="255">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 3">
+          <value>
+            <color name="ON/OPEN/EXTRACT" red="0" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 4">
+          <value>
+            <color name="OFF/CLOSE/INSERT" red="255" green="255" blue="255">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 5">
+          <value>
+            <color name="ON/OPEN/EXTRACT" red="0" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 6">
+          <value>
+            <color name="MOVING/RUNNING" red="128" green="160" blue="255">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 7">
+          <value>
+            <color name="STANDBY" red="255" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 8">
+          <value>
+            <color name="FAULT" red="255" green="0" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 9">
+          <value>
+            <color name="INIT" red="204" green="204" blue="122">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 10">
+          <value>
+            <color name="MOVING/RUNNING" red="128" green="160" blue="255">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 11">
+          <value>
+            <color name="ALARM" red="255" green="140" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 12">
+          <value>
+            <color name="DISABLE" red="255" green="0" blue="255">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 == 13">
+          <value>
+            <color name="UNKNOWN" red="155" green="155" blue="155">
+            </color>
+          </value>
+        </exp>
+        <pv_name>$(pv_name)</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="write_pv">
+        <description>Écrire PV</description>
+        <pv_name>$(pv_name)</pv_name>
+        <value>0</value>
+      </action>
+    </actions>
+    <pv_name>tango://sys/tg_test/1/SwitchStates</pv_name>
+    <text>SwichState</text>
+    <x>279</x>
+    <y>710</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_5</name>
+    <pv_name>tango://sys/tg_test/1/string_scalar</pv_name>
+    <x>170</x>
+    <y>191</y>
+    <width>120</width>
+    <scripts>
+      <script file="script/AttributeQualityRule.py">
+        <pv_name>$(pv_name).STAT</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_6</name>
+    <pv_name>tango://sys/tg_test/1/State.LABEL</pv_name>
+    <x>40</x>
+    <y>151</y>
+    <transparent>true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_7</name>
+    <pv_name>tango://sys/tg_test/1/string_scalar.LABEL</pv_name>
+    <x>40</x>
+    <y>191</y>
+    <transparent>true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_9</name>
+    <pv_name>tango://sys/tg_test/1/boolean_scalar.LABEL</pv_name>
+    <x>40</x>
+    <y>231</y>
+    <transparent>true</transparent>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button</name>
+    <pv_name>tango://sys/tg_test/1/boolean_scalar.WRITE</pv_name>
+    <x>310</x>
+    <y>226</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_10</name>
+    <pv_name>tango://sys/tg_test/1/DevString</pv_name>
+    <x>396</x>
+    <y>750</y>
+    <width>210</width>
+    <height>28</height>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo Box</name>
+    <pv_name>tango://sys/tg_test/1/DevString</pv_name>
+    <x>279</x>
+    <y>750</y>
+    <items>
+      <item>item 0</item>
+      <item>Item 1</item>
+      <item>Item 2</item>
+    </items>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>tango://sys/tg_test/1/string_scalar.WRITE</pv_name>
+    <x>310</x>
+    <y>191</y>
+    <width>120</width>
+  </widget>
+  <widget type="spinner" version="2.0.0">
+    <name>Spinner</name>
+    <pv_name>tango://sys/tg_test/1/float_scalar.WRITE</pv_name>
+    <x>310</x>
+    <y>111</y>
+  </widget>
+  <widget type="spinner" version="2.0.0">
+    <name>Spinner_1</name>
+    <pv_name>tango://sys/tg_test/1/ampli.WRITE</pv_name>
+    <x>310</x>
+    <y>71</y>
+  </widget>
+  <widget type="xyplot" version="3.0.0">
+    <name>Graphique X/Y</name>
+    <x>370</x>
+    <y>580</y>
+    <width>1</width>
+    <height>1</height>
+  </widget>
+  <widget type="xyplot" version="3.0.0">
+    <name>Graphique X/Y_1</name>
+    <x>40</x>
+    <y>340</y>
+    <width>730</width>
+    <height>290</height>
+    <x_axis>
+      <title></title>
+      <autoscale>true</autoscale>
+      <log_scale>false</log_scale>
+      <minimum>0.0</minimum>
+      <maximum>100.0</maximum>
+      <show_grid>false</show_grid>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+      <visible>true</visible>
+    </x_axis>
+    <y_axes>
+      <y_axis>
+        <title></title>
+        <autoscale>true</autoscale>
+        <log_scale>false</log_scale>
+        <minimum>0.0</minimum>
+        <maximum>100.0</maximum>
+        <show_grid>false</show_grid>
+        <title_font>
+          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+          </font>
+        </title_font>
+        <scale_font>
+          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+          </font>
+        </scale_font>
+        <on_right>false</on_right>
+        <visible>true</visible>
+        <color>
+          <color name="Text" red="0" green="0" blue="0">
+          </color>
+        </color>
+      </y_axis>
+    </y_axes>
+    <traces>
+      <trace>
+        <name>$(traces[0].y_pv)</name>
+        <x_pv></x_pv>
+        <y_pv>tango://sys/tg_test/1/wave</y_pv>
+        <err_pv></err_pv>
+        <axis>0</axis>
+        <trace_type>1</trace_type>
+        <color>
+          <color red="255" green="0" blue="0">
+          </color>
+        </color>
+        <line_width>1</line_width>
+        <line_style>0</line_style>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+        <visible>true</visible>
+      </trace>
+      <trace>
+        <name>$(traces[1].y_pv)</name>
+        <x_pv></x_pv>
+        <y_pv>sys/tg_test/1/wave</y_pv>
+        <err_pv></err_pv>
+        <axis>0</axis>
+        <trace_type>1</trace_type>
+        <color>
+          <color red="0" green="0" blue="255">
+          </color>
+        </color>
+        <line_width>1</line_width>
+        <line_style>0</line_style>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+        <visible>true</visible>
+      </trace>
+    </traces>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>sys/tg_test/1/DevString</text>
+    <x>100</x>
+    <y>756</y>
+    <width>173</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>sys/tg_test/1/SwichState</text>
+    <x>102</x>
+    <y>717</y>
+    <width>173</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Tango Commands</text>
+    <x>50</x>
+    <y>640</y>
+    <width>210</width>
+    <height>40</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Tango Attributes</text>
+    <x>50</x>
+    <y>31</y>
+    <width>210</width>
+    <height>40</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_11</name>
+    <pv_name>tango://sys/tg_test/1/enum_scalar.LABEL</pv_name>
+    <x>40</x>
+    <y>276</y>
+    <transparent>true</transparent>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo Box_1</name>
+    <pv_name>tango://sys/tg_test/1/enum_scalar.WRITE</pv_name>
+    <x>310</x>
+    <y>271</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_12</name>
+    <pv_name>tango://sys/tg_test/1/enum_scalar</pv_name>
+    <x>166</x>
+    <y>278</y>
+    <width>120</width>
+    <scripts>
+      <script file="script/AttributeQualityRule.py">
+        <pv_name>$(pv_name).STAT</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_13</name>
+    <pv_name>tango://sys/tg_test/1/boolean_scalar</pv_name>
+    <x>166</x>
+    <y>231</y>
+    <width>120</width>
+    <scripts>
+      <script file="script/AttributeQualityRule.py">
+        <pv_name>$(pv_name).STAT</pv_name>
+      </script>
+    </scripts>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image</name>
+    <x>990</x>
+    <y>470</y>
+    <width>1</width>
+    <height>1</height>
+  </widget>
+  <widget type="image" version="2.0.0">
+    <name>Image_1</name>
+    <pv_name>tango://sys/tg_test/1/double_image_ro</pv_name>
+    <x>430</x>
+    <y>71</y>
+    <width>350</width>
+    <height>249</height>
+    <x_axis>
+      <visible>true</visible>
+      <title>sys/tg_test/1/double_image_ro</title>
+      <minimum>0.0</minimum>
+      <maximum>251.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </x_axis>
+    <y_axis>
+      <visible>true</visible>
+      <title></title>
+      <minimum>0.0</minimum>
+      <maximum>251.0</maximum>
+      <title_font>
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        </font>
+      </title_font>
+      <scale_font>
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        </font>
+      </scale_font>
+    </y_axis>
+    <limits_from_pv>true</limits_from_pv>
+    <data_width>251</data_width>
+    <data_height>251</data_height>
+    <cursor_crosshair>true</cursor_crosshair>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_8</name>
+    <pv_name>sys/tg_test/1/State</pv_name>
+    <x>310</x>
+    <y>150</y>
+    <width>110</width>
+    <scripts>
+      <script file="script/DevStateRule.py">
+        <pv_name>$(pv_name)</pv_name>
+      </script>
+    </scripts>
+  </widget>
+</display>

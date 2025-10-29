@@ -3,6 +3,8 @@ package org.phoebus.ui.application;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.phoebus.framework.persistence.Memento;
@@ -15,16 +17,18 @@ public class TableHelper {
      * */
     public static boolean addContextMenuColumnVisibilityEntries(final TableView<?> table, final ContextMenu menu) {
         boolean added_item = false;
+        Menu visibilitySubMenu = new Menu("Column Visibility");
         for (TableColumn<?, ?> col : table.getColumns()) {
             if (col.getText().isEmpty()) continue;
             CheckMenuItem item = new CheckMenuItem("Show " + col.getText());
             item.selectedProperty().bindBidirectional(col.visibleProperty());
-            menu.getItems().add(item);
+            visibilitySubMenu.getItems().add(item);
             added_item = true;
         }
+        if (added_item)
+            menu.getItems().add(visibilitySubMenu);
         return added_item;
     }
-
 
     /** Save column visibilities to a memento
      * */
