@@ -9,7 +9,9 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
+import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
+import org.phoebus.ui.docking.DockPane;
 import org.csstudio.display.builder.model.spi.ActionHandler;
 import org.csstudio.display.actions.OpenFileAction;
 
@@ -36,6 +38,12 @@ public class OpenFileActionHandler implements ActionHandler {
             final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(top_model);
             toolkit.execute(() ->
             {
+                DockPane dockPane = DisplayRuntimeInstance.ofDisplayModel(top_model).getDockItem().getDockPane();
+                if (dockPane.isStandAloneWindow()) {
+                    // Open the file in the main Phoebus window if launched from
+                    // a standalone screen.
+                    DockPane.setActiveDockPane(DockPane.getMainDockPain());
+                }
                 try
                 {
                     toolkit.openFile(resolved_name);

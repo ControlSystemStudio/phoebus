@@ -91,7 +91,13 @@ class ContextMenuSupport {
                     DisplayRuntimeInstance displayRuntimeInstance = DisplayRuntimeInstance.ofDisplayModel(displayModel);
                     DockItem dockItem = displayRuntimeInstance.getDockItem();
                     DockPane dockPane = dockItem.getDockPane();
-                    setFocus = () -> DockPane.setActiveDockPane(dockPane);
+                    if (dockPane.isStandAloneWindow()) {
+                        // If in a standalone window, set the active dock pane to be the 'main'
+                        // Phoebus pain instead of the current dock pane
+                        setFocus = () -> DockPane.setActiveDockPane(DockPane.getMainDockPain());
+                    } else {
+                        setFocus = () -> DockPane.setActiveDockPane(dockPane);
+                    }
                 }
 
                 fillMenu(setFocus, widget);
