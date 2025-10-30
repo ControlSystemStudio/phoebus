@@ -402,7 +402,7 @@
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>pbrawclient</artifactId>
-      <version>0.0.10</version>
+      <version>0.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>

@@ -4,12 +4,5 @@
   <groupId>org.epics</groupId>
   <artifactId>pbrawclient</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
-  <version>0.0.10</version>
-  <dependencies>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-      <version>3.21.9</version>
-    </dependency>
-  </dependencies>
+  <version>0.2.1</version>
 </project>
