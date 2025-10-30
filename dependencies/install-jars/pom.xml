@@ -69,11 +69,9 @@
             <configuration>
               <groupId>org.epics</groupId>
               <artifactId>pbrawclient</artifactId>
-              <version>0.0.10</version>
+              <version>0.2.2</version>
               <packaging>jar</packaging>
-              <file>${basedir}/lib/pbraw/pbrawclient-0.0.10.jar</file>
-              <generatePom>false</generatePom>
-              <pomFile>${basedir}/lib/pbraw/pom.xml</pomFile>
+              <file>${basedir}/lib/pbraw/pbrawclient-0.2.2.jar</file>
             </configuration>
             <goals>
               <goal>install-file</goal>
