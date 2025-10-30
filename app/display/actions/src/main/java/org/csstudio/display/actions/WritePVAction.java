@@ -5,11 +5,14 @@
 package org.csstudio.display.actions;
 
 import javafx.scene.image.Image;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.ActionInfoBase;
 import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
+import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.w3c.dom.Element;
@@ -106,5 +109,34 @@ public class WritePVAction extends ActionInfoBase {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String formatPv(Widget widget) {
+        final MacroValueProvider macros = widget.getMacrosOrProperties();
+        String pvName = getPV();
+        try
+        {
+            pvName = MacroHandler.replace(macros, pvName);
+        }
+        catch (Exception ignore)
+        {
+            // NOP
+        }
+        return pvName;
+    }
+
+    public String formatValue(Widget widget) {
+        final MacroValueProvider macros = widget.getMacrosOrProperties();
+        value = getValue();
+
+        try
+        {
+            value = MacroHandler.replace(macros, value);
+        }
+        catch (Exception ignore)
+        {
+            // NOP
+        }
+        return value;
     }
 }

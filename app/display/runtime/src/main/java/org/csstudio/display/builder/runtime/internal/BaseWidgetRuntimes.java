@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
@@ -39,6 +40,7 @@ public class BaseWidgetRuntimes implements WidgetRuntimesService
     {
         return Map.ofEntries(
             entry(DisplayModel.WIDGET_TYPE,                          () -> new DisplayRuntime()),
+            entry(ActionButtonWidget.WIDGET_DESCRIPTOR.getType(),    () -> new ActionButtonWidgetRuntime()),
             entry(ArrayWidget.WIDGET_DESCRIPTOR.getType(),           () -> new ArrayWidgetRuntime()),
             entry(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR.getType(), () -> new EmbeddedDisplayRuntime()),
             entry(GroupWidget.WIDGET_DESCRIPTOR.getType(),           () -> new GroupWidgetRuntime()),

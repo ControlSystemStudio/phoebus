@@ -260,17 +260,19 @@ public class ScansTable extends VBox
     {
         switch (state)
         {
-        case Running: // Most important, happening right now
+        case Running:   // Most important, happening right now
+            return 7;
+        case Paused:    // Very similar to a running state
             return 6;
-        case Paused:  // Very similar to a running state
+        case Idle:      // About to run next
             return 5;
-        case Idle:    // About to run next
+        case Scheduled: // Scheduled to run in the future
             return 4;
-        case Failed:  // Of the not running ones, failure is important to know
+        case Failed:    // Of the not running ones, failure is important to know
             return 3;
-        case Aborted: // Aborted on purpose
+        case Aborted:   // Aborted on purpose
             return 2;
-        case Finished:// Water down the bridge
+        case Finished:  // Water down the bridge
             return 1;
         case Logged:
         default:

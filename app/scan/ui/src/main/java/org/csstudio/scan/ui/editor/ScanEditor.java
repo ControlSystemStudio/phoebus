@@ -12,6 +12,7 @@ import static org.csstudio.scan.ScanSystem.logger;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -249,6 +250,12 @@ public class ScanEditor extends SplitPane
         jump_to_current.setOnAction(event -> scan_tree.revealActiveItem(jump_to_current.isSelected()));
 
         final Button[] undo_redo = UndoButtons.createButtons(undo);
+
+        final Button schedule_button = new Button();
+        schedule_button.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/clock.png"));
+        schedule_button.setTooltip(new Tooltip(Messages.scan_schedule));
+        schedule_button.setOnAction(event -> schedule(true));
+
         final Button run_button = new Button();
         run_button.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
         run_button.setTooltip(new Tooltip(Messages.scan_submit));
@@ -266,6 +273,7 @@ public class ScanEditor extends SplitPane
                 ToolbarHelper.createSpring(),
                 undo_redo[0],
                 undo_redo[1],
+                schedule_button,
                 simulate_button,
                 run_button
         );
@@ -307,6 +315,20 @@ public class ScanEditor extends SplitPane
                                                  new SeparatorMenuItem(),
                                                  open_monitor);
         setContextMenu(menu);
+    }
+
+    private void schedule(final Boolean queued) {
+        final String xml_commands;
+        try {
+            xml_commands = XMLCommandWriter.toXMLString(model.getCommands());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
+        ScheduledScanDialog dialog = new ScheduledScanDialog(scan_name, scan_client, xml_commands);
+        DialogHelper.positionDialog(dialog, this, 100, 100);
+        Optional<Long> scan_id = dialog.showAndWait();
+        scan_id.ifPresent(this::attachScan);
     }
 
     /** @param how true/false to submit queue/un-queued, <code>null</code> to simulate */
@@ -381,7 +403,7 @@ public class ScanEditor extends SplitPane
      *  @param id Scan ID
      *  @throws Exception on error
      */
-    void attachScan(final long id) throws Exception
+    void attachScan(final long id)
     {
         active_scan = id;
 

@@ -89,6 +89,7 @@ public class ScanServlet extends HttpServlet
             // Timeout or deadline?
             long timeout_secs = 0;
             LocalDateTime deadline = null;
+            LocalDateTime scheduled = null;
             String text = request.getParameter("timeout");
             if (text != null)
                 try
@@ -118,6 +119,21 @@ public class ScanServlet extends HttpServlet
                     throw new Exception("Cannot specify both timeout and deadline");
             }
 
+            // Execute pre/post commands unless "?pre_post=false"
+
+            text = request.getParameter("scheduled");
+            if (text != null  && !"0000-00-00 00:00:00".equals(text))
+            {
+                try
+                {
+                    scheduled = LocalDateTime.from(TimestampFormats.SECONDS_FORMAT.parse(text));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Invalid scheduled time '" + text + "'");
+                }
+            }
+
             // Read scan commands
             final String scan_commands = IOUtils.toString(request.getInputStream());
 
@@ -125,7 +141,15 @@ public class ScanServlet extends HttpServlet
             if (logger.isLoggable(Level.FINE))
                 logger.log(Level.FINE, "Scan '" + scan_name + "':\n" + scan_commands);
 
-            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue, pre_post, timeout_secs, deadline);
+            final long scan_id = scan_server.submitScan(
+                    scan_name,
+                    scan_commands,
+                    queue,
+                    pre_post,
+                    timeout_secs,
+                    deadline,
+                    scheduled
+            );
 
             // Return scan ID
             out.print("<id>");

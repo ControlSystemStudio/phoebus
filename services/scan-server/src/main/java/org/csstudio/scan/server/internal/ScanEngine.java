@@ -17,8 +17,11 @@ package org.csstudio.scan.server.internal;
 
 import static org.csstudio.scan.server.ScanServerInstance.logger;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,6 +34,7 @@ import org.csstudio.scan.info.Scan;
 import org.csstudio.scan.server.internal.ExecutableScan.QueueState;
 import org.csstudio.scan.server.log.DataLogFactory;
 import org.phoebus.framework.jobs.NamedThreadFactory;
+import org.phoebus.util.time.TimestampFormats;
 
 /** Engine that accepts {@link ExecutableScan}s, queuing them and executing
  *  them in order
@@ -46,6 +50,11 @@ public class ScanEngine
      *  Scans that either Finished, Failed or were Aborted
      *  are kept around for a little while.
      *
+     *  <p>This queue is built up in a way where there is NEVER an "ExecutableScan"
+     *  in the queue before a LoggedScan, EXCEPT when that "ExecutableScan" is scheduled to start at
+     *  some time in the future, in which case it doesn't _really_ count as an ExecutableScan, though
+     *  one still wants to manage creation / updating / deleting in the same way.
+     *
      *  <p>The list is generally thread-safe (albeit slow when adding elements).
      *  It is only locked to avoid starting a scan that's about to be moved up
      *  for later execution
@@ -53,6 +62,9 @@ public class ScanEngine
      *  b) .. when changing the order of scans in the list
      */
     final private List<LoggedScan> scan_queue = new CopyOnWriteArrayList<>();
+
+    /** Timer for triggering scheduled tasks at their designated time */
+    final private ScheduledExecutorService scheduled_scan_executor = Executors.newSingleThreadScheduledExecutor();
 
     /** Executor for executeQueuedScans() */
     final private ExecutorService queue_executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("QueueHandler"));
@@ -122,7 +134,16 @@ public class ScanEngine
                         final LoggedScan scan = scan_queue.get(i);
                         // Track the last Queued scan,
                         // which should be the next to execute
-                        if (scan instanceof ExecutableScan)
+                        if (scan instanceof ScheduledScan && !((ScheduledScan)scan).getExecutable()) {
+                            // Scheduled scans which are not ready to be executed don't count as "actual"
+                            // executable scans
+                            // Scheduled scans are moved to the beginning of the queue whenever their scheduled
+                            // time is reached, and are only then marked as being executable, so there can never
+                            // be a race condition where an ExecutableScan triggers the queue, which then finds
+                            // a ScheduledScan as first ExecutableScan, making it jump ahead of the ExecutableScan
+                            // triggering the queue, or any other ScheduledScans.
+                        }
+                        else if (scan instanceof ExecutableScan)
                         {
                             @SuppressWarnings("resource")
                             final ExecutableScan exe = (ExecutableScan) scan;
@@ -245,6 +266,39 @@ public class ScanEngine
         }
         else // Execute right away
             scan.submit(parallel_executor);
+    }
+
+    /** Schedule a scan for execution
+     * @param scan The {@link ScheduledScan}
+     */
+    public void schedule(final ScheduledScan scan) {
+        logger.log(Level.INFO, "Scheduling scan " + scan.getId() + " for " + scan.getScheduledTime().format(TimestampFormats.SECONDS_FORMAT));
+        scan_queue.add(scan);
+        long delay = Duration.between(LocalDateTime.now(), scan.getScheduledTime()).toMillis();
+        ScheduledScanTask task = new ScheduledScanTask(scan, this);
+        if (delay <= 0) {
+            task.run();
+        }
+        else {
+            scheduled_scan_executor.schedule(task, delay, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    /** Resubmit a scheduled task for execution
+     *
+     */
+    public void startScheduled(final ScheduledScan scan) {
+        logger.log(Level.INFO, "Starting scheduled scan " + scan.getId());
+        synchronized (scan_queue) {
+            // remove scan to move it to the top
+            scan_queue.remove(scan);
+
+            // mark scan as an "actual" executable scan
+            scan.setExecutable();
+
+            // resubmit as a normal executable scan
+            submit(scan, scan.getQueued());
+        }
     }
 
     /** Check if there are any scans executing or waiting to be executed

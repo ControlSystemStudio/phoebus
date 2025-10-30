@@ -59,10 +59,11 @@ public interface ScanServer
      *  @param pre_post Perform the pre- and post-scans?
      *  @param timeout_secs Timeout in seconds or 0
      *  @param deadline Deadline by which scan will be aborted or <code>null</code>
+     *  @param scheduled Datetime at which the scan should be executed (should be before the deadline, if provided)
      *  @return ID that uniquely identifies the scan
      *  @throws Exception on error
      */
-    public long submitScan(String scan_name, String commands_as_xml, boolean queue, boolean pre_post, long timeout_secs, LocalDateTime deadline) throws Exception;
+    public long submitScan(String scan_name, String commands_as_xml, boolean queue, boolean pre_post, long timeout_secs, LocalDateTime deadline, LocalDateTime scheduled) throws Exception;
 
     /** Query server for scans
      *  @return Info for each scan on the server, most recently submitted scan first

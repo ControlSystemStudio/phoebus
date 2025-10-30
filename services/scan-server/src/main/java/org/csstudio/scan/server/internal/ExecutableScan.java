@@ -876,7 +876,6 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     {
         jython.close();
         pre_scan.clear();
-        pre_scan.clear();
         implementations.clear();
         post_scan.clear();
         active_commands.clear();

@@ -188,9 +188,16 @@ public class ScanServerImpl implements ScanServer
                            final boolean queue,
                            final boolean pre_post,
                            final long timeout_secs,
-                           final LocalDateTime deadline) throws Exception
+                           final LocalDateTime deadline,
+                           final LocalDateTime scheduled) throws Exception
     {
         cullScans();
+
+        if (deadline != null && scheduled != null) {
+            if (!scheduled.isBefore(deadline)) {
+                throw new Exception("Scan deadline should be _after_ scheduled time");
+            }
+        }
 
         try
         {   // Parse received 'main' scan from XML
@@ -237,8 +244,16 @@ public class ScanServerImpl implements ScanServer
             final DeviceContext devices = new DeviceContext();
 
             // Submit scan to engine for execution
-            final ExecutableScan scan = new ExecutableScan(scan_engine, jython, scan_name, devices, pre_impl, main_impl, post_impl, timeout_secs, deadline);
-            scan_engine.submit(scan, queue);
+            ExecutableScan scan;
+            if (scheduled == null) {
+                scan = new ExecutableScan(scan_engine, jython, scan_name, devices, pre_impl, main_impl, post_impl, timeout_secs, deadline);
+                scan_engine.submit(scan, queue);
+            }
+            else {
+                ScheduledScan _scan = new ScheduledScan(scheduled, queue, scan_engine, jython, scan_name, devices, pre_impl, main_impl, post_impl, timeout_secs, deadline);
+                scan = _scan;
+                scan_engine.schedule(_scan);
+            }
             logger.log(Level.CONFIG, "Submitted ID " + scan.getId() + " \"" + scan.getName() + "\"");
             return scan.getId();
         }
