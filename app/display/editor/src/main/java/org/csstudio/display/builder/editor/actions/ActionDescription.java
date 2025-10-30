@@ -506,7 +506,7 @@ public abstract class ActionDescription
                                           .mapToInt(w -> w.propWidth().getValue())
                                           .sum();
 
-            final int offset = ( max - min - totalWidth ) / ( N - 1 );
+            final double offset = ( (double) max - (double) min - (double) totalWidth ) / ( (double) N - 1.0 );
             final List<Widget> sortedWidgets = widgets.stream()
                                                       .sorted(( w1, w2 ) ->
             {
@@ -550,7 +550,7 @@ public abstract class ActionDescription
                 //  Equal gap distribution...
                 //  ------------------------------------------------------------
                 Widget widget = sortedWidgets.get(0);
-                int location = widget.propX().getValue();
+                double location = widget.propX().getValue();
                 int width = widget.propWidth().getValue();
 
                 for ( int i = 1; i < N - 1; i++ )
@@ -558,7 +558,7 @@ public abstract class ActionDescription
                     widget = sortedWidgets.get(i);
                     location += width + offset;
 
-                    undo.execute(new SetWidgetPropertyAction<>(widget.propX(), location));
+                    undo.execute(new SetWidgetPropertyAction<>(widget.propX(), (int) Math.round(location)));
 
                     width = widget.propWidth().getValue();
                 }
@@ -575,20 +575,20 @@ public abstract class ActionDescription
                 int location = widget.propX().getValue();
                 int width = widget.propWidth().getValue();
 
-                final int rightCenter = location + width / 2;
+                final double rightCenter = (double) location + (double) width / 2.0;
 
                 widget = sortedWidgets.get(0);
                 location = widget.propX().getValue();
                 width = widget.propWidth().getValue();
 
                 final int leftCenter = location + width / 2;
-                final int coffset = ( rightCenter - leftCenter ) /  ( N - 1 );
+                final double coffset = ( rightCenter - leftCenter ) /  ( (double) N - 1.0 );
 
                 for ( int i = 1; i < N - 1; i++ )
                 {
                     widget = sortedWidgets.get(i);
                     width = widget.propWidth().getValue();
-                    undo.execute(new SetWidgetPropertyAction<>(widget.propX(), ( leftCenter + i * coffset ) - width / 2));
+                    undo.execute(new SetWidgetPropertyAction<>(widget.propX(), (int) Math.round(( leftCenter + i * coffset ) - (double) width / 2.0)));
                 }
             }
         }
