@@ -71,7 +71,9 @@ To use the EDM converter, add the following to your settings::
     org.csstudio.display.converter.edm/edm_paths_config=/path/to/edm_paths.txt
     org.csstudio.display.converter.edm/colors_list=/path/to/edm/colors.list
 
-For details, see full description of :ref:`preference_settings`.
+.. seealso::
+
+   For details, see the :prefs:pack:`org.csstudio.display.converter.edm` preferences.
 
 Each time you now try to open an ``*.edl`` file,
 the converter will create a ``*.bob`` file in the same location and then open it.
