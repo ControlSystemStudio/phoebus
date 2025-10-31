@@ -516,7 +516,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                 // correct width/height properties.
                 final double zoomXWithoutScrollbars, zoomYWithoutScrollbars;
                 final double zoomXWithScrollbars, zoomYWithScrollbars;
-                if (outline.getWidth() > layoutBoundsWithScrollbars.getWidth()) {
+                if (outline.getWidth() > layoutBoundsWithoutScrollbars.getWidth()) {
                     zoomXWithoutScrollbars = layoutBoundsWithoutScrollbars.getWidth() / outline.getWidth();
                     zoomXWithScrollbars = layoutBoundsWithScrollbars.getWidth() / outline.getWidth();
                 }
@@ -529,7 +529,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
                     zoomXWithScrollbars = 1.0;
                 }
 
-                if (outline.getHeight() > layoutBoundsWithScrollbars.getHeight()) {
+                if (outline.getHeight() > layoutBoundsWithoutScrollbars.getHeight()) {
                     zoomYWithoutScrollbars = layoutBoundsWithoutScrollbars.getHeight() / outline.getHeight();
                     zoomYWithScrollbars = layoutBoundsWithScrollbars.getHeight() / outline.getHeight();
                 }
