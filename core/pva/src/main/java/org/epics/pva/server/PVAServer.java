@@ -34,7 +34,6 @@ import org.epics.pva.data.PVAStructure;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class PVAServer implements AutoCloseable
 {
     // TODO Implement beacons?
@@ -56,7 +55,7 @@ public class PVAServer implements AutoCloseable
     /** TCP connection listener, creates {@link ServerTCPHandler} for each connecting client */
     private final ServerTCPListener tcp;
 
-    /** Optional searche handler 'hook' */
+    /** Optional search handler 'hook' */
     private final SearchHandler custom_search_handler;
 
     /** Handlers for the TCP connections clients established to this server */
@@ -167,7 +166,7 @@ public class PVAServer implements AutoCloseable
      *  Network address and authentication info
      */
     public static record ClientInfo(InetSocketAddress address,
-                                    ServerAuth authentication)
+                                    ClientAuthentication authentication)
     {
     }
 
@@ -178,7 +177,7 @@ public class PVAServer implements AutoCloseable
     {
         return tcp_handlers.stream()
                            .map(tcp -> new ClientInfo(tcp.getRemoteAddress(),
-                                                      tcp.getAuth()))
+                                                      tcp.getClientAuthentication()))
                            .toList();
     }
 
@@ -255,6 +254,17 @@ public class PVAServer implements AutoCloseable
     void register(final ServerTCPHandler tcp_connection)
     {
         tcp_handlers.add(tcp_connection);
+    }
+
+    /** Called by {@link ServerTCPHandler} when authentication changes
+     *  @param tcp_connection TCP connection that has updated authentication
+     *  @param client_auth Client authentication
+     */
+    void updatePermissions(final ServerTCPHandler tcp_connection, final ClientAuthentication client_auth)
+    {
+        logger.log(Level.FINE, () -> tcp_connection + " authentication changed: " + client_auth);
+        for (ServerPV pv : pv_by_name.values())
+            pv.updatePermissions(tcp_connection, client_auth);
     }
 
     /** @param tcp_connection {@link ServerTCPHandler} that experienced error or client closed it */

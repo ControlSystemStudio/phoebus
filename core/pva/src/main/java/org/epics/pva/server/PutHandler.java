@@ -23,7 +23,6 @@ import org.epics.pva.data.PVAStructure;
 /** Handle client's PUT command
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class PutHandler implements CommandHandler<ServerTCPHandler>
 {
     @Override
@@ -80,7 +79,7 @@ class PutHandler implements CommandHandler<ServerTCPHandler>
             final BitSet written = PVABitSet.decodeBitSet(buffer);
 
             // Check write access in general and for this client
-            if (! (pv.isWritable() && tcp.getAuth().hasWriteAccess(pv.getName())))
+            if (! (pv.isWritable(tcp.getClientAuthentication())))
             {
                 GetHandler.sendError(tcp, PVAHeader.CMD_PUT, req, subcmd, "No write access to " + pv.getName());
                 return;

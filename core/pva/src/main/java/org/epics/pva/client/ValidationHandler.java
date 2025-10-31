@@ -22,7 +22,6 @@ import org.epics.pva.data.PVAString;
 /** Handle a server's VALIDATION request
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class ValidationHandler implements CommandHandler<ClientTCPHandler>
 {
     @Override
@@ -52,9 +51,9 @@ class ValidationHandler implements CommandHandler<ClientTCPHandler>
         // Support "x509" or "ca" authorization, fall back to any-no-mouse
         final ClientAuthentication authentication;
         // Even if server suggests x509, check that we have a certificate with name
-        if (tcp.getClientX509Name() != null  &&  auth.contains(PVAAuth.X509))
+        if (tcp.getClientX509Name() != null  &&  auth.contains(PVAAuth.x509.name()))
             authentication = ClientAuthentication.X509;
-        else if (auth.contains(PVAAuth.CA))
+        else if (auth.contains(PVAAuth.ca.name()))
             authentication = ClientAuthentication.CA;
         else
             authentication = ClientAuthentication.Anonymous;

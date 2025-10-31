@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,7 +19,6 @@ import org.epics.pva.data.PVAStatus;
 /** Handle response clients's VALIDATION reply
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class ValidationHandler implements CommandHandler<ServerTCPHandler>
 {
     @Override
@@ -39,9 +38,9 @@ class ValidationHandler implements CommandHandler<ServerTCPHandler>
         final int client_registry_size = Short.toUnsignedInt(buffer.getShort());
         final short quos = buffer.getShort();
 
-        final ServerAuth auth = ServerAuth.decode(tcp, buffer, tcp.getTLSHandshakeInfo());
-        logger.log(Level.FINE, "Connection validated, auth '" + auth + "'");
-        tcp.setAuth(auth);
+        final ClientAuthentication auth = ClientAuthentication.decode(tcp, buffer, tcp.getTLSHandshakeInfo());
+        logger.log(Level.FINE, "Connection validated, authentication '" + auth + "'");
+        tcp.setClientAuthentication(auth);
         sendConnectionValidated(tcp);
     }
 
