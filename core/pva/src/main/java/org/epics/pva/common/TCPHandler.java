@@ -39,7 +39,6 @@ import org.epics.pva.data.PVAString;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 abstract public class TCPHandler
 {
     /** Protocol version used by the PVA server
@@ -233,7 +232,7 @@ abstract public class TCPHandler
      */
     protected void send(final ByteBuffer buffer) throws Exception
     {
-        logger.log(Level.FINER, () -> Thread.currentThread().getName() + " sends:\n" + Hexdump.toHexdump(buffer));
+        logger.log(Level.FINEST, () -> Thread.currentThread().getName() + " sends:\n" + Hexdump.toHexdump(buffer));
 
         // Original AbstractCodec.send() mentions
         // Microsoft KB article KB823764:
@@ -276,7 +275,7 @@ abstract public class TCPHandler
             // Listen on the connection
             Thread.currentThread().setName("TCP receiver " + socket.getLocalSocketAddress());
             logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started for " + socket.getRemoteSocketAddress());
-            logger.log(Level.FINER, "Native byte order " + receive_buffer.order());
+            logger.log(Level.FINEST, "Native byte order " + receive_buffer.order());
             receive_buffer.clear();
             final InputStream in = socket.getInputStream();
             while (true)
@@ -294,7 +293,7 @@ abstract public class TCPHandler
                         return null;
                     }
                     if (read > 0)
-                        logger.log(Level.FINER, () -> Thread.currentThread().getName() + ": " + read + " bytes");
+                        logger.log(Level.FINEST, () -> Thread.currentThread().getName() + ": " + read + " bytes");
                    receive_buffer.position(receive_buffer.position() + read);
                     // and once we get the header, it will tell
                     // us how large the message actually is
@@ -302,7 +301,7 @@ abstract public class TCPHandler
                 }
                 // .. then decode
                 receive_buffer.flip();
-                logger.log(Level.FINER, () -> Thread.currentThread().getName() + " received:\n" + Hexdump.toHexdump(receive_buffer));
+                logger.log(Level.FINEST, () -> Thread.currentThread().getName() + " received:\n" + Hexdump.toHexdump(receive_buffer));
 
                 // While buffer may contain more data,
                 // limit it to the end of this message to prevent
@@ -560,7 +559,7 @@ abstract public class TCPHandler
      */
     public void close(final boolean wait)
     {
-        logger.log(Level.FINE, "Closing " + this);
+        logger.log(Level.FINER, "Closing " + this);
 
         // Wait until all requests are sent out
         submit(END_REQUEST);
@@ -585,7 +584,7 @@ abstract public class TCPHandler
         {
             logger.log(Level.WARNING, "Cannot stop receive thread", ex);
         }
-        logger.log(Level.FINE, () -> this + " closed  ============================");
+        logger.log(Level.FINER, () -> this + " closed  ============================");
     }
 
     @Override

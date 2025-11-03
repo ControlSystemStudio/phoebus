@@ -240,12 +240,12 @@ public class PVAServer implements AutoCloseable
             final ServerPV pv = getPV(name);
             if (pv != null)
             {   // Reply with TCP connection info
-                logger.log(Level.FINE, () -> "Received Search for known PV " + pv);
+                logger.log(Level.FINE, () -> "Received Search for known PV " + pv + " [CID " + cid + "]");
                 send_search_reply.accept(null);
                 return true;
             }
             else
-                logger.log(Level.FINE, () -> "Ignoring search for unknown PV '" + name + "'");
+                logger.log(Level.FINER, () -> "Ignoring search for unknown PV '" + name + "'");
         }
         return false;
     }

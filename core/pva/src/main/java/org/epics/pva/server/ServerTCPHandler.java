@@ -70,6 +70,9 @@ class ServerTCPHandler extends TCPHandler
     public ServerTCPHandler(final PVAServer server, final Socket client, final TLSHandshakeInfo tls_info) throws Exception
     {
         super(false);
+
+        logger.log(Level.FINER, () -> "TCPHandler " + (tls_info != null ? "(TLS) " : "") + "for " + client.getRemoteSocketAddress() + " created ============================");
+
         // Server received the client socket from `accept`
         this.socket = Objects.requireNonNull(client);
         this.server = Objects.requireNonNull(server);
@@ -80,7 +83,7 @@ class ServerTCPHandler extends TCPHandler
         certificate_status_listener = update->
         {
             final ClientAuthentication auth = getClientAuthentication();
-            logger.log(Level.FINER, "Certificate update for " + this + ": " + auth);
+            logger.log(Level.FINER, () -> "Certificate update for " + this + ": " + auth);
 
             // 1) Initial client_auth is Anonymous
             // When TLS connection starts,

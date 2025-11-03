@@ -115,9 +115,10 @@ public class CertificateStatusMonitor
 
         private void handleMonitor(final PVAChannel channel, final BitSet changes, final BitSet overruns, final PVAStructure data)
         {
-            // TODO also check string ocsp_certified_until Mon Sep 22 19:37:25 2025 UTC?
-            // TODO Can those be time_t secondsPastEpoch?
+            logger.log(Level.FINE, () -> "Received " + channel.getName() + " = " + data);
+
             // Decode overall status enum, VALID or not?
+            // TODO Check ocsp_response
             final PVAEnum value = PVAEnum.fromStructure(data.get("value"));
             if (value != null)
             {

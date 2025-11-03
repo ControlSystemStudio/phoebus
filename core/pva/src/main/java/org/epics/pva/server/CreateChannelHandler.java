@@ -44,7 +44,7 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
                 logger.log(Level.WARNING, () ->  "Channel create request for unknown PV '" + name + "'");
             else
             {
-                logger.log(Level.FINE, () ->  "Channel create request '" + name + "', cid " + cid);
+                logger.log(Level.FINE, () ->  "Channel create request '" + name + "' [CID " + cid + "]");
                 pv.addClient(tcp, cid);
                 sendChannelCreated(tcp, pv, cid);
             }

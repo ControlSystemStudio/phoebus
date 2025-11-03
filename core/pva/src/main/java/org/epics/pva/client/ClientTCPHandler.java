@@ -39,7 +39,6 @@ import org.epics.pva.server.Guid;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class ClientTCPHandler extends TCPHandler
 {
     private static final CommandHandlers<ClientTCPHandler> handlers =
@@ -112,7 +111,7 @@ class ClientTCPHandler extends TCPHandler
     public ClientTCPHandler(final PVAClient client, final InetSocketAddress address, final Guid guid, final boolean tls) throws Exception
     {
         super(true);
-        logger.log(Level.FINE, () -> "TCPHandler " + (tls ? "(TLS) " : "") + guid + " for " + address + " created ============================");
+        logger.log(Level.FINER, () -> "TCPHandler " + (tls ? "(TLS) " : "") + guid + " for " + address + " created ============================");
         this.server_address = address;
         this.tls = tls;
         this.client = client;
