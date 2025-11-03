@@ -506,7 +506,7 @@ public abstract class ActionDescription
                                           .mapToInt(w -> w.propWidth().getValue())
                                           .sum();
 
-            final double offset = ( (double) max - (double) min - (double) totalWidth ) / ( (double) N - 1.0 );
+            final double offset = (double) (max - min - totalWidth) / (double) (N - 1);
             final List<Widget> sortedWidgets = widgets.stream()
                                                       .sorted(( w1, w2 ) ->
             {
@@ -550,7 +550,7 @@ public abstract class ActionDescription
                 //  Equal gap distribution...
                 //  ------------------------------------------------------------
                 Widget widget = sortedWidgets.get(0);
-                double location = widget.propX().getValue();
+                double location = (double) widget.propX().getValue();
                 int width = widget.propWidth().getValue();
 
                 for ( int i = 1; i < N - 1; i++ )
@@ -582,13 +582,13 @@ public abstract class ActionDescription
                 width = widget.propWidth().getValue();
 
                 final int leftCenter = location + width / 2;
-                final double coffset = ( rightCenter - leftCenter ) /  ( (double) N - 1.0 );
+                final double coffset = (rightCenter - (double) leftCenter) / (double) (N - 1);
 
                 for ( int i = 1; i < N - 1; i++ )
                 {
                     widget = sortedWidgets.get(i);
                     width = widget.propWidth().getValue();
-                    undo.execute(new SetWidgetPropertyAction<>(widget.propX(), (int) Math.round(( leftCenter + i * coffset ) - (double) width / 2.0)));
+                    undo.execute(new SetWidgetPropertyAction<>(widget.propX(), (int) Math.round((leftCenter + (double) i * coffset - (double) width / 2.0))));
                 }
             }
         }
@@ -620,7 +620,7 @@ public abstract class ActionDescription
                                            .mapToInt(w -> w.propHeight().getValue())
                                            .sum();
 
-            final double offset = ( (double) max - (double) min - (double) totalHeight ) / ( (double) N - 1.0 );
+            final double offset = (double) (max - min - totalHeight ) / (double) (N - 1);
             final List<Widget> sortedWidgets = widgets.stream()
                                                       .sorted(( w1, w2 ) ->
             {
@@ -710,12 +710,12 @@ public abstract class ActionDescription
                 height = widget.propHeight().getValue();
 
                 final double topCenter = (double) location + (double) height / 2.0;
-                final double coffset = ( bottomCenter - topCenter ) /  ( (double) N - 1.0 );
+                final double coffset = (bottomCenter - topCenter) / (double) (N - 1);
                 for ( int i = 1; i < N - 1; i++ )
                 {
                     widget = sortedWidgets.get(i);
                     height = widget.propHeight().getValue();
-                    undo.execute(new SetWidgetPropertyAction<>(widget.propY(), (int) Math.round(( topCenter + (double) i * coffset ) - (double) height / 2.0)));
+                    undo.execute(new SetWidgetPropertyAction<>(widget.propY(), (int) Math.round((topCenter + (double) i * coffset - (double) height / 2.0))));
                 }
             }
         }
