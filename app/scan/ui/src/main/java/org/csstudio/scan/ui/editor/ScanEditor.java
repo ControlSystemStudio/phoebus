@@ -249,7 +249,26 @@ public class ScanEditor extends SplitPane
         jump_to_current.setOnAction(event -> scan_tree.revealActiveItem(jump_to_current.isSelected()));
 
         final Button[] undo_redo = UndoButtons.createButtons(undo);
-        return new ToolBar(info_text, ToolbarHelper.createStrut(), buttons, ToolbarHelper.createSpring(), undo_redo[0], undo_redo[1]);
+        final Button run_button = new Button();
+        run_button.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/run.png"));
+        run_button.setTooltip(new Tooltip(Messages.scan_submit));
+        run_button.setOnAction(event -> submitOrSimulate(true));
+
+        final Button simulate_button = new Button();
+        simulate_button.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
+        simulate_button.setTooltip(new Tooltip(Messages.scan_simulate));
+        simulate_button.setOnAction(event -> submitOrSimulate(null));
+
+        return new ToolBar(
+                info_text,
+                ToolbarHelper.createStrut(),
+                buttons,
+                ToolbarHelper.createSpring(),
+                undo_redo[0],
+                undo_redo[1],
+                simulate_button,
+                run_button
+        );
     }
 
     private void createContextMenu()
