@@ -10,6 +10,7 @@ python = ">=3.9"
 sphinx = ">=8.2"
 sphinx_rtd_theme = "*"
 setuptools = "*"
+myst-parser = "*"
 
 [tasks]
 clean = "sphinx-build -M clean source build"
