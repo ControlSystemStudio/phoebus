@@ -142,6 +142,20 @@ public class DockPane extends TabPane
         return pane;
     }
 
+    public static Stage getActiveStage()
+    {
+        final DockPane pane = active.get();
+        if (pane != null)
+        {
+            for (Stage stage : DockStage.getDockStages())
+                for (DockPane p : DockStage.getDockPanes(stage))
+                    if (p == pane) {
+                        return stage;
+                    }
+        }
+        return null;
+    }
+
     /**
      * @return The 'main' Phoebus dock pane
      */

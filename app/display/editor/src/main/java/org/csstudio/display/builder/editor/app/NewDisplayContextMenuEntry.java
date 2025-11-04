@@ -64,6 +64,12 @@ public class NewDisplayContextMenuEntry implements ContextMenuEntry {
     }
 
     @Override
+    public boolean isOpenAction()
+    {
+        return true;
+    }
+
+    @Override
     public void call(Selection selection){
         Optional<File> file =
                 AdapterService.adapt(SelectionService.getInstance().getSelection().getSelections().get(0),
