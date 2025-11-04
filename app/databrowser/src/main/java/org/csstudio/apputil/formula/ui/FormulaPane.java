@@ -10,6 +10,8 @@ package org.csstudio.apputil.formula.ui;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.Priority;
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
 import org.csstudio.trends.databrowser3.Messages;
@@ -85,7 +87,13 @@ public class FormulaPane extends GridPane
         setHgap(5);
         setVgap(5);
 
-
+        ColumnConstraints column1 = new ColumnConstraints();
+        column1.setHgrow(Priority.ALWAYS);
+        ColumnConstraints column2 = new ColumnConstraints();
+        column2.setHgrow(Priority.NEVER);
+        ColumnConstraints column3 = new ColumnConstraints();
+        column3.setHgrow(Priority.NEVER);
+        getColumnConstraints().addAll(column1, column2, column3); // each get 50% of width
         add(formula_txt, 0, 0, 3, 1);
 
         final TableView<InputItem> input_pane = createInputs();
