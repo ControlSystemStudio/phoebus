@@ -1,2 +1,3 @@
+org.phoebus.pv.tango.TangoPVFactory
 org.phoebus.pv.tga.TangoAttr_PVFactory
 org.phoebus.pv.tgc.TangoCmd_PVFactory

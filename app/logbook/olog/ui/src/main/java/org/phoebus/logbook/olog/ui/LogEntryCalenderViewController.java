@@ -34,6 +34,7 @@ import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -262,7 +263,8 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 },
                 (msg, ex) -> {
                     searchInProgress.set(false);
-                });
+                    ExceptionDetailsErrorDialog.openError(agenda, Messages.SearchFailed, "", ex);
+        });
     }
 
     public String getQuery() {

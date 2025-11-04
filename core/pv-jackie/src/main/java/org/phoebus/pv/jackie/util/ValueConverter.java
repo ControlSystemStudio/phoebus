@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 aquenos GmbH.
+ * Copyright (c) 2024-2025 aquenos GmbH.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -52,6 +52,9 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.pv.jackie.JackiePreferences;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
@@ -74,6 +77,14 @@ public final class ValueConverter {
      * Offset between the UNIX and EPICS epoch in seconds.
      */
     public static final long OFFSET_EPICS_TO_UNIX_EPOCH_SECONDS = 631152000L;
+
+    /**
+     * Logger used by this class.
+     *
+     * The field is package private, so that unit-tests can inject a custom
+     * implementation.
+     */
+    static Logger log = LoggerFactory.getLogger(ValueConverter.class);
 
     private ValueConverter() {
     }
@@ -316,6 +327,9 @@ public final class ValueConverter {
      * <code>int</code>, and <code>short</code>, arrays of these primitive
      * types, {@link String}, and arrays of {@link String}.
      *
+     * @param pv_name
+     *  name of the process variable for which the value is converted. This is
+     *  only used for logging purposes.
      * @param object
      *  object to be converted.
      * @param charset
@@ -324,15 +338,20 @@ public final class ValueConverter {
      *  indicates whether a {@link String} or single element
      *  <code>String[]</code> array should be converted to a
      *  <code>DBR_CHAR</code> instead of a <code>DBR_STRING</code>.
+     * @param long_conversion_mode
+     *  behavior when converting a {@link Long} value that does not fit into an
+     *  {@link Integer}.
      * @return
      *  the converted value.
      * @throws IllegalArgumentException
      *  if <code>object</code> cannot be converted.
      */
     public static ChannelAccessSimpleOnlyValue<?> objectToChannelAccessSimpleOnlyValue(
+            String pv_name,
             Object object,
             Charset charset,
-            boolean convert_string_as_long_string) {
+            boolean convert_string_as_long_string,
+            JackiePreferences.LongConversionMode long_conversion_mode) {
         if (object instanceof VType vtype) {
             var converted_object = VTypeHelper.toObject(vtype);
             // VTypeHelper.toObject returns null if it does not know how to
@@ -367,6 +386,110 @@ public final class ValueConverter {
         if (object instanceof int[] value) {
             return ChannelAccessValueFactory.createLong(value);
         }
+        if (object instanceof Long value) {
+            if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
+                return ChannelAccessValueFactory.createLong(
+                        new int[]{value.intValue()});
+            }
+            return switch (long_conversion_mode) {
+                case COERCE -> ChannelAccessValueFactory.createLong(
+                        new int[]{coerceToInt(value)});
+                case COERCE_AND_WARN -> {
+                    final var coerced_value = coerceToInt(value);
+                    log.warn(
+                            "Writing long {} as int {} for PV {}",
+                            value,
+                            coerced_value,
+                            pv_name);
+                    yield ChannelAccessValueFactory.createLong(
+                            new int[]{coerced_value});
+                }
+                case CONVERT -> ChannelAccessValueFactory.createDouble(
+                        new double[]{value.doubleValue()});
+                case CONVERT_AND_WARN -> {
+                    final var converted_value = value.doubleValue();
+                    log.warn(
+                            "Writing long {} as double {} for PV {}",
+                            value,
+                            converted_value,
+                            pv_name);
+                    yield ChannelAccessValueFactory.createDouble(
+                            new double[]{converted_value});
+                }
+                case FAIL -> throw new IllegalArgumentException(
+                        "Cannot write long value " + value
+                                + ". The value is outside the range of a "
+                                + "32-bit signed integer.");
+                case TRUNCATE -> ChannelAccessValueFactory.createLong(
+                        new int[]{value.intValue()});
+                case TRUNCATE_AND_WARN -> {
+                    final var truncated_value = value.intValue();
+                    log.warn(
+                            "Writing long {} as int {} for PV {}",
+                            value,
+                            truncated_value,
+                            pv_name);
+                    yield ChannelAccessValueFactory.createLong(
+                            new int[]{truncated_value});
+                }
+            };
+        }
+        if (object instanceof long[] value) {
+            boolean limit_exceeded = false;
+            for (long element : value) {
+                if (element < Integer.MIN_VALUE
+                        || element > Integer.MAX_VALUE) {
+                    limit_exceeded = true;
+                    break;
+                }
+            }
+            if (!limit_exceeded) {
+                return ChannelAccessValueFactory.createLong(
+                        longArrayToIntArray(value));
+            }
+            return switch (long_conversion_mode) {
+                case COERCE -> ChannelAccessValueFactory.createLong(
+                        coerceToInt(value));
+                case COERCE_AND_WARN -> {
+                    final var coerced_value = coerceToInt(value);
+                    log.warn(
+                            "Writing long[] {} as int[] {} for PV {}",
+                            Arrays.toString(value),
+                            Arrays.toString(coerced_value),
+                            pv_name);
+                    yield ChannelAccessValueFactory.createLong(
+                            coerced_value);
+                }
+                case CONVERT -> ChannelAccessValueFactory.createDouble(
+                        longArrayToDoubleArray(value));
+                case CONVERT_AND_WARN -> {
+                    final var converted_value = longArrayToDoubleArray(value);
+                    log.warn(
+                            "Writing long[] {} as double[] {} for PV {}",
+                            Arrays.toString(value),
+                            Arrays.toString(converted_value),
+                            pv_name);
+                    yield ChannelAccessValueFactory.createDouble(
+                            converted_value);
+                }
+                case FAIL -> throw new IllegalArgumentException(
+                        "Cannot write long[] value " + Arrays.toString(value)
+                                + ". The value is outside the range of a "
+                                + "32-bit signed integer.");
+                case TRUNCATE -> ChannelAccessValueFactory.createLong(
+                        longArrayToIntArray(value));
+                case TRUNCATE_AND_WARN -> {
+                    final var truncated_value = longArrayToIntArray(value);
+                    log.warn(
+                            "Writing long[] {} as int[] {} for PV {}",
+                            Arrays.toString(value),
+                            Arrays.toString(truncated_value),
+                            pv_name);
+                    yield ChannelAccessValueFactory.createLong(
+                            truncated_value);
+                }
+            };
+        }
         if (object instanceof Short value) {
             return ChannelAccessValueFactory.createShort(new short[] {value});
         }
@@ -389,7 +512,7 @@ public final class ValueConverter {
             // conversion if the array has a single element.
             if (value.length == 1 && convert_string_as_long_string) {
                 return objectToChannelAccessSimpleOnlyValue(
-                        value[0], charset, true);
+                        pv_name, value[0], charset, true, long_conversion_mode);
             }
             return ChannelAccessValueFactory.createString(
                     Arrays.asList(value), charset);
@@ -413,6 +536,21 @@ public final class ValueConverter {
                 return buffer.remaining();
             }
         };
+    }
+
+    private static int coerceToInt(long value) {
+        if (value > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        } else if (value < Integer.MIN_VALUE) {
+            return Integer.MIN_VALUE;
+        } else {
+            return (int) value;
+        }
+    }
+
+    private static int[] coerceToInt(long[] array) {
+        return Arrays.stream(array).mapToInt(
+                ValueConverter::coerceToInt).toArray();
     }
 
     private static Alarm convertAlarm(ChannelAccessTimeValue<?> time_value) {
@@ -537,6 +675,16 @@ public final class ValueConverter {
                 return buffer.remaining();
             }
         };
+    }
+
+    private static double[] longArrayToDoubleArray(long[] array) {
+        return Arrays.stream(array).mapToDouble(
+                element -> (double) element).toArray();
+    }
+
+    private static int[] longArrayToIntArray(long[] array) {
+        return Arrays.stream(array).mapToInt(
+                element -> (int) element).toArray();
     }
 
     private static ListShort shortBufferToListShort(ShortBuffer buffer) {

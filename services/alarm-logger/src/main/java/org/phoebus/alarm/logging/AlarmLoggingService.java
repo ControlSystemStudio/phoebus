@@ -228,20 +228,6 @@ public class AlarmLoggingService {
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
                 }
-                else if(cmd.equals("-thread_pool_size")){
-                    if (! iter.hasNext()){
-                        throw new Exception("Missing -thread_pool_size value");
-                    }
-                    iter.remove();
-                    try {
-                        String size = iter.next();
-                        Integer threadPoolSize = Integer.valueOf(size);
-                        properties.put("thread_pool_size", size);
-                    } catch (NumberFormatException e) {
-                        logger.warning("Specified thread pool size is not a number, will use value from properties or default value");
-                    }
-                    iter.remove();
-                }
                 else
                     throw new Exception("Unknown option " + cmd);
             }
@@ -257,22 +243,16 @@ public class AlarmLoggingService {
         logger.info("Alarm Logging Service (PID " + ProcessHandle.current().pid() + ")");
         context = SpringApplication.run(AlarmLoggingService.class, original_args);
 
-        // Create scheduler with configured or default thread pool size
-        Integer threadPoolSize;
-        try {
-            threadPoolSize = Integer.valueOf(properties.getProperty("thread_pool_size"));
-        } catch (NumberFormatException e) {
-            logger.info("Specified thread pool size is not a number, will default to 4");
-            threadPoolSize = 4;
-        }
-        Scheduler = Executors.newScheduledThreadPool(threadPoolSize);
-
         logger.info("Properties:");
         properties.forEach((k, v) -> { logger.info(k + ":" + v); });
 
         // Read list of Topics
         final List<String> topicNames = Arrays.asList(properties.getProperty("alarm_topics").split(","));
         logger.info("Starting logger for '..State': " + topicNames);
+
+        // Create scheduler with configured or default thread pool size
+        int threadPoolSize = topicNames.size() * 2; // default to 2 threads per topic
+        Scheduler = Executors.newScheduledThreadPool(threadPoolSize);
 
         final boolean standalone = Boolean.valueOf(properties.getProperty("standalone"));
 

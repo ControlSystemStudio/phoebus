@@ -260,9 +260,14 @@ public class OlogHttpClient implements LogClient {
                 .build();
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            OlogSearchResult searchResult = OlogObjectMappers.logEntryDeserializer.readValue(response.body(), OlogSearchResult.class);
-            return SearchResult.of(new ArrayList<>(searchResult.getLogs()),
-                    searchResult.getHitCount());
+            if(response.statusCode() == 200) {
+                OlogSearchResult searchResult = OlogObjectMappers.logEntryDeserializer.readValue(response.body(), OlogSearchResult.class);
+                return SearchResult.of(new ArrayList<>(searchResult.getLogs()),
+                        searchResult.getHitCount());
+            }
+            else{
+                throw new RuntimeException(response.body());
+            }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "failed to retrieve log entries", e);
             throw new RuntimeException(e);
