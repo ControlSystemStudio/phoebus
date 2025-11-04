@@ -3,28 +3,42 @@ Phoebus Documentation
 
 Documentation for https://github.com/ControlSystemStudio/phoebus
 
-View latest snapshotData at https://control-system-studio.readthedocs.io
+View latest snapshot at https://control-system-studio.readthedocs.io
 
-You can build a local copy using a local installation of sphinx or with maven
+You can build a local copy using Pixi or a local installation of sphinx.
 
-Option 1.
-You need to install sphinx
+## Option 1: Using Pixi (Recommended)
+
+Install [Pixi](https://pixi.sh) and run:
+
+```bash
+# Build the documentation
+pixi run build
+
+# Or directly build HTML
+pixi run html
+
+# Serve documentation locally
+pixi run serve
+
+# Clean build artifacts
+pixi run clean
 ```
-   # Standard way
-   pip install Sphinx
 
-   # Some RedHat setups
-   sudo yum install python-sphinx
+## Option 2: Using Sphinx directly
+
+You need to install sphinx:
+```bash
+# Standard way
+pip install Sphinx
+
+# Some RedHat setups
+sudo yum install python-sphinx
 ```
 
 Then build the web version:
-```
-   make clean html
-```
-
-Option 2.
-```
-   mvn verify -P sphinx -N
+```bash
+make clean html
 ```
 
 The above creates a document tree starting with `build/html/index.html`.
@@ -43,7 +57,7 @@ git clone https://github.com/ControlSystemStudio/phoebus.git
 ( cd phoebus/doc; make clean html )
 ```
 
-When then building the Phoebus UI product, it will incude the document tree
+When then building the Phoebus UI product, it will include the document tree
 as online help accessible via the `Help` menu.
 
 
@@ -68,7 +82,7 @@ Documentation Components
    
    Additionally, the folders are also checked for `doc/images/` folders.
    Resources used by the `index.rst` files should be places in this folder to 
-   ensure they are available to sphinx to generate the documenation.
+   ensure they are available to sphinx to generate the documentation.
 
 3) Preference Descriptions
 
@@ -93,7 +107,7 @@ Documentation Components
 4) Plain HTML
 
    The content of all `../phoebus/**/doc/html` folders is copied into the
-   henerated html output directory tree.
+   generated html output directory tree.
    
    This allows including existing HTML content "as is".
    An `index.rst` file in the corresponding phoebus module may then refer
@@ -114,6 +128,3 @@ Documentation Components
 
 For technical details on how the document components are assembled,
 check `createAppIndex()` and `createPreferenceAppendix()` in `source/conf.py`.
-
-
-
