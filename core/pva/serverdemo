@@ -1,11 +1,14 @@
 #!/bin/sh
 
+LIB=../../dependencies/phoebus-target/target/lib/bcpkix-jdk18on-1.82.jar:../../dependencies/phoebus-target/target/lib/bcprov-jdk18on-1.82.jar
+
 JAR=`echo target/core-pva*.jar`
 if [ -r "$JAR" ]
 then
     # Echo use jar file
-    java -cp $JAR org.epics.pva.server.ServerDemo "$@"
+    java -cp $LIB:$JAR org.epics.pva.server.ServerDemo "$@"
 else
     # Use build output
-    java -cp target/classes org.epics.pva.server.ServerDemo "$@"
+    java -cp $LIB:target/classes org.epics.pva.server.ServerDemo "$@"
 fi
+
