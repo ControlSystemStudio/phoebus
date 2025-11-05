@@ -15,9 +15,9 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.logging.Level;
 
+import org.epics.pva.common.CertificateStatus;
 import org.epics.pva.common.CertificateStatusListener;
 import org.epics.pva.common.CertificateStatusMonitor;
-import org.epics.pva.common.CertificateStatusMonitor.CertificateStatus;
 import org.epics.pva.common.CommandHandlers;
 import org.epics.pva.common.PVAAuth;
 import org.epics.pva.common.PVAHeader;

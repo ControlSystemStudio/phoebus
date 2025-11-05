@@ -5,7 +5,6 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-
 package org.epics.pva.common;
 
 /** Listener to certificate status updates
@@ -14,5 +13,5 @@ package org.epics.pva.common;
 public interface CertificateStatusListener
 {
     /** @param update Certificate status update */
-    public void handleCertificateStatusUpdate(CertificateStatusMonitor.CertificateStatus update);
+    public void handleCertificateStatusUpdate(CertificateStatus update);
 }
