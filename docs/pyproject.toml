@@ -2,17 +2,19 @@
 name = "phoebus-docs"
 version = "0.1.0"
 description = "Phoebus documentation build environment"
+dependencies = [
+    "sphinx>=8.2",
+    "sphinx_rtd_theme>=3.0",
+    "myst-parser>=4.0",
+    "setuptools",
+]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 
-[tool.pixi.dependencies]
-python = ">=3.9"
-sphinx = ">=8.2"
-sphinx_rtd_theme = "*"
-setuptools = "*"
-myst-parser = "*"
+[tool.pixi.pypi-dependencies]
+phoebus-docs = { path = ".", editable = true }
 
 [tool.pixi.tasks]
 clean = "sphinx-build -M clean source build"

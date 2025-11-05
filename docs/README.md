@@ -32,11 +32,13 @@ The Pixi configuration is in `pyproject.toml` under the `[tool.pixi.*]` sections
 You need to install sphinx and its dependencies:
 
 ```bash
-# Using the requirements file
-pip install -r source/requirements.txt
-
-# Or using pyproject.toml (installs all dependencies)
+# Install from pyproject.toml (installs all dependencies)
 pip install .
+```
+
+Alternatively, on some RedHat setups:
+```bash
+sudo yum install python-sphinx
 ```
 
 Then build the web version:
