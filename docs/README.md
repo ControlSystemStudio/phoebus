@@ -12,6 +12,9 @@ You can build a local copy using Pixi or a local installation of sphinx.
 Install [Pixi](https://pixi.sh) and run:
 
 ```bash
+# Navigate to the docs directory
+cd docs
+
 # Build the documentation
 pixi run build
 
@@ -32,6 +35,9 @@ The Pixi configuration is in `pyproject.toml` under the `[tool.pixi.*]` sections
 You need to install sphinx and its dependencies:
 
 ```bash
+# Navigate to the docs directory
+cd docs
+
 # Install from pyproject.toml (installs all dependencies)
 pip install .
 ```
