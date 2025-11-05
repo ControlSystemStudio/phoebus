@@ -1,25 +1,27 @@
-[workspace]
+[project]
 name = "phoebus-docs"
 version = "0.1.0"
 description = "Phoebus documentation build environment"
+
+[tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 
-[dependencies]
+[tool.pixi.dependencies]
 python = ">=3.9"
 sphinx = ">=8.2"
 sphinx_rtd_theme = "*"
 setuptools = "*"
 myst-parser = "*"
 
-[tasks]
+[tool.pixi.tasks]
 clean = "sphinx-build -M clean source build"
 html = "sphinx-build -M html source build"
 build = { depends-on = ["html"] }
 serve = "python -m http.server 8000 --directory build/html"
 
-[feature.dev.dependencies]
+[tool.pixi.feature.dev.dependencies]
 sphinx-autobuild = "*"
 
-[environments]
+[tool.pixi.environments]
 dev = ["dev"]

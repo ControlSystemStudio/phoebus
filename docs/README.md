@@ -25,15 +25,18 @@ pixi run serve
 pixi run clean
 ```
 
+The Pixi configuration is in `pyproject.toml` under the `[tool.pixi.*]` sections.
+
 ## Option 2: Using Sphinx directly
 
-You need to install sphinx:
-```bash
-# Standard way
-pip install Sphinx
+You need to install sphinx and its dependencies:
 
-# Some RedHat setups
-sudo yum install python-sphinx
+```bash
+# Using the requirements file
+pip install -r source/requirements.txt
+
+# Or using pyproject.toml (installs all dependencies)
+pip install .
 ```
 
 Then build the web version:
