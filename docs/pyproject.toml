@@ -2,6 +2,7 @@
 name = "phoebus-docs"
 version = "0.1.0"
 description = "Phoebus documentation build environment"
+requires-python = ">=3.9"
 dependencies = [
     "sphinx>=8.2",
     "sphinx_rtd_theme>=3.0",
@@ -12,6 +13,9 @@ dependencies = [
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+
+[tool.pixi.dependencies]
+python = ">=3.9"
 
 [tool.pixi.pypi-dependencies]
 phoebus-docs = { path = ".", editable = true }
