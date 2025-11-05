@@ -530,6 +530,18 @@
       <version>3.1.0</version>
     </dependency>
     
+    <!-- bouncycastle library used in PVA to decode and check OCSP confirmation of certificates -->
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk18on</artifactId>
+      <version>1.82</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+      <version>1.82</version>
+    </dependency>
+    
     <!-- Lib to read/write MS Office (Excel, ..) files, fetching only POI itself -->
     <dependency>
       <groupId>org.apache.poi</groupId>

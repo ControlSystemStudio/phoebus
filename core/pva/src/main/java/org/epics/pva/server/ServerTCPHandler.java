@@ -98,7 +98,7 @@ class ServerTCPHandler extends TCPHandler
             // ServerPV.setWritable will send updated AccessRightsChange
         };
         if (tls_info != null  &&  !tls_info.status_pv_name.isEmpty())
-            certificate_status = CertificateStatusMonitor.instance().checkCertStatus(tls_info.status_pv_name, tls_info.name, certificate_status_listener);
+            certificate_status = CertificateStatusMonitor.instance().checkCertStatus(tls_info, certificate_status_listener);
 
         startReceiver();
         startSender();

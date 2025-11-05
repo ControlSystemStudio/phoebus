@@ -10,14 +10,28 @@ package org.epics.pva.common;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
+import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.cert.ocsp.SingleResp;
+import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.epics.pva.client.ClientChannelState;
 import org.epics.pva.client.PVAChannel;
 import org.epics.pva.client.PVAClient;
+import org.epics.pva.common.SecureSockets.TLSHandshakeInfo;
+import org.epics.pva.data.Hexdump;
+import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.nt.PVAEnum;
 
@@ -59,13 +73,15 @@ public class CertificateStatusMonitor
     public class CertificateStatus
     {
         private final CopyOnWriteArrayList<CertificateStatusListener> listeners = new CopyOnWriteArrayList<>();
+        private final X509Certificate certificate;
         private final String peer_name;
         private final PVAChannel pv;
         private String status = null;
 
-        CertificateStatus(final String peer_name, final String status_pv_name)
+        CertificateStatus(final X509Certificate certificate, final String status_pv_name)
         {
-            this.peer_name = peer_name;
+            this.certificate = certificate;
+            this.peer_name = certificate.getSubjectX500Principal().getName();
             pv = client.getChannel(status_pv_name, this::handleConnection);
         }
 
@@ -115,22 +131,123 @@ public class CertificateStatusMonitor
 
         private void handleMonitor(final PVAChannel channel, final BitSet changes, final BitSet overruns, final PVAStructure data)
         {
-            logger.log(Level.FINE, () -> "Received " + channel.getName() + " = " + data);
-
-            // Decode overall status enum, VALID or not?
-            // TODO Check ocsp_response
+            // Check overall status enum: VALID or UNKNOWN, PENDING, REVOKED, ...
             final PVAEnum value = PVAEnum.fromStructure(data.get("value"));
             if (value != null)
-            {
                 status = value.enumString();
-                logger.log(Level.FINER, () -> this.toString());
-
-                // Notify listeners
-                for (var listener : listeners)
-                    listener.handleCertificateStatusUpdate(this);
-            }
             else
-                logger.log(Level.WARNING, pv + " failed to send status, got " + data);
+                status = "UNKNOWN";
+            logger.log(Level.FINE, () -> "Received " + channel.getName() + " = " + status);
+            logger.log(Level.FINER, () -> data.toString());
+
+            try
+            {
+                // Check OCSP Response bundled in the PVA structure
+                final PVAByteArray raw = data.get("ocsp_response");
+                if (raw == null)
+                    throw new Exception("Missing 'ocsp_response' in " + data);
+
+                // Is it a successful OCSP response ...
+                final OCSPResp ocsp_response = new OCSPResp(raw.get());
+                if (ocsp_response.getStatus() != OCSPResp.SUCCESSFUL)
+                    throw new Exception("OCSP Response status " + ocsp_response.getStatus());
+                // ...with "basic" info?
+                if (! (ocsp_response.getResponseObject() instanceof BasicOCSPResp))
+                    throw new Exception("Expected BasicOCSPResp, got " + ocsp_response.getResponseObject());
+                final BasicOCSPResp basic = (BasicOCSPResp) ocsp_response.getResponseObject();
+                logger.log(Level.FINER, () -> "OCSP responder " + basic.getResponderId().toASN1Primitive().getName());
+
+                // Validate against certificates in our key chain
+                boolean valid = false;
+                for (X509Certificate x509 : SecureSockets.keychain_x509_certificates.values())
+                    if (basic.isSignatureValid(new JcaContentVerifierProviderBuilder().build(x509)))
+                    {
+                        logger.log(Level.FINER, () -> "OCSP response verified by " + x509.getSubjectX500Principal());
+                        valid = true;
+                        break;
+                    }
+                if (! valid)
+                    throw new Exception("Cannot validate OCSP response");
+
+                // AuthorityKeyIdentifier, public key of "EPICS Root Certificate Authority"
+                final JcaX509CertificateHolder bc_cert = new JcaX509CertificateHolder(certificate);
+                final byte[] authority_key_id = AuthorityKeyIdentifier.fromExtensions(bc_cert.getExtensions()).getKeyIdentifierOctets();
+                if (authority_key_id == null)
+                    throw new Exception("Cannot get AuthorityKeyIdentifier from " + certificate);
+
+                // OCSP can include one or more responses. Find one that confirms the certificate
+                boolean ocsp_confirmation = false;
+                for (SingleResp response : basic.getResponses())
+                {
+                    // Is response for the certificate we want to check?
+                    // Same authority?
+                    final CertificateID id = response.getCertID();
+                    if (! Arrays.equals(authority_key_id, id.getIssuerKeyHash()))
+                    {
+                        logger.log(Level.FINER, () -> "OCSP authority\n" + Hexdump.toHexdump(id.getIssuerKeyHash()) +
+                                                      "\ndiffers from\n"  + Hexdump.toHexdump(authority_key_id));
+                        continue;
+                    }
+
+                    // Same serial number?
+                    if (! id.getSerialNumber().equals(certificate.getSerialNumber()))
+                    {
+                        logger.log(Level.FINER, () -> "OCSP Serial: 0x" + id.getSerialNumber().toString(16) +
+                                                      " differs from expected 0x" + certificate.getSerialNumber().toString(16));
+                        continue;
+                    }
+
+                    // Is applicable time range from <= now <= until?   until may be null...
+                    final Date now = new Date(), from = response.getThisUpdate(), until = response.getNextUpdate();
+                    if (from.after(now)  ||  (until != null   &&   now.after(until)))
+                    {
+                        logger.log(Level.FINER, () -> "Applicable time range from " + response.getThisUpdate() +
+                                                      " to " + response.getNextUpdate() + " does not include now, " + now);
+                        continue;
+                    }
+
+                    // Seems to apply to the certificate we want to check.
+
+                    // What is the status? OCSP only indicates null for valid, RevokedStatus with revocation date, or UnknownStatus
+                    // Use that to potentially update the more detailed
+                    final org.bouncycastle.cert.ocsp.CertificateStatus response_status = response.getCertStatus();
+                    if (response_status == org.bouncycastle.cert.ocsp.CertificateStatus.GOOD)
+                    {
+                        logger.log(Level.FINER, "OCSP status is VALID");
+                        status = "VALID";
+                        ocsp_confirmation = true;
+                        break;
+                    }
+                    else if (response_status instanceof RevokedStatus revoked)
+                    {
+                        logger.log(Level.FINER, "OCSP status is REVOKED as of " + revoked.getRevocationTime());
+                        status = "REVOKED";
+                        ocsp_confirmation = true;
+                    }
+                    else
+                    {   // Allow PENDING etc. but correct VALID
+                        logger.log(Level.FINER, "OCSP status is UNKNOWN");
+                        if ("VALID".equals(status))
+                            status = "UNKNOWN";
+                    }
+                }
+
+                // Downgrade an unconfirmed VALID, but keep PENDING etc.
+                if (! ocsp_confirmation  &&  "VALID".equals(status))
+                    status = "UNKNOWN";
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot decode OCSP response for " + pv.getName(), ex);
+                status = "ERROR";
+            }
+
+            logger.log(Level.FINE, () -> "Effective " + channel.getName() + " = " + status);
+
+
+            // Notify listeners
+            for (var listener : listeners)
+                listener.handleCertificateStatusUpdate(this);
         }
 
         /** Close the CERT:STATUS:... PV check */
@@ -177,25 +294,28 @@ public class CertificateStatusMonitor
         return instance;
     }
 
-    /** @param status_pv_name CERT:STATUS:... PV name
-     *  @param peer_name Name of the peer (principal of the certificate)
+    /** @param tls_info {@link TLSHandshakeInfo}: certificate, CERT:STATUS:... PV name
      *  @param listener Listener to invoke for certificate status updates
      *  @return {@link CertificateStatus} to which we're subscribed, need to unsubscribe when no longer needed
      */
-    public synchronized CertificateStatus checkCertStatus(final String status_pv_name, final String peer_name, final CertificateStatusListener listener)
+    public synchronized CertificateStatus checkCertStatus(final TLSHandshakeInfo tls_info,final CertificateStatusListener listener)
     {
-        if (!status_pv_name.startsWith("CERT:STATUS:"))
+        if (!tls_info.status_pv_name.startsWith("CERT:STATUS:"))
             throw new IllegalArgumentException("Need CERT:STATUS:... PV");
 
-        logger.log(Level.FINER, () -> "Checking " + status_pv_name + " for '" + peer_name + "'");
+        logger.log(Level.FINER, () -> "Checking " + tls_info.status_pv_name + " for '" + tls_info.name + "'");
 
-        CertificateStatus cert_stat = certificate_states.computeIfAbsent(status_pv_name,
-                                                                         stat_pv_name -> new CertificateStatus(peer_name, status_pv_name));
+        CertificateStatus cert_stat = certificate_states.computeIfAbsent(tls_info.status_pv_name,
+                                                                         stat_pv_name -> new CertificateStatus(tls_info.peer_cert, tls_info.status_pv_name));
         cert_stat.addListener(listener);
 
         return cert_stat;
     }
 
+    /** Unsubscribe from certificate status updates
+     *  @param certificate_status Certificate status from which to unsubscribe
+     *  @param listener Listener to cancel
+     */
     public synchronized void remove(final CertificateStatus certificate_status, final CertificateStatusListener listener)
     {
         if (certificate_status.removeListener(listener))
