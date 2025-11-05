@@ -9,6 +9,7 @@ package org.epics.pva.common;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -141,7 +142,8 @@ public class CertificateStatus
             for (X509Certificate x509 : SecureSockets.keychain_x509_certificates.values())
                 if (basic.isSignatureValid(new JcaContentVerifierProviderBuilder().build(x509)))
                 {
-                    logger.log(Level.FINER, () -> "OCSP response verified by " + x509.getSubjectX500Principal());
+                    logger.log(Level.FINER, () -> "OCSP response verified by trusted certificate for " +
+                                                  x509.getSubjectX500Principal());
                     valid = true;
                     break;
                 }
@@ -159,22 +161,42 @@ public class CertificateStatus
             for (SingleResp response : basic.getResponses())
             {
                 // Is response for the certificate we want to check?
-                // Same authority?
                 final CertificateID id = response.getCertID();
-                if (! Arrays.equals(authority_key_id, id.getIssuerKeyHash()))
+
+                // 1) Same authority name (only have hash of name)?
+                // When last checked, hash_alg was "1.3.14.3.2.26" = SHA-1
+                final String hash_alg = id.getHashAlgOID().getId();
+                final MessageDigest digest = MessageDigest.getInstance(hash_alg);
+                final byte[] cert_issuer_name_hash = digest.digest(bc_cert.getIssuer().getEncoded());
+                if (! Arrays.equals(cert_issuer_name_hash, id.getIssuerNameHash()))
                 {
-                    logger.log(Level.FINER, () -> "OCSP authority\n" + Hexdump.toHexdump(id.getIssuerKeyHash()) +
-                                                  "\ndiffers from\n"  + Hexdump.toHexdump(authority_key_id));
+                    logger.log(Level.FINER, () -> "OCSP authority hash for name " + certificate.getIssuerX500Principal() +
+                                                  "\n" + Hexdump.toHexdump(id.getIssuerNameHash()) +
+                                                  "\ndiffers from expected\n"  + Hexdump.toHexdump(cert_issuer_name_hash));
                     continue;
                 }
+                logger.log(Level.FINER, () -> "OCSP authority hash for name " + certificate.getIssuerX500Principal() +
+                        "\n" + Hexdump.toHexdump(id.getIssuerNameHash()));
 
-                // Same serial number?
+                // 2) Same authority key?
+                if (! Arrays.equals(authority_key_id, id.getIssuerKeyHash()))
+                {
+                    logger.log(Level.FINER, () -> "OCSP authority key\n" + Hexdump.toHexdump(id.getIssuerKeyHash()) +
+                                                  "\ndiffers from expected\n"  + Hexdump.toHexdump(authority_key_id));
+                    continue;
+                }
+                logger.log(Level.FINER, () -> "OCSP authority key\n" + Hexdump.toHexdump(id.getIssuerKeyHash()));
+
+                // 3) Same serial number?
                 if (! id.getSerialNumber().equals(certificate.getSerialNumber()))
                 {
-                    logger.log(Level.FINER, () -> "OCSP Serial: 0x" + id.getSerialNumber().toString(16) +
+                    logger.log(Level.FINER, () -> "OCSP serial 0x" + id.getSerialNumber().toString(16) +
                                                   " differs from expected 0x" + certificate.getSerialNumber().toString(16));
                     continue;
                 }
+                logger.log(Level.FINER, () -> "OCSP Serial: 0x" + id.getSerialNumber().toString(16));
+
+                // Response seems applicable to the certificate we want to check!
 
                 // Is covered time range from <= now <= until?   'until' may be null...
                 final Date now = new Date(), from = response.getThisUpdate(), until = response.getNextUpdate();
@@ -184,8 +206,6 @@ public class CertificateStatus
                                                   " does not include now, " + now);
                     continue;
                 }
-
-                // Seems applicable to the certificate we want to check.
 
                 // What is the status? OCSP only indicates null for valid, RevokedStatus with revocation date, or UnknownStatus.
                 // Use that to potentially correct the more detailed status from the enum
