@@ -1,14 +1,17 @@
-#!/bin/sh
+#!/bin/bash
 
-LIB=../../dependencies/phoebus-target/target/lib/bcpkix-jdk18on-1.82.jar:../../dependencies/phoebus-target/target/lib/bcprov-jdk18on-1.82.jar
+# External dependencies
+LIB=`echo ../../dependencies/phoebus-target/target/lib/bcpkix-*.jar`
+LIB+=':'`echo ../../dependencies/phoebus-target/target/lib/bcprov-*.jar`
+LIB+=':'`echo ../../dependencies/phoebus-target/target/lib/bcutil-*.jar`
 
 JAR=`echo target/core-pva*.jar`
 if [ -r "$JAR" ]
 then
-    # Echo use jar file
+    # Use jar
     java -cp $LIB:$JAR org.epics.pva.server.ServerDemo "$@"
 else
-    # Use build output
+    # Use IDE build output
     java -cp $LIB:target/classes org.epics.pva.server.ServerDemo "$@"
 fi
 

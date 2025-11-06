@@ -50,7 +50,7 @@ public class CertificateStatus
     private final X509Certificate certificate;
     private final String peer_name;
     private final PVAChannel pv;
-    private String status = null;
+    private volatile String status = null;
 
     /** Called by {@link CertificateStatusMonitor}
      *
@@ -158,6 +158,7 @@ public class CertificateStatus
 
             // OCSP can include one or more responses. Find one that confirms the certificate
             boolean ocsp_confirmation = false;
+            final Date now = new Date();
             for (SingleResp response : basic.getResponses())
             {
                 // Is response for the certificate we want to check?
@@ -175,7 +176,7 @@ public class CertificateStatus
                                                   "\ndiffers from expected\n"  + Hexdump.toHexdump(cert_issuer_name_hash));
                     continue;
                 }
-                logger.log(Level.FINER, () -> "OCSP authority hash for name " + certificate.getIssuerX500Principal() +
+                logger.log(Level.FINER, () -> "OCSP matches authority hash for name " + certificate.getIssuerX500Principal() +
                         "\n" + Hexdump.toHexdump(id.getIssuerNameHash()));
 
                 // 2) Same authority key?
@@ -185,7 +186,7 @@ public class CertificateStatus
                                                   "\ndiffers from expected\n"  + Hexdump.toHexdump(authority_key_id));
                     continue;
                 }
-                logger.log(Level.FINER, () -> "OCSP authority key\n" + Hexdump.toHexdump(id.getIssuerKeyHash()));
+                logger.log(Level.FINER, () -> "OCSP matches authority key\n" + Hexdump.toHexdump(id.getIssuerKeyHash()));
 
                 // 3) Same serial number?
                 if (! id.getSerialNumber().equals(certificate.getSerialNumber()))
@@ -194,18 +195,19 @@ public class CertificateStatus
                                                   " differs from expected 0x" + certificate.getSerialNumber().toString(16));
                     continue;
                 }
-                logger.log(Level.FINER, () -> "OCSP Serial: 0x" + id.getSerialNumber().toString(16));
+                logger.log(Level.FINER, () -> "OCSP matches serial 0x" + id.getSerialNumber().toString(16));
 
                 // Response seems applicable to the certificate we want to check!
 
                 // Is covered time range from <= now <= until?   'until' may be null...
-                final Date now = new Date(), from = response.getThisUpdate(), until = response.getNextUpdate();
+                final Date from = response.getThisUpdate(), until = response.getNextUpdate();
                 if (from.after(now)  ||  (until != null  &&  now.after(until)))
                 {
                     logger.log(Level.FINER, () -> "Applicable time range " + from + " to " + until +
                                                   " does not include now, " + now);
                     continue;
                 }
+                logger.log(Level.FINER, () -> "OCSP applicable from " + from + " to " + until);
 
                 // What is the status? OCSP only indicates null for valid, RevokedStatus with revocation date, or UnknownStatus.
                 // Use that to potentially correct the more detailed status from the enum
@@ -222,12 +224,12 @@ public class CertificateStatus
                     logger.log(Level.FINER, "OCSP status is REVOKED as of " + revoked.getRevocationTime());
                     status = "REVOKED";
                     ocsp_confirmation = true;
+                    break;
                 }
                 else
                 {   // Allow PENDING etc. but correct VALID
                     logger.log(Level.FINER, "OCSP status is UNKNOWN");
-                    if ("VALID".equals(status))
-                        status = "UNKNOWN";
+                    // No ocsp_confirmation, look for better response or fall through to UNKNOWN
                 }
             }
 
@@ -252,7 +254,7 @@ public class CertificateStatus
     void close()
     {
         if (! listeners.isEmpty())
-            throw new IllegalStateException(getPVName() + " is still in use");
+            throw new IllegalStateException("CertificateStatus(" + getPVName() + ") is still in use");
         pv.close();
     }
 
