@@ -30,6 +30,7 @@ sys.path.append(str(Path('_ext').resolve()))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
+    "myst_parser",
     "preferences_listing",
 ]
 
@@ -186,6 +187,22 @@ html_css_files = [
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Phoebusdoc'
 
+
+# -- Options for MyST's markdown -----------------------------------------------
+# https://myst-parser.readthedocs.io/en/latest/configuration.html
+
+myst_enable_extensions = [
+    "amsmath",
+    "colon_fence",
+    "deflist",
+    "dollarmath",
+    "fieldlist",
+    "html_image",
+    "replacements",
+    "smartquotes",
+    "strikethrough",
+    "tasklist",
+]
 
 # -- Options for LaTeX output --------------------------------------------------
 
