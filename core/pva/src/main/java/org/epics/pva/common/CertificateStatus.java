@@ -96,6 +96,7 @@ public class CertificateStatus
         return "VALID".equals(status);
     }
 
+    /** PVAChannel connection handler, starts monitor */
     private void handleConnection(final PVAChannel channel, final ClientChannelState state)
     {
         if (state == ClientChannelState.CONNECTED)
@@ -109,6 +110,7 @@ public class CertificateStatus
             }
     }
 
+    /** PVAChannel monitor handler, checks CERT:STATUS:... value */
     private void handleMonitor(final PVAChannel channel, final BitSet changes, final BitSet overruns, final PVAStructure data)
     {
         // Check overall status enum: VALID or UNKNOWN, PENDING, REVOKED, ...
