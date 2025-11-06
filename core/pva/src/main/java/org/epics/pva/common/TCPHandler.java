@@ -214,7 +214,7 @@ abstract public class TCPHandler
                 send(send_buffer);
             }
         }
-        catch (Exception ex)
+        catch (Throwable ex)
         {
             logger.log(Level.WARNING, Thread.currentThread().getName() + " exits because of error", ex);
         }
@@ -331,7 +331,7 @@ abstract public class TCPHandler
                 receive_buffer.compact();
             }
         }
-        catch (Exception ex)
+        catch (Throwable ex)
         {
             if (running)
                 logger.log(Level.WARNING, Thread.currentThread().getName() + " exits because of error", ex);
