@@ -293,6 +293,14 @@ public class ScanEditor extends SplitPane
                                              ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         delete.setOnAction(event -> scan_tree.cutToClipboard());
 
+        final MenuItem schedule = new MenuItem(Messages.scan_schedule,
+                ImageCache.getImageView(ScanSystem.class, "/icons/clock.png"));
+        schedule.setOnAction(event -> schedule(true));
+
+        final MenuItem schedule_unqueued = new MenuItem(Messages.scan_schedule_unqueued,
+                ImageCache.getImageView(ScanSystem.class, "/icons/clock.png"));
+        schedule_unqueued.setOnAction(event -> schedule(false));
+
         final MenuItem simulate = new MenuItem(Messages.scan_simulate,
                                                ImageCache.getImageView(ScanSystem.class, "/icons/simulate.png"));
         simulate.setOnAction(event -> submitOrSimulate(null));
@@ -311,7 +319,7 @@ public class ScanEditor extends SplitPane
 
         final ContextMenu menu = new ContextMenu(copy, paste, delete,
                                                  new SeparatorMenuItem(),
-                                                 simulate, submit, submit_unqueued,
+                                                 schedule, schedule_unqueued, simulate, submit, submit_unqueued,
                                                  new SeparatorMenuItem(),
                                                  open_monitor);
         setContextMenu(menu);
@@ -325,7 +333,7 @@ public class ScanEditor extends SplitPane
             throw new RuntimeException(e);
         }
         final ScanClient scan_client = new ScanClient(Preferences.host, Preferences.port);
-        ScheduledScanDialog dialog = new ScheduledScanDialog(scan_name, scan_client, xml_commands);
+        ScheduledScanDialog dialog = new ScheduledScanDialog(scan_name, scan_client, xml_commands, queued);
         DialogHelper.positionDialog(dialog, this, 100, 100);
         Optional<Long> scan_id = dialog.showAndWait();
         scan_id.ifPresent(this::attachScan);
