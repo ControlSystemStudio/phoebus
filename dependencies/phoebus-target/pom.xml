@@ -530,10 +530,17 @@
       <version>3.1.0</version>
     </dependency>
     
-    <!-- bouncycastle library used in PVA to decode and check OCSP confirmation of certificates -->
+    <!-- bouncycastle library used in PVA to decode and check OCSP confirmation of certificates
+         bcpkix depends on bcutil, which depends on bcprov
+     -->
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk18on</artifactId>
+      <version>1.82</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcutil-jdk18on</artifactId>
       <version>1.82</version>
     </dependency>
     <dependency>
