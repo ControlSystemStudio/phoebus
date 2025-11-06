@@ -8,8 +8,11 @@ build:
 # Build from the docs/ directory with Sphinx
 sphinx:
   configuration: docs/source/conf.py
+  builder: html
+  fail_on_warning: false
 
-# Explicitly set the version of Python and its requirements
+# Install Python dependencies from pyproject.toml in docs/
 python:
   install:
-    - requirements: docs/source/requirements.txt
+    - method: pip
+      path: docs
