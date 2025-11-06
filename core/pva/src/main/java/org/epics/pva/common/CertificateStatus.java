@@ -216,7 +216,7 @@ public class CertificateStatus
                 final org.bouncycastle.cert.ocsp.CertificateStatus response_status = response.getCertStatus();
                 if (response_status == org.bouncycastle.cert.ocsp.CertificateStatus.GOOD)
                 {
-                    logger.log(Level.FINER, "OCSP status is VALID");
+                    logger.log(Level.FINER, "OCSP status is GOOD");
                     status = "VALID";
                     ocsp_confirmation = true;
                     break;
