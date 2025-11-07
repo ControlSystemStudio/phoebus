@@ -23,7 +23,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -412,7 +411,7 @@ public class ScanClient
             final String name,
             final String xml_commands,
             final boolean queue,
-            LocalDateTime scheduled
+            Instant scheduled
     ) throws Exception
     {
         List<String> query = new ArrayList<>();
@@ -420,7 +419,7 @@ public class ScanClient
             query.add("queue=false");
         }
         if (scheduled != null) {
-            query.add("scheduled=" + scheduled.format(TimestampFormats.SECONDS_FORMAT));
+            query.add("scheduled=" + TimestampFormats.SECONDS_FORMAT.format(scheduled));
         }
 
         final HttpURLConnection connection = connect("/scan/" + name, String.join("&", query), long_timeout);

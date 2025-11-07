@@ -18,10 +18,9 @@ package org.csstudio.scan.server.internal;
 import static org.csstudio.scan.server.ScanServerInstance.logger;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -272,9 +271,9 @@ public class ScanEngine
      * @param scan The {@link ScheduledScan}
      */
     public void schedule(final ScheduledScan scan) {
-        logger.log(Level.INFO, "Scheduling scan " + scan.getId() + " for " + scan.getScheduledTime().format(TimestampFormats.SECONDS_FORMAT));
+        logger.log(Level.INFO, "Scheduling scan " + scan.getId() + " for " + TimestampFormats.SECONDS_FORMAT.format(scan.getScheduledTime()));
         scan_queue.add(scan);
-        long delay = Duration.between(LocalDateTime.now(), scan.getScheduledTime()).toMillis();
+        long delay = Duration.between(Instant.now(), scan.getScheduledTime()).toMillis();
         ScheduledScanTask task = new ScheduledScanTask(scan, this);
         if (delay <= 0) {
             task.run();

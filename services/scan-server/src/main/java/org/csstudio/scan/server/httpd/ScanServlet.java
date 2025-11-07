@@ -12,7 +12,7 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -88,8 +88,8 @@ public class ScanServlet extends HttpServlet
         {
             // Timeout or deadline?
             long timeout_secs = 0;
-            LocalDateTime deadline = null;
-            LocalDateTime scheduled = null;
+            Instant deadline = null;
+            Instant scheduled = null;
             String text = request.getParameter("timeout");
             if (text != null)
                 try
@@ -108,7 +108,7 @@ public class ScanServlet extends HttpServlet
             {
                 try
                 {
-                    deadline = LocalDateTime.from(TimestampFormats.SECONDS_FORMAT.parse(text));
+                    deadline = Instant.from(TimestampFormats.SECONDS_FORMAT.parse(text));
                 }
                 catch (Exception ex)
                 {
@@ -126,7 +126,7 @@ public class ScanServlet extends HttpServlet
             {
                 try
                 {
-                    scheduled = LocalDateTime.from(TimestampFormats.SECONDS_FORMAT.parse(text));
+                    scheduled = Instant.from(TimestampFormats.SECONDS_FORMAT.parse(text));
                 }
                 catch (Exception ex)
                 {

@@ -5,7 +5,7 @@ import javafx.scene.control.Dialog;
 import org.csstudio.scan.client.ScanClient;
 import org.phoebus.ui.time.DateTimePane;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.ZoneId;
 
 
@@ -34,13 +34,12 @@ public class ScheduledScanDialog extends Dialog<Long> {
         setResultConverter(button ->
         {
             if (button == ButtonType.OK) {
-                LocalDateTime scheduled = LocalDateTime.ofInstant(datetime.getInstant(), ZoneId.systemDefault());
                 try {
                     return scan_client.submitScan(
                             scan_name,
                             script_xml,
                             queued,
-                            scheduled
+                            datetime.getInstant()
                     );
                 }
                 catch (Exception e) {

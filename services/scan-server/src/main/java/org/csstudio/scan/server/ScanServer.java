@@ -15,7 +15,7 @@
  ******************************************************************************/
 package org.csstudio.scan.server;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.csstudio.scan.data.ScanData;
@@ -63,7 +63,7 @@ public interface ScanServer
      *  @return ID that uniquely identifies the scan
      *  @throws Exception on error
      */
-    public long submitScan(String scan_name, String commands_as_xml, boolean queue, boolean pre_post, long timeout_secs, LocalDateTime deadline, LocalDateTime scheduled) throws Exception;
+    public long submitScan(String scan_name, String commands_as_xml, boolean queue, boolean pre_post, long timeout_secs, Instant deadline, Instant scheduled) throws Exception;
 
     /** Query server for scans
      *  @return Info for each scan on the server, most recently submitted scan first

@@ -6,24 +6,21 @@ import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.device.DeviceContext;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.time.Instant;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.List;
-import java.util.TimeZone;
 
 public class ScheduledScan extends ExecutableScan {
 
     /**
     * Time at which this scan should be queued / executed.
     * */
-    private final LocalDateTime when;
+    private final Instant when;
 
     /**
      * Used to store the point in time in which this scan was created (for showing progress)
      * */
-    private final LocalDateTime created;
+    private final Instant created;
 
     /**
     * Whether the scan should be queued when its time has come
@@ -52,7 +49,7 @@ public class ScheduledScan extends ExecutableScan {
      * @throws Exception on error (cannot access log, ...)
      */
     public ScheduledScan(
-            LocalDateTime when,
+            Instant when,
             boolean queued,
             ScanEngine engine,
             JythonSupport jython,
@@ -62,11 +59,11 @@ public class ScheduledScan extends ExecutableScan {
             List<ScanCommandImpl<?>> implementations,
             List<ScanCommandImpl<?>> post_scan,
             long timeout_secs,
-            LocalDateTime deadline) throws Exception {
+            Instant deadline) throws Exception {
         super(engine, jython, name, devices, pre_scan, implementations, post_scan, timeout_secs, deadline);
         this.when = when;
         this.queued = queued;
-        this.created = LocalDateTime.now();
+        this.created = Instant.now();
     }
 
     /** Whether this scan is ready to actually be queued / executed. Basically, if the scheduled time has not passed,
@@ -79,7 +76,7 @@ public class ScheduledScan extends ExecutableScan {
     }
 
     public void setExecutable() {
-        assert LocalDateTime.now().isAfter(when);
+        assert Instant.now().isAfter(when);
         executable = true;
     }
 
@@ -114,11 +111,11 @@ public class ScheduledScan extends ExecutableScan {
                     base_info.getState(),
                     base_info.getError(),
                     base_info.getRuntimeMillisecs(),
-                    getScheduledTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
-                    total_duration - Duration.between(LocalDateTime.now(), getScheduledTime()).toMillis(),
+                    getScheduledTime().toEpochMilli(),
+                    total_duration - Duration.between(Instant.now(), getScheduledTime()).toMillis(),
                     total_duration,
                     base_info.getCurrentAddress(),
-                    "Waiting until " + getScheduledTime().format(TimestampFormats.SECONDS_FORMAT) + "..."
+                    "Waiting until " + TimestampFormats.SECONDS_FORMAT.format(getScheduledTime()) + "..."
             );
         }
         return base_info;
@@ -132,7 +129,7 @@ public class ScheduledScan extends ExecutableScan {
         super.doAbort(previous);
     }
 
-    LocalDateTime getScheduledTime() {
+    Instant getScheduledTime() {
         return when;
     }
 

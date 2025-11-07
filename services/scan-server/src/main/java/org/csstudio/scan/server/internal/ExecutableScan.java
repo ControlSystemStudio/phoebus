@@ -19,7 +19,6 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
@@ -104,7 +103,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
     final long timeout_secs;
 
     /** Execution deadline by which scan will be aborted or <code>null</code> */
-    final LocalDateTime deadline;
+    final Instant deadline;
 
     /** Log each device access, or require specific log command? */
     private volatile boolean automatic_log_mode = false;
@@ -173,7 +172,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
             final List<ScanCommandImpl<?>> implementations,
             final List<ScanCommandImpl<?>> post_scan,
             final long timeout_secs,
-            final LocalDateTime deadline) throws Exception
+            final Instant deadline) throws Exception
     {
         super(DataLogFactory.createDataLog(name));
         this.engine = engine;
@@ -480,7 +479,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
         }
         else if (deadline != null)
         {
-            final long seconds = Duration.between(LocalDateTime.now(), deadline).getSeconds();
+            final long seconds = Duration.between(Instant.now(), deadline).getSeconds();
             if (seconds > 0)
             {
                 timer = engine.deadline_timer.schedule(this::abortAtDeadline, seconds, TimeUnit.SECONDS);

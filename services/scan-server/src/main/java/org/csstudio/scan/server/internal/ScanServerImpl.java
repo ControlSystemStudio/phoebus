@@ -20,7 +20,6 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -188,8 +187,8 @@ public class ScanServerImpl implements ScanServer
                            final boolean queue,
                            final boolean pre_post,
                            final long timeout_secs,
-                           final LocalDateTime deadline,
-                           final LocalDateTime scheduled) throws Exception
+                           final Instant deadline,
+                           final Instant scheduled) throws Exception
     {
         cullScans();
 
