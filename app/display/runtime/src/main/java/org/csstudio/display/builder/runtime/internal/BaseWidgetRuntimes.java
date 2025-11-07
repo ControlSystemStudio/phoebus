@@ -40,7 +40,6 @@ public class BaseWidgetRuntimes implements WidgetRuntimesService
     {
         return Map.ofEntries(
             entry(DisplayModel.WIDGET_TYPE,                          () -> new DisplayRuntime()),
-            entry(ActionButtonWidget.WIDGET_DESCRIPTOR.getType(),    () -> new ActionButtonWidgetRuntime()),
             entry(ArrayWidget.WIDGET_DESCRIPTOR.getType(),           () -> new ArrayWidgetRuntime()),
             entry(EmbeddedDisplayWidget.WIDGET_DESCRIPTOR.getType(), () -> new EmbeddedDisplayRuntime()),
             entry(GroupWidget.WIDGET_DESCRIPTOR.getType(),           () -> new GroupWidgetRuntime()),
