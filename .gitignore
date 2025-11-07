@@ -125,3 +125,9 @@ phoebus-product/settings_template.ini
 docs/source/applications.rst
 docs/source/services.rst
 
+# Ignore Sphinx extensions and build artifacts
+docs/source/_ext/**/__pycache__/
+docs/source/_ext/**/*.pyc
+
+# Ignore pip installation metadata
+docs/phoebus_docs.egg-info/
