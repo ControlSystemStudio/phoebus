@@ -28,10 +28,10 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.AlterConfigOp;
 import org.apache.kafka.clients.admin.ConfigEntry;
-import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.phoebus.applications.alarm.AlarmSystemConstants;
 import org.phoebus.applications.alarm.client.ClientState;
+import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.SeverityLevel;
@@ -93,7 +93,9 @@ public class AlarmServerMain implements ServerModelListener
      * @throws Exception
      */
     private static void ensureKafkaTopics(String server, String topic, String kafka_props_file) throws Exception {
-        try (AdminClient admin = AdminClient.create(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, server))) {
+        var kafka_props = KafkaHelper.loadPropsFromFile(kafka_props_file);
+        kafka_props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, server);
+        try (AdminClient admin = AdminClient.create(kafka_props)) {
             Set<String> topics = admin.listTopics().names().get(60, TimeUnit.SECONDS);
             // Compacted topic
             String compactedTopic = topic;
