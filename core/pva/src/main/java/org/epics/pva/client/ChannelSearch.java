@@ -350,6 +350,8 @@ class ChannelSearch
         synchronized (this)
         {
             final Set<SearchedChannel> bucket = search_buckets.get(current);
+            if (bucket.isEmpty())
+                return;
             logger.log(Level.FINEST, () -> "Search bucket " + current);
 
             // Remove searched channels from the current bucket
