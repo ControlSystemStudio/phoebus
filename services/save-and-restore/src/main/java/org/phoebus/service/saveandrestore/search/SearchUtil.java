@@ -16,6 +16,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.json.JsonData;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -240,8 +241,9 @@ public class SearchUtil {
                 DisMaxQuery.Builder temporalQuery = new DisMaxQuery.Builder();
                 RangeQuery.Builder rangeQuery = new RangeQuery.Builder();
                 // Add a query based on the created time
-                rangeQuery.field("node.lastModified").from(Long.toString(1000 * start.toEpochSecond()))
-                        .to(Long.toString(1000 * end.toEpochSecond()));
+                rangeQuery.field("node.lastModified").gte(JsonData.of(start.toEpochSecond()))
+                        .lte(JsonData.of(end.toEpochSecond()))
+                        .format("epoch_second");
                 NestedQuery nestedQuery = NestedQuery.of(n1 -> n1.path("node").query(rangeQuery.build()._toQuery()));
                 temporalQuery.queries(nestedQuery._toQuery());
                 boolQueryBuilder.must(temporalQuery.build()._toQuery());
