@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Date;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
@@ -46,11 +47,25 @@ import org.epics.pva.data.nt.PVAEnum;
  */
 public class CertificateStatus
 {
-    private final CopyOnWriteArrayList<CertificateStatusListener> listeners = new CopyOnWriteArrayList<>();
+    private static enum StatusOptions
+    {
+        // Eventually we only care about VALID or not.
+        // The other options as found in PVACMS (Nov. 2025) are all considered "not VALID"
+        // and only informational to reflect the more detailed state
+        UNKNOWN, VALID, PENDING, PENDING_APPROVAL, PENDING_RENEWAL, EXPIRED, REVOKED
+    }
+
+    /** Certificate to check */
     private final X509Certificate certificate;
-    private final String peer_name;
+
+    /** CERT:STATUS:.. PV to check the status */
     private final PVAChannel pv;
-    private volatile String status = null;
+
+    /** Status of the certificate */
+    private final AtomicReference<StatusOptions> status = new AtomicReference<>(StatusOptions.UNKNOWN);
+
+    /** Listeners to status changes */
+    private final CopyOnWriteArrayList<CertificateStatusListener> listeners = new CopyOnWriteArrayList<>();
 
     /** Called by {@link CertificateStatusMonitor}
      *
@@ -61,7 +76,6 @@ public class CertificateStatus
     CertificateStatus(final PVAClient client, final X509Certificate certificate, final String status_pv_name)
     {
         this.certificate = certificate;
-        this.peer_name = certificate.getSubjectX500Principal().getName();
         pv = client.getChannel(status_pv_name, this::handleConnection);
     }
 
@@ -93,7 +107,7 @@ public class CertificateStatus
     /** @return Is the certificate currently valid? */
     public boolean isValid()
     {
-        return "VALID".equals(status);
+        return status.get() == StatusOptions.VALID;
     }
 
     /** PVAChannel connection handler, starts monitor */
@@ -108,6 +122,11 @@ public class CertificateStatus
             {
                 logger.log(Level.WARNING, "Cannot subscribe to " + pv, ex);
             }
+        else if (status.getAndSet(StatusOptions.UNKNOWN) == StatusOptions.VALID)
+        {   // Changed from VALID?
+            logger.log(Level.FINE, () -> channel.getName() + " disconnected, certificate status becomes " + status);
+            notifyListeners();
+        }
     }
 
     /** PVAChannel monitor handler, checks CERT:STATUS:... value */
@@ -116,9 +135,17 @@ public class CertificateStatus
         // Check overall status enum: VALID or UNKNOWN, PENDING, REVOKED, ...
         final PVAEnum value = PVAEnum.fromStructure(data.get("value"));
         if (value != null)
-            status = value.enumString();
+            try
+            {
+                status.set(StatusOptions.valueOf(value.enumString()));
+            }
+            catch (Throwable ex)
+            {
+                logger.log(Level.WARNING, "Cannot map " + channel.getName() + " status " + value.enumString(), ex);
+                status.set(StatusOptions.UNKNOWN);
+            }
         else
-            status = "UNKNOWN";
+            status.set(StatusOptions.UNKNOWN);
         logger.log(Level.FINE, () -> "Received " + channel.getName() + " = " + status);
         logger.log(Level.FINER, () -> data.toString());
 
@@ -217,14 +244,14 @@ public class CertificateStatus
                 if (response_status == org.bouncycastle.cert.ocsp.CertificateStatus.GOOD)
                 {
                     logger.log(Level.FINER, "OCSP status is GOOD");
-                    status = "VALID";
+                    status.set(StatusOptions.VALID);
                     ocsp_confirmation = true;
                     break;
                 }
                 else if (response_status instanceof RevokedStatus revoked)
                 {
                     logger.log(Level.FINER, "OCSP status is REVOKED as of " + revoked.getRevocationTime());
-                    status = "REVOKED";
+                    status.set(StatusOptions.REVOKED);
                     ocsp_confirmation = true;
                     break;
                 }
@@ -235,19 +262,22 @@ public class CertificateStatus
                 }
             }
 
-            // Downgrade an unconfirmed VALID, but keep PENDING etc.
-            if (! ocsp_confirmation  &&  "VALID".equals(status))
-                status = "UNKNOWN";
+            // When unconfirmed, downgrade VALID into UNKNOWN but keep other non-VALID states
+            if (! ocsp_confirmation)
+                status.compareAndSet(StatusOptions.VALID, StatusOptions.UNKNOWN);
         }
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Cannot decode OCSP response for " + pv.getName(), ex);
-            status = "ERROR";
+            status.set(StatusOptions.UNKNOWN);
         }
 
         logger.log(Level.FINE, () -> "Effective " + channel.getName() + " = " + status);
+        notifyListeners();
+    }
 
-        // Notify listeners
+    private void notifyListeners()
+    {
         for (var listener : listeners)
             listener.handleCertificateStatusUpdate(this);
     }
@@ -263,6 +293,7 @@ public class CertificateStatus
     @Override
     public String toString()
     {
+        final String peer_name = certificate.getSubjectX500Principal().getName();
         return pv.getName() + " for '" + peer_name + "' is " + status;
     }
 }
