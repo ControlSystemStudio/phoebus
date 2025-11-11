@@ -20,7 +20,6 @@ import org.epics.pva.data.Hexdump;
 /** Handle a server's ECHO reply
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class EchoHandler implements CommandHandler<ClientTCPHandler>
 {
     @Override
@@ -39,10 +38,10 @@ class EchoHandler implements CommandHandler<ClientTCPHandler>
             buffer.get(payload);
             final String expected = tcp.getActiveEchoRequest();
             if (Arrays.equals(payload, expected.getBytes()))
-                logger.log(Level.FINE, () -> "Received ECHO:\n" + Hexdump.toHexdump(payload));
+                logger.log(Level.FINE, () -> "Received ECHO '" + expected + "'");
             else
             {
-                logger.log(Level.WARNING, this + " received invalid echo reply, expected " + expected + ":\n" +
+                logger.log(Level.WARNING, this + " received invalid echo reply, expected '" + expected + "':\n" +
                                           Hexdump.toHexdump(payload));
                 return;
             }
