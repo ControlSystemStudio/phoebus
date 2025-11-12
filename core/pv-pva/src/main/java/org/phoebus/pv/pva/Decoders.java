@@ -172,9 +172,9 @@ public class Decoders
         // In addition, a time stamp of 1990/01/02 00:00:00
         // as used for the Channel Access and IOC time stamp epoch
         // is considered invalid because IOCs send it for never processed records
-        final boolean valid = timestamp.getNano() != 0  &&
-                              (timestamp.getEpochSecond() > 0 &&  timestamp.getEpochSecond() != EPICS_EPOCH);
-        return Time.of(timestamp, usertag, valid);
+        final boolean valid = !(timestamp.getEpochSecond() == 0 && timestamp.getNano() == 0) &&
+                              timestamp.getEpochSecond() != EPICS_EPOCH;
+         return Time.of(timestamp, usertag, valid);
     }
 
     /** @param printfFormat Format from NTScalar display.format

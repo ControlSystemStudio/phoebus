@@ -1,5 +1,6 @@
 """Fetching properties files, parsing, and storing them."""
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -113,14 +114,15 @@ def parse_all_properties_files(_app: Sphinx, config: Config):
 
     files: list[tuple[Path, str]] = []
 
-    for dirpath, _dirnames, filenames in root.walk():
+    for dirpath, _dirnames, filenames in os.walk(root):
+        dirpath_obj = Path(dirpath)
         # Skip build directories
-        if "target" in dirpath.parts:
+        if "target" in dirpath_obj.parts:
             continue
 
         for filename in filenames:
             if filename.endswith("preferences.properties"):
-                file = dirpath / filename
+                file = dirpath_obj / filename
                 pack = package_name(file) or filename
                 _DATA[pack] = _parse_preferences_file(file, pack, root)
 

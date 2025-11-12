@@ -3,9 +3,13 @@ package org.phoebus.alarm.logging.rest;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchVersionInfo;
 import co.elastic.clients.elasticsearch.core.InfoResponse;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.phoebus.alarm.logging.AlarmLoggingService;
 import org.phoebus.alarm.logging.ElasticClientHelper;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -25,12 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 
 /**
  * A REST service for querying the alarm message history
@@ -85,16 +84,16 @@ public class SearchController {
 
     @Operation(summary = "Search alarms")
     @Parameters({
-        @Parameter(name = "pv", description = "PV name", schema = @Schema(type = "string"), required = false, example = "*"),
-        @Parameter(name = "severity", description = "Alarm severity", schema = @Schema(type = "string"), required = false, example = "*"),
-        @Parameter(name = "message", description = "Alarm message", schema = @Schema(type = "string"), required = false, example = "*"),
-        @Parameter(name = "current_severity", description = "PV severity", schema = @Schema(type = "string"), required = false, example = "*"),
-        @Parameter(name = "current_message", description = "PV message", schema = @Schema(type = "string"), required = false, example = "*"),
-        @Parameter(name = "user", description = "User", schema = @Schema(type = "string"), required = false, example = "*"),
-        @Parameter(name = "host", description = "Host", schema = @Schema(type = "string"), required = false, example = "*"),
-        @Parameter(name = "command", description = "Command", schema = @Schema(type = "string"), required = false, example = "*"),
-        @Parameter(name = "start", description = "Start time", schema = @Schema(type = "string"), required = false, example = "2024-06-12"),
-        @Parameter(name = "end", description = "End time", schema = @Schema(type = "string"), required = false, example = "2024-06-14"),
+            @Parameter(name = "pv", description = "PV name", schema = @Schema(type = "string"), required = false, example = "*"),
+            @Parameter(name = "severity", description = "Alarm severity", schema = @Schema(type = "string"), required = false, example = "*"),
+            @Parameter(name = "message", description = "Alarm message", schema = @Schema(type = "string"), required = false, example = "*"),
+            @Parameter(name = "current_severity", description = "PV severity", schema = @Schema(type = "string"), required = false, example = "*"),
+            @Parameter(name = "current_message", description = "PV message", schema = @Schema(type = "string"), required = false, example = "*"),
+            @Parameter(name = "user", description = "User", schema = @Schema(type = "string"), required = false, example = "*"),
+            @Parameter(name = "host", description = "Host", schema = @Schema(type = "string"), required = false, example = "*"),
+            @Parameter(name = "command", description = "Command", schema = @Schema(type = "string"), required = false, example = "*"),
+            @Parameter(name = "start", description = "Start time", schema = @Schema(type = "string"), required = false, example = "2024-06-12"),
+            @Parameter(name = "end", description = "End time", schema = @Schema(type = "string"), required = false, example = "2024-06-14"),
     })
     @RequestMapping(value = "/search/alarm", method = RequestMethod.GET)
     public List<AlarmLogMessage> search(@Parameter(hidden = true) @RequestParam Map<String, String> allRequestParams) {
@@ -114,18 +113,29 @@ public class SearchController {
     @Operation(summary = "Search alarm config")
     @Schema(name = "config", example = "/Accelerator/compteur", required = true)
     @Parameters({
-        @Parameter(name = "config", description = "Config path", schema = @Schema(type = "string"), required = false, example = "/Accelerator/pvname"),
+            @Parameter(name = "config", description = "Config path", schema = @Schema(type = "string"), required = false, example = "/Accelerator/pvname"),
     })
     @RequestMapping(value = "/search/alarm/config", method = RequestMethod.GET)
     public List<AlarmLogMessage> searchConfig(@Parameter(hidden = true) @RequestParam Map<String, String> allRequestParams) {
-        if(allRequestParams == null ||
+        if (allRequestParams == null ||
                 allRequestParams.isEmpty() ||
                 !allRequestParams.containsKey("config") ||
-                allRequestParams.get("config").isEmpty()){
+                allRequestParams.get("config").isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(), allRequestParams);
         return result;
+    }
+
+    /**
+     * Handles the /swagger-ui URL: redirects to /swagger-ui/index.html to avoid 500 response.
+     *
+     * @param response The {@link HttpServletResponse} to configure with a redirect (301).
+     */
+    @GetMapping("/swagger-ui")
+    public void api(HttpServletResponse response) {
+        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        response.addHeader("Location", "/swagger-ui/index.html");
     }
 
 }
