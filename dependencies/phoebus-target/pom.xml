@@ -13,21 +13,6 @@
   </properties>
 
   <profiles>
-    <!-- Oracle JDBC is conditionally installed by install-jars -->
-    <profile>
-      <activation>
-        <file>
-          <exists>${basedir}/../install-jars/lib/ojdbc/ojdbc8-12.2.0.1.jar</exists>
-        </file>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle.jdbc</groupId>
-          <artifactId>ojdbc8</artifactId>
-          <version>12.2.0.1</version>
-        </dependency>
-      </dependencies>
-    </profile>
     <!-- Overriding the default release profile to run the pre release script 
       with makes the required modification to .classpath and other manually maintained 
       files -->
@@ -156,7 +141,38 @@
       <artifactId>py4j</artifactId>
       <version>0.10.2.1</version>
     </dependency>
-    <!-- JDBC connectors For Oracle, see ORACLE_JDBC_JAR -->
+    <!-- JDBC connectors For Oracle, MySQL, Postgres -->
+    <dependency>
+      <groupId>com.oracle.database.jdbc</groupId>
+      <artifactId>ojdbc8</artifactId>
+      <version>12.2.0.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.oracle.database.jdbc</groupId>
+          <artifactId>ucp</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.oracle.database.security</groupId>
+          <artifactId>oraclepki</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.oracle.database.security</groupId>
+          <artifactId>osdt_cert</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.oracle.database.security</groupId>
+          <artifactId>osdt_core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.oracle.database.ha</groupId>
+          <artifactId>simplefan</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.oracle.database.ha</groupId>
+          <artifactId>ons</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
     <dependency>
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
