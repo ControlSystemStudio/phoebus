@@ -7,26 +7,6 @@
   </parent>
   <artifactId>service-archive-engine</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
-  <profiles>
-    <!-- When Oracle support is needed, set environment variable ORACLE_JDBC_JAR=/path/to/ojdbc8-12.2.0.1.jar -->
-    <profile>
-      <activation>
-        <property>
-          <name>env.ORACLE_JDBC_JAR</name>
-        </property>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle.jdbc</groupId>
-          <artifactId>ojdbc8</artifactId>
-          <version>12.2.0.1</version>
-          <scope>system</scope>
-          <systemPath>${env.ORACLE_JDBC_JAR}</systemPath>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
-
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -68,6 +48,37 @@
       <version>${jackson.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.oracle.database.jdbc</groupId>
+      <artifactId>ojdbc8</artifactId>
+      <version>12.2.0.1</version>
+      <exclusions>
+         <exclusion>
+           <groupId>com.oracle.database.jdbc</groupId>
+           <artifactId>ucp</artifactId>
+         </exclusion>
+         <exclusion>
+           <groupId>com.oracle.database.security</groupId>
+           <artifactId>oraclepki</artifactId>
+         </exclusion>
+         <exclusion>
+           <groupId>com.oracle.database.security</groupId>
+           <artifactId>osdt_cert</artifactId>
+         </exclusion>
+         <exclusion>
+           <groupId>com.oracle.database.security</groupId>
+           <artifactId>osdt_core</artifactId>
+         </exclusion>
+         <exclusion>
+           <groupId>com.oracle.database.ha</groupId>
+           <artifactId>simplefan</artifactId>
+         </exclusion>
+         <exclusion>
+           <groupId>com.oracle.database.ha</groupId>
+           <artifactId>ons</artifactId>
+         </exclusion>
+       </exclusions>
+    </dependency>
     <dependency>
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
