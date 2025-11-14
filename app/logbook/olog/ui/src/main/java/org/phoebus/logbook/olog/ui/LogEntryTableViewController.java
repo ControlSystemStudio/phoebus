@@ -64,10 +64,12 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -407,6 +409,8 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
         params.put("sort", advancedSearchViewController.getSortAscending() ? "up" : "down");
         params.put("from", Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         params.put("size", Integer.toString(pageSizeProperty.get()));
+        params.put("tz", ZoneId.systemDefault().getId());
+
 
         searchInProgress.set(true);
         logger.log(Level.INFO, "Single search: " + queryString);
