@@ -14,11 +14,11 @@ import java.util.logging.Level;
 
 import org.epics.pva.common.CommandHandler;
 import org.epics.pva.common.PVAHeader;
+import org.epics.pva.data.Hexdump;
 
 /** Handle response to client's ECHO command
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class EchoHandler implements CommandHandler<ServerTCPHandler>
 {
     @Override
@@ -34,7 +34,7 @@ class EchoHandler implements CommandHandler<ServerTCPHandler>
         // byte[] somePayload;
         final byte[] payload = new byte[payload_size];
         buffer.get(payload);
-        logger.log(Level.FINE, () ->  "Received echo");
+        logger.log(Level.FINE, () ->  "Received ECHO request '" + Hexdump.escapeChars(payload) + "' from " + tcp.getRemoteAddress());
         sendEcho(tcp, payload);
     }
 
@@ -42,7 +42,7 @@ class EchoHandler implements CommandHandler<ServerTCPHandler>
     {
         tcp.submit((version, buffer) ->
         {
-            logger.log(Level.FINE, () ->  "Replying to echo");
+            logger.log(Level.FINE, () ->  "Replying to ECHO '" + Hexdump.escapeChars(payload) + "'");
             PVAHeader.encodeMessageHeader(buffer,
                     PVAHeader.FLAG_SERVER,
                     PVAHeader.CMD_ECHO, payload.length);

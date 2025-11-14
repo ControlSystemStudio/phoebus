@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVADouble;
@@ -28,11 +29,68 @@ import org.epics.pva.data.nt.PVATimeStamp;
  */
 public class ServerDemo
 {
+    private static void help()
+    {
+        System.out.println("USAGE: ServerDemo [options]");
+        System.out.println();
+        System.out.println("Options:");
+        System.out.println("  -h             Help");
+        System.out.println("  -v <level>     Verbosity, level 0-5");
+    }
+
+    private static void setLogLevel(final Level level)
+    {
+        // Cannot use PVASettings.logger here because that would
+        // construct it and log CONFIG messages before we might be
+        // able to disable them
+        Logger.getLogger("org.epics.pva").setLevel(level);
+        Logger.getLogger("jdk.event.security").setLevel(level);
+    }
+
     public static void main(String[] args) throws Exception
     {
-        // Log everything
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
-        PVASettings.logger.setLevel(Level.ALL);
+
+        for (int i=0; i<args.length; ++i)
+        {
+            final String arg = args[i];
+            if (arg.startsWith("-h"))
+            {
+                help();
+                return;
+            }
+            else if (arg.startsWith("-v") && (i+1) < args.length)
+            {
+                switch (Integer.parseInt(args[i+1]))
+                {
+                case 0:
+                    setLogLevel(Level.WARNING);
+                    break;
+                case 1:
+                    setLogLevel(Level.INFO);
+                    break;
+                case 2:
+                    setLogLevel(Level.CONFIG);
+                    break;
+                case 3:
+                    setLogLevel(Level.FINE);
+                    break;
+                case 4:
+                    setLogLevel(Level.FINER);
+                    break;
+                case 5:
+                default:
+                    setLogLevel(Level.ALL);
+                }
+                ++i;
+            }
+            else
+            {
+                System.out.println("Unknown option " + arg);
+                help();
+                return;
+            }
+        }
 
         try
         (
