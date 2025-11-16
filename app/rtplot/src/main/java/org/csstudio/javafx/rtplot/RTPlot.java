@@ -497,11 +497,12 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
     /** Add plot marker
      *  @param color
      *  @param interactive
+     *  @param visible
      *  @return {@link PlotMarker}
      */
-    public PlotMarker<XTYPE> addMarker(final javafx.scene.paint.Color color, final boolean interactive, final XTYPE position)
+    public PlotMarker<XTYPE> addMarker(final javafx.scene.paint.Color color, final boolean interactive, final XTYPE position, final boolean visible)
     {
-        return plot.addMarker(color, interactive, position);
+        return plot.addMarker(color, interactive, position, visible);
     }
 
     /** @return {@link PlotMarker}s */
