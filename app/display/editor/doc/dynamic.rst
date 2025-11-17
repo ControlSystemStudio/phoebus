@@ -14,6 +14,5 @@ and behaviour of Phoebus.
 .. toctree::
    :maxdepth: 1
 
-   formula_functions
    rules
    scripts

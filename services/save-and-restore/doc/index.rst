@@ -135,7 +135,7 @@ Body:
 
 .. code-block:: JSON
 
-   ["nodeId-1", "nodeId-2",..., "nodeId-N"]
+   ["nodeId-1", "nodeId-2", "...", "nodeId-N"]
 
 Return:
 Details of the nodes listed as unique node ids in the request body.
@@ -207,7 +207,7 @@ updated.
 Delete nodes
 """"""""""""
 
-**.../node
+**.../node**
 
 Method: DELETE
 
@@ -215,7 +215,7 @@ Caller must specify a body, which is a list of the unique ids of the nodes subje
 
 .. code-block:: JSON
 
-    ["id_1", "id_2",...., "id_n"]
+    ["id_1", "id_2", "...", "id_n"]
 
 Note that deletion is recursive and non-reversible:
 
@@ -1051,7 +1051,7 @@ Authorization uses a role-based approach like so:
 * Save-and-restore role "sar-admin": no restrictions
 
 Authentication endpoint
-"""""""""""""""""""""""
+-----------------------
 
 A client can may use the /login endpoint to check if user is authenticated:
 
