@@ -735,7 +735,7 @@ public class RTLinearMeter extends ImageView
     private boolean isValueWaitingToBeDrawn = false;
     private double valueWaitingToBeDrawn = Double.NaN;
     /** @param newValue Current value */
-    public void setCurrentValue(double newValue)
+    public void setCurrentValue(double newValue, boolean forceRedraw)
     {
         withWriteLock(() -> {
             valueWaitingToBeDrawn = newValue;
@@ -746,7 +746,7 @@ public class RTLinearMeter extends ImageView
             else {
                 isValueWaitingToBeDrawn = true;
 
-                drawNewValue(valueWaitingToBeDrawn);
+                drawNewValue(valueWaitingToBeDrawn, forceRedraw);
                 isValueWaitingToBeDrawn = false;
                 lag = false;
             }
@@ -777,7 +777,7 @@ public class RTLinearMeter extends ImageView
         });
     }
 
-    private void drawNewValue(double newValue) {
+    private void drawNewValue(double newValue, boolean forceRedraw) {
         withWriteLock(() -> {
             WARNING oldWarning = determineWarning();
             AtomicReference<Double> newValueAtomicReference = new AtomicReference<>(newValue); // Workaround, since captured variables need to be effectively final in Java.
@@ -795,15 +795,15 @@ public class RTLinearMeter extends ImageView
             WARNING newWarning = determineWarning();
             logNewWarningIfDifferent(oldWarning, newWarning);
 
-            if (oldValue != newValueAtomicReference.get()) {
-                if (!Double.isNaN(newValueAtomicReference.get())){
+            if (forceRedraw || oldValue != newValueAtomicReference.get()) {
+                if (forceRedraw || !Double.isNaN(newValueAtomicReference.get())){
                     Optional<Integer> maybeNewIndicatorPosition = computeIndicatorPosition(newValue);
                     boolean indicatorPositionHasChanged = maybeNewIndicatorPosition.isPresent() != maybeOldIndicatorPosition.isPresent() || maybeOldIndicatorPosition.isPresent() && maybeNewIndicatorPosition.isPresent() && maybeOldIndicatorPosition.get() != maybeNewIndicatorPosition.get();
-                    if (indicatorPositionHasChanged || determineWarning() != newWarning) {
+                    if (forceRedraw || indicatorPositionHasChanged || determineWarning() != newWarning) {
                         redrawIndicator(newValueAtomicReference.get(), newWarning);
                     }
                 }
-                else if (!Double.isNaN(oldValue)) {
+                else if (forceRedraw || !Double.isNaN(oldValue)) {
                     redrawIndicator(newValueAtomicReference.get(), newWarning);
                 }
             }

@@ -170,7 +170,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                 boolean validRange = Double.isFinite(new_value) && Double.isFinite(model_widget.propMaximum().getValue());
                 meter.setRange(new_value, model_widget.propMaximum().getValue(), validRange);
                 if (toolkit.isEditMode() && validRange) {
-                    meter.setCurrentValue((new_value + model_widget.propMaximum().getValue()) / 2.0);
+                    meter.setCurrentValue((new_value + model_widget.propMaximum().getValue()) / 2.0, true);
                 }
             });
 
@@ -183,7 +183,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                 boolean validRange = Double.isFinite(new_value) && Double.isFinite(model_widget.propMinimum().getValue());
                 meter.setRange(model_widget.propMinimum().getValue(), new_value, validRange);
                 if (toolkit.isEditMode() && validRange) {
-                    meter.setCurrentValue((new_value + model_widget.propMinimum().getValue()) / 2.0);
+                    meter.setCurrentValue((new_value + model_widget.propMinimum().getValue()) / 2.0, true);
                 }
             });
 
@@ -295,6 +295,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
     private void valueChanged(WidgetProperty<?> property, Object old_value, Object new_value) {
         if (new_value instanceof VDouble) {
             meter.withWriteLock(() -> {
+                boolean linearMeterScaleHasChanged = false;
                 VDouble vDouble = ((VDouble) new_value);
                 double newValue = vDouble.getValue();
 
@@ -327,6 +328,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                                 && displayRange.getMaximum() - displayRange.getMinimum() > 0.0) {
                             if (meter.linearMeterScale.getValueRange().getLow() != displayRange.getMinimum() || meter.linearMeterScale.getValueRange().getHigh() != displayRange.getMaximum() || !meter.getValidRange()) {
                                 meter.setRange(displayRange.getMinimum(), displayRange.getMaximum(), true);
+                                linearMeterScaleHasChanged = true;
                             }
                         } else {
                             Range controlRange = display.getControlRange();
@@ -336,12 +338,15 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                                     && controlRange.getMaximum() - controlRange.getMinimum() > 0.0) {
                                 if (meter.linearMeterScale.getValueRange().getLow() != controlRange.getMinimum() || meter.linearMeterScale.getValueRange().getHigh() != controlRange.getMaximum() || !meter.getValidRange()) {
                                     meter.setRange(controlRange.getMinimum(), controlRange.getMaximum(), true);
+                                    linearMeterScaleHasChanged = true;
                                 }
                             } else if (newObservedMinAndMaxValues && !Double.isNaN(observedMin) && !Double.isNaN(observedMax)) {
                                 meter.setRange(observedMin - 1, observedMax + 1, false);
                                 newObservedMinAndMaxValues = false;
+                                linearMeterScaleHasChanged = true;
                             } else if (meter.linearMeterScale.getValueRange().getLow() != 0.0 || meter.linearMeterScale.getValueRange().getHigh() != 100) {
                                 meter.setRange(0.0, 100.0, false);
+                                linearMeterScaleHasChanged = true;
                             }
                         }
                     }
@@ -352,10 +357,12 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                             if (warningRange != null) {
                                 if (!Double.isNaN(warningRange.getMinimum()) && meter.getLow() != warningRange.getMinimum()) {
                                     meter.setLow(warningRange.getMinimum());
+                                    linearMeterScaleHasChanged = true;
                                 }
 
                                 if (!Double.isNaN(warningRange.getMaximum()) && meter.getHigh() != warningRange.getMaximum()) {
                                     meter.setHigh(warningRange.getMaximum());
+                                    linearMeterScaleHasChanged = true;
                                 }
                             }
                         }
@@ -365,16 +372,18 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                             if (alarmRange != null) {
                                 if (!Double.isNaN(alarmRange.getMinimum()) && meter.getLoLo() != alarmRange.getMinimum()) {
                                     meter.setLoLo(alarmRange.getMinimum());
+                                    linearMeterScaleHasChanged = true;
                                 }
 
                                 if (!Double.isNaN(alarmRange.getMaximum()) && meter.getHiHi() != alarmRange.getMaximum()) {
                                     meter.setHiHi(alarmRange.getMaximum());
+                                    linearMeterScaleHasChanged = true;
                                 }
                             }
                         }
                     }
                 }
-                meter.setCurrentValue(newValue);
+                meter.setCurrentValue(newValue, linearMeterScaleHasChanged);
             });
         }
     }
