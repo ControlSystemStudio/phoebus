@@ -25,8 +25,23 @@ public class WritePVActionHandler implements ActionHandler {
         // System.out.println(action.getDescription() + ": Set " + action.getPV() + " = " + action.getValue());
         final MacroValueProvider macros = sourceWidget.getMacrosOrProperties();
         WritePVAction writePVAction = (WritePVAction)pluggableActionInfo;
-        String pvName = writePVAction.formatPv(sourceWidget);
-        String value = writePVAction.formatValue(sourceWidget);
+        String pvName = writePVAction.getPV(), value = writePVAction.getValue();
+        try
+        {
+            pvName = MacroHandler.replace(macros, pvName);
+        }
+        catch (Exception ignore)
+        {
+            // NOP
+        }
+        try
+        {
+            value = MacroHandler.replace(macros, value);
+        }
+        catch (Exception ignore)
+        {
+            // NOP
+        }
         try
         {
             runtime.writePV(pvName,value);
