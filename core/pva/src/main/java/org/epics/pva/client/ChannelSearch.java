@@ -29,7 +29,6 @@ import org.epics.pva.PVASettings;
 import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.RequestEncoder;
 import org.epics.pva.common.SearchRequest;
-import org.epics.pva.data.Hexdump;
 import org.epics.pva.data.PVAString;
 
 /** Handler for search requests
@@ -65,7 +64,6 @@ import org.epics.pva.data.PVAString;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class ChannelSearch
 {
     /** Basic search period is one second */
@@ -352,6 +350,8 @@ class ChannelSearch
         synchronized (this)
         {
             final Set<SearchedChannel> bucket = search_buckets.get(current);
+            if (bucket.isEmpty())
+                return;
             logger.log(Level.FINEST, () -> "Search bucket " + current);
 
             // Remove searched channels from the current bucket
@@ -518,7 +518,7 @@ class ChannelSearch
             try
             {
                 logger.log(Level.FINER, () -> "Sending search to UDP  " + addr + " (unicast), " +
-                                              "response addr " + response + "\n" + Hexdump.toHexdump(send_buffer));
+                                              "response addr " + response);
                 udp.send(send_buffer, addr);
             }
             catch (Exception ex)
@@ -536,7 +536,7 @@ class ChannelSearch
             try
             {
                 logger.log(Level.FINER, () -> "Sending search to UDP  " + addr + " (broadcast/multicast), " +
-                                              "response addr " + response + "\n" + Hexdump.toHexdump(send_buffer));
+                                              "response addr " + response);
                 udp.send(send_buffer, addr);
             }
             catch (Exception ex)

@@ -24,8 +24,10 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -104,5 +106,12 @@ public class OlogQueryManagerTest {
         OlogQueryManager ologQueryManager = OlogQueryManager.getInstance(nonEmptyFile);
         List<OlogQuery> queries = ologQueryManager.getQueries();
         assertEquals(1, queries.size());
+    }
+
+    @Test
+    public void testTZ(){
+        System.out.println(ZoneId.systemDefault());
+        System.out.println(TimeZone.getDefault().getID());
+        System.out.println(TimeZone.getDefault().toZoneId().getId());
     }
 }

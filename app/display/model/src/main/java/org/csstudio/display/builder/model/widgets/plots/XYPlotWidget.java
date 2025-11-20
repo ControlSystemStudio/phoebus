@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propInteractive;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVisible;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPVName;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propGridColor;
@@ -99,7 +100,8 @@ public class XYPlotWidget extends VisibleWidget
                   Arrays.asList(propColor.createProperty(widget, new WidgetColor(0, 0, 255)),
                                 propPVName.createProperty(widget, ""),
                                 propInteractive.createProperty(widget, true),
-                                propValue.createProperty(widget, Double.NaN)
+                                propValue.createProperty(widget, Double.NaN),
+                                propVisible.createProperty(widget, true)
                                ));
         }
 
@@ -111,6 +113,8 @@ public class XYPlotWidget extends VisibleWidget
         public WidgetProperty<Boolean> interactive()   { return getElement(2); }
         /** @return Marker value */
         public WidgetProperty<Double> value()          { return getElement(3); }
+        /** @return Marker visible */
+        public WidgetProperty<Boolean> visible()       { return getElement(4); }
     };
 
     /** 'marker' array */

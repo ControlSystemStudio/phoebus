@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,7 +18,6 @@ import org.epics.pva.common.PVAHeader;
 /** Handle client's DESTROY_CHANNEL command
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class DestroyChannelHandler implements CommandHandler<ServerTCPHandler>
 {
     @Override
@@ -50,7 +49,7 @@ class DestroyChannelHandler implements CommandHandler<ServerTCPHandler>
     {
         tcp.submit((version, buffer) ->
         {
-            logger.log(Level.FINE, () -> "Sending destroy channel confirmation for SID " + sid + ", cid " + cid);
+            logger.log(Level.FINE, () -> "Sending destroy channel confirmation for SID " + sid + ", CID " + cid);
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_DESTROY_CHANNEL, 4+4);
             buffer.putInt(sid);
             buffer.putInt(cid);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,7 +20,6 @@ import org.epics.pva.data.Hexdump;
 /** Base for handling UDP traffic
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 abstract public class UDPHandler
 {
     /** Keep running? */
@@ -32,7 +31,7 @@ abstract public class UDPHandler
      */
     protected void listen(final DatagramChannel udp, final ByteBuffer buffer)
     {
-        logger.log(Level.FINE, "Starting " + Thread.currentThread().getName());
+        logger.log(Level.FINER, "Starting " + Thread.currentThread().getName());
         final String local = Network.getLocalAddress(udp);
         while (running)
         {
@@ -45,7 +44,7 @@ abstract public class UDPHandler
 
                 // XXX Check against list of ignored addresses?
 
-                logger.log(Level.FINER, () -> "Received UDP from " + from + " on " + local + "\n" + Hexdump.toHexdump(buffer));
+                logger.log(Level.FINEST, () -> "Received UDP from " + from + " on " + local + "\n" + Hexdump.toHexdump(buffer));
                 handleMessages(from, buffer);
             }
             catch (Exception ex)
@@ -55,7 +54,7 @@ abstract public class UDPHandler
                 // else: Ignore, closing
             }
         }
-        logger.log(Level.FINE, "Exiting " + Thread.currentThread().getName());
+        logger.log(Level.FINER, "Exiting " + Thread.currentThread().getName());
     }
 
     /** Handle one or more reply messages

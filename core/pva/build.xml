@@ -5,6 +5,13 @@
     	<javadoc sourcepath="src/main/java"
     		     destdir="target/site/apidocs"
     		     author="no">
+	    <classpath>
+                <fileset dir="${dependencies}/phoebus-target/target/lib">
+                    <include name="bcpkix*.jar"/>
+                    <include name="bcprov*.jar"/>
+                    <include name="bcutil*.jar"/>
+                </fileset>
+            </classpath>
     	</javadoc>
     </target>
 	
@@ -12,6 +19,13 @@
         <mkdir dir="${classes}"/>
         <javac destdir="${classes}" debug="${debug}">
             <src path="${src}"/>
+	    <classpath>
+                <fileset dir="${dependencies}/phoebus-target/target/lib">
+                    <include name="bcpkix*.jar"/>
+                    <include name="bcprov*.jar"/>
+                    <include name="bcutil*.jar"/>
+                </fileset>
+            </classpath>
         </javac>
         <jar destfile="${build}/core-pva-${version}.jar">
             <fileset dir="${classes}"/>

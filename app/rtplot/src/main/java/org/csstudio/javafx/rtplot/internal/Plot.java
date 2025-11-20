@@ -357,11 +357,12 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     /** Add plot marker
      *  @param color
      *  @param interactive
+     *  @param visible
      *  @return {@link PlotMarker}
      */
-    public PlotMarker<XTYPE> addMarker(final javafx.scene.paint.Color color, final boolean interactive, final XTYPE position)
+    public PlotMarker<XTYPE> addMarker(final javafx.scene.paint.Color color, final boolean interactive, final XTYPE position, final boolean visible)
     {   // Return a PlotMarker that triggers a redraw as it's changed
-        final PlotMarker<XTYPE> marker = new PlotMarker<>(color, interactive, position)
+        final PlotMarker<XTYPE> marker = new PlotMarker<>(color, interactive, position, visible)
         {
             @Override
             public void setPosition(XTYPE position)
@@ -721,9 +722,11 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         gc.setStroke(AxisPart.TICK_STROKE);
         for (PlotMarker<XTYPE> marker : plot_markers)
         {
-            gc.setColor(GraphicsUtils.convert(marker.getColor()));
-            final int x = x_axis.getScreenCoord(marker.getPosition());
-            gc.drawLine(x, y0, x, y1);
+            if(marker.isVisible()){
+                gc.setColor(GraphicsUtils.convert(marker.getColor()));
+                final int x = x_axis.getScreenCoord(marker.getPosition());
+                gc.drawLine(x, y0, x, y1);
+            }
         }
         gc.setStroke(old_stroke);
     }
