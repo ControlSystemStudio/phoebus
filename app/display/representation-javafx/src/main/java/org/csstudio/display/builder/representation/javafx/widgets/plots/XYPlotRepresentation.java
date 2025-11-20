@@ -451,7 +451,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     {
         final PlotMarker<Double> plot_marker = plot.addMarker(JFXUtil.convert(model_marker.color().getValue()),
                                                               model_marker.interactive().getValue(),
-                                                              model_marker.value().getValue());
+                                                              model_marker.value().getValue(),
+                                                              model_marker.visible().getValue());
 
         // Listen to model_marker.value(), interactive() .. and update plot_marker
         final UntypedWidgetPropertyListener model_marker_listener = (o, old, value) ->
@@ -461,11 +462,13 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             changing_marker = true;
             plot_marker.setInteractive(model_marker.interactive().getValue());
             plot_marker.setPosition(model_marker.value().getValue());
+            plot_marker.setVisible(model_marker.visible().getValue());
             changing_marker = false;
             plot.requestUpdate();
         };
         model_marker.value().addUntypedPropertyListener(model_marker_listener);
         model_marker.interactive().addUntypedPropertyListener(model_marker_listener);
+        model_marker.visible().addUntypedPropertyListener(model_marker_listener);
     }
 
     @Override

@@ -67,7 +67,7 @@ public class TimePlotDemo extends ApplicationWrapper
         plot.addTrace("Jane", "handbags", data[1], colors.next(), TraceType.AREA, 5, LineStyle.SOLID, PointType.NONE, 5, 1);
         plot.addTrace("Another", "mA", data[2], colors.next(), TraceType.LINES_DIRECT, 1, LineStyle.SOLID, PointType.TRIANGLES, 15, 2);
 
-        plot.addMarker(Color.BLUE, true, Instant.now().plusSeconds(5));
+        plot.addMarker(Color.BLUE, true, Instant.now().plusSeconds(5), true);
 
         final AtomicBoolean run = new AtomicBoolean(true);
         // Update data at 50Hz

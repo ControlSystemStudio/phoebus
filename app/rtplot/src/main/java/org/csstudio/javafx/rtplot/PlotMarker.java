@@ -25,17 +25,20 @@ public class PlotMarker<XTYPE extends Comparable<XTYPE>>
     private final Color color;
     private volatile boolean interactive;
     private volatile XTYPE position;
+    private volatile boolean visible;
 
     /** Not meant to be called by user,
      *  call {@link RTPlot #addMarker()} to create a marker.
      */
     public PlotMarker(final Color color,
                       final boolean interactive,
-                      final XTYPE position)
+                      final XTYPE position,
+                      final boolean visible)
     {
         this.color = color;
         this.interactive = interactive;
         this.position = position;
+        this.visible = visible;
     }
 
     /** @return Color of the marker */
@@ -67,6 +70,18 @@ public class PlotMarker<XTYPE extends Comparable<XTYPE>>
     {
         this.position = position;
         // Caller needs to request update of plot
+    }
+
+    /** @return Is marker visible? */
+    public boolean isVisible()
+    {
+        return visible;
+    }
+
+    /** @param visible Set marker visibility */
+    public void setVisible(final boolean visible)
+    {
+        this.visible = visible;
     }
 
     @Override
