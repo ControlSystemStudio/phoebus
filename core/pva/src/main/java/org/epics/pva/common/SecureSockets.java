@@ -17,6 +17,9 @@ import java.security.KeyStore;
 import java.security.Principal;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import javax.naming.ldap.LdapName;
@@ -42,15 +45,22 @@ import org.epics.pva.PVASettings;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class SecureSockets
 {
     /** Supported protocols. PVXS prefers 1.3 */
     private static final String[] PROTOCOLS = new String[] { "TLSv1.3"};
 
+    /** Initialize only once */
     private static boolean initialized = false;
+    
+    /** Factory for secure server sockets */
     private static SSLServerSocketFactory tls_server_sockets;
+
+    /** Factory for secure client sockets */
     private static SSLSocketFactory tls_client_sockets;
+
+    /** X509 certificates loaded from the keychain mapped by principal name of the certificate */
+    public static Map<String, X509Certificate> keychain_x509_certificates = new ConcurrentHashMap<>();
 
     /** @param keychain_setting "/path/to/keychain;password"
      *  @return {@link SSLContext} with 'keystore' and 'truststore' set to content of keystore
@@ -74,10 +84,39 @@ public class SecureSockets
             pass = "".toCharArray();
         }
 
-        logger.log(Level.CONFIG, () -> "Loading keychain '" + path + "'");
+        logger.log(Level.FINE, () -> "Loading keychain '" + path + "'");
 
         final KeyStore key_store = KeyStore.getInstance("PKCS12");
         key_store.load(new FileInputStream(path), pass);
+
+        // Track each loaded certificate by its principal name
+        for (String alias : Collections.list(key_store.aliases()))
+        {
+            if (key_store.isCertificateEntry(alias))
+            {
+                final Certificate cert = key_store.getCertificate(alias);
+                if (cert instanceof X509Certificate x509)
+                {
+                    final String principal = x509.getSubjectX500Principal().toString();
+                    logger.log(Level.FINE, "Keychain alias '" + alias + "' is X509 certificate for " + principal);
+                    keychain_x509_certificates.put(principal, x509);
+                    // Could print 'cert', but jdk.event.security logger already does that at FINE level
+                }
+            }
+            if (key_store.isKeyEntry(alias))
+            {
+                // final Key key = key_store.getKey(alias, pass);
+                final Certificate cert = key_store.getCertificate(alias);
+                if (cert instanceof X509Certificate x509)
+                {
+                    final String principal = x509.getSubjectX500Principal().toString();
+                    logger.log(Level.FINE, "Keychain alias '" + alias + "' is X509 key and certificate for " + principal);
+                    keychain_x509_certificates.put(principal, x509);
+                }
+                // Could print 'key', but jdk.event.security logger already logs the cert at FINE level
+                // and logging the key would show the private key
+            }
+        }
 
         final KeyManagerFactory key_manager = KeyManagerFactory.getInstance("PKIX");
         key_manager.init(key_store, pass);
@@ -270,14 +309,25 @@ public class SecureSockets
     /** Information from TLS socket handshake */
     public static class TLSHandshakeInfo
     {
+        /** Certificate of the peer */
+        public final X509Certificate peer_cert;
+
         /** Name by which the peer identified */
-        public String name;
+        public final String name;
 
         /** Host of the peer */
-        public String hostname;
+        public final String hostname;
 
         /** PV for client certificate status */
-        public String status_pv_name;
+        public final String status_pv_name;
+
+        TLSHandshakeInfo(final X509Certificate peer_cert, final String name, final String hostname, final String status_pv_name)
+        {
+            this.peer_cert = peer_cert;
+            this.name = name;
+            this.hostname = hostname;
+            this.status_pv_name = status_pv_name;
+        }
 
         @Override
         public String toString()
@@ -305,6 +355,7 @@ public class SecureSockets
             try
             {
                 // Log certificate chain, grep cert status PV name
+                X509Certificate peer_cert = null;
                 String status_pv_name = "";
                 final SSLSession session = socket.getSession();
                 logger.log(Level.FINER, "Client name: '" + SecureSockets.getPrincipalCN(session.getPeerPrincipal()) + "'");
@@ -331,9 +382,11 @@ public class SecureSockets
                         logger.log(Level.FINER, "  - Status PV: '" + pv_name + "'");
 
                         if (is_principal_cert  &&  pv_name != null  &&  !pv_name.isBlank())
+                        {
+                            peer_cert = x509;
                             status_pv_name = pv_name;
+                        }
                     }
-
 
                 // No way to check if there is peer info (certificates, principal, ...)
                 // other then success vs. exception..
@@ -345,10 +398,7 @@ public class SecureSockets
                     name = principal.getName();
                 }
 
-                final TLSHandshakeInfo info = new TLSHandshakeInfo();
-                info.name = name;
-                info.hostname = socket.getInetAddress().getHostName();
-                info.status_pv_name = status_pv_name;
+                final TLSHandshakeInfo info = new TLSHandshakeInfo(peer_cert, name, socket.getInetAddress().getHostName(), status_pv_name);
 
                 return info;
             }

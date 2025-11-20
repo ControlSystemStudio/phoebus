@@ -44,7 +44,7 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
                 logger.log(Level.WARNING, () ->  "Channel create request for unknown PV '" + name + "'");
             else
             {
-                logger.log(Level.FINE, () ->  "Channel create request '" + name + "', cid " + cid);
+                logger.log(Level.FINE, () ->  "Channel create request '" + name + "' [CID " + cid + "]");
                 pv.addClient(tcp, cid);
                 sendChannelCreated(tcp, pv, cid);
             }
@@ -57,7 +57,7 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
         {
             // Send initial access rights with (before) the channel confirmation,
             // so client knows permissions when channel is confirmed
-            final boolean writable = pv.isWritable();
+            final boolean writable = pv.isWritable(tcp.getClientAuthentication());
             logger.log(Level.FINE, () ->  "Send ACL " + pv + " [CID " + cid + "]" + (writable ? " writable" : " read-only"));
             AccessRightsChange.encode(buffer, cid, writable);
 

@@ -37,7 +37,6 @@ import org.epics.pva.server.Guid;
 /** Sends and receives search replies, monitors beacons
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class ClientUDPHandler extends UDPHandler
 {
     @FunctionalInterface
@@ -122,7 +121,7 @@ class ClientUDPHandler extends UDPHandler
             ipV6Msg = "";
         }
         String logMsg = String.format("Awaiting search replies on UDP %s%s and beacons on %s", udp_localaddr4, ipV6Msg, Network.getLocalAddress(udp_beacon));
-        logger.log(Level.FINE, logMsg);
+        logger.log(Level.CONFIG, logMsg);
     }
 
     /** @param target Address to which message will be sent
@@ -135,6 +134,7 @@ class ClientUDPHandler extends UDPHandler
 
     public void send(final ByteBuffer buffer, final AddressInfo info) throws Exception
     {
+        logger.log(Level.FINEST, () -> "Sending UDP to " + info.getAddress() + "\n" + Hexdump.toHexdump(buffer));
         // synchronized (udp_search)?
         // Not necessary based on Javadoc for send(),
         // but in case we set the multicast IF & TTL

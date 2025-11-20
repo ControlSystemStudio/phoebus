@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,7 +23,6 @@ import org.epics.pva.data.PVAStructure;
 /** PVA Client authentication modes
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 abstract class ClientAuthentication
 {
     /** @param buffer Buffer to which client's authentication info is added
@@ -41,7 +40,7 @@ abstract class ClientAuthentication
         @Override
         public void encode(final ByteBuffer buffer) throws Exception
         {
-            PVAString.encodeString(PVAAuth.X509, buffer);
+            PVAString.encodeString(PVAAuth.x509.name(), buffer);
             // No detail because server already has name
             buffer.put(PVAFieldDesc.NULL_TYPE_CODE);
         }
@@ -49,7 +48,7 @@ abstract class ClientAuthentication
         @Override
         public String toString()
         {
-            return PVAAuth.X509;
+            return PVAAuth.x509.name();
         }
     };
 
@@ -60,7 +59,7 @@ abstract class ClientAuthentication
         @Override
         public void encode(final ByteBuffer buffer) throws Exception
         {
-            PVAString.encodeString(PVAAuth.ANONYMOUS, buffer);
+            PVAString.encodeString(PVAAuth.anonymous.name(), buffer);
             // No detail because we're anonymous
             buffer.put(PVAFieldDesc.NULL_TYPE_CODE);
         }
@@ -68,7 +67,7 @@ abstract class ClientAuthentication
         @Override
         public String toString()
         {
-            return PVAAuth.ANONYMOUS;
+            return PVAAuth.anonymous.name();
         }
     };
 
@@ -102,7 +101,7 @@ abstract class ClientAuthentication
         @Override
         public void encode(final ByteBuffer buffer) throws Exception
         {
-            PVAString.encodeString(PVAAuth.CA, buffer);
+            PVAString.encodeString(PVAAuth.ca.name(), buffer);
             // Send identity detail
             identity.encodeType(buffer, new BitSet());
             identity.encode(buffer);
@@ -111,7 +110,7 @@ abstract class ClientAuthentication
         @Override
         public String toString()
         {
-            return "ca(" + user + "@" + host + ")";
+            return PVAAuth.ca.name() + "(" + user + "@" + host + ")";
         }
     }
 }

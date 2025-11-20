@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,10 +18,19 @@ import java.util.logging.Logger;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class PVASettings
 {
-    /** Common logger */
+    /** Common logger
+     *
+     *  Usage of levels:
+     *  <ul>
+     *  <li>INFO   - Not used?
+     *  <li>CONFIG - Log value of configuration settings
+     *  <li>FINE   - Log Search, reply, connection, auth, put/get/monitor
+     *  <li>FINER  - Log detail of sockets, messages
+     *  <li>FINEST - Hexdump of each packet
+     *  </ul>
+     */
     public static final Logger logger = Logger.getLogger(PVASettings.class.getPackage().getName());
 
     /** Address list.

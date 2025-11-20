@@ -658,7 +658,7 @@ public class DockPane extends TabPane
             final SplitPane parent = (SplitPane) dock_parent;
             // Remove this dock pane from BorderPane
             Optional<Double> dividerPosition;
-            if (parent.getDividerPositions().length > 1) {
+            if (parent.getDividerPositions().length > 0) {
                 dividerPosition = Optional.of(parent.getDividerPositions()[0]);
             }
             else {

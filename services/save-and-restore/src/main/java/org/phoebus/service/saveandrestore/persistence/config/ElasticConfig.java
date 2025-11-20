@@ -91,6 +91,9 @@ public class ElasticConfig {
     @Value("${elasticsearch.authorization.password}")
     private String password;
 
+    @Value("${elasticsearch.http.protocol:http}")
+    private String protocol;
+
 
     private ElasticsearchClient client;
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
@@ -112,7 +115,7 @@ public class ElasticConfig {
     public ElasticsearchClient getClient() {
         if (client == null) {
             // Create the low-level client
-            RestClientBuilder clientBuilder = RestClient.builder(new HttpHost(host, port));
+            RestClientBuilder clientBuilder = RestClient.builder(new HttpHost(host, port, protocol));
 
             // Configure authentication
             if (!authorizationHeader.isEmpty()) {
