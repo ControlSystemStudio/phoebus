@@ -126,8 +126,8 @@ public class AlarmMessageLogger implements Runnable {
                 .branch((k, v) -> k.startsWith("config"),
                         Branched.withConsumer(alarmConfigStream -> processAlarmConfigurationStream(alarmConfigStream)))
                 .defaultBranch(Branched.withConsumer(stream -> {
-                    // No-op for unknown alarm message types
-                    logger.warning("Unknown alarm message type for key: " + stream.toString());
+                    // Log each unmatched key in the default branch
+                    stream.foreach((k, v) -> logger.warning("Unknown alarm message type for key: " + k));
                 }));
 
         final KafkaStreams streams = new KafkaStreams(builder.build(), kafkaProps);
