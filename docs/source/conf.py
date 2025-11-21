@@ -30,8 +30,10 @@ sys.path.append(str(Path('_ext').resolve()))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
+	"sphinxcontrib.openapi",
     "myst_parser",
     "preferences_listing",
+    "safe_openapi"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
