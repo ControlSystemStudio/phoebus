@@ -129,9 +129,6 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     /** Is change indicator shown, and future been submitted to clear it? */
     private final AtomicReference<ScheduledFuture<?>> ongoing_change = new AtomicReference<>();
 
-    /** A flag used to help reserve selections during updates, it flags if any of the selections are to be updated */
-    private final AtomicBoolean selectionChanged = new AtomicBoolean(false);
-
     /** Clear the change indicator */
     private final Runnable clear_change_indicator = () ->
         Platform.runLater(() ->
@@ -537,7 +534,6 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         // Remember selection
         final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems = 
                 FXCollections.observableArrayList(tree_view.getSelectionModel().getSelectedItems());
-        selectionChanged.set(false);
 
         // How to update alarm tree cells when data changed?
         // `setValue()` with a truly new value (not 'equal') should suffice,
@@ -565,7 +561,6 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 if (updatedSelectedItems.contains(view_item)) {
                     updatedSelectedItems.remove(view_item);
                     updatedSelectedItems.add(update);
-                    selectionChanged.set(true);
                 }
                 // Move child links to new item
                 final ArrayList<TreeItem<AlarmTreeItem<?>>> children = new ArrayList<>(view_item.getChildren());
@@ -577,11 +572,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 parent.getChildren().set(index, update);
             }
         // Restore selection
-        if (selectionChanged.get()) {
-            tree_view.getSelectionModel().clearSelection();
-            updatedSelectedItems.forEach(item -> tree_view.getSelectionModel().select(item));
-            selectionChanged.set(false);
-        }
+        tree_view.getSelectionModel().clearSelection();
+        updatedSelectedItems.forEach(item -> tree_view.getSelectionModel().select(item));
     }
 
     /** Context menu, details depend on selected items */
