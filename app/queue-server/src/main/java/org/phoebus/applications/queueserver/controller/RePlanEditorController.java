@@ -7,6 +7,7 @@ import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
 import org.phoebus.applications.queueserver.view.TabSwitchEvent;
 import org.phoebus.applications.queueserver.view.ItemUpdateEvent;
+import org.phoebus.applications.queueserver.util.PythonParameterConverter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -63,6 +64,8 @@ public class RePlanEditorController implements Initializable {
     private final ObjectMapper objectMapper = new ObjectMapper();
     // Store original parameter values for reset functionality
     private final Map<String, Object> originalParameterValues = new HashMap<>();
+    // Python-based parameter converter
+    private final PythonParameterConverter pythonConverter = new PythonParameterConverter();
 
     private class EditableTableCell extends TableCell<ParameterRow, String> {
         private TextField textField;
@@ -88,9 +91,11 @@ public class RePlanEditorController implements Initializable {
                     setText(getString());
                     setGraphic(null);
 
-                    // Style based on enabled state and add tooltip
+                    // Style based on enabled state and validation
                     if (!row.isEnabled()) {
                         setStyle("-fx-text-fill: grey;");
+                    } else if (!row.validate(pythonConverter)) {
+                        setStyle("-fx-text-fill: red;");
                     } else {
                         setStyle("");
                     }
@@ -132,15 +137,19 @@ public class RePlanEditorController implements Initializable {
             ParameterRow row = getTableRow().getItem();
             if (row != null) {
                 row.setValue(newValue);
+
+                // Update cell color based on Python validation
+                updateValidationColor(row);
+
                 switchToEditingMode();
                 updateButtonStates();
-                // Update cell color based on validation
-                updateValidationColor(row);
             }
         }
 
         private void updateValidationColor(ParameterRow row) {
-            if (row.validate()) {
+            if (!row.isEnabled()) {
+                setStyle("-fx-text-fill: grey;");
+            } else if (row.validate(pythonConverter)) {
                 setStyle("");
             } else {
                 setStyle("-fx-text-fill: red;");
@@ -208,69 +217,7 @@ public class RePlanEditorController implements Initializable {
         public boolean isOptional() { return isOptional.get(); }
         public Object getDefaultValue() { return defaultValue; }
 
-        public Object getParsedValue() {
-            if (!enabled.get()) return defaultValue;
-
-            String valueStr = value.get();
-            if (valueStr == null || valueStr.trim().isEmpty()) {
-                return defaultValue;
-            }
-
-            try {
-                return parseLiteralValue(valueStr);
-            } catch (Exception e) {
-                return valueStr;
-            }
-        }
-
-        private Object parseLiteralValue(String valueStr) throws Exception {
-            valueStr = valueStr.trim();
-
-            // Handle None/null
-            if ("None".equals(valueStr) || "null".equals(valueStr)) {
-                return null;
-            }
-
-            // Handle booleans
-            if ("True".equals(valueStr) || "true".equals(valueStr)) {
-                return true;
-            }
-            if ("False".equals(valueStr) || "false".equals(valueStr)) {
-                return false;
-            }
-
-            // Handle strings (quoted)
-            if ((valueStr.startsWith("'") && valueStr.endsWith("'")) ||
-                    (valueStr.startsWith("\"") && valueStr.endsWith("\""))) {
-                return valueStr.substring(1, valueStr.length() - 1);
-            }
-
-            // Handle numbers
-            try {
-                if (valueStr.contains(".")) {
-                    return Double.parseDouble(valueStr);
-                } else {
-                    return Long.parseLong(valueStr);
-                }
-            } catch (NumberFormatException e) {
-                // Continue to other parsing attempts
-            }
-
-            // Handle lists and dicts using JSON parsing (similar to Python's literal_eval)
-            if (valueStr.startsWith("[") || valueStr.startsWith("{")) {
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    return mapper.readValue(valueStr, Object.class);
-                } catch (Exception e) {
-                    // Fall back to string if JSON parsing fails
-                }
-            }
-
-            // Default to string
-            return valueStr;
-        }
-
-        public boolean validate() {
+        public boolean validate(PythonParameterConverter converter) {
             if (!enabled.get()) {
                 return true;  // Disabled parameters are always valid
             }
@@ -280,8 +227,18 @@ public class RePlanEditorController implements Initializable {
                 return isOptional.get();
             }
 
+            // Validate using Python converter
             try {
-                getParsedValue();
+                List<PythonParameterConverter.ParameterInfo> testParams = List.of(
+                    new PythonParameterConverter.ParameterInfo(
+                        getName(),
+                        valueStr,
+                        true,
+                        isOptional.get(),
+                        getDefaultValue()
+                    )
+                );
+                converter.convertParameters(testParams);
                 return true;
             } catch (Exception e) {
                 return false;
@@ -545,9 +502,6 @@ public class RePlanEditorController implements Initializable {
                 isEnabled = true;
             } else if (defaultValue != null) {
                 currentValue = String.valueOf(defaultValue);
-                if (!isEditMode) {
-                    currentValue += " (default)";
-                }
             }
 
             ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
@@ -642,7 +596,7 @@ public class RePlanEditorController implements Initializable {
     private boolean areParametersValid() {
         boolean allValid = true;
         for (ParameterRow row : parameterRows) {
-            boolean rowValid = row.validate();
+            boolean rowValid = row.validate(pythonConverter);
             if (!rowValid) {
                 allValid = false;
             }
@@ -681,8 +635,32 @@ public class RePlanEditorController implements Initializable {
         cancelBtn.setDisable(!isEditMode);
     }
 
+    /**
+     * Build kwargs map using Python-based type conversion.
+     * All type conversion is handled by Python script using ast.literal_eval.
+     */
+    private Map<String, Object> buildKwargsWithPython() {
+        List<PythonParameterConverter.ParameterInfo> paramInfos = new ArrayList<>();
+
+        for (ParameterRow row : parameterRows) {
+            PythonParameterConverter.ParameterInfo paramInfo =
+                    new PythonParameterConverter.ParameterInfo(
+                            row.getName(),
+                            row.getValue(),
+                            row.isEnabled(),
+                            row.isOptional(),
+                            row.getDefaultValue()
+                    );
+            paramInfos.add(paramInfo);
+        }
+
+        // Use Python to convert parameters - no Java fallback
+        return pythonConverter.convertParameters(paramInfos);
+    }
+
     private void addItemToQueue() {
         if (!areParametersValid()) {
+            showValidationError("Some parameters have invalid values. Please check the red fields.");
             return;
         }
 
@@ -693,13 +671,9 @@ public class RePlanEditorController implements Initializable {
             }
 
             String itemType = planRadBtn.isSelected() ? "plan" : "instruction";
-            Map<String, Object> kwargs = new HashMap<>();
 
-            for (ParameterRow row : parameterRows) {
-                if (row.isEnabled()) {
-                    kwargs.put(row.getName(), row.getParsedValue());
-                }
-            }
+            // Use Python-based parameter conversion
+            Map<String, Object> kwargs = buildKwargsWithPython();
 
             QueueItem item = new QueueItem(
                     itemType,
@@ -732,16 +706,36 @@ public class RePlanEditorController implements Initializable {
                             TabSwitchEvent.getInstance().switchToTab("Plan Viewer");
                             exitEditMode();
                             showItemPreview();
+                        } else {
+                            showValidationError("Failed to add item to queue: " + response.msg());
                         }
                     });
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOG.log(Level.WARNING, "Failed to add item to queue", e);
+                    Platform.runLater(() -> {
+                        String errorMsg = e.getMessage();
+                        if (errorMsg == null || errorMsg.isEmpty()) {
+                            errorMsg = e.getClass().getSimpleName();
+                        }
+                        showValidationError("Failed to add item to queue: " + errorMsg);
+                    });
                 }
             }).start();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Failed to add item to queue", e);
+            Platform.runLater(() -> {
+                showValidationError("Failed to add item: " + e.getMessage());
+            });
         }
+    }
+
+    private void showValidationError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Validation Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     private void saveItem() {
@@ -750,6 +744,7 @@ public class RePlanEditorController implements Initializable {
         }
 
         if (!areParametersValid()) {
+            showValidationError("Some parameters have invalid values. Please check the red fields.");
             return;
         }
 
@@ -760,13 +755,9 @@ public class RePlanEditorController implements Initializable {
             }
 
             String itemType = planRadBtn.isSelected() ? "plan" : "instruction";
-            Map<String, Object> kwargs = new HashMap<>();
 
-            for (ParameterRow row : parameterRows) {
-                if (row.isEnabled()) {
-                    kwargs.put(row.getName(), row.getParsedValue());
-                }
-            }
+            // Use Python-based parameter conversion
+            Map<String, Object> kwargs = buildKwargsWithPython();
 
             QueueItem updatedItem = new QueueItem(
                     itemType,
@@ -795,16 +786,26 @@ public class RePlanEditorController implements Initializable {
                             exitEditMode();
                             showItemPreview();
                         } else {
-                            LOG.log(Level.WARNING, "Save failed: " + response.msg());
+                            showValidationError("Failed to save item: " + response.msg());
                         }
                     });
                 } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Save error", e);
+                    LOG.log(Level.WARNING, "Failed to save item", e);
+                    Platform.runLater(() -> {
+                        String errorMsg = e.getMessage();
+                        if (errorMsg == null || errorMsg.isEmpty()) {
+                            errorMsg = e.getClass().getSimpleName();
+                        }
+                        showValidationError("Failed to save item: " + errorMsg);
+                    });
                 }
             }).start();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Failed to save item", e);
+            Platform.runLater(() -> {
+                showValidationError("Failed to save item: " + e.getMessage());
+            });
         }
     }
 
