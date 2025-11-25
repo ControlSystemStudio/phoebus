@@ -19,10 +19,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.collections.FXCollections;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -126,6 +128,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     /** Is change indicator shown, and future been submitted to clear it? */
     private final AtomicReference<ScheduledFuture<?>> ongoing_change = new AtomicReference<>();
+
+    /** A flag used to help reserve selections during updates, it flags if any of the selections are to be updated */
+    private final AtomicBoolean selectionChanged = new AtomicBoolean(false);
 
     /** Clear the change indicator */
     private final Runnable clear_change_indicator = () ->
@@ -529,6 +534,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items_to_update.clear();
         }
 
+        // Remember selection
+        final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems = 
+                FXCollections.observableArrayList(tree_view.getSelectionModel().getSelectedItems());
+        selectionChanged.set(false);
+
         // How to update alarm tree cells when data changed?
         // `setValue()` with a truly new value (not 'equal') should suffice,
         // but there are two problems:
@@ -552,6 +562,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 // Create new TreeItem for that value
                 final AlarmTreeItem<?> value = view_item.getValue();
                 final TreeItem<AlarmTreeItem<?>> update = new TreeItem<>(value);
+                if (updatedSelectedItems.contains(view_item)) {
+                    updatedSelectedItems.remove(view_item);
+                    updatedSelectedItems.add(update);
+                    selectionChanged.set(true);
+                }
                 // Move child links to new item
                 final ArrayList<TreeItem<AlarmTreeItem<?>>> children = new ArrayList<>(view_item.getChildren());
                 view_item.getChildren().clear();
@@ -561,6 +576,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 path2view.put(value.getPathName(), update);
                 parent.getChildren().set(index, update);
             }
+        // Restore selection
+        if (selectionChanged.get()) {
+            tree_view.getSelectionModel().clearSelection();
+            updatedSelectedItems.forEach(item -> tree_view.getSelectionModel().select(item));
+            selectionChanged.set(false);
+        }
     }
 
     /** Context menu, details depend on selected items */
