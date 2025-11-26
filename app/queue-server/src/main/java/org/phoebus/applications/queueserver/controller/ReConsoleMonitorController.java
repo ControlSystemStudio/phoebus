@@ -200,13 +200,9 @@ public final class ReConsoleMonitorController implements Initializable {
         private int line = 0;
         private int pos  = 0;
 
-        private boolean progressActive = false;   // overwriting a tqdm bar
-        private String  lastVisualLine = "";      // for duplicate-collapse
-
         private static final String NL  = "\n";
         private static final String CR  = "\r";
-        private static final char   ESC = 0x1B;
-        private static final String LOG_PREFIXES = "IWEDE";   // info/warn/error/debug/extra
+        private static final String UP_ONE_LINE = "\u001b[A";  // ESC[A
 
         ConsoleTextBuffer(int hardLimit) {
             this.hardLimit = Math.max(hardLimit, 0);
@@ -215,93 +211,82 @@ public final class ReConsoleMonitorController implements Initializable {
         void clear() {
             buf.clear();
             line = pos = 0;
-            progressActive = false;
-            lastVisualLine = "";
         }
 
         void addMessage(String msg) {
             while (!msg.isEmpty()) {
+                // Find next control sequence
+                int nlIdx = msg.indexOf(NL);
+                int crIdx = msg.indexOf(CR);
+                int upIdx = msg.indexOf(UP_ONE_LINE);
 
-                /* next control-char position */
-                int next = minPos(msg.indexOf(NL), msg.indexOf(CR), msg.indexOf(ESC));
+                int next = minPos(nlIdx, crIdx, upIdx);
                 if (next < 0) next = msg.length();
 
-                /* ---------------------------------------------------- *
-                 *  FRAGMENT: plain text until control char             *
-                 * ---------------------------------------------------- */
+                // ----------------------------------------------------
+                //  FRAGMENT: plain text until control char
+                // ----------------------------------------------------
                 if (next != 0) {
                     String frag = msg.substring(0, next);
                     msg = msg.substring(next);
 
-                    /* are we switching from progress bar → normal log? */
-                    if (progressActive &&
-                            (frag.startsWith("[") || frag.startsWith("TEST") ||
-                                    frag.startsWith("Returning") || frag.startsWith("history")))
-                    {
-                        newline();               // finish bar line
-                        progressActive = false;
+                    // Ensure we have at least one line
+                    if (buf.isEmpty()) {
+                        buf.add("");
                     }
 
                     ensureLineExists(line);
 
-                    /* pad if cursor past EOL */
-                    if (pos > buf.get(line).length()) {
-                        buf.set(line, buf.get(line) + " ".repeat(pos - buf.get(line).length()));
+                    // Extend current line with spaces if cursor is past EOL
+                    int lineLen = buf.get(line).length();
+                    if (lineLen < pos) {
+                        buf.set(line, buf.get(line) + " ".repeat(pos - lineLen));
                     }
 
-                    /* overwrite / extend */
-                    StringBuilder sb = new StringBuilder(buf.get(line));
-                    if (pos + frag.length() > sb.length()) {
-                        sb.setLength(pos);
-                        sb.append(frag);
-                    } else {
-                        sb.replace(pos, pos + frag.length(), frag);
-                    }
-                    buf.set(line, sb.toString());
+                    // Insert/overwrite fragment at current position
+                    String currentLine = buf.get(line);
+                    String before = currentLine.substring(0, Math.min(pos, currentLine.length()));
+                    String after = currentLine.substring(Math.min(pos + frag.length(), currentLine.length()));
+                    buf.set(line, before + frag + after);
+
                     pos += frag.length();
-
-                    /* flag if this fragment looks like a tqdm bar        *
-                     * (contains “%|” and the typical frame pattern)      */
-                    if (frag.contains("%|")) progressActive = true;
-
                     continue;
                 }
 
-                /* ---------------------------------------------------- *
-                 *  CONTROL CHAR                                         *
-                 * ---------------------------------------------------- */
-                char c = msg.charAt(0);
+                // ----------------------------------------------------
+                //  CONTROL SEQUENCES
+                // ----------------------------------------------------
 
-                if (c == '\n') {                // LF: finish logical line
-                    newline();
-                    progressActive = false;     // tqdm ends with a real LF
-                    msg = msg.substring(1);
-                }
-                else if (c == '\r') {           // CR: return to start of SAME line
-                    pos = 0;
-                    msg = msg.substring(1);
-                }
-                else if (c == ESC) {            // ESC [ n A   (cursor-up)
-                    int idx = 1;
-                    if (idx < msg.length() && msg.charAt(idx) == '[') {
-                        idx++;
-                        int startDigits = idx;
-                        while (idx < msg.length() && Character.isDigit(msg.charAt(idx))) idx++;
-                        if (idx < msg.length() && msg.charAt(idx) == 'A') {
-                            int nUp = (idx == startDigits) ? 1
-                                    : Math.max(1, Integer.parseInt(msg.substring(startDigits, idx)));
-                            line = Math.max(0, line - nUp);
-                            pos  = 0;
-                            ensureLineExists(line);
-                            msg = msg.substring(idx + 1);
-                            continue;
-                        }
+                if (nlIdx == 0) {
+                    // Newline: move to next line
+                    line++;
+                    if (line >= buf.size()) {
+                        buf.add("");
                     }
-                    /* unknown sequence → treat ESC literally */
-                    ensureLineExists(line);
-                    buf.set(line, buf.get(line) + c);
-                    pos++;
-                    msg = msg.substring(1);
+                    pos = 0;
+                    msg = msg.substring(NL.length());
+                }
+                else if (crIdx == 0) {
+                    // Carriage return: move to beginning of current line
+                    pos = 0;
+                    msg = msg.substring(CR.length());
+                }
+                else if (upIdx == 0) {
+                    // Move up one line
+                    if (line > 0) {
+                        line--;
+                    }
+                    pos = 0;
+                    msg = msg.substring(UP_ONE_LINE.length());
+                }
+                else {
+                    // Shouldn't happen, but handle gracefully
+                    if (!msg.isEmpty()) {
+                        ensureLineExists(line);
+                        buf.set(line, buf.get(line) + msg.charAt(0));
+                        pos++;
+                        msg = msg.substring(1);
+                    }
                 }
             }
             trim();
@@ -309,8 +294,12 @@ public final class ReConsoleMonitorController implements Initializable {
 
         String tail(int n) {
             if (n <= 0) return "";
-            boolean sentinel = !buf.isEmpty() && buf.get(buf.size() - 1).isEmpty();
-            int visible = buf.size() - (sentinel ? 1 : 0);
+
+            // Remove trailing empty line if present
+            int visible = buf.size();
+            if (visible > 0 && buf.get(visible - 1).isEmpty()) {
+                visible--;
+            }
 
             int start = Math.max(0, visible - n);
             StringBuilder out = new StringBuilder();
@@ -322,33 +311,25 @@ public final class ReConsoleMonitorController implements Initializable {
         }
 
         private void ensureLineExists(int idx) {
-            while (buf.size() <= idx) buf.add("");
-        }
-
-        private void newline() {
-            /* avoid storing duplicate visual lines (stream + poll) */
-            String justFinished = buf.get(line);
-            if (!justFinished.equals(lastVisualLine)) {
-                lastVisualLine = justFinished;
-                line++;
-                pos = 0;
-                ensureLineExists(line);
-            } else {
-                /* discard duplicate; stay on existing last line        */
-                pos = buf.get(line).length();
+            while (buf.size() <= idx) {
+                buf.add("");
             }
         }
 
         private void trim() {
-            boolean sentinel = !buf.isEmpty() && buf.get(buf.size() - 1).isEmpty();
-            int quota = hardLimit + (sentinel ? 1 : 0);
-            while (buf.size() > quota) buf.remove(0);
-            if (line >= buf.size()) line = buf.size() - 1;
+            // Keep some buffer beyond hardLimit to avoid constant trimming
+            int maxAllowed = hardLimit + 100;
+            while (buf.size() > maxAllowed) {
+                buf.remove(0);
+                line = Math.max(0, line - 1);
+            }
         }
 
         private static int minPos(int... p) {
             int m = Integer.MAX_VALUE;
-            for (int v : p) if (v >= 0 && v < m) m = v;
+            for (int v : p) {
+                if (v >= 0 && v < m) m = v;
+            }
             return m == Integer.MAX_VALUE ? -1 : m;
         }
     }
