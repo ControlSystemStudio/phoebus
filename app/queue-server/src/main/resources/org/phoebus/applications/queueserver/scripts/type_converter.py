@@ -82,20 +82,13 @@ def convert_parameters(parameters_data):
         is_enabled = param.get('enabled', True)
         default_value = param.get('defaultValue')
 
-        if not is_enabled:
-            # Use default value for disabled parameters
-            if default_value is not None:
-                result[param_name] = default_value
-            continue
-
+        # Skip parameters with no value (empty and no default)
         if param_value is None or param_value == '':
-            # Empty value - use default if available
-            if default_value is not None:
-                result[param_name] = default_value
             continue
 
         try:
-            # Parse the value
+            # Parse the value string to proper type (works for both enabled and disabled)
+            # When disabled, the value contains the stringified default value
             parsed_value = parse_literal_value(param_value)
 
             # Only include if it's not empty

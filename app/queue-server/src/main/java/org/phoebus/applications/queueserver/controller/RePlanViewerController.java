@@ -288,7 +288,7 @@ public class RePlanViewerController implements Initializable {
                 currentValue = value != null ? String.valueOf(value) : "";
                 isEnabled = true;
             } else if (defaultValue != null) {
-                currentValue = String.valueOf(defaultValue) + " (default)";
+                currentValue = String.valueOf(defaultValue);
                 isEnabled = false;
             }
 
