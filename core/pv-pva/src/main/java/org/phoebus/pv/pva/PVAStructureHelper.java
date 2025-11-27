@@ -49,6 +49,7 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VBoolean;
+import org.epics.vtype.VInt;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
@@ -110,8 +111,14 @@ public class PVAStructureHelper
             return decodeScalar(actual);
         if (type.equals("NTEnum:1.0"))
             return Decoders.decodeEnum(actual);
-        if (type.equals("NTScalarArray:1.0"))
-            return decodeNTArray(actual);
+        if (type.equals("NTScalarArray:1.0")) {
+            if(elementIndex.isPresent()){
+                return decodeNTArray(actual, elementIndex.get());
+            }
+            else{
+                return decodeNTArray(actual);
+            }
+        }
         if (type.equals("NTNDArray:1.0"))
             return ImageDecoder.decode(actual);
         if (type.equals("NTTable:1.0"))
