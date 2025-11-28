@@ -63,14 +63,12 @@ public class KafkaHelper
         Properties kafka_props = loadPropsFromFile(properties_file);
         kafka_props.put("bootstrap.servers", kafka_servers);
 
-        if (!kafka_props.containsKey("group.id")){
-            // API requires for Consumer to be in a group.
-            // Each alarm client must receive all updates,
-            // cannot balance updates across a group
-            // --> Use unique group for each client
-            final String group_id = "Alarm-" + UUID.randomUUID();
-            kafka_props.put("group.id", group_id);
-        }
+        // API requires for Consumer to be in a group.
+        // Each alarm client must receive all updates,
+        // cannot balance updates across a group
+        // --> Use unique group for each client
+        final String group_id = "Alarm-" + UUID.randomUUID();
+        kafka_props.put("group.id", group_id);
 
         logger.fine(kafka_props.getProperty("group.id") + " subscribes to " + kafka_servers + " for " + topics);
 
