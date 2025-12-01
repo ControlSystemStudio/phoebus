@@ -11,6 +11,8 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDoubleArray;
+import org.phoebus.pv.PVFactory;
+import org.phoebus.pv.PVPool;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 public class ComparisonDialogDemo extends ApplicationWrapper {
@@ -21,13 +23,14 @@ public class ComparisonDialogDemo extends ApplicationWrapper {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+
         VDoubleArray vDoubleArray =
-                VDoubleArray.of(ArrayDouble.of(5.0, 6.0, 7.0, 8.0, 9.0),
+                VDoubleArray.of(ArrayDouble.of(1.0, 6.0, 7.0, 8.0, 9.0),
                         Alarm.none(),
                         Time.now(),
                         Display.none());
         ComparisonDialog comparisonDialog =
-                new ComparisonDialog(vDoubleArray, "MUSIGNY");
+                new ComparisonDialog(vDoubleArray, "loc://x(1,2,3,4,15)");
         comparisonDialog.show();
     }
 }
