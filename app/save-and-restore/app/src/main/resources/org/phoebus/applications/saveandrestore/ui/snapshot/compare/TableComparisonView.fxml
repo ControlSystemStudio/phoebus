@@ -1,28 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
 
-<BorderPane prefHeight="400.0" prefWidth="600.0"
-    xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-    fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.compare.TableComparisonViewController">
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.compare.TableComparisonViewController">
    <center>
       <TableView fx:id="comparisonTable" prefHeight="600.0" prefWidth="400.0" BorderPane.alignment="CENTER">
         <columns>
-          <TableColumn fx:id="indexColumn" text="#" maxWidth="20" prefWidth="20" resizable="false" styleClass="id-column">
+          <TableColumn fx:id="indexColumn" maxWidth="20" prefWidth="20" resizable="false" styleClass="id-column" text="#">
             <cellValueFactory>
                 <PropertyValueFactory property="index" />
             </cellValueFactory>
           </TableColumn>
           <TableColumn prefWidth="200.0" text="Column 0">
             <columns>
-                <TableColumn fx:id="valueColumn" prefWidth="70.0" text="%tableColumnStoredSetpoint"/>
-                <TableColumn prefWidth="50.0" text="%tableColumnDeltaValue"/>
-                <TableColumn prefWidth="70.0" text="%currentPVValue"/>
+                <TableColumn fx:id="valueColumn" prefWidth="70.0" text="%tableColumnStoredSetpoint" />
+                <TableColumn prefWidth="50.0" text="%tableColumnDeltaValue" />
+                <TableColumn prefWidth="70.0" text="%currentPVValue" />
             </columns>
           </TableColumn>
         </columns>
       </TableView>
    </center>
+   <top>
+      <Label fx:id="pvName" style="-fx-font-size: 18;" text="Label" BorderPane.alignment="CENTER_LEFT">
+         <BorderPane.margin>
+            <Insets bottom="10.0" right="5.0" top="5.0" />
+         </BorderPane.margin>
+      </Label>
+   </top>
 </BorderPane>

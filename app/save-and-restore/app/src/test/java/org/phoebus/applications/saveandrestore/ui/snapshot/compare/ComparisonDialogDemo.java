@@ -22,12 +22,12 @@ public class ComparisonDialogDemo extends ApplicationWrapper {
     @Override
     public void start(Stage primaryStage) throws Exception {
         VDoubleArray vDoubleArray =
-                VDoubleArray.of(ArrayDouble.of(1.0, 2.0, 3.0, 4.0, 5.0),
+                VDoubleArray.of(ArrayDouble.of(5.0, 6.0, 7.0, 8.0, 9.0),
                         Alarm.none(),
                         Time.now(),
                         Display.none());
         ComparisonDialog comparisonDialog =
-                new ComparisonDialog(vDoubleArray, "");
+                new ComparisonDialog(vDoubleArray, "MUSIGNY");
         comparisonDialog.show();
     }
 }

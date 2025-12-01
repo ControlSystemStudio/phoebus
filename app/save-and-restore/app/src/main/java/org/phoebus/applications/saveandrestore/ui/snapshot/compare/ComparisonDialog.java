@@ -6,6 +6,7 @@ package org.phoebus.applications.saveandrestore.ui.snapshot.compare;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -17,6 +18,8 @@ import java.util.ResourceBundle;
 public class ComparisonDialog extends Dialog {
 
     public ComparisonDialog(VType data, String pvName){
+
+        getDialogPane().getButtonTypes().addAll(ButtonType.OK);
 
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();

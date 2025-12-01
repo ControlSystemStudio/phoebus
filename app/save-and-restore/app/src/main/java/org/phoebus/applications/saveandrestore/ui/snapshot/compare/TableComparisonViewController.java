@@ -6,6 +6,7 @@ package org.phoebus.applications.saveandrestore.ui.snapshot.compare;
 
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.epics.util.array.IteratorNumber;
@@ -34,6 +35,9 @@ public class TableComparisonViewController {
     private TableColumn<ComparisonData, ?> valueColumn;
 
     @FXML
+    private Label pvName;
+
+    @FXML
     public void initialize(){
         comparisonTable.getStylesheets().add(TableComparisonViewController.class.getResource("/save-and-restore-style.css").toExternalForm());
 
@@ -42,6 +46,8 @@ public class TableComparisonViewController {
     }
 
     public void loadDataAndConnect(VType data, String pvName){
+
+        this.pvName.textProperty().set(pvName);
 
         if(data instanceof VNumberArray){
             IteratorNumber iteratorNumber = ((VNumberArray)data).getData().iterator();
