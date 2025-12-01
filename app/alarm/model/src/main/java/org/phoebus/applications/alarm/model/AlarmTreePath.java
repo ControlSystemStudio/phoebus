@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /** Helper for handling the path names of alarm tree elements.
  *  Path looks like "/root/area/system/subsystem/pv_name".
@@ -136,5 +137,19 @@ public class AlarmTreePath
                 return path;
             }
         }
+    }
+
+    public static boolean pathsAreEquivalent(String a, String b) {
+        var elementsA = splitPath(a);
+        var elementsB = splitPath(b);
+        if (elementsA.length != elementsB.length) {
+            return false;
+        }
+        for (int i = 0; i < elementsA.length; i++) {
+            if (!Objects.equals(elementsA[i], elementsB[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 }
