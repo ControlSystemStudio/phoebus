@@ -9,9 +9,11 @@ package org.phoebus.applications.alarm;
 
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
+import org.phoebus.applications.alarm.model.AlarmTreePathException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** JUnit test of AlarmTreePath
  *  @author Kay Kasemir
@@ -30,6 +32,17 @@ public class AlarmTreePathUnitTest
         assertThat(AlarmTreePath.isPath("some_pv"), equalTo(false));
         assertThat(AlarmTreePath.isPath("sim:\\/\\/sine"), equalTo(false));
         assertThat(AlarmTreePath.getName("sim:\\/\\/sine"), equalTo("sim://sine"));
+    }
+
+    @Test
+    public void testInvalidLeadingSlashes() {
+        // Two or more leading slashes must throw
+        assertThrows(AlarmTreePathException.class, () -> AlarmTreePath.makePath(null, "//pv"));
+        assertThrows(AlarmTreePathException.class, () -> AlarmTreePath.makePath(null, "///pv"));
+
+        // Also when combined with parent paths
+        assertThrows(AlarmTreePathException.class, () -> AlarmTreePath.makePath("/", "//pv"));
+        assertThrows(AlarmTreePathException.class, () -> AlarmTreePath.makePath("/path", "//child"));
     }
 
     @Test
