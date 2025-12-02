@@ -206,7 +206,9 @@ public class OpenAbout implements MenuEntry
         }
 
         WebView webView = new WebView();
-        String content = "<html><body>";
+        String content = "<html><head><style>" +
+        	    "body {font-family: monospace;}" +
+        	    "</style></head><body>";
         content += prefs_buf.toString();
         content += "</body></html>";
         webView.getEngine().loadContent(content);
