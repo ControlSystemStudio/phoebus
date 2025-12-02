@@ -107,6 +107,7 @@ public class Messages {
     public static String importSnapshotLabel;
     public static String includeThisPV;
     public static String inverseSelection;
+    public static String live;
     public static String liveReadbackVsSetpoint;
     public static String liveSetpoint;
     public static String login;
@@ -159,6 +160,7 @@ public class Messages {
     public static String snapshotFromPvs;
     public static String status;
     public static String storedReadbackValue;
+    public static String stored;
     public static String storedValues;
     public static String tableColumnDeltaValue;
     public static String tagAddFailed;

@@ -97,13 +97,13 @@ public final class Utilities {
         private final boolean withinThreshold;
         private double absoluteDelta = 0.0;
 
-        VTypeComparison(String string, int equal, boolean withinThreshold) {
+        public VTypeComparison(String string, int equal, boolean withinThreshold) {
             this.string = string;
             this.valuesEqual = equal;
             this.withinThreshold = withinThreshold;
         }
 
-        VTypeComparison(String string, int equal, boolean withinThreshold, double absoluteDelta) {
+        public VTypeComparison(String string, int equal, boolean withinThreshold, double absoluteDelta) {
             this.string = string;
             this.valuesEqual = equal;
             this.withinThreshold = withinThreshold;
