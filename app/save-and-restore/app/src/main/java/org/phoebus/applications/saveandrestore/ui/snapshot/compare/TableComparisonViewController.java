@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.epics.util.array.IteratorNumber;
@@ -24,6 +25,7 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VShortArray;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.ui.snapshot.TableCellColors;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -75,6 +77,22 @@ public class TableComparisonViewController {
                 cell.getValue().getColumnEntries().get(cell.getValue().indexProperty().get()).getLiveValue());
         deltaColumn.setCellValueFactory(cell ->
                 cell.getValue().getColumnEntries().get(cell.getValue().indexProperty().get()).getDelta());
+
+        deltaColumn.setCellFactory(e -> new TableCell<>(){
+            @Override
+            public void updateItem(ColumnEntry.ColumnDelta item, boolean empty) {
+                if(item != null && !empty){
+                    if(!item.isEqual()){
+                        setStyle(TableCellColors.ALARM_MAJOR_STYLE);
+                    }
+                    else{
+                        setStyle(TableCellColors.REGULAR_CELL_STYLE);
+                    }
+                    setText(item.toString());
+                }
+
+            }
+        });
     }
 
     public void loadDataAndConnect(VType data, String pvName) {

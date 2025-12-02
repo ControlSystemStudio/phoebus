@@ -37,7 +37,7 @@ public class ColumnEntry<T> {
             if(diff > 0){
                 diffString = "+" + diff;
             }
-            delta.set(new ColumnDelta(diffString, diff != 0));
+            delta.set(new ColumnDelta(diffString, diff == 0));
         }
     }
 
