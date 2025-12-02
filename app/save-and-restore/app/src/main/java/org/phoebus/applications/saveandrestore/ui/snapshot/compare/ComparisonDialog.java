@@ -19,8 +19,9 @@ public class ComparisonDialog extends Dialog {
 
     public ComparisonDialog(VType data, String pvName){
 
-        getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+        getDialogPane().getButtonTypes().addAll(ButtonType.CLOSE);
         setResizable(true);
+        setTitle(Messages.comparisonDialogTitle);
 
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();

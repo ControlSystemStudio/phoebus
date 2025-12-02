@@ -39,6 +39,7 @@ public class Messages {
     public static String closeConfigurationTabPrompt;
     public static String closeSnapshotTabPrompt;
     public static String compositeSnapshotConsistencyCheckFailed;
+    public static String comparisonDialogTitle;
     public static String contextMenuAddTag;
     @Deprecated
     public static String contextMenuAddTagWithComment;
