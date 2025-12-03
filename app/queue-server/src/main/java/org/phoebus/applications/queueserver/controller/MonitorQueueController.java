@@ -95,7 +95,10 @@ public class MonitorQueueController implements Initializable {
 
             bar.setOnMouseEntered(e -> bar.setCursor(Cursor.V_RESIZE));
 
-            bar.setOnMousePressed(e -> bar.setUserData(new double[]{ e.getScreenY() }));
+            bar.setOnMousePressed(e -> {
+                double localY = stack.sceneToLocal(e.getSceneX(), e.getSceneY()).getY();
+                bar.setUserData(new double[]{ localY });
+            });
 
             bar.setOnMouseDragged(e -> {
 
@@ -105,7 +108,8 @@ public class MonitorQueueController implements Initializable {
 
                 double[] d   = (double[]) bar.getUserData();
                 double lastY = d[0];                      // reference from previous event
-                double dy    = e.getScreenY() - lastY;    // incremental movement
+                double localY = stack.sceneToLocal(e.getSceneX(), e.getSceneY()).getY();
+                double dy    = localY - lastY;            // incremental movement
                 if (Math.abs(dy) < 0.1) return;           // jitter guard
 
                 /* title-bar heights so we never hide headers */
@@ -133,7 +137,7 @@ public class MonitorQueueController implements Initializable {
                     savedHeights.put(lower, newLow);
                 }
 
-                d[0] = e.getScreenY();                    // update reference point
+                d[0] = localY;                            // update reference point
             });
 
 
