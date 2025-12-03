@@ -16,9 +16,9 @@
           </TableColumn>
           <TableColumn prefWidth="200.0" text="Column 0">
             <columns>
-                <TableColumn fx:id="storedValueColumn" prefWidth="70.0" text="%stored" />
-                <TableColumn fx:id="deltaColumn" prefWidth="50.0" text="%tableColumnDeltaValue" />
-                <TableColumn fx:id="liveValueColumn" prefWidth="70.0" text="%live" />
+                <TableColumn fx:id="storedValueColumn" prefWidth="70.0" text="%stored" styleClass="snapshot-table-centered"/>
+                <TableColumn fx:id="deltaColumn" prefWidth="50.0" text="%tableColumnDeltaValue" styleClass="snapshot-table-left-aligned"/>
+                <TableColumn fx:id="liveValueColumn" prefWidth="70.0" text="%live" styleClass="snapshot-table-centered"/>
             </columns>
           </TableColumn>
         </columns>

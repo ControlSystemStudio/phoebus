@@ -29,9 +29,9 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.TableCellColors;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
-import org.phoebus.saveandrestore.util.Utilities;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -42,6 +42,10 @@ public class TableComparisonViewController {
     @SuppressWarnings("unused")
     @FXML
     private TableView<ComparisonData> comparisonTable;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private TableColumn<ComparisonData, Integer> indexColumn;
 
     @SuppressWarnings("unused")
     @FXML
@@ -77,20 +81,19 @@ public class TableComparisonViewController {
                 cell.getValue().getColumnEntries().get(cell.getValue().indexProperty().get()).getLiveValue());
         deltaColumn.setCellValueFactory(cell ->
                 cell.getValue().getColumnEntries().get(cell.getValue().indexProperty().get()).getDelta());
+        deltaColumn.setComparator(Comparator.comparingDouble(ColumnEntry.ColumnDelta::getAbsoluteDelta));
 
-        deltaColumn.setCellFactory(e -> new TableCell<>(){
+        deltaColumn.setCellFactory(e -> new TableCell<>() {
             @Override
             public void updateItem(ColumnEntry.ColumnDelta item, boolean empty) {
-                if(item != null && !empty){
-                    if(!item.isEqual()){
+                if (item != null && !empty) {
+                    if (!item.isEqual()) {
                         setStyle(TableCellColors.ALARM_MAJOR_STYLE);
-                    }
-                    else{
+                    } else {
                         setStyle(TableCellColors.REGULAR_CELL_STYLE);
                     }
                     setText(item.toString());
                 }
-
             }
         });
     }
@@ -145,8 +148,7 @@ public class TableComparisonViewController {
                     index++;
                 }
             }
-        }
-        else if (data instanceof VBooleanArray) {
+        } else if (data instanceof VBooleanArray) {
             ListBoolean listBoolean = ((VBooleanArray) data).getData();
             for (int i = 0; i < listBoolean.size(); i++) {
                 boolean value = listBoolean.getBoolean(i);
@@ -188,45 +190,33 @@ public class TableComparisonViewController {
             comparisonTable.getItems().forEach(i -> {
                 int index = i.indexProperty().get();
                 ColumnEntry columnEntry = i.getColumnEntries().get(index);
-                if (liveData instanceof VDoubleArray) {
-                    VDoubleArray array = (VDoubleArray) liveData;
-                    double value = array.getData().getDouble(index);
-                    columnEntry.setLiveVal(value);
-                    double absoluteDelta = (Double)columnEntry.getSnapshotValue().get() - value;
-                    String deltaString = (absoluteDelta > 0 ? "+" : "-") + absoluteDelta;
-                    //columnEntry.setDelta(new Utilities.VTypeComparison(deltaString, absoluteDelta > 0 ? 1 : -1, false, absoluteDelta));
-                } /*else if (liveData instanceof VIntArray) {
+                if (liveData instanceof VDoubleArray array) {
+                    columnEntry.setLiveVal(array.getData().getDouble(index));
+                } else if (liveData instanceof VIntArray) {
                     VIntArray array = (VIntArray) liveData;
-                    int value = array.getData().getInt(index);
-                    columnEntry.setLiveVal(value);
-                    columnEntry.setDelta(((Integer)columnEntry.getSnapshotValue().get()) - value);
+                    columnEntry.setLiveVal(array.getData().getDouble(index));
                 } else if (liveData instanceof VLongArray) {
                     VLongArray array = (VLongArray) liveData;
                     long value = array.getData().getLong(index);
-                    columnEntry.setLiveVal(value);
-                    columnEntry.setDelta(((Long)columnEntry.getSnapshotValue().get()) - value);
+                    columnEntry.setLiveVal(array.getData().getDouble(index));
                 } else if (liveData instanceof VFloatArray) {
                     VFloatArray array = (VFloatArray) liveData;
                     float value = array.getData().getFloat(index);
-                    columnEntry.setLiveVal(value);
-                    columnEntry.setDelta(((Float)columnEntry.getSnapshotValue().get()) - value);
+                    columnEntry.setLiveVal(array.getData().getDouble(index));
                 } else if (liveData instanceof VShortArray) {
                     VShortArray array = (VShortArray) liveData;
                     short value = array.getData().getShort(index);
-                    columnEntry.setLiveVal(value);
-                    columnEntry.setDelta(((Short)columnEntry.getSnapshotValue().get()) - value);
+                    columnEntry.setLiveVal(array.getData().getDouble(index));
                 } else if (liveData instanceof VBooleanArray) {
                     VBooleanArray array = (VBooleanArray)liveData;
-                    boolean value = array.getData().getBoolean(index);
-                    columnEntry.setLiveVal(value);
-                    //columnEntry.setDelta(((Boolean)columnEntry.getSnapshotValue().get()) - value);
+                    columnEntry.setLiveVal(array.getData().getBoolean(index));
                 } else if (liveData instanceof VEnumArray) {
                     VEnumArray array = (VEnumArray) liveData;
                     i.getColumnEntries().get(index).setLiveVal(array.getData().get(index));
                 } else if (liveData instanceof VStringArray) {
                     VStringArray array = (VStringArray) liveData;
                     i.getColumnEntries().get(index).setLiveVal(array.getData().get(index));
-                }*/
+                }
             });
         }
     }

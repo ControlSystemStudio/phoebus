@@ -6,10 +6,12 @@ package org.phoebus.applications.saveandrestore.ui.snapshot.compare;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VDisconnectedData;
-import org.phoebus.saveandrestore.util.Utilities;
 
+/**
+ * Data class for one column in the comparison table.
+ * @param <T>
+ */
 public class ColumnEntry<T> {
 
     private final ObjectProperty<T> snapshotVal = new SimpleObjectProperty<>(this, "snapshotValue", null);
@@ -26,19 +28,7 @@ public class ColumnEntry<T> {
 
     public void setLiveVal(T value){
         liveVal.set(value);
-        if(value instanceof String){
-            String stringValue = (String)value;
-            delta.set(new ColumnDelta(stringValue, stringValue.equals(snapshotVal.get())));
-        }
-        else{
-            Double valueNumber = ((Number) value).doubleValue();
-            Double diff = ((Number) snapshotVal.get()).doubleValue() - valueNumber;
-            String diffString = Double.toString(diff);
-            if(diff > 0){
-                diffString = "+" + diff;
-            }
-            delta.set(new ColumnDelta(diffString, diff == 0));
-        }
+        delta.set(new ColumnDelta());
     }
 
     public ObjectProperty<T> getLiveValue(){
@@ -49,13 +39,34 @@ public class ColumnEntry<T> {
         return delta;
     }
 
-    public static class ColumnDelta{
-        private String deltaString;
-        private boolean equal;
+    /**
+     * Class wrapping data needed to render or sort the delta column.
+     */
+    public class ColumnDelta{
+        private final boolean equal;
+        private String displayString;
+        private final double absoluteDelta;
 
-        public ColumnDelta(String deltaString, boolean equal){
-            this.deltaString = deltaString;
-            this.equal = equal;
+        public ColumnDelta(){
+            if(liveVal.get() instanceof String){
+                String stringValue = (String)liveVal.get();
+                displayString = (String)snapshotVal.get();
+                absoluteDelta = Math.abs((displayString).compareTo(stringValue));
+            }
+            else{
+                double valueNumber = ((Number) liveVal.get()).doubleValue();
+                double diff = ((Number) snapshotVal.get()).doubleValue() - valueNumber;
+                displayString = Double.toString(diff);
+                if(diff > 0){
+                    displayString = "+" + diff;
+                }
+                absoluteDelta = Math.abs(diff);
+            }
+            equal = absoluteDelta == 0;
+        }
+
+        public double getAbsoluteDelta(){
+            return absoluteDelta;
         }
 
         public boolean isEqual() {
@@ -64,7 +75,7 @@ public class ColumnEntry<T> {
 
         @Override
         public String toString(){
-            return deltaString;
+            return displayString;
         }
     }
 }
