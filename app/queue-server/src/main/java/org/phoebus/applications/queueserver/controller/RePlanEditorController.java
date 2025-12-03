@@ -51,7 +51,7 @@ public class RePlanEditorController implements Initializable {
     @FXML private TableColumn<ParameterRow, String> valueCol;
 
     private final RunEngineService svc = new RunEngineService();
-    private static final Logger LOG = Logger.getLogger(RePlanEditorController.class.getName());
+    private static final Logger logger = Logger.getLogger(RePlanEditorController.class.getPackageName());
     private final ObservableList<ParameterRow> parameterRows = FXCollections.observableArrayList();
     private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
@@ -389,10 +389,10 @@ public class RePlanEditorController implements Initializable {
                             allowedPlans.put(planName, planInfo);
                         }
                     } else {
-                        LOG.log(Level.WARNING, "No 'plans_allowed' key in response. Keys: " + responseMap.keySet());
+                        logger.log(Level.WARNING, "No 'plans_allowed' key in response. Keys: " + responseMap.keySet());
                     }
                 } else {
-                    LOG.log(Level.WARNING, "Plans response failed. Response: " + responseMap);
+                    logger.log(Level.WARNING, "Plans response failed. Response: " + responseMap);
                 }
 
                 allowedInstructions.clear();
@@ -407,7 +407,7 @@ public class RePlanEditorController implements Initializable {
                 });
 
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to load plans", e);
+                logger.log(Level.WARNING, "Failed to load plans", e);
             }
         }).start();
     }
@@ -711,7 +711,7 @@ public class RePlanEditorController implements Initializable {
                         }
                     });
                 } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Failed to add item to queue", e);
+                    logger.log(Level.WARNING, "Failed to add item to queue", e);
                     Platform.runLater(() -> {
                         String errorMsg = e.getMessage();
                         if (errorMsg == null || errorMsg.isEmpty()) {
@@ -723,7 +723,7 @@ public class RePlanEditorController implements Initializable {
             }).start();
 
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to add item to queue", e);
+            logger.log(Level.SEVERE, "Failed to add item to queue", e);
             Platform.runLater(() -> {
                 showValidationError("Failed to add item: " + e.getMessage());
             });
@@ -790,7 +790,7 @@ public class RePlanEditorController implements Initializable {
                         }
                     });
                 } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Failed to save item", e);
+                    logger.log(Level.WARNING, "Failed to save item", e);
                     Platform.runLater(() -> {
                         String errorMsg = e.getMessage();
                         if (errorMsg == null || errorMsg.isEmpty()) {
@@ -802,7 +802,7 @@ public class RePlanEditorController implements Initializable {
             }).start();
 
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to save item", e);
+            logger.log(Level.SEVERE, "Failed to save item", e);
             Platform.runLater(() -> {
                 showValidationError("Failed to save item: " + e.getMessage());
             });
@@ -966,7 +966,7 @@ public class RePlanEditorController implements Initializable {
                 }
 
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Batch file processing error", e);
+                logger.log(Level.WARNING, "Batch file processing error", e);
                 Platform.runLater(() -> {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Error");

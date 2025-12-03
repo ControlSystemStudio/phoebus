@@ -25,7 +25,7 @@ public class MonitorQueueController implements Initializable {
     @FXML private VBox stack;
 
     private final Map<TitledPane, Double> savedHeights = new HashMap<>();
-    private static final Logger LOG = Logger.getLogger(MonitorQueueController.class.getName());
+    private static final Logger logger = Logger.getLogger(MonitorQueueController.class.getPackageName());
 
     private static final String BAR_NORMAL =
             "-fx-background-color: linear-gradient(to bottom, derive(-fx-base,15%) 0%, derive(-fx-base,-5%) 100%);" +
@@ -34,7 +34,7 @@ public class MonitorQueueController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        LOG.info("Initializing MonitorQueueController");
+        logger.log(Level.FINE, "Initializing MonitorQueueController");
         loadInto(runningPlanContainer, "/org/phoebus/applications/queueserver/view/ReRunningPlan.fxml", new ReRunningPlanController(true));
         loadInto(planQueueContainer, "/org/phoebus/applications/queueserver/view/RePlanQueue.fxml", new RePlanQueueController(true));
         loadInto(planHistoryContainer, "/org/phoebus/applications/queueserver/view/RePlanHistory.fxml", new RePlanHistoryController(true));
@@ -76,7 +76,7 @@ public class MonitorQueueController implements Initializable {
             AnchorPane.setLeftAnchor(view, 0.0);
             AnchorPane.setRightAnchor(view, 0.0);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to load FXML: " + fxml, e);
+            logger.log(Level.SEVERE, "Failed to load FXML: " + fxml, e);
         }
     }
 

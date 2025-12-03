@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  */
 public class JythonScriptExecutor {
 
-    private static final Logger LOG = Logger.getLogger(JythonScriptExecutor.class.getName());
+    private static final Logger logger = Logger.getLogger(JythonScriptExecutor.class.getPackageName());
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r, "QueueServer-Jython");
         thread.setDaemon(true);
@@ -32,7 +32,7 @@ public class JythonScriptExecutor {
         PySystemState sys = Py.getSystemState();
         sys.setdefaultencoding("utf-8");
 
-        LOG.log(Level.INFO, "Jython initialized for Queue Server");
+        logger.log(Level.FINE, "Jython initialized for Queue Server");
     }
 
     /**
@@ -78,7 +78,7 @@ public class JythonScriptExecutor {
             return result != null ? result.__tojava__(Object.class) : null;
 
         } catch (Exception e) {
-            LOG.log(Level.FINE, "Jython script execution failed: " + e.getMessage());
+            logger.log(Level.WARNING, "Jython script execution failed", e);
             throw new RuntimeException("Script execution failed: " + e.getMessage(), e);
         }
     }
@@ -123,7 +123,7 @@ public class JythonScriptExecutor {
             PyObject result = python.eval(expression);
             return result.__tojava__(Object.class);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Jython eval failed for: " + expression, e);
+            logger.log(Level.WARNING, "Jython eval failed for: " + expression, e);
             throw new RuntimeException("Evaluation failed: " + e.getMessage(), e);
         }
     }

@@ -11,6 +11,7 @@ import javafx.scene.control.TableView;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class ApplicationController implements Initializable {
@@ -19,10 +20,10 @@ public final class ApplicationController implements Initializable {
     @FXML private Tab editAndControlQueueTab;
     @FXML private TabPane tabPane;
 
-    private static final Logger LOG = Logger.getLogger(ApplicationController.class.getName());
+    private static final Logger logger = Logger.getLogger(ApplicationController.class.getPackageName());
 
     @Override public void initialize(URL url, ResourceBundle rb) {
-        LOG.info("Initializing ApplicationController");
+        logger.log(Level.FINE, "Initializing ApplicationController");
         monitorQueueTab.setContent(ViewFactory.MONITOR_QUEUE.get());
         editAndControlQueueTab.setContent(ViewFactory.EDIT_AND_CONTROL_QUEUE.get());
 
@@ -30,7 +31,7 @@ public final class ApplicationController implements Initializable {
         disableFocusTraversal(monitorQueueTab.getContent());
         disableFocusTraversal(editAndControlQueueTab.getContent());
 
-        LOG.info("ApplicationController initialization complete");
+        logger.log(Level.FINE, "ApplicationController initialization complete");
     }
 
     /**

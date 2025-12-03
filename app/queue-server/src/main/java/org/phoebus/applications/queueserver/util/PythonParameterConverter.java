@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 public class PythonParameterConverter {
 
-    private static final Logger LOG = Logger.getLogger(PythonParameterConverter.class.getName());
+    private static final Logger logger = Logger.getLogger(PythonParameterConverter.class.getPackageName());
     private static final String SCRIPT_RESOURCE = "/org/phoebus/applications/queueserver/scripts/type_converter.py";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -38,9 +38,9 @@ public class PythonParameterConverter {
                 throw new IllegalStateException("Python converter script not found: " + SCRIPT_RESOURCE);
             }
             this.scriptContent = new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-            LOG.log(Level.INFO, "Python type converter script loaded successfully");
+            logger.log(Level.FINE, "Python type converter script loaded successfully");
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to load Python converter script", e);
+            logger.log(Level.SEVERE, "Failed to load Python converter script", e);
             throw new RuntimeException("Failed to initialize Python converter", e);
         }
     }
@@ -108,7 +108,7 @@ public class PythonParameterConverter {
 
                 if (resultMap.containsKey("error")) {
                     String errorMsg = "Python type conversion failed: " + resultMap.get("error");
-                    LOG.log(Level.SEVERE, errorMsg);
+                    logger.log(Level.SEVERE, errorMsg);
                     throw new RuntimeException(errorMsg);
                 }
 
@@ -118,7 +118,7 @@ public class PythonParameterConverter {
             return new HashMap<>();
 
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Python parameter conversion failed", e);
+            logger.log(Level.WARNING, "Python parameter conversion failed", e);
             throw new RuntimeException("Parameter conversion failed: " + e.getMessage(), e);
         }
     }

@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 // Single ScheduledExecutor shared by all widgets that need periodic polling.
 public final class PollCenter {
 
-    private static final Logger LOG = Logger.getLogger(PollCenter.class.getName());
+    private static final Logger logger = Logger.getLogger(PollCenter.class.getPackageName());
     private static final ScheduledExecutorService EXEC =
             Executors.newSingleThreadScheduledExecutor(r ->
                     new Thread(r, "JBI-poller"));
@@ -16,7 +16,7 @@ public final class PollCenter {
     private PollCenter() {}
 
     public static ScheduledFuture<?> every(long periodSec, Runnable task) {
-        LOG.log(Level.FINE, "Scheduling task with period: " + periodSec + " seconds");
+        logger.log(Level.FINE, "Scheduling task with period: " + periodSec + " seconds");
         return EXEC.scheduleAtFixedRate(task, 0, periodSec, TimeUnit.SECONDS);
     }
 
@@ -30,7 +30,7 @@ public final class PollCenter {
                 T t = supplier.get();
                 javafx.application.Platform.runLater(() -> fxConsumer.accept(t));
             } catch (Exception ex) {
-                LOG.log(Level.WARNING, "Polling task failed", ex);
+                logger.log(Level.WARNING, "Polling task failed", ex);
             }
         });
     }

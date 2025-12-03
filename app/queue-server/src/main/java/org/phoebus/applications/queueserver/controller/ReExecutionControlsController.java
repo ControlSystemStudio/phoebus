@@ -12,6 +12,7 @@ import javafx.scene.control.Button;
 import java.net.URL;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class ReExecutionControlsController implements Initializable {
@@ -20,7 +21,7 @@ public final class ReExecutionControlsController implements Initializable {
             stopBtn, abortBtn, haltBtn;
 
     private final RunEngineService svc = new RunEngineService();
-    private final Logger LOG = Logger.getLogger(getClass().getName());
+    private static final Logger logger = Logger.getLogger(ReExecutionControlsController.class.getPackageName());
 
     @Override public void initialize(URL url, ResourceBundle rb) {
 
@@ -109,6 +110,6 @@ public final class ReExecutionControlsController implements Initializable {
 
     private void call(String label, Runnable r) {
         try { r.run(); }
-        catch (Exception ex) { LOG.warning(label + ": " + ex); }
+        catch (Exception ex) { logger.log(Level.WARNING, label + ": " + ex); }
     }
 }

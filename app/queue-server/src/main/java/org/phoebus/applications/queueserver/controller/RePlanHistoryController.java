@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,8 +50,8 @@ public final class RePlanHistoryController implements Initializable {
 
     private List<Integer> stickySel = List.of();
     private boolean       ignoreSel = false;
-    private static final Logger LOG =
-            Logger.getLogger(RePlanHistoryController.class.getName());
+    private static final Logger logger =
+            Logger.getLogger(RePlanHistoryController.class.getPackageName());
 
     private final boolean viewOnly;
 
@@ -123,7 +124,7 @@ public final class RePlanHistoryController implements Initializable {
             ignoreSel = false;
             restoreSelection(stickySel);
         } catch (Exception ex) {
-            LOG.warning("History refresh failed: "+ex.getMessage());
+            logger.log(Level.WARNING, "History refresh failed", ex);
         }
     }
 
@@ -188,13 +189,13 @@ public final class RePlanHistoryController implements Initializable {
                     new QueueItemAddBatch(clones, "GUI Client", "primary");
             svc.queueItemAddBatch(req);                   // service takes DTO, not Map
         } catch (Exception ex) {
-            LOG.warning("Copy-to-Queue failed: "+ex.getMessage());
+            logger.log(Level.WARNING, "Copy-to-Queue failed", ex);
         }
     }
 
     private void clearHistory() {
         try { svc.historyClear(); }
-        catch (Exception ex) { LOG.warning("Clear-history failed: "+ex.getMessage()); }
+        catch (Exception ex) { logger.log(Level.WARNING, "Clear-history failed", ex); }
     }
     
     private void exportHistory(PlanHistorySaver.Format fmt, String ext) {
@@ -209,9 +210,9 @@ public final class RePlanHistoryController implements Initializable {
                 HistoryGetPayload hp = svc.historyGetTyped();
                 List<QueueItem> items = hp.items();
                 PlanHistorySaver.save(items, f, fmt);
-                LOG.info(() -> "Exported plan history → " + f);
+                logger.log(Level.FINE, () -> "Exported plan history → " + f);
             } catch (Exception e) {
-                LOG.warning("Export history failed: " + e.getMessage());
+                logger.log(Level.WARNING, "Export history failed", e);
             }
         });
     }

@@ -21,14 +21,14 @@ public final class ReManagerConnectionController {
     private final RunEngineService svc = new RunEngineService();
     private ScheduledFuture<?>   pollTask;
     private static final int PERIOD_SEC = 1;
-    private static final Logger LOG = Logger.getLogger(ReManagerConnectionController.class.getName());
+    private static final Logger logger = Logger.getLogger(ReManagerConnectionController.class.getPackageName());
 
     @FXML private void connect()    { startPolling(); }
     @FXML private void disconnect() { stopPolling();  }
 
     private void startPolling() {
         if (pollTask != null && !pollTask.isDone()) return;     // already running
-        LOG.info("Starting connection polling every " + PERIOD_SEC + " seconds");
+        logger.log(Level.FINE, "Starting connection polling every " + PERIOD_SEC + " seconds");
         showPending();                                          // UI while waiting
 
         updateWidgets(queryStatusOnce());
@@ -42,13 +42,13 @@ public final class ReManagerConnectionController {
         try {
             return svc.status();
         } catch (Exception ex) {
-            LOG.log(Level.FINE, "Status query failed: " + ex.getMessage());
+            logger.log(Level.FINE, "Status query failed: " + ex.getMessage());
             return null;
         }
     }
 
     private void stopPolling() {
-        LOG.info("Stopping connection polling");
+        logger.log(Level.FINE, "Stopping connection polling");
         if (pollTask != null) pollTask.cancel(true);
         pollTask = null;
         StatusBus.push(null);
@@ -74,7 +74,7 @@ public final class ReManagerConnectionController {
     private void updateWidgets(StatusResponse s) {
         StatusBus.push((s));
         if (s != null) {
-            LOG.log(Level.FINEST, "Status update: manager_state=" + s.managerState());
+            logger.log(Level.FINEST, "Status update: manager_state=" + s.managerState());
             showOnline();
         } else {
             showPending();      // keep polling; user may Disconnect

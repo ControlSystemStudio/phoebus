@@ -34,7 +34,7 @@ public class RePlanViewerController implements Initializable {
     @FXML private Button copyBtn, editBtn;
 
     private final RunEngineService svc = new RunEngineService();
-    private static final Logger LOG = Logger.getLogger(RePlanViewerController.class.getName());
+    private static final Logger logger = Logger.getLogger(RePlanViewerController.class.getPackageName());
     private final ObservableList<ParameterRow> parameterRows = FXCollections.observableArrayList();
     private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
@@ -203,7 +203,7 @@ public class RePlanViewerController implements Initializable {
                 Platform.runLater(() -> updateWidgetState());
 
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to load plans", e);
+                logger.log(Level.WARNING, "Failed to load plans", e);
             }
         }).start();
     }
@@ -425,16 +425,16 @@ public class RePlanViewerController implements Initializable {
                     var response = svc.queueItemAdd(request);
                     Platform.runLater(() -> {
                         if (!response.success()) {
-                            LOG.log(Level.WARNING, "Copy to queue failed", response.msg());
+                            logger.log(Level.WARNING, "Copy to queue failed", response.msg());
                         }
                     });
                 } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Copy to queue error", e);
+                    logger.log(Level.WARNING, "Copy to queue error", e);
                 }
             }).start();
 
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Copy to queue error", e);
+            logger.log(Level.WARNING, "Copy to queue error", e);
         }
     }
 

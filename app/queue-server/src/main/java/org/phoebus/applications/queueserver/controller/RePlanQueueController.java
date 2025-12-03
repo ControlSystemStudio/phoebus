@@ -22,6 +22,7 @@ import javafx.scene.text.Text;
 
 import java.net.URL;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,8 +43,8 @@ public final class RePlanQueueController implements Initializable {
     private List<String> stickySel   = List.of();   // last user selection
     private boolean      ignoreSticky= false;       // guard while we rebuild
 
-    private static final Logger LOG =
-            Logger.getLogger(RePlanQueueController.class.getName());
+    private static final Logger logger =
+            Logger.getLogger(RePlanQueueController.class.getPackageName());
 
     private final boolean viewOnly;
 
@@ -136,7 +137,7 @@ public final class RePlanQueueController implements Initializable {
                     .map(StatusResponse.PlanQueueMode::loop)
                     .orElse(false));
         } catch (Exception ex) {
-            LOG.warning("Queue refresh failed: " + ex.getMessage());
+            logger.log(Level.WARNING, "Queue refresh failed: " + ex.getMessage());
         }
     }
 
@@ -224,7 +225,7 @@ public final class RePlanQueueController implements Initializable {
 
         List<String> focus = selectedUids();
         try { sendMove(focus, rows.get(ref).uid(), delta<0); refreshLater(focus); }
-        catch (Exception ex) { LOG.warning("Move failed: "+ex.getMessage()); }
+        catch (Exception ex) { logger.log(Level.WARNING, "Move failed: "+ex.getMessage()); }
     }
     private void moveAbsolute(int targetRow) {
         if (rows.isEmpty()) return;
@@ -236,7 +237,7 @@ public final class RePlanQueueController implements Initializable {
         boolean before = targetRow < selRows.get(0);
         List<String> focus = selectedUids();
         try { sendMove(focus, rows.get(targetRow).uid(), before); refreshLater(focus); }
-        catch (Exception ex) { LOG.warning("Move-abs failed: "+ex.getMessage()); }
+        catch (Exception ex) { logger.log(Level.WARNING, "Move-abs failed: "+ex.getMessage()); }
     }
 
     private void deleteSelected() {
@@ -249,7 +250,7 @@ public final class RePlanQueueController implements Initializable {
         try {
             svc.queueItemRemoveBatch(Map.of("uids", selectedUids()));
             refreshLater(nextFocus==null? List.of() : List.of(nextFocus));
-        } catch (Exception ex) { LOG.warning("Delete failed: "+ex.getMessage()); }
+        } catch (Exception ex) { logger.log(Level.WARNING, "Delete failed: "+ex.getMessage()); }
     }
 
     private void duplicateSelected() {
@@ -265,7 +266,7 @@ public final class RePlanQueueController implements Initializable {
             if (orig == null) return;
             try { svc.addAfter(orig, orig.itemUid()); }      // server returns nothing we need
             catch (Exception ex) {                           // log but continue
-                LOG.warning("Duplicate RPC failed: "+ex.getMessage());
+                logger.log(Level.WARNING, "Duplicate RPC failed: "+ex.getMessage());
             }
         });
 
@@ -285,14 +286,14 @@ public final class RePlanQueueController implements Initializable {
             stickySel = added.isEmpty() ? stickySel : List.of(added.get(0));
 
         } catch (Exception ex) {
-            LOG.warning("Refresh after duplicate failed: "+ex.getMessage());
+            logger.log(Level.WARNING, "Refresh after duplicate failed: "+ex.getMessage());
         }
     }
 
     private void clearQueue() { try { svc.queueClear(); }
-    catch (Exception ex) { LOG.warning("Clear failed: "+ex.getMessage()); } }
+    catch (Exception ex) { logger.log(Level.WARNING, "Clear failed: "+ex.getMessage()); } }
     private void setLoopMode(boolean loop){ try { svc.queueModeSet(Map.of("loop",loop)); }
-    catch (Exception ex){ LOG.warning("Loop-set failed: "+ex.getMessage()); } }
+    catch (Exception ex){ logger.log(Level.WARNING, "Loop-set failed: "+ex.getMessage()); } }
 
     private void updateButtonStates() {
         boolean connected = StatusBus.latest().get()!=null;

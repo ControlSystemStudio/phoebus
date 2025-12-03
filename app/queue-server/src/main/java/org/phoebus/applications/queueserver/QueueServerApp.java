@@ -16,7 +16,7 @@ import org.phoebus.ui.docking.DockPane;
 @SuppressWarnings("nls")
 public final class QueueServerApp implements AppResourceDescriptor {
 
-    public  static final Logger LOGGER = Logger.getLogger(QueueServerApp.class.getPackageName());
+    public static final Logger logger = Logger.getLogger(QueueServerApp.class.getPackageName());
 
     public  static final String NAME         = "queue-server";
     private static final String DISPLAY_NAME = "Queue Server";

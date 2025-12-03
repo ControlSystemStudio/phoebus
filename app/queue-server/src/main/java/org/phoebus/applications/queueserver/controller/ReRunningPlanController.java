@@ -25,7 +25,7 @@ public final class ReRunningPlanController implements Initializable {
     @FXML private TextArea planTextArea;
 
     private final RunEngineService svc = new RunEngineService();
-    private static final Logger LOG = Logger.getLogger(ReRunningPlanController.class.getName());
+    private static final Logger logger = Logger.getLogger(ReRunningPlanController.class.getPackageName());
 
     private String lastRunningUid = "";
     private QueueItem cachedRunningItem = null;
@@ -107,7 +107,7 @@ public final class ReRunningPlanController implements Initializable {
             QueueGetPayload p = svc.queueGetTyped();
             return p.runningItem();                // may be null
         } catch (Exception ex) { 
-            LOG.log(Level.FINE, "Failed to fetch running item: " + ex.getMessage());
+            logger.log(Level.FINE, "Failed to fetch running item: " + ex.getMessage());
             return null; 
         }
     }
@@ -120,7 +120,7 @@ public final class ReRunningPlanController implements Initializable {
             if (p instanceof Map<?,?> m && m.containsKey("run_list"))
                 return (List<Map<String,Object>>) m.get("run_list");
         } catch (Exception ex) {
-            LOG.log(Level.FINE, "Failed to fetch run list: " + ex.getMessage());
+            logger.log(Level.FINE, "Failed to fetch run list: " + ex.getMessage());
         }
         return List.of();
     }
@@ -166,9 +166,9 @@ public final class ReRunningPlanController implements Initializable {
 
         try {
             svc.queueItemAdd(cachedRunningItem);
-            LOG.info("Copied running plan to queue: " + cachedRunningItem.name());
+            logger.log(Level.FINE, "Copied running plan to queue: " + cachedRunningItem.name());
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Failed to copy running plan to queue", ex);
+            logger.log(Level.WARNING, "Failed to copy running plan to queue", ex);
         }
     }
 
@@ -177,9 +177,9 @@ public final class ReRunningPlanController implements Initializable {
     private void updateEnvironment() {
         try { 
             svc.environmentUpdate(Map.of()); 
-            LOG.info("Environment update requested");
+            logger.log(Level.FINE, "Environment update requested");
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Failed to update environment", ex);
+            logger.log(Level.WARNING, "Failed to update environment", ex);
         }
     }
 
