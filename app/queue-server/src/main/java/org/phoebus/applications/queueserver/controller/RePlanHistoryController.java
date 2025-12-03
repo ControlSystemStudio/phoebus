@@ -55,6 +55,9 @@ public final class RePlanHistoryController implements Initializable {
 
     private final boolean viewOnly;
 
+    // Drag-to-select state
+    private int dragStartRow = -1;
+
     public RePlanHistoryController() {
         this(false); // default to editable
     }
@@ -107,7 +110,78 @@ public final class RePlanHistoryController implements Initializable {
                 (o,oldV,nv) -> Platform.runLater(() -> refresh(nv));
         StatusBus.latest().addListener(l);
 
+        // Add drag-to-select functionality
+        setupDragSelection();
+
         refresh(StatusBus.latest().get());
+    }
+
+    /**
+     * Sets up drag-to-select functionality for the table.
+     * Users can click and drag to select multiple rows.
+     */
+    private void setupDragSelection() {
+        table.setOnMousePressed(event -> {
+            int index = getRowIndexAt(event.getY());
+            if (index >= 0 && index < rows.size()) {
+                dragStartRow = index;
+                // Don't consume - let normal click work
+            } else {
+                dragStartRow = -1;
+            }
+        });
+
+        table.setOnMouseDragged(event -> {
+            if (dragStartRow >= 0) {
+                int currentIndex = getRowIndexAt(event.getY());
+                if (currentIndex >= 0 && currentIndex < rows.size()) {
+                    selectRange(dragStartRow, currentIndex);
+                }
+                event.consume(); // Prevent default drag behavior
+            }
+        });
+
+        table.setOnMouseReleased(event -> {
+            dragStartRow = -1;
+        });
+    }
+
+    /**
+     * Gets the row index at the specified Y coordinate relative to the table.
+     */
+    private int getRowIndexAt(double y) {
+        // Get the fixed cell size or estimate
+        if (rows.isEmpty()) return -1;
+
+        // Look through visible rows
+        for (javafx.scene.Node node : table.lookupAll(".table-row-cell")) {
+            if (node instanceof TableRow) {
+                @SuppressWarnings("unchecked")
+                TableRow<Row> row = (TableRow<Row>) node;
+
+                // Convert to table's coordinate space
+                javafx.geometry.Bounds boundsInTable = table.sceneToLocal(
+                    row.localToScene(row.getBoundsInLocal())
+                );
+
+                if (y >= boundsInTable.getMinY() && y <= boundsInTable.getMaxY()) {
+                    return row.getIndex();
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Selects all rows between start and end indices (inclusive).
+     */
+    private void selectRange(int start, int end) {
+        table.getSelectionModel().clearSelection();
+        int from = Math.min(start, end);
+        int to = Math.max(start, end);
+        for (int i = from; i <= to; i++) {
+            table.getSelectionModel().select(i);
+        }
     }
 
     private void refresh(StatusResponse st) {
