@@ -197,15 +197,12 @@ public class TableComparisonViewController {
                     columnEntry.setLiveVal(array.getData().getDouble(index));
                 } else if (liveData instanceof VLongArray) {
                     VLongArray array = (VLongArray) liveData;
-                    long value = array.getData().getLong(index);
                     columnEntry.setLiveVal(array.getData().getDouble(index));
                 } else if (liveData instanceof VFloatArray) {
                     VFloatArray array = (VFloatArray) liveData;
-                    float value = array.getData().getFloat(index);
                     columnEntry.setLiveVal(array.getData().getDouble(index));
                 } else if (liveData instanceof VShortArray) {
                     VShortArray array = (VShortArray) liveData;
-                    short value = array.getData().getShort(index);
                     columnEntry.setLiveVal(array.getData().getDouble(index));
                 } else if (liveData instanceof VBooleanArray) {
                     VBooleanArray array = (VBooleanArray)liveData;
