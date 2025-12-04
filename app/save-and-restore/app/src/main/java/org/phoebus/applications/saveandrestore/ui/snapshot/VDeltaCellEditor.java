@@ -23,7 +23,6 @@ import javafx.scene.control.Tooltip;
 import org.epics.vtype.VEnumArray;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStringArray;
-import org.epics.vtype.VTable;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.applications.saveandrestore.ui.snapshot.compare.ComparisonDialog;
@@ -41,7 +40,7 @@ import java.util.Formatter;
  * @param <T>
  * @author Kunal Shroff
  */
-public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
+public class VDeltaCellEditor<S, T> extends VTypeCellEditor<S, T> {
 
     private final Tooltip tooltip = new Tooltip();
 
@@ -51,7 +50,7 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
         this.showDeltaPercentage = showDeltaPercentage;
     }
 
-    VDeltaCellEditor() {
+    public VDeltaCellEditor() {
         super();
     }
 
@@ -83,9 +82,9 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
                     Utilities.VTypeComparison vtc = Utilities.deltaValueToString(pair.value, pair.base, pair.threshold);
                     if (vtc.getValuesEqual() != 0 &&
                             (pair.base instanceof VNumberArray ||
-                             pair.base instanceof VStringArray ||
-                             pair.base instanceof VEnumArray)) {
-                        TableEntry tableEntry = getTableRow().getItem();
+                                    pair.base instanceof VStringArray ||
+                                    pair.base instanceof VEnumArray)) {
+                        TableEntry tableEntry = (TableEntry) getTableRow().getItem();
                         setText(Messages.clickToCompare);
                         setStyle(TableCellColors.ALARM_MAJOR_STYLE);
                         setOnMouseClicked(e -> {

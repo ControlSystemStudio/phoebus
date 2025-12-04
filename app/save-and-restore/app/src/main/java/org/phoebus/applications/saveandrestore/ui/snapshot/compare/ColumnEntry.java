@@ -6,76 +6,53 @@ package org.phoebus.applications.saveandrestore.ui.snapshot.compare;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
+import org.phoebus.saveandrestore.util.Threshold;
+import org.phoebus.saveandrestore.util.VNoData;
+
+import java.util.Optional;
 
 /**
  * Data class for one column in the comparison table.
- * @param <T>
  */
-public class ColumnEntry<T> {
-
-    private final ObjectProperty<T> snapshotVal = new SimpleObjectProperty<>(this, "snapshotValue", null);
-    private final ObjectProperty<ColumnDelta> delta = new SimpleObjectProperty<>(this, "delta", null);
-    private final ObjectProperty<T> liveVal = new SimpleObjectProperty<>(this, "liveValue", (T) VDisconnectedData.INSTANCE);
-
-    public ColumnEntry(T snapshotVal){
-        this.snapshotVal.set(snapshotVal);
-    }
-
-    public ObjectProperty getSnapshotValue(){
-        return snapshotVal;
-    }
-
-    public void setLiveVal(T value){
-        liveVal.set(value);
-        delta.set(new ColumnDelta());
-    }
-
-    public ObjectProperty<T> getLiveValue(){
-        return liveVal;
-    }
-
-    public ObjectProperty<ColumnDelta> getDelta(){
-        return delta;
-    }
+public class ColumnEntry {
 
     /**
-     * Class wrapping data needed to render or sort the delta column.
+     * The {@link VType} value as stored in a {@link org.phoebus.applications.saveandrestore.model.Snapshot}
      */
-    public class ColumnDelta{
-        private final boolean equal;
-        private String displayString;
-        private final double absoluteDelta;
+    private final ObjectProperty<VType> storedValue = new SimpleObjectProperty<>(this, "storedValue", null);
+    /**
+     * A {@link VTypePair} property holding data for the purpose of calculating and showing a delta.
+     */
+    private final ObjectProperty<VTypePair> delta = new SimpleObjectProperty<>(this, "delta", null);
+    /**
+     * The libe {@link VType} value as read from a connected PV.
+     */
+    private final ObjectProperty<VType> liveValue = new SimpleObjectProperty<>(this, "liveValue", VNoData.INSTANCE);
 
-        public ColumnDelta(){
-            if(liveVal.get() instanceof String){
-                String stringValue = (String)liveVal.get();
-                displayString = (String)snapshotVal.get();
-                absoluteDelta = Math.abs((displayString).compareTo(stringValue));
-            }
-            else{
-                double valueNumber = ((Number) liveVal.get()).doubleValue();
-                double diff = ((Number) snapshotVal.get()).doubleValue() - valueNumber;
-                displayString = Double.toString(diff);
-                if(diff > 0){
-                    displayString = "+" + diff;
-                }
-                absoluteDelta = Math.abs(diff);
-            }
-            equal = absoluteDelta == 0;
-        }
+    private Optional<Threshold<?>> threshold = Optional.empty();
 
-        public double getAbsoluteDelta(){
-            return absoluteDelta;
-        }
+    public ColumnEntry(VType storedValue) {
+        this.storedValue.set(storedValue);
+    }
 
-        public boolean isEqual() {
-            return equal;
-        }
+    public ObjectProperty<VType> storedValueProperty() {
+        return storedValue;
+    }
 
-        @Override
-        public String toString(){
-            return displayString;
-        }
+    public void setLiveVal(VType value) {
+        liveValue.set(value);
+        VTypePair vTypePair = new VTypePair(storedValue.get(), value, threshold);
+        delta.set(vTypePair);
+    }
+
+    public ObjectProperty<VType> liveValueProperty() {
+        return liveValue;
+    }
+
+    public ObjectProperty<VTypePair> getDelta() {
+        return delta;
     }
 }

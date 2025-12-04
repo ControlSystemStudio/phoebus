@@ -17,6 +17,8 @@
  */
 package org.phoebus.applications.saveandrestore.ui;
 
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.saveandrestore.util.Threshold;
 
@@ -45,6 +47,31 @@ public class VTypePair {
         this.base = base;
         this.value = value;
         this.threshold = threshold;
+    }
+
+    /**
+     * Computes absolute delta for the delta between {@link #base} and {@link #value}. When applied to
+     * {@link VString} types, {@link String#compareTo(String)} is used for comparison, but then converted to
+     * absolute value to.
+     *
+     * <p>
+     *     Main use case for this is ordering on delta. Absolute delta is more useful as otherwise zero
+     *     deltas would be found between positive and negative deltas.
+     * </p>
+     * @return
+     */
+    public double getAbsoluteDelta(){
+        if(base == null || value == null){
+            return 0.0;
+        }
+        if(base instanceof VNumber){
+            return Math.abs(((VNumber)base).getValue().doubleValue() -
+                    ((VNumber)value).getValue().doubleValue());
+        }
+        else if(base instanceof VString){
+            return Math.abs(((VString)base).getValue().compareTo(((VString)value).getValue()));
+        }
+        else return 0.0;
     }
 
     /*
