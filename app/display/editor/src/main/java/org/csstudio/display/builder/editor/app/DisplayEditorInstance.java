@@ -80,9 +80,15 @@ public class DisplayEditorInstance implements AppInstance
 
     private final WidgetPropertyListener<String> model_name_listener = (property, old_value, new_value) ->
     {
-        final String label = EditorUtil.isDisplayReadOnly(property.getWidget().checkDisplayModel())
-            ? "[R/O] " + property.getValue()
-            : "[Edit] " + property.getValue();
+    	String fileName = property.getWidget().checkDisplayModel().getDisplayName();
+
+    	String value = (property.getValue() == null || property.getValue().isEmpty())
+    	        ? fileName
+    	        : property.getValue();
+
+    	final String label = EditorUtil.isDisplayReadOnly(property.getWidget().checkDisplayModel())
+    	        ? "[R/O] " + value
+    	        : "[Edit] " + value;
         Platform.runLater(() -> dock_item.setLabel(label));
     };
 

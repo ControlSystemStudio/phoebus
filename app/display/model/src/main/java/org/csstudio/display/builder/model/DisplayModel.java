@@ -173,6 +173,8 @@ public class DisplayModel extends Widget
             name = getUserData(USER_DATA_INPUT_FILE);
             if (name == null)
                 name = "<No name>";
+            else
+                name= new java.io.File(name).getName();;
         }
         return name;
     }
