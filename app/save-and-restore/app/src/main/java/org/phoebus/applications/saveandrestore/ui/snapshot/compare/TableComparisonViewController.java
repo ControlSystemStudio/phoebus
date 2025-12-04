@@ -43,6 +43,7 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.VTypeCellEditor;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
+import org.phoebus.saveandrestore.util.VNoData;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -194,28 +195,41 @@ public class TableComparisonViewController {
             comparisonTable.getItems().forEach(i -> {
                 int index = i.indexProperty().get();
                 ColumnEntry columnEntry = i.getColumnEntries().get(index);
-                if (liveData instanceof VDoubleArray array) {
-                    columnEntry.setLiveVal(VDouble.of(array.getData().getDouble(index), Alarm.none(), Time.now(), Display.none()));
-                } else if (liveData instanceof VIntArray) {
-                    VIntArray array = (VIntArray) liveData;
-                    columnEntry.setLiveVal(VInt.of(array.getData().getInt(index), Alarm.none(), Time.now(), Display.none()));
-                } else if (liveData instanceof VLongArray) {
-                    VLongArray array = (VLongArray) liveData;
-                    columnEntry.setLiveVal(VLong.of(array.getData().getLong(index), Alarm.none(), Time.now(), Display.none()));
-                } else if (liveData instanceof VFloatArray) {
-                    VFloatArray array = (VFloatArray) liveData;
-                    columnEntry.setLiveVal(VFloat.of(array.getData().getFloat(index), Alarm.none(), Time.now(), Display.none()));
-                } else if (liveData instanceof VShortArray) {
-                    VShortArray array = (VShortArray) liveData;
-                    columnEntry.setLiveVal(VShort.of(array.getData().getShort(index), Alarm.none(), Time.now(), Display.none()));
+                if(liveData instanceof  VNumberArray){
+                    if(index >= ((VNumberArray)liveData).getData().size()){
+                        columnEntry.setLiveVal(VNoData.INSTANCE);
+                    } else if (liveData instanceof VDoubleArray array) {
+                        columnEntry.setLiveVal(VDouble.of(array.getData().getDouble(index), Alarm.none(), Time.now(), Display.none()));
+                    } else if (liveData instanceof VIntArray) {
+                        VIntArray array = (VIntArray) liveData;
+                        columnEntry.setLiveVal(VInt.of(array.getData().getInt(index), Alarm.none(), Time.now(), Display.none()));
+                    } else if (liveData instanceof VLongArray) {
+                        VLongArray array = (VLongArray) liveData;
+                        columnEntry.setLiveVal(VLong.of(array.getData().getLong(index), Alarm.none(), Time.now(), Display.none()));
+                    } else if (liveData instanceof VFloatArray) {
+                        VFloatArray array = (VFloatArray) liveData;
+                        columnEntry.setLiveVal(VFloat.of(array.getData().getFloat(index), Alarm.none(), Time.now(), Display.none()));
+                    } else if (liveData instanceof VShortArray) {
+                        VShortArray array = (VShortArray) liveData;
+                        columnEntry.setLiveVal(VShort.of(array.getData().getShort(index), Alarm.none(), Time.now(), Display.none()));
+                    }
                 } else if (liveData instanceof VBooleanArray) {
                     VBooleanArray array = (VBooleanArray)liveData;
+                    if(index > array.getData().size()){
+                        columnEntry.setLiveVal(VNoData.INSTANCE);
+                    }
                     columnEntry.setLiveVal(VBoolean.of(array.getData().getBoolean(index), Alarm.none(), Time.now()));
                 } else if (liveData instanceof VEnumArray) {
                     VEnumArray array = (VEnumArray) liveData;
+                    if(index > array.getData().size()){
+                        columnEntry.setLiveVal(VNoData.INSTANCE);
+                    }
                     i.getColumnEntries().get(index).setLiveVal(VString.of(array.getData().get(index), Alarm.none(), Time.now()));
                 } else if (liveData instanceof VStringArray) {
                     VStringArray array = (VStringArray) liveData;
+                    if(index > array.getData().size()){
+                        columnEntry.setLiveVal(VNoData.INSTANCE);
+                    }
                     i.getColumnEntries().get(index).setLiveVal(VString.of(array.getData().get(index), Alarm.none(), Time.now()));
                 }
             });
