@@ -42,6 +42,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.WebView;
 
 /** Menu entry to open 'about'
  *  @author Kay Kasemir
@@ -204,12 +205,17 @@ public class OpenAbout implements MenuEntry
             logger.log(Level.WARNING, "Cannot list preferences", ex);
         }
 
-        area = new TextArea(prefs_buf.toString());
-        area.setEditable(false);
+        WebView webView = new WebView();
+        String content = "<html><head><style>" +
+        	    "body {font-family: monospace;}" +
+        	    "</style></head><body>";
+        content += prefs_buf.toString();
+        content += "</body></html>";
+        webView.getEngine().loadContent(content);
 
-        VBox.setVgrow(area, Priority.ALWAYS);
+        VBox.setVgrow(webView, Priority.ALWAYS);
 
-        final Tab prefs = new Tab(Messages.HelpAboutPrefs, area);
+        final Tab prefs = new Tab(Messages.HelpAboutPrefs, webView);
 
         final TabPane tabs = new TabPane(apps, envs, props, prefs);
         return tabs;
