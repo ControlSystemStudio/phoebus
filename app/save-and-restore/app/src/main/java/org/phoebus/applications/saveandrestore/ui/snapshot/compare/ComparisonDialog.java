@@ -15,8 +15,27 @@ import org.phoebus.framework.nls.NLS;
 import java.io.IOException;
 import java.util.ResourceBundle;
 
+/**
+ * Dialog showing a {@link javafx.scene.control.TableView} where array or table data is visualized element wise.
+ * Purpose is to be able to inspect deltas on array/table element level.
+ *
+ * <p>
+ *     Data in the {@link javafx.scene.control.TableView} is organized column wise. Each row in the {@link javafx.scene.control.TableView}
+ *     corresponds to an individual element in the data. Each column contains three nested columns: stored value,
+ *     delta and live value.
+ * </p>
+ * <p>
+ *     For an array type ({@link org.epics.vtype.VNumberArray} the table will thus hold a single data column. For a
+ *     table type ({@link org.epics.vtype.VTable} there will be one data column for each column in the table.
+ * </p>
+ */
 public class ComparisonDialog extends Dialog {
 
+    /**
+     * Constructor
+     * @param data The data as stored in a {@link org.phoebus.applications.saveandrestore.model.Snapshot}
+     * @param pvName The name of the for which
+     */
     public ComparisonDialog(VType data, String pvName){
 
         getDialogPane().getButtonTypes().addAll(ButtonType.CLOSE);

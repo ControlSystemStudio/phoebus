@@ -12,9 +12,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.epics.util.array.ListBoolean;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.Display;
-import org.epics.vtype.Time;
 import org.epics.vtype.VBoolean;
 import org.epics.vtype.VBooleanArray;
 import org.epics.vtype.VByte;
@@ -50,6 +47,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Controller class for the comparison table view.
+ */
 public class TableComparisonViewController {
 
     @SuppressWarnings("unused")
@@ -101,6 +101,11 @@ public class TableComparisonViewController {
         deltaColumn.setCellFactory(e -> new VDeltaCellEditor<>());
     }
 
+    /**
+     * Loads snapshot data and then connects to the corresponding PV.
+     * @param data Data as stored in a {@link org.phoebus.applications.saveandrestore.model.Snapshot}
+     * @param pvName The name of the PV.
+     */
     public void loadDataAndConnect(VType data, String pvName) {
 
         pvNameProperty.set(pvName);
@@ -112,39 +117,27 @@ public class TableComparisonViewController {
                 if (data instanceof VDoubleArray array) {
                     double value = array.getData().getDouble(index);
                     ColumnEntry columnEntry = new ColumnEntry(VDouble.of(value, array.getAlarm(), array.getTime(), array.getDisplay()));
-                    columnEntries.add(columnEntry);
-                    ComparisonData comparisonData = new ComparisonData(index, columnEntries);
-                    comparisonTable.getItems().add(index, comparisonData);
+                    addRow(index, columnEntries, columnEntry);
                 } else if (data instanceof VFloatArray array) {
                     float value = array.getData().getFloat(index);
                     ColumnEntry columnEntry = new ColumnEntry(VFloat.of(value, array.getAlarm(), array.getTime(), array.getDisplay()));
-                    columnEntries.add(columnEntry);
-                    ComparisonData comparisonData = new ComparisonData(index, columnEntries);
-                    comparisonTable.getItems().add(index, comparisonData);
+                    addRow(index, columnEntries, columnEntry);
                 } else if (data instanceof VIntArray array) {
                     int value = array.getData().getInt(index);
                     ColumnEntry columnEntry = new ColumnEntry(VInt.of(value, array.getAlarm(), array.getTime(), array.getDisplay()));
-                    columnEntries.add(columnEntry);
-                    ComparisonData comparisonData = new ComparisonData(index, columnEntries);
-                    comparisonTable.getItems().add(index, comparisonData);
+                    addRow(index, columnEntries, columnEntry);
                 } else if (data instanceof VLongArray array) {
                     long value = array.getData().getLong(index);
                     ColumnEntry columnEntry = new ColumnEntry(VLong.of(value, array.getAlarm(), array.getTime(), array.getDisplay()));
-                    columnEntries.add(columnEntry);
-                    ComparisonData comparisonData = new ComparisonData(index, columnEntries);
-                    comparisonTable.getItems().add(index, comparisonData);
+                    addRow(index, columnEntries, columnEntry);
                 } else if (data instanceof VShortArray array) {
                     short value = array.getData().getShort(index);
                     ColumnEntry columnEntry = new ColumnEntry(VShort.of(value, array.getAlarm(), array.getTime(), array.getDisplay()));
-                    columnEntries.add(columnEntry);
-                    ComparisonData comparisonData = new ComparisonData(index, columnEntries);
-                    comparisonTable.getItems().add(index, comparisonData);
+                    addRow(index, columnEntries, columnEntry);
                 } else if (data instanceof VByteArray array) {
                     byte value = array.getData().getByte(index);
                     ColumnEntry columnEntry = new ColumnEntry(VByte.of(value, array.getAlarm(), array.getTime(), array.getDisplay()));
-                    columnEntries.add(columnEntry);
-                    ComparisonData comparisonData = new ComparisonData(index, columnEntries);
-                    comparisonTable.getItems().add(index, comparisonData);
+                    addRow(index, columnEntries, columnEntry);
                 }
             }
         } else if (data instanceof VBooleanArray array) {
@@ -153,32 +146,24 @@ public class TableComparisonViewController {
                 List<ColumnEntry> columnEntries = new ArrayList<>();
                 boolean value = listBoolean.getBoolean(index);
                 ColumnEntry columnEntry = new ColumnEntry(VBoolean.of(value, array.getAlarm(), array.getTime()));
-                columnEntries.add(columnEntry);
-                ComparisonData comparisonData = new ComparisonData(index, columnEntries);
-                comparisonTable.getItems().add(index, comparisonData);
+                addRow(index, columnEntries, columnEntry);
             }
         } else if (data instanceof VEnumArray array) {
             List<String> enumValues = array.getData();
             for (int index = 0; index < enumValues.size(); index++) {
                 List<ColumnEntry> columnEntries = new ArrayList<>();
                 ColumnEntry columnEntry = new ColumnEntry(VString.of(enumValues.get(index), array.getAlarm(), array.getTime()));
-                columnEntries.add(columnEntry);
-                ComparisonData comparisonData = new ComparisonData(index, columnEntries);
-                comparisonTable.getItems().add(index, comparisonData);
+                addRow(index, columnEntries, columnEntry);
             }
         } else if (data instanceof VStringArray array) {
             List<String> stringValues = array.getData();
             for (int index = 0; index < stringValues.size(); index++) {
                 List<ColumnEntry> columnEntries = new ArrayList<>();
                 ColumnEntry columnEntry = new ColumnEntry(VString.of(stringValues.get(index), array.getAlarm(), array.getTime()));
-                columnEntries.add(columnEntry);
-                ComparisonData comparisonData = new ComparisonData(index, columnEntries);
-                comparisonTable.getItems().add(index, comparisonData);
+                addRow(index, columnEntries, columnEntry);
             }
         }
-
         connect();
-
     }
 
     private void addRow(int index, List<ColumnEntry> columnEntries, ColumnEntry columnEntry) {
@@ -187,7 +172,10 @@ public class TableComparisonViewController {
         comparisonTable.getItems().add(index, comparisonData);
     }
 
-    public void connect() {
+    /**
+     * Attempts to connect to the PV.
+     */
+    private void connect() {
         try {
             PV pv = PVPool.getPV(pvNameProperty.get());
             pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
@@ -197,6 +185,11 @@ public class TableComparisonViewController {
         }
     }
 
+    /**
+     * Updates the {@link TableView} from the live data acquired through a PV monitor event.
+     * Differences in data sizes between stored and live data is considered.
+     * @param liveData EPICS data from the connected PV, or {@link VDisconnectedData#INSTANCE}.
+     */
     private void updateTable(VType liveData) {
         if (liveData.equals(VDisconnectedData.INSTANCE)) {
             comparisonTable.getItems().forEach(i -> i.getColumnEntries().get(0).setLiveVal(VDisconnectedData.INSTANCE));
@@ -218,7 +211,7 @@ public class TableComparisonViewController {
                     } else if (liveData instanceof VFloatArray array) {
                         columnEntry.setLiveVal(VFloat.of(array.getData().getFloat(index), array.getAlarm(), array.getTime(), array.getDisplay()));
                     } else if (liveData instanceof VShortArray array) {
-                        columnEntry.setLiveVal(VShort.of(array.getData().getShort(index),array.getAlarm(), array.getTime(), array.getDisplay()));
+                        columnEntry.setLiveVal(VShort.of(array.getData().getShort(index), array.getAlarm(), array.getTime(), array.getDisplay()));
                     }
                 } else if (liveData instanceof VBooleanArray array) {
                     liveDataArraySize.set(array.getData().size());
