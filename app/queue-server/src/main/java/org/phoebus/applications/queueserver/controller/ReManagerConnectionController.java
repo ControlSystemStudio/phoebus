@@ -1,13 +1,20 @@
 package org.phoebus.applications.queueserver.controller;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.phoebus.applications.queueserver.Preferences;
 import org.phoebus.applications.queueserver.api.StatusResponse;
+import org.phoebus.applications.queueserver.api.StatusWsMessage;
+import org.phoebus.applications.queueserver.client.QueueServerWebSocket;
 import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.util.PollCenter;
 import org.phoebus.applications.queueserver.util.StatusBus;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,23 +26,51 @@ public final class ReManagerConnectionController {
     @FXML private Label  connectionStatusLabel;
 
     private final RunEngineService svc = new RunEngineService();
+    private final ObjectMapper mapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private ScheduledFuture<?>   pollTask;
+    private QueueServerWebSocket<StatusWsMessage> statusWs;
     private static final int PERIOD_SEC = 1;
     private static final Logger logger = Logger.getLogger(ReManagerConnectionController.class.getPackageName());
 
-    @FXML private void connect()    { startPolling(); }
-    @FXML private void disconnect() { stopPolling();  }
+    @FXML private void connect()    { start(); }
+    @FXML private void disconnect() { stop();  }
 
-    private void startPolling() {
+    private void start() {
         if (pollTask != null && !pollTask.isDone()) return;     // already running
-        logger.log(Level.FINE, "Starting connection polling every " + PERIOD_SEC + " seconds");
+        if (statusWs != null && statusWs.isConnected()) return;  // already connected
+
         showPending();                                          // UI while waiting
 
-        updateWidgets(queryStatusOnce());
+        if (Preferences.use_websockets) {
+            logger.log(Level.FINE, "Starting status WebSocket connection");
+            startWebSocket();
+        } else {
+            logger.log(Level.FINE, "Starting status polling every " + PERIOD_SEC + " seconds");
+            updateWidgets(queryStatusOnce());
+            pollTask = PollCenter.every(PERIOD_SEC,
+                    this::queryStatusOnce,      // background
+                    this::updateWidgets);       // FX thread
+        }
+    }
 
-        pollTask = PollCenter.every(PERIOD_SEC,
-                this::queryStatusOnce,      // background
-                this::updateWidgets);       // FX thread
+    private void startWebSocket() {
+        statusWs = svc.createStatusWebSocket();
+
+        statusWs.addListener(msg -> {
+            Map<String, Object> statusMap = msg.status();
+            if (statusMap != null) {
+                try {
+                    // Convert Map to StatusResponse
+                    StatusResponse status = mapper.convertValue(statusMap, StatusResponse.class);
+                    Platform.runLater(() -> updateWidgets(status));
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Failed to parse status from WebSocket", e);
+                }
+            }
+        });
+
+        statusWs.connect();
     }
 
     private StatusResponse queryStatusOnce() {
@@ -47,10 +82,16 @@ public final class ReManagerConnectionController {
         }
     }
 
-    private void stopPolling() {
-        logger.log(Level.FINE, "Stopping connection polling");
-        if (pollTask != null) pollTask.cancel(true);
-        pollTask = null;
+    private void stop() {
+        logger.log(Level.FINE, "Stopping status monitoring");
+        if (pollTask != null) {
+            pollTask.cancel(true);
+            pollTask = null;
+        }
+        if (statusWs != null) {
+            statusWs.disconnect();
+            statusWs = null;
+        }
         StatusBus.push(null);
         showIdle();
     }
