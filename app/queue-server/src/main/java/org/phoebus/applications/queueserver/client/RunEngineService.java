@@ -292,4 +292,44 @@ public final class RunEngineService {
     public Envelope<?>          whoAmI()                      throws Exception { return http.call(ApiEndpoint.WHOAMI,        NoBody.INSTANCE); }
     public Envelope<?>          apiScopes()                   throws Exception { return http.call(ApiEndpoint.API_SCOPES,    NoBody.INSTANCE); }
     public Envelope<?>          logout()                      throws Exception { return http.call(ApiEndpoint.LOGOUT,       NoBody.INSTANCE); }
+
+    /* ---- WebSockets ------------------------------------------------------ */
+
+    /**
+     * Create a WebSocket connection to the console output stream.
+     * Messages are streamed in real-time as {"time": timestamp, "msg": text}.
+     *
+     * @return a WebSocket client that can be connected and listened to
+     */
+    public QueueServerWebSocket<ConsoleOutputWsMessage> createConsoleOutputWebSocket() {
+        String wsUrl = http.getBaseUrl().replace("http://", "ws://").replace("https://", "wss://")
+                + "/api/console_output/ws";
+        return new QueueServerWebSocket<>(wsUrl, http.getApiKey(), ConsoleOutputWsMessage.class);
+    }
+
+    /**
+     * Create a WebSocket connection to the status stream.
+     * Status messages are sent each time status is updated at RE Manager or at least once per second.
+     * Messages are formatted as {"time": timestamp, "msg": {"status": {...}}}.
+     *
+     * @return a WebSocket client that can be connected and listened to
+     */
+    public QueueServerWebSocket<StatusWsMessage> createStatusWebSocket() {
+        String wsUrl = http.getBaseUrl().replace("http://", "ws://").replace("https://", "wss://")
+                + "/api/status/ws";
+        return new QueueServerWebSocket<>(wsUrl, http.getApiKey(), StatusWsMessage.class);
+    }
+
+    /**
+     * Create a WebSocket connection to the system info stream.
+     * Info stream includes status messages and potentially other system messages.
+     * Messages are formatted as {"time": timestamp, "msg": {msg-class: msg-content}}.
+     *
+     * @return a WebSocket client that can be connected and listened to
+     */
+    public QueueServerWebSocket<SystemInfoWsMessage> createSystemInfoWebSocket() {
+        String wsUrl = http.getBaseUrl().replace("http://", "ws://").replace("https://", "wss://")
+                + "/api/info/ws";
+        return new QueueServerWebSocket<>(wsUrl, http.getApiKey(), SystemInfoWsMessage.class);
+    }
 }
