@@ -9,7 +9,7 @@
    <center>
       <TableView fx:id="comparisonTable" prefHeight="600.0" prefWidth="400.0" BorderPane.alignment="CENTER">
         <columns>
-          <TableColumn fx:id="indexColumn" maxWidth="20" prefWidth="20" resizable="false" styleClass="id-column" text="#">
+          <TableColumn fx:id="indexColumn" maxWidth="50" prefWidth="50" resizable="false" styleClass="id-column" text="#">
             <cellValueFactory>
                 <PropertyValueFactory property="index" />
             </cellValueFactory>
