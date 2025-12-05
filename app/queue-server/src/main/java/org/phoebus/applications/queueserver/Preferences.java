@@ -21,6 +21,9 @@ public class Preferences {
     @Preference
     public static int connectTimeout;
 
+    @Preference
+    public static boolean use_websockets;
+
     static
     {
         AnnotatedPreferences.initialize(Preferences.class, "/queueserver_preferences.properties");
