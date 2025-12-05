@@ -1,7 +1,10 @@
 package org.phoebus.applications.queueserver.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.phoebus.applications.queueserver.Preferences;
 import org.phoebus.applications.queueserver.api.ConsoleOutputUpdate;
+import org.phoebus.applications.queueserver.api.ConsoleOutputWsMessage;
+import org.phoebus.applications.queueserver.client.QueueServerWebSocket;
 import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.util.PollCenter;
 import org.phoebus.applications.queueserver.util.StatusBus;
@@ -20,9 +23,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.*;
 
 public final class ReConsoleMonitorController implements Initializable {
 
@@ -50,7 +51,9 @@ public final class ReConsoleMonitorController implements Initializable {
     private Instant lastLine  = Instant.EPOCH;
 
     private ScheduledFuture<?> pollTask;
-    private boolean ignoreScroll = false;
+    private volatile boolean ignoreScroll = false;
+
+    private QueueServerWebSocket<ConsoleOutputWsMessage> consoleWs;
 
     @Override public void initialize(URL url, ResourceBundle rb) {
 
@@ -87,18 +90,28 @@ public final class ReConsoleMonitorController implements Initializable {
 
     public void shutdown(){
         stop();
+        if (consoleWs != null) {
+            consoleWs.close();
+        }
         io.shutdownNow();
     }
 
     private void start(){
-        if(pollTask!=null) return;
+        if(pollTask!=null || (consoleWs != null && consoleWs.isConnected())) return;
         stop=false; textBuf.clear(); lastUid="ALL";
-        loadBacklog(); startStream();
-        pollTask = PollCenter.every(1,this::poll);
+        loadBacklog();
+
+        if (Preferences.use_websockets) {
+            startWebSocket();
+        } else {
+            startStream();
+            pollTask = PollCenter.every(1,this::poll);
+        }
     }
 
     private void stop(){
         if(pollTask!=null){ pollTask.cancel(true); pollTask=null; }
+        if(consoleWs != null) { consoleWs.disconnect(); }
         stop=true;
     }
 
@@ -109,6 +122,23 @@ public final class ReConsoleMonitorController implements Initializable {
             lastUid = svc.consoleOutputUid().uid();
             render();
         }catch(Exception ignore){}
+    }
+
+    private void startWebSocket(){
+        consoleWs = svc.createConsoleOutputWebSocket();
+
+        consoleWs.addListener(msg -> {
+            String text = msg.msg();
+            if (text != null && !text.isEmpty()) {
+                Platform.runLater(() -> {
+                    textBuf.addMessage(text);
+                    render();
+                    lastLine = Instant.now();
+                });
+            }
+        });
+
+        consoleWs.connect();
     }
 
     private void startStream(){
@@ -161,18 +191,23 @@ public final class ReConsoleMonitorController implements Initializable {
 
         if (wantBottom) {
             Platform.runLater(() -> {
+                ignoreScroll = true;
                 textArea.positionCaret(textArea.getLength());
                 textArea.setScrollTop(Double.MAX_VALUE);
                 if (vBar != null) vBar.setValue(vBar.getMax());
+                // Delay clearing ignoreScroll to let scrollbar settle
+                Platform.runLater(() -> ignoreScroll = false);
             });
         } else {
             textArea.positionCaret(Math.min(keepCaret, textArea.getLength()));
             double y = keepScrollY;
-            Platform.runLater(() -> textArea.setScrollTop(y));
+            Platform.runLater(() -> {
+                ignoreScroll = true;
+                textArea.setScrollTop(y);
+                Platform.runLater(() -> ignoreScroll = false);
+            });
         }
 
-
-        ignoreScroll = false;
         lastLine = Instant.now();
     }
 
