@@ -8,7 +8,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
-import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.saveandrestore.util.Threshold;
 import org.phoebus.saveandrestore.util.VNoData;
 
@@ -28,11 +27,11 @@ public class ColumnEntry {
      */
     private final ObjectProperty<VTypePair> delta = new SimpleObjectProperty<>(this, "delta", null);
     /**
-     * The libe {@link VType} value as read from a connected PV.
+     * The live {@link VType} value as read from a connected PV.
      */
     private final ObjectProperty<VType> liveValue = new SimpleObjectProperty<>(this, "liveValue", VNoData.INSTANCE);
 
-    private Optional<Threshold<?>> threshold = Optional.empty();
+    private final Optional<Threshold<?>> threshold = Optional.empty();
 
     public ColumnEntry(VType storedValue) {
         this.storedValue.set(storedValue);
@@ -42,9 +41,9 @@ public class ColumnEntry {
         return storedValue;
     }
 
-    public void setLiveVal(VType value) {
-        liveValue.set(value);
-        VTypePair vTypePair = new VTypePair(storedValue.get(), value, threshold);
+    public void setLiveVal(VType liveValue) {
+        this.liveValue.set(liveValue);
+        VTypePair vTypePair = new VTypePair(liveValue, storedValue.get(), threshold);
         delta.set(vTypePair);
     }
 
