@@ -24,6 +24,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.model.AlarmTreePathException;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -118,15 +119,8 @@ public class XmlModelReader
         // Create the root of the model. Parent is null and name must be config.
         root = new AlarmClientNode(null, root_node.getAttribute(TAG_NAME));
 
-        // First add PVs at this level, ..
-        for (final Element child : XMLUtil.getChildElements(root_node, TAG_PV))
-            processPV(root /* parent */, child);
-
-        // .. when sub-components which again have PVs.
-        // This way, duplicate PVs will be detected and ignored at a nested level,
-        // keeping those toward the root
-        for (final Node child : XMLUtil.getChildElements(root_node, TAG_COMPONENT))
-            processComponent(root /* parent */, child);
+        // Recursively process children
+        processChildren(root, root_node);
     }
 
     private void processComponent(final AlarmClientNode parent, final Node node) throws Exception
@@ -162,12 +156,34 @@ public class XmlModelReader
         // This does not refer to XML attributes but instead to the attributes of a model component node.
         processCompAttr(component, node);
 
-        // First add PVs at this level, then sub-components
-        for (final Element child : XMLUtil.getChildElements(node, TAG_PV))
-            processPV(component/* parent */, child);
+        // Recursively process children
+        processChildren(component, node);
+    }
 
+    private void processChildren(AlarmClientNode component, Node node) throws Exception {
+        // First add PVs at this level
+        for (final Element child : XMLUtil.getChildElements(node, TAG_PV))
+            try {
+                processPV(component/* parent */, child);
+            } catch (AlarmTreePathException e) {
+                logger.log(Level.WARNING,
+                        "Ignoring malformed PV "
+                                + component.getPathName() + "/" + child.getAttribute(TAG_NAME) + ".\n"
+                                + "Cause: " + e.getMessage());
+            }
+
+        // then subcomponents, which again have PVs.
+        // This way, duplicate PVs will be detected and ignored at a nested level,
+        // keeping those toward the root
         for (final Element child : XMLUtil.getChildElements(node, TAG_COMPONENT))
-            processComponent(component /* parent */, child);
+            try {
+                processComponent(component /* parent */, child);
+            } catch (AlarmTreePathException e) {
+                logger.log(Level.WARNING,
+                        "Ignoring malformed component "
+                                + component.getPathName() + "/" + child.getAttribute(TAG_NAME) + ".\n"
+                                + "Cause: " + e.getMessage());
+            }
     }
 
     private void processCompAttr(final AlarmClientNode component, final Node node) throws Exception
