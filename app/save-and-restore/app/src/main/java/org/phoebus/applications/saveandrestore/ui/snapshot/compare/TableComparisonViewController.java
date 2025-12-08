@@ -8,9 +8,14 @@ package org.phoebus.applications.saveandrestore.ui.snapshot.compare;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
+import javafx.util.converter.DoubleStringConverter;
 import org.epics.util.array.ListBoolean;
 import org.epics.vtype.VBoolean;
 import org.epics.vtype.VBooleanArray;
@@ -31,6 +36,7 @@ import org.epics.vtype.VShortArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.applications.saveandrestore.ui.snapshot.VDeltaCellEditor;
 import org.phoebus.applications.saveandrestore.ui.snapshot.VTypeCellEditor;
@@ -68,10 +74,13 @@ public class TableComparisonViewController {
     @FXML
     private TableColumn<ComparisonData, VType> liveValueColumn;
 
-
     @SuppressWarnings("unused")
     @FXML
     private TableColumn<ComparisonData, VTypePair> deltaColumn;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private Spinner<Double> thresholdSpinner;
 
     @SuppressWarnings("unused")
     @FXML
@@ -99,11 +108,18 @@ public class TableComparisonViewController {
         deltaColumn.setComparator(Comparator.comparingDouble(VTypePair::getAbsoluteDelta));
 
         deltaColumn.setCellFactory(e -> new VDeltaCellEditor<>());
+
+        SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
+        thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
+        thresholdSpinner.setValueFactory(thresholdSpinnerValueFactory);
+        thresholdSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
+        thresholdSpinner.getEditor().textProperty().addListener((a, o, n) -> parseAndUpdateThreshold(n));
     }
 
     /**
      * Loads snapshot data and then connects to the corresponding PV.
-     * @param data Data as stored in a {@link org.phoebus.applications.saveandrestore.model.Snapshot}
+     *
+     * @param data   Data as stored in a {@link org.phoebus.applications.saveandrestore.model.Snapshot}
      * @param pvName The name of the PV.
      */
     public void loadDataAndConnect(VType data, String pvName) {
@@ -188,6 +204,7 @@ public class TableComparisonViewController {
     /**
      * Updates the {@link TableView} from the live data acquired through a PV monitor event.
      * Differences in data sizes between stored and live data is considered.
+     *
      * @param liveData EPICS data from the connected PV, or {@link VDisconnectedData#INSTANCE}.
      */
     private void updateTable(VType liveData) {
@@ -309,5 +326,32 @@ public class TableComparisonViewController {
                 }
             }
         }
+    }
+
+    private void parseAndUpdateThreshold(String value) {
+        thresholdSpinner.getEditor().getStyleClass().remove("input-error");
+        thresholdSpinner.setTooltip(null);
+
+        double parsedNumber;
+        try {
+            parsedNumber = Double.parseDouble(value.trim());
+            updateThreshold(parsedNumber);
+        } catch (Exception e) {
+            thresholdSpinner.getEditor().getStyleClass().add("input-error");
+            thresholdSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
+        }
+    }
+
+    /**
+     * Computes thresholds on scalar data types. The threshold is used to indicate that a delta value within threshold
+     * should not decorate the delta column, i.e. consider saved and live values equal.
+     *
+     * @param threshold Threshold in percent
+     */
+    private void updateThreshold(double threshold) {
+        double ratio = threshold / 100;
+        comparisonTable.getItems().forEach(comparisonData -> {
+            comparisonData.setThreshold(ratio);
+        });
     }
 }

@@ -6,8 +6,13 @@ package org.phoebus.applications.saveandrestore.ui.snapshot.compare;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.ui.VTypePair;
+import org.phoebus.saveandrestore.util.Threshold;
+import org.phoebus.saveandrestore.util.Utilities;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Data class for the {@link javafx.scene.control.TableView} of the comparison dialog.
@@ -36,5 +41,15 @@ public class ComparisonData {
 
     public List<ColumnEntry> getColumnEntries() {
         return columnEntries;
+    }
+
+    /**
+     * Set the threshold value for this entry. All value comparisons related to this entry are calculated using the
+     * threshold (if it exists).
+     *
+     * @param ratio the threshold
+ */
+    public void setThreshold(double ratio) {
+        columnEntries.forEach(columnEntry -> columnEntry.setThreshold(ratio));
     }
 }

@@ -78,7 +78,10 @@ public class VDeltaCellEditor<S, T> extends VTypeCellEditor<S, T> {
                     setStyle(TableCellColors.DISCONNECTED_STYLE);
                 } else if (pair.value == VNoData.INSTANCE) {
                     setText(pair.value.toString());
-                } else {
+                } else if(pair.base == VNoData.INSTANCE){
+                    setText(VNoData.INSTANCE.toString());
+                }
+                else {
                     Utilities.VTypeComparison vtc = Utilities.deltaValueToString(pair.value, pair.base, pair.threshold);
                     if (vtc.getValuesEqual() != 0 &&
                             (pair.base instanceof VNumberArray ||

@@ -5,7 +5,19 @@
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
 
+
 <BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.compare.TableComparisonViewController">
+    <top>
+     <ToolBar>
+         <Label fx:id="pvName" style="-fx-font-size: 18;" text="Label"  maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="26.0" HBox.hgrow="ALWAYS">
+            <BorderPane.margin>
+               <Insets bottom="10.0" right="5.0" top="5.0" />
+            </BorderPane.margin>
+         </Label>
+         <Label text="%labelThreshold" />
+         <Spinner fx:id="thresholdSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
+     </ToolBar>
+  </top>
    <center>
       <TableView fx:id="comparisonTable" prefHeight="600.0" prefWidth="400.0" BorderPane.alignment="CENTER">
         <columns>
@@ -24,11 +36,5 @@
         </columns>
       </TableView>
    </center>
-   <top>
-      <Label fx:id="pvName" style="-fx-font-size: 18;" text="Label" BorderPane.alignment="CENTER_LEFT">
-         <BorderPane.margin>
-            <Insets bottom="10.0" right="5.0" top="5.0" />
-         </BorderPane.margin>
-      </Label>
-   </top>
+
 </BorderPane>
