@@ -51,6 +51,7 @@ public class ComparisonDialog extends Dialog {
             TableComparisonViewController controller = loader.getController();
             controller.loadDataAndConnect(data, pvName);
             getDialogPane().setContent(node);
+            setOnCloseRequest(e -> controller.cleanUp());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -88,6 +88,8 @@ public class TableComparisonViewController {
 
     private final StringProperty pvNameProperty = new SimpleStringProperty();
 
+    private PV pv;
+
     /**
      * The time between updates of dynamic data in the table, in ms.
      */
@@ -193,11 +195,20 @@ public class TableComparisonViewController {
      */
     private void connect() {
         try {
-            PV pv = PVPool.getPV(pvNameProperty.get());
+            pv = PVPool.getPV(pvNameProperty.get());
             pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
                     .subscribe(value -> updateTable(PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value));
         } catch (Exception e) {
             Logger.getLogger(TableComparisonViewController.class.getName()).log(Level.INFO, "Error connecting to PV", e);
+        }
+    }
+
+    /**
+     * Returns PV to pool, e.g. when UI is dismissed.
+     */
+    public void cleanUp(){
+        if(pv != null){
+            PVPool.releasePV(pv);
         }
     }
 
