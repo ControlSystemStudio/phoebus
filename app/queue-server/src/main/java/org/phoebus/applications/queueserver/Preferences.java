@@ -16,6 +16,9 @@ public class Preferences {
     public static String api_key;
 
     @Preference
+    public static String api_key_file;
+
+    @Preference
     public static boolean debug;
 
     @Preference
