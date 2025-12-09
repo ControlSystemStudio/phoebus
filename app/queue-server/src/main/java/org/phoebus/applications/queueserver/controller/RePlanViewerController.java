@@ -40,8 +40,15 @@ public class RePlanViewerController implements Initializable {
     private final ObservableList<ParameterRow> parameterRows = FXCollections.observableArrayList();
     private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
-    // Python-based parameter converter
-    private final PythonParameterConverter pythonConverter = new PythonParameterConverter();
+    // Python-based parameter converter (lazy-initialized to avoid blocking UI on startup)
+    private PythonParameterConverter pythonConverter;
+
+    private PythonParameterConverter getPythonConverter() {
+        if (pythonConverter == null) {
+            pythonConverter = new PythonParameterConverter();
+        }
+        return pythonConverter;
+    }
 
     private QueueItem currentQueueItem;
     private String queueItemName = "-";
@@ -309,7 +316,7 @@ public class RePlanViewerController implements Initializable {
                 isEnabled = true;
             } else if (defaultValue != null) {
                 // Use normalizeAndRepr for defaults - they might be strings that need parsing
-                currentValue = pythonConverter.normalizeAndRepr(defaultValue);
+                currentValue = getPythonConverter().normalizeAndRepr(defaultValue);
                 isEnabled = false;
             }
 

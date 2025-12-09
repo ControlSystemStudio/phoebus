@@ -65,8 +65,15 @@ public class RePlanEditorController implements Initializable {
     private final ObjectMapper objectMapper = new ObjectMapper();
     // Store original parameter values for reset functionality
     private final Map<String, Object> originalParameterValues = new HashMap<>();
-    // Python-based parameter converter
-    private final PythonParameterConverter pythonConverter = new PythonParameterConverter();
+    // Python-based parameter converter (lazy-initialized to avoid blocking UI on startup)
+    private PythonParameterConverter pythonConverter;
+
+    private PythonParameterConverter getPythonConverter() {
+        if (pythonConverter == null) {
+            pythonConverter = new PythonParameterConverter();
+        }
+        return pythonConverter;
+    }
 
     private class EditableTableCell extends TableCell<ParameterRow, String> {
         private TextField textField;
@@ -328,9 +335,9 @@ public class RePlanEditorController implements Initializable {
             // If unchecked, reset to default value; if checked and no value, set default
             if (!isChecked) {
                 Object defaultValue = row.getDefaultValue();
-                row.setValue(defaultValue != null ? pythonConverter.normalizeAndRepr(defaultValue) : "");
+                row.setValue(defaultValue != null ? getPythonConverter().normalizeAndRepr(defaultValue) : "");
             } else if (row.getValue().isEmpty() && row.getDefaultValue() != null) {
-                row.setValue(pythonConverter.normalizeAndRepr(row.getDefaultValue()));
+                row.setValue(getPythonConverter().normalizeAndRepr(row.getDefaultValue()));
             }
 
             // Trigger edit mode when checkbox is changed
@@ -519,7 +526,7 @@ public class RePlanEditorController implements Initializable {
                 isEnabled = true;
             } else if (defaultValue != null) {
                 // Use normalizeAndRepr for defaults - they might be strings that need parsing
-                currentValue = pythonConverter.normalizeAndRepr(defaultValue);
+                currentValue = getPythonConverter().normalizeAndRepr(defaultValue);
             }
 
             ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
@@ -678,7 +685,7 @@ public class RePlanEditorController implements Initializable {
         }
 
         // Use Python to convert parameters - no Java fallback
-        return pythonConverter.convertParameters(paramInfos);
+        return getPythonConverter().convertParameters(paramInfos);
     }
 
     private void addItemToQueue() {
@@ -853,7 +860,7 @@ public class RePlanEditorController implements Initializable {
                     // Parameter was not in original item, reset to default
                     Object defaultValue = row.getDefaultValue();
                     if (defaultValue != null) {
-                        row.setValue(pythonConverter.normalizeAndRepr(defaultValue));
+                        row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
                     } else {
                         row.setValue("");
                     }
@@ -865,7 +872,7 @@ public class RePlanEditorController implements Initializable {
             for (ParameterRow row : parameterRows) {
                 Object defaultValue = row.getDefaultValue();
                 if (defaultValue != null) {
-                    row.setValue(pythonConverter.normalizeAndRepr(defaultValue));
+                    row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
                 } else {
                     row.setValue("");
                 }
