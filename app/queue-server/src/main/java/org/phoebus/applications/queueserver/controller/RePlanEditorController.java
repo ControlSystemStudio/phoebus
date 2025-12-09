@@ -262,11 +262,16 @@ public class RePlanEditorController implements Initializable {
             loadAllowedPlansAndInstructions();
         }
 
-        // Listen for status changes to load plans when connected
+        // Listen for status changes to load plans when connected and update button states
         StatusBus.latest().addListener((o, oldV, newV) -> {
             if (newV != null && allowedPlans.isEmpty()) {
                 loadAllowedPlansAndInstructions();
             }
+            // Clear the editor state when disconnected
+            if (newV == null) {
+                Platform.runLater(this::cancelEdit);
+            }
+            Platform.runLater(this::updateButtonStates);
         });
 
         // Listen for edit requests from plan viewer
@@ -628,24 +633,29 @@ public class RePlanEditorController implements Initializable {
     }
 
     private void updateButtonStates() {
+        StatusResponse status = StatusBus.latest().get();
+        boolean isConnected = status != null;
+        boolean envOpen = isConnected && status.workerEnvironmentExists();
+
         boolean hasSelectedPlan = choiceBox.getSelectionModel().getSelectedItem() != null;
         boolean isValid = areParametersValid();
-        boolean isConnected = true; // Assume connected for now - could check StatusBus later
         this.editorStateValid = isValid;
 
-        planRadBtn.setDisable(isEditMode);
-        instrRadBtn.setDisable(isEditMode);
-        choiceBox.setDisable(isEditMode);
+        // Disable all controls when environment is closed
+        table.setDisable(!envOpen);
+        planRadBtn.setDisable(!envOpen || isEditMode);
+        instrRadBtn.setDisable(!envOpen || isEditMode);
+        choiceBox.setDisable(!envOpen || isEditMode);
 
-        addBtn.setDisable(!hasSelectedPlan || !isValid || !isConnected);
+        addBtn.setDisable(!envOpen || !hasSelectedPlan || !isValid);
 
-        saveBtn.setDisable(!isEditMode || !hasSelectedPlan || !isValid || !isConnected ||
+        saveBtn.setDisable(!envOpen || !isEditMode || !hasSelectedPlan || !isValid ||
                 !"QUEUE ITEM".equals(currentItemSource));
 
-        batchBtn.setDisable(!isConnected);
+        batchBtn.setDisable(!envOpen);
 
-        resetBtn.setDisable(!isEditMode);
-        cancelBtn.setDisable(!isEditMode);
+        resetBtn.setDisable(!envOpen || !isEditMode);
+        cancelBtn.setDisable(!envOpen || !isEditMode);
     }
 
     /**

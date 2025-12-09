@@ -95,11 +95,16 @@ public class RePlanViewerController implements Initializable {
             loadAllowedPlansAndInstructions();
         }
 
-        // Listen for status changes to load plans when connected
+        // Listen for status changes to load plans when connected and update widget state
         StatusBus.latest().addListener((o, oldV, newV) -> {
             if (newV != null && allowedPlans.isEmpty()) {
                 loadAllowedPlansAndInstructions();
             }
+            // Clear the displayed item when disconnected
+            if (newV == null) {
+                Platform.runLater(() -> showItem(null));
+            }
+            Platform.runLater(this::updateWidgetState);
         });
 
         QueueItemSelectionEvent.getInstance().addListener(this::showItem);
@@ -404,9 +409,11 @@ public class RePlanViewerController implements Initializable {
     }
 
     private void updateWidgetState() {
-        boolean isItemAllowed = false;
-        boolean isConnected = true; // Assume connected for now
+        StatusResponse status = StatusBus.latest().get();
+        boolean isConnected = status != null;
+        boolean envOpen = isConnected && status.workerEnvironmentExists();
 
+        boolean isItemAllowed = false;
         if (queueItemType != null && queueItemName != null && !"-".equals(queueItemName)) {
             if ("plan".equals(queueItemType)) {
                 isItemAllowed = allowedPlans.get(queueItemName) != null;
@@ -415,9 +422,11 @@ public class RePlanViewerController implements Initializable {
             }
         }
 
-        copyBtn.setDisable(!isItemAllowed || !isConnected);
-
-        editBtn.setDisable(!isItemAllowed);
+        // Disable all controls when environment is closed
+        table.setDisable(!envOpen);
+        paramChk.setDisable(!envOpen);
+        copyBtn.setDisable(!envOpen || !isItemAllowed);
+        editBtn.setDisable(!envOpen || !isItemAllowed);
     }
 
     private void copyToQueue() {
