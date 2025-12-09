@@ -110,13 +110,14 @@ public final class RePlanQueueController implements Initializable {
                 });
 
         ChangeListener<StatusResponse> poll =
-                (o,oldV,newV) -> Platform.runLater(() -> {
-                    refresh(newV, List.of());
+                (o,oldV,newV) -> {
                     // Load allowed plans only when connected
                     if (newV != null && allowedPlans.isEmpty()) {
-                        loadAllowedPlansAndInstructions();
+                        Platform.runLater(this::loadAllowedPlansAndInstructions);
                     }
-                });
+                    // Run refresh in background thread to avoid blocking UI
+                    new Thread(() -> refresh(newV, List.of())).start();
+                };
         StatusBus.latest().addListener(poll);
 
         // Only load plans if already connected
@@ -160,26 +161,33 @@ public final class RePlanQueueController implements Initializable {
     private void refresh(StatusResponse st, Collection<String> explicitFocus) {
 
         if (st == null) {
-            ignoreSticky = true;
-            rows.clear(); uid2item.clear();
-            ignoreSticky = false;
-            updateButtonStates();
+            Platform.runLater(() -> {
+                ignoreSticky = true;
+                rows.clear(); uid2item.clear();
+                ignoreSticky = false;
+                updateButtonStates();
+            });
             return;
         }
         try {
+            // Blocking HTTP call - now runs on background thread
             QueueGetPayload qp = svc.queueGetTyped();
-            ignoreSticky = true;
-            rebuildRows(qp.queue());
-            ignoreSticky = false;
 
-            List<String> focus = explicitFocus.isEmpty() ? stickySel
-                    : List.copyOf(explicitFocus);
-            applyFocus(focus);
-            stickySel = focus;
+            // UI updates must happen on FX thread
+            Platform.runLater(() -> {
+                ignoreSticky = true;
+                rebuildRows(qp.queue());
+                ignoreSticky = false;
 
-            loopBtn.setSelected(Optional.ofNullable(st.planQueueMode())
-                    .map(StatusResponse.PlanQueueMode::loop)
-                    .orElse(false));
+                List<String> focus = explicitFocus.isEmpty() ? stickySel
+                        : List.copyOf(explicitFocus);
+                applyFocus(focus);
+                stickySel = focus;
+
+                loopBtn.setSelected(Optional.ofNullable(st.planQueueMode())
+                        .map(StatusResponse.PlanQueueMode::loop)
+                        .orElse(false));
+            });
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Queue refresh failed: " + ex.getMessage());
         }
