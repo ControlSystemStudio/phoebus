@@ -41,6 +41,8 @@ public final class RePlanQueueController implements Initializable {
     private final RunEngineService svc  = new RunEngineService();
     private final ObservableList<Row> rows = FXCollections.observableArrayList();
     private final Map<String, QueueItem> uid2item = new HashMap<>();
+    private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
+    private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
     private List<String> stickySel   = List.of();   // last user selection
     private boolean      ignoreSticky= false;       // guard while we rebuild
 
@@ -111,7 +113,39 @@ public final class RePlanQueueController implements Initializable {
                 (o,oldV,newV) -> Platform.runLater(() -> refresh(newV, List.of()));
         StatusBus.latest().addListener(poll);
 
+        loadAllowedPlansAndInstructions();
+
         refresh(StatusBus.latest().get(), List.of());
+    }
+
+    private void loadAllowedPlansAndInstructions() {
+        new Thread(() -> {
+            try {
+                Map<String, Object> responseMap = svc.plansAllowedRaw();
+
+                if (responseMap != null && Boolean.TRUE.equals(responseMap.get("success"))) {
+                    allowedPlans.clear();
+                    if (responseMap.containsKey("plans_allowed")) {
+                        Map<String, Object> plansData = (Map<String, Object>) responseMap.get("plans_allowed");
+                        for (Map.Entry<String, Object> entry : plansData.entrySet()) {
+                            String planName = entry.getKey();
+                            Map<String, Object> planInfo = (Map<String, Object>) entry.getValue();
+                            allowedPlans.put(planName, planInfo);
+                        }
+                    }
+                }
+
+                allowedInstructions.clear();
+                Map<String, Object> queueStopInstr = new HashMap<>();
+                queueStopInstr.put("name", "queue_stop");
+                queueStopInstr.put("description", "Stop execution of the queue.");
+                queueStopInstr.put("parameters", List.of());
+                allowedInstructions.put("queue_stop", queueStopInstr);
+
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to load plans", e);
+            }
+        }).start();
     }
 
     private void refresh(StatusResponse st, Collection<String> explicitFocus) {
@@ -148,7 +182,7 @@ public final class RePlanQueueController implements Initializable {
 
         for (QueueItem q : items) {
             rows.add(new Row(q.itemUid(), q.itemType(), q.name(),
-                    fmtParams(q), q.user(), q.userGroup()));
+                    fmtParams(q, q.itemType(), q.name()), q.user(), q.userGroup()));
             uid2item.put(q.itemUid(), q);
         }
         updateButtonStates();
@@ -360,15 +394,49 @@ public final class RePlanQueueController implements Initializable {
     private static String firstLetter(String s) {
         return (s == null || s.isBlank()) ? "" : s.substring(0, 1).toUpperCase();
     }
-    private static String fmtParams(QueueItem q) {
+    private String fmtParams(QueueItem q, String itemType, String itemName) {
+        // Format args first
         String a = Optional.ofNullable(q.args()).orElse(List.of())
                 .stream().map(PythonParameterConverter::toPythonRepr)
                 .collect(Collectors.joining(", "));
-        String k = Optional.ofNullable(q.kwargs()).orElse(Map.of())
+
+        // Get the plan/instruction definition to determine parameter order
+        Map<String, Object> itemInfo = null;
+        if ("plan".equals(itemType)) {
+            itemInfo = allowedPlans.get(itemName);
+        } else if ("instruction".equals(itemType)) {
+            itemInfo = allowedInstructions.get(itemName);
+        }
+
+        // Format kwargs in schema order if available
+        String k;
+        if (itemInfo != null) {
+            List<Map<String, Object>> parameters = (List<Map<String, Object>>) itemInfo.get("parameters");
+            if (parameters != null) {
+                Map<String, Object> kwargs = Optional.ofNullable(q.kwargs()).orElse(Map.of());
+                // Format kwargs in the order they appear in the schema
+                k = parameters.stream()
+                        .map(paramInfo -> (String) paramInfo.get("name"))
+                        .filter(kwargs::containsKey)
+                        .map(paramName -> paramName + ": " + PythonParameterConverter.toPythonRepr(kwargs.get(paramName)))
+                        .collect(Collectors.joining(", "));
+            } else {
+                // No parameters defined, use default formatting
+                k = formatKwargsDefault(q.kwargs());
+            }
+        } else {
+            // Plan/instruction not found in schema, use default formatting
+            k = formatKwargsDefault(q.kwargs());
+        }
+
+        return Stream.of(a, k).filter(s -> !s.isEmpty())
+                .collect(Collectors.joining(", "));
+    }
+
+    private String formatKwargsDefault(Map<String, Object> kwargs) {
+        return Optional.ofNullable(kwargs).orElse(Map.of())
                 .entrySet().stream()
                 .map(e -> e.getKey() + ": " + PythonParameterConverter.toPythonRepr(e.getValue()))
-                .collect(Collectors.joining(", "));
-        return Stream.of(a, k).filter(s -> !s.isEmpty())
                 .collect(Collectors.joining(", "));
     }
     private record Row(String uid, String itemType, String name,
