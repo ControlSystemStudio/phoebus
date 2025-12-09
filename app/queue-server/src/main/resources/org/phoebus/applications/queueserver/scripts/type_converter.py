@@ -82,13 +82,16 @@ def convert_parameters(parameters_data):
         is_enabled = param.get('enabled', True)
         default_value = param.get('defaultValue')
 
+        # Skip disabled parameters entirely - they should not be included in kwargs
+        if not is_enabled:
+            continue
+
         # Skip parameters with no value (empty and no default)
         if param_value is None or param_value == '':
             continue
 
         try:
-            # Parse the value string to proper type (works for both enabled and disabled)
-            # When disabled, the value contains the stringified default value
+            # Parse the value string to proper type
             parsed_value = parse_literal_value(param_value)
 
             # Only include if it's not empty

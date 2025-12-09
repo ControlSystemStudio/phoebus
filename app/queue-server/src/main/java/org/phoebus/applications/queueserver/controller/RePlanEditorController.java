@@ -311,9 +311,9 @@ public class RePlanEditorController implements Initializable {
             // If unchecked, reset to default value; if checked and no value, set default
             if (!isChecked) {
                 Object defaultValue = row.getDefaultValue();
-                row.setValue(defaultValue != null ? String.valueOf(defaultValue) : "");
+                row.setValue(defaultValue != null ? pythonConverter.normalizeAndRepr(defaultValue) : "");
             } else if (row.getValue().isEmpty() && row.getDefaultValue() != null) {
-                row.setValue(String.valueOf(row.getDefaultValue()));
+                row.setValue(pythonConverter.normalizeAndRepr(row.getDefaultValue()));
             }
 
             // Trigger edit mode when checkbox is changed
@@ -498,10 +498,11 @@ public class RePlanEditorController implements Initializable {
 
             if (currentKwargs.containsKey(paramName)) {
                 Object value = currentKwargs.get(paramName);
-                currentValue = value != null ? String.valueOf(value) : "";
+                currentValue = value != null ? PythonParameterConverter.toPythonRepr(value) : "";
                 isEnabled = true;
             } else if (defaultValue != null) {
-                currentValue = String.valueOf(defaultValue);
+                // Use normalizeAndRepr for defaults - they might be strings that need parsing
+                currentValue = pythonConverter.normalizeAndRepr(defaultValue);
             }
 
             ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
@@ -824,13 +825,13 @@ public class RePlanEditorController implements Initializable {
                 if (originalParameterValues.containsKey(paramName)) {
                     // Restore original value
                     Object originalValue = originalParameterValues.get(paramName);
-                    row.setValue(originalValue != null ? String.valueOf(originalValue) : "");
+                    row.setValue(originalValue != null ? PythonParameterConverter.toPythonRepr(originalValue) : "");
                     row.setEnabled(true);
                 } else {
                     // Parameter was not in original item, reset to default
                     Object defaultValue = row.getDefaultValue();
                     if (defaultValue != null) {
-                        row.setValue(String.valueOf(defaultValue));
+                        row.setValue(pythonConverter.normalizeAndRepr(defaultValue));
                     } else {
                         row.setValue("");
                     }
@@ -842,7 +843,7 @@ public class RePlanEditorController implements Initializable {
             for (ParameterRow row : parameterRows) {
                 Object defaultValue = row.getDefaultValue();
                 if (defaultValue != null) {
-                    row.setValue(String.valueOf(defaultValue));
+                    row.setValue(pythonConverter.normalizeAndRepr(defaultValue));
                 } else {
                     row.setValue("");
                 }

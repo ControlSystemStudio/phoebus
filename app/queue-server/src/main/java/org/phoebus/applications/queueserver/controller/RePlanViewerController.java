@@ -3,6 +3,7 @@ package org.phoebus.applications.queueserver.controller;
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
+import org.phoebus.applications.queueserver.util.PythonParameterConverter;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
 import org.phoebus.applications.queueserver.view.TabSwitchEvent;
 import org.phoebus.applications.queueserver.view.ItemUpdateEvent;
@@ -38,6 +39,8 @@ public class RePlanViewerController implements Initializable {
     private final ObservableList<ParameterRow> parameterRows = FXCollections.observableArrayList();
     private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
+    // Python-based parameter converter
+    private final PythonParameterConverter pythonConverter = new PythonParameterConverter();
 
     private QueueItem currentQueueItem;
     private String queueItemName = "-";
@@ -285,10 +288,11 @@ public class RePlanViewerController implements Initializable {
 
             if (itemKwargs.containsKey(paramName)) {
                 Object value = itemKwargs.get(paramName);
-                currentValue = value != null ? String.valueOf(value) : "";
+                currentValue = value != null ? PythonParameterConverter.toPythonRepr(value) : "";
                 isEnabled = true;
             } else if (defaultValue != null) {
-                currentValue = String.valueOf(defaultValue);
+                // Use normalizeAndRepr for defaults - they might be strings that need parsing
+                currentValue = pythonConverter.normalizeAndRepr(defaultValue);
                 isEnabled = false;
             }
 
@@ -331,34 +335,42 @@ public class RePlanViewerController implements Initializable {
 
     private String formatResultValue(Object value) {
         if (value == null) {
-            return "null";
+            return "None";
         }
-        
+
         if (value instanceof Map) {
             Map<?, ?> map = (Map<?, ?>) value;
             if (map.isEmpty()) {
                 return "{}";
             }
+            // For small maps, show the full Python repr
+            if (map.size() <= 3) {
+                return PythonParameterConverter.toPythonRepr(value);
+            }
             return "Map (" + map.size() + " entries)";
         }
-        
+
         if (value instanceof List) {
             List<?> list = (List<?>) value;
             if (list.isEmpty()) {
                 return "[]";
             }
+            // For small lists, show the full Python repr
+            if (list.size() <= 5) {
+                return PythonParameterConverter.toPythonRepr(value);
+            }
             return "List (" + list.size() + " items)";
         }
-        
+
         if (value instanceof String) {
             String str = (String) value;
             if (str.length() > 100) {
-                return str.substring(0, 97) + "...";
+                return "'" + str.substring(0, 97) + "...'";
             }
-            return str;
+            return PythonParameterConverter.toPythonRepr(value);
         }
-        
-        return String.valueOf(value);
+
+        return PythonParameterConverter.toPythonRepr(value);
     }
 
     private void autoResizeColumns() {

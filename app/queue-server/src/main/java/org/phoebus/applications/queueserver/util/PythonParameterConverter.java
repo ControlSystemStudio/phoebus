@@ -147,6 +147,111 @@ public class PythonParameterConverter {
     }
 
     /**
+     * Normalize a value by parsing it if it's a string, then converting to Python repr.
+     * This ensures that string representations of numbers like "1" become 1 (without quotes),
+     * while actual strings like "hello" become 'hello' (with quotes).
+     *
+     * @param value The value to normalize
+     * @return Python repr string with correct types
+     */
+    public String normalizeAndRepr(Object value) {
+        if (value == null) {
+            return "None";
+        }
+
+        // If it's already a proper Java type (not String), just repr it
+        if (!(value instanceof String)) {
+            return toPythonRepr(value);
+        }
+
+        // It's a string - try to parse it to see what type it really is
+        String strValue = (String) value;
+        if (strValue.trim().isEmpty()) {
+            return "";
+        }
+
+        try {
+            // Try to parse with Python to determine true type
+            List<ParameterInfo> testParam = List.of(
+                    new ParameterInfo("test", strValue, true, true, null)
+            );
+            Map<String, Object> parsed = convertParameters(testParam);
+
+            if (parsed.containsKey("test")) {
+                // Successfully parsed - use the parsed value's repr
+                return toPythonRepr(parsed.get("test"));
+            }
+        } catch (Exception e) {
+            // If parsing fails, treat as a string literal
+        }
+
+        // Fallback - just repr the string as-is
+        return toPythonRepr(value);
+    }
+
+    /**
+     * Convert a Java object to its Python string representation (repr).
+     * This preserves Python syntax including quotes around strings in lists/dicts.
+     *
+     * @param value The Java object to convert
+     * @return Python repr string
+     */
+    public static String toPythonRepr(Object value) {
+        if (value == null) {
+            return "None";
+        }
+
+        // Handle strings - add single quotes
+        if (value instanceof String) {
+            String str = (String) value;
+            // Escape single quotes and backslashes
+            str = str.replace("\\", "\\\\").replace("'", "\\'");
+            return "'" + str + "'";
+        }
+
+        // Handle booleans - Python uses True/False
+        if (value instanceof Boolean) {
+            return ((Boolean) value) ? "True" : "False";
+        }
+
+        // Handle numbers - convert to string directly
+        if (value instanceof Number) {
+            return value.toString();
+        }
+
+        // Handle lists
+        if (value instanceof List) {
+            List<?> list = (List<?>) value;
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < list.size(); i++) {
+                if (i > 0) sb.append(", ");
+                sb.append(toPythonRepr(list.get(i)));
+            }
+            sb.append("]");
+            return sb.toString();
+        }
+
+        // Handle maps/dicts
+        if (value instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) value;
+            StringBuilder sb = new StringBuilder("{");
+            boolean first = true;
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (!first) sb.append(", ");
+                first = false;
+                sb.append(toPythonRepr(entry.getKey()));
+                sb.append(": ");
+                sb.append(toPythonRepr(entry.getValue()));
+            }
+            sb.append("}");
+            return sb.toString();
+        }
+
+        // Fallback - just use toString
+        return value.toString();
+    }
+
+    /**
      * Close the converter and release resources.
      */
     public void close() {

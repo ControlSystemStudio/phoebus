@@ -7,6 +7,7 @@ import org.phoebus.applications.queueserver.api.StatusResponse;
 import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
+import org.phoebus.applications.queueserver.util.PythonParameterConverter;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -361,11 +362,11 @@ public final class RePlanQueueController implements Initializable {
     }
     private static String fmtParams(QueueItem q) {
         String a = Optional.ofNullable(q.args()).orElse(List.of())
-                .stream().map(Object::toString)
+                .stream().map(PythonParameterConverter::toPythonRepr)
                 .collect(Collectors.joining(", "));
         String k = Optional.ofNullable(q.kwargs()).orElse(Map.of())
                 .entrySet().stream()
-                .map(e -> e.getKey() + ": " + e.getValue())
+                .map(e -> e.getKey() + ": " + PythonParameterConverter.toPythonRepr(e.getValue()))
                 .collect(Collectors.joining(", "));
         return Stream.of(a, k).filter(s -> !s.isEmpty())
                 .collect(Collectors.joining(", "));
