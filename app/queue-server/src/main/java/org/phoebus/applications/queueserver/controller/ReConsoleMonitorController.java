@@ -121,6 +121,8 @@ public final class ReConsoleMonitorController implements Initializable {
             wsTextBuffer.setLength(0);
         }
         stop=true;
+        textBuf.clear();
+        Platform.runLater(this::render);
     }
 
     private void loadBacklog(){

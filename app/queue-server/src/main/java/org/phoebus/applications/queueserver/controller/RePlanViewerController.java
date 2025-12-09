@@ -4,6 +4,7 @@ import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
 import org.phoebus.applications.queueserver.util.PythonParameterConverter;
+import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
 import org.phoebus.applications.queueserver.view.TabSwitchEvent;
 import org.phoebus.applications.queueserver.view.ItemUpdateEvent;
@@ -88,7 +89,18 @@ public class RePlanViewerController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initializeTable();
         initializeControls();
-        loadAllowedPlansAndInstructions();
+
+        // Only load plans if already connected
+        if (StatusBus.latest().get() != null) {
+            loadAllowedPlansAndInstructions();
+        }
+
+        // Listen for status changes to load plans when connected
+        StatusBus.latest().addListener((o, oldV, newV) -> {
+            if (newV != null && allowedPlans.isEmpty()) {
+                loadAllowedPlansAndInstructions();
+            }
+        });
 
         QueueItemSelectionEvent.getInstance().addListener(this::showItem);
 

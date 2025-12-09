@@ -110,10 +110,19 @@ public final class RePlanQueueController implements Initializable {
                 });
 
         ChangeListener<StatusResponse> poll =
-                (o,oldV,newV) -> Platform.runLater(() -> refresh(newV, List.of()));
+                (o,oldV,newV) -> Platform.runLater(() -> {
+                    refresh(newV, List.of());
+                    // Load allowed plans only when connected
+                    if (newV != null && allowedPlans.isEmpty()) {
+                        loadAllowedPlansAndInstructions();
+                    }
+                });
         StatusBus.latest().addListener(poll);
 
-        loadAllowedPlansAndInstructions();
+        // Only load plans if already connected
+        if (StatusBus.latest().get() != null) {
+            loadAllowedPlansAndInstructions();
+        }
 
         refresh(StatusBus.latest().get(), List.of());
     }
@@ -331,7 +340,9 @@ public final class RePlanQueueController implements Initializable {
     catch (Exception ex){ logger.log(Level.WARNING, "Loop-set failed: "+ex.getMessage()); } }
 
     private void updateButtonStates() {
-        boolean connected = StatusBus.latest().get()!=null;
+        StatusResponse status = StatusBus.latest().get();
+        boolean connected = status != null;
+        boolean envOpen = connected && status.workerEnvironmentExists();
 
         var sel = table.getSelectionModel().getSelectedIndices();
         boolean hasSel = !table.getSelectionModel().getSelectedIndices().isEmpty();
@@ -349,14 +360,15 @@ public final class RePlanQueueController implements Initializable {
             loopBtn.setDisable(true);
             deselectBtn.setDisable(!hasSel);
         } else {
-            upBtn.setDisable(!(connected && hasSel && !atTop));
-            downBtn.setDisable(!(connected && hasSel && !atBot));
+            // Only allow modifications when connected AND environment is open
+            upBtn.setDisable(!(envOpen && hasSel && !atTop));
+            downBtn.setDisable(!(envOpen && hasSel && !atBot));
             topBtn.setDisable(upBtn.isDisable());
             bottomBtn.setDisable(downBtn.isDisable());
-            deleteBtn.setDisable(!(connected && hasSel));
+            deleteBtn.setDisable(!(envOpen && hasSel));
             duplicateBtn.setDisable(deleteBtn.isDisable());
-            clearBtn.setDisable(!(connected && !rows.isEmpty()));
-            loopBtn.setDisable(!connected);
+            clearBtn.setDisable(!(envOpen && !rows.isEmpty()));
+            loopBtn.setDisable(!envOpen);
             deselectBtn.setDisable(!hasSel);
         }
     }

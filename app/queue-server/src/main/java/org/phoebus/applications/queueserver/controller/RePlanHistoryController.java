@@ -292,7 +292,9 @@ public final class RePlanHistoryController implements Initializable {
     }
 
     private void updateButtonStates() {
-        boolean connected = StatusBus.latest().get() != null;
+        StatusResponse status = StatusBus.latest().get();
+        boolean connected = status != null;
+        boolean envOpen = connected && status.workerEnvironmentExists();
         boolean hasSel = !table.getSelectionModel().getSelectedIndices().isEmpty();
 
         if (viewOnly) {
@@ -300,8 +302,9 @@ public final class RePlanHistoryController implements Initializable {
             clearBtn.setDisable(true);
             deselectBtn.setDisable(!hasSel);
         } else {
-            copyBtn.setDisable(!(connected && hasSel));
-            clearBtn.setDisable(!(connected && !rows.isEmpty()));
+            // Only allow modifications when connected AND environment is open
+            copyBtn.setDisable(!(envOpen && hasSel));
+            clearBtn.setDisable(!(envOpen && !rows.isEmpty()));
             deselectBtn.setDisable(!hasSel);
         }
     }

@@ -4,6 +4,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
 import org.phoebus.applications.queueserver.view.TabSwitchEvent;
 import org.phoebus.applications.queueserver.view.ItemUpdateEvent;
@@ -255,7 +256,18 @@ public class RePlanEditorController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initializeTable();
         initializeControls();
-        loadAllowedPlansAndInstructions();
+
+        // Only load plans if already connected
+        if (StatusBus.latest().get() != null) {
+            loadAllowedPlansAndInstructions();
+        }
+
+        // Listen for status changes to load plans when connected
+        StatusBus.latest().addListener((o, oldV, newV) -> {
+            if (newV != null && allowedPlans.isEmpty()) {
+                loadAllowedPlansAndInstructions();
+            }
+        });
 
         // Listen for edit requests from plan viewer
         PlanEditEvent.getInstance().addListener(this::editItem);
