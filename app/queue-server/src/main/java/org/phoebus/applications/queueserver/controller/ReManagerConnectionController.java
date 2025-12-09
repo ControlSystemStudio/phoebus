@@ -29,8 +29,10 @@ public final class ReManagerConnectionController {
     private final ObjectMapper mapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private ScheduledFuture<?>   pollTask;
+    private ScheduledFuture<?>   timeoutTask;
     private QueueServerWebSocket<StatusWsMessage> statusWs;
     private volatile StatusResponse latestStatus = null;
+    private volatile boolean connected = false;
     private static final Logger logger = Logger.getLogger(ReManagerConnectionController.class.getPackageName());
 
     @FXML private void connect()    { start(); }
@@ -40,14 +42,20 @@ public final class ReManagerConnectionController {
         if (pollTask != null && !pollTask.isDone()) return;     // already running
         if (statusWs != null && statusWs.isConnected()) return;  // already connected
 
-        showPending();                                          // UI while waiting
+        connected = false;
+        latestStatus = null;
+        showConnecting();
+
+        // Set up connection timeout (one-time check after the timeout period)
+        if (Preferences.connectTimeout > 0) {
+            timeoutTask = PollCenter.afterMs(Preferences.connectTimeout, this::checkConnectionTimeout);
+        }
 
         if (Preferences.use_websockets) {
-            logger.log(Level.FINE, "Starting status WebSocket connection");
+            logger.log(Level.FINE, "Starting status WebSocket connection (timeout: " + Preferences.connectTimeout + "ms)");
             startWebSocket();
         } else {
-            logger.log(Level.FINE, "Starting status polling every " + Preferences.update_interval_ms + " milliseconds");
-            updateWidgets(queryStatusOnce());
+            logger.log(Level.FINE, "Starting status polling every " + Preferences.update_interval_ms + " milliseconds (timeout: " + Preferences.connectTimeout + "ms)");
             pollTask = PollCenter.everyMs(Preferences.update_interval_ms,
                     this::queryStatusOnce,      // background
                     this::updateWidgets);       // FX thread
@@ -90,8 +98,22 @@ public final class ReManagerConnectionController {
         }
     }
 
+    private void checkConnectionTimeout() {
+        if (!connected) {
+            logger.log(Level.WARNING, "Connection timeout after " + Preferences.connectTimeout + "ms");
+            Platform.runLater(() -> {
+                stop();
+                showError("TIMEOUT");
+            });
+        }
+    }
+
     private void stop() {
         logger.log(Level.FINE, "Stopping status monitoring");
+        if (timeoutTask != null) {
+            timeoutTask.cancel(true);
+            timeoutTask = null;
+        }
         if (pollTask != null) {
             pollTask.cancel(true);
             pollTask = null;
@@ -100,33 +122,56 @@ public final class ReManagerConnectionController {
             statusWs.disconnect();
             statusWs = null;
         }
+        connected = false;
+        latestStatus = null;
         StatusBus.push(null);
         showIdle();
     }
 
-    private void showPending() {
-        connectionStatusLabel.setText("-----");
+    private void showConnecting() {
+        connectionStatusLabel.setText("CONNECTING");
         connectButton.setDisable(true);
         disconnectButton.setDisable(false);
     }
+
     private void showIdle() {
         connectionStatusLabel.setText("-----");
         connectButton.setDisable(false);
         disconnectButton.setDisable(true);
     }
+
     private void showOnline() {
         connectionStatusLabel.setText("ONLINE");
         connectButton.setDisable(true);
         disconnectButton.setDisable(false);
     }
 
+    private void showError(String message) {
+        connectionStatusLabel.setText(message);
+        connectButton.setDisable(false);
+        disconnectButton.setDisable(true);
+    }
+
     private void updateWidgets(StatusResponse s) {
         StatusBus.push((s));
         if (s != null) {
             logger.log(Level.FINEST, "Status update: manager_state=" + s.managerState());
+
+            // Successfully connected - cancel timeout
+            if (!connected) {
+                connected = true;
+                if (timeoutTask != null) {
+                    timeoutTask.cancel(false);
+                    timeoutTask = null;
+                }
+            }
+
             showOnline();
         } else {
-            showPending();      // keep polling; user may Disconnect
+            // Only show connecting if we haven't timed out yet
+            if (timeoutTask != null && !timeoutTask.isDone()) {
+                showConnecting();
+            }
         }
     }
 }

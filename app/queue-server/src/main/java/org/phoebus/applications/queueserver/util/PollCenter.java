@@ -25,6 +25,11 @@ public final class PollCenter {
         return EXEC.scheduleAtFixedRate(task, 0, periodMs, TimeUnit.MILLISECONDS);
     }
 
+    public static ScheduledFuture<?> afterMs(long delayMs, Runnable task) {
+        logger.log(Level.FINE, "Scheduling one-time task after: " + delayMs + " milliseconds");
+        return EXEC.schedule(task, delayMs, TimeUnit.MILLISECONDS);
+    }
+
     public static <T> ScheduledFuture<?> every(
             long periodSec,
             Supplier<T> supplier,
