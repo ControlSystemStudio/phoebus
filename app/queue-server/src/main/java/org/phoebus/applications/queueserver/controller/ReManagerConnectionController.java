@@ -30,7 +30,6 @@ public final class ReManagerConnectionController {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private ScheduledFuture<?>   pollTask;
     private QueueServerWebSocket<StatusWsMessage> statusWs;
-    private static final int PERIOD_SEC = 1;
     private static final Logger logger = Logger.getLogger(ReManagerConnectionController.class.getPackageName());
 
     @FXML private void connect()    { start(); }
@@ -46,9 +45,9 @@ public final class ReManagerConnectionController {
             logger.log(Level.FINE, "Starting status WebSocket connection");
             startWebSocket();
         } else {
-            logger.log(Level.FINE, "Starting status polling every " + PERIOD_SEC + " seconds");
+            logger.log(Level.FINE, "Starting status polling every " + Preferences.update_interval_ms + " milliseconds");
             updateWidgets(queryStatusOnce());
-            pollTask = PollCenter.every(PERIOD_SEC,
+            pollTask = PollCenter.everyMs(Preferences.update_interval_ms,
                     this::queryStatusOnce,      // background
                     this::updateWidgets);       // FX thread
         }

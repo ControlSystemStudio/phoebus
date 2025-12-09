@@ -20,12 +20,32 @@ public final class PollCenter {
         return EXEC.scheduleAtFixedRate(task, 0, periodSec, TimeUnit.SECONDS);
     }
 
+    public static ScheduledFuture<?> everyMs(long periodMs, Runnable task) {
+        logger.log(Level.FINE, "Scheduling task with period: " + periodMs + " milliseconds");
+        return EXEC.scheduleAtFixedRate(task, 0, periodMs, TimeUnit.MILLISECONDS);
+    }
+
     public static <T> ScheduledFuture<?> every(
             long periodSec,
             Supplier<T> supplier,
             java.util.function.Consumer<T> fxConsumer) {
 
         return every(periodSec, () -> {
+            try {
+                T t = supplier.get();
+                javafx.application.Platform.runLater(() -> fxConsumer.accept(t));
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Polling task failed", ex);
+            }
+        });
+    }
+
+    public static <T> ScheduledFuture<?> everyMs(
+            long periodMs,
+            Supplier<T> supplier,
+            java.util.function.Consumer<T> fxConsumer) {
+
+        return everyMs(periodMs, () -> {
             try {
                 T t = supplier.get();
                 javafx.application.Platform.runLater(() -> fxConsumer.accept(t));

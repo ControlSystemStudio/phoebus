@@ -105,7 +105,7 @@ public final class ReConsoleMonitorController implements Initializable {
             startWebSocket();
         } else {
             startStream();
-            pollTask = PollCenter.every(1,this::poll);
+            pollTask = PollCenter.everyMs(Preferences.update_interval_ms, this::poll);
         }
     }
 
@@ -166,7 +166,7 @@ public final class ReConsoleMonitorController implements Initializable {
     }
 
     private void poll(){
-        if(stop||Instant.now().minusMillis(1000).isBefore(lastLine))return;
+        if(stop||Instant.now().minusMillis(Preferences.update_interval_ms).isBefore(lastLine))return;
         try{
             ConsoleOutputUpdate u = svc.consoleOutputUpdate(lastUid);
             if(u.consoleOutputMsgs()!=null){

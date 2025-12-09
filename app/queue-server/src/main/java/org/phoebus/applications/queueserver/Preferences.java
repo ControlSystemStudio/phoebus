@@ -27,6 +27,9 @@ public class Preferences {
     @Preference
     public static boolean use_websockets;
 
+    @Preference
+    public static int update_interval_ms;
+
     static
     {
         AnnotatedPreferences.initialize(Preferences.class, "/queueserver_preferences.properties");
