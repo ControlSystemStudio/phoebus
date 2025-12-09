@@ -30,7 +30,7 @@ public class ComparisonDialogDemo extends ApplicationWrapper {
                         Alarm.none(),
                         Time.now(), Display.none());
         ComparisonDialog comparisonDialog =
-                new ComparisonDialog(vDoubleArray, "loc://x(3, 2, 1)");
+                new ComparisonDialog(vDoubleArray, "loc://x(3, 2, 1, 1)");
         comparisonDialog.show();
     }
 }
