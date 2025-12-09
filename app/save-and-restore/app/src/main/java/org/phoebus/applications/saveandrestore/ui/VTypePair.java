@@ -20,7 +20,9 @@ package org.phoebus.applications.saveandrestore.ui;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.saveandrestore.util.Threshold;
+import org.phoebus.saveandrestore.util.VNoData;
 
 import java.util.Optional;
 
@@ -59,11 +61,19 @@ public class VTypePair {
      *     Main use case for this is ordering on delta. Absolute delta may be more useful as otherwise zero
      *     deltas would be found between positive and negative deltas.
      * </p>
+     * <p>
+     *     If {@link #base} or {@link #value} are <code>null</code> or {@link VNoData#INSTANCE}, then
+     *     the delta cannot be computed as a number. In this case {@link Double#MAX_VALUE} is returned
+     *     to indicate an "infinite delta".
+     * </p>
      * @return Absolute delta between {@link #base} and {@link #value}.
      */
     public double getAbsoluteDelta(){
-        if(base == null || value == null){
-            return 0.0;
+        if(base.equals(VNoData.INSTANCE) ||
+                value.equals(VNoData.INSTANCE) ||
+                base == null ||
+                value == null){
+            return Double.MAX_VALUE;
         }
         if(base instanceof VNumber){
             return Math.abs(((VNumber)base).getValue().doubleValue() -
