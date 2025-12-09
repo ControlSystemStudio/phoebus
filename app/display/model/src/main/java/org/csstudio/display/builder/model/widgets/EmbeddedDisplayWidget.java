@@ -307,6 +307,13 @@ public class EmbeddedDisplayWidget extends MacroWidget
         return super.getProperty(name);
     }
 
+    @Override
+    public Macros getEffectiveMacros()
+    {
+        final Macros macros = new Macros(super.getEffectiveMacros());
+        return macros;
+    }
+
     /** @return 'file' property */
     public WidgetProperty<String> propFile()
     {
