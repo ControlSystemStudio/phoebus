@@ -30,9 +30,11 @@ public final class ReManagerConnectionController {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private ScheduledFuture<?>   pollTask;
     private ScheduledFuture<?>   timeoutTask;
+    private ScheduledFuture<?>   healthCheckTask;
     private QueueServerWebSocket<StatusWsMessage> statusWs;
     private volatile StatusResponse latestStatus = null;
     private volatile boolean connected = false;
+    private volatile long lastStatusUpdateTime = 0;
     private static final Logger logger = Logger.getLogger(ReManagerConnectionController.class.getPackageName());
 
     @FXML private void connect()    { start(); }
@@ -72,6 +74,8 @@ public final class ReManagerConnectionController {
                 try {
                     // Convert Map to StatusResponse and buffer it
                     latestStatus = mapper.convertValue(statusMap, StatusResponse.class);
+                    // Record timestamp when we receive fresh data from WebSocket
+                    lastStatusUpdateTime = System.currentTimeMillis();
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Failed to parse status from WebSocket", e);
                 }
@@ -82,6 +86,12 @@ public final class ReManagerConnectionController {
 
         // Schedule throttled UI updates at the configured interval
         pollTask = PollCenter.everyMs(Preferences.update_interval_ms, () -> {
+            // Check if WebSocket is still connected
+            if (statusWs != null && !statusWs.isConnected()) {
+                // WebSocket closed - clear buffer and stop receiving updates
+                latestStatus = null;
+            }
+
             StatusResponse status = latestStatus;
             if (status != null) {
                 Platform.runLater(() -> updateWidgets(status));
@@ -108,11 +118,28 @@ public final class ReManagerConnectionController {
         }
     }
 
+    private void checkConnectionHealth() {
+        if (connected && Preferences.connectTimeout > 0) {
+            long timeSinceLastUpdate = System.currentTimeMillis() - lastStatusUpdateTime;
+            if (timeSinceLastUpdate > Preferences.connectTimeout) {
+                logger.log(Level.WARNING, "Connection lost - no status update for " + timeSinceLastUpdate + "ms");
+                Platform.runLater(() -> {
+                    stop();
+                    showError("TIMEOUT");
+                });
+            }
+        }
+    }
+
     private void stop() {
         logger.log(Level.FINE, "Stopping status monitoring");
         if (timeoutTask != null) {
             timeoutTask.cancel(true);
             timeoutTask = null;
+        }
+        if (healthCheckTask != null) {
+            healthCheckTask.cancel(true);
+            healthCheckTask = null;
         }
         if (pollTask != null) {
             pollTask.cancel(true);
@@ -124,6 +151,7 @@ public final class ReManagerConnectionController {
         }
         connected = false;
         latestStatus = null;
+        lastStatusUpdateTime = 0;
         StatusBus.push(null);
         showIdle();
     }
@@ -157,12 +185,24 @@ public final class ReManagerConnectionController {
         if (s != null) {
             logger.log(Level.FINEST, "Status update: manager_state=" + s.managerState());
 
-            // Successfully connected - cancel timeout
+            // Record timestamp of successful status update (only for HTTP mode)
+            // For WebSocket mode, timestamp is already updated when message is received
+            if (!Preferences.use_websockets) {
+                lastStatusUpdateTime = System.currentTimeMillis();
+            }
+
+            // Successfully connected - cancel initial timeout and start health monitoring
             if (!connected) {
                 connected = true;
                 if (timeoutTask != null) {
                     timeoutTask.cancel(false);
                     timeoutTask = null;
+                }
+
+                // Start periodic health check to detect server disconnect
+                if (Preferences.connectTimeout > 0 && healthCheckTask == null) {
+                    logger.log(Level.FINE, "Starting connection health monitoring");
+                    healthCheckTask = PollCenter.everyMs(1000, this::checkConnectionHealth);
                 }
             }
 
