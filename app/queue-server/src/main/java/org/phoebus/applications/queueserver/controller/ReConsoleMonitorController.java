@@ -52,6 +52,8 @@ public final class ReConsoleMonitorController implements Initializable {
 
     private ScheduledFuture<?> pollTask;
     private volatile boolean ignoreScroll = false;
+    private final StringBuilder wsTextBuffer = new StringBuilder();
+    private final Object wsTextLock = new Object();
 
     private QueueServerWebSocket<ConsoleOutputWsMessage> consoleWs;
 
@@ -99,6 +101,9 @@ public final class ReConsoleMonitorController implements Initializable {
     private void start(){
         if(pollTask!=null || (consoleWs != null && consoleWs.isConnected())) return;
         stop=false; textBuf.clear(); lastUid="ALL";
+        synchronized (wsTextLock) {
+            wsTextBuffer.setLength(0);
+        }
         loadBacklog();
 
         if (Preferences.use_websockets) {
@@ -112,6 +117,9 @@ public final class ReConsoleMonitorController implements Initializable {
     private void stop(){
         if(pollTask!=null){ pollTask.cancel(true); pollTask=null; }
         if(consoleWs != null) { consoleWs.disconnect(); }
+        synchronized (wsTextLock) {
+            wsTextBuffer.setLength(0);
+        }
         stop=true;
     }
 
@@ -127,18 +135,35 @@ public final class ReConsoleMonitorController implements Initializable {
     private void startWebSocket(){
         consoleWs = svc.createConsoleOutputWebSocket();
 
+        // Buffer incoming WebSocket messages without immediately updating UI
         consoleWs.addListener(msg -> {
             String text = msg.msg();
             if (text != null && !text.isEmpty()) {
-                Platform.runLater(() -> {
-                    textBuf.addMessage(text);
-                    render();
-                    lastLine = Instant.now();
-                });
+                synchronized (wsTextLock) {
+                    wsTextBuffer.append(text);
+                }
             }
         });
 
         consoleWs.connect();
+
+        // Schedule throttled UI updates at the configured interval
+        pollTask = PollCenter.everyMs(Preferences.update_interval_ms, () -> {
+            String bufferedText;
+            synchronized (wsTextLock) {
+                if (wsTextBuffer.length() == 0) {
+                    return; // Nothing to render
+                }
+                bufferedText = wsTextBuffer.toString();
+                wsTextBuffer.setLength(0);
+            }
+
+            Platform.runLater(() -> {
+                textBuf.addMessage(bufferedText);
+                render();
+                lastLine = Instant.now();
+            });
+        });
     }
 
     private void startStream(){

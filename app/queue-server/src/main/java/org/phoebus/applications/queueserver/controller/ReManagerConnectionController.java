@@ -30,6 +30,7 @@ public final class ReManagerConnectionController {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private ScheduledFuture<?>   pollTask;
     private QueueServerWebSocket<StatusWsMessage> statusWs;
+    private volatile StatusResponse latestStatus = null;
     private static final Logger logger = Logger.getLogger(ReManagerConnectionController.class.getPackageName());
 
     @FXML private void connect()    { start(); }
@@ -56,13 +57,13 @@ public final class ReManagerConnectionController {
     private void startWebSocket() {
         statusWs = svc.createStatusWebSocket();
 
+        // Buffer incoming WebSocket messages without immediately updating UI
         statusWs.addListener(msg -> {
             Map<String, Object> statusMap = msg.status();
             if (statusMap != null) {
                 try {
-                    // Convert Map to StatusResponse
-                    StatusResponse status = mapper.convertValue(statusMap, StatusResponse.class);
-                    Platform.runLater(() -> updateWidgets(status));
+                    // Convert Map to StatusResponse and buffer it
+                    latestStatus = mapper.convertValue(statusMap, StatusResponse.class);
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Failed to parse status from WebSocket", e);
                 }
@@ -70,6 +71,14 @@ public final class ReManagerConnectionController {
         });
 
         statusWs.connect();
+
+        // Schedule throttled UI updates at the configured interval
+        pollTask = PollCenter.everyMs(Preferences.update_interval_ms, () -> {
+            StatusResponse status = latestStatus;
+            if (status != null) {
+                Platform.runLater(() -> updateWidgets(status));
+            }
+        });
     }
 
     private StatusResponse queryStatusOnce() {
