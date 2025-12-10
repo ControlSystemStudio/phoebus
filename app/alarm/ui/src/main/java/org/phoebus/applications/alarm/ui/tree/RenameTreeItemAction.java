@@ -57,8 +57,8 @@ class RenameTreeItemAction extends MenuItem
 	                final AlarmTreeItem<BasicState> parent = item.getParent();
 	                // Remove the item and all its children.
 	                // Add the new item, and then rebuild all its children.
-	                final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
 					try {
+						final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
 						model.sendItemConfigurationUpdate(new_path, item);
 						AlarmTreeHelper.rebuildTree(model, item, new_path);
 						model.removeComponent(item);
@@ -87,8 +87,8 @@ class RenameTreeItemAction extends MenuItem
 	            JobManager.schedule(getText(), monitor ->
 	            {
 	                final AlarmTreeItem<BasicState> parent = item.getParent();
-	                final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
 					try {
+						final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
 						model.sendItemConfigurationUpdate(new_path, item);
 						model.removeComponent(item);
 					} catch (Exception e) {

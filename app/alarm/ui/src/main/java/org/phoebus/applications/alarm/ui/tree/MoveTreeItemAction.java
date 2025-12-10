@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.tree;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -53,6 +54,13 @@ public class MoveTreeItemAction extends MenuItem
     			    break;
     			prompt = "Invalid path. Try again or cancel";
         	}
+
+			// The move is done by copying the node from the old path to the new path,
+			// and then deleting the item at the old path.
+			// Without this check, entering the old path would result in just deleting the item.
+			if (AlarmTreePath.pathsAreEquivalent(path, item.getPathName())) {
+				return;
+			}
 
     		// Tree view keeps the selection indices, which will point to wrong content
             // after those items have been removed.

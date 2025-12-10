@@ -484,12 +484,8 @@ public class AlarmClient {
      * @param path_name to parent Root or parent component under which to add the component
      * @param new_name  Name of the new component
      */
-    public void addComponent(final String path_name, final String new_name) {
-        try {
-            sendNewItemInfo(path_name, new_name, new AlarmClientNode(null, new_name));
-        } catch (final Exception ex) {
-            logger.log(Level.WARNING, "Cannot add component " + new_name + " to " + path_name, ex);
-        }
+    public void addComponent(final String path_name, final String new_name) throws Exception {
+        sendNewItemInfo(path_name, new_name, new AlarmClientNode(null, new_name));
     }
 
     /**
@@ -498,12 +494,8 @@ public class AlarmClient {
      * @param path_name to parent Root or parent component under which to add the component
      * @param new_name  Name of the new component
      */
-    public void addPV(final String path_name, final String new_name) {
-        try {
-            sendNewItemInfo(path_name, new_name, new AlarmClientLeaf(null, new_name));
-        } catch (final Exception ex) {
-            logger.log(Level.WARNING, "Cannot add pv " + new_name + " to " + path_name, ex);
-        }
+    public void addPV(final String path_name, final String new_name) throws Exception {
+        sendNewItemInfo(path_name, new_name, new AlarmClientLeaf(null, new_name));
     }
 
     private void sendNewItemInfo(String path_name, final String new_name, final AlarmTreeItem<?> content) throws Exception {
