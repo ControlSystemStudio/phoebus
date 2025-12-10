@@ -26,11 +26,11 @@ public class ComparisonDialogDemo extends ApplicationWrapper {
     public void start(Stage primaryStage) {
 
         VDoubleArray vDoubleArray =
-                VDoubleArray.of(ArrayDouble.of(1, 2, 3),
+                VDoubleArray.of(ArrayDouble.of(1, 2, 3, 4),
                         Alarm.none(),
                         Time.now(), Display.none());
         ComparisonDialog comparisonDialog =
-                new ComparisonDialog(vDoubleArray, "loc://x(3, 2, 1, 1)");
+                new ComparisonDialog(vDoubleArray, "loc://x(3, 2, 1)");
         comparisonDialog.show();
     }
 }
