@@ -96,6 +96,8 @@ public class VDeltaCellEditor<S, T> extends VTypeCellEditor<S, T> {
                             comparisonDialog.show();
                         });
                     } else {
+                        // Do not handle mouse clicked, e.g. if live PV is disconnected.
+                        setOnMouseClicked(e -> {});
                         String percentage = Utilities.deltaValueToPercentage(pair.value, pair.base);
                         if (!percentage.isEmpty() && showDeltaPercentage) {
                             Formatter formatter = new Formatter();
