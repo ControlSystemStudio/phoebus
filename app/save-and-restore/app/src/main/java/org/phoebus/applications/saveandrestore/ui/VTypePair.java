@@ -17,8 +17,12 @@
  */
 package org.phoebus.applications.saveandrestore.ui;
 
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.saveandrestore.util.Threshold;
+import org.phoebus.saveandrestore.util.VNoData;
 
 import java.util.Optional;
 
@@ -35,7 +39,8 @@ public class VTypePair {
     public final Optional<Threshold<?>> threshold;
 
     /**
-     * Constructs a new pair.
+     * Constructs a new pair. In the context of save-and-restore snapshots, the {@link #value} field
+     * is used to hold a stored value, while {@link #base} holds the live PV value.
      *
      * @param base      the base value
      * @param value     the value that can be compared to base
@@ -45,6 +50,39 @@ public class VTypePair {
         this.base = base;
         this.value = value;
         this.threshold = threshold;
+    }
+
+    /**
+     * Computes absolute delta for the delta between {@link #base} and {@link #value}. When applied to
+     * {@link VString} types, {@link String#compareTo(String)} is used for comparison, but then converted to
+     * an absolute value.
+     *
+     * <p>
+     *     Main use case for this is ordering on delta. Absolute delta may be more useful as otherwise zero
+     *     deltas would be found between positive and negative deltas.
+     * </p>
+     * <p>
+     *     If {@link #base} or {@link #value} are <code>null</code> or {@link VNoData#INSTANCE}, then
+     *     the delta cannot be computed as a number. In this case {@link Double#MAX_VALUE} is returned
+     *     to indicate an "infinite delta".
+     * </p>
+     * @return Absolute delta between {@link #base} and {@link #value}.
+     */
+    public double getAbsoluteDelta(){
+        if(base.equals(VNoData.INSTANCE) ||
+                value.equals(VNoData.INSTANCE) ||
+                base == null ||
+                value == null){
+            return Double.MAX_VALUE;
+        }
+        if(base instanceof VNumber){
+            return Math.abs(((VNumber)base).getValue().doubleValue() -
+                    ((VNumber)value).getValue().doubleValue());
+        }
+        else if(base instanceof VString){
+            return Math.abs(((VString)base).getValue().compareTo(((VString)value).getValue()));
+        }
+        else return 0.0;
     }
 
     /*
