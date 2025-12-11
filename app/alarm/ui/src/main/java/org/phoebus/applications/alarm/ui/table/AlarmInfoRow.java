@@ -114,14 +114,14 @@ public class AlarmInfoRow
     {
         final StringBuilder buf = new StringBuilder();
 
-        buf.append("PV: ").append(pv.get()).append("\n");
-        buf.append("Description: ").append(description.get()).append("\n");
-        buf.append("Alarm Time: ").append(time.get()).append("\n");
+        buf.append("PV: ").append(pv.get()).append("  \n");
+        buf.append("Description: ").append(description.get()).append("  \n");
+        buf.append("Alarm Time: ").append(time.get()).append("  \n");
         buf.append("Alarm Severity: ").append(severity.get());
         buf.append(", Status: ").append(status.get());
-        buf.append(", Value: ").append(value.get()).append("\n");
+        buf.append(", Value: ").append(value.get()).append("  \n");
         buf.append("Current PV Severity: ").append(pv_severity.get());
-        buf.append(", Status: ").append(pv_status.get()).append("\n");
+        buf.append(", Status: ").append(pv_status.get()).append("  \n");
 
         return buf.toString();
     }
