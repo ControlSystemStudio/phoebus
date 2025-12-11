@@ -17,7 +17,7 @@ Simple Macros can be defined in several places.
 
 1. On the command line when launching a display using the -resource option:
 
-.. code-block:: python
+.. code-block:: bash
 
     java -jar /path/to/application.jar -resource file:///path/to/display.bob?MyMacroValue=Some%20Value
 

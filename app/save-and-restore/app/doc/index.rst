@@ -339,12 +339,14 @@ write operations is hence undefined.
 Prior to restore user has the option to:
 
 * Exclude PVs using the checkboxes in the left-most column. To simplify selection, user may use the Filter input field to find matching PV names:
-.. image:: images/snapshot-restore-filter.png
-   :width: 80%
+
+  .. image:: images/snapshot-restore-filter.png
+     :width: 80%
 
 * Specify a multiplier factor :math:`{\neq}` 1 applied to scalar data type PVs:
-.. image:: images/restore-with-scale.png
-   :width: 80%
+
+  .. image:: images/restore-with-scale.png
+     :width: 80%
 
 Restoring from a composite snapshot works in the same manner as the restore operation from a single-snapshot.
 

@@ -46,6 +46,7 @@ The log entry editor may also be launched from context menus, where applicable. 
 the background of an OPI the launched context menu will include the Create Log item:
 
 .. image:: images/ContextMenu.png
+
 The Create Log context menu item is available also in a Databrowser plot area.
 
 Editing a log entry
@@ -74,6 +75,7 @@ When the log entry editor is launched from a context menu, a screen shot is auto
 Additional images (or other type of attachments) may be added by expanding the Attachments editor:
 
 .. image:: images/Attachments.png
+
 Here user may attach any number of files of arbitrary types:
 
 - :guilabel:`Add Files` will launch the native file browser dialog from which user may select any number of files.
@@ -103,6 +105,7 @@ Images may be embedded in the body text using markup. The user should consult th
 for details on how to do this. In general, users should use the Embed Image button to add image markup at the cursor position:
 
 .. image:: images/EmbedImage.png
+
 External image resources may be edited manually, e.g.:
 ``![alt-text](https://foo.com/bar.jpg)``. 
 File URLs are not supported.
@@ -117,6 +120,7 @@ Properties are edited by expanding the Properties editor. The below screen shot 
 (LCR shift info) holding five keys has been configured in the service:
 
 .. image:: images/PropertiesEditor.png
+
 User may select what properties to include in the log entry, and edit the values for the items in the property.
 
 
