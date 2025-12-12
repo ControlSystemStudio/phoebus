@@ -219,10 +219,9 @@ public class FormatOptionHandler
         if (option == FormatOption.HEX)
         {
             final StringBuilder buf = new StringBuilder();
-            if (precision <= 8)
-                buf.append(Integer.toHexString(value.intValue()).toUpperCase());
-            else
-                buf.append(Long.toHexString(value.longValue()).toUpperCase());
+            long longValue = value.longValue();
+            String hexString = Long.toHexString(longValue);
+            buf.append(hexString.toUpperCase());
             for (int i=buf.length(); i<precision; ++i)
                 buf.insert(0, '0');
             buf.insert(0, "0x");
