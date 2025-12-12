@@ -199,7 +199,7 @@ DROP TABLE IF EXISTS sample;
 CREATE TABLE sample
 (
    channel_id BIGINT NOT NULL,
-   smpl_time TIMESTAMP NOT NULL,
+   smpl_time TIMESTAMPTZ NOT NULL,
    nanosecs BIGINT  NOT NULL,
    severity_id BIGINT NOT NULL,
    status_id BIGINT  NOT NULL,

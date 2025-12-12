@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,9 +9,9 @@ package org.csstudio.archive.writer.rdb;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 import org.phoebus.util.time.TimestampFormats;
@@ -19,7 +19,6 @@ import org.phoebus.util.time.TimestampFormats;
 /** Time stamp gymnastics
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class TimestampHelper
 {
     /** @param timestamp {@link Instant}, may be <code>null</code>
@@ -31,17 +30,6 @@ public class TimestampHelper
             return "null";
         return TimestampFormats.FULL_FORMAT.format(timestamp);
     }
-
-    // May look like just     time_format.format(Instant)  works,
-    // but results in runtime error " java.time.temporal.UnsupportedTemporalTypeException: Unsupported field: YearOfEra"
-    // because time for printing needs to be in local time
-//    public static void main(String[] args)
-//    {
-//      final Instant now = Instant.now();
-//      System.out.println(format(now));
-//      System.out.println(time_format.format(now));
-//    }
-
 
     /** @param timestamp EPICS Timestamp
      *  @return SQL Timestamp
@@ -77,14 +65,29 @@ public class TimestampHelper
         }
         return Instant.ofEpochSecond(seconds,  nanoseconds);
     }
-
-    /** @param calendar Calendar
-     *  @return EPICS Timestamp
+    
+    /** Zone ID is something like "America/New_York".
+     *  Within that zone, time might change between
+     *  EDT (daylight saving) and EST (standard),
+     *  but the Zone ID remains, so we can keep it final.
      */
-    public static Instant fromCalendar(final Calendar calendar)
-    {
-        return fromMillisecs(calendar.getTimeInMillis());
-    }
+    final private static ZoneId zone = ZoneId.systemDefault();
+
+    /** Turn SQL {@link java.sql.Timestamp} into {@link OffsetDateTime}
+     *
+     *  Oracle JDBC PreparedStatement.setTimestamp(int, Timestamp)
+     *  will change the zone info in unexpected ways.
+     *  Using PreparedStatement.setObject(int, OffsetDateTime)
+     *  is the suggested workaround, so this morphs a Timestamp
+     *  into OffsetDateTime
+     *
+     *  @param sql_time SQL {@link java.sql.Timestamp}
+     *  @return {@link OffsetDateTime}
+     */
+    public static OffsetDateTime toOffsetDateTime(final java.sql.Timestamp sql_time)
+	{
+		return OffsetDateTime.ofInstant(sql_time.toInstant(), zone);
+	}
 
     /** Round time to next multiple of given duration
      *  @param time Original time stamp
