@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.ui.tree;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -408,7 +409,6 @@ public class AlarmTreeConfigView extends BorderPane implements AlarmClientListen
                 items.add(index, view_item);
             done.countDown();
         });
-        updateStats();
 
         // Waiting on the UI thread throttles the model's updates
         // to a rate that the UI can handle.
@@ -450,7 +450,6 @@ public class AlarmTreeConfigView extends BorderPane implements AlarmClientListen
             view_parent.getChildren().remove(view_item);
             done.countDown();
         });
-        updateStats();
 
         // Waiting on the UI thread throttles the model's updates
         // to a rate that the UI can handle.
@@ -503,7 +502,6 @@ public class AlarmTreeConfigView extends BorderPane implements AlarmClientListen
             items_to_update.add(view_item);
         }
         throttle.trigger();
-        updateStats();
     }
 
     /** Called by throttle to perform accumulated updates */
@@ -523,7 +521,7 @@ public class AlarmTreeConfigView extends BorderPane implements AlarmClientListen
         }
 
         // Remember selection
-        final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems = 
+        final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems =
                 FXCollections.observableArrayList(tree_config_view.getSelectionModel().getSelectedItems());
 
         // How to update alarm tree cells when data changed?
@@ -562,139 +560,10 @@ public class AlarmTreeConfigView extends BorderPane implements AlarmClientListen
                 path2view.put(value.getPathName(), update);
                 parent.getChildren().set(index, update);
             }
-        // Restore selection
+
         tree_config_view.getSelectionModel().clearSelection();
         updatedSelectedItems.forEach(item -> tree_config_view.getSelectionModel().select(item));
-    }
 
-    /** Context menu, details depend on selected items */
-    private void createContextMenu()
-    {
-        final ContextMenu menu = new ContextMenu();
-
-        tree_config_view.setOnContextMenuRequested(event ->
-        {
-            final ObservableList<MenuItem> menu_items = menu.getItems();
-            menu_items.clear();
-
-            final List<AlarmTreeItem<?>> selection = tree_config_view.getSelectionModel().getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-
-            // Add guidance etc.
-            new AlarmContextMenuHelper().addSupportedEntries(tree_config_view, model, menu, selection);
-            if (menu_items.size() > 0)
-                menu_items.add(new SeparatorMenuItem());
-
-            if (AlarmUI.mayConfigure(model))
-            {
-                if (selection.size() <= 0)
-                    // Add first item to empty config
-                    menu_items.add(new AddComponentAction(tree_config_view, model, model.getRoot()));
-                else if (selection.size() == 1)
-                {
-                    final AlarmTreeItem<?> item = selection.get(0);
-                    menu_items.add(new ConfigureComponentAction(tree_config_view, model, item));
-                    menu_items.add(new SeparatorMenuItem());
-
-                    if (item instanceof AlarmClientNode)
-                        menu_items.add(new AddComponentAction(tree_config_view, model, item));
-
-                    menu_items.add(new RenameTreeItemAction(tree_config_view, model, item));
-
-                    if (item instanceof AlarmClientLeaf)
-                        menu_items.add(new DuplicatePVAction(tree_config_view, model, (AlarmClientLeaf) item));
-
-                    menu_items.add(new MoveTreeItemAction(tree_config_view, model, item));
-                }
-                if (selection.size() >= 1)
-                {
-                    menu_items.add(new EnableComponentAction(tree_config_view, model, selection));
-                    menu_items.add(new DisableComponentAction(tree_config_view, model, selection));
-                    menu_items.add(new RemoveComponentAction(tree_config_view, model, selection));
-                }
-            }
-
-            menu_items.add(new SeparatorMenuItem());
-            menu_items.add(new PrintAction(tree_config_view));
-            menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
-
-            // Add context menu actions based on the selection (i.e. email, logbook, etc...)
-            final Selection originalSelection = SelectionService.getInstance().getSelection();
-            final List<AppSelection> newSelection = Arrays.asList(AppSelection.of(tree_config_view, "Alarm Screenshot", "See alarm tree screenshot", () -> Screenshot.imageFromNode(tree_config_view)));
-            SelectionService.getInstance().setSelection("AlarmTree", newSelection);
-            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
-            supported.stream().forEach(action -> {
-                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
-                menuItem.setOnAction((e) -> {
-                    try
-                    {
-                        SelectionService.getInstance().setSelection("AlarmTree", newSelection);
-                        action.call(tree_config_view, SelectionService.getInstance().getSelection());
-                    } catch (Exception ex)
-                    {
-                        logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from AlarmTree.", ex);
-                    }
-                });
-                menu_items.add(menuItem);
-            });
-            SelectionService.getInstance().setSelection("AlarmTree", originalSelection);
-
-            menu.show(tree_config_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        });
-    }
-
-    /** Double-click on item opens configuration dialog */
-    private void addClickSupport()
-    {
-        tree_config_view.setOnMouseClicked(event ->
-        {
-            if (!AlarmUI.mayConfigure(model)       ||
-                event.getClickCount() != 2    ||
-                tree_config_view.getSelectionModel().getSelectedItems().size() != 1)
-                return;
-
-            final AlarmTreeItem<?> item = tree_config_view.getSelectionModel().getSelectedItems().get(0).getValue();
-            final ItemConfigDialog dialog = new ItemConfigDialog(model, item);
-            DialogHelper.positionDialog(dialog, tree_config_view, -150, -300);
-            // Show dialog, not waiting for it to close with OK or Cancel
-            dialog.show();
-        });
-    }
-
-    /** For leaf nodes, drag PV name */
-    private void addDragSupport()
-    {
-        tree_config_view.setOnDragDetected(event ->
-        {
-            final ObservableList<TreeItem<AlarmTreeItem<?>>> items = tree_config_view.getSelectionModel().getSelectedItems();
-            if (items.size() != 1)
-                return;
-            final AlarmTreeItem<?> item = items.get(0).getValue();
-            if (! (item instanceof AlarmClientLeaf))
-                return;
-            final Dragboard db = tree_config_view.startDragAndDrop(TransferMode.COPY);
-            final ClipboardContent content = new ClipboardContent();
-            content.putString(item.getName());
-            db.setContent(content);
-            event.consume();
-        });
-    }
-
-//    private long next_stats = 0;
-//    private final AtomicInteger update_count = new AtomicInteger();
-//    private volatile double updates_per_sec = 0.0;
-
-    private void updateStats()
-    {
-//        final long time = System.currentTimeMillis();
-//        if (time > next_stats)
-//        {
-//            final int updates = update_count.getAndSet(0);
-//            updates_per_sec = updates_per_sec * 0.9 + updates * 0.1;
-//            next_stats = time + 1000;
-//            System.out.format("%.2f updates/sec\n", updates_per_sec);
-//        }
-//        else
-//            update_count.incrementAndGet();
     }
 
     private void dumpTree(TreeItem<AlarmTreeItem<?>> item)
@@ -706,5 +575,21 @@ public class AlarmTreeConfigView extends BorderPane implements AlarmClientListen
     		System.out.println(child.getValue().getName());
     		dumpTree(child);
     	}
+    }
+
+    /**
+     * Allows external classes to attach a selection listener to the tree view.
+     * @param listener ChangeListener for selected TreeItem
+     */
+    public void addTreeSelectionListener(ChangeListener<? super TreeItem<AlarmTreeItem<?>>> listener) {
+        tree_config_view.getSelectionModel().selectedItemProperty().addListener(listener);
+    }
+
+    /**
+     * Allows external classes to remove a selection listener from the tree view.
+     * @param listener ChangeListener for selected TreeItem
+     */
+    public void removeTreeSelectionListener(ChangeListener<? super TreeItem<AlarmTreeItem<?>>> listener) {
+        tree_config_view.getSelectionModel().selectedItemProperty().removeListener(listener);
     }
 }

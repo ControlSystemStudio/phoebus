@@ -1,5 +1,6 @@
 package org.phoebus.applications.alarm.ui.tree;
 
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
@@ -48,24 +49,42 @@ public class AlarmTreeConfigDialog extends Dialog<String>
         pathInput.setPromptText("Select a path from the tree above or type manually");
         pathInput.setEditable(true);
 
-        // Add listener to update path when tree selection changes
-        // Access the tree view through reflection or by wrapping it
-        if (configView.getCenter() instanceof TreeView)
-        {
-            @SuppressWarnings("unchecked")
-            TreeView<AlarmTreeItem<?>> treeView = (TreeView<AlarmTreeItem<?>>) configView.getCenter();
-            treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) ->
+        // Extract the last segment from the initial currentPath to preserve across selections
+        final String selectedTreeItem;
+        if (currentPath != null && !currentPath.isEmpty()) {
+            int lastSlashIndex = currentPath.lastIndexOf('/');
+            if (lastSlashIndex >= 0 && lastSlashIndex < currentPath.length() - 1) {
+                selectedTreeItem = currentPath.substring(lastSlashIndex + 1);
+            } else {
+                selectedTreeItem = "";
+            }
+        } else {
+            selectedTreeItem = "";
+        }
+
+        // Store the listener in a variable
+        ChangeListener<TreeItem<AlarmTreeItem<?>>> selectionListener = (obs, oldVal, newVal) -> {
+            if (newVal != null && newVal.getValue() != null)
             {
-                if (newVal != null && newVal.getValue() != null)
+                String selectedPath = newVal.getValue().getPathName();
+                if (selectedPath != null && !selectedPath.isEmpty())
                 {
-                    String selectedPath = newVal.getValue().getPathName();
-                    if (selectedPath != null && !selectedPath.isEmpty())
-                    {
-                        pathInput.setText(selectedPath);
+                    // Only update if not focused
+                    if (!pathInput.isFocused()) {
+                        // Append the preserved last segment to the selected path
+                        String newPath = selectedPath;
+                        if (!selectedTreeItem.isEmpty()) {
+                            newPath = selectedPath + "/" + selectedTreeItem;
+                        }
+
+                        pathInput.setText(newPath);
                     }
                 }
-            });
-        }
+            }
+        };
+        configView.addTreeSelectionListener(selectionListener);
+        // Remove the listener when the dialog is closed
+        this.setOnHidden(e -> configView.removeTreeSelectionListener(selectionListener));
 
         // Add text input for path
         Label pathLabel = new Label("Selected Path:");
