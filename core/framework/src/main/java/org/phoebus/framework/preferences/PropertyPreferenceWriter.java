@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Enumeration;
@@ -28,6 +29,7 @@ import java.util.jar.Manifest;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /** Write preferences in property file format
  *  @author Kay Kasemir
@@ -58,6 +60,7 @@ public class PropertyPreferenceWriter
             out.append("# the.package.name/key=value<br/>\n");
             out.append("<div style='color: red; font-weight: bold'># key=value in red are incorrect properties</div><br/>\n");
             listSettings(getAllPropertyKeys(), out, Preferences.userRoot());
+            out.append("<br/>\n");
             out.append("# End.<br/>\n");
             out.flush();
         }
@@ -76,7 +79,15 @@ public class PropertyPreferenceWriter
         final String path = node.absolutePath();
         String fullKey = path.substring(1).replace('/', '.') + '/' + key;
         String keyFound = allKeysWithPackages.get(fullKey);
-        boolean bNotFound = keyFound == null ? true : false;
+        boolean bNotFound = keyFound == null;
+
+        // ignore keys that can be used but not from preferences.properties
+        if (key.toLowerCase().contains("external_app") ||
+                key.toLowerCase().contains("password") ||
+                key.toLowerCase().contains("username")) {
+            bNotFound = false;
+        }
+
         if (bNotFound) out.append("<div style='color: red; font-weight: bold'>");
         out.append(escapeHtml(fullKey))
            .append('=')
@@ -95,9 +106,8 @@ public class PropertyPreferenceWriter
         if (jars.length == 1) jars = getAllJarFromManifest(jars[0]);
 
         for (String jarEntry : jars) {
-            File file = new File(jarEntry);
-
             if (jarEntry.endsWith(".jar")) {
+                File file = new File(jarEntry);
                 try (JarFile jarFile = new JarFile(file)) {
                     Enumeration<JarEntry> entries = jarFile.entries();
 
@@ -115,7 +125,24 @@ public class PropertyPreferenceWriter
                     }
                 } catch (IOException e) {
                     System.err.println("Error opening JAR : " + jarEntry);
-                    e.printStackTrace();
+                }
+            }
+            else if (jarEntry.endsWith("classes")) {
+                Path startPath = Paths.get(jarEntry);
+                String filePattern = "preferences.properties";
+
+                System.out.println(startPath);
+                try (Stream<Path> paths = Files.walk(startPath)) {
+                paths.filter(path -> path.toString().endsWith(filePattern))
+                        .forEach(path -> {
+                            try (InputStream inputStream = Files.newInputStream(path)) {
+                                parsePropertiesWithPackage(inputStream, path.getFileName().toString(), allKeysWithPackages);
+                            } catch (IOException e) {
+                                System.err.println("Error opening properties : " + path);
+                            }
+                        });
+                } catch (IOException e) {
+                    System.err.println("Error listing files in : " + startPath);
                 }
             }
         }
@@ -148,7 +175,6 @@ public class PropertyPreferenceWriter
             }
         } catch (IOException e) {
             System.err.println("Error when reading the jar : " + jarPath);
-            e.printStackTrace();
         }
         
         return jars;
