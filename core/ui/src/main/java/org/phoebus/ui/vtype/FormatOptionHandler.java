@@ -18,6 +18,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.epics.util.array.ListNumber;
+import org.epics.util.number.UByte;
+import org.epics.util.number.UInteger;
+import org.epics.util.number.ULong;
+import org.epics.util.number.UShort;
 import org.epics.vtype.Display;
 import org.epics.vtype.DisplayProvider;
 import org.epics.vtype.VBoolean;
@@ -219,7 +223,30 @@ public class FormatOptionHandler
         if (option == FormatOption.HEX)
         {
             final StringBuilder buf = new StringBuilder();
-            long longValue = value.longValue();
+            long longValue;
+            if (value instanceof Byte valueByte) {
+                longValue = Byte.toUnsignedLong(valueByte);
+            } else if (value instanceof Short valueShort) {
+                longValue = Short.toUnsignedLong(valueShort);
+            } else if (value instanceof Integer valueInt) {
+                longValue = Integer.toUnsignedLong(valueInt);
+            } else if (value instanceof Long valueLong) {
+                longValue = valueLong;
+            } else if (value instanceof Float valueFloat) {
+                longValue = valueFloat.longValue();
+            } else if (value instanceof Double valueDouble) {
+                longValue = valueDouble.longValue();
+            } else if (value instanceof UByte valueUByte) {
+                longValue = valueUByte.longValue();
+            } else if (value instanceof UShort valueUShort) {
+                longValue = valueUShort.longValue();
+            } else if (value instanceof UInteger valueUInteger) {
+                longValue = valueUInteger.longValue();
+            } else if (value instanceof ULong valueULong) {
+                longValue = valueULong.longValue();
+            } else {
+                longValue = value.longValue();
+            }
             String hexString = Long.toHexString(longValue);
             buf.append(hexString.toUpperCase());
             for (int i=buf.length(); i<precision; ++i)
