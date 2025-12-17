@@ -19,16 +19,16 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /** Write preferences in property file format
@@ -37,6 +37,10 @@ import java.util.stream.Stream;
 @SuppressWarnings("nls")
 public class PropertyPreferenceWriter
 {
+    public static final Logger logger = Logger.getLogger(PropertyPreferenceWriter.class.getName());
+    public static Set<String> excludedKeys = new HashSet<>();
+    public static Set<String> excludedPackages = new HashSet<>();
+
     /** Save preferences in property file format
      *
      *  <p>Properties have the name "package/setting",
@@ -50,16 +54,27 @@ public class PropertyPreferenceWriter
      */
     public static void save(final OutputStream stream) throws Exception
     {
+        Map<String, String> allKeysWithPackages = getAllPropertyKeys();
+        Preferences prefs = Preferences.userRoot().node("org/phoebus/ui");
+
+        String value = prefs.get("excluded_keys_from_settings_check", "");
+        if (value.isEmpty()) value = allKeysWithPackages.get("org.phoebus.ui/excluded_keys_from_settings_check");
+        if (!value.isEmpty()) excludedKeys = Arrays.stream(value.split(",")).map(String::trim).collect(Collectors.toSet());
+
+        value = prefs.get("excluded_packages_from_settings_check", "");
+        if (value.isEmpty()) value = allKeysWithPackages.get("org.phoebus.ui/excluded_packages_from_settings_check");
+        if (!value.isEmpty()) excludedPackages = Arrays.stream(value.split(",")).map(String::trim).collect(Collectors.toSet());
+
         try
         (
-            final OutputStreamWriter out = new OutputStreamWriter(stream);
+            final OutputStreamWriter out = new OutputStreamWriter(stream)
         )
         {
             out.append("# Preference settings<br/>\n");
             out.append("# Format:<br/>\n");
             out.append("# the.package.name/key=value<br/>\n");
             out.append("<div style='color: red; font-weight: bold'># key=value in red are incorrect properties</div><br/>\n");
-            listSettings(getAllPropertyKeys(), out, Preferences.userRoot());
+            listSettings(allKeysWithPackages, out, Preferences.userRoot());
             out.append("<br/>\n");
             out.append("# End.<br/>\n");
             out.flush();
@@ -81,12 +96,10 @@ public class PropertyPreferenceWriter
         String keyFound = allKeysWithPackages.get(fullKey);
         boolean bNotFound = keyFound == null;
 
-        // ignore keys that can be used but not from preferences.properties
-        if (key.toLowerCase().contains("external_app") ||
-                key.toLowerCase().contains("password") ||
-                key.toLowerCase().contains("username")) {
-            bNotFound = false;
-        }
+        // exclude keys that must not be checked
+        boolean containsExcludedKeys = excludedKeys.stream().anyMatch(key::contains);
+        boolean containsExcludedPackages = excludedPackages.stream().anyMatch(fullKey::startsWith);
+        if (containsExcludedKeys || containsExcludedPackages) bNotFound = false;
 
         if (bNotFound) out.append("<div style='color: red; font-weight: bold'>");
         out.append(escapeHtml(fullKey))
@@ -96,12 +109,12 @@ public class PropertyPreferenceWriter
         if (bNotFound) out.append("</div>");
     }
     
-    private static Map<String, String> getAllPropertyKeys() throws Exception
+    private static Map<String, String> getAllPropertyKeys()
     {
         Map<String, String> allKeysWithPackages = new HashMap<>();
 
     	String classpath = System.getProperty("java.class.path");
-        String[] jars = classpath.split(System.getProperty("path.separator"));
+        String[] jars = classpath.split(File.pathSeparator);
 
         if (jars.length == 1) jars = getAllJarFromManifest(jars[0]);
 
@@ -123,26 +136,25 @@ public class PropertyPreferenceWriter
                             );
                         }
                     }
-                } catch (IOException e) {
-                    System.err.println("Error opening JAR : " + jarEntry);
+                } catch (IOException ex) {
+                    logger.log(Level.WARNING, "Error opening JAR : " + jarEntry, ex);
                 }
             }
             else if (jarEntry.endsWith("classes")) {
                 Path startPath = Paths.get(jarEntry);
                 String filePattern = "preferences.properties";
 
-                System.out.println(startPath);
                 try (Stream<Path> paths = Files.walk(startPath)) {
                 paths.filter(path -> path.toString().endsWith(filePattern))
                         .forEach(path -> {
                             try (InputStream inputStream = Files.newInputStream(path)) {
                                 parsePropertiesWithPackage(inputStream, path.getFileName().toString(), allKeysWithPackages);
-                            } catch (IOException e) {
-                                System.err.println("Error opening properties : " + path);
+                            } catch (IOException ex) {
+                                logger.log(Level.WARNING, "Error opening properties file : " + path, ex);
                             }
                         });
-                } catch (IOException e) {
-                    System.err.println("Error listing files in : " + startPath);
+                } catch (IOException ex) {
+                    logger.log(Level.WARNING, "Error listing files in : " + startPath, ex);
                 }
             }
         }
@@ -168,13 +180,13 @@ public class PropertyPreferenceWriter
                     	jars[iJar] = fullPath.toString();
                     }
                 } else {
-                    System.err.println("No Class-Path found in MANIFEST.MF.");
+                    logger.log(Level.WARNING, "No Class-Path found in MANIFEST.MF " + jarPath);
                 }
             } else {
-                System.err.println("MANIFEST.MF not found in the JAR.");
+                logger.log(Level.WARNING, "MANIFEST.MF not found in the JAR " + jarPath);
             }
-        } catch (IOException e) {
-            System.err.println("Error when reading the jar : " + jarPath);
+        } catch (IOException ex) {
+            logger.log(Level.WARNING, "Error when reading the jar : " + jarPath, ex);
         }
         
         return jars;
@@ -192,7 +204,7 @@ public class PropertyPreferenceWriter
                 line = line.trim();
                 if (line.startsWith("#") && line.contains("Package")) {
                     // Find package name
-                    Pattern pattern = Pattern.compile("#\\s*Package\\s+([^\\s]+)");
+                    Pattern pattern = Pattern.compile("#\\s*Package\\s+(\\S+)");
                     Matcher matcher = pattern.matcher(line);
                     if (matcher.find()) {
                         packageName = matcher.group(1);
@@ -202,7 +214,7 @@ public class PropertyPreferenceWriter
                 }
             }
 
-            if (content.length() > 0) {
+            if (!content.isEmpty()) {
                 props.load(new ByteArrayInputStream(content.toString().getBytes()));
             }
 
@@ -211,9 +223,8 @@ public class PropertyPreferenceWriter
                 String prefixedKey = (packageName != null) ? packageName + "/" + key : key;
                 allKeysWithPackages.put(prefixedKey, props.getProperty(key));
             }
-        } catch (IOException e) {
-            System.err.println("Error when reading file " + fileName);
-            e.printStackTrace();
+        } catch (IOException ex) {
+            logger.log(Level.WARNING, "Error when reading file " + fileName, ex);
         }
     }
 
