@@ -278,6 +278,8 @@ public class VTypeHelper {
             sizes = ((VEnumArray) value).getSizes();
         } else if (value instanceof VStringArray) {
             sizes = ((VStringArray) value).getSizes();
+        } else if (value instanceof VBooleanArray) {
+            sizes = ((VBooleanArray) value).getSizes();
         } else {
             return 0;
         }

@@ -645,7 +645,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         });
 
         showDeltaPercentage.addListener((ob, o, n) -> deltaColumn.setCellFactory(e -> {
-            VDeltaCellEditor<VTypePair> vDeltaCellEditor = new VDeltaCellEditor<>();
+            VDeltaCellEditor<TableEntry, VTypePair> vDeltaCellEditor = new VDeltaCellEditor<>();
             vDeltaCellEditor.setShowDeltaPercentage(n);
             return vDeltaCellEditor;
         }));
@@ -1453,7 +1453,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     "", minWidth);
             deltaCol.setCellValueFactory(e -> e.getValue().compareValueProperty(additionalSnapshots.size()));
             deltaCol.setCellFactory(e -> {
-                VDeltaCellEditor<VTypePair> vDeltaCellEditor = new VDeltaCellEditor<>();
+                VDeltaCellEditor<TableEntry, VTypePair> vDeltaCellEditor = new VDeltaCellEditor<>();
                 vDeltaCellEditor.setShowDeltaPercentage(showDeltaPercentage.get());
                 return vDeltaCellEditor;
             });

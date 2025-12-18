@@ -597,7 +597,7 @@ public class AlarmTableUI extends BorderPane
 
         buf.append("Acknowledged Alarms\n");
         buf.append("===================\n");
-        for (AlarmInfoRow row : active_rows)
+        for (AlarmInfoRow row : acknowledged_rows)
             buf.append(row).append("\n");
 
         return buf.toString();

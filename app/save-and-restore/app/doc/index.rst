@@ -303,6 +303,29 @@ are shown by default. The left-most columns in the toolbar can be used to show/h
 .. image:: images/toggle-readback.png
    :width: 80%
 
+While comparison of scalar values in the snapshot view is straight-forward, array (or table) type data is difficult
+to compare from the single table cells. User may instead click on the highlighted ":math:`{\Delta}` Live" cell to launch a dialog
+showing stored, live and :math:`{\Delta}` for the selected PV:
+
+.. image:: images/snapshot-view-with-delta.png
+
+User clicks "Click to compare":
+
+.. image:: images/compare-arrays.png
+
+The threshold settings works in the same manner is in the snapshot view and operates on each element (row) in the
+table view.
+
+In case the stored and live value of the array/table data are of different dimensions, cells where no value is available
+will be rendered as "---". Moreover, since in these cases an absolute delta cannot be computed, the delta column will also show
+"---".
+
+User may click the table header of the delta column to sort on the delta value to quickly find rows where either the
+stored or live value is not defined (due to difference in dimension). For such rows the absolute delta will be treated
+as infinite, which impacts ordering on the delta column:
+
+.. image:: images/compare-arrays-infinite-delta.png
+
 Restoring A Snapshot
 --------------------
 
@@ -316,12 +339,14 @@ write operations is hence undefined.
 Prior to restore user has the option to:
 
 * Exclude PVs using the checkboxes in the left-most column. To simplify selection, user may use the Filter input field to find matching PV names:
-.. image:: images/snapshot-restore-filter.png
-   :width: 80%
+
+  .. image:: images/snapshot-restore-filter.png
+     :width: 80%
 
 * Specify a multiplier factor :math:`{\neq}` 1 applied to scalar data type PVs:
-.. image:: images/restore-with-scale.png
-   :width: 80%
+
+  .. image:: images/restore-with-scale.png
+     :width: 80%
 
 Restoring from a composite snapshot works in the same manner as the restore operation from a single-snapshot.
 

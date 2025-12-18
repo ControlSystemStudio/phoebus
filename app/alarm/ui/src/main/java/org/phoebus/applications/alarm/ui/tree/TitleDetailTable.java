@@ -30,7 +30,6 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.DefaultStringConverter;
@@ -83,27 +82,25 @@ public class TitleDetailTable extends BorderPane
 
         TableColumn<TitleDetail, String> col = new TableColumn<>("Title");
         col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().title));
-        col.setCellFactory(column -> new TextFieldTableCell<>(new DefaultStringConverter()));
+        col.setCellFactory(ValidatingTextFieldTableCell.forTableColumn(new DefaultStringConverter()));
         col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
             items.set(row, new TitleDetail(event.getNewValue(), items.get(row).detail));
 
             // Trigger editing the detail
-            UpdateThrottle.TIMER.schedule(() ->
-                Platform.runLater(() ->
-                {
-                    table.getSelectionModel().clearAndSelect(row);
-                    table.edit(row, table.getColumns().get(1));
-                }),
-                200, TimeUnit.MILLISECONDS);
+            Platform.runLater(() ->
+            {
+                table.getSelectionModel().clearAndSelect(row);
+                table.edit(row, table.getColumns().get(1));
+            });
         });
         col.setSortable(false);
         table.getColumns().add(col);
 
         col = new TableColumn<>("Detail");
         col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().detail.replace("\n", "\\n")));
-        col.setCellFactory(column -> new TextFieldTableCell<>(new DefaultStringConverter()));
+        col.setCellFactory(ValidatingTextFieldTableCell.forTableColumn(new DefaultStringConverter()));
         col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();

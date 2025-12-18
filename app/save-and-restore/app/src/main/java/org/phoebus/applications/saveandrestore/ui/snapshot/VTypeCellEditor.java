@@ -49,10 +49,10 @@ import java.util.List;
  * @param <T> {@link org.epics.vtype.VType} or {@link org.phoebus.applications.saveandrestore.ui.VTypePair}
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  */
-public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
+public class VTypeCellEditor<S, T> extends MultitypeTableCell<S, T> {
     private final Tooltip tooltip = new Tooltip();
 
-    VTypeCellEditor() {
+    public VTypeCellEditor() {
 
         setConverter(new StringConverter<>() {
             @Override

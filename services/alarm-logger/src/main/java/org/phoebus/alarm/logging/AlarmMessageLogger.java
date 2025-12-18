@@ -6,8 +6,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,12 +19,15 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.kstream.Branched;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.kstream.TransformerSupplier;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
+import org.phoebus.applications.alarm.AlarmSystemConstants;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.AlarmMessage;
@@ -71,14 +74,19 @@ public class AlarmMessageLogger implements Runnable {
         Properties kafkaProps = KafkaHelper.loadPropsFromFile(props.getProperty("kafka_properties",""));
         kafkaProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-messages");
 
-        if (props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)){
-            kafkaProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
-                           props.get(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG));
-        } else {
-            kafkaProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        }
-        
-        
+        kafkaProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
+                props.getOrDefault(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092"));
+
+        // API requires for Consumer to be in a group.
+        // Each alarm client must receive all updates,
+        // cannot balance updates across a group
+        // --> Use unique group for each client
+        final String group_id = "Alarm-" + UUID.randomUUID();
+        kafkaProps.put("group.id", group_id);
+
+        AlarmSystemConstants.logger.fine(kafkaProps.getProperty("group.id") + " subscribes to "
+                + kafkaProps.get(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG) + " for " + topic);
+
         final String indexDateSpanUnits = props.getProperty("date_span_units");
         final boolean useDatedIndexNames = Boolean.parseBoolean(props.getProperty("use_dated_index_names"));
 
@@ -112,14 +120,15 @@ public class AlarmMessageLogger implements Runnable {
             return new KeyValue<String, AlarmMessage>(key, value);
         });
 
-        @SuppressWarnings("unchecked")
-        KStream<String, AlarmMessage>[] alarmBranches = alarms.branch((k,v) -> k.startsWith("state"),
-                                                                      (k,v) -> k.startsWith("config"),
-                                                                      (k,v) -> false
-                                                                     );
-
-        processAlarmStateStream(alarmBranches[0], props);
-        processAlarmConfigurationStream(alarmBranches[1], props);
+        alarms.split(Named.as("alarm-"))
+                .branch((k, v) -> k.startsWith("state"),
+                        Branched.withConsumer(alarmStateStream -> processAlarmStateStream(alarmStateStream)))
+                .branch((k, v) -> k.startsWith("config"),
+                        Branched.withConsumer(alarmConfigStream -> processAlarmConfigurationStream(alarmConfigStream)))
+                .defaultBranch(Branched.withConsumer(stream -> {
+                    // Log each unmatched key in the default branch
+                    stream.foreach((k, v) -> logger.warning("Unknown alarm message type for key: " + k));
+                }));
 
         final KafkaStreams streams = new KafkaStreams(builder.build(), kafkaProps);
         final CountDownLatch latch = new CountDownLatch(1);
@@ -143,7 +152,7 @@ public class AlarmMessageLogger implements Runnable {
         System.exit(0);
     }
 
-    private void processAlarmStateStream(KStream<String, AlarmMessage> alarmStateBranch, Properties props) {
+    private void processAlarmStateStream(KStream<String, AlarmMessage> alarmStateBranch) {
 
         KStream<String, AlarmStateMessage> transformedAlarms = alarmStateBranch
                 .transform(new TransformerSupplier<String, AlarmMessage, KeyValue<String, AlarmStateMessage>>() {
@@ -193,7 +202,7 @@ public class AlarmMessageLogger implements Runnable {
 
     }
 
-    private void processAlarmConfigurationStream(KStream<String, AlarmMessage> alarmConfigBranch, Properties props) {
+    private void processAlarmConfigurationStream(KStream<String, AlarmMessage> alarmConfigBranch) {
         KStream<String, AlarmConfigMessage> alarmConfigMessages = alarmConfigBranch.transform(new TransformerSupplier<String, AlarmMessage, KeyValue<String,AlarmConfigMessage>>() {
 
             @Override
