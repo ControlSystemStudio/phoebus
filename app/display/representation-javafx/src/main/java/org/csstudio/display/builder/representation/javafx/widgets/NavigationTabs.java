@@ -12,7 +12,9 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.csstudio.display.builder.model.properties.Direction;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.phoebus.ui.javafx.NonCachingScrollPane;
 
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -26,7 +28,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import org.phoebus.ui.javafx.NonCachingScrollPane;
 
 /** Navigation Tabs
  *
@@ -72,8 +73,15 @@ public class NavigationTabs extends BorderPane
     private final Pane body = new Pane();
 
     /** Labels for the tabs */
-    private final List<String> tabs = new CopyOnWriteArrayList<>();
+    private final List<String> tab_names = new CopyOnWriteArrayList<>();
 
+    /** Selected colors for the tabs */
+    private final List<WidgetColor> tab_selected_colors = new CopyOnWriteArrayList<>();
+
+    /** Deselected colors for the tabs */
+    private final List<WidgetColor> tab_deselected_colors = new CopyOnWriteArrayList<>();
+
+    /** Size and spacing for the tabs */
     private int tab_width = 100, tab_height = 50, tab_spacing = 2;
 
     /** Direction of tabs */
@@ -84,6 +92,7 @@ public class NavigationTabs extends BorderPane
                   deselected = Color.rgb(200, 200, 200);
 
     private Font font = null;
+    private int selected_tab = -1;
 
     /** Listener to selected tab
      *
@@ -123,21 +132,33 @@ public class NavigationTabs extends BorderPane
     }
 
     /** @param tabs Tab labels */
-    public void setTabs(final List<String> tabs)
+    public void setTabNames(final List<String> tab_names)
     {
-        this.tabs.clear();
-        this.tabs.addAll(tabs);
+        this.tab_names.clear();
+        this.tab_names.addAll(tab_names);
+        updateTabs();
+    }
+
+    /** @param tabs Selected colors */
+    public void setTabSelectedColors(final List<WidgetColor> tab_selected_colors)
+    {
+        this.tab_selected_colors.clear();
+        this.tab_selected_colors.addAll(tab_selected_colors);
+        updateTabs();
+    }
+
+    /** @param tabs Deselected colors */
+    public void setTabDeselectedColors(final List<WidgetColor> tab_deselected_colors)
+    {
+        this.tab_deselected_colors.clear();
+        this.tab_deselected_colors.addAll(tab_deselected_colors);
         updateTabs();
     }
 
     /** @return Index of the selected tab. -1 if there are no buttons or nothing selected */
     public int getSelectedTab()
     {
-        final ObservableList<Node> siblings = buttons.getChildren();
-        for (int i=0; i<siblings.size(); ++i)
-            if (((ToggleButton) siblings.get(i)).isSelected())
-                return i;
-        return -1;
+        return selected_tab;
     }
 
     /** Select a tab
@@ -250,9 +271,8 @@ public class NavigationTabs extends BorderPane
         buttons.getStyleClass().add("navtab_tabregion");
 
         // Create button for each tab
-        for (int i=0; i<tabs.size(); ++i)
-        {
-            final ToggleButton button = new ToggleButton(tabs.get(i));
+		for (int i = 0; i < tab_names.size(); ++i) {
+			final ToggleButton button = new ToggleButton(tab_names.get(i));
             // Buttons without text vanish, creating a gap in the tab lineup.
             if (button.getText().isEmpty())
                 button.setVisible(false);
@@ -277,6 +297,8 @@ public class NavigationTabs extends BorderPane
     private void handleTabSelection(final ToggleButton pressed, final boolean notify)
     {
         final ObservableList<Node> siblings = buttons.getChildren();
+        int i = 0;
+        selected_tab = -1;
         int i = 0, selected_tab = -1;
         for (Node sibling : siblings)
         {
