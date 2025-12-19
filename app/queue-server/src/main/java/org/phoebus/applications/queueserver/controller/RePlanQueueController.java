@@ -133,24 +133,33 @@ public final class RePlanQueueController implements Initializable {
             try {
                 Map<String, Object> responseMap = svc.plansAllowedRaw();
 
+                // Prepare data in background thread
+                Map<String, Map<String, Object>> newPlans = new HashMap<>();
                 if (responseMap != null && Boolean.TRUE.equals(responseMap.get("success"))) {
-                    allowedPlans.clear();
                     if (responseMap.containsKey("plans_allowed")) {
                         Map<String, Object> plansData = (Map<String, Object>) responseMap.get("plans_allowed");
                         for (Map.Entry<String, Object> entry : plansData.entrySet()) {
                             String planName = entry.getKey();
                             Map<String, Object> planInfo = (Map<String, Object>) entry.getValue();
-                            allowedPlans.put(planName, planInfo);
+                            newPlans.put(planName, planInfo);
                         }
                     }
                 }
 
-                allowedInstructions.clear();
+                Map<String, Map<String, Object>> newInstructions = new HashMap<>();
                 Map<String, Object> queueStopInstr = new HashMap<>();
                 queueStopInstr.put("name", "queue_stop");
                 queueStopInstr.put("description", "Stop execution of the queue.");
                 queueStopInstr.put("parameters", List.of());
-                allowedInstructions.put("queue_stop", queueStopInstr);
+                newInstructions.put("queue_stop", queueStopInstr);
+
+                // Update maps on JavaFX thread to avoid threading issues
+                Platform.runLater(() -> {
+                    allowedPlans.clear();
+                    allowedPlans.putAll(newPlans);
+                    allowedInstructions.clear();
+                    allowedInstructions.putAll(newInstructions);
+                });
 
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to load plans", e);

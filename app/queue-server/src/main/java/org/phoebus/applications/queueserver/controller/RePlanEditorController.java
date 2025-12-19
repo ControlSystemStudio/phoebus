@@ -65,33 +65,24 @@ public class RePlanEditorController implements Initializable {
     private final ObjectMapper objectMapper = new ObjectMapper();
     // Store original parameter values for reset functionality
     private final Map<String, Object> originalParameterValues = new HashMap<>();
-    // Python-based parameter converter (lazy-initialized to avoid blocking UI on startup)
+    // Python-based parameter converter (initialized in background to avoid blocking UI)
+    // Only used from background threads - NEVER call from JavaFX thread to prevent UI freezes
     private volatile PythonParameterConverter pythonConverter;
-    private final Object converterLock = new Object();
 
     /**
-     * Get the Python converter, initializing it if needed.
-     * This method may block if initialization is in progress.
-     * For JavaFX thread usage, check if converter is ready first or use async initialization.
+     * Get the Python converter for use in background threads ONLY.
+     * WARNING: This method may block if initialization is in progress.
+     * NEVER call this from JavaFX thread - it will cause UI freezes.
      */
     private PythonParameterConverter getPythonConverter() {
-        // Double-checked locking pattern for thread-safe lazy initialization
         if (pythonConverter == null) {
-            synchronized (converterLock) {
+            synchronized (this) {
                 if (pythonConverter == null) {
                     pythonConverter = new PythonParameterConverter();
                 }
             }
         }
         return pythonConverter;
-    }
-
-    /**
-     * Check if the Python converter is ready (non-blocking).
-     * @return true if the converter is initialized and ready to use
-     */
-    private boolean isConverterReady() {
-        return pythonConverter != null;
     }
 
     private class EditableTableCell extends TableCell<ParameterRow, String> {
@@ -119,9 +110,10 @@ public class RePlanEditorController implements Initializable {
                     setGraphic(null);
 
                     // Style based on enabled state and validation
+                    // NOTE: Use simple UI validation here - never call Python converter from JavaFX thread
                     if (!row.isEnabled()) {
                         setStyle("-fx-text-fill: grey;");
-                    } else if (!row.validate(pythonConverter)) {
+                    } else if (!row.isValidForUI()) {
                         setStyle("-fx-text-fill: red;");
                     } else {
                         setStyle("");
@@ -174,9 +166,10 @@ public class RePlanEditorController implements Initializable {
         }
 
         private void updateValidationColor(ParameterRow row) {
+            // NOTE: Use simple UI validation here - never call Python converter from JavaFX thread
             if (!row.isEnabled()) {
                 setStyle("-fx-text-fill: grey;");
-            } else if (row.validate(pythonConverter)) {
+            } else if (row.isValidForUI()) {
                 setStyle("");
             } else {
                 setStyle("-fx-text-fill: red;");
@@ -244,6 +237,29 @@ public class RePlanEditorController implements Initializable {
         public boolean isOptional() { return isOptional.get(); }
         public Object getDefaultValue() { return defaultValue; }
 
+        /**
+         * Simple UI validation that doesn't use Python converter.
+         * Only checks if required parameters have values.
+         * Use this for UI feedback (cell colors, button states).
+         */
+        public boolean isValidForUI() {
+            if (!enabled.get()) {
+                return true;  // Disabled parameters are always valid
+            }
+
+            String valueStr = value.get();
+            if (valueStr == null || valueStr.trim().isEmpty()) {
+                return isOptional.get();  // Empty is valid only if optional
+            }
+
+            return true;  // Has a value, assume valid for UI purposes
+        }
+
+        /**
+         * Full validation using Python converter.
+         * NEVER call this from JavaFX thread - it will cause UI freezes!
+         * Only use in background threads before submitting to API.
+         */
         public boolean validate(PythonParameterConverter converter) {
             if (!enabled.get()) {
                 return true;  // Disabled parameters are always valid
@@ -362,21 +378,12 @@ public class RePlanEditorController implements Initializable {
             row.setEnabled(isChecked);
 
             // If unchecked, reset to default value; if checked and no value, set default
+            // NOTE: Use simple string conversion here - never call Python converter from JavaFX thread
             if (!isChecked) {
                 Object defaultValue = row.getDefaultValue();
-                if (defaultValue != null && isConverterReady()) {
-                    row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
-                } else if (defaultValue != null) {
-                    row.setValue(String.valueOf(defaultValue));
-                } else {
-                    row.setValue("");
-                }
+                row.setValue(defaultValue != null ? String.valueOf(defaultValue) : "");
             } else if (row.getValue().isEmpty() && row.getDefaultValue() != null) {
-                if (isConverterReady()) {
-                    row.setValue(getPythonConverter().normalizeAndRepr(row.getDefaultValue()));
-                } else {
-                    row.setValue(String.valueOf(row.getDefaultValue()));
-                }
+                row.setValue(String.valueOf(row.getDefaultValue()));
             }
 
             // Trigger edit mode when checkbox is changed
@@ -439,9 +446,9 @@ public class RePlanEditorController implements Initializable {
                 // Load plans from API - use raw Map instead of Envelope since response structure doesn't match
                 Map<String, Object> responseMap = svc.plansAllowedRaw();
 
+                // Prepare data in background thread
+                Map<String, Map<String, Object>> newPlans = new HashMap<>();
                 if (responseMap != null && Boolean.TRUE.equals(responseMap.get("success"))) {
-                    allowedPlans.clear();
-
                     if (responseMap.containsKey("plans_allowed")) {
                         Map<String, Object> plansData = (Map<String, Object>) responseMap.get("plans_allowed");
 
@@ -449,7 +456,7 @@ public class RePlanEditorController implements Initializable {
                         for (Map.Entry<String, Object> entry : plansData.entrySet()) {
                             String planName = entry.getKey();
                             Map<String, Object> planInfo = (Map<String, Object>) entry.getValue();
-                            allowedPlans.put(planName, planInfo);
+                            newPlans.put(planName, planInfo);
                         }
                     } else {
                         logger.log(Level.WARNING, "No 'plans_allowed' key in response. Keys: " + responseMap.keySet());
@@ -458,15 +465,23 @@ public class RePlanEditorController implements Initializable {
                     logger.log(Level.WARNING, "Plans response failed. Response: " + responseMap);
                 }
 
-                allowedInstructions.clear();
+                Map<String, Map<String, Object>> newInstructions = new HashMap<>();
                 Map<String, Object> queueStopInstr = new HashMap<>();
                 queueStopInstr.put("name", "queue_stop");
                 queueStopInstr.put("description", "Stop execution of the queue.");
                 queueStopInstr.put("parameters", List.of());
-                allowedInstructions.put("queue_stop", queueStopInstr);
+                newInstructions.put("queue_stop", queueStopInstr);
 
+                // Update maps on JavaFX thread to avoid threading issues
                 Platform.runLater(() -> {
-                    populateChoiceBox(planRadBtn.isSelected());
+                    allowedPlans.clear();
+                    allowedPlans.putAll(newPlans);
+                    allowedInstructions.clear();
+                    allowedInstructions.putAll(newInstructions);
+                    // Only populate if we're not in edit mode
+                    if (!isEditMode) {
+                        populateChoiceBox(planRadBtn.isSelected());
+                    }
                 });
 
             } catch (Exception e) {
@@ -564,13 +579,9 @@ public class RePlanEditorController implements Initializable {
                 currentValue = value != null ? PythonParameterConverter.toPythonRepr(value) : "";
                 isEnabled = true;
             } else if (defaultValue != null) {
-                // Use normalizeAndRepr for defaults - they might be strings that need parsing
-                if (isConverterReady()) {
-                    currentValue = getPythonConverter().normalizeAndRepr(defaultValue);
-                } else {
-                    // Fallback if converter is not ready yet
-                    currentValue = String.valueOf(defaultValue);
-                }
+                // Use simple string conversion - Python parsing will happen in background thread later
+                // NOTE: Never call Python converter from JavaFX thread to avoid UI freezes
+                currentValue = String.valueOf(defaultValue);
             }
 
             ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
@@ -663,9 +674,10 @@ public class RePlanEditorController implements Initializable {
     }
 
     private boolean areParametersValid() {
+        // NOTE: Use simple UI validation here - never call Python converter from JavaFX thread
         boolean allValid = true;
         for (ParameterRow row : parameterRows) {
-            boolean rowValid = row.validate(pythonConverter);
+            boolean rowValid = row.isValidForUI();
             if (!rowValid) {
                 allValid = false;
             }
@@ -906,32 +918,18 @@ public class RePlanEditorController implements Initializable {
                     row.setEnabled(true);
                 } else {
                     // Parameter was not in original item, reset to default
+                    // NOTE: Use simple string conversion - never call Python converter from JavaFX thread
                     Object defaultValue = row.getDefaultValue();
-                    if (defaultValue != null) {
-                        if (isConverterReady()) {
-                            row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
-                        } else {
-                            row.setValue(String.valueOf(defaultValue));
-                        }
-                    } else {
-                        row.setValue("");
-                    }
+                    row.setValue(defaultValue != null ? String.valueOf(defaultValue) : "");
                     row.setEnabled(!row.isOptional());
                 }
             }
         } else {
             // Reset to default values for new items
+            // NOTE: Use simple string conversion - never call Python converter from JavaFX thread
             for (ParameterRow row : parameterRows) {
                 Object defaultValue = row.getDefaultValue();
-                if (defaultValue != null) {
-                    if (isConverterReady()) {
-                        row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
-                    } else {
-                        row.setValue(String.valueOf(defaultValue));
-                    }
-                } else {
-                    row.setValue("");
-                }
+                row.setValue(defaultValue != null ? String.valueOf(defaultValue) : "");
                 // Reset enabled state based on whether parameter is optional
                 row.setEnabled(!row.isOptional());
             }
