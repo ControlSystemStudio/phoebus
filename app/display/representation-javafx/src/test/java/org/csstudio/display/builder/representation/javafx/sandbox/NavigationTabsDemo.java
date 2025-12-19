@@ -35,7 +35,7 @@ public class NavigationTabsDemo extends ApplicationWrapper
         final NavigationTabs nav_tabs = new NavigationTabs();
 
         final List<String> tabs = IntStream.range(1, 10).mapToObj(i -> "Step" + i).collect(Collectors.toList());
-        nav_tabs.setTabs(tabs);
+        nav_tabs.setTabNames(tabs);
         nav_tabs.setTabSize(80, 40);
         nav_tabs.setTabSpacing(5);
         nav_tabs.getBodyPane().getChildren().setAll(new Label("     Go on, select something!"));
