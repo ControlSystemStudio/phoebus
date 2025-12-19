@@ -62,6 +62,21 @@ public final class ReConsoleMonitorController implements Initializable {
         textArea.setEditable(false);
         textArea.setStyle("-fx-font-family: monospace");
 
+        // Add visual indicator when autoscroll is unchecked
+        autoscrollChk.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
+            if (isSelected) {
+                // Checked - normal appearance
+                autoscrollChk.setStyle("");
+            } else {
+                // Unchecked - red bold text to make it obvious
+                autoscrollChk.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+            }
+        });
+        // Set initial style based on current state
+        if (!autoscrollChk.isSelected()) {
+            autoscrollChk.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+        }
+
         textArea.sceneProperty().addListener((o,ov,nv)->{
             if(nv==null)return;
             Platform.runLater(()->{
