@@ -128,12 +128,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
                     break;
                 case PAGE_UP:
                     if (!active) {
-						if(event.isControlDown()) {
-							spinner.getValueFactory().increment(10);
-							}
-						else {
-							spinner.getValueFactory().increment(1);
-							}
+						spinner.getValueFactory().increment(1);
 						}
                     break;
                 case DOWN:
@@ -148,12 +143,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
                     break;
                 case PAGE_DOWN:
                     if (!active) {
-						if(event.isControlDown()) {
-							spinner.getValueFactory().decrement(10);
-							}
-						else {
-							spinner.getValueFactory().decrement(1);
-							}
+						spinner.getValueFactory().decrement(1);
 						}
                     break;
                 case CONTROL:
@@ -652,3 +642,4 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         updateChanges();
     }
 }
+
