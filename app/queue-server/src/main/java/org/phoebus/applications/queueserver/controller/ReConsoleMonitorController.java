@@ -51,7 +51,7 @@ public final class ReConsoleMonitorController implements Initializable {
     private Instant lastLine  = Instant.EPOCH;
 
     private ScheduledFuture<?> pollTask;
-    private volatile boolean ignoreScroll = false;
+    private volatile long lastProgrammaticScroll = 0;
     private final StringBuilder wsTextBuffer = new StringBuilder();
     private final Object wsTextLock = new Object();
 
@@ -77,11 +77,35 @@ public final class ReConsoleMonitorController implements Initializable {
             autoscrollChk.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
         }
 
+        // Detect ANY user scroll interaction - mouse wheel, touchpad, scrollbar drag
+        textArea.setOnScroll(event -> {
+            // Any scroll event disables autoscroll
+            if (autoscrollChk.isSelected()) {
+                autoscrollChk.setSelected(false);
+            }
+        });
+
         textArea.sceneProperty().addListener((o,ov,nv)->{
             if(nv==null)return;
             Platform.runLater(()->{
                 vBar =(ScrollBar)textArea.lookup(".scroll-bar:vertical");
-                if(vBar!=null)vBar.valueProperty().addListener(this::scrollbarChanged);
+                if(vBar!=null){
+                    vBar.valueProperty().addListener(this::scrollbarChanged);
+
+                    // Detect when user clicks anywhere on scrollbar
+                    vBar.setOnMousePressed(event -> {
+                        if (autoscrollChk.isSelected()) {
+                            autoscrollChk.setSelected(false);
+                        }
+                    });
+
+                    // Detect when user drags the scrollbar
+                    vBar.setOnMouseDragged(event -> {
+                        if (autoscrollChk.isSelected()) {
+                            autoscrollChk.setSelected(false);
+                        }
+                    });
+                }
             });
         });
 
@@ -119,7 +143,7 @@ public final class ReConsoleMonitorController implements Initializable {
         synchronized (wsTextLock) {
             wsTextBuffer.setLength(0);
         }
-        loadBacklog();
+        loadBacklog(); // loadBacklog() already handles scroll-to-bottom
 
         if (Preferences.use_websockets) {
             startWebSocket();
@@ -146,6 +170,23 @@ public final class ReConsoleMonitorController implements Initializable {
             if(!t.isEmpty()) textBuf.addMessage(t);
             lastUid = svc.consoleOutputUid().uid();
             render();
+
+            // Force scroll to bottom on initial load if autoscroll is enabled
+            // Multiple runLaters to ensure UI is fully laid out and text is rendered
+            if (autoscrollChk.isSelected()) {
+                Platform.runLater(() -> {
+                    Platform.runLater(() -> {
+                        Platform.runLater(() -> {
+                            lastProgrammaticScroll = System.currentTimeMillis();
+                            textArea.positionCaret(textArea.getLength());
+                            textArea.setScrollTop(Double.MAX_VALUE);
+                            if (vBar != null) {
+                                vBar.setValue(vBar.getMax());
+                            }
+                        });
+                    });
+                });
+            }
         }catch(Exception ignore){}
     }
 
@@ -225,28 +266,26 @@ public final class ReConsoleMonitorController implements Initializable {
 
         final boolean wantBottom = autoscrollChk.isSelected();
 
-        ignoreScroll = true;
         int    keepCaret   = textArea.getCaretPosition();
         double keepScrollY = textArea.getScrollTop();
 
         textArea.replaceText(0, textArea.getLength(), textBuf.tail(maxLines));
 
         if (wantBottom) {
+            lastProgrammaticScroll = System.currentTimeMillis();
             Platform.runLater(() -> {
-                ignoreScroll = true;
+                lastProgrammaticScroll = System.currentTimeMillis();
                 textArea.positionCaret(textArea.getLength());
                 textArea.setScrollTop(Double.MAX_VALUE);
                 if (vBar != null) vBar.setValue(vBar.getMax());
-                // Delay clearing ignoreScroll to let scrollbar settle
-                Platform.runLater(() -> ignoreScroll = false);
             });
         } else {
+            lastProgrammaticScroll = System.currentTimeMillis();
             textArea.positionCaret(Math.min(keepCaret, textArea.getLength()));
             double y = keepScrollY;
             Platform.runLater(() -> {
-                ignoreScroll = true;
+                lastProgrammaticScroll = System.currentTimeMillis();
                 textArea.setScrollTop(y);
-                Platform.runLater(() -> ignoreScroll = false);
             });
         }
 
@@ -256,14 +295,23 @@ public final class ReConsoleMonitorController implements Initializable {
     private void scrollbarChanged(ObservableValue<? extends Number> obs,
                                   Number oldVal, Number newVal) {
 
-        if (ignoreScroll) return;
-
         if (vBar == null) return;
 
-        boolean atBottom = (vBar.getMax() - newVal.doubleValue()) < 1.0;
+        // If autoscroll is on, check if user scrolled away from bottom
+        if (autoscrollChk.isSelected()) {
+            // Ignore scroll events that happen within 100ms of programmatic scrolling
+            long timeSinceProgrammaticScroll = System.currentTimeMillis() - lastProgrammaticScroll;
+            if (timeSinceProgrammaticScroll < 100) {
+                return; // Too soon after programmatic scroll, ignore
+            }
 
-        if (!atBottom && autoscrollChk.isSelected()) {
-            autoscrollChk.setSelected(false);
+            // Check if we're not at the bottom anymore (with small tolerance)
+            boolean atBottom = (vBar.getMax() - newVal.doubleValue()) < 2.0;
+
+            // If not at bottom, user must have scrolled up - uncheck autoscroll
+            if (!atBottom) {
+                autoscrollChk.setSelected(false);
+            }
         }
     }
 

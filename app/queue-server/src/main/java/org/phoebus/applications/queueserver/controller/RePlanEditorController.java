@@ -406,6 +406,13 @@ public class RePlanEditorController implements Initializable {
         // Setup ChoiceBox to auto-size to fit content exactly
         setupChoiceBoxAutoSizing();
 
+        // Lazy populate when user opens the dropdown (avoids UI freeze during connection)
+        choiceBox.setOnShowing(event -> {
+            if (choiceBox.getItems().isEmpty() && !allowedPlans.isEmpty()) {
+                populateChoiceBox(planRadBtn.isSelected());
+            }
+        });
+
         choiceBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 loadParametersForSelection(newVal);
@@ -473,15 +480,12 @@ public class RePlanEditorController implements Initializable {
                 newInstructions.put("queue_stop", queueStopInstr);
 
                 // Update maps on JavaFX thread to avoid threading issues
+                // Don't populate choicebox here - it will populate lazily when user opens it
                 Platform.runLater(() -> {
                     allowedPlans.clear();
                     allowedPlans.putAll(newPlans);
                     allowedInstructions.clear();
                     allowedInstructions.putAll(newInstructions);
-                    // Only populate if we're not in edit mode
-                    if (!isEditMode) {
-                        populateChoiceBox(planRadBtn.isSelected());
-                    }
                 });
 
             } catch (Exception e) {
