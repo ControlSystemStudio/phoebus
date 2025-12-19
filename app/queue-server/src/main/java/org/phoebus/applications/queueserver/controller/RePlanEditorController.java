@@ -66,13 +66,32 @@ public class RePlanEditorController implements Initializable {
     // Store original parameter values for reset functionality
     private final Map<String, Object> originalParameterValues = new HashMap<>();
     // Python-based parameter converter (lazy-initialized to avoid blocking UI on startup)
-    private PythonParameterConverter pythonConverter;
+    private volatile PythonParameterConverter pythonConverter;
+    private final Object converterLock = new Object();
 
+    /**
+     * Get the Python converter, initializing it if needed.
+     * This method may block if initialization is in progress.
+     * For JavaFX thread usage, check if converter is ready first or use async initialization.
+     */
     private PythonParameterConverter getPythonConverter() {
+        // Double-checked locking pattern for thread-safe lazy initialization
         if (pythonConverter == null) {
-            pythonConverter = new PythonParameterConverter();
+            synchronized (converterLock) {
+                if (pythonConverter == null) {
+                    pythonConverter = new PythonParameterConverter();
+                }
+            }
         }
         return pythonConverter;
+    }
+
+    /**
+     * Check if the Python converter is ready (non-blocking).
+     * @return true if the converter is initialized and ready to use
+     */
+    private boolean isConverterReady() {
+        return pythonConverter != null;
     }
 
     private class EditableTableCell extends TableCell<ParameterRow, String> {
@@ -264,6 +283,16 @@ public class RePlanEditorController implements Initializable {
         initializeTable();
         initializeControls();
 
+        // Initialize Python converter on background thread to avoid blocking JavaFX thread
+        new Thread(() -> {
+            try {
+                getPythonConverter();
+                logger.log(Level.FINE, "Python converter initialized in background");
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to initialize Python converter", e);
+            }
+        }, "PythonConverter-Init").start();
+
         // Only load plans if already connected
         if (StatusBus.latest().get() != null) {
             loadAllowedPlansAndInstructions();
@@ -335,9 +364,19 @@ public class RePlanEditorController implements Initializable {
             // If unchecked, reset to default value; if checked and no value, set default
             if (!isChecked) {
                 Object defaultValue = row.getDefaultValue();
-                row.setValue(defaultValue != null ? getPythonConverter().normalizeAndRepr(defaultValue) : "");
+                if (defaultValue != null && isConverterReady()) {
+                    row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
+                } else if (defaultValue != null) {
+                    row.setValue(String.valueOf(defaultValue));
+                } else {
+                    row.setValue("");
+                }
             } else if (row.getValue().isEmpty() && row.getDefaultValue() != null) {
-                row.setValue(getPythonConverter().normalizeAndRepr(row.getDefaultValue()));
+                if (isConverterReady()) {
+                    row.setValue(getPythonConverter().normalizeAndRepr(row.getDefaultValue()));
+                } else {
+                    row.setValue(String.valueOf(row.getDefaultValue()));
+                }
             }
 
             // Trigger edit mode when checkbox is changed
@@ -526,7 +565,12 @@ public class RePlanEditorController implements Initializable {
                 isEnabled = true;
             } else if (defaultValue != null) {
                 // Use normalizeAndRepr for defaults - they might be strings that need parsing
-                currentValue = getPythonConverter().normalizeAndRepr(defaultValue);
+                if (isConverterReady()) {
+                    currentValue = getPythonConverter().normalizeAndRepr(defaultValue);
+                } else {
+                    // Fallback if converter is not ready yet
+                    currentValue = String.valueOf(defaultValue);
+                }
             }
 
             ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
@@ -702,28 +746,28 @@ public class RePlanEditorController implements Initializable {
 
             String itemType = planRadBtn.isSelected() ? "plan" : "instruction";
 
-            // Use Python-based parameter conversion
-            Map<String, Object> kwargs = buildKwargsWithPython();
-
-            QueueItem item = new QueueItem(
-                    itemType,
-                    selectedName,
-                    List.of(),
-                    kwargs,
-                    null,
-                    currentUser,
-                    currentUserGroup,
-                    null
-            );
-
-            QueueItemAdd request = new QueueItemAdd(
-                    new QueueItemAdd.Item(item.itemType(), item.name(), item.args(), item.kwargs()),
-                    currentUser,
-                    currentUserGroup
-            );
-
             new Thread(() -> {
                 try {
+                    // Use Python-based parameter conversion (in background thread to avoid blocking UI)
+                    Map<String, Object> kwargs = buildKwargsWithPython();
+
+                    QueueItem item = new QueueItem(
+                            itemType,
+                            selectedName,
+                            List.of(),
+                            kwargs,
+                            null,
+                            currentUser,
+                            currentUserGroup,
+                            null
+                    );
+
+                    QueueItemAdd request = new QueueItemAdd(
+                            new QueueItemAdd.Item(item.itemType(), item.name(), item.args(), item.kwargs()),
+                            currentUser,
+                            currentUserGroup
+                    );
+
                     var response = svc.queueItemAdd(request);
                     Platform.runLater(() -> {
                         if (response.success()) {
@@ -785,23 +829,27 @@ public class RePlanEditorController implements Initializable {
             }
 
             String itemType = planRadBtn.isSelected() ? "plan" : "instruction";
-
-            // Use Python-based parameter conversion
-            Map<String, Object> kwargs = buildKwargsWithPython();
-
-            QueueItem updatedItem = new QueueItem(
-                    itemType,
-                    selectedName,
-                    List.of(),
-                    kwargs,
-                    currentItem.itemUid(),
-                    currentItem.user(),
-                    currentItem.userGroup(),
-                    currentItem.result()
-            );
+            String itemUid = currentItem.itemUid();
+            String user = currentItem.user();
+            String userGroup = currentItem.userGroup();
+            Map<String, Object> result = currentItem.result();
 
             new Thread(() -> {
                 try {
+                    // Use Python-based parameter conversion (in background thread to avoid blocking UI)
+                    Map<String, Object> kwargs = buildKwargsWithPython();
+
+                    QueueItem updatedItem = new QueueItem(
+                            itemType,
+                            selectedName,
+                            List.of(),
+                            kwargs,
+                            itemUid,
+                            user,
+                            userGroup,
+                            result
+                    );
+
                     var response = svc.queueItemUpdate(updatedItem);
                     Platform.runLater(() -> {
                         if (response.success()) {
@@ -860,7 +908,11 @@ public class RePlanEditorController implements Initializable {
                     // Parameter was not in original item, reset to default
                     Object defaultValue = row.getDefaultValue();
                     if (defaultValue != null) {
-                        row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
+                        if (isConverterReady()) {
+                            row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
+                        } else {
+                            row.setValue(String.valueOf(defaultValue));
+                        }
                     } else {
                         row.setValue("");
                     }
@@ -872,7 +924,11 @@ public class RePlanEditorController implements Initializable {
             for (ParameterRow row : parameterRows) {
                 Object defaultValue = row.getDefaultValue();
                 if (defaultValue != null) {
-                    row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
+                    if (isConverterReady()) {
+                        row.setValue(getPythonConverter().normalizeAndRepr(defaultValue));
+                    } else {
+                        row.setValue(String.valueOf(defaultValue));
+                    }
                 } else {
                     row.setValue("");
                 }
