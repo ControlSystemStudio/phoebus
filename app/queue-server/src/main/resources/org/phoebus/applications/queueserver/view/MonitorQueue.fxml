@@ -18,22 +18,22 @@
       </AnchorPane>
       <VBox fx:id="stack" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="170.0">
          <children>
-            <TitledPane fx:id="runningPane" animated="false" text="Running Plan" VBox.vgrow="ALWAYS">
+            <TitledPane fx:id="runningPane" animated="false" expanded="false" text="Running Plan" VBox.vgrow="ALWAYS">
                <content>
                   <AnchorPane fx:id="runningPlanContainer" />
                </content>
             </TitledPane>
-            <TitledPane fx:id="queuePane" animated="false" text="Plan Queue" VBox.vgrow="ALWAYS">
+            <TitledPane fx:id="queuePane" animated="false" expanded="false" text="Plan Queue" VBox.vgrow="ALWAYS">
                <content>
                   <AnchorPane fx:id="planQueueContainer" />
                </content>
             </TitledPane>
-            <TitledPane fx:id="historyPane" animated="false" text="Plan History" VBox.vgrow="ALWAYS">
+            <TitledPane fx:id="historyPane" animated="false" expanded="false" text="Plan History" VBox.vgrow="ALWAYS">
                <content>
                   <AnchorPane fx:id="planHistoryContainer" />
                </content>
             </TitledPane>
-            <TitledPane fx:id="consolePane" animated="false" text="Console Monitor" VBox.vgrow="ALWAYS">
+            <TitledPane fx:id="consolePane" animated="false" expanded="true" text="Console Monitor" VBox.vgrow="ALWAYS">
                <content>
                   <AnchorPane>
                      <children>
