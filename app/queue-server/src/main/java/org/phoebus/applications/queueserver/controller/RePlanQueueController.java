@@ -170,12 +170,9 @@ public final class RePlanQueueController implements Initializable {
     private void refresh(StatusResponse st, Collection<String> explicitFocus) {
 
         if (st == null) {
-            Platform.runLater(() -> {
-                ignoreSticky = true;
-                rows.clear(); uid2item.clear();
-                ignoreSticky = false;
-                updateButtonStates();
-            });
+            // Don't clear queue - keep last data visible for users
+            // Just update button states (will be disabled via StatusBus)
+            Platform.runLater(this::updateButtonStates);
             return;
         }
         try {

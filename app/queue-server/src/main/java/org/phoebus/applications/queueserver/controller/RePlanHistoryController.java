@@ -191,13 +191,9 @@ public final class RePlanHistoryController implements Initializable {
     private void refresh(StatusResponse st) {
 
         if (st == null) {
-            Platform.runLater(() -> {
-                ignoreSel = true;
-                rows.clear();
-                uid2item.clear();
-                ignoreSel = false;
-                updateButtonStates();
-            });
+            // Don't clear history - keep last data visible for users
+            // Just update button states (will be disabled via StatusBus)
+            Platform.runLater(this::updateButtonStates);
             return;
         }
 

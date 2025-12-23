@@ -204,8 +204,7 @@ public final class ReConsoleMonitorController implements Initializable {
         }
         stop=true;
         isRunning = false;
-        textBuf.clear();
-        Platform.runLater(this::render);
+        // Don't clear textBuf - keep last console output visible for users
     }
 
     private void loadBacklog(){

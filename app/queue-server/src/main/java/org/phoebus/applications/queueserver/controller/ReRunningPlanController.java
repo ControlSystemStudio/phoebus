@@ -57,11 +57,8 @@ public final class ReRunningPlanController implements Initializable {
 
     private void render(StatusResponse st) {
         if (st == null) {
-            planTextArea.clear();
-            lastRunningUid = "";
-            cachedRunningItem = null;
-            copyBtn.setDisable(true);
-            updateBtn.setDisable(true);
+            // Don't clear running plan - keep last data visible for users
+            // Buttons will be disabled via StatusBus
             return;
         }
 
