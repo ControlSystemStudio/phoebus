@@ -16,7 +16,7 @@
                         <Insets />
                      </VBox.margin>
                   </Label>
-                  <ToggleButton fx:id="autoConnectToggle" mnemonicParsing="false" onAction="#toggleConnection" prefWidth="86.0" selected="false" text="Auto">
+                  <ToggleButton fx:id="autoConnectToggle" mnemonicParsing="false" onAction="#toggleConnection" prefWidth="86.0" selected="true" text="Auto">
                      <VBox.margin>
                         <Insets bottom="5.0" top="5.0" />
                      </VBox.margin>
