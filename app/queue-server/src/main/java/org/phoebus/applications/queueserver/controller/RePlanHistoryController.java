@@ -107,13 +107,17 @@ public final class RePlanHistoryController implements Initializable {
                 });
 
         ChangeListener<StatusResponse> l =
-                (o,oldV,nv) -> Platform.runLater(() -> refresh(nv));
+                (o,oldV,nv) -> {
+                    // Run refresh in background thread to avoid blocking UI
+                    new Thread(() -> refresh(nv)).start();
+                };
         StatusBus.latest().addListener(l);
 
         // Add drag-to-select functionality
         setupDragSelection();
 
-        refresh(StatusBus.latest().get());
+        // Run initial refresh in background thread
+        new Thread(() -> refresh(StatusBus.latest().get())).start();
     }
 
     /**
@@ -187,18 +191,29 @@ public final class RePlanHistoryController implements Initializable {
     private void refresh(StatusResponse st) {
 
         if (st == null) {
-            ignoreSel = true; rows.clear(); uid2item.clear(); ignoreSel = false;
-            updateButtonStates(); return;
+            Platform.runLater(() -> {
+                ignoreSel = true;
+                rows.clear();
+                uid2item.clear();
+                ignoreSel = false;
+                updateButtonStates();
+            });
+            return;
         }
 
         try {
+            // Blocking HTTP call - runs on background thread
             HistoryGetPayload hp = svc.historyGetTyped();   // typed DTO
-            ignoreSel = true;
-            rebuildRows(hp.items());
-            ignoreSel = false;
-            restoreSelection(stickySel);
+
+            // UI updates must happen on FX thread
+            Platform.runLater(() -> {
+                ignoreSel = true;
+                rebuildRows(hp.items());
+                ignoreSel = false;
+                restoreSelection(stickySel);
+            });
         } catch (Exception ex) {
-            logger.log(Level.WARNING, "History refresh failed", ex);
+            logger.log(Level.FINE, "History refresh failed: " + ex.getMessage());
         }
     }
 

@@ -198,7 +198,7 @@ public final class RePlanQueueController implements Initializable {
                         .orElse(false));
             });
         } catch (Exception ex) {
-            logger.log(Level.WARNING, "Queue refresh failed: " + ex.getMessage());
+            logger.log(Level.FINE, "Queue refresh failed: " + ex.getMessage());
         }
     }
 

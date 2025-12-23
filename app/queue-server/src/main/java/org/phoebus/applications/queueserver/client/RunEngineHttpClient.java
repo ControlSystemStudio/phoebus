@@ -125,7 +125,7 @@ public final class RunEngineHttpClient {
                 return reader.apply(rsp);
             } catch (java.io.IOException ex) {
                 if (!HttpSupport.isRetryable(req) || attempt >= HttpSupport.MAX_RETRIES) throw ex;
-                logger.log(Level.WARNING, ep + " transport error (" + ex.getClass().getSimpleName() +
+                logger.log(Level.FINE, ep + " transport error (" + ex.getClass().getSimpleName() +
                         "), retry in " + back + " ms (attempt " + attempt + ")");
                 Thread.sleep(back);
                 back = Math.round(back * HttpSupport.BACKOFF_MULTIPLIER);

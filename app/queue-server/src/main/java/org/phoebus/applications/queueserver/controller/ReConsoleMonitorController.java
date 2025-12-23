@@ -56,6 +56,7 @@ public final class ReConsoleMonitorController implements Initializable {
     private final Object wsTextLock = new Object();
 
     private QueueServerWebSocket<ConsoleOutputWsMessage> consoleWs;
+    private volatile boolean isRunning = false;
 
     @Override public void initialize(URL url, ResourceBundle rb) {
 
@@ -125,8 +126,23 @@ public final class ReConsoleMonitorController implements Initializable {
 
         clearBtn.setOnAction(e->{ textBuf.clear(); render(); });
 
-        StatusBus.latest().addListener((o,oldS,newS)->
-                Platform.runLater(()-> { if(newS!=null) start(); else stop(); }));
+        // Only start/stop on null <-> non-null transitions, not on every status change
+        StatusBus.latest().addListener((o,oldS,newS)-> {
+            boolean wasConnected = oldS != null;
+            boolean isConnected = newS != null;
+
+            // Only act on state transitions
+            if (wasConnected != isConnected) {
+                java.util.logging.Logger.getLogger(getClass().getPackageName())
+                    .log(java.util.logging.Level.FINE,
+                         "Console monitor state transition: wasConnected=" + wasConnected +
+                         ", isConnected=" + isConnected);
+                Platform.runLater(()-> {
+                    if (isConnected) start();
+                    else stop();
+                });
+            }
+        });
     }
 
     public void shutdown(){
@@ -138,12 +154,30 @@ public final class ReConsoleMonitorController implements Initializable {
     }
 
     private void start(){
-        if(pollTask!=null || (consoleWs != null && consoleWs.isConnected())) return;
+        // Prevent starting if already running
+        if(isRunning) {
+            java.util.logging.Logger.getLogger(getClass().getPackageName())
+                .log(java.util.logging.Level.FINE, "Console monitor start() called but already running, ignoring");
+            return;
+        }
+
+        if(pollTask!=null || (consoleWs != null && consoleWs.isConnected())) {
+            java.util.logging.Logger.getLogger(getClass().getPackageName())
+                .log(java.util.logging.Level.FINE, "Console monitor start() called but already have active connections, ignoring");
+            return;
+        }
+
+        java.util.logging.Logger.getLogger(getClass().getPackageName())
+            .log(java.util.logging.Level.FINE, "Console monitor starting");
         stop=false; textBuf.clear(); lastUid="ALL";
         synchronized (wsTextLock) {
             wsTextBuffer.setLength(0);
         }
-        loadBacklog(); // loadBacklog() already handles scroll-to-bottom
+
+        isRunning = true;
+
+        // Load backlog in background thread to avoid blocking JavaFX thread
+        io.submit(this::loadBacklog);
 
         if (Preferences.use_websockets) {
             startWebSocket();
@@ -154,39 +188,55 @@ public final class ReConsoleMonitorController implements Initializable {
     }
 
     private void stop(){
+        if(!isRunning) {
+            java.util.logging.Logger.getLogger(getClass().getPackageName())
+                .log(java.util.logging.Level.FINE, "Console monitor stop() called but not running, ignoring");
+            return; // Already stopped
+        }
+
+        java.util.logging.Logger.getLogger(getClass().getPackageName())
+            .log(java.util.logging.Level.FINE, "Console monitor stopping");
+
         if(pollTask!=null){ pollTask.cancel(true); pollTask=null; }
         if(consoleWs != null) { consoleWs.disconnect(); }
         synchronized (wsTextLock) {
             wsTextBuffer.setLength(0);
         }
         stop=true;
+        isRunning = false;
         textBuf.clear();
         Platform.runLater(this::render);
     }
 
     private void loadBacklog(){
         try{
+            // These HTTP calls run in background thread (io executor)
             String t = svc.consoleOutput(BACKLOG).text();
-            if(!t.isEmpty()) textBuf.addMessage(t);
-            lastUid = svc.consoleOutputUid().uid();
-            render();
+            String uid = svc.consoleOutputUid().uid();
 
-            // Force scroll to bottom on initial load if autoscroll is enabled
-            // Multiple runLaters to ensure UI is fully laid out and text is rendered
-            if (autoscrollChk.isSelected()) {
-                Platform.runLater(() -> {
+            // Update UI on JavaFX thread
+            Platform.runLater(() -> {
+                if(!t.isEmpty()) textBuf.addMessage(t);
+                lastUid = uid;
+                render();
+
+                // Force scroll to bottom on initial load if autoscroll is enabled
+                // Multiple runLaters to ensure UI is fully laid out and text is rendered
+                if (autoscrollChk.isSelected()) {
                     Platform.runLater(() -> {
                         Platform.runLater(() -> {
-                            lastProgrammaticScroll = System.currentTimeMillis();
-                            textArea.positionCaret(textArea.getLength());
-                            textArea.setScrollTop(Double.MAX_VALUE);
-                            if (vBar != null) {
-                                vBar.setValue(vBar.getMax());
-                            }
+                            Platform.runLater(() -> {
+                                lastProgrammaticScroll = System.currentTimeMillis();
+                                textArea.positionCaret(textArea.getLength());
+                                textArea.setScrollTop(Double.MAX_VALUE);
+                                if (vBar != null) {
+                                    vBar.setValue(vBar.getMax());
+                                }
+                            });
                         });
                     });
-                });
-            }
+                }
+            });
         }catch(Exception ignore){}
     }
 

@@ -84,7 +84,7 @@ public final class QueueServerWebSocket<T> implements AutoCloseable {
 
         wsFuture.whenComplete((ws, ex) -> {
             if (ex != null) {
-                logger.log(Level.SEVERE, "Failed to connect to WebSocket: " + wsUrl, ex);
+                logger.log(Level.FINE, "Failed to connect to WebSocket: " + wsUrl + " (" + ex.getMessage() + ")");
                 active.set(false);
             } else {
                 this.webSocket = ws;
