@@ -15,14 +15,12 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.AlarmConfigSelector;
-import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
-import java.net.URI;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -67,8 +65,15 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
     private static class AddComponentPVsDialog extends Dialog<Void> {
         private final TextArea pvNamesInput;
         private final TextField pathInput;
+        private final VBox content;
+        private final Label treeLabel;
 
         private AlarmClient alarmClient;
+        private AlarmTreeConfigView configView;
+        private ChangeListener<TreeItem<AlarmTreeItem<?>>> selectionListener;
+        private final String server;
+        private final String kafka_properties;
+
         /**
          * Constructor for AddComponentPVsDialog
          *
@@ -80,16 +85,15 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
          */
 
         public AddComponentPVsDialog(String server, String config_name, String kafka_properties, List<String> pvNames, String currentPath) {
-            // Model/Controller
-
-            alarmClient = new AlarmClient(server, config_name, kafka_properties);
+            this.server = server;
+            this.kafka_properties = kafka_properties;
 
             setTitle("Add PVs to Alarm Configuration");
             setHeaderText("Select PVs and destination path");
             setResizable(true);
 
             // Create content
-            VBox content = new VBox(10);
+            content = new VBox(10);
             content.setPadding(new Insets(15));
 
             // PV Names input section
@@ -104,18 +108,8 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
                 pvNamesInput.setText(String.join("; ", pvNames));
             }
 
-            // Add AlarmTreeConfigView for path selection
-            Label treeLabel = new Label("Select destination in alarm tree:");
-            AlarmTreeConfigView configView = new AlarmTreeConfigView(alarmClient);
-
-            if (AlarmSystem.config_names.length > 0) {
-                final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
-                configView.getToolbar().getItems().add(0, configs);
-            }
-
-            configView.setPrefHeight(300);
-            configView.setPrefWidth(500);
-            alarmClient.start();
+            // Tree label
+            treeLabel = new Label("Select destination in alarm tree:");
 
             // Path input
             Label pathLabel = new Label("Destination Path:");
@@ -125,32 +119,18 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
             pathInput.setPromptText("Select a path from the tree above or type manually");
             pathInput.setEditable(true);
 
-            // Store the listener in a variable
-            ChangeListener<TreeItem<AlarmTreeItem<?>>> selectionListener = (obs, oldVal, newVal) -> {
-                if (newVal != null && newVal.getValue() != null) {
-                    String selectedPath = newVal.getValue().getPathName();
-                    if (selectedPath != null && !selectedPath.isEmpty()) {
-                        // Only update if path input is not focused
-                        if (!pathInput.isFocused()) {
-                            pathInput.setText(selectedPath);
-                        }
-                    }
-                }
-            };
-            configView.addTreeSelectionListener(selectionListener);
-
-            // Remove the listener and dispose AlarmClient when the dialog is closed
-            this.setOnHidden(e -> {
-                configView.removeTreeSelectionListener(selectionListener);
-                dispose();
-            });
-
-            // Add all components to layout
+            // Add static components to layout
             content.getChildren().addAll(
                     pvLabel,
                     pvNamesInput,
-                    treeLabel,
-                    configView,
+                    treeLabel
+            );
+
+            // Create initial tree view
+            createTreeView(config_name);
+
+            // Add path input section
+            content.getChildren().addAll(
                     pathLabel,
                     pathInput
             );
@@ -192,22 +172,71 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
             });
         }
 
+        private void createTreeView(String config_name) {
+            // Create new AlarmClient
+            alarmClient = new AlarmClient(server, config_name, kafka_properties);
+
+            // Create new AlarmTreeConfigView
+            configView = new AlarmTreeConfigView(alarmClient);
+            configView.setPrefHeight(300);
+            configView.setPrefWidth(500);
+
+            // Add config selector if multiple configs are available
+            if (AlarmSystem.config_names.length > 0) {
+                final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
+                configView.getToolbar().getItems().add(0, configs);
+            }
+
+            // Start the client
+            alarmClient.start();
+
+            // Create selection listener
+            selectionListener = (obs, oldVal, newVal) -> {
+                if (newVal != null && newVal.getValue() != null) {
+                    String selectedPath = newVal.getValue().getPathName();
+                    if (selectedPath != null && !selectedPath.isEmpty()) {
+                        // Only update if path input is not focused
+                        if (!pathInput.isFocused()) {
+                            pathInput.setText(selectedPath);
+                        }
+                    }
+                }
+            };
+            configView.addTreeSelectionListener(selectionListener);
+
+            // Remove the listener and dispose AlarmClient when the dialog is closed
+            this.setOnHidden(e -> {
+                configView.removeTreeSelectionListener(selectionListener);
+                dispose();
+            });
+
+            // Find the position where tree view should be (after treeLabel)
+            int treeIndex = content.getChildren().indexOf(treeLabel) + 1;
+
+            // Remove old tree view if present (when switching configs)
+            if (treeIndex < content.getChildren().size()) {
+                if (content.getChildren().get(treeIndex) instanceof AlarmTreeConfigView) {
+                    content.getChildren().remove(treeIndex);
+                }
+            }
+
+            // Add new tree view at the correct position
+            content.getChildren().add(treeIndex, configView);
+            VBox.setVgrow(configView, Priority.ALWAYS);
+        }
+
         private void changeConfig(String new_config_name) {
-            // Dispose existing setup
+            // Dispose existing client
             dispose();
 
-            try
-            {
-                // Use same server name, but new config_name
-                final URI new_input = AlarmURI.createURI(AlarmSystem.server, new_config_name);
-                // no need for initial item name
-                alarmClient = new AlarmClient(AlarmSystem.server, new_config_name, AlarmSystem.kafka_properties);
-                AlarmTreeConfigView configView = new AlarmTreeConfigView(alarmClient);
-                alarmClient.start();
-            }
-            catch (Exception ex)
-            {
+            try {
+                // Create new tree view with new configuration
+                createTreeView(new_config_name);
+            } catch (Exception ex) {
                 logger.log(Level.WARNING, "Cannot switch alarm tree to " + new_config_name, ex);
+                ExceptionDetailsErrorDialog.openError("Configuration Switch Failed",
+                        "Failed to switch to configuration: " + new_config_name,
+                        ex);
             }
         }
 
