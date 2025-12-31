@@ -1,9 +1,7 @@
 package org.phoebus.applications.alarm.ui.tree;
 
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -26,7 +24,6 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -61,17 +58,13 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
                 pvs.stream().map(ProcessVariable::getName).collect(Collectors.toList()),
                 null);
 
-        DialogResult dialogResult = addDialog.showAndGetResult();
-        if (dialogResult == null) {
-            // User cancelled
-            return;
-        }
+        addDialog.showAndWait();
     }
 
     /**
      * Dialog for adding component PVs to an alarm configuration
      */
-    private static class AddComponentPVsDialog extends Dialog<String> {
+    private static class AddComponentPVsDialog extends Dialog<Void> {
         private final TextArea pvNamesInput;
         private final TextField pathInput;
 
@@ -169,7 +162,7 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
             getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
             getDialogPane().setPrefSize(600, 700);
 
-            // Set result converter - returns path if OK, null if Cancel
+            // Set result converter - handles PV addition and returns null
             setResultConverter(buttonType -> {
                 if (buttonType == ButtonType.OK) {
                     String path = pathInput.getText().trim();
@@ -189,12 +182,11 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
                                     ex);
                         }
                     } else {
-                        // Show error dialog and retry
+                        // Show error dialog
                         ExceptionDetailsErrorDialog.openError("Invalid Path",
                                 "Invalid path. Please try again.",
                                 null);
                     }
-                    return path;
                 }
                 return null;
             });
@@ -232,7 +224,7 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
          *
          * @return List of PV names (trimmed and non-empty)
          */
-        public List<String> getPVNames() {
+        private List<String> getPVNames() {
             String text = pvNamesInput.getText();
             if (text == null || text.trim().isEmpty()) {
                 return List.of();
@@ -244,32 +236,6 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
                     .collect(Collectors.toList());
-        }
-
-        /**
-         * Show the dialog and get both the path and PV names
-         *
-         * @return DialogResult containing path and PV names, or null if cancelled
-         */
-        public DialogResult showAndGetResult() {
-            Optional<String> result = showAndWait();
-            if (result.isPresent()) {
-                return new DialogResult(result.get(), getPVNames());
-            }
-            return null;
-        }
-    }
-
-    /**
-     * Result from AddComponentPVsDialog containing both path and PV names
-     */
-    private static class DialogResult {
-        final String path;
-        final List<String> pvNames;
-
-        DialogResult(String path, List<String> pvNames) {
-            this.path = path;
-            this.pvNames = pvNames;
         }
     }
 }
