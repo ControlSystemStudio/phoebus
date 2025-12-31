@@ -1,5 +1,6 @@
 package org.phoebus.applications.alarm.ui.tree;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -35,10 +36,6 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
 
     private static final Class<?> supportedTypes = ProcessVariable.class;
 
-    private String server = null;
-    private String config_name = null;
-    private AlarmClient client = null;
-
     @Override
     public String getName() {
         return "Add Component";
@@ -57,89 +54,43 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
     @Override
     public void call(Selection selection) throws Exception {
         List<ProcessVariable> pvs = selection.getSelections();
-        server = AlarmSystem.server;
-        config_name = AlarmSystem.config_name;
 
-        client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
+        AddComponentPVsDialog addDialog = new AddComponentPVsDialog(AlarmSystem.server,
+                AlarmSystem.config_name,
+                AlarmSystem.kafka_properties,
+                pvs.stream().map(ProcessVariable::getName).collect(Collectors.toList()),
+                null);
 
-        AddComponentPVsDialog addDialog = new AddComponentPVsDialog(client,
-                pvs.stream().map(ProcessVariable::getName).collect(Collectors.toList()), null);
         DialogResult dialogResult = addDialog.showAndGetResult();
         if (dialogResult == null) {
             // User cancelled
             return;
         }
-        String path = dialogResult.path;
-        List<String> pvNames = dialogResult.pvNames;
-
-        if (AlarmTreeHelper.validateNewPath(path, client.getRoot())) {
-            try {
-                pvNames.forEach(pvName -> client.addPV(path, pvName));
-            } catch (Exception ex) {
-                logger.log(Level.WARNING, "Cannot add component PVs to " + path, ex);
-                ExceptionDetailsErrorDialog.openError("Add Component PVs Failed",
-                        "Failed to add component PVs to " + path,
-                        ex);
-            }
-        } else {
-            // Show error dialog and retry
-            ExceptionDetailsErrorDialog.openError("Invalid Path",
-                    "Invalid path. Please try again.",
-                    null);
-        }
-
     }
 
-    private Node create(final URI input, String itemName) throws Exception {
-        final String[] parsed = AlarmURI.parseAlarmURI(input);
-        String server = parsed[0];
-        String config_name = parsed[1];
-
-        try {
-            AlarmClient client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
-            final AlarmTreeConfigView tree_view = new AlarmTreeConfigView(client, itemName);
-            client.start();
-
-            if (AlarmSystem.config_names.length > 0) {
-                final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
-                tree_view.getToolbar().getItems().add(0, configs);
-            }
-
-            return tree_view;
-        } catch (final Exception ex) {
-            logger.log(Level.WARNING, "Cannot create alarm tree for " + input, ex);
-            return new Label("Cannot create alarm tree for " + input);
-        }
-    }
-
-    private void changeConfig(final String new_config_name) {
-        // Dispose existing setup
-        dispose();
-
-        try {
-            // Use same server name, but new config_name
-            final URI new_input = AlarmURI.createURI(server, new_config_name);
-            // no need for initial item name
-//            tab.setContent(create(new_input, null));
-//            tab.setInput(new_input);
-//            Platform.runLater(() -> tab.setLabel(config_name + " " + app.getDisplayName()));
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Cannot switch alarm tree to " + config_name, ex);
-        }
-    }
-
-    private void dispose() {
-        if (client != null) {
-            client.shutdown();
-            client = null;
-        }
-    }
-
+    /**
+     * Dialog for adding component PVs to an alarm configuration
+     */
     private static class AddComponentPVsDialog extends Dialog<String> {
         private final TextArea pvNamesInput;
         private final TextField pathInput;
 
-        public AddComponentPVsDialog(AlarmClient alarmClient, List<String> initialPVs, String currentPath) {
+        private AlarmClient alarmClient;
+        /**
+         * Constructor for AddComponentPVsDialog
+         *
+         * @param server           The alarm server
+         * @param config_name     The alarm configuration name
+         * @param kafka_properties Kafka properties for the AlarmClient
+         * @param pvNames         Initial list of PV names to pre-populate
+         * @param currentPath     The current path (initial value for text input)
+         */
+
+        public AddComponentPVsDialog(String server, String config_name, String kafka_properties, List<String> pvNames, String currentPath) {
+            // Model/Controller
+
+            alarmClient = new AlarmClient(server, config_name, kafka_properties);
+
             setTitle("Add PVs to Alarm Configuration");
             setHeaderText("Select PVs and destination path");
             setResizable(true);
@@ -156,13 +107,19 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
             pvNamesInput.setWrapText(true);
 
             // Pre-populate with initial PVs if provided
-            if (initialPVs != null && !initialPVs.isEmpty()) {
-                pvNamesInput.setText(String.join("; ", initialPVs));
+            if (pvNames != null && !pvNames.isEmpty()) {
+                pvNamesInput.setText(String.join("; ", pvNames));
             }
 
             // Add AlarmTreeConfigView for path selection
             Label treeLabel = new Label("Select destination in alarm tree:");
             AlarmTreeConfigView configView = new AlarmTreeConfigView(alarmClient);
+
+            if (AlarmSystem.config_names.length > 0) {
+                final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
+                configView.getToolbar().getItems().add(0, configs);
+            }
+
             configView.setPrefHeight(300);
             configView.setPrefWidth(500);
             alarmClient.start();
@@ -189,8 +146,11 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
             };
             configView.addTreeSelectionListener(selectionListener);
 
-            // Remove the listener when the dialog is closed
-            this.setOnHidden(e -> configView.removeTreeSelectionListener(selectionListener));
+            // Remove the listener and dispose AlarmClient when the dialog is closed
+            this.setOnHidden(e -> {
+                configView.removeTreeSelectionListener(selectionListener);
+                dispose();
+            });
 
             // Add all components to layout
             content.getChildren().addAll(
@@ -219,12 +179,54 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
                                 null);
                         return null;
                     }
+                    if (AlarmTreeHelper.validateNewPath(path, alarmClient.getRoot())) {
+                        try {
+                            getPVNames().forEach(pvName -> alarmClient.addPV(path, pvName));
+                        } catch (Exception ex) {
+                            logger.log(Level.WARNING, "Cannot add component PVs to " + path, ex);
+                            ExceptionDetailsErrorDialog.openError("Add Component PVs Failed",
+                                    "Failed to add component PVs to " + path,
+                                    ex);
+                        }
+                    } else {
+                        // Show error dialog and retry
+                        ExceptionDetailsErrorDialog.openError("Invalid Path",
+                                "Invalid path. Please try again.",
+                                null);
+                    }
                     return path;
                 }
                 return null;
             });
         }
 
+        private void changeConfig(String new_config_name) {
+            // Dispose existing setup
+            dispose();
+
+            try
+            {
+                // Use same server name, but new config_name
+                final URI new_input = AlarmURI.createURI(AlarmSystem.server, new_config_name);
+                // no need for initial item name
+                alarmClient = new AlarmClient(AlarmSystem.server, new_config_name, AlarmSystem.kafka_properties);
+                AlarmTreeConfigView configView = new AlarmTreeConfigView(alarmClient);
+                alarmClient.start();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot switch alarm tree to " + new_config_name, ex);
+            }
+        }
+
+        private void dispose()
+        {
+            if (alarmClient != null)
+            {
+                alarmClient.shutdown();
+                alarmClient = null;
+            }
+        }
         /**
          * Get the list of PV names entered by the user
          *
