@@ -33,7 +33,7 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
 
     @Override
     public String getName() {
-        return "Add Component";
+        return "Add PVs to Alarm System";
     }
 
     @Override
