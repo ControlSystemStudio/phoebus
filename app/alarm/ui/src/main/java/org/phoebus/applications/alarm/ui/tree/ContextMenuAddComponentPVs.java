@@ -142,33 +142,52 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
             getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
             getDialogPane().setPrefSize(600, 700);
 
-            // Set result converter - handles PV addition and returns null
-            setResultConverter(buttonType -> {
-                if (buttonType == ButtonType.OK) {
-                    String path = pathInput.getText().trim();
-                    if (path.isEmpty()) {
-                        ExceptionDetailsErrorDialog.openError("Invalid Path",
-                                "Destination path cannot be empty.",
-                                null);
-                        return null;
-                    }
-                    if (AlarmTreeHelper.validateNewPath(path, alarmClient.getRoot())) {
-                        try {
-                            getPVNames().forEach(pvName -> alarmClient.addPV(path, pvName));
-                        } catch (Exception ex) {
-                            logger.log(Level.WARNING, "Cannot add component PVs to " + path, ex);
-                            ExceptionDetailsErrorDialog.openError("Add Component PVs Failed",
-                                    "Failed to add component PVs to " + path,
-                                    ex);
-                        }
-                    } else {
-                        // Show error dialog
-                        ExceptionDetailsErrorDialog.openError("Invalid Path",
-                                "Invalid path. Please try again.",
-                                null);
-                    }
+            // Validate and add PVs when OK is clicked
+            getDialogPane().lookupButton(ButtonType.OK).addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+                // Validate path
+                String path = pathInput.getText().trim();
+                if (path.isEmpty()) {
+                    event.consume(); // Prevent dialog from closing
+                    ExceptionDetailsErrorDialog.openError("Invalid Path",
+                            "Destination path cannot be empty.\nPlease enter or select a valid path.",
+                            null);
+                    return;
                 }
-                return null;
+
+                // Validate that path exists in the alarm tree
+                if (!AlarmTreeHelper.validateNewPath(path, alarmClient.getRoot())) {
+                    event.consume(); // Prevent dialog from closing
+                    ExceptionDetailsErrorDialog.openError("Invalid Path",
+                            "The path '" + path + "' is not valid in the alarm tree.\n\n" +
+                            "Please select a valid path from the tree or enter a valid path manually.",
+                            null);
+                    return;
+                }
+
+                // Get PV names
+                List<String> pvNamesToAdd = getPVNames();
+                if (pvNamesToAdd.isEmpty()) {
+                    event.consume(); // Prevent dialog from closing
+                    ExceptionDetailsErrorDialog.openError("No PV Names",
+                            "No PV names were entered.\n\n" +
+                            "Please enter one or more PV names separated by semicolons (;).",
+                            null);
+                    return;
+                }
+
+                // Try to add PVs
+                try {
+                    pvNamesToAdd.forEach(pvName -> alarmClient.addPV(path, pvName));
+                    logger.log(Level.INFO, "Successfully added " + pvNamesToAdd.size() + " PV(s) to " + path);
+                } catch (Exception ex) {
+                    event.consume(); // Prevent dialog from closing
+                    logger.log(Level.WARNING, "Cannot add component PVs to " + path, ex);
+                    ExceptionDetailsErrorDialog.openError("Add Component PVs Failed",
+                            "Failed to add PVs to path: " + path + "\n\n" +
+                            "PVs attempted: " + String.join(", ", pvNamesToAdd) + "\n\n" +
+                            "Error: " + ex.getMessage(),
+                            ex);
+                }
             });
         }
 
