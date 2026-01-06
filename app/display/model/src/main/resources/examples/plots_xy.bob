@@ -9,7 +9,7 @@
     <width>181</width>
     <height>31</height>
     <font>
-      <font name="Header 1" family="Source Sans Pro" style="BOLD_ITALIC" size="36.0">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
       </font>
     </font>
   </widget>
@@ -21,7 +21,7 @@ one for the "X" and one for the "Y" axis.</text>
     <width>371</width>
     <height>40</height>
   </widget>
-  <widget type="xyplot" version="2.0.0">
+  <widget type="xyplot" version="3.0.0">
     <name>X/Y Plot_1</name>
     <y>91</y>
     <width>511</width>
@@ -33,6 +33,12 @@ one for the "X" and one for the "Y" axis.</text>
           <value>false</value>
         </exp>
         <pv_name>loc://interactive(1)</pv_name>
+      </rule>
+      <rule name="Visible" prop_id="marker[0].visible" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://visible(1)</pv_name>
       </rule>
     </rules>
     <traces>
@@ -79,6 +85,7 @@ one for the "X" and one for the "Y" axis.</text>
         </color>
         <pv_name>loc://pos(50)</pv_name>
         <interactive>true</interactive>
+        <visible>true</visible>
       </marker>
     </marker>
   </widget>
@@ -95,7 +102,7 @@ one for the "X" and one for the "Y" axis.</text>
     <y>441</y>
     <width>221</width>
     <font>
-      <font name="Header 2" family="Source Sans Pro" style="BOLD_ITALIC" size="21.0">
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
       </font>
     </font>
   </widget>
@@ -293,7 +300,7 @@ Double-click zooms back out.</text>
     <y>471</y>
     <width>221</width>
     <font>
-      <font name="Header 3" family="Source Sans Pro" style="BOLD_ITALIC" size="18.0">
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
       </font>
     </font>
   </widget>
@@ -304,7 +311,7 @@ Double-click zooms back out.</text>
     <y>711</y>
     <width>70</width>
   </widget>
-  <widget type="xyplot" version="2.0.0">
+  <widget type="xyplot" version="3.0.0">
     <name>RightPlot</name>
     <x>591</x>
     <y>91</y>
@@ -335,11 +342,11 @@ pvs[1].write(err)
       <maximum>10.0</maximum>
       <show_grid>false</show_grid>
       <title_font>
-        <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
         </font>
       </title_font>
       <scale_font>
-        <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
         </font>
       </scale_font>
       <visible>true</visible>
@@ -353,14 +360,19 @@ pvs[1].write(err)
         <maximum>120.0</maximum>
         <show_grid>false</show_grid>
         <title_font>
-          <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
+          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
           </font>
         </title_font>
         <scale_font>
-          <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
+          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
           </font>
         </scale_font>
+        <on_right>false</on_right>
         <visible>true</visible>
+        <color>
+          <color name="Text" red="0" green="0" blue="0">
+          </color>
+        </color>
       </y_axis>
     </y_axes>
     <traces>
@@ -407,7 +419,7 @@ pvs[1].write(err)
     <y>441</y>
     <width>221</width>
     <font>
-      <font name="Header 2" family="Source Sans Pro" style="BOLD_ITALIC" size="21.0">
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
       </font>
     </font>
   </widget>
@@ -446,7 +458,7 @@ That local PV is then used as the error bar waveform.</text>
     <width>429</width>
     <height>69</height>
     <font>
-      <font name="Comment" family="Source Sans Pro" style="ITALIC" size="16.0">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
     </font>
   </widget>
@@ -464,6 +476,7 @@ Push button to re-enable.</text>
     <name>Action Button</name>
     <actions>
       <action type="execute">
+        <description>Autoscale</description>
         <script file="EmbeddedPy">
           <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
 
@@ -478,7 +491,6 @@ plot.setPropertyValue("y_axes[0].autoscale", False)
 plot.setPropertyValue("y_axes[0].autoscale", True)
 ]]></text>
         </script>
-        <description>Autoscale</description>
       </action>
     </actions>
     <x>1000</x>
@@ -487,7 +499,7 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
     <height>29</height>
     <tooltip>$(actions)</tooltip>
   </widget>
-  <widget type="xyplot" version="2.0.0">
+  <widget type="xyplot" version="3.0.0">
     <name>X/Y Plot</name>
     <y>900</y>
     <x_axis>
@@ -498,11 +510,11 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
       <maximum>22.0</maximum>
       <show_grid>false</show_grid>
       <title_font>
-        <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
+        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
         </font>
       </title_font>
       <scale_font>
-        <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
+        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
         </font>
       </scale_font>
       <visible>true</visible>
@@ -516,14 +528,19 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
         <maximum>10.0</maximum>
         <show_grid>false</show_grid>
         <title_font>
-          <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
+          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
           </font>
         </title_font>
         <scale_font>
-          <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
+          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
           </font>
         </scale_font>
+        <on_right>false</on_right>
         <visible>true</visible>
+        <color>
+          <color name="Text" red="0" green="0" blue="0">
+          </color>
+        </color>
       </y_axis>
     </y_axes>
     <traces>
@@ -582,7 +599,7 @@ For a "Line Width" of zero, the bar graph turns into a histogram-type display wi
     <y>900</y>
     <width>221</width>
     <font>
-      <font name="Header 2" family="Source Sans Pro" style="BOLD_ITALIC" size="21.0">
+      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
       </font>
     </font>
   </widget>
@@ -606,10 +623,16 @@ For a "Line Width" of zero, the bar graph turns into a histogram-type display wi
     <y>500</y>
     <width>140</width>
     <height>60</height>
-    <font>
-      <font name="Comment" family="Source Sans Pro" style="ITALIC" size="16.0">
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
     </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
   </widget>
   <widget type="checkbox" version="2.0.0">
     <name>Check Box</name>
@@ -617,5 +640,12 @@ For a "Line Width" of zero, the bar graph turns into a histogram-type display wi
     <label>  Interactive</label>
     <x>380</x>
     <y>470</y>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>Check Box_1</name>
+    <pv_name>loc://visible(1)</pv_name>
+    <label>  Visible</label>
+    <x>380</x>
+    <y>561</y>
   </widget>
 </display>

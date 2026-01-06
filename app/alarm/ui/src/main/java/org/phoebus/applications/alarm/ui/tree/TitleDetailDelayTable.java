@@ -9,14 +9,13 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -35,7 +34,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.ComboBoxTableCell;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.DefaultStringConverter;
@@ -104,8 +102,49 @@ public class TitleDetailDelayTable extends BorderPane
         public DelayTableCell()
         {
             this.spinner = new Spinner<>(0, 10000, 1);
-            spinner.setEditable(true);
-            this.spinner.valueProperty().addListener((observable, oldValue, newValue) -> commitEdit(newValue));
+            this.spinner.setEditable(true);
+            
+            // disable focus on buttons 
+            spinner.lookupAll(".increment-arrow-button, .decrement-arrow-button")
+            .forEach(node -> node.setFocusTraversable(false));
+            
+            this.spinner.valueProperty().addListener((obs, oldValue, newValue) -> {
+                if (isEditing()) {
+                    commitEdit(newValue);
+                }
+            });
+
+            // validate when loosing focus
+            spinner.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+                if (!isNowFocused) {
+                    Integer currentValue = spinner.getValue();
+                    Integer oldValue = getItem();
+
+                    if (Objects.equals(currentValue, oldValue)) {
+                        cancelEdit();
+                        return;
+                    }
+
+                    // if not currently editing, force table to enter edit mode first
+                    if (!isEditing()) {
+                        TableView<TitleDetailDelay> tv = getTableView();
+                        if (tv != null) {
+                            Platform.runLater(() -> {
+                                tv.getSelectionModel().clearAndSelect(getIndex());
+                                tv.edit(getIndex(), getTableColumn());
+                                // commit after we've asked the table to start editing
+                                commitEdit(currentValue);
+                            });
+                        } else {
+                            // fallback: commit anyway
+                            commitEdit(currentValue);
+                        }
+                    } else {
+                        // normal case
+                        commitEdit(currentValue);
+                    }
+                }
+            });
         }
 
         @Override
@@ -135,6 +174,13 @@ public class TitleDetailDelayTable extends BorderPane
 
             this.spinner.getValueFactory().setValue(item);
             setGraphic(spinner);
+            // force focus on the textedit not buttons
+            Platform.runLater(() -> {
+                if (isEditing()) {
+                    spinner.getEditor().requestFocus();
+                    spinner.getEditor().end();
+                }
+            });
         }
     }
 
@@ -147,20 +193,19 @@ public class TitleDetailDelayTable extends BorderPane
 
         TableColumn<TitleDetailDelay, String> col = new TableColumn<>("Title");
         col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().title));
-        col.setCellFactory(column -> new TextFieldTableCell<>(new DefaultStringConverter()));
+        col.setCellFactory(ValidatingTextFieldTableCell.forTableColumn(new DefaultStringConverter()));
         col.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
             items.set(row, new TitleDetailDelay(event.getNewValue(), items.get(row).detail, items.get(row).delay));
 
             // Trigger editing the detail
-            UpdateThrottle.TIMER.schedule(() ->
-                Platform.runLater(() ->
-                {
-                    table.getSelectionModel().clearAndSelect(row);
-                    table.edit(row, table.getColumns().get(1));
-                }),
-                200, TimeUnit.MILLISECONDS);
+            Platform.runLater(() -> {
+                TableColumn<TitleDetailDelay, ?> detailCol = table.getColumns().get(1);
+                TableColumn<TitleDetailDelay, ?> optionCol = detailCol.getColumns().get(0);
+                table.getSelectionModel().clearAndSelect(row);
+                table.edit(row, optionCol);
+            });
         });
         col.setSortable(false);
         table.getColumns().add(col);
@@ -182,10 +227,12 @@ public class TitleDetailDelayTable extends BorderPane
             items.set(row, newTitleDetailDelay);
             // Trigger editing the delay.
             if (newTitleDetailDelay.hasDelay())
-                UpdateThrottle.TIMER.schedule(() -> Platform.runLater(() -> {
-                    table.getSelectionModel().clearAndSelect(row);
-                    table.edit(row, table.getColumns().get(2));
-                }), 200, TimeUnit.MILLISECONDS);
+	            Platform.runLater(() -> {
+	                TableColumn<TitleDetailDelay, ?> detailCol = table.getColumns().get(1);
+	                TableColumn<TitleDetailDelay, ?> infoCol   = detailCol.getColumns().get(1);
+	                table.getSelectionModel().clearAndSelect(row);
+	                table.edit(row, infoCol);
+	            });
         });
         tmpOptionCol.setEditable(true);
         col.getColumns().add(tmpOptionCol);
@@ -193,7 +240,7 @@ public class TitleDetailDelayTable extends BorderPane
         // Use a textfield to set info for detail
         TableColumn<TitleDetailDelay, String> infoCol = new TableColumn<>("Info");
         infoCol.setCellValueFactory(cell -> new SimpleStringProperty(getInfoFromDetail(cell.getValue())));
-        infoCol.setCellFactory(column -> new TextFieldTableCell<>(new DefaultStringConverter()));
+        infoCol.setCellFactory(ValidatingTextFieldTableCell.forTableColumn(new DefaultStringConverter()));
         infoCol.setOnEditCommit(event -> {
             final int row = event.getTablePosition().getRow();
             TitleDetailDelay tmpT = items.get(row);
@@ -202,10 +249,10 @@ public class TitleDetailDelayTable extends BorderPane
             items.set(row, newTitleDetailDelay);
             // Trigger editing the delay.
             if (newTitleDetailDelay.hasDelay())
-                UpdateThrottle.TIMER.schedule(() -> Platform.runLater(() -> {
-                    table.getSelectionModel().clearAndSelect(row);
-                    table.edit(row, table.getColumns().get(2));
-                }), 200, TimeUnit.MILLISECONDS);
+	            Platform.runLater(() -> {
+	                table.getSelectionModel().clearAndSelect(row);
+	                table.edit(row, table.getColumns().get(2));
+	            });
         });
         infoCol.setSortable(false);
         col.getColumns().add(infoCol);
@@ -306,14 +353,12 @@ public class TitleDetailDelayTable extends BorderPane
             items.add(new TitleDetailDelay("", "", 0));
 
             // Trigger editing the title of new item
-            UpdateThrottle.TIMER.schedule(() ->
-                Platform.runLater(() ->
-                {
-                    final int row = items.size()-1;
-                    table.getSelectionModel().clearAndSelect(row);
-                    table.edit(row, table.getColumns().get(0));
-                }),
-                200, TimeUnit.MILLISECONDS);
+            Platform.runLater(() ->
+            {
+                final int row = items.size()-1;
+                table.getSelectionModel().clearAndSelect(row);
+                table.edit(row, table.getColumns().get(0));
+            });
         });
 
         edit.setTooltip(new Tooltip("Edit the detail field of table item."));

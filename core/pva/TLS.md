@@ -39,7 +39,7 @@ This is an example recipe for getting started.
    Note its "Certificate identifier":
 
    ```
-   $ authnstd --name ioc --cert-usage ioc
+   $ authnstd -v --name ioc --cert-usage ioc
    Keychain file created   : /home/user/.config/pva/1.3/server.p12
    Certificate identifier  : e53ed409:15273288300286014953
    ```
@@ -57,7 +57,7 @@ This is an example recipe for getting started.
 4) Request a client certificate, note its identifier:
 
    ```
-   $ authnstd
+   $ authnstd -v
    Keychain file created   : /home/user/.config/pva/1.3/client.p12
    Certificate identifier  : e53ed409:11521018863975115478
    ```
@@ -138,7 +138,6 @@ Example for running CS-Studio:
 $ export EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/client.p12
 $ phoebus.sh
 ```
-
 
 For more, refer to the PVXS documentation.
 

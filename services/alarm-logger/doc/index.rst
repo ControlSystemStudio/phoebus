@@ -47,4 +47,10 @@ The automatic purge is run using a cron expression defined in preference ``purge
 An Elasticsearch index is considered eligible for deletion if the last inserted message date is before current time
 minus the number of days computed from ``date_span_units`` and ``retain_indices_count``.
 
+***
+API
+***
+.. safe_openapi:: ../../../../../services/alarm-logger/target/spec-open-api.json
+
+
 .. _SpringDocumentation: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/support/CronExpression.html

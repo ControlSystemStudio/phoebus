@@ -174,7 +174,13 @@ class AddComponentAction extends MenuItem
                         // Check for duplicate PV, anywhere in alarm tree
                         final String existing = findPV(root, pv);
                         if (existing == null)
-                            model.addPV(parent.getPathName(), pv);
+                            try {
+                                model.addPV(parent.getPathName(), pv);
+                            } catch (Exception e) {
+                                ExceptionDetailsErrorDialog.openError(Messages.error,
+                                        Messages.addComponentFailed,
+                                        e);
+                            }
                         else
                         {
                             Platform.runLater(() ->

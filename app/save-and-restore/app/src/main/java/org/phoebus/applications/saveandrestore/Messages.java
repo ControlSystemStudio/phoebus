@@ -32,6 +32,7 @@ public class Messages {
     public static String buttonSearch;
     public static String cannotCompareHeader;
     public static String cannotCompareTitle;
+    public static String clickToCompare;
     public static String closeConfigurationWarning;
     public static String closeCompositeSnapshotWarning;
     public static String closeSnapshotWarning;
@@ -39,6 +40,8 @@ public class Messages {
     public static String closeConfigurationTabPrompt;
     public static String closeSnapshotTabPrompt;
     public static String compositeSnapshotConsistencyCheckFailed;
+    public static String comparisonDialogLunchError;
+    public static String comparisonDialogTitle;
     public static String contextMenuAddTag;
     @Deprecated
     public static String contextMenuAddTagWithComment;
@@ -107,6 +110,7 @@ public class Messages {
     public static String importSnapshotLabel;
     public static String includeThisPV;
     public static String inverseSelection;
+    public static String live;
     public static String liveReadbackVsSetpoint;
     public static String liveSetpoint;
     public static String login;
@@ -159,6 +163,7 @@ public class Messages {
     public static String snapshotFromPvs;
     public static String status;
     public static String storedReadbackValue;
+    public static String stored;
     public static String storedValues;
     public static String tableColumnDeltaValue;
     public static String tagAddFailed;

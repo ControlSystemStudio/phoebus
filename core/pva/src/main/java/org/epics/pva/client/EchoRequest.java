@@ -19,7 +19,6 @@ import org.epics.pva.common.RequestEncoder;
 /** Send a 'ECHO' request to server
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class EchoRequest implements RequestEncoder
 {
     // Random number so replies don't all start with 'echo00'
@@ -40,7 +39,7 @@ class EchoRequest implements RequestEncoder
             final int count = counter.incrementAndGet();
             active_check = String.format("echo%02d",  count % 100);
             final byte[] check = active_check.getBytes();
-            logger.log(Level.FINE, () -> "Sending ECHO request (Version " + version + ")");
+            logger.log(Level.FINE, () -> "Sending ECHO request (Version " + version + " '" + active_check + "')");
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_ECHO, check.length);
             buffer.put(check);
         }

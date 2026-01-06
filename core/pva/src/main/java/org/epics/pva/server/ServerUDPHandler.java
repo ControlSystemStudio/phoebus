@@ -34,7 +34,6 @@ import org.epics.pva.data.Hexdump;
 /** Listen to search requests, send beacons
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 class ServerUDPHandler extends UDPHandler
 {
     private final PVAServer server;
@@ -75,7 +74,7 @@ class ServerUDPHandler extends UDPHandler
                     if (udp4 != null)
                         throw new Exception("EPICS_PVAS_INTF_ADDR_LIST has more than one IPv4 address");
                     udp4 = Network.createUDP(StandardProtocolFamily.INET, info.getAddress().getAddress(), PVASettings.EPICS_PVAS_BROADCAST_PORT);
-                    logger.log(Level.FINE, "Awaiting searches and sending beacons on UDP " + info);
+                    logger.log(Level.CONFIG, "Awaiting searches and sending beacons on UDP " + info);
                 }
 
                 if (info.isIPv6())
@@ -85,7 +84,7 @@ class ServerUDPHandler extends UDPHandler
                     if (udp6 != null)
                         throw new Exception("EPICS_PVAS_INTF_ADDR_LIST has more than one IPv6 address");
                     udp6 = Network.createUDP(StandardProtocolFamily.INET6, info.getAddress().getAddress(), PVASettings.EPICS_PVAS_BROADCAST_PORT);
-                    logger.log(Level.FINE, "Awaiting searches and sending beacons on UDP " + info);
+                    logger.log(Level.CONFIG, "Awaiting searches and sending beacons on UDP " + info);
                 }
             }
             else
@@ -101,7 +100,7 @@ class ServerUDPHandler extends UDPHandler
                     udp4.setOption(StandardSocketOptions.IP_MULTICAST_IF, info.getInterface());
                     // Configure socket channel to receive from the multicast group
                     udp4.join(info.getAddress().getAddress(), info.getInterface());
-                    logger.log(Level.FINE, "Listening to UDP multicast " + info);
+                    logger.log(Level.CONFIG, "Listening to UDP multicast " + info);
                     local_multicast = info;
                 }
                 if (info.isIPv6())
@@ -109,13 +108,13 @@ class ServerUDPHandler extends UDPHandler
                     if (udp6 == null)
                         throw new Exception("EPICS_PVAS_INTF_ADDR_LIST lacks IPv6 address, cannot add multicast");
                     udp6.join(info.getAddress().getAddress(), info.getInterface());
-                    logger.log(Level.FINE, "Listening to UDP multicast " + info);
+                    logger.log(Level.CONFIG, "Listening to UDP multicast " + info);
                 }
             }
         }
 
         if (local_multicast != null)
-            logger.log(Level.FINE, "IPv4 unicasts are re-transmitted via local multicast " + local_multicast);
+            logger.log(Level.CONFIG, "IPv4 unicasts are re-transmitted via local multicast " + local_multicast);
 
         if (udp4 != null)
         {
@@ -255,7 +254,8 @@ class ServerUDPHandler extends UDPHandler
             send_buffer.clear();
             SearchResponse.encode(guid, seq, cid, server_address.getAddress(), server_address.getPort(), tls, send_buffer);
             send_buffer.flip();
-            logger.log(Level.FINER, () -> "Sending UDP search reply to " + client + "\n" + Hexdump.toHexdump(send_buffer));
+            logger.log(Level.FINE, () -> "Sending UDP search reply for CID " + cid + " to " + client);
+            logger.log(Level.FINEST, () -> "Sending UDP to " + client + "\n" + Hexdump.toHexdump(send_buffer));
 
             try
             {

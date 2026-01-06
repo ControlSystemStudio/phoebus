@@ -27,13 +27,13 @@ Impossible to run Phoebus under linux
 
 | If you get the following error message:
 
-.. code-block:: kmsg
-  
-  /bin/java : permission denied
+.. code-block::
+
+   /bin/java : permission denied
 
 | or
 
-.. code-block:: kmsg
+.. code-block::
 
   Error initializing QuantumRenderer: no suitable pipeline found
   java.lang.RuntimeException: java.lang.RuntimeException: Error initializing QuantumRenderer: no suitable pipeline found

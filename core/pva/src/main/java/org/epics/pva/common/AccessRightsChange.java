@@ -76,11 +76,11 @@ public class AccessRightsChange
     {
         if (payload < PAYLOAD_SIZE)
         {
-            logger.log(Level.WARNING, "PVA client " + from + " sent only " + payload + " bytes for access rights change");
+            logger.log(Level.WARNING, "PVA server " + from + " sent only " + payload + " bytes for access rights change");
             return null;
         }
         final AccessRightsChange acl = new AccessRightsChange(buffer.getInt(), buffer.get());
-        logger.log(Level.FINER, () -> "PVA client " + from + " sent " + acl);
+        logger.log(Level.FINER, () -> "PVA server " + from + " sent " + acl);
         return acl;
     }
 

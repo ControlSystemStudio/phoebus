@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.compare.TableComparisonViewController">
+    <top>
+     <BorderPane>
+
+        <center>
+            <GridPane hgap="3.0" vgap="3.0">
+                <Label alignment="CENTER_RIGHT" text="%dimensionStored" GridPane.halignment="LEFT">
+                  <GridPane.margin>
+                     <Insets right="5.0" />
+                  </GridPane.margin></Label>
+                <Label fx:id="dimensionStored" text="1024 x 1" GridPane.columnIndex="1" />
+                <Label alignment="CENTER_RIGHT" text="%dimensionLive" GridPane.halignment="LEFT" GridPane.rowIndex="1">
+                  <GridPane.margin>
+                     <Insets right="5.0" />
+                  </GridPane.margin></Label>
+                <Label fx:id="dimensionLive" text="1024 x 1" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label alignment="CENTER_RIGHT" text="%nonEqualCount" GridPane.halignment="LEFT" GridPane.rowIndex="2">
+                  <GridPane.margin>
+                     <Insets right="5.0" />
+                  </GridPane.margin></Label>
+                <Label fx:id="nonEqualCount" text="17" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="%tableColumnPVName" GridPane.halignment="LEFT" GridPane.rowIndex="3">
+                  <GridPane.margin>
+                     <Insets right="5.0" />
+                  </GridPane.margin></Label>
+                <Label fx:id="pvName" maxWidth="1.7976931348623157E308" text="Label" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
+                <Label text="%labelThreshold" GridPane.columnIndex="2" GridPane.rowIndex="3">
+                  <padding>
+                     <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                  </padding></Label>
+                 <Spinner fx:id="thresholdSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+               <columnConstraints>
+                  <ColumnConstraints />
+                  <ColumnConstraints />
+                  <ColumnConstraints />
+                  <ColumnConstraints />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints />
+                  <RowConstraints />
+                  <RowConstraints />
+                  <RowConstraints />
+               </rowConstraints>
+               <padding>
+                  <Insets bottom="5.0" />
+               </padding>
+            </GridPane>
+        </center>
+     </BorderPane>
+   </top>
+   <center>
+      <TableView fx:id="comparisonTable" prefHeight="600.0" prefWidth="400.0" BorderPane.alignment="CENTER">
+        <columns>
+          <TableColumn fx:id="indexColumn" maxWidth="50" prefWidth="50" resizable="false" styleClass="id-column" text="#">
+            <cellValueFactory>
+                <PropertyValueFactory property="index" />
+            </cellValueFactory>
+          </TableColumn>
+          <TableColumn prefWidth="200.0" text="Column 0">
+            <columns>
+                <TableColumn fx:id="storedValueColumn" prefWidth="70.0" styleClass="snapshot-table-centered" text="%stored" />
+                <TableColumn fx:id="deltaColumn" prefWidth="50.0" styleClass="snapshot-table-left-aligned" text="%tableColumnDeltaValue" />
+                <TableColumn fx:id="liveValueColumn" prefWidth="70.0" styleClass="snapshot-table-centered" text="%live" />
+            </columns>
+          </TableColumn>
+        </columns>
+      </TableView>
+   </center>
+
+</BorderPane>

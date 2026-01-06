@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /** Helper for handling the path names of alarm tree elements.
  *  Path looks like "/root/area/system/subsystem/pv_name".
@@ -32,24 +33,33 @@ public class AlarmTreePath
      *  @param path Parent path or <code>null</code> when starting at root
      *  @param item Name of item at end of path
      *  @return Full path name to item
+     *  @throws AlarmTreePathException When getting an illegal item string with leading slashes
      */
-    public static String makePath(final String path, String item)
-    {
+    public static String makePath(final String path, String item) throws AlarmTreePathException {
+        // Validate item: forbid leading slashes except exactly one (legacy compatibility)
+        if (item != null && item.startsWith(PATH_SEP)) {
+            // If there's more than one leading slash, it's invalid
+            if (item.length() > 1 && item.charAt(1) == PATH_SEP.charAt(0)) {
+                throw new AlarmTreePathException(
+                        "Item must not have leading slashes: '" + item + "'"
+                );
+            }
+            // For legacy support (existing tests), strip exactly one leading slash
+            item = item.substring(1);
+        }
+
         final StringBuilder result = new StringBuilder();
         if (path != null)
         {
             if (! isPath(path))
                 result.append(PATH_SEP);
-            // Skip path it it's only '/'
+            // Skip path if it's only '/'
             if (!PATH_SEP.equals(path))
                 result.append(path);
         }
         result.append(PATH_SEP);
         if (item != null  &&  !item.isEmpty())
         {
-            // If item already starts with '/', skip it
-            if (item.startsWith(PATH_SEP))
-                item = item.substring(1);
             // Escape any path-seps inside item with backslashes
             result.append(item.replace(PATH_SEP, "\\/"));
         }
@@ -112,8 +122,9 @@ public class AlarmTreePath
      *  @param path Original path
      *  @param modifier Path modifier: "segments/to/add", "/absolute/new/path", ".."
      *  @return Path based on pwd and modifier
+     *  @throws AlarmTreePathException When a segment contains leading slashes.
      */
-    public static String update(String path, String modifier)
+    public static String update(String path, String modifier) throws AlarmTreePathException
     {
         if (modifier == null  ||  modifier.isEmpty())
             return makePath(null, path);
@@ -136,5 +147,19 @@ public class AlarmTreePath
                 return path;
             }
         }
+    }
+
+    public static boolean pathsAreEquivalent(String a, String b) {
+        var elementsA = splitPath(a);
+        var elementsB = splitPath(b);
+        if (elementsA.length != elementsB.length) {
+            return false;
+        }
+        for (int i = 0; i < elementsA.length; i++) {
+            if (!Objects.equals(elementsA[i], elementsB[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 }

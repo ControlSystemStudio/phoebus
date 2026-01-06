@@ -20,10 +20,16 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.scene.control.Tooltip;
+import org.epics.vtype.VEnumArray;
+import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VStringArray;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
+import org.phoebus.applications.saveandrestore.ui.snapshot.compare.ComparisonDialog;
 import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
+import org.phoebus.ui.dialog.DialogHelper;
 
 import java.util.Formatter;
 
@@ -34,7 +40,7 @@ import java.util.Formatter;
  * @param <T>
  * @author Kunal Shroff
  */
-public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
+public class VDeltaCellEditor<S, T> extends VTypeCellEditor<S, T> {
 
     private final Tooltip tooltip = new Tooltip();
 
@@ -44,7 +50,7 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
         this.showDeltaPercentage = showDeltaPercentage;
     }
 
-    VDeltaCellEditor() {
+    public VDeltaCellEditor() {
         super();
     }
 
@@ -72,17 +78,36 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
                     setStyle(TableCellColors.DISCONNECTED_STYLE);
                 } else if (pair.value == VNoData.INSTANCE) {
                     setText(pair.value.toString());
-                } else {
+                } else if(pair.base == VNoData.INSTANCE){
+                    setText(VNoData.INSTANCE.toString());
+                }
+                else {
                     Utilities.VTypeComparison vtc = Utilities.deltaValueToString(pair.value, pair.base, pair.threshold);
-                    String percentage = Utilities.deltaValueToPercentage(pair.value, pair.base);
-                    if (!percentage.isEmpty() && showDeltaPercentage) {
-                        Formatter formatter = new Formatter();
-                        setText(formatter.format("%g", Double.parseDouble(vtc.getString())) + " (" + percentage + ")");
-                    } else {
-                        setText(vtc.getString());
-                    }
-                    if (!vtc.isWithinThreshold()) {
+                    if (vtc.getValuesEqual() != 0 &&
+                            (pair.base instanceof VNumberArray ||
+                                    pair.base instanceof VStringArray ||
+                                    pair.base instanceof VEnumArray)) {
+                        TableEntry tableEntry = (TableEntry) getTableRow().getItem();
+                        setText(Messages.clickToCompare);
                         setStyle(TableCellColors.ALARM_MAJOR_STYLE);
+                        setOnMouseClicked(e -> {
+                            ComparisonDialog comparisonDialog = new ComparisonDialog(tableEntry.getSnapshotVal().get(), tableEntry.getConfigPv().getPvName());
+                            DialogHelper.positionDialog(comparisonDialog, getTableView(), -400, -400);
+                            comparisonDialog.show();
+                        });
+                    } else {
+                        // Do not handle mouse clicked, e.g. if live PV is disconnected.
+                        setOnMouseClicked(e -> {});
+                        String percentage = Utilities.deltaValueToPercentage(pair.value, pair.base);
+                        if (!percentage.isEmpty() && showDeltaPercentage) {
+                            Formatter formatter = new Formatter();
+                            setText(formatter.format("%g", Double.parseDouble(vtc.getString())) + " (" + percentage + ")");
+                        } else {
+                            setText(vtc.getString());
+                        }
+                        if (!vtc.isWithinThreshold()) {
+                            setStyle(TableCellColors.ALARM_MAJOR_STYLE);
+                        }
                     }
                 }
                 tooltip.setText(item.toString());
