@@ -49,9 +49,9 @@ import org.phoebus.framework.macros.Macros;
  */
 public class NavigationTabsWidget extends VisibleWidget
 {
-	private static final WidgetColor DEFAULT_SELECT_COLOR = new WidgetColor(236, 236, 236);
-	private static final WidgetColor DEFAULT_DESELECT_COLOR = new WidgetColor(200, 200, 200);
-	/** Widget descriptor */
+    private static final WidgetColor DEFAULT_SELECT_COLOR = new WidgetColor(236, 236, 236);
+    private static final WidgetColor DEFAULT_DESELECT_COLOR = new WidgetColor(200, 200, 200);
+    /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("navtabs", WidgetCategory.STRUCTURE,
             "Navigation Tabs",

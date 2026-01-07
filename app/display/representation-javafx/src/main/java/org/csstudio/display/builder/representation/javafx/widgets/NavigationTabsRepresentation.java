@@ -351,7 +351,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
     {
         for (TabProperty tab : removed)
         {
-        	tab.name().removePropertyListener(tabs_listener);
+            tab.name().removePropertyListener(tabs_listener);
             tab.file().removePropertyListener(tab_display_listener);
             tab.macros().removePropertyListener(tab_display_listener);
             tab.group().removePropertyListener(tab_display_listener);
