@@ -91,7 +91,7 @@ public class NavigationTabsWidget extends VisibleWidget
                                 propGroupName.createProperty(widget, ""),
                                 propIndividualSelectedColor.createProperty(widget, DEFAULT_SELECT_COLOR),
                                 propIndividualDeselectedColor.createProperty(widget, DEFAULT_DESELECT_COLOR)
-                               ));
+                                ));
         }
         /** @return Tab name */
         public WidgetProperty<String>       name()    { return getElement(0); }
@@ -105,7 +105,6 @@ public class NavigationTabsWidget extends VisibleWidget
         public WidgetProperty<WidgetColor>  individual_selected_color()   { return getElement(4); }
         /** @return Tab color when not selected */
         public WidgetProperty<WidgetColor>  individual_deselected_color()   { return getElement(5); } 
-        
     }
 
     // 'tabs' array
