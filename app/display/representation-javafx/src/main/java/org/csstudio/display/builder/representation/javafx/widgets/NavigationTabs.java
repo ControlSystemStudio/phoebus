@@ -273,7 +273,7 @@ public class NavigationTabs extends BorderPane
         // Create button for each tab
         Color tmpColor = deselected;
         WidgetColor tmpWidgetColor = null;
-        
+
         for (int i = 0; i < tab_names.size(); ++i) {
             final ToggleButton button = new ToggleButton(tab_names.get(i));
             // Buttons without text vanish, creating a gap in the tab lineup.
