@@ -299,7 +299,7 @@ public class NavigationTabs extends BorderPane
 				// Set color to global "selected" color value
 				tmpColor = selected;
 				// If the per-tab colors are enabled, the color to apply is to be found in the tab_selected_colors list
-				if (enable_per_tab_colors == true) {
+				if (enable_per_tab_colors) {
 					if (i < tab_selected_colors.size()) {
 						tmpWidgetColor = tab_selected_colors.get(i);
 						tmpColor = JFXUtil.convert(tmpWidgetColor);
@@ -309,7 +309,7 @@ public class NavigationTabs extends BorderPane
 				// Set color to global "deselected" color value
             	tmpColor = deselected;
             	// If the per-tab colors are enabled, the color to apply is to be found in the tab_deselected_colors list
-				if (enable_per_tab_colors == true) {
+				if (enable_per_tab_colors) {
 					if (i < tab_deselected_colors.size()) {
 						tmpWidgetColor = tab_deselected_colors.get(i);
 						tmpColor = JFXUtil.convert(tmpWidgetColor);
@@ -354,8 +354,8 @@ public class NavigationTabs extends BorderPane
                 }
                 // Highlight active tab by setting it to the 'selected' color
                 // If the per-tab colors are enabled, the color to apply is to be found in the tab_selected_colors list
-                if (enable_per_tab_colors == true) {
-                	if(i < tab_selected_colors.size()) {
+                if (enable_per_tab_colors) {
+                	if (i < tab_selected_colors.size()) {
                 		tmpWidgetColor = tab_selected_colors.get(i);
                 		tmpColor = JFXUtil.convert(tmpWidgetColor);
                 	}
@@ -370,8 +370,8 @@ public class NavigationTabs extends BorderPane
             	// Set color to global "deselected" color value
             	tmpColor = deselected;
             	// If the per-tab colors are enabled, the color to apply is to be found in the tab_deselected_colors list
-                if (enable_per_tab_colors == true) {
-                	if(i < tab_deselected_colors.size()) {
+                if (enable_per_tab_colors) {
+                	if (i < tab_deselected_colors.size()) {
                 		tmpWidgetColor = tab_deselected_colors.get(i);
                 		tmpColor = JFXUtil.convert(tmpWidgetColor);
                 	}

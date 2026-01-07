@@ -397,9 +397,9 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
         if (dirty_tabs.checkAndClear())
         {
             final List<String> tab_names = new ArrayList<>();
-            final List<WidgetColor> tab_selected_colors  = new ArrayList<>();
-            final List<WidgetColor> tab_deselected_colors  = new ArrayList<>();
-            
+            final List<WidgetColor> tab_selected_colors = new ArrayList<>();
+            final List<WidgetColor> tab_deselected_colors = new ArrayList<>();
+
             List<TabProperty> tabList = model_widget.propTabs().getValue();
             tabList.forEach(tab -> {
                 tab_names.add(tab.name().getValue());
