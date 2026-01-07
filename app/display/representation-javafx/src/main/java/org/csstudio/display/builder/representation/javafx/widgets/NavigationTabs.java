@@ -134,25 +134,13 @@ public class NavigationTabs extends BorderPane
         this.listener = null;
     }
 
-    /** @param tabs Tab labels */
-    public void setTabNames(final List<String> tab_names)
+    /** @param tabs Tabs */
+    public void setTabs(final List<String> tab_names, final List<WidgetColor> tab_selected_colors, final List<WidgetColor> tab_deselected_colors)
     {
         this.tab_names.clear();
         this.tab_names.addAll(tab_names);
-        updateTabs();
-    }
-
-    /** @param tabs Selected colors */
-    public void setTabSelectedColors(final List<WidgetColor> tab_selected_colors)
-    {
         this.tab_selected_colors.clear();
         this.tab_selected_colors.addAll(tab_selected_colors);
-        updateTabs();
-    }
-
-    /** @param tabs Deselected colors */
-    public void setTabDeselectedColors(final List<WidgetColor> tab_deselected_colors)
-    {
         this.tab_deselected_colors.clear();
         this.tab_deselected_colors.addAll(tab_deselected_colors);
         updateTabs();

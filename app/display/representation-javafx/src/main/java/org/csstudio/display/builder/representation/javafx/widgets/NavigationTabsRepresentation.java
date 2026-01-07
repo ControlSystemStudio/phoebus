@@ -407,9 +407,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
                 tab_deselected_colors.add(tab.individual_deselected_color().getValue());
             });
 
-            jfx_node.setTabNames(tab_names);
-            jfx_node.setTabSelectedColors(tab_selected_colors);
-            jfx_node.setTabDeselectedColors(tab_deselected_colors);
+            jfx_node.setTabs(tab_names, tab_selected_colors, tab_deselected_colors);
         }
         if (dirty_active_tab.checkAndClear())
             jfx_node.selectTab(model_widget.propActiveTab().getValue());
