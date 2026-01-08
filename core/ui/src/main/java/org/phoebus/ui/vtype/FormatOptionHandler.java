@@ -223,8 +223,7 @@ public class FormatOptionHandler
         }
         if (option == FormatOption.HEX)
         {
-            final StringBuilder buf = new StringBuilder();
-            Optional<Long> maybeLongValue;
+            final Optional<Long> maybeLongValue;
             if (value instanceof Byte valueByte) {
                 maybeLongValue = Optional.of(Byte.toUnsignedLong(valueByte));
             } else if (value instanceof Short valueShort) {
@@ -248,17 +247,18 @@ public class FormatOptionHandler
             } else {
                 maybeLongValue = Optional.empty();
             }
-            
+
             if (maybeLongValue.isPresent()) {
                 long longValue = maybeLongValue.get();
-                String hexString = Long.toHexString(longValue);
+                final String hexString = Long.toHexString(longValue);
+                final StringBuilder buf = new StringBuilder();
                 buf.append(hexString.toUpperCase());
                 for (int i=buf.length(); i<precision; ++i)
                     buf.insert(0, '0');
                 buf.insert(0, "0x");
                 return buf.toString();
             } else {
-                String numberFormat = value.getClass().getSimpleName();
+                final String numberFormat = value.getClass().getSimpleName();
                 Logger.getLogger(FormatOptionHandler.class.getPackageName())
                         .log(Level.WARNING, "Error: Number format is unsupported for conversion to HEX format: " + numberFormat);
                 return "ERROR: Unsupported number format: " + numberFormat;
