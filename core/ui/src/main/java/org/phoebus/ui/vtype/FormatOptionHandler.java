@@ -13,6 +13,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -223,36 +224,46 @@ public class FormatOptionHandler
         if (option == FormatOption.HEX)
         {
             final StringBuilder buf = new StringBuilder();
-            long longValue;
+            Optional<Long> maybeLongValue;
             if (value instanceof Byte valueByte) {
-                longValue = Byte.toUnsignedLong(valueByte);
+                maybeLongValue = Optional.of(Byte.toUnsignedLong(valueByte));
             } else if (value instanceof Short valueShort) {
-                longValue = Short.toUnsignedLong(valueShort);
+                maybeLongValue = Optional.of(Short.toUnsignedLong(valueShort));
             } else if (value instanceof Integer valueInt) {
-                longValue = Integer.toUnsignedLong(valueInt);
+                maybeLongValue = Optional.of(Integer.toUnsignedLong(valueInt));
             } else if (value instanceof Long valueLong) {
-                longValue = valueLong;
+                maybeLongValue = Optional.of(valueLong);
             } else if (value instanceof Float valueFloat) {
-                longValue = valueFloat.longValue();
+                maybeLongValue = Optional.of(valueFloat.longValue());
             } else if (value instanceof Double valueDouble) {
-                longValue = valueDouble.longValue();
+                maybeLongValue = Optional.of(valueDouble.longValue());
             } else if (value instanceof UByte valueUByte) {
-                longValue = valueUByte.longValue();
+                maybeLongValue = Optional.of(valueUByte.longValue());
             } else if (value instanceof UShort valueUShort) {
-                longValue = valueUShort.longValue();
+                maybeLongValue = Optional.of(valueUShort.longValue());
             } else if (value instanceof UInteger valueUInteger) {
-                longValue = valueUInteger.longValue();
+                maybeLongValue = Optional.of(valueUInteger.longValue());
             } else if (value instanceof ULong valueULong) {
-                longValue = valueULong.longValue();
+                maybeLongValue = Optional.of(valueULong.longValue());
             } else {
-                longValue = value.longValue();
+                maybeLongValue = Optional.empty();
             }
-            String hexString = Long.toHexString(longValue);
-            buf.append(hexString.toUpperCase());
-            for (int i=buf.length(); i<precision; ++i)
-                buf.insert(0, '0');
-            buf.insert(0, "0x");
-            return buf.toString();
+            
+            if (maybeLongValue.isPresent()) {
+                long longValue = maybeLongValue.get();
+                String hexString = Long.toHexString(longValue);
+                buf.append(hexString.toUpperCase());
+                for (int i=buf.length(); i<precision; ++i)
+                    buf.insert(0, '0');
+                buf.insert(0, "0x");
+                return buf.toString();
+            } else {
+                String numberFormat = value.getClass().getSimpleName();
+                Logger.getLogger(FormatOptionHandler.class.getPackageName())
+                        .log(Level.WARNING, "Error: Number format is unsupported for conversion to HEX format: " + numberFormat);
+                return "ERROR: Unsupported number format: " + numberFormat;
+            }
+
         }
         if (option == FormatOption.STRING)
             return new String(new byte[] { value.byteValue() });
