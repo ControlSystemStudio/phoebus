@@ -175,18 +175,41 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
                     return;
                 }
 
-                // Try to add PVs
-                try {
-                    pvNamesToAdd.forEach(pvName -> alarmClient.addPV(path, pvName));
-                    logger.log(Level.INFO, "Successfully added " + pvNamesToAdd.size() + " PV(s) to " + path);
-                } catch (Exception ex) {
+                // Try to add PVs, tracking successes and failures
+                List<String> successfulPVs = new java.util.ArrayList<>();
+                List<String> failedPVs = new java.util.ArrayList<>();
+                Exception lastException = null;
+
+                for (String pvName : pvNamesToAdd) {
+                    try {
+                        alarmClient.addPV(path, pvName);
+                        successfulPVs.add(pvName);
+                    } catch (Exception e) {
+                        failedPVs.add(pvName);
+                        lastException = e;
+                        logger.log(Level.WARNING, "Failed to add PV '" + pvName + "' to " + path, e);
+                    }
+                }
+
+                // Report results
+                if (!failedPVs.isEmpty()) {
                     event.consume(); // Prevent dialog from closing
-                    logger.log(Level.WARNING, "Cannot add component PVs to " + path, ex);
-                    ExceptionDetailsErrorDialog.openError("Add Component PVs Failed",
-                            "Failed to add PVs to path: " + path + "\n\n" +
-                            "PVs attempted: " + String.join(", ", pvNamesToAdd) + "\n\n" +
-                            "Error: " + ex.getMessage(),
-                            ex);
+                    String message = String.format(
+                        "Failed to add %d of %d PV(s) to path: %s\n\n" +
+                        "Successful: %s\n" +
+                        "Failed: %s\n\n" +
+                        "Last error: %s",
+                        failedPVs.size(),
+                        pvNamesToAdd.size(),
+                        path,
+                        successfulPVs.isEmpty() ? "None" : String.join(", ", successfulPVs),
+                        String.join(", ", failedPVs),
+                        lastException != null ? lastException.getMessage() : "Unknown"
+                    );
+                    logger.log(Level.WARNING, message);
+                    ExceptionDetailsErrorDialog.openError("Add Component PVs Failed", message, lastException);
+                } else {
+                    logger.log(Level.INFO, "Successfully added " + successfulPVs.size() + " PV(s) to " + path);
                 }
             });
         }
