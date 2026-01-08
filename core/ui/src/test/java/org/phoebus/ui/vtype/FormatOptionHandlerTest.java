@@ -15,14 +15,22 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
+import org.epics.vtype.VByte;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
+import org.epics.vtype.VFloat;
+import org.epics.vtype.VInt;
 import org.epics.vtype.VIntArray;
 import org.epics.vtype.VLong;
 import org.epics.vtype.VNumberArray;
+import org.epics.vtype.VShort;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
+import org.epics.vtype.VUByte;
+import org.epics.vtype.VUInt;
+import org.epics.vtype.VULong;
+import org.epics.vtype.VUShort;
 import org.junit.jupiter.api.Test;
 
 import java.text.DecimalFormat;
@@ -167,19 +175,245 @@ public class FormatOptionHandlerTest
     @Test
     public void testHexFormat()
     {
-        VType number = VDouble.of(65535.0, Alarm.none(), Time.now(), display);
+        {
+            VType number = VDouble.of(65535.0, Alarm.none(), Time.now(), display);
 
-        String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
-        System.out.println(text);
-        assertThat(text, equalTo("0xFFFF V"));
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFF V"));
 
-        text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
-        System.out.println(text);
-        assertThat(text, equalTo("0x0000FFFF V"));
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x0000FFFF V"));
 
-        text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
-        System.out.println(text);
-        assertThat(text, equalTo("0x000000000000FFFF V"));
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x000000000000FFFF V"));
+        }
+
+        {
+            // Test with VDouble representing 0xFFFFFFFF
+            VType number = VDouble.of(4294967295.0, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFFF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFFF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00000000FFFFFFFF V"));
+        }
+
+        {
+            // Test with VFloat representing 0xFFFF
+            VType number = VFloat.of(65535.0, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x0000FFFF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x000000000000FFFF V"));
+        }
+
+        {
+            // Test with VInt representing 0x00
+            VType number = VInt.of(0x00, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x0000 V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00000000 V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x0000000000000000 V"));
+        }
+
+        {
+            // Test with VByte representing 0xFF
+            VType number = VByte.of(0xFF, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 2, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00FF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x000000FF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00000000000000FF V"));
+        }
+
+        {
+            // Test with VByte representing 0xFF
+            VType number = VUByte.of(0xFF, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 2, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00FF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x000000FF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00000000000000FF V"));
+        }
+
+        {
+            // Test with VShort representing 0xFFAA
+            VType number = VShort.of(0xFFAA, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 2, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x0000FFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x000000000000FFAA V"));
+        }
+
+        {
+            // Test with VUShort representing 0xFFAA
+            VType number = VUShort.of(0xFFAA, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 2, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x0000FFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x000000000000FFAA V"));
+        }
+
+        {
+            // Test with VInt representing 0xFF
+            VType number = VInt.of(0xFF, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 2, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00FF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x000000FF V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00000000000000FF V"));
+        }
+
+        {
+            // Test with VInt representing 0xFFFFFFAA
+            VType number = VInt.of(0xFFFFFFAA, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00000000FFFFFFAA V"));
+        }
+
+        {
+            // Test with VUInt representing 0xFFFFFFAA
+            VType number = VUInt.of(0xFFFFFFAA, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0x00000000FFFFFFAA V"));
+        }
+
+        {
+            // Test with VLong representing 0xFFFFFFAA
+            VType number = VLong.of(0xFFFFFFFFFFFFFFAAL, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFFFFFFFFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFFFFFFFFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFFFFFFFFFAA V"));
+        }
+
+        {
+            // Test with VULong representing 0xFFFFFFAA
+            VType number = VULong.of(0xFFFFFFFFFFFFFFAAL, Alarm.none(), Time.now(), display);
+
+            String text = FormatOptionHandler.format(number, FormatOption.HEX, 4, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFFFFFFFFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 8, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFFFFFFFFFAA V"));
+
+            text = FormatOptionHandler.format(number, FormatOption.HEX, 16, true);
+            System.out.println(text);
+            assertThat(text, equalTo("0xFFFFFFFFFFFFFFAA V"));
+        }
     }
 
     @Test
