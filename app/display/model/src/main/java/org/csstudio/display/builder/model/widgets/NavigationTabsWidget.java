@@ -47,6 +47,8 @@ import org.phoebus.framework.macros.Macros;
  */
 public class NavigationTabsWidget extends VisibleWidget
 {
+    private static final WidgetColor DEFAULT_SELECT_COLOR = new WidgetColor(236, 236, 236);
+    private static final WidgetColor DEFAULT_DESELECT_COLOR = new WidgetColor(200, 200, 200);
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("navtabs", WidgetCategory.STRUCTURE,
@@ -61,9 +63,16 @@ public class NavigationTabsWidget extends VisibleWidget
         }
     };
 
-    // 'state' structure that describes one state
+    // 'tab' structure that describes one tab
     private static final StructuredWidgetProperty.Descriptor propTab =
         new StructuredWidgetProperty.Descriptor(WidgetPropertyCategory.BEHAVIOR, "tab", "Tab");
+
+    // Elements of the 'tab' structure
+    private static final WidgetPropertyDescriptor<WidgetColor> propIndividualSelectedColor =
+            CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "selected_color", "Selected Color");
+
+    private static final WidgetPropertyDescriptor<WidgetColor> propIndividualDeselectedColor =
+            CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "deselected_color", "Deselected Color");
 
     /** Structure for one tab item and its embedded display */
     public static class TabProperty extends StructuredWidgetProperty
@@ -77,8 +86,10 @@ public class NavigationTabsWidget extends VisibleWidget
                   Arrays.asList(propName.createProperty(widget, "Tab " + (index + 1)),
                                 propFile.createProperty(widget, ""),
                                 propMacros.createProperty(widget, new Macros()),
-                                propGroupName.createProperty(widget, "")
-                               ));
+                                propGroupName.createProperty(widget, ""),
+                                propIndividualSelectedColor.createProperty(widget, DEFAULT_SELECT_COLOR),
+                                propIndividualDeselectedColor.createProperty(widget, DEFAULT_DESELECT_COLOR)
+                                ));
         }
         /** @return Tab name */
         public WidgetProperty<String>       name()    { return getElement(0); }
@@ -88,6 +99,10 @@ public class NavigationTabsWidget extends VisibleWidget
         public WidgetProperty<Macros>       macros()  { return getElement(2); }
         /** @return Optional sub-group of file */
         public WidgetProperty<String>       group()   { return getElement(3); }
+        /** @return Tab color when selected */
+        public WidgetProperty<WidgetColor>  individual_selected_color()   { return getElement(4); }
+        /** @return Tab color when not selected */
+        public WidgetProperty<WidgetColor>  individual_deselected_color()   { return getElement(5); } 
     }
 
     // 'tabs' array
@@ -101,15 +116,18 @@ public class NavigationTabsWidget extends VisibleWidget
     private static final WidgetPropertyDescriptor<Integer> propTabSpacing =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tab_spacing", "Tab Spacing");
 
+    private static final WidgetPropertyDescriptor<Boolean> propEnablePerTabColors =
+        CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "enable_per_tab_colors", "Per Tab Colors");
+
     private static final WidgetPropertyDescriptor<WidgetColor> propDeselectedColor =
-            CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "deselected_color", "Deselected Color");
-
-
+        CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "deselected_color", "Deselected Color");
+    
     private volatile ArrayWidgetProperty<TabProperty> tabs;
     private volatile WidgetProperty<Direction> direction;
     private volatile WidgetProperty<Integer> tab_width;
     private volatile WidgetProperty<Integer> tab_height;
     private volatile WidgetProperty<Integer> tab_spacing;
+    private volatile WidgetProperty<Boolean> enable_per_tab_colors;
     private volatile WidgetProperty<WidgetColor> selected_color;
     private volatile WidgetProperty<WidgetColor> deselected_color;
     private volatile WidgetProperty<WidgetFont> font;
@@ -134,8 +152,9 @@ public class NavigationTabsWidget extends VisibleWidget
         properties.add(tab_width = propTabWidth.createProperty(this, ActionButtonWidget.DEFAULT_WIDTH));
         properties.add(tab_height = propTabHeight.createProperty(this, ActionButtonWidget.DEFAULT_HEIGHT));
         properties.add(tab_spacing = propTabSpacing.createProperty(this, 2));
-        properties.add(selected_color = propSelectedColor.createProperty(this, new WidgetColor(236, 236, 236)));
-        properties.add(deselected_color = propDeselectedColor.createProperty(this, new WidgetColor(200, 200, 200)));
+        properties.add(enable_per_tab_colors = propEnablePerTabColors.createProperty(this, false));
+        properties.add(selected_color = propSelectedColor.createProperty(this, DEFAULT_SELECT_COLOR));
+        properties.add(deselected_color = propDeselectedColor.createProperty(this, DEFAULT_DESELECT_COLOR));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(active = propActiveTab.createProperty(this, 0));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
@@ -169,6 +188,12 @@ public class NavigationTabsWidget extends VisibleWidget
     public WidgetProperty<Integer> propTabSpacing()
     {
         return tab_spacing;
+    }
+
+    /** @return 'enable_per_tab_colors' property */
+    public WidgetProperty<Boolean> propEnablePerTabColors()
+    {
+        return enable_per_tab_colors;
     }
 
     /** @return 'selected_color' property */
