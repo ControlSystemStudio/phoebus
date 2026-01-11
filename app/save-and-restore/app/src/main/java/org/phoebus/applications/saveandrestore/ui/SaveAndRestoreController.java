@@ -383,7 +383,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         JobManager.schedule("Load save-and-restore tree data", monitor -> {
             Node rootNode = saveAndRestoreService.getRootNode();
-            treeInitializationCountDownLatch.countDown();
             TreeItem<Node> rootItem = createTreeItem(rootNode);
             List<String> savedTreeViewStructure = getSavedTreeStructure();
 
@@ -467,6 +466,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 childNodes.stream().map(this::createTreeItem).toList();
         targetItem.getChildren().setAll(list);
         targetItem.getChildren().sort(treeNodeComparator);
+        targetItem.setExpanded(true);
     }
 
     /**
@@ -861,7 +861,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         while (!nodeStack.isEmpty()) {
             Node currentNode = nodeStack.pop();
             TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
-            expandTreeNode(currentTreeItem);
+            if(!currentTreeItem.isExpanded()){
+                expandTreeNode(currentTreeItem);
+            }
             parentTreeItem = currentTreeItem;
         }
 
@@ -1349,9 +1351,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private void openNode(String nodeId) {
         JobManager.schedule("Open save-and-restore node", monitor -> {
             try {
-                if (!treeInitializationCountDownLatch.await(30000, TimeUnit.SECONDS)) {
-                    return;
-                }
+                treeInitializationCountDownLatch.await();
             } catch (InterruptedException e) {
                 logger.log(Level.WARNING, "Failed to await tree view to load", e);
                 return;
