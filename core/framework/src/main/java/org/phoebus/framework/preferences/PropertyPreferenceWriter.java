@@ -59,11 +59,11 @@ public class PropertyPreferenceWriter
 
         String value = prefs.get("excluded_keys_from_settings_check", "");
         if (value.isEmpty()) value = allKeysWithPackages.get("org.phoebus.ui/excluded_keys_from_settings_check");
-        if (!value.isEmpty()) excludedKeys = Arrays.stream(value.split(",")).map(String::trim).collect(Collectors.toSet());
+        if (value != null && !value.isEmpty()) excludedKeys = Arrays.stream(value.split(",")).map(String::trim).collect(Collectors.toSet());
 
         value = prefs.get("excluded_packages_from_settings_check", "");
         if (value.isEmpty()) value = allKeysWithPackages.get("org.phoebus.ui/excluded_packages_from_settings_check");
-        if (!value.isEmpty()) excludedPackages = Arrays.stream(value.split(",")).map(String::trim).collect(Collectors.toSet());
+        if (value != null && !value.isEmpty()) excludedPackages = Arrays.stream(value.split(",")).map(String::trim).collect(Collectors.toSet());
 
         try
         (
