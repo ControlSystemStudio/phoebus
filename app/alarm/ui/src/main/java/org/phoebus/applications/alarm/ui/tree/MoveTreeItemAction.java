@@ -40,19 +40,27 @@ public class MoveTreeItemAction extends MenuItem
 
 		setOnAction(event ->
     	{
-    		//Prompt for new name
-
-    	    String prompt = "Enter new path for item";
-
+    		// Show dialog with tree visualization for path selection
         	String path = item.getPathName();
         	while (true)
         	{
-    			path = AlarmTreeHelper.prompt(getText(), prompt, path, node);
-    			if (path == null)
+    			AlarmTreeConfigDialog dialog = new AlarmTreeConfigDialog(
+    			    model,
+    			    path,
+    			    getText(),
+    			    "Select new path for item"
+    			);
+    			var result = dialog.getPath();
+    			if (result.isEmpty())
     			    return;
-    			if (AlarmTreeHelper.validateNewPath(path, node.getRoot().getValue()) )
+    			path = result.get();
+    			if (AlarmTreeHelper.validateNewPath(path, node.getRoot().getValue()))
     			    break;
-    			prompt = "Invalid path. Try again or cancel";
+    			
+    			// Show error dialog and retry
+    			ExceptionDetailsErrorDialog.openError("Invalid Path",
+    			    "Invalid path. Please try again.",
+    			    null);
         	}
 
 			// The move is done by copying the node from the old path to the new path,
@@ -64,8 +72,7 @@ public class MoveTreeItemAction extends MenuItem
 
     		// Tree view keeps the selection indices, which will point to wrong content
             // after those items have been removed.
-            if (node instanceof TreeView<?>)
-                ((TreeView<?>) node).getSelectionModel().clearSelection();
+            node.getSelectionModel().clearSelection();
 
 			final String new_path = path;
 			// On a background thread, send the item configuration updates for the item to be moved and all its children.

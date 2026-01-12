@@ -115,6 +115,9 @@ public class AlarmSystem extends AlarmSystemConstants
     /** Disable notify feature */
     @Preference public static boolean disable_notify_visible;
 
+    /** Enable context menu for adding PVs to alarm configuration */
+    @Preference public static boolean enable_add_to_alarm_context_menu;
+
     /** "Disable until.." shortcuts */
     @Preference public static String[] shelving_options;
 
