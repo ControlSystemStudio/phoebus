@@ -23,7 +23,7 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,8 +51,7 @@ public class NodeController extends BaseController {
     private NodeDAO nodeDAO;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
-
+    private WebSocketService webSocketService;
 
     /**
      * Create a new folder in the tree structure.
@@ -84,7 +83,7 @@ public class NodeController extends BaseController {
         }
         node.setUserName(principal.getName());
         Node savedNode = nodeDAO.createNode(parentsUniqueId, node);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_ADDED,
+        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_ADDED,
                 savedNode.getUniqueId()));
         return savedNode;
     }
@@ -159,7 +158,7 @@ public class NodeController extends BaseController {
     public void deleteNodes(@RequestBody List<String> nodeIds) {
         nodeDAO.deleteNodes(nodeIds);
         nodeIds.forEach(id ->
-                webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, id)));
+                webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, id)));
     }
 
     /**
@@ -221,7 +220,7 @@ public class NodeController extends BaseController {
         }
         nodeToUpdate.setUserName(principal.getName());
         Node updatedNode = nodeDAO.updateNode(nodeToUpdate, Boolean.parseBoolean(customTimeForMigration));
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedNode));
+        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedNode));
         return updatedNode;
     }
 

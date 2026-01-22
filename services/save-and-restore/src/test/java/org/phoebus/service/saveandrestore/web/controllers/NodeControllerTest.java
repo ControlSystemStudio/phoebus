@@ -39,11 +39,13 @@ import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWeb
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -53,7 +55,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
@@ -61,7 +62,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -73,7 +77,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Georg Weiss, European Spallation Source
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = ControllersTestConfig.class)
+@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class, WebSecurityConfig.class})})
 @TestPropertySource(locations = "classpath:test_application.properties")
 @WebMvcTest(NodeController.class)
 public class NodeControllerTest {
@@ -85,7 +89,7 @@ public class NodeControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private WebSocketService webSocketService;
 
     private static Node folderFromClient;
 
@@ -118,8 +122,8 @@ public class NodeControllerTest {
     }
 
     @AfterEach
-    public void resetMocks(){
-        reset(webSocketHandler, nodeDAO);
+    public void resetMocks() {
+        reset(webSocketService, nodeDAO);
     }
 
     @Test
@@ -254,7 +258,7 @@ public class NodeControllerTest {
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(configuration));
 
-       mockMvc.perform(request).andExpect(status().isBadRequest());
+        mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -436,7 +440,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
@@ -450,7 +454,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
     }
 
     @Test
@@ -465,12 +469,12 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
-        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
 
     }
 
@@ -487,7 +491,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
 
     }
 
@@ -504,11 +508,11 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
     }
 
     @Test
-    public void testDeleteForbidden3() throws Exception{
+    public void testDeleteForbidden3() throws Exception {
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
@@ -519,11 +523,11 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
     }
 
     @Test
-    public void testDeleteForbidden4() throws Exception{
+    public void testDeleteForbidden4() throws Exception {
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
@@ -534,12 +538,12 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
 
     }
 
     @Test
-    public void testDeleteFolder5() throws Exception{
+    public void testDeleteFolder5() throws Exception {
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));

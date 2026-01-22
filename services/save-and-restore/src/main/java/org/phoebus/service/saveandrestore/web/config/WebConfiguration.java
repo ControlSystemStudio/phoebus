@@ -20,15 +20,12 @@ package org.phoebus.service.saveandrestore.web.config;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
-import org.phoebus.service.saveandrestore.websocket.WebSocket;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,7 +41,7 @@ public class WebConfiguration {
 
     @SuppressWarnings("unused")
     @Bean
-    public long getConnectionTimeout(){
+    public long getConnectionTimeout() {
         return connectionTimeout;
     }
 
@@ -71,20 +68,13 @@ public class WebConfiguration {
     @SuppressWarnings("unused")
     @Bean
     @Scope("singleton")
-    public SnapshotUtil snapshotRestorer(){
+    public SnapshotUtil snapshotRestorer() {
         return new SnapshotUtil();
     }
 
     @SuppressWarnings("unused")
     @Bean
-    public ExecutorService executorService(){
+    public ExecutorService executorService() {
         return Executors.newCachedThreadPool();
-    }
-
-    @SuppressWarnings("unused")
-    @Bean(name = "sockets")
-    @Scope("singleton")
-    public List<WebSocket> getSockets() {
-        return new CopyOnWriteArrayList<>();
     }
 }

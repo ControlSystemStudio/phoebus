@@ -24,7 +24,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,15 +49,15 @@ public class ConfigurationController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
-    @SuppressWarnings("unused")
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private WebSocketService webSocketService;
 
     /**
      * Creates new {@link Configuration} {@link Node}.
-     * @param parentNodeId Valid id of the {@link Node}s intended parent.
+     *
+     * @param parentNodeId  Valid id of the {@link Node}s intended parent.
      * @param configuration {@link Configuration} data.
-     * @param principal User {@link Principal} injected by Spring.
+     * @param principal     User {@link Principal} injected by Spring.
      * @return The new {@link Configuration}.
      */
     @SuppressWarnings("unused")
@@ -66,25 +66,26 @@ public class ConfigurationController extends BaseController {
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
                                              @RequestBody Configuration configuration,
                                              Principal principal) {
-        for(ConfigPv configPv : configuration.getConfigurationData().getPvList()){
+        for (ConfigPv configPv : configuration.getConfigurationData().getPvList()) {
             // Compare mode is set, verify tolerance is non-null
-            if(configPv.getComparison() != null && (configPv.getComparison().getComparisonMode() == null || configPv.getComparison().getTolerance() == null)){
+            if (configPv.getComparison() != null && (configPv.getComparison().getComparisonMode() == null || configPv.getComparison().getTolerance() == null)) {
                 throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies comparison but no comparison or tolerance value");
             }
             // Tolerance is set...
-            if(configPv.getComparison() != null && configPv.getComparison().getTolerance() < 0){
+            if (configPv.getComparison() != null && configPv.getComparison().getTolerance() < 0) {
                 //Tolerance is less than zero, which does not make sense as comparison considers tolerance as upper and lower limit.
                 throw new IllegalArgumentException("PV item \"" + configPv.getPvName() + "\" specifies zero tolerance");
-             }
+            }
         }
         configuration.getConfigurationNode().setUserName(principal.getName());
         Configuration newConfiguration = nodeDAO.createConfiguration(parentNodeId, configuration);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newConfiguration.getConfigurationNode().getUniqueId()));
+        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newConfiguration.getConfigurationNode().getUniqueId()));
         return newConfiguration;
     }
 
     /**
      * Retrieves data associated with a {@link Configuration} {@link Node}-.
+     *
      * @param uniqueId unique {@link Node} id of a {@link Configuration}.
      * @return A {@link ConfigurationData} object.
      */
@@ -96,8 +97,9 @@ public class ConfigurationController extends BaseController {
 
     /**
      * Updates/overwrites an existing {@link Configuration}
+     *
      * @param configuration The {@link Configuration} subject to update.
-     * @param principal User {@link Principal} injected by Spring.
+     * @param principal     User {@link Principal} injected by Spring.
      * @return The updated {@link Configuration}.
      */
     @SuppressWarnings("unused")
@@ -107,7 +109,7 @@ public class ConfigurationController extends BaseController {
                                              Principal principal) {
         configuration.getConfigurationNode().setUserName(principal.getName());
         Configuration updatedConfiguration = nodeDAO.updateConfiguration(configuration);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedConfiguration.getConfigurationNode()));
+        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedConfiguration.getConfigurationNode()));
         return updatedConfiguration;
     }
 }

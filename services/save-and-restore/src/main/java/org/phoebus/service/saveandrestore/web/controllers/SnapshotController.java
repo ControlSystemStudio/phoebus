@@ -24,10 +24,16 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
@@ -43,7 +49,8 @@ public class SnapshotController extends BaseController {
     private NodeDAO nodeDAO;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private WebSocketService webSocketService;
+
     /**
      *
      * @param uniqueId Unique {@link Node} id of a snapshot.
@@ -65,28 +72,30 @@ public class SnapshotController extends BaseController {
 
     /**
      * Creates a new {@link Snapshot}
+     *
      * @param parentNodeId Unique {@link Node} id of the new {@link Snapshot}.
-     * @param snapshot {@link Snapshot} data.
-     * @param principal User {@link Principal} as injected by Spring.
+     * @param snapshot     {@link Snapshot} data.
+     * @param principal    User {@link Principal} as injected by Spring.
      * @return The new {@link Snapshot}.
      */
     @PutMapping(value = "/snapshot", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayCreate(#root)")
     public Snapshot createSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
-                                 @RequestBody Snapshot snapshot,
-                                 Principal principal) {
-        if(!snapshot.getSnapshotNode().getNodeType().equals(NodeType.SNAPSHOT)){
+                                   @RequestBody Snapshot snapshot,
+                                   Principal principal) {
+        if (!snapshot.getSnapshotNode().getNodeType().equals(NodeType.SNAPSHOT)) {
             throw new IllegalArgumentException("Snapshot node of wrong type");
         }
         snapshot.getSnapshotNode().setUserName(principal.getName());
         Snapshot newSnapshot = nodeDAO.createSnapshot(parentNodeId, snapshot);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newSnapshot.getSnapshotNode().getUniqueId()));
+        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newSnapshot.getSnapshotNode().getUniqueId()));
         return newSnapshot;
     }
 
     /**
      * Updates a {@link Snapshot}.
-     * @param snapshot The {@link Snapshot} subject to update.
+     *
+     * @param snapshot  The {@link Snapshot} subject to update.
      * @param principal User {@link Principal} as injected by Spring.
      * @return The updated {@link Snapshot}
      */
@@ -94,12 +103,12 @@ public class SnapshotController extends BaseController {
     @PreAuthorize("@authorizationHelper.mayUpdate(#snapshot, #root)")
     public Snapshot updateSnapshot(@RequestBody Snapshot snapshot,
                                    Principal principal) {
-        if(!snapshot.getSnapshotNode().getNodeType().equals(NodeType.SNAPSHOT)){
+        if (!snapshot.getSnapshotNode().getNodeType().equals(NodeType.SNAPSHOT)) {
             throw new IllegalArgumentException("Snapshot node of wrong type");
         }
         snapshot.getSnapshotNode().setUserName(principal.getName());
         Snapshot updatedSnapshot = nodeDAO.updateSnapshot(snapshot);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedSnapshot.getSnapshotNode()));
+        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedSnapshot.getSnapshotNode()));
         return updatedSnapshot;
     }
 }

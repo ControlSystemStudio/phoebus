@@ -19,11 +19,15 @@
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,13 +52,16 @@ public class CompositeSnapshotController extends BaseController {
     private NodeDAO nodeDAO;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private WebSocketService webSocketService;
+
+
 
     /**
      * Creates a new {@link CompositeSnapshot} {@link Node}.
-     * @param parentNodeId Valid id of the {@link Node}s intended parent.
+     *
+     * @param parentNodeId      Valid id of the {@link Node}s intended parent.
      * @param compositeSnapshot {@link CompositeSnapshot} data.
-     * @param principal User {@link Principal} injected by Spring.
+     * @param principal         User {@link Principal} injected by Spring.
      * @return The new {@link CompositeSnapshot}.
      */
     @PutMapping(value = "/composite-snapshot", produces = JSON)
@@ -62,31 +69,32 @@ public class CompositeSnapshotController extends BaseController {
     public CompositeSnapshot createCompositeSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
                                                      @RequestBody CompositeSnapshot compositeSnapshot,
                                                      Principal principal) {
-        if(!compositeSnapshot.getCompositeSnapshotNode().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+        if (!compositeSnapshot.getCompositeSnapshotNode().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
             throw new IllegalArgumentException("Composite snapshot node of wrong type");
         }
         compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
         CompositeSnapshot newCompositeSnapshot = nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newCompositeSnapshot.getCompositeSnapshotNode().getUniqueId()));
+        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newCompositeSnapshot.getCompositeSnapshotNode().getUniqueId()));
         return newCompositeSnapshot;
     }
 
     /**
      * Updates/overwrites a {@link CompositeSnapshot} {@link Node}.
+     *
      * @param compositeSnapshot {@link CompositeSnapshot} data.
-     * @param principal User {@link Principal} injected by Spring.
+     * @param principal         User {@link Principal} injected by Spring.
      * @return The new {@link CompositeSnapshot}.
      */
     @PostMapping(value = "/composite-snapshot", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayUpdate(#compositeSnapshot, #root)")
     public CompositeSnapshot updateCompositeSnapshot(@RequestBody CompositeSnapshot compositeSnapshot,
                                                      Principal principal) {
-        if(!compositeSnapshot.getCompositeSnapshotNode().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+        if (!compositeSnapshot.getCompositeSnapshotNode().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
             throw new IllegalArgumentException("Composite snapshot node of wrong type");
         }
         compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
         CompositeSnapshot updatedCompositeSnapshot = nodeDAO.updateCompositeSnapshot(compositeSnapshot);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedCompositeSnapshot.getCompositeSnapshotNode()));
+        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedCompositeSnapshot.getCompositeSnapshotNode()));
         return updatedCompositeSnapshot;
     }
 
