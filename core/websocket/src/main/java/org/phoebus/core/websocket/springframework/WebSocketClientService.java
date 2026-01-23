@@ -5,6 +5,7 @@
 package org.phoebus.core.websocket.springframework;
 
 import org.phoebus.core.websocket.WebSocketMessageHandler;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.stomp.ConnectionLostException;
@@ -19,6 +20,10 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,8 +47,8 @@ import java.util.logging.Logger;
  * <p>
  *     Since web socket URL paths are currently hard coded, a remote peer (e.g. Spring Framework STOMP web socket service) must:
  *     <ul>
- *         <li>Publish a connect URL like ws(s)://host:port/path/web-socket, where path is optional.</li>
- *         <li>Publish a topic named /path/web-socket/messages, where path is optional.</li>
+ *         <li>Publish a connect URL like <code>ws(s)://host:port/path/web-socket</code>, where <code>path</code> is optional.</li>
+ *         <li>Publish a topic named <code>/path/web-socket/messages</code>, where <code>path</code> is optional.</li>
  *     </ul>
  * </p>
  * <p>
@@ -76,24 +81,31 @@ public class WebSocketClientService {
 
     /**
      * Constructor if connect/disconnect  callbacks are not needed.
+     *
+     * @param connectUrl URL to the service web socket, e.g. <code>ws://localhost:8080/Olog/web.socket</code>.
+     *                   The subscription and echo endpoints are computed from the <code>connectUrl</code>.
      */
     @SuppressWarnings("unused")
-    public WebSocketClientService(String connectUrl, String subscriptionEndpoint, String echoEndpoint) {
+    public WebSocketClientService(@NonNull String connectUrl) {
         this.connectUrl = connectUrl;
-        this.subscriptionEndpoint = subscriptionEndpoint;
-        this.echoEndpoint = echoEndpoint;
+        URI uri = URI.create(connectUrl);
+        String path = uri.getPath();
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        this.subscriptionEndpoint = path + "/messages";
+        this.echoEndpoint = path + "/echo";
     }
 
     /**
-     * @param connectCallback      The non-null method called when connection to the remote web socket has been successfully established.
-     * @param disconnectCallback   The non-null method called when connection to the remote web socket has been lost, e.g.
-     *                             remote peer has been shut down.
-     * @param connectUrl           URL to the service web socket, e.g. ws://localhost:8080/Olog/web.socket
-     * @param subscriptionEndpoint E.g. /Olog/web-socket/messages
-     * @param echoEndpoint         E.g. /Olog/web-socket/echo. May be <code>null</code> if client has no need for echo messages.
+     * @param connectCallback    The non-null method called when connection to the remote web socket has been successfully established.
+     * @param disconnectCallback The non-null method called when connection to the remote web socket has been lost, e.g.
+     *                           remote peer has been shut down.
+     * @param connectUrl         URL to the service web socket, e.g. <code>ws://localhost:8080/Olog/web.socket</code>.
+     *                           The subscription and echo endpoints are computed from the <code>connectUrl</code>.
      */
-    public WebSocketClientService(Runnable connectCallback, Runnable disconnectCallback, String connectUrl, String subscriptionEndpoint, String echoEndpoint) {
-        this(connectUrl, subscriptionEndpoint, echoEndpoint);
+    public WebSocketClientService(Runnable connectCallback, Runnable disconnectCallback, @NonNull String connectUrl) {
+        this(connectUrl);
         this.connectCallback = connectCallback;
         this.disconnectCallback = disconnectCallback;
     }
@@ -155,9 +167,9 @@ public class WebSocketClientService {
         logger.log(Level.INFO, "Attempting web socket connection to " + connectUrl);
         new Thread(() -> {
             while (true) {
-                try{
+                try {
                     synchronized (WebSocketClientService.this) {
-                        if(attemptReconnect.get()) {
+                        if (attemptReconnect.get()) {
                             stompSession = stompClient.connect(connectUrl, sessionHandler).get();
                             stompSession.subscribe(this.subscriptionEndpoint, new StompFrameHandler() {
                                 @Override
@@ -283,5 +295,38 @@ public class WebSocketClientService {
             logger.log(Level.WARNING, "Remote service on " + webSocketConnectUrl + " does not support web socket connection", e);
         }
         return false;
+    }
+
+    /**
+     * Determines the web socket URL from the REST URL. This is a convenience method for clients connecting
+     * to a standard http(s) REST API, but that also need to maintain a client connecting to the
+     * same service over web sockets.
+     *
+     * @param restUrl The URL clients use for REST API calls to some service.
+     * @return The web socket connection URL derived from the REST URL.
+     * @throws Exception if <code>restUrl</code> is invalid or cannot be parsed as a valid URI (e.g. due to
+     *                   non-URL encoded chars like space).
+     */
+    public static String getWebsocketConnectUrl(String restUrl) throws Exception {
+        URI uri;
+        try {
+            URL url = new URL(restUrl);
+            uri = url.toURI();
+        } catch (MalformedURLException e) {
+            logger.log(Level.WARNING, "Invalid REST url: " + restUrl, e);
+            throw new Exception(e);
+        } catch (URISyntaxException e) {
+            logger.log(Level.WARNING, "REST url  " + restUrl + " cannot be parsed as URI", e);
+            throw new Exception(e);
+        }
+        String scheme = uri.getScheme();
+        String host = uri.getHost();
+        int port = uri.getPort();
+        String path = uri.getPath();
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        String webSocketScheme = scheme.toLowerCase().startsWith("https") ? "wss" : "ws";
+        return webSocketScheme + "://" + host + (port > -1 ? (":" + port) : "") + path + "/web-socket";
     }
 }

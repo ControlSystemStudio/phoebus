@@ -20,7 +20,6 @@ import org.phoebus.logbook.olog.ui.websocket.MessageType;
 import org.phoebus.logbook.olog.ui.websocket.WebSocketMessage;
 import org.phoebus.olog.es.api.Preferences;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -57,8 +56,6 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
             new SimpleObjectProperty<>(ConnectivityMode.NOT_CONNECTED);
 
     protected WebSocketClientService webSocketClientService;
-    private final String webSocketConnectUrl;
-    private final String subscriptionEndpoint;
     protected final CountDownLatch connectivityCheckerCountDownLatch = new CountDownLatch(1);
 
     @SuppressWarnings("unused")
@@ -69,36 +66,29 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     @FXML
     private GridPane viewSearchPane;
 
-    public LogbookSearchController() {
-        String baseUrl = Preferences.olog_url;
-        URI uri = URI.create(baseUrl);
-        String scheme = uri.getScheme();
-        String host = uri.getHost();
-        int port = uri.getPort();
-        String path = uri.getPath();
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-        String webSocketScheme = scheme.toLowerCase().startsWith("https") ? "wss" : "ws";
-        this.webSocketConnectUrl = webSocketScheme + "://" + host + (port > -1 ? (":" + port) : "") + path + "/web-socket";
-        this.subscriptionEndpoint = path + "/web-socket/messages";
-    }
-
     /**
      * Determines how the client may connect to the remote service. The service info endpoint is called to establish
      * availability of the service. If available, then a single web socket connection is attempted to determine
      * if the service supports web sockets.
+     *
      * @param consumer {@link Consumer} called when the connectivity mode has been determined.
      */
-    protected void determineConnectivity(Consumer<ConnectivityMode> consumer){
-
+    protected void determineConnectivity(Consumer<ConnectivityMode> consumer) {
+        String webSocketConnectUrl;
+        try {
+            webSocketConnectUrl = WebSocketClientService.getWebsocketConnectUrl(Preferences.olog_url);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed to determine websocket connect URL", e);
+            consumer.accept(ConnectivityMode.NOT_CONNECTED);
+            return;
+        }
         // Try to determine the connection mode: is the remote service available at all?
         // If so, does it accept web socket connections?
         JobManager.schedule("Connection mode probe", monitor -> {
             ConnectivityMode connectivityMode = ConnectivityMode.NOT_CONNECTED;
             String serviceInfo = client.serviceInfo();
             if (serviceInfo != null && !serviceInfo.isEmpty()) { // service online, check web socket availability
-                if (WebSocketClientService.checkAvailability(this.webSocketConnectUrl)) {
+                if (WebSocketClientService.checkAvailability(webSocketConnectUrl)) {
                     connectivityMode = ConnectivityMode.WEB_SOCKETS_SUPPORTED;
                 } else {
                     connectivityMode = ConnectivityMode.HTTP_ONLY;
@@ -184,8 +174,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
             Logger.getLogger(LogbookSearchController.class.getName()).log(Level.INFO, "Shutting down web socket");
             webSocketClientService.removeWebSocketMessageHandler(this);
             webSocketClientService.shutdown();
-        }
-        else if(connectivityModeObjectProperty.get().equals(ConnectivityMode.HTTP_ONLY)){
+        } else if (connectivityModeObjectProperty.get().equals(ConnectivityMode.HTTP_ONLY)) {
             cancelPeriodSearch();
         }
     }
@@ -193,6 +182,13 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     protected abstract void search();
 
     protected void connectWebSocket() {
+        String webSocketConnectUrl;
+        try {
+            webSocketConnectUrl = WebSocketClientService.getWebsocketConnectUrl(Preferences.olog_url);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed to get websocket connection parameters", e);
+            return;
+        }
         webSocketClientService = new WebSocketClientService(() -> {
             logger.log(Level.INFO, "Connected to web socket on " + webSocketConnectUrl);
             webSocketConnected.setValue(true);
@@ -204,7 +200,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
             webSocketConnected.set(false);
             viewSearchPane.visibleProperty().set(false);
             errorPane.visibleProperty().set(true);
-        }, webSocketConnectUrl, subscriptionEndpoint, null);
+        }, webSocketConnectUrl);
         webSocketClientService.addWebSocketMessageHandler(this);
         webSocketClientService.connect();
     }
