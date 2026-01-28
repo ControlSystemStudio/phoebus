@@ -6,7 +6,8 @@ A prefix of the form "=xx(..)" is typically used to select the formula.
 
 
 Operators
-----
+---------
+
 You can use the following operators :
 
 | **Arithmetic and maths operators :**

@@ -103,7 +103,7 @@ public class SearchController {
 
     @Operation(summary = "Search alarms by PV name")
     @RequestMapping(value = "/search/alarm/pv/{pv}", method = RequestMethod.GET)
-    public List<AlarmLogMessage> searchPv(@Parameter(description = "PV name") @PathVariable String pv) {
+    public List<AlarmLogMessage> searchPv(@Parameter(name="pv", description = "PV name") @PathVariable String pv) {
         Map<String, String> searchParameters = new HashMap<>();
         searchParameters.put("pv", pv);
         List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), searchParameters);

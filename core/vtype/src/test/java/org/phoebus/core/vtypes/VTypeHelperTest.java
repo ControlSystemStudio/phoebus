@@ -192,6 +192,10 @@ public class VTypeHelperTest {
         VStringArray stringArray =
                 VStringArray.of(Arrays.asList("a", "b"), alarm, time);
         assertEquals(2, VTypeHelper.getArraySize(stringArray));
+
+        VBooleanArray booleanArray =
+                VBooleanArray.of(ArrayBoolean.of(true, false, true), alarm, time);
+        assertEquals(3, VTypeHelper.getArraySize(booleanArray));
     }
 
     @Test

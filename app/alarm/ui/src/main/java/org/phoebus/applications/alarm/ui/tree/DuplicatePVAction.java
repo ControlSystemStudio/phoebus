@@ -63,9 +63,9 @@ class DuplicatePVAction extends MenuItem
             template.setActions(original.getActions());
 
             // Request adding new PV
-            final String new_path = AlarmTreePath.makePath(original.getParent().getPathName(), new_name);
             JobManager.schedule(getText(), monitor -> {
                 try {
+                    final String new_path = AlarmTreePath.makePath(original.getParent().getPathName(), new_name);
                     model.sendItemConfigurationUpdate(new_path, template);
                 } catch (Exception e) {
                     Logger.getLogger(DuplicatePVAction.class.getName()).log(Level.WARNING, "Failed to send item configuration", e);

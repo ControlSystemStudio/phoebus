@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<display version="1.0.0">
+<display version="2.0.0">
   <name>Spinner Slider Scrollbar</name>
   <widget type="scrollbar" version="2.0.0">
     <name>Scrollbar</name>
@@ -45,7 +45,6 @@
     <width>110</width>
     <height>220</height>
     <horizontal>false</horizontal>
-    <scale_format>#.##</scale_format>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_3</name>
@@ -70,18 +69,16 @@
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_5</name>
-    <text>The value can be adjusted both with
-the mouse and, when the widget is in
-focus, using the arrow keys and
-page up/down keys.
+    <text>The value can be adjusted both with the mouse and, when the widget is in focus, using the arrow keys and page up/down keys.
+      Up/Down arrow keys and Page Up/Down keys will change the value by 1 step size
+      Ctrl + Up/Down arrow keys will change the value by 5 x step size
+      Ctrl + Left/Right arrow keys to make changes at 10 x step szie
 
-The "increment" property of the widget
-determines the step size when using
-the keyboard.</text>
-    <x>143</x>
-    <y>191</y>
-    <width>238</width>
-    <height>189</height>
+The "increment" property of the widget determines the step size when using the keyboard.</text>
+    <x>141</x>
+    <y>160</y>
+    <width>579</width>
+    <height>250</height>
   </widget>
   <widget type="scaledslider" version="2.0.0">
     <name>Scaled Slider_1</name>
@@ -90,7 +87,6 @@ the keyboard.</text>
     <y>429</y>
     <width>419</width>
     <height>61</height>
-    <scale_format>#.##</scale_format>
     <limits_from_pv>false</limits_from_pv>
   </widget>
 </display>

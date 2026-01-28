@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2024 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2025 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -51,7 +51,6 @@ import org.phoebus.pv.LongString;
  *  @author Lana Abadie - PostgreSQL for original RDBArchive code. Disable autocommit as needed.
  *  @author Laurent Philippe (Use read-only connection when possible for MySQL load balancing)
  */
-@SuppressWarnings("nls")
 public class RDBArchiveWriter implements ArchiveWriter
 {
     /** Status string for <code>Double.NaN</code> samples */
@@ -430,9 +429,8 @@ public class RDBArchiveWriter implements ArchiveWriter
             final int N = additional.size();
             for (int i = 1; i < N; i++)
             {
-                if (dialect == Dialect.Oracle){
-                    insert_array_sample.setTimestamp(2, stamp);
-                }
+                if (dialect == Dialect.Oracle)
+                    insert_array_sample.setObject(2, TimestampHelper.toOffsetDateTime(stamp));
                 else
                 {
                     // Truncate the time stamp
@@ -498,9 +496,8 @@ public class RDBArchiveWriter implements ArchiveWriter
             final Timestamp stamp, final int severity,
             final Status status) throws Exception
     {
-        if (dialect == Dialect.Oracle){
-            insert_xx.setTimestamp(2, stamp);
-        }
+        if (dialect == Dialect.Oracle)
+            insert_xx.setObject(2, TimestampHelper.toOffsetDateTime(stamp));
         else
         {
             // Truncate the time stamp

@@ -105,16 +105,50 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
                     }
                     break;
                 //incrementing by keyboard
+                //isShiftDown(), isControlDown(), isAltDown(), and isMetaDown()
+                case LEFT:
+					if(event.isControlDown()) {
+							spinner.getValueFactory().increment(10);
+							}
+					break;
+                case RIGHT:
+					if(event.isControlDown()) {
+							spinner.getValueFactory().decrement(10);
+							}
+					break;
                 case UP:
+                    if (!active) {
+						if(event.isControlDown()) {
+							spinner.getValueFactory().increment(5);
+							}
+						else {
+							spinner.getValueFactory().increment(1);
+							}
+						}
+                    break;
                 case PAGE_UP:
-                    if (!active)
-                        spinner.getValueFactory().increment(1);
+                    if (!active) {
+						spinner.getValueFactory().increment(1);
+						}
                     break;
                 case DOWN:
-                case PAGE_DOWN:
-                    if (!active)
-                        spinner.getValueFactory().decrement(1);
+                    if (!active) {
+						if(event.isControlDown()) {
+							spinner.getValueFactory().decrement(5);
+							}
+						else {
+							spinner.getValueFactory().decrement(1);
+							}
+						}
                     break;
+                case PAGE_DOWN:
+                    if (!active) {
+						spinner.getValueFactory().decrement(1);
+						}
+                    break;
+                case CONTROL:
+					setActive(false);
+					break;
                 default:
                     // Any other key results in active state
                     setActive(true);
@@ -608,3 +642,4 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         updateChanges();
     }
 }
+
