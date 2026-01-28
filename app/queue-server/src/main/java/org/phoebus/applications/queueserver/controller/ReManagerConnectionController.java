@@ -365,6 +365,7 @@ public final class ReManagerConnectionController {
             case DISCONNECTED:
                 connectionStatusLabel.setText("OFFLINE");
                 connectionStatusLabel.setStyle("-fx-text-fill: grey;");
+                autoConnectToggle.setText("Connect");
                 latestStatus = null;  // Clear cached status
                 StatusBus.push(null);  // Disable all controls
                 break;
@@ -372,6 +373,7 @@ public final class ReManagerConnectionController {
             case CONNECTING:
                 connectionStatusLabel.setText("CONNECTING");
                 connectionStatusLabel.setStyle("-fx-text-fill: grey;");
+                autoConnectToggle.setText("Disconnect");
                 // Don't push null here - preserve last known status during reconnection
                 // This prevents unnecessary UI flickering and console monitor restarts
                 break;
@@ -379,6 +381,7 @@ public final class ReManagerConnectionController {
             case NETWORK_ERROR:
                 connectionStatusLabel.setText("NETWORK");
                 connectionStatusLabel.setStyle("-fx-text-fill: #00008B;");  // Dark blue
+                autoConnectToggle.setText("Disconnect");
                 latestStatus = null;  // Clear cached status to prevent stale data from being pushed
                 StatusBus.push(null);  // Disable all controls
                 break;
@@ -386,6 +389,7 @@ public final class ReManagerConnectionController {
             case NO_STATUS:
                 connectionStatusLabel.setText("STATUS");
                 connectionStatusLabel.setStyle("-fx-text-fill: red;");
+                autoConnectToggle.setText("Disconnect");
                 latestStatus = null;  // Clear cached status
                 StatusBus.push(null);  // Disable all controls
                 break;
@@ -393,6 +397,7 @@ public final class ReManagerConnectionController {
             case CONNECTED:
                 connectionStatusLabel.setText("CONNECTED");
                 connectionStatusLabel.setStyle("-fx-text-fill: green;");
+                autoConnectToggle.setText("Disconnect");
                 // Don't push to StatusBus here - let updateWidgets do it
                 break;
         }
