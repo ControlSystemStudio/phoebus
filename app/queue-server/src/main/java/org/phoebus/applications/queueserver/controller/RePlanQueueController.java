@@ -356,7 +356,6 @@ public final class RePlanQueueController implements Initializable {
     private void updateButtonStates() {
         StatusResponse status = StatusBus.latest().get();
         boolean connected = status != null;
-        boolean envOpen = connected && status.workerEnvironmentExists();
 
         var sel = table.getSelectionModel().getSelectedIndices();
         boolean hasSel = !table.getSelectionModel().getSelectedIndices().isEmpty();
@@ -374,15 +373,16 @@ public final class RePlanQueueController implements Initializable {
             loopBtn.setDisable(true);
             deselectBtn.setDisable(!hasSel);
         } else {
-            // Only allow modifications when connected AND environment is open
-            upBtn.setDisable(!(envOpen && hasSel && !atTop));
-            downBtn.setDisable(!(envOpen && hasSel && !atBot));
+            // Only require server connection (not environment open)
+            upBtn.setDisable(!(connected && hasSel && !atTop));
+            downBtn.setDisable(!(connected && hasSel && !atBot));
             topBtn.setDisable(upBtn.isDisable());
             bottomBtn.setDisable(downBtn.isDisable());
-            deleteBtn.setDisable(!(envOpen && hasSel));
+            deleteBtn.setDisable(!(connected && hasSel));
             duplicateBtn.setDisable(deleteBtn.isDisable());
-            clearBtn.setDisable(!(envOpen && !rows.isEmpty()));
-            loopBtn.setDisable(!envOpen);
+            clearBtn.setDisable(!(connected && !rows.isEmpty()));
+            loopBtn.setDisable(!connected);
+            // Deselect always enabled when there's a selection
             deselectBtn.setDisable(!hasSel);
         }
     }
