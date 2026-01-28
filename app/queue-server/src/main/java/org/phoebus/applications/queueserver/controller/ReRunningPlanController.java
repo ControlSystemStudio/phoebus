@@ -58,7 +58,11 @@ public final class ReRunningPlanController implements Initializable {
     private void render(StatusResponse st) {
         if (st == null) {
             // Don't clear running plan - keep last data visible for users
-            // Buttons will be disabled via StatusBus
+            // Disable buttons when there's no status (disconnected or status error)
+            if (!viewOnly) {
+                copyBtn.setDisable(true);
+                updateBtn.setDisable(true);
+            }
             return;
         }
 
