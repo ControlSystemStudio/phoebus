@@ -3,6 +3,8 @@ package org.phoebus.applications.queueserver.controller;
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
+import org.phoebus.applications.queueserver.util.PythonParameterConverter;
+import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
 import org.phoebus.applications.queueserver.view.TabSwitchEvent;
 import org.phoebus.applications.queueserver.view.ItemUpdateEvent;
@@ -34,10 +36,19 @@ public class RePlanViewerController implements Initializable {
     @FXML private Button copyBtn, editBtn;
 
     private final RunEngineService svc = new RunEngineService();
-    private static final Logger LOG = Logger.getLogger(RePlanViewerController.class.getName());
+    private static final Logger logger = Logger.getLogger(RePlanViewerController.class.getPackageName());
     private final ObservableList<ParameterRow> parameterRows = FXCollections.observableArrayList();
     private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
+    // Python-based parameter converter (lazy-initialized to avoid blocking UI on startup)
+    private PythonParameterConverter pythonConverter;
+
+    private PythonParameterConverter getPythonConverter() {
+        if (pythonConverter == null) {
+            pythonConverter = new PythonParameterConverter();
+        }
+        return pythonConverter;
+    }
 
     private QueueItem currentQueueItem;
     private String queueItemName = "-";
@@ -85,7 +96,23 @@ public class RePlanViewerController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initializeTable();
         initializeControls();
-        loadAllowedPlansAndInstructions();
+
+        // Only load plans if already connected
+        if (StatusBus.latest().get() != null) {
+            loadAllowedPlansAndInstructions();
+        }
+
+        // Listen for status changes to load plans when connected and update widget state
+        StatusBus.latest().addListener((o, oldV, newV) -> {
+            if (newV != null && allowedPlans.isEmpty()) {
+                loadAllowedPlansAndInstructions();
+            }
+            // Clear the displayed item when disconnected
+            if (newV == null) {
+                Platform.runLater(() -> showItem(null));
+            }
+            Platform.runLater(this::updateWidgetState);
+        });
 
         QueueItemSelectionEvent.getInstance().addListener(this::showItem);
 
@@ -181,29 +208,38 @@ public class RePlanViewerController implements Initializable {
             try {
                 Map<String, Object> responseMap = svc.plansAllowedRaw();
 
+                // Prepare data in background thread
+                Map<String, Map<String, Object>> newPlans = new HashMap<>();
                 if (responseMap != null && Boolean.TRUE.equals(responseMap.get("success"))) {
-                    allowedPlans.clear();
                     if (responseMap.containsKey("plans_allowed")) {
                         Map<String, Object> plansData = (Map<String, Object>) responseMap.get("plans_allowed");
                         for (Map.Entry<String, Object> entry : plansData.entrySet()) {
                             String planName = entry.getKey();
                             Map<String, Object> planInfo = (Map<String, Object>) entry.getValue();
-                            allowedPlans.put(planName, planInfo);
+                            newPlans.put(planName, planInfo);
                         }
                     }
                 }
 
-                allowedInstructions.clear();
+                Map<String, Map<String, Object>> newInstructions = new HashMap<>();
                 Map<String, Object> queueStopInstr = new HashMap<>();
                 queueStopInstr.put("name", "queue_stop");
                 queueStopInstr.put("description", "Stop execution of the queue.");
                 queueStopInstr.put("parameters", List.of());
-                allowedInstructions.put("queue_stop", queueStopInstr);
+                newInstructions.put("queue_stop", queueStopInstr);
 
-                Platform.runLater(() -> updateWidgetState());
+                // Update maps on JavaFX thread to avoid threading issues
+                // Don't update UI here - let it update when needed to avoid
+                // simultaneous UI updates from multiple controllers during connection
+                Platform.runLater(() -> {
+                    allowedPlans.clear();
+                    allowedPlans.putAll(newPlans);
+                    allowedInstructions.clear();
+                    allowedInstructions.putAll(newInstructions);
+                });
 
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to load plans", e);
+                logger.log(Level.WARNING, "Failed to load plans", e);
             }
         }).start();
     }
@@ -285,10 +321,11 @@ public class RePlanViewerController implements Initializable {
 
             if (itemKwargs.containsKey(paramName)) {
                 Object value = itemKwargs.get(paramName);
-                currentValue = value != null ? String.valueOf(value) : "";
+                currentValue = value != null ? PythonParameterConverter.toPythonRepr(value) : "";
                 isEnabled = true;
             } else if (defaultValue != null) {
-                currentValue = String.valueOf(defaultValue) + " (default)";
+                // Use normalizeAndRepr for defaults - they might be strings that need parsing
+                currentValue = getPythonConverter().normalizeAndRepr(defaultValue);
                 isEnabled = false;
             }
 
@@ -331,34 +368,42 @@ public class RePlanViewerController implements Initializable {
 
     private String formatResultValue(Object value) {
         if (value == null) {
-            return "null";
+            return "None";
         }
-        
+
         if (value instanceof Map) {
             Map<?, ?> map = (Map<?, ?>) value;
             if (map.isEmpty()) {
                 return "{}";
             }
+            // For small maps, show the full Python repr
+            if (map.size() <= 3) {
+                return PythonParameterConverter.toPythonRepr(value);
+            }
             return "Map (" + map.size() + " entries)";
         }
-        
+
         if (value instanceof List) {
             List<?> list = (List<?>) value;
             if (list.isEmpty()) {
                 return "[]";
             }
+            // For small lists, show the full Python repr
+            if (list.size() <= 5) {
+                return PythonParameterConverter.toPythonRepr(value);
+            }
             return "List (" + list.size() + " items)";
         }
-        
+
         if (value instanceof String) {
             String str = (String) value;
             if (str.length() > 100) {
-                return str.substring(0, 97) + "...";
+                return "'" + str.substring(0, 97) + "...'";
             }
-            return str;
+            return PythonParameterConverter.toPythonRepr(value);
         }
-        
-        return String.valueOf(value);
+
+        return PythonParameterConverter.toPythonRepr(value);
     }
 
     private void autoResizeColumns() {
@@ -380,9 +425,11 @@ public class RePlanViewerController implements Initializable {
     }
 
     private void updateWidgetState() {
-        boolean isItemAllowed = false;
-        boolean isConnected = true; // Assume connected for now
+        StatusResponse status = StatusBus.latest().get();
+        boolean isConnected = status != null;
+        boolean envOpen = isConnected && status.workerEnvironmentExists();
 
+        boolean isItemAllowed = false;
         if (queueItemType != null && queueItemName != null && !"-".equals(queueItemName)) {
             if ("plan".equals(queueItemType)) {
                 isItemAllowed = allowedPlans.get(queueItemName) != null;
@@ -391,9 +438,11 @@ public class RePlanViewerController implements Initializable {
             }
         }
 
-        copyBtn.setDisable(!isItemAllowed || !isConnected);
-
-        editBtn.setDisable(!isItemAllowed);
+        // Disable all controls when environment is closed
+        table.setDisable(!envOpen);
+        paramChk.setDisable(!envOpen);
+        copyBtn.setDisable(!envOpen || !isItemAllowed);
+        editBtn.setDisable(!envOpen || !isItemAllowed);
     }
 
     private void copyToQueue() {
@@ -425,16 +474,16 @@ public class RePlanViewerController implements Initializable {
                     var response = svc.queueItemAdd(request);
                     Platform.runLater(() -> {
                         if (!response.success()) {
-                            LOG.log(Level.WARNING, "Copy to queue failed", response.msg());
+                            logger.log(Level.WARNING, "Copy to queue failed", response.msg());
                         }
                     });
                 } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Copy to queue error", e);
+                    logger.log(Level.WARNING, "Copy to queue error", e);
                 }
             }).start();
 
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Copy to queue error", e);
+            logger.log(Level.WARNING, "Copy to queue error", e);
         }
     }
 

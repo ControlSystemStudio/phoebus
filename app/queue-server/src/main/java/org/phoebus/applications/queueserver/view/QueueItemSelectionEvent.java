@@ -14,7 +14,7 @@ public class QueueItemSelectionEvent {
     private static final QueueItemSelectionEvent INSTANCE = new QueueItemSelectionEvent();
 
     private final List<Consumer<QueueItem>> listeners = new CopyOnWriteArrayList<>();
-    private static final Logger LOG = Logger.getLogger(TabSwitchEvent.class.getName());
+    private static final Logger logger = Logger.getLogger(QueueItemSelectionEvent.class.getPackageName());
 
     private QueueItemSelectionEvent() {}
 
@@ -35,7 +35,7 @@ public class QueueItemSelectionEvent {
             try {
                 listener.accept(selectedItem);
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Error in queue selection listener", e);
+                logger.log(Level.WARNING, "Error in queue selection listener", e);
             }
         }
     }

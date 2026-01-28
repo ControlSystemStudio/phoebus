@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,10 +50,13 @@ public final class RePlanHistoryController implements Initializable {
 
     private List<Integer> stickySel = List.of();
     private boolean       ignoreSel = false;
-    private static final Logger LOG =
-            Logger.getLogger(RePlanHistoryController.class.getName());
+    private static final Logger logger =
+            Logger.getLogger(RePlanHistoryController.class.getPackageName());
 
     private final boolean viewOnly;
+
+    // Drag-to-select state
+    private int dragStartRow = -1;
 
     public RePlanHistoryController() {
         this(false); // default to editable
@@ -103,27 +107,109 @@ public final class RePlanHistoryController implements Initializable {
                 });
 
         ChangeListener<StatusResponse> l =
-                (o,oldV,nv) -> Platform.runLater(() -> refresh(nv));
+                (o,oldV,nv) -> {
+                    // Run refresh in background thread to avoid blocking UI
+                    new Thread(() -> refresh(nv)).start();
+                };
         StatusBus.latest().addListener(l);
 
-        refresh(StatusBus.latest().get());
+        // Add drag-to-select functionality
+        setupDragSelection();
+
+        // Run initial refresh in background thread
+        new Thread(() -> refresh(StatusBus.latest().get())).start();
+    }
+
+    /**
+     * Sets up drag-to-select functionality for the table.
+     * Users can click and drag to select multiple rows.
+     */
+    private void setupDragSelection() {
+        table.setOnMousePressed(event -> {
+            int index = getRowIndexAt(event.getY());
+            if (index >= 0 && index < rows.size()) {
+                dragStartRow = index;
+                // Don't consume - let normal click work
+            } else {
+                dragStartRow = -1;
+            }
+        });
+
+        table.setOnMouseDragged(event -> {
+            if (dragStartRow >= 0) {
+                int currentIndex = getRowIndexAt(event.getY());
+                if (currentIndex >= 0 && currentIndex < rows.size()) {
+                    selectRange(dragStartRow, currentIndex);
+                }
+                event.consume(); // Prevent default drag behavior
+            }
+        });
+
+        table.setOnMouseReleased(event -> {
+            dragStartRow = -1;
+        });
+    }
+
+    /**
+     * Gets the row index at the specified Y coordinate relative to the table.
+     */
+    private int getRowIndexAt(double y) {
+        // Get the fixed cell size or estimate
+        if (rows.isEmpty()) return -1;
+
+        // Look through visible rows
+        for (javafx.scene.Node node : table.lookupAll(".table-row-cell")) {
+            if (node instanceof TableRow) {
+                @SuppressWarnings("unchecked")
+                TableRow<Row> row = (TableRow<Row>) node;
+
+                // Convert to table's coordinate space
+                javafx.geometry.Bounds boundsInTable = table.sceneToLocal(
+                    row.localToScene(row.getBoundsInLocal())
+                );
+
+                if (y >= boundsInTable.getMinY() && y <= boundsInTable.getMaxY()) {
+                    return row.getIndex();
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Selects all rows between start and end indices (inclusive).
+     */
+    private void selectRange(int start, int end) {
+        table.getSelectionModel().clearSelection();
+        int from = Math.min(start, end);
+        int to = Math.max(start, end);
+        for (int i = from; i <= to; i++) {
+            table.getSelectionModel().select(i);
+        }
     }
 
     private void refresh(StatusResponse st) {
 
         if (st == null) {
-            ignoreSel = true; rows.clear(); uid2item.clear(); ignoreSel = false;
-            updateButtonStates(); return;
+            // Don't clear history - keep last data visible for users
+            // Just update button states (will be disabled via StatusBus)
+            Platform.runLater(this::updateButtonStates);
+            return;
         }
 
         try {
+            // Blocking HTTP call - runs on background thread
             HistoryGetPayload hp = svc.historyGetTyped();   // typed DTO
-            ignoreSel = true;
-            rebuildRows(hp.items());
-            ignoreSel = false;
-            restoreSelection(stickySel);
+
+            // UI updates must happen on FX thread
+            Platform.runLater(() -> {
+                ignoreSel = true;
+                rebuildRows(hp.items());
+                ignoreSel = false;
+                restoreSelection(stickySel);
+            });
         } catch (Exception ex) {
-            LOG.warning("History refresh failed: "+ex.getMessage());
+            logger.log(Level.FINE, "History refresh failed: " + ex.getMessage());
         }
     }
 
@@ -188,13 +274,13 @@ public final class RePlanHistoryController implements Initializable {
                     new QueueItemAddBatch(clones, "GUI Client", "primary");
             svc.queueItemAddBatch(req);                   // service takes DTO, not Map
         } catch (Exception ex) {
-            LOG.warning("Copy-to-Queue failed: "+ex.getMessage());
+            logger.log(Level.WARNING, "Copy-to-Queue failed", ex);
         }
     }
 
     private void clearHistory() {
         try { svc.historyClear(); }
-        catch (Exception ex) { LOG.warning("Clear-history failed: "+ex.getMessage()); }
+        catch (Exception ex) { logger.log(Level.WARNING, "Clear-history failed", ex); }
     }
     
     private void exportHistory(PlanHistorySaver.Format fmt, String ext) {
@@ -209,15 +295,16 @@ public final class RePlanHistoryController implements Initializable {
                 HistoryGetPayload hp = svc.historyGetTyped();
                 List<QueueItem> items = hp.items();
                 PlanHistorySaver.save(items, f, fmt);
-                LOG.info(() -> "Exported plan history → " + f);
+                logger.log(Level.FINE, () -> "Exported plan history → " + f);
             } catch (Exception e) {
-                LOG.warning("Export history failed: " + e.getMessage());
+                logger.log(Level.WARNING, "Export history failed", e);
             }
         });
     }
 
     private void updateButtonStates() {
-        boolean connected = StatusBus.latest().get() != null;
+        StatusResponse status = StatusBus.latest().get();
+        boolean connected = status != null;
         boolean hasSel = !table.getSelectionModel().getSelectedIndices().isEmpty();
 
         if (viewOnly) {
@@ -225,8 +312,10 @@ public final class RePlanHistoryController implements Initializable {
             clearBtn.setDisable(true);
             deselectBtn.setDisable(!hasSel);
         } else {
+            // Only require server connection (not environment open)
             copyBtn.setDisable(!(connected && hasSel));
             clearBtn.setDisable(!(connected && !rows.isEmpty()));
+            // Deselect and export always enabled when there's data
             deselectBtn.setDisable(!hasSel);
         }
     }

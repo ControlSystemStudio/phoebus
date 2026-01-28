@@ -13,7 +13,7 @@ public class PlanEditEvent {
     private static final PlanEditEvent INSTANCE = new PlanEditEvent();
 
     private final List<Consumer<QueueItem>> listeners = new CopyOnWriteArrayList<>();
-    private static final Logger LOG = Logger.getLogger(PlanEditEvent.class.getName());
+    private static final Logger logger = Logger.getLogger(PlanEditEvent.class.getPackageName());
 
     private PlanEditEvent() {}
 
@@ -34,7 +34,7 @@ public class PlanEditEvent {
             try {
                 listener.accept(itemToEdit);
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Error in plan edit listener", e);
+                logger.log(Level.WARNING, "Error in plan edit listener", e);
             }
         }
     }

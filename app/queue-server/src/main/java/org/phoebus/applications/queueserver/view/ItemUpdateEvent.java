@@ -10,7 +10,7 @@ import java.util.logging.Level;
 public class ItemUpdateEvent {
     private static final ItemUpdateEvent instance = new ItemUpdateEvent();
     private final List<Consumer<QueueItem>> listeners = new ArrayList<>();
-    private static final Logger LOG = Logger.getLogger(ItemUpdateEvent.class.getName());
+    private static final Logger logger = Logger.getLogger(ItemUpdateEvent.class.getPackageName());
 
     private ItemUpdateEvent() {}
 
@@ -27,7 +27,7 @@ public class ItemUpdateEvent {
             try {
                 listener.accept(updatedItem);
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Item update listener error", e);
+                logger.log(Level.WARNING, "Item update listener error", e);
             }
         }
     }

@@ -14,6 +14,7 @@ import javafx.scene.control.Label;
 import java.net.URL;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class ReQueueControlsController implements Initializable {
@@ -24,7 +25,7 @@ public final class ReQueueControlsController implements Initializable {
     @FXML private Button   stopBtn;            // text toggles “Stop” / “Cancel Stop”
 
     private final RunEngineService svc = new RunEngineService();
-    private final Logger LOG = Logger.getLogger(getClass().getName());
+    private static final Logger logger = Logger.getLogger(ReQueueControlsController.class.getPackageName());
 
     private volatile boolean autoEnabledSrv   = false;   // what server says now
     private volatile boolean stopPendingSrv   = false;   // ditto
@@ -124,6 +125,6 @@ public final class ReQueueControlsController implements Initializable {
 
     private void runSafely(String what, Runnable r) {
         try { r.run(); }
-        catch (Exception ex) { LOG.warning(what + ": " + ex); }
+        catch (Exception ex) { logger.log(Level.WARNING, what + ": " + ex); }
     }
 }

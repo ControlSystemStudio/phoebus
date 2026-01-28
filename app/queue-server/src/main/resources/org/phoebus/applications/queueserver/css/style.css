@@ -8,3 +8,39 @@
     -fx-background-color: #ffffff;
     -fx-padding: 8;
 }
+
+/* Completely hide all focus indicators without changing appearance */
+* {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Keep TextArea border same as unfocused when focused */
+.text-area:focused {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-text-box-border, -10%), -fx-text-box-border),
+        derive(-fx-base,-1%);
+}
+
+/* Override TextArea content focus styling to match unfocused state */
+.text-area:focused .content {
+    -fx-background-color:
+        linear-gradient(from 0px 0px to 0px 4px, derive(-fx-control-inner-background, -8%), -fx-control-inner-background);
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+}
+
+/* Override TableView focus styling */
+.table-view:focused {
+    -fx-background-color: -fx-box-border, -fx-control-inner-background;
+    -fx-background-insets: 0, 1;
+}
+
+/* Make table row selection blue instead of gray */
+.table-row-cell:selected {
+    -fx-background-color: #0096C9;
+    -fx-table-cell-border-color: derive(#0096C9, 20%);
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}

@@ -21,7 +21,7 @@ public enum ViewFactory {
     MONITOR_QUEUE          ("/org/phoebus/applications/queueserver/view/MonitorQueue.fxml"),
     EDIT_AND_CONTROL_QUEUE ("/org/phoebus/applications/queueserver/view/EditAndControlQueue.fxml");
 
-    private static final Logger LOG = Logger.getLogger(ViewFactory.class.getName());
+    private static final Logger logger = Logger.getLogger(ViewFactory.class.getPackageName());
 
     private final String path;
 
@@ -31,7 +31,7 @@ public enum ViewFactory {
         try {
             return FXMLLoader.load(ViewFactory.class.getResource(path));
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "FXML load failed: " + path, ex);
+            logger.log(Level.SEVERE, "FXML load failed: " + path, ex);
             return new StackPane(new Label("⚠ Unable to load " + path));
         }
     }

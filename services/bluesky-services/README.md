@@ -1,4 +1,4 @@
-gg# Bluesky Services Docker Setup
+# Bluesky Services Docker Setup
 
 This directory contains Docker configurations for running Bluesky Queue Server and HTTP Server for the Phoebus queue-server application.
 

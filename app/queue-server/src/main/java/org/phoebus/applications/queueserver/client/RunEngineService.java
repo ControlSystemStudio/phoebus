@@ -29,13 +29,13 @@ import java.util.logging.Logger;
 public final class RunEngineService {
 
     private final RunEngineHttpClient http = RunEngineHttpClient.get();
-    private static final Logger LOG = Logger.getLogger(RunEngineService.class.getName());
+    private static final Logger logger = Logger.getLogger(RunEngineService.class.getPackageName());
 
     /* ---- Ping & status --------------------------------------------------- */
 
     public Envelope<?>          ping()                       throws Exception { return http.call(ApiEndpoint.PING,            NoBody.INSTANCE); }
     public StatusResponse status() throws Exception {
-        LOG.log(Level.FINEST, "Fetching status");
+        logger.log(Level.FINEST, "Fetching status");
         return http.send(ApiEndpoint.STATUS, NoBody.INSTANCE, StatusResponse.class);
     }
     public Envelope<?>          configGet()                  throws Exception { return http.call(ApiEndpoint.CONFIG_GET,      NoBody.INSTANCE); }
@@ -168,7 +168,7 @@ public final class RunEngineService {
     /* ───────── Console monitor ───────── */
 
     public InputStream streamConsoleOutput() throws Exception {
-        LOG.info("Opening console output stream");
+        logger.log(Level.FINE, "Opening console output stream");
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(http.getBaseUrl() + ApiEndpoint.STREAM_CONSOLE_OUTPUT.endpoint().path()))
                 .header("Authorization", "ApiKey " + http.getApiKey())
@@ -178,10 +178,10 @@ public final class RunEngineService {
         HttpResponse<InputStream> rsp =
                 http.httpClient().send(req, HttpResponse.BodyHandlers.ofInputStream());
         if (rsp.statusCode() < 200 || rsp.statusCode() >= 300) {
-            LOG.log(Level.WARNING, "Console stream failed with HTTP " + rsp.statusCode());
+            logger.log(Level.WARNING, "Console stream failed with HTTP " + rsp.statusCode());
             throw new IOException("console stream - HTTP " + rsp.statusCode());
         }
-        LOG.info("Console output stream opened successfully");
+        logger.log(Level.FINE, "Console output stream opened successfully");
         return rsp.body();
     }
 
@@ -251,7 +251,7 @@ public final class RunEngineService {
 
     public Envelope<?>          plansAllowed()               throws Exception { return http.call(ApiEndpoint.PLANS_ALLOWED,   NoBody.INSTANCE); }
     public Map<String, Object>  plansAllowedRaw()           throws Exception {
-        LOG.log(Level.FINE, "Fetching plans allowed (raw)");
+        logger.log(Level.FINE, "Fetching plans allowed (raw)");
         return http.send(ApiEndpoint.PLANS_ALLOWED,   NoBody.INSTANCE);
     }
     public Envelope<?>          devicesAllowed()             throws Exception { return http.call(ApiEndpoint.DEVICES_ALLOWED, NoBody.INSTANCE); }
@@ -292,4 +292,44 @@ public final class RunEngineService {
     public Envelope<?>          whoAmI()                      throws Exception { return http.call(ApiEndpoint.WHOAMI,        NoBody.INSTANCE); }
     public Envelope<?>          apiScopes()                   throws Exception { return http.call(ApiEndpoint.API_SCOPES,    NoBody.INSTANCE); }
     public Envelope<?>          logout()                      throws Exception { return http.call(ApiEndpoint.LOGOUT,       NoBody.INSTANCE); }
+
+    /* ---- WebSockets ------------------------------------------------------ */
+
+    /**
+     * Create a WebSocket connection to the console output stream.
+     * Messages are streamed in real-time as {"time": timestamp, "msg": text}.
+     *
+     * @return a WebSocket client that can be connected and listened to
+     */
+    public QueueServerWebSocket<ConsoleOutputWsMessage> createConsoleOutputWebSocket() {
+        String wsUrl = http.getBaseUrl().replace("http://", "ws://").replace("https://", "wss://")
+                + "/api/console_output/ws";
+        return new QueueServerWebSocket<>(wsUrl, http.getApiKey(), ConsoleOutputWsMessage.class);
+    }
+
+    /**
+     * Create a WebSocket connection to the status stream.
+     * Status messages are sent each time status is updated at RE Manager or at least once per second.
+     * Messages are formatted as {"time": timestamp, "msg": {"status": {...}}}.
+     *
+     * @return a WebSocket client that can be connected and listened to
+     */
+    public QueueServerWebSocket<StatusWsMessage> createStatusWebSocket() {
+        String wsUrl = http.getBaseUrl().replace("http://", "ws://").replace("https://", "wss://")
+                + "/api/status/ws";
+        return new QueueServerWebSocket<>(wsUrl, http.getApiKey(), StatusWsMessage.class);
+    }
+
+    /**
+     * Create a WebSocket connection to the system info stream.
+     * Info stream includes status messages and potentially other system messages.
+     * Messages are formatted as {"time": timestamp, "msg": {msg-class: msg-content}}.
+     *
+     * @return a WebSocket client that can be connected and listened to
+     */
+    public QueueServerWebSocket<SystemInfoWsMessage> createSystemInfoWebSocket() {
+        String wsUrl = http.getBaseUrl().replace("http://", "ws://").replace("https://", "wss://")
+                + "/api/info/ws";
+        return new QueueServerWebSocket<>(wsUrl, http.getApiKey(), SystemInfoWsMessage.class);
+    }
 }

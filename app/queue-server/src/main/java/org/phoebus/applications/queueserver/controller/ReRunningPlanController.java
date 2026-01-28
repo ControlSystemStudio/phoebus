@@ -25,9 +25,10 @@ public final class ReRunningPlanController implements Initializable {
     @FXML private TextArea planTextArea;
 
     private final RunEngineService svc = new RunEngineService();
-    private static final Logger LOG = Logger.getLogger(ReRunningPlanController.class.getName());
+    private static final Logger logger = Logger.getLogger(ReRunningPlanController.class.getPackageName());
 
     private String lastRunningUid = "";
+    private QueueItem cachedRunningItem = null;
 
     private final boolean viewOnly;
 
@@ -56,10 +57,12 @@ public final class ReRunningPlanController implements Initializable {
 
     private void render(StatusResponse st) {
         if (st == null) {
-            planTextArea.clear();
-            lastRunningUid = "";
-            copyBtn.setDisable(true);
-            updateBtn.setDisable(true);
+            // Don't clear running plan - keep last data visible for users
+            // Disable buttons when there's no status (disconnected or status error)
+            if (!viewOnly) {
+                copyBtn.setDisable(true);
+                updateBtn.setDisable(true);
+            }
             return;
         }
 
@@ -82,19 +85,21 @@ public final class ReRunningPlanController implements Initializable {
         if (uid == null) {                         // nothing running
             planTextArea.clear();
             lastRunningUid = "";
+            cachedRunningItem = null;
             return;
         }
 
-        QueueItem runningItem;
-        if (!uid.equals(lastRunningUid)) {         // new plan started
-            runningItem    = fetchRunningItem();
+        // Fetch running item only if it's a new plan
+        if (!uid.equals(lastRunningUid)) {
+            cachedRunningItem = fetchRunningItem();
             lastRunningUid = uid;
-        } else {
-            runningItem = null;                    // keep previous text, only update run-list
         }
+
+        // Always fetch the latest run list
         List<Map<String,Object>> runList = fetchRunList();
 
-        planTextArea.setText(format(runningItem, runList));
+        // Use cached running item to keep displaying plan details
+        planTextArea.setText(format(cachedRunningItem, runList));
         planTextArea.positionCaret(0);
     }
 
@@ -103,7 +108,7 @@ public final class ReRunningPlanController implements Initializable {
             QueueGetPayload p = svc.queueGetTyped();
             return p.runningItem();                // may be null
         } catch (Exception ex) { 
-            LOG.log(Level.FINE, "Failed to fetch running item: " + ex.getMessage());
+            logger.log(Level.FINE, "Failed to fetch running item: " + ex.getMessage());
             return null; 
         }
     }
@@ -116,7 +121,7 @@ public final class ReRunningPlanController implements Initializable {
             if (p instanceof Map<?,?> m && m.containsKey("run_list"))
                 return (List<Map<String,Object>>) m.get("run_list");
         } catch (Exception ex) {
-            LOG.log(Level.FINE, "Failed to fetch run list: " + ex.getMessage());
+            logger.log(Level.FINE, "Failed to fetch run list: " + ex.getMessage());
         }
         return List.of();
     }
@@ -158,14 +163,13 @@ public final class ReRunningPlanController implements Initializable {
 
     @FXML
     private void copyToQueue() {
-        QueueItem running = fetchRunningItem();
-        if (running == null) return;
+        if (cachedRunningItem == null) return;
 
         try {
-            svc.queueItemAdd(running);
-            LOG.info("Copied running plan to queue: " + running.name());
+            svc.queueItemAdd(cachedRunningItem);
+            logger.log(Level.FINE, "Copied running plan to queue: " + cachedRunningItem.name());
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Failed to copy running plan to queue", ex);
+            logger.log(Level.WARNING, "Failed to copy running plan to queue", ex);
         }
     }
 
@@ -174,9 +178,9 @@ public final class ReRunningPlanController implements Initializable {
     private void updateEnvironment() {
         try { 
             svc.environmentUpdate(Map.of()); 
-            LOG.info("Environment update requested");
+            logger.log(Level.FINE, "Environment update requested");
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Failed to update environment", ex);
+            logger.log(Level.WARNING, "Failed to update environment", ex);
         }
     }
 

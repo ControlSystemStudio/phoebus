@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public final class StatusBus {
 
-    private static final Logger LOG = Logger.getLogger(StatusBus.class.getName());
+    private static final Logger logger = Logger.getLogger(StatusBus.class.getPackageName());
     private static final ObjectProperty<StatusResponse> LATEST = new SimpleObjectProperty<>(null);
 
     private StatusBus() {}
@@ -28,9 +28,9 @@ public final class StatusBus {
 
     public static void push(StatusResponse s) {
         if (s != null) {
-            LOG.log(Level.FINEST, "Status update: " + s.managerState());
+            logger.log(Level.FINEST, "Status update: " + s.managerState());
         } else {
-            LOG.log(Level.FINE, "Status cleared (server offline)");
+            logger.log(Level.FINE, "Status cleared (server offline)");
         }
         
         if (Platform.isFxApplicationThread()) {

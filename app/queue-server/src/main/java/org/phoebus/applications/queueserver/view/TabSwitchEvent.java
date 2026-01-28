@@ -9,7 +9,7 @@ import java.util.logging.Level;
 public class TabSwitchEvent {
     private static final TabSwitchEvent instance = new TabSwitchEvent();
     private final List<Consumer<String>> listeners = new ArrayList<>();
-    private static final Logger LOG = Logger.getLogger(TabSwitchEvent.class.getName());
+    private static final Logger logger = Logger.getLogger(TabSwitchEvent.class.getPackageName());
 
     private TabSwitchEvent() {}
 
@@ -26,7 +26,7 @@ public class TabSwitchEvent {
             try {
                 listener.accept(tabName);
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Tab switch listener error", e);
+                logger.log(Level.WARNING, "Tab switch listener error", e);
             }
         }
     }
