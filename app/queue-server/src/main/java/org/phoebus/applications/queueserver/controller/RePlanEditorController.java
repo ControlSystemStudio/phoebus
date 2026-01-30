@@ -702,27 +702,26 @@ public class RePlanEditorController implements Initializable {
     private void updateButtonStates() {
         StatusResponse status = StatusBus.latest().get();
         boolean isConnected = status != null;
-        boolean envOpen = isConnected && status.workerEnvironmentExists();
 
         boolean hasSelectedPlan = choiceBox.getSelectionModel().getSelectedItem() != null;
         boolean isValid = areParametersValid();
         this.editorStateValid = isValid;
 
-        // Disable all controls when environment is closed
-        table.setDisable(!envOpen);
-        planRadBtn.setDisable(!envOpen || isEditMode);
-        instrRadBtn.setDisable(!envOpen || isEditMode);
-        choiceBox.setDisable(!envOpen || isEditMode);
+        // Disable controls when not connected (environment open not required)
+        table.setDisable(!isConnected);
+        planRadBtn.setDisable(!isConnected || isEditMode);
+        instrRadBtn.setDisable(!isConnected || isEditMode);
+        choiceBox.setDisable(!isConnected || isEditMode);
 
-        addBtn.setDisable(!envOpen || !hasSelectedPlan || !isValid);
+        addBtn.setDisable(!isConnected || !hasSelectedPlan || !isValid);
 
-        saveBtn.setDisable(!envOpen || !isEditMode || !hasSelectedPlan || !isValid ||
+        saveBtn.setDisable(!isConnected || !isEditMode || !hasSelectedPlan || !isValid ||
                 !"QUEUE ITEM".equals(currentItemSource));
 
-        batchBtn.setDisable(!envOpen);
+        batchBtn.setDisable(!isConnected);
 
-        resetBtn.setDisable(!envOpen || !isEditMode);
-        cancelBtn.setDisable(!envOpen || !isEditMode);
+        resetBtn.setDisable(!isConnected || !isEditMode);
+        cancelBtn.setDisable(!isConnected || !isEditMode);
     }
 
     /**

@@ -427,7 +427,6 @@ public class RePlanViewerController implements Initializable {
     private void updateWidgetState() {
         StatusResponse status = StatusBus.latest().get();
         boolean isConnected = status != null;
-        boolean envOpen = isConnected && status.workerEnvironmentExists();
 
         boolean isItemAllowed = false;
         if (queueItemType != null && queueItemName != null && !"-".equals(queueItemName)) {
@@ -438,11 +437,11 @@ public class RePlanViewerController implements Initializable {
             }
         }
 
-        // Disable all controls when environment is closed
-        table.setDisable(!envOpen);
-        paramChk.setDisable(!envOpen);
-        copyBtn.setDisable(!envOpen || !isItemAllowed);
-        editBtn.setDisable(!envOpen || !isItemAllowed);
+        // Disable controls when not connected (environment open not required)
+        table.setDisable(!isConnected);
+        paramChk.setDisable(!isConnected);
+        copyBtn.setDisable(!isConnected || !isItemAllowed);
+        editBtn.setDisable(!isConnected || !isItemAllowed);
     }
 
     private void copyToQueue() {
