@@ -18,7 +18,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.text.Text;
 
 import java.net.URL;
 import java.util.*;
@@ -40,14 +39,17 @@ public class RePlanViewerController implements Initializable {
     private final ObservableList<ParameterRow> parameterRows = FXCollections.observableArrayList();
     private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
-    // Python-based parameter converter (lazy-initialized to avoid blocking UI on startup)
-    private PythonParameterConverter pythonConverter;
+    // Python-based parameter converter (initialized in background on startup)
+    private volatile PythonParameterConverter pythonConverter;
 
     private PythonParameterConverter getPythonConverter() {
-        if (pythonConverter == null) {
-            pythonConverter = new PythonParameterConverter();
+        PythonParameterConverter converter = pythonConverter;
+        if (converter == null) {
+            // Background init not done yet - create inline (rare fallback)
+            converter = new PythonParameterConverter();
+            pythonConverter = converter;
         }
-        return pythonConverter;
+        return converter;
     }
 
     private QueueItem currentQueueItem;
@@ -96,6 +98,14 @@ public class RePlanViewerController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initializeTable();
         initializeControls();
+
+        // Initialize and warm up Python converter in background so it's ready when needed
+        new Thread(() -> {
+            PythonParameterConverter converter = new PythonParameterConverter();
+            // Warm up by calling normalizeAndRepr - first call is slow due to Jython init
+            converter.normalizeAndRepr("warmup");
+            pythonConverter = converter;
+        }).start();
 
         // Only load plans if already connected
         if (StatusBus.latest().get() != null) {
@@ -185,6 +195,13 @@ public class RePlanViewerController implements Initializable {
 
         table.setItems(parameterRows);
         table.setEditable(false); // Viewer is read-only
+
+        // Use constrained resize so valueCol fills remaining space
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        paramCol.setMinWidth(100);
+        paramCol.setMaxWidth(200);
+        chkCol.setMaxWidth(30);
+        chkCol.setMinWidth(30);
     }
 
     private void initializeControls() {
@@ -306,53 +323,66 @@ public class RePlanViewerController implements Initializable {
 
         Map<String, Object> itemKwargs = item.kwargs() != null ? item.kwargs() : new HashMap<>();
 
-        for (Map<String, Object> paramInfo : parameters) {
-            String paramName = (String) paramInfo.get("name");
-            String description = (String) paramInfo.get("description");
-            if (description == null || description.isEmpty()) {
-                description = "Description for parameter '" + paramName + "' was not found...";
+        // Process parameters in background thread to avoid blocking UI with Python parsing
+        final List<Map<String, Object>> finalParameters = parameters;
+        final Map<String, Object> finalItemInfo = itemInfo;
+        new Thread(() -> {
+            List<ParameterRow> newRows = new ArrayList<>();
+
+            for (Map<String, Object> paramInfo : finalParameters) {
+                String paramName = (String) paramInfo.get("name");
+                String description = (String) paramInfo.get("description");
+                if (description == null || description.isEmpty()) {
+                    description = "Description for parameter '" + paramName + "' was not found...";
+                }
+                Object defaultValue = paramInfo.get("default");
+                boolean isOptional = defaultValue != null || "VAR_POSITIONAL".equals(paramInfo.get("kind")) ||
+                        "VAR_KEYWORD".equals(paramInfo.get("kind"));
+
+                String currentValue = "";
+                boolean isEnabled = false;
+
+                if (itemKwargs.containsKey(paramName)) {
+                    Object value = itemKwargs.get(paramName);
+                    currentValue = value != null ? PythonParameterConverter.toPythonRepr(value) : "";
+                    isEnabled = true;
+                } else if (defaultValue != null) {
+                    // Use normalizeAndRepr for defaults - they might be strings that need parsing
+                    currentValue = getPythonConverter().normalizeAndRepr(defaultValue);
+                    isEnabled = false;
+                }
+
+                boolean shouldShow = detailedView || isEnabled;
+
+                if (shouldShow) {
+                    ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
+                    newRows.add(row);
+                }
             }
-            Object defaultValue = paramInfo.get("default");
-            boolean isOptional = defaultValue != null || "VAR_POSITIONAL".equals(paramInfo.get("kind")) ||
-                    "VAR_KEYWORD".equals(paramInfo.get("kind"));
 
-            String currentValue = "";
-            boolean isEnabled = false;
+            // Add metadata rows in background too
+            List<ParameterRow> metadataRows = buildMetadataRows(item);
 
-            if (itemKwargs.containsKey(paramName)) {
-                Object value = itemKwargs.get(paramName);
-                currentValue = value != null ? PythonParameterConverter.toPythonRepr(value) : "";
-                isEnabled = true;
-            } else if (defaultValue != null) {
-                // Use normalizeAndRepr for defaults - they might be strings that need parsing
-                currentValue = getPythonConverter().normalizeAndRepr(defaultValue);
-                isEnabled = false;
-            }
-
-            boolean shouldShow = detailedView || isEnabled;
-
-            if (shouldShow) {
-                ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
-                parameterRows.add(row);
-            }
-        }
-
-        addMetadataAndResults(item);
-
-        autoResizeColumns();
+            // Update UI on FX thread
+            Platform.runLater(() -> {
+                parameterRows.setAll(newRows);
+                parameterRows.addAll(metadataRows);
+            });
+        }).start();
     }
 
-    private void addMetadataAndResults(QueueItem item) {
+    private List<ParameterRow> buildMetadataRows(QueueItem item) {
+        List<ParameterRow> rows = new ArrayList<>();
         if (item.result() == null) {
-            return;
+            return rows;
         }
 
         Map<String, Object> result = item.result();
-        
+
         if (!result.isEmpty()) {
-            ParameterRow separator = new ParameterRow("--- Metadata & Results ---", false, "", 
+            ParameterRow separator = new ParameterRow("--- Metadata & Results ---", false, "",
                 "Execution metadata and results", false, null);
-            parameterRows.add(separator);
+            rows.add(separator);
         }
 
         for (Map.Entry<String, Object> entry : result.entrySet()) {
@@ -360,10 +390,11 @@ public class RePlanViewerController implements Initializable {
             Object value = entry.getValue();
             String displayValue = formatResultValue(value);
             String description = "Result field: " + key;
-            
+
             ParameterRow row = new ParameterRow(key, true, displayValue, description, false, null);
-            parameterRows.add(row);
+            rows.add(row);
         }
+        return rows;
     }
 
     private String formatResultValue(Object value) {
@@ -404,24 +435,6 @@ public class RePlanViewerController implements Initializable {
         }
 
         return PythonParameterConverter.toPythonRepr(value);
-    }
-
-    private void autoResizeColumns() {
-        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
-        for (TableColumn<ParameterRow, ?> col : table.getColumns()) {
-            Text tmp = new Text(col.getText());
-            double max = tmp.getLayoutBounds().getWidth();
-
-            for (int i = 0; i < parameterRows.size(); i++) {
-                Object cell = col.getCellData(i);
-                if (cell != null) {
-                    tmp = new Text(cell.toString());
-                    double w = tmp.getLayoutBounds().getWidth();
-                    if (w > max) max = w;
-                }
-            }
-            col.setPrefWidth(max + 14);
-        }
     }
 
     private void updateWidgetState() {

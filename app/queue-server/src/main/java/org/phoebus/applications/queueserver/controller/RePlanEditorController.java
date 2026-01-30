@@ -390,11 +390,17 @@ public class RePlanEditorController implements Initializable {
             switchToEditingMode();
 
             updateButtonStates();
-            autoResizeColumns();
         });
 
         table.setItems(parameterRows);
         table.setEditable(true);
+
+        // Make Value column fill remaining space
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        paramCol.setMinWidth(100);
+        paramCol.setMaxWidth(200);
+        chkCol.setMaxWidth(30);
+        chkCol.setMinWidth(30);
     }
 
     private void initializeControls() {
@@ -597,7 +603,6 @@ public class RePlanEditorController implements Initializable {
         }
 
         updateButtonStates();
-        autoResizeColumns();
     }
 
     private void addMetadataAndResults(QueueItem item) {
@@ -656,25 +661,6 @@ public class RePlanEditorController implements Initializable {
         }
         
         return String.valueOf(value);
-    }
-
-    private void autoResizeColumns() {
-        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
-        for (TableColumn<ParameterRow,?> col : table.getColumns()) {
-
-            Text tmp = new Text(col.getText());
-            double max = tmp.getLayoutBounds().getWidth();
-
-            for (int i = 0; i < parameterRows.size(); i++) {
-                Object cell = col.getCellData(i);
-                if (cell != null) {
-                    tmp = new Text(cell.toString());
-                    double w = tmp.getLayoutBounds().getWidth();
-                    if (w > max) max = w;
-                }
-            }
-            col.setPrefWidth(max + 14);
-        }
     }
 
     private boolean areParametersValid() {
@@ -939,7 +925,6 @@ public class RePlanEditorController implements Initializable {
         }
         // Keep edit mode active after reset - don't exit edit mode
         updateButtonStates();
-        autoResizeColumns();
     }
 
     private void cancelEdit() {
