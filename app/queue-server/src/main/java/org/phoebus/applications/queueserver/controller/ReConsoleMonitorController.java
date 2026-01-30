@@ -124,7 +124,7 @@ public final class ReConsoleMonitorController implements Initializable {
             if(!nv) maxLinesField.setText(String.valueOf(maxLines));
         });
 
-        clearBtn.setOnAction(e->{ textBuf.clear(); render(); });
+        clearBtn.setOnAction(e->{ synchronized(textBuf){ textBuf.clear(); } render(); });
 
         // Only start/stop on null <-> non-null transitions, not on every status change
         StatusBus.latest().addListener((o,oldS,newS)-> {
@@ -169,7 +169,7 @@ public final class ReConsoleMonitorController implements Initializable {
 
         java.util.logging.Logger.getLogger(getClass().getPackageName())
             .log(java.util.logging.Level.FINE, "Console monitor starting");
-        stop=false; textBuf.clear(); lastUid="ALL";
+        stop=false; synchronized(textBuf){ textBuf.clear(); } lastUid="ALL";
         synchronized (wsTextLock) {
             wsTextBuffer.setLength(0);
         }
@@ -213,9 +213,15 @@ public final class ReConsoleMonitorController implements Initializable {
             String t = svc.consoleOutput(BACKLOG).text();
             String uid = svc.consoleOutputUid().uid();
 
-            // Update UI on JavaFX thread
+            // Process text in background thread (expensive string parsing)
+            if(!t.isEmpty()) {
+                synchronized (textBuf) {
+                    textBuf.addMessage(t);
+                }
+            }
+
+            // Update UI on JavaFX thread (just rendering)
             Platform.runLater(() -> {
-                if(!t.isEmpty()) textBuf.addMessage(t);
                 lastUid = uid;
                 render();
 
@@ -266,7 +272,9 @@ public final class ReConsoleMonitorController implements Initializable {
             }
 
             Platform.runLater(() -> {
-                textBuf.addMessage(bufferedText);
+                synchronized (textBuf) {
+                    textBuf.addMessage(bufferedText);
+                }
                 render();
                 lastLine = Instant.now();
             });
@@ -285,11 +293,11 @@ public final class ReConsoleMonitorController implements Initializable {
                             chunk.append(JSON.readTree(ln).path("msg").asText());
                         if(chunk.length()>CHUNK){
                             String out=chunk.toString(); chunk.setLength(0);
-                            Platform.runLater(()->{ textBuf.addMessage(out); render(); });
+                            Platform.runLater(()->{ synchronized(textBuf){ textBuf.addMessage(out); } render(); });
                         }
                     }
                     if(chunk.length()>0)
-                        Platform.runLater(()->{ textBuf.addMessage(chunk.toString()); render(); });
+                        Platform.runLater(()->{ synchronized(textBuf){ textBuf.addMessage(chunk.toString()); } render(); });
                 }catch(Exception ignore){}
                 return null;
             }
@@ -305,7 +313,7 @@ public final class ReConsoleMonitorController implements Initializable {
                 StringBuilder sb=new StringBuilder();
                 for(Map<String,Object> m:u.consoleOutputMsgs())
                     sb.append((String)m.get("msg"));
-                if(sb.length()!=0){ textBuf.addMessage(sb.toString()); render(); }
+                if(sb.length()!=0){ synchronized(textBuf){ textBuf.addMessage(sb.toString()); } render(); }
             }
             lastUid=u.lastMsgUid();
         }catch(Exception ignore){}
@@ -318,7 +326,11 @@ public final class ReConsoleMonitorController implements Initializable {
         int    keepCaret   = textArea.getCaretPosition();
         double keepScrollY = textArea.getScrollTop();
 
-        textArea.replaceText(0, textArea.getLength(), textBuf.tail(maxLines));
+        String text;
+        synchronized (textBuf) {
+            text = textBuf.tail(maxLines);
+        }
+        textArea.replaceText(0, textArea.getLength(), text);
 
         if (wantBottom) {
             lastProgrammaticScroll = System.currentTimeMillis();

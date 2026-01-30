@@ -200,36 +200,46 @@ public final class RePlanHistoryController implements Initializable {
         try {
             // Blocking HTTP call - runs on background thread
             HistoryGetPayload hp = svc.historyGetTyped();   // typed DTO
+            List<QueueItem> items = hp.items();
 
-            // UI updates must happen on FX thread
+            if (items == null) {
+                Platform.runLater(() -> {
+                    rows.clear();
+                    uid2item.clear();
+                    updateButtonStates();
+                });
+                return;
+            }
+
+            // Build rows in background thread (expensive fmtParams processing)
+            List<Row> newRows = new ArrayList<>(items.size());
+            Map<String, QueueItem> newUidMap = new HashMap<>();
+            for (QueueItem qi : items) {
+                newRows.add(new Row(
+                        qi.itemUid(),
+                        qi.itemType(),
+                        qi.name(),
+                        exitStatus(qi),
+                        fmtParams(qi),
+                        qi.user(),
+                        qi.userGroup()));
+                newUidMap.put(qi.itemUid(), qi);
+            }
+
+            // UI updates on FX thread
             Platform.runLater(() -> {
                 ignoreSel = true;
-                rebuildRows(hp.items());
+                rows.setAll(newRows);
+                uid2item.clear();
+                uid2item.putAll(newUidMap);
+                autoResizeColumns();
                 ignoreSel = false;
                 restoreSelection(stickySel);
+                updateButtonStates();
             });
         } catch (Exception ex) {
             logger.log(Level.FINE, "History refresh failed: " + ex.getMessage());
         }
-    }
-
-    private void rebuildRows(List<QueueItem> items) {
-        rows.clear(); uid2item.clear();
-        if (items == null) { updateButtonStates(); return; }
-
-        for (QueueItem qi : items) {
-            rows.add(new Row(
-                    qi.itemUid(),
-                    qi.itemType(),
-                    qi.name(),
-                    exitStatus(qi),
-                    fmtParams(qi),
-                    qi.user(),
-                    qi.userGroup()));
-            uid2item.put(qi.itemUid(), qi);
-        }
-        autoResizeColumns();
-        updateButtonStates();
     }
 
     private void hookButtons() {
