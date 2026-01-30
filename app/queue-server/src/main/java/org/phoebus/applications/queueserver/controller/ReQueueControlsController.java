@@ -33,6 +33,8 @@ public final class ReQueueControlsController implements Initializable {
     @Override public void initialize(URL url, ResourceBundle rb) {
 
         StatusBus.latest().addListener(this::onStatus);
+        // Check current value in case status was already set before listener added
+        refreshButtons(StatusBus.latest().get());
 
         startBtn.setOnAction(e -> runSafely("queueStart",  () -> {
             try {
