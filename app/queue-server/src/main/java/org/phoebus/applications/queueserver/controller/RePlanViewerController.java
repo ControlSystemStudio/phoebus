@@ -262,6 +262,12 @@ public class RePlanViewerController implements Initializable {
     }
 
     public void showItem(QueueItem item) {
+        // Skip if same item already displayed (avoid unnecessary refresh/flash)
+        if (item != null && currentQueueItem != null &&
+                item.itemUid() != null && item.itemUid().equals(currentQueueItem.itemUid())) {
+            return;
+        }
+
         currentQueueItem = item;
 
         String defaultName = "-";
@@ -303,9 +309,8 @@ public class RePlanViewerController implements Initializable {
     }
 
     private void loadParametersForItem(QueueItem item) {
-        parameterRows.clear();
-
         if (item == null) {
+            parameterRows.clear();
             return;
         }
 
