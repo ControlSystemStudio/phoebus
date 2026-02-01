@@ -23,11 +23,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
-import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
+import org.phoebus.core.websocket.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 
 import java.util.ResourceBundle;
@@ -82,12 +80,15 @@ public class ConfigurationTab extends SaveAndRestoreTab implements WebSocketMess
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
-        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_REMOVED)) {
+    public void handleWebSocketMessage(String saveAndRestoreWebSocketMessage) {
+        /*
+        if (saveAndRestoreWebSocketMessage.messageType().equals(SaveAndRestoreMessageType.NODE_REMOVED)) {
             String nodeId = (String) saveAndRestoreWebSocketMessage.payload();
             if (getId() != null && nodeId.equals(getId())) {
                 Platform.runLater(() -> getTabPane().getTabs().remove(this));
             }
         }
+
+         */
     }
 }

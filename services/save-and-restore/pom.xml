@@ -90,7 +90,6 @@
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-websocket</artifactId>
 			<version>5.0.3-SNAPSHOT</version>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>

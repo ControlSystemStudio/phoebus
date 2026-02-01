@@ -1,0 +1,4 @@
+{
+  "messageType": "LOG_ENTRY_UPDATED",
+  "payload" : "logEntryId"
+}

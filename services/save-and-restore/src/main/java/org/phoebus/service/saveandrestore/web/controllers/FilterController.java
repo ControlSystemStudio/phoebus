@@ -20,8 +20,8 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.search.Filter;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ public class FilterController extends BaseController {
                              Principal principal) {
         filter.setUser(principal.getName());
         Filter savedFilter = nodeDAO.saveFilter(filter);
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_ADDED_OR_UPDATED, filter));
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.FILTER_ADDED_OR_UPDATED, filter));
         return savedFilter;
     }
 
@@ -87,6 +87,6 @@ public class FilterController extends BaseController {
     @PreAuthorize("@authorizationHelper.maySaveOrDeleteFilter(#name, #root)")
     public void deleteFilter(@PathVariable final String name, Principal principal) {
         nodeDAO.deleteFilter(name);
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_REMOVED, name));
+        webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.FILTER_REMOVED, name));
     }
 }

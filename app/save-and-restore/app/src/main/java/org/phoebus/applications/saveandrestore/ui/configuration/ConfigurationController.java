@@ -59,11 +59,11 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
-import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -83,7 +83,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ConfigurationController extends SaveAndRestoreBaseController implements WebSocketMessageHandler {
+public class ConfigurationController extends SaveAndRestoreBaseController
+        implements SaveAndRestoreWebSocketMessageHandler {
 
     @FXML
     @SuppressWarnings("unused")
@@ -365,7 +366,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
         addPVsPane.disableProperty().bind(userIdentity.isNull());
 
-        webSocketClientService.addWebSocketMessageHandler(this);
+        saveAndRestoreService.addSaveAndRestoreWebSocketMessageHandler(this);
     }
 
     @FXML
@@ -534,14 +535,14 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     }
 
     @Override
-    public void handleTabClosed(){
-        webSocketClientService.removeWebSocketMessageHandler(this);
+    public void handleTabClosed() {
+        saveAndRestoreService.removeSaveAndRestoreWebSocketMessageHandler(this);
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
-        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
-            Node node = (Node) saveAndRestoreWebSocketMessage.payload();
+    public void handleSaveAndRestoreWebSocketMessage(WebSocketMessage<?> webSocketMessage) {
+        if (webSocketMessage.messageType().equals(SaveAndRestoreMessageType.NODE_UPDATED)) {
+            Node node = (Node) webSocketMessage.payload();
             if (tabIdProperty.get() != null && node.getUniqueId().equals(tabIdProperty.get())) {
                 loadConfiguration(node);
             }

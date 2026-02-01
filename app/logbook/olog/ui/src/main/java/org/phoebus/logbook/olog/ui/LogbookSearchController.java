@@ -1,7 +1,9 @@
 package org.phoebus.logbook.olog.ui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -9,6 +11,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.core.websocket.WebSocketMessageHandler;
 import org.phoebus.core.websocket.springframework.WebSocketClientService;
 import org.phoebus.framework.jobs.Job;
@@ -16,8 +19,8 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.SearchResult;
-import org.phoebus.logbook.olog.ui.websocket.MessageType;
-import org.phoebus.logbook.olog.ui.websocket.WebSocketMessage;
+import org.phoebus.logbook.olog.ui.websocket.LogbookMessageType;
+import org.phoebus.logbook.olog.ui.websocket.LogbookWebSocketMessageDeserializer;
 import org.phoebus.olog.es.api.Preferences;
 
 import java.util.List;
@@ -57,6 +60,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
 
     protected WebSocketClientService webSocketClientService;
     protected final CountDownLatch connectivityCheckerCountDownLatch = new CountDownLatch(1);
+    private String webSocketConnectUrl;
 
     @SuppressWarnings("unused")
     @FXML
@@ -66,6 +70,17 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     @FXML
     private GridPane viewSearchPane;
 
+    @FXML
+    public void initialize() {
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(WebSocketMessage.class, new LogbookWebSocketMessageDeserializer(WebSocketMessage.class));
+        objectMapper.registerModule(module);
+        webSocketConnectUrl = Preferences.olog_url.trim().toLowerCase().startsWith("https://") ?
+                Preferences.olog_url.trim().replace("https", "wss") :
+                Preferences.olog_url.trim().replace("http", "ws");
+        webSocketConnectUrl += "/Olog/web-socket";
+    }
+
     /**
      * Determines how the client may connect to the remote service. The service info endpoint is called to establish
      * availability of the service. If available, then a single web socket connection is attempted to determine
@@ -74,14 +89,6 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
      * @param consumer {@link Consumer} called when the connectivity mode has been determined.
      */
     protected void determineConnectivity(Consumer<ConnectivityMode> consumer) {
-        String webSocketConnectUrl;
-        try {
-            webSocketConnectUrl = WebSocketClientService.getWebsocketConnectUrl(Preferences.olog_url);
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Failed to determine websocket connect URL", e);
-            consumer.accept(ConnectivityMode.NOT_CONNECTED);
-            return;
-        }
         // Try to determine the connection mode: is the remote service available at all?
         // If so, does it accept web socket connections?
         JobManager.schedule("Connection mode probe", monitor -> {
@@ -182,13 +189,6 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     protected abstract void search();
 
     protected void connectWebSocket() {
-        String webSocketConnectUrl;
-        try {
-            webSocketConnectUrl = WebSocketClientService.getWebsocketConnectUrl(Preferences.olog_url);
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Failed to get websocket connection parameters", e);
-            return;
-        }
         webSocketClientService = new WebSocketClientService(() -> {
             logger.log(Level.INFO, "Connected to web socket on " + webSocketConnectUrl);
             webSocketConnected.setValue(true);
@@ -208,8 +208,9 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     @Override
     public void handleWebSocketMessage(String message) {
         try {
-            WebSocketMessage webSocketMessage = objectMapper.readValue(message, WebSocketMessage.class);
-            if (webSocketMessage.messageType().equals(MessageType.NEW_LOG_ENTRY)) {
+            WebSocketMessage<?> webSocketMessage = objectMapper.readValue(message, new TypeReference<>() {
+            });
+            if (webSocketMessage.messageType().equals(LogbookMessageType.NEW_LOG_ENTRY)) {
                 // Add a random sleep 0 - 5 seconds to avoid an avalanche of search requests on the service.
                 long randomSleepTime = Math.round(5000 * Math.random());
                 try {

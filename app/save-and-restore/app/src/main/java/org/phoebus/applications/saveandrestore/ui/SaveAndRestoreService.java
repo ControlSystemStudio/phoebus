@@ -18,7 +18,12 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.client.Preferences;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClientImpl;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
@@ -35,7 +40,12 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageDeserializer;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageHandler;
 import org.phoebus.core.vtypes.VDisconnectedData;
+import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.WebSocketMessageHandler;
+import org.phoebus.core.websocket.springframework.WebSocketClientService;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.saveandrestore.util.VNoData;
@@ -45,6 +55,7 @@ import org.phoebus.util.time.TimestampFormats;
 import javax.ws.rs.core.MultivaluedMap;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -55,7 +66,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class SaveAndRestoreService {
+/**
+ * Single to class providing an API to interact with the remote Save-and-Restore service. It also
+ * manages web socket communication such that API clients may be notified when service dispatches
+ * messages, e.g. when data has changed.
+ */
+public class SaveAndRestoreService implements WebSocketMessageHandler {
 
     private final ExecutorService executor;
 
@@ -64,10 +80,23 @@ public class SaveAndRestoreService {
     private static SaveAndRestoreService instance;
 
     private final SaveAndRestoreClient saveAndRestoreClient;
+    private final WebSocketClientService webSocketClientService;
+    private final List<SaveAndRestoreWebSocketMessageHandler> saveAndRestoreWebSocketMessageHandlers =
+            Collections.synchronizedList(new ArrayList<>());
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private SaveAndRestoreService() {
         saveAndRestoreClient = new SaveAndRestoreClientImpl();
+        String webSocketConnectUrl = Preferences.jmasarServiceUrl.trim().toLowerCase().startsWith("https://") ?
+                Preferences.jmasarServiceUrl.trim().replace("https", "wss") :
+                Preferences.jmasarServiceUrl.trim().replace("http", "ws");
+        webSocketConnectUrl += "/web-socket";
+        webSocketClientService = new WebSocketClientService(webSocketConnectUrl);
+        webSocketClientService.addWebSocketMessageHandler(this);
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.addDeserializer(WebSocketMessage.class, new SaveAndRestoreWebSocketMessageDeserializer(WebSocketMessage.class));
+        objectMapper.registerModule(simpleModule);
     }
 
     public static SaveAndRestoreService getInstance() {
@@ -421,4 +450,70 @@ public class SaveAndRestoreService {
         }
         return pvValue == null ? VDisconnectedData.INSTANCE : pvValue;
     }
+
+    /**
+     * Connects to the web socket
+     */
+    public void connectWebSocket() {
+        webSocketClientService.connect();
+    }
+
+    /**
+     * Registers a handler for {@link WebSocketMessage}s.
+     *
+     * @param saveAndRestoreWebSocketMessageHandler A {@link SaveAndRestoreWebSocketMessageHandler} instance.
+     */
+    public void addSaveAndRestoreWebSocketMessageHandler(SaveAndRestoreWebSocketMessageHandler saveAndRestoreWebSocketMessageHandler) {
+        saveAndRestoreWebSocketMessageHandlers.add(saveAndRestoreWebSocketMessageHandler);
+    }
+
+    /**
+     * Unregisters a handler for {@link WebSocketMessage}s
+     *
+     * @param saveAndRestoreWebSocketMessageHandler A {@link SaveAndRestoreWebSocketMessageHandler} instance.
+     */
+    public void removeSaveAndRestoreWebSocketMessageHandler(SaveAndRestoreWebSocketMessageHandler saveAndRestoreWebSocketMessageHandler) {
+        saveAndRestoreWebSocketMessageHandlers.remove(saveAndRestoreWebSocketMessageHandler);
+    }
+
+    /**
+     * @param callback A {@link Runnable} called when the web socket has been connected successfully.
+     */
+    public void setConnectCallback(Runnable callback) {
+        webSocketClientService.setConnectCallback(callback);
+    }
+
+    /**
+     * @param callback A {@link Runnable} called when the web socket has been disconnected for whatever reason,
+     *                 e.g. remote service becomes unavailable.
+     */
+    public void setDisconnectCallback(Runnable callback) {
+        webSocketClientService.setDisconnectCallback(callback);
+    }
+
+    /**
+     * Closes the web socket
+     */
+    public void closeWebSocket() {
+        webSocketClientService.removeWebSocketMessageHandler(this);
+        webSocketClientService.shutdown();
+    }
+
+    /**
+     * Handler for raw web socket messages.
+     *
+     * @param message A raw message as dispatched by the web socket peer.
+     */
+    @Override
+    public void handleWebSocketMessage(String message) {
+        try {
+            WebSocketMessage webSocketMessage = objectMapper.readValue(message, new TypeReference<>() {
+            });
+            saveAndRestoreWebSocketMessageHandlers.forEach(h ->
+                    h.handleSaveAndRestoreWebSocketMessage(webSocketMessage));
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to deserialize web socket message " + message, e);
+        }
+    }
+
 }

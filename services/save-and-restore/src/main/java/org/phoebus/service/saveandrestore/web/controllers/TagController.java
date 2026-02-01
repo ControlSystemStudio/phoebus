@@ -24,8 +24,8 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +77,7 @@ public class TagController extends BaseController {
                              Principal principal) {
         tagData.getTag().setUserName(principal.getName());
         List<Node> taggedNodes = nodeDAO.addTag(tagData);
-        taggedNodes.forEach(n -> webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, n)));
+        taggedNodes.forEach(n -> webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_UPDATED, n)));
         return taggedNodes;
     }
 
@@ -92,7 +92,7 @@ public class TagController extends BaseController {
     @PreAuthorize("@authorizationHelper.mayAddOrDeleteTag(#tagData, #root)")
     public List<Node> deleteTag(@RequestBody TagData tagData) {
         List<Node> untaggedNodes = nodeDAO.deleteTag(tagData);
-        untaggedNodes.forEach(n -> webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, n)));
+        untaggedNodes.forEach(n -> webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_UPDATED, n)));
         return untaggedNodes;
     }
 }

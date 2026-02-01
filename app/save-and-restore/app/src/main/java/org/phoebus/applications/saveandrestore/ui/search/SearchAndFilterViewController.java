@@ -50,12 +50,13 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
@@ -79,7 +80,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class SearchAndFilterViewController extends SaveAndRestoreBaseController
-        implements Initializable, WebSocketMessageHandler {
+        implements Initializable, SaveAndRestoreWebSocketMessageHandler {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -380,7 +381,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
 
         loadFilters();
 
-        webSocketClientService.addWebSocketMessageHandler(this);
+        saveAndRestoreService.addSaveAndRestoreWebSocketMessageHandler(this);
 
         progressIndicator.visibleProperty().bind(disableUi);
         disableUi.addListener((observable, oldValue, newValue) -> mainUi.setDisable(newValue));
@@ -636,7 +637,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
     }
 
     public void handleSaveAndFilterTabClosed() {
-        webSocketClientService.removeWebSocketMessageHandler(this);
+        saveAndRestoreService.removeSaveAndRestoreWebSocketMessageHandler(this);
         searchResultTableViewController.handleTabClosed();
     }
 
@@ -647,15 +648,15 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
-        switch (saveAndRestoreWebSocketMessage.messageType()) {
+    public void handleSaveAndRestoreWebSocketMessage(WebSocketMessage<?> webSocketMessage) {
+        switch ((SaveAndRestoreMessageType) webSocketMessage.messageType()) {
             case FILTER_REMOVED, FILTER_ADDED_OR_UPDATED -> loadFilters();
         }
     }
 
     @Override
     public void handleTabClosed() {
-        webSocketClientService.removeWebSocketMessageHandler(this);
+        saveAndRestoreService.removeSaveAndRestoreWebSocketMessageHandler(this);
     }
 
     @Override

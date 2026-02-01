@@ -20,10 +20,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -72,10 +69,6 @@ public class WebSocketClientService {
      * Subscription endpoint, e.g. /Olog/web-socket/messages
      */
     private final String subscriptionEndpoint;
-    /**
-     * Echo endpoint /Olog/web-socket/echo
-     */
-    private final String echoEndpoint;
 
     private static final Logger logger = Logger.getLogger(WebSocketClientService.class.getName());
 
@@ -94,7 +87,6 @@ public class WebSocketClientService {
             path = path.substring(0, path.length() - 1);
         }
         this.subscriptionEndpoint = path + "/messages";
-        this.echoEndpoint = path + "/echo";
     }
 
     /**
@@ -126,18 +118,6 @@ public class WebSocketClientService {
 
     public void removeWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler) {
         webSocketMessageHandlers.remove(webSocketMessageHandler);
-    }
-
-    /**
-     * For debugging purposes: peer should just echo back the message on the subscribed topic.
-     *
-     * @param message Message for the service to echo
-     */
-    @SuppressWarnings("unused")
-    public void sendEcho(String message) {
-        if (stompSession != null && stompSession.isConnected() && echoEndpoint != null) {
-            stompSession.send(echoEndpoint, message);
-        }
     }
 
     /**
@@ -193,7 +173,7 @@ public class WebSocketClientService {
                 try {
                     Thread.sleep(10000);
                 } catch (InterruptedException e) {
-                    logger.log(Level.WARNING, "Got exception when trying to connect", e);
+                    logger.log(Level.WARNING, "Got exception when putting thread to sleep", e);
                 }
             }
         }).start();
@@ -295,38 +275,5 @@ public class WebSocketClientService {
             logger.log(Level.WARNING, "Remote service on " + webSocketConnectUrl + " does not support web socket connection", e);
         }
         return false;
-    }
-
-    /**
-     * Determines the web socket URL from the REST URL. This is a convenience method for clients connecting
-     * to a standard http(s) REST API, but that also need to maintain a client connecting to the
-     * same service over web sockets.
-     *
-     * @param restUrl The URL clients use for REST API calls to some service.
-     * @return The web socket connection URL derived from the REST URL.
-     * @throws Exception if <code>restUrl</code> is invalid or cannot be parsed as a valid URI (e.g. due to
-     *                   non-URL encoded chars like space).
-     */
-    public static String getWebsocketConnectUrl(String restUrl) throws Exception {
-        URI uri;
-        try {
-            URL url = new URL(restUrl);
-            uri = url.toURI();
-        } catch (MalformedURLException e) {
-            logger.log(Level.WARNING, "Invalid REST url: " + restUrl, e);
-            throw new Exception(e);
-        } catch (URISyntaxException e) {
-            logger.log(Level.WARNING, "REST url  " + restUrl + " cannot be parsed as URI", e);
-            throw new Exception(e);
-        }
-        String scheme = uri.getScheme();
-        String host = uri.getHost();
-        int port = uri.getPort();
-        String path = uri.getPath();
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-        String webSocketScheme = scheme.toLowerCase().startsWith("https") ? "wss" : "ws";
-        return webSocketScheme + "://" + host + (port > -1 ? (":" + port) : "") + path + "/web-socket";
     }
 }

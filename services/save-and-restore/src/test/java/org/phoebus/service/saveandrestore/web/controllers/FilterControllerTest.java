@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
@@ -114,7 +114,7 @@ public class FilterControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, Filter.class);
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -134,12 +134,12 @@ public class FilterControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
     @Test
-    public void testSaveFiliter3() throws Exception {
+    public void testSaveFilter3() throws Exception {
 
         Filter filter = new Filter();
         filter.setName("name");
@@ -154,12 +154,12 @@ public class FilterControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
     @Test
-    public void testSaveFiliter4() throws Exception {
+    public void testSaveFilter4() throws Exception {
 
         Filter filter = new Filter();
         filter.setName("name");
@@ -174,7 +174,7 @@ public class FilterControllerTest {
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
@@ -192,7 +192,7 @@ public class FilterControllerTest {
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
@@ -204,7 +204,7 @@ public class FilterControllerTest {
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
@@ -216,7 +216,7 @@ public class FilterControllerTest {
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
@@ -226,7 +226,7 @@ public class FilterControllerTest {
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
@@ -243,7 +243,7 @@ public class FilterControllerTest {
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
 
     }

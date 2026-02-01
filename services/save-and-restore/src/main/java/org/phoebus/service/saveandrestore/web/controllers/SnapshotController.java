@@ -21,8 +21,8 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +88,7 @@ public class SnapshotController extends BaseController {
         }
         snapshot.getSnapshotNode().setUserName(principal.getName());
         Snapshot newSnapshot = nodeDAO.createSnapshot(parentNodeId, snapshot);
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newSnapshot.getSnapshotNode().getUniqueId()));
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_ADDED, newSnapshot.getSnapshotNode().getUniqueId()));
         return newSnapshot;
     }
 
@@ -108,7 +108,7 @@ public class SnapshotController extends BaseController {
         }
         snapshot.getSnapshotNode().setUserName(principal.getName());
         Snapshot updatedSnapshot = nodeDAO.updateSnapshot(snapshot);
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedSnapshot.getSnapshotNode()));
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_UPDATED, updatedSnapshot.getSnapshotNode()));
         return updatedSnapshot;
     }
 }

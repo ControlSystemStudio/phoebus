@@ -176,6 +176,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
 
     @FXML
     public void initialize() {
+        super.initialize();
 
         logEntryDisplayController.setLogEntryTableViewController(this);
 

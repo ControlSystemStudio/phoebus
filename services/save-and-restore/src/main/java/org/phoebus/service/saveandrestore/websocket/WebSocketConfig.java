@@ -27,6 +27,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import javax.servlet.ServletContext;
 import java.util.logging.Logger;
 
 @SuppressWarnings("unused")
@@ -36,6 +37,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Autowired
     public ObjectMapper objectMapper;
+
+    @Autowired
+    private String contextPath;
 
     private final Logger logger = Logger.getLogger(WebSocketConfig.class.getName());
 
@@ -48,10 +52,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/web-socket/messages")
+        String destination = contextPath.length() > 1 ? contextPath + "/web-socket/messages" : "/web-socket/messages";
+        config.enableSimpleBroker(destination)
                 .setHeartbeatValue(new long[]{30000, 30000})
                 .setTaskScheduler(this.messageBrokerTaskScheduler);
-        config.setApplicationDestinationPrefixes("/web-socket");
     }
 
     @Override

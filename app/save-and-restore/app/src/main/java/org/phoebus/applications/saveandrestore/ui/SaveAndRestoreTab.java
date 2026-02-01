@@ -24,8 +24,9 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
+import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.WebSocketMessageHandler;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -81,7 +82,7 @@ public abstract class SaveAndRestoreTab extends Tab implements WebSocketMessageH
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
+    public void handleWebSocketMessage(String saveAndRestoreWebSocketMessage) {
 
     }
 

@@ -20,12 +20,15 @@ package org.phoebus.service.saveandrestore.web.config;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 
+import javax.servlet.ServletContext;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,6 +41,9 @@ public class WebConfiguration {
 
     @Value("${connection.timeout:5000}")
     public long connectionTimeout;
+
+    @Autowired
+    private ServletContext servletContext;
 
     @SuppressWarnings("unused")
     @Bean
@@ -76,5 +82,10 @@ public class WebConfiguration {
     @Bean
     public ExecutorService executorService() {
         return Executors.newCachedThreadPool();
+    }
+
+    @Bean
+    public String contextPath(){
+        return servletContext.getContextPath();
     }
 }

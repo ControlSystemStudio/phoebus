@@ -20,8 +20,8 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +83,7 @@ public class NodeController extends BaseController {
         }
         node.setUserName(principal.getName());
         Node savedNode = nodeDAO.createNode(parentsUniqueId, node);
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_ADDED,
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_ADDED,
                 savedNode.getUniqueId()));
         return savedNode;
     }
@@ -158,7 +158,7 @@ public class NodeController extends BaseController {
     public void deleteNodes(@RequestBody List<String> nodeIds) {
         nodeDAO.deleteNodes(nodeIds);
         nodeIds.forEach(id ->
-                webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, id)));
+                webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, id)));
     }
 
     /**
@@ -220,7 +220,7 @@ public class NodeController extends BaseController {
         }
         nodeToUpdate.setUserName(principal.getName());
         Node updatedNode = nodeDAO.updateNode(nodeToUpdate, Boolean.parseBoolean(customTimeForMigration));
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedNode));
+        webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_UPDATED, updatedNode));
         return updatedNode;
     }
 

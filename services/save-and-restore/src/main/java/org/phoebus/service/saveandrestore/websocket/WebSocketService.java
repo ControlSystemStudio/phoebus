@@ -20,12 +20,14 @@ package org.phoebus.service.saveandrestore.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Service;
+
+import org.phoebus.core.websocket.WebSocketMessage;
+
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,15 +47,20 @@ public class WebSocketService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private String contextPath;
+
     private static final Logger logger = Logger.getLogger(WebSocketService.class.getName());
 
     /**
-     * @param webSocketMessage Non-null {@link SaveAndRestoreWebSocketMessage}, will be converted to a JSON string before it is dispatched.
+     * @param webSocketMessage Non-null {@link WebSocketMessage}, will be converted to a JSON string before
+     *                        it is dispatched to clients.
      */
-    public void sendMessageToClients(@NonNull SaveAndRestoreWebSocketMessage webSocketMessage) {
+    public void sendMessageToClients(@NonNull WebSocketMessage<?> webSocketMessage) {
         try {
             String message = objectMapper.writeValueAsString(webSocketMessage);
-            simpMessagingTemplate.convertAndSend("/web-socket/messages", message);
+            String messageEndpoint = contextPath.length() > 0 ? contextPath : "";
+            simpMessagingTemplate.convertAndSend(messageEndpoint + "/web-socket/messages", message);
         } catch (JsonProcessingException e) {
             logger.log(Level.WARNING, "Failed to write web socket message to json string", e);
         }

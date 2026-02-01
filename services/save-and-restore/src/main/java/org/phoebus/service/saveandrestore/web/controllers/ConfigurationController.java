@@ -21,8 +21,8 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +79,7 @@ public class ConfigurationController extends BaseController {
         }
         configuration.getConfigurationNode().setUserName(principal.getName());
         Configuration newConfiguration = nodeDAO.createConfiguration(parentNodeId, configuration);
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newConfiguration.getConfigurationNode().getUniqueId()));
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_ADDED, newConfiguration.getConfigurationNode().getUniqueId()));
         return newConfiguration;
     }
 
@@ -109,7 +109,7 @@ public class ConfigurationController extends BaseController {
                                              Principal principal) {
         configuration.getConfigurationNode().setUserName(principal.getName());
         Configuration updatedConfiguration = nodeDAO.updateConfiguration(configuration);
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedConfiguration.getConfigurationNode()));
+        webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_UPDATED, updatedConfiguration.getConfigurationNode()));
         return updatedConfiguration;
     }
 }

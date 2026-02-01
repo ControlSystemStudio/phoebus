@@ -16,24 +16,17 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.service.saveandrestore.websocket;
-
-
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.stereotype.Controller;
+package org.phoebus.core.websocket;
 
 /**
- * This {@link Controller} defines an echo endpoint, i.e. for testing or health check purposes...
+ * Record encapsulating a {@link MessageType} and a payload of arbitrary type.
+ * <p>
+ *     The deserialization process of a web socket message into a concrete {@link WebSocketMessage} must be
+ *     delegated to a custom deserializer.
+ * </p>
+ * @param messageType The {@link MessageType} of a web socket message. Apps can implement as needed.
+ * @param payload The payload like a {@link String}, or something more specific for the actual use case, e.g. a
+ *                logbook entry or save-and-restore object.
  */
-@Controller
-@SuppressWarnings("unused")
-public class WebSocketController {
-
-
-    @MessageMapping("/echo")
-    @SendTo("web-socket/messages")
-    public String echo(String message) {
-        return message;
-    }
+public record WebSocketMessage<T>(MessageType messageType, T payload) {
 }

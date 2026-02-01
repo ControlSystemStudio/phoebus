@@ -24,8 +24,8 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +74,7 @@ public class CompositeSnapshotController extends BaseController {
         }
         compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
         CompositeSnapshot newCompositeSnapshot = nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_ADDED, newCompositeSnapshot.getCompositeSnapshotNode().getUniqueId()));
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_ADDED, compositeSnapshot.getCompositeSnapshotNode().getUniqueId()));
         return newCompositeSnapshot;
     }
 
@@ -94,7 +94,7 @@ public class CompositeSnapshotController extends BaseController {
         }
         compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
         CompositeSnapshot updatedCompositeSnapshot = nodeDAO.updateCompositeSnapshot(compositeSnapshot);
-        webSocketService.sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_UPDATED, updatedCompositeSnapshot.getCompositeSnapshotNode()));
+        webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_UPDATED, updatedCompositeSnapshot.getCompositeSnapshotNode()));
         return updatedCompositeSnapshot;
     }
 

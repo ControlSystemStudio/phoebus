@@ -31,7 +31,7 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
@@ -125,7 +125,7 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, CompositeSnapshot.class);
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -142,7 +142,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -157,7 +157,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -171,7 +171,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
@@ -187,7 +187,7 @@ public class CompositeSnapshotControllerTest {
                 .content(objectMapper.writeValueAsString(compositeSnapshot1));
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, CompositeSnapshot.class);
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -235,7 +235,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(org.phoebus.core.websocket.WebSocketMessage.class));
     }
 
     @Test
@@ -262,7 +262,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -285,7 +285,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -302,7 +302,7 @@ public class CompositeSnapshotControllerTest {
                 .content(objectMapper.writeValueAsString(compositeSnapshot1));
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test

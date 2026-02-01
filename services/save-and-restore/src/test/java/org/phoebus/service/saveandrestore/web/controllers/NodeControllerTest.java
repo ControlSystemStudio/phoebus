@@ -34,8 +34,8 @@ import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
@@ -440,7 +440,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -454,7 +454,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
     }
 
     @Test
@@ -469,12 +469,12 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
-        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
 
     }
 
@@ -491,7 +491,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
@@ -508,7 +508,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -523,7 +523,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
     }
 
     @Test
@@ -538,7 +538,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(new SaveAndRestoreWebSocketMessage(MessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
 
     }
 

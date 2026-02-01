@@ -18,5 +18,13 @@
 
 package org.phoebus.logbook.olog.ui.websocket;
 
-public record WebSocketMessage(MessageType messageType, String payload) {
+import org.phoebus.core.websocket.MessageType;
+
+/**
+ * Web socket message types particular to the logbook
+ */
+public enum LogbookMessageType implements MessageType {
+    NEW_LOG_ENTRY,
+    LOG_ENTRY_UPDATED,
+    SHOW_BANNER
 }
