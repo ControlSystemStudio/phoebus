@@ -2,6 +2,11 @@
 
 This directory contains Docker configurations for running Bluesky Queue Server and HTTP Server for the Phoebus queue-server application.
 
+## Requirements
+
+- Docker and Docker Compose
+- Python 3.12 (used in container images)
+
 ## Services
 
 - **queue-server**: Bluesky Queue Server (RE Manager) - manages the execution queue
@@ -98,3 +103,20 @@ docker-compose down
 docker-compose build --no-cache
 docker-compose --profile container-redis up -d
 ```
+
+## Updating Dependencies
+
+The containers use `pip install --upgrade` to fetch the latest versions of bluesky packages. To update to the latest versions:
+
+```bash
+docker-compose down
+docker-compose build --no-cache --pull
+docker-compose --profile container-redis up -d
+```
+
+This will pull the latest Python base image and install the newest versions of:
+- bluesky-queueserver
+- bluesky-httpserver
+- bluesky
+- ophyd
+- and all other dependencies
