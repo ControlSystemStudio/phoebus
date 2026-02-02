@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.applications.queueserver.client.RunEngineHttpClient;
+import org.phoebus.applications.queueserver.util.AppLifecycle;
 import org.phoebus.applications.queueserver.view.ViewFactory;
 import javafx.scene.Parent;
 
@@ -26,6 +27,12 @@ public final class QueueServerApp implements AppResourceDescriptor {
     public  static final String NAME         = "queue-server";
     private static final String DISPLAY_NAME = "Queue Server";
 
+    // Start Jython warmup as soon as plugin loads (during Phoebus startup)
+    // This runs before the user opens the app, reducing/eliminating UI freeze
+    static {
+        org.phoebus.applications.queueserver.util.PythonParameterConverter.initializeInBackground();
+    }
+
     @Override public String getName()        { return NAME; }
     @Override public String getDisplayName() { return DISPLAY_NAME; }
 
@@ -34,7 +41,6 @@ public final class QueueServerApp implements AppResourceDescriptor {
     }
 
     @Override public AppInstance create() {
-
         // Resolve server URL with default fallback
         String serverUrl = Preferences.queue_server_url;
         // Check if the preference wasn't expanded (still has $(VAR) syntax) or is empty
@@ -55,6 +61,8 @@ public final class QueueServerApp implements AppResourceDescriptor {
         QueueServerInstance inst = new QueueServerInstance(this, root);
 
         DockItem tab = new DockItem(inst, root);
+        // Register cleanup callback when tab is closed
+        tab.addClosedNotification(AppLifecycle::shutdown);
         DockPane.getActiveDockPane().addTab(tab);
 
         return inst;
