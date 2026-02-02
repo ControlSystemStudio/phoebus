@@ -5,6 +5,7 @@ import org.phoebus.applications.queueserver.api.QueueGetPayload;
 import org.phoebus.applications.queueserver.api.QueueItem;
 import org.phoebus.applications.queueserver.api.StatusResponse;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.PlansCache;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
 import org.phoebus.applications.queueserver.util.PythonParameterConverter;
@@ -109,62 +110,41 @@ public final class RePlanQueueController implements Initializable {
                     }
                 });
 
+        initializeAllowedInstructions();
+
+        // Use shared plans cache - copy to local map when loaded
+        if (PlansCache.isLoaded()) {
+            allowedPlans.clear();
+            allowedPlans.putAll(PlansCache.get());
+        }
+
+        // Listen for plans cache updates
+        PlansCache.addListener((o, oldV, newV) -> {
+            Platform.runLater(() -> {
+                allowedPlans.clear();
+                if (newV != null) {
+                    allowedPlans.putAll(newV);
+                }
+            });
+        });
+
+        // Listen for status changes to refresh queue
         ChangeListener<StatusResponse> poll =
                 (o,oldV,newV) -> {
-                    // Load allowed plans only when connected
-                    if (newV != null && allowedPlans.isEmpty()) {
-                        Platform.runLater(this::loadAllowedPlansAndInstructions);
-                    }
                     // Run refresh in background thread to avoid blocking UI
                     new Thread(() -> refresh(newV, List.of())).start();
                 };
-        StatusBus.latest().addListener(poll);
-
-        // Only load plans if already connected
-        if (StatusBus.latest().get() != null) {
-            loadAllowedPlansAndInstructions();
-        }
+        StatusBus.addListener(poll);
 
         refresh(StatusBus.latest().get(), List.of());
     }
 
-    private void loadAllowedPlansAndInstructions() {
-        new Thread(() -> {
-            try {
-                Map<String, Object> responseMap = svc.plansAllowedRaw();
-
-                // Prepare data in background thread
-                Map<String, Map<String, Object>> newPlans = new HashMap<>();
-                if (responseMap != null && Boolean.TRUE.equals(responseMap.get("success"))) {
-                    if (responseMap.containsKey("plans_allowed")) {
-                        Map<String, Object> plansData = (Map<String, Object>) responseMap.get("plans_allowed");
-                        for (Map.Entry<String, Object> entry : plansData.entrySet()) {
-                            String planName = entry.getKey();
-                            Map<String, Object> planInfo = (Map<String, Object>) entry.getValue();
-                            newPlans.put(planName, planInfo);
-                        }
-                    }
-                }
-
-                Map<String, Map<String, Object>> newInstructions = new HashMap<>();
-                Map<String, Object> queueStopInstr = new HashMap<>();
-                queueStopInstr.put("name", "queue_stop");
-                queueStopInstr.put("description", "Stop execution of the queue.");
-                queueStopInstr.put("parameters", List.of());
-                newInstructions.put("queue_stop", queueStopInstr);
-
-                // Update maps on JavaFX thread to avoid threading issues
-                Platform.runLater(() -> {
-                    allowedPlans.clear();
-                    allowedPlans.putAll(newPlans);
-                    allowedInstructions.clear();
-                    allowedInstructions.putAll(newInstructions);
-                });
-
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to load plans", e);
-            }
-        }).start();
+    private void initializeAllowedInstructions() {
+        Map<String, Object> queueStopInstr = new HashMap<>();
+        queueStopInstr.put("name", "queue_stop");
+        queueStopInstr.put("description", "Stop execution of the queue.");
+        queueStopInstr.put("parameters", List.of());
+        allowedInstructions.put("queue_stop", queueStopInstr);
     }
 
     private void refresh(StatusResponse st, Collection<String> explicitFocus) {

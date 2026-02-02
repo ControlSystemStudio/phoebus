@@ -27,7 +27,7 @@ public final class ReEnvironmentControlsController implements Initializable {
     private static final Logger logger = Logger.getLogger(ReEnvironmentControlsController.class.getPackageName());
 
     @Override public void initialize(URL url, ResourceBundle rb) {
-        StatusBus.latest().addListener(this::onStatus);
+        StatusBus.addListener(this::onStatus);
         // Check current value in case status was already set before listener added
         refreshButtons(StatusBus.latest().get());
     }

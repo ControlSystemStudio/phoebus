@@ -6,6 +6,7 @@ import org.phoebus.applications.queueserver.api.ConsoleOutputUpdate;
 import org.phoebus.applications.queueserver.api.ConsoleOutputWsMessage;
 import org.phoebus.applications.queueserver.client.QueueServerWebSocket;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.AppLifecycle;
 import org.phoebus.applications.queueserver.util.PollCenter;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import javafx.application.Platform;
@@ -57,8 +58,11 @@ public final class ReConsoleMonitorController implements Initializable {
 
     private QueueServerWebSocket<ConsoleOutputWsMessage> consoleWs;
     private volatile boolean isRunning = false;
+    private javafx.beans.value.ChangeListener<org.phoebus.applications.queueserver.api.StatusResponse> statusListener;
 
     @Override public void initialize(URL url, ResourceBundle rb) {
+        // Register shutdown callback for app lifecycle management
+        AppLifecycle.registerShutdown(this::shutdown);
 
         textArea.setEditable(false);
         textArea.setStyle("-fx-font-family: monospace");
@@ -127,7 +131,7 @@ public final class ReConsoleMonitorController implements Initializable {
         clearBtn.setOnAction(e->{ synchronized(textBuf){ textBuf.clear(); } render(); });
 
         // Only start/stop on null <-> non-null transitions, not on every status change
-        StatusBus.latest().addListener((o,oldS,newS)-> {
+        statusListener = (o,oldS,newS)-> {
             boolean wasConnected = oldS != null;
             boolean isConnected = newS != null;
 
@@ -142,10 +146,16 @@ public final class ReConsoleMonitorController implements Initializable {
                     else stop();
                 });
             }
-        });
+        };
+        StatusBus.addListener(statusListener);
     }
 
     public void shutdown(){
+        // Remove status listener first to prevent any further callbacks
+        if (statusListener != null) {
+            StatusBus.removeListener(statusListener);
+            statusListener = null;
+        }
         stop();
         if (consoleWs != null) {
             consoleWs.close();

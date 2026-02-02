@@ -2,6 +2,7 @@ package org.phoebus.applications.queueserver.controller;
 
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.PlansCache;
 import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
 import org.phoebus.applications.queueserver.util.PythonParameterConverter;
 import org.phoebus.applications.queueserver.util.StatusBus;
@@ -39,15 +40,12 @@ public class RePlanViewerController implements Initializable {
     private final ObservableList<ParameterRow> parameterRows = FXCollections.observableArrayList();
     private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
-    // Python-based parameter converter (initialized in background on startup)
-    private volatile PythonParameterConverter pythonConverter;
 
     private PythonParameterConverter getPythonConverter() {
-        PythonParameterConverter converter = pythonConverter;
+        PythonParameterConverter converter = PythonParameterConverter.getShared();
         if (converter == null) {
-            // Background init not done yet - create inline (rare fallback)
+            // Shared init not done yet - create inline (rare fallback)
             converter = new PythonParameterConverter();
-            pythonConverter = converter;
         }
         return converter;
     }
@@ -98,25 +96,26 @@ public class RePlanViewerController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initializeTable();
         initializeControls();
+        initializeAllowedInstructions();
 
-        // Initialize and warm up Python converter in background so it's ready when needed
-        new Thread(() -> {
-            PythonParameterConverter converter = new PythonParameterConverter();
-            // Warm up by calling normalizeAndRepr - first call is slow due to Jython init
-            converter.normalizeAndRepr("warmup");
-            pythonConverter = converter;
-        }).start();
-
-        // Only load plans if already connected
-        if (StatusBus.latest().get() != null) {
-            loadAllowedPlansAndInstructions();
+        // Use shared plans cache - copy to local map when loaded
+        if (PlansCache.isLoaded()) {
+            allowedPlans.clear();
+            allowedPlans.putAll(PlansCache.get());
         }
 
-        // Listen for status changes to load plans when connected and update widget state
-        StatusBus.latest().addListener((o, oldV, newV) -> {
-            if (newV != null && allowedPlans.isEmpty()) {
-                loadAllowedPlansAndInstructions();
-            }
+        // Listen for plans cache updates
+        PlansCache.addListener((o, oldV, newV) -> {
+            Platform.runLater(() -> {
+                allowedPlans.clear();
+                if (newV != null) {
+                    allowedPlans.putAll(newV);
+                }
+            });
+        });
+
+        // Listen for status changes to update widget state and clear on disconnect
+        StatusBus.addListener((o, oldV, newV) -> {
             // Clear the displayed item when disconnected
             if (newV == null) {
                 Platform.runLater(() -> showItem(null));
@@ -129,10 +128,32 @@ public class RePlanViewerController implements Initializable {
         ItemUpdateEvent.getInstance().addListener(this::handleItemUpdate);
     }
 
+    private void initializeAllowedInstructions() {
+        Map<String, Object> queueStopInstr = new HashMap<>();
+        queueStopInstr.put("name", "queue_stop");
+        queueStopInstr.put("description", "Stop execution of the queue.");
+        queueStopInstr.put("parameters", List.of());
+        allowedInstructions.put("queue_stop", queueStopInstr);
+    }
+
     private void initializeTable() {
         paramCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         chkCol.setCellValueFactory(new PropertyValueFactory<>("enabled"));
         valueCol.setCellValueFactory(new PropertyValueFactory<>("value"));
+
+        // Fix paramCol and chkCol widths - not resizable
+        paramCol.setMinWidth(120);
+        paramCol.setPrefWidth(120);
+        paramCol.setMaxWidth(120);
+        paramCol.setResizable(false);
+
+        chkCol.setMinWidth(30);
+        chkCol.setPrefWidth(30);
+        chkCol.setMaxWidth(30);
+        chkCol.setResizable(false);
+
+        // valueCol fills remaining space
+        valueCol.setMinWidth(50);
 
         paramCol.setCellFactory(column -> {
             TableCell<ParameterRow, String> cell = new TableCell<ParameterRow, String>() {
@@ -198,10 +219,6 @@ public class RePlanViewerController implements Initializable {
 
         // Use constrained resize so valueCol fills remaining space
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        paramCol.setMinWidth(100);
-        paramCol.setMaxWidth(200);
-        chkCol.setMaxWidth(30);
-        chkCol.setMinWidth(30);
     }
 
     private void initializeControls() {
@@ -218,47 +235,6 @@ public class RePlanViewerController implements Initializable {
         editBtn.setOnAction(e -> editCurrentItem());
 
         updateWidgetState();
-    }
-
-    private void loadAllowedPlansAndInstructions() {
-        new Thread(() -> {
-            try {
-                Map<String, Object> responseMap = svc.plansAllowedRaw();
-
-                // Prepare data in background thread
-                Map<String, Map<String, Object>> newPlans = new HashMap<>();
-                if (responseMap != null && Boolean.TRUE.equals(responseMap.get("success"))) {
-                    if (responseMap.containsKey("plans_allowed")) {
-                        Map<String, Object> plansData = (Map<String, Object>) responseMap.get("plans_allowed");
-                        for (Map.Entry<String, Object> entry : plansData.entrySet()) {
-                            String planName = entry.getKey();
-                            Map<String, Object> planInfo = (Map<String, Object>) entry.getValue();
-                            newPlans.put(planName, planInfo);
-                        }
-                    }
-                }
-
-                Map<String, Map<String, Object>> newInstructions = new HashMap<>();
-                Map<String, Object> queueStopInstr = new HashMap<>();
-                queueStopInstr.put("name", "queue_stop");
-                queueStopInstr.put("description", "Stop execution of the queue.");
-                queueStopInstr.put("parameters", List.of());
-                newInstructions.put("queue_stop", queueStopInstr);
-
-                // Update maps on JavaFX thread to avoid threading issues
-                // Don't update UI here - let it update when needed to avoid
-                // simultaneous UI updates from multiple controllers during connection
-                Platform.runLater(() -> {
-                    allowedPlans.clear();
-                    allowedPlans.putAll(newPlans);
-                    allowedInstructions.clear();
-                    allowedInstructions.putAll(newInstructions);
-                });
-
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to load plans", e);
-            }
-        }).start();
     }
 
     public void showItem(QueueItem item) {

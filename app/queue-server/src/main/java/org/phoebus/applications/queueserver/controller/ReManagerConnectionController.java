@@ -7,6 +7,8 @@ import org.phoebus.applications.queueserver.api.StatusResponse;
 import org.phoebus.applications.queueserver.api.StatusWsMessage;
 import org.phoebus.applications.queueserver.client.QueueServerWebSocket;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.AppLifecycle;
+import org.phoebus.applications.queueserver.util.PlansCache;
 import org.phoebus.applications.queueserver.util.PollCenter;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import javafx.application.Platform;
@@ -60,6 +62,9 @@ public final class ReManagerConnectionController {
 
     @FXML
     public void initialize() {
+        // Register shutdown callback for app lifecycle management
+        AppLifecycle.registerShutdown(this::stop);
+
         // Start in auto-connect mode (toggle is selected by default in FXML)
         if (autoConnectToggle.isSelected()) {
             start();
@@ -398,6 +403,8 @@ public final class ReManagerConnectionController {
                 connectionStatusLabel.setText("CONNECTED");
                 connectionStatusLabel.setStyle("-fx-text-fill: green;");
                 autoConnectToggle.setText("Disconnect");
+                // Load allowed plans into shared cache (only fetches once)
+                PlansCache.loadIfNeeded();
                 // Don't push to StatusBus here - let updateWidgets do it
                 break;
         }

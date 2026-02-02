@@ -111,7 +111,7 @@ public final class RePlanHistoryController implements Initializable {
                     // Run refresh in background thread to avoid blocking UI
                     new Thread(() -> refresh(nv)).start();
                 };
-        StatusBus.latest().addListener(l);
+        StatusBus.addListener(l);
 
         // Add drag-to-select functionality
         setupDragSelection();

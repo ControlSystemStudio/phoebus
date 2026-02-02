@@ -4,6 +4,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.PlansCache;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
 import org.phoebus.applications.queueserver.view.TabSwitchEvent;
@@ -65,24 +66,19 @@ public class RePlanEditorController implements Initializable {
     private final ObjectMapper objectMapper = new ObjectMapper();
     // Store original parameter values for reset functionality
     private final Map<String, Object> originalParameterValues = new HashMap<>();
-    // Python-based parameter converter (initialized in background to avoid blocking UI)
-    // Only used from background threads - NEVER call from JavaFX thread to prevent UI freezes
-    private volatile PythonParameterConverter pythonConverter;
 
     /**
      * Get the Python converter for use in background threads ONLY.
-     * WARNING: This method may block if initialization is in progress.
+     * Uses the shared singleton instance.
      * NEVER call this from JavaFX thread - it will cause UI freezes.
      */
     private PythonParameterConverter getPythonConverter() {
-        if (pythonConverter == null) {
-            synchronized (this) {
-                if (pythonConverter == null) {
-                    pythonConverter = new PythonParameterConverter();
-                }
-            }
+        PythonParameterConverter converter = PythonParameterConverter.getShared();
+        if (converter == null) {
+            // Shared init not done yet - create inline (rare fallback)
+            converter = new PythonParameterConverter();
         }
-        return pythonConverter;
+        return converter;
     }
 
     private class EditableTableCell extends TableCell<ParameterRow, String> {
@@ -298,27 +294,26 @@ public class RePlanEditorController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initializeTable();
         initializeControls();
+        initializeAllowedInstructions();
 
-        // Initialize Python converter on background thread to avoid blocking JavaFX thread
-        new Thread(() -> {
-            try {
-                getPythonConverter();
-                logger.log(Level.FINE, "Python converter initialized in background");
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to initialize Python converter", e);
-            }
-        }, "PythonConverter-Init").start();
-
-        // Only load plans if already connected
-        if (StatusBus.latest().get() != null) {
-            loadAllowedPlansAndInstructions();
+        // Use shared plans cache - copy to local map when loaded
+        if (PlansCache.isLoaded()) {
+            allowedPlans.clear();
+            allowedPlans.putAll(PlansCache.get());
         }
 
-        // Listen for status changes to load plans when connected and update button states
-        StatusBus.latest().addListener((o, oldV, newV) -> {
-            if (newV != null && allowedPlans.isEmpty()) {
-                loadAllowedPlansAndInstructions();
-            }
+        // Listen for plans cache updates
+        PlansCache.addListener((o, oldV, newV) -> {
+            Platform.runLater(() -> {
+                allowedPlans.clear();
+                if (newV != null) {
+                    allowedPlans.putAll(newV);
+                }
+            });
+        });
+
+        // Listen for status changes to update button states and clear on disconnect
+        StatusBus.addListener((o, oldV, newV) -> {
             // Clear the editor state when disconnected
             if (newV == null) {
                 Platform.runLater(this::cancelEdit);
@@ -330,10 +325,32 @@ public class RePlanEditorController implements Initializable {
         PlanEditEvent.getInstance().addListener(this::editItem);
     }
 
+    private void initializeAllowedInstructions() {
+        Map<String, Object> queueStopInstr = new HashMap<>();
+        queueStopInstr.put("name", "queue_stop");
+        queueStopInstr.put("description", "Stop execution of the queue.");
+        queueStopInstr.put("parameters", List.of());
+        allowedInstructions.put("queue_stop", queueStopInstr);
+    }
+
     private void initializeTable() {
         paramCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         chkCol.setCellValueFactory(new PropertyValueFactory<>("enabled"));
         valueCol.setCellValueFactory(new PropertyValueFactory<>("value"));
+
+        // Fix paramCol and chkCol widths - not resizable
+        paramCol.setMinWidth(120);
+        paramCol.setPrefWidth(120);
+        paramCol.setMaxWidth(120);
+        paramCol.setResizable(false);
+
+        chkCol.setMinWidth(30);
+        chkCol.setPrefWidth(30);
+        chkCol.setMaxWidth(30);
+        chkCol.setResizable(false);
+
+        // valueCol fills remaining space
+        valueCol.setMinWidth(50);
 
         // Add tooltips to parameter names
         paramCol.setCellFactory(column -> {
@@ -397,10 +414,6 @@ public class RePlanEditorController implements Initializable {
 
         // Make Value column fill remaining space
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        paramCol.setMinWidth(100);
-        paramCol.setMaxWidth(200);
-        chkCol.setMaxWidth(30);
-        chkCol.setMinWidth(30);
     }
 
     private void initializeControls() {
@@ -451,53 +464,6 @@ public class RePlanEditorController implements Initializable {
         cancelBtn.setOnAction(e -> cancelEdit());
 
         updateButtonStates();
-    }
-
-    private void loadAllowedPlansAndInstructions() {
-        new Thread(() -> {
-            try {
-                // Load plans from API - use raw Map instead of Envelope since response structure doesn't match
-                Map<String, Object> responseMap = svc.plansAllowedRaw();
-
-                // Prepare data in background thread
-                Map<String, Map<String, Object>> newPlans = new HashMap<>();
-                if (responseMap != null && Boolean.TRUE.equals(responseMap.get("success"))) {
-                    if (responseMap.containsKey("plans_allowed")) {
-                        Map<String, Object> plansData = (Map<String, Object>) responseMap.get("plans_allowed");
-
-                        // Convert each plan entry to Map<String, Object>
-                        for (Map.Entry<String, Object> entry : plansData.entrySet()) {
-                            String planName = entry.getKey();
-                            Map<String, Object> planInfo = (Map<String, Object>) entry.getValue();
-                            newPlans.put(planName, planInfo);
-                        }
-                    } else {
-                        logger.log(Level.WARNING, "No 'plans_allowed' key in response. Keys: " + responseMap.keySet());
-                    }
-                } else {
-                    logger.log(Level.WARNING, "Plans response failed. Response: " + responseMap);
-                }
-
-                Map<String, Map<String, Object>> newInstructions = new HashMap<>();
-                Map<String, Object> queueStopInstr = new HashMap<>();
-                queueStopInstr.put("name", "queue_stop");
-                queueStopInstr.put("description", "Stop execution of the queue.");
-                queueStopInstr.put("parameters", List.of());
-                newInstructions.put("queue_stop", queueStopInstr);
-
-                // Update maps on JavaFX thread to avoid threading issues
-                // Don't populate choicebox here - it will populate lazily when user opens it
-                Platform.runLater(() -> {
-                    allowedPlans.clear();
-                    allowedPlans.putAll(newPlans);
-                    allowedInstructions.clear();
-                    allowedInstructions.putAll(newInstructions);
-                });
-
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to load plans", e);
-            }
-        }).start();
     }
 
     private void populateChoiceBox(boolean isPlans) {
