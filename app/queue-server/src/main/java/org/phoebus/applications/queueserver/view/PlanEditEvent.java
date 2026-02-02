@@ -38,4 +38,9 @@ public class PlanEditEvent {
             }
         }
     }
+
+    /** Reset state for app restart */
+    public void reset() {
+        listeners.clear();
+    }
 }

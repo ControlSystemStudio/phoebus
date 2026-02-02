@@ -31,4 +31,9 @@ public class ItemUpdateEvent {
             }
         }
     }
+
+    /** Reset state for app restart */
+    public void reset() {
+        listeners.clear();
+    }
 }

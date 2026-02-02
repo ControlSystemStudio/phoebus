@@ -39,4 +39,9 @@ public class QueueItemSelectionEvent {
             }
         }
     }
+
+    /** Reset state for app restart */
+    public void reset() {
+        listeners.clear();
+    }
 }
