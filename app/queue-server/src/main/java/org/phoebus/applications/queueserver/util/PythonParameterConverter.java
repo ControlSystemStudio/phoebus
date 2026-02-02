@@ -16,18 +16,78 @@ import java.util.logging.Logger;
  * This class delegates type conversion to a Python script (using Jython),
  * allowing us to use Python's ast.literal_eval for parsing parameter values
  * instead of implementing complex type conversions in Java.
+ *
+ * Use {@link #getShared()} to get a shared instance that's initialized once
+ * in the background to avoid blocking the UI thread.
  */
 public class PythonParameterConverter {
 
     private static final Logger logger = Logger.getLogger(PythonParameterConverter.class.getPackageName());
     private static final String SCRIPT_RESOURCE = "/org/phoebus/applications/queueserver/scripts/type_converter.py";
 
+    // Shared singleton instance - initialized once in background
+    private static volatile PythonParameterConverter sharedInstance;
+    private static volatile boolean initializationStarted = false;
+    private static final Object initLock = new Object();
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JythonScriptExecutor executor;
     private final String scriptContent;
 
     /**
+     * Get the shared singleton instance. This is the preferred way to get a converter.
+     * The instance is initialized lazily in the background on first call.
+     * May return null if initialization hasn't completed yet - caller should handle this.
+     */
+    public static PythonParameterConverter getShared() {
+        if (sharedInstance == null && !initializationStarted) {
+            initializeInBackground();
+        }
+        return sharedInstance;
+    }
+
+    /**
+     * Start background initialization of the shared instance.
+     * Call this early at app startup to have the converter ready when needed.
+     */
+    public static void initializeInBackground() {
+        synchronized (initLock) {
+            if (initializationStarted) {
+                return;  // Already started
+            }
+            initializationStarted = true;
+        }
+
+        new Thread(() -> {
+            try {
+                PythonParameterConverter converter = new PythonParameterConverter();
+                // Warm up by doing a simple conversion
+                converter.normalizeAndRepr("warmup");
+                sharedInstance = converter;
+                logger.log(Level.FINE, "Shared Python converter initialized and warmed up");
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to initialize shared Python converter", e);
+                initializationStarted = false;  // Allow retry
+            }
+        }, "PythonConverter-SharedInit").start();
+    }
+
+    /**
+     * Reset the shared instance - call when app is closed to allow re-initialization.
+     */
+    public static void resetShared() {
+        synchronized (initLock) {
+            if (sharedInstance != null) {
+                sharedInstance.close();
+                sharedInstance = null;
+            }
+            initializationStarted = false;
+        }
+    }
+
+    /**
      * Create a new Python parameter converter.
+     * Prefer using {@link #getShared()} instead to avoid multiple initializations.
      */
     public PythonParameterConverter() {
         this.executor = new JythonScriptExecutor();
