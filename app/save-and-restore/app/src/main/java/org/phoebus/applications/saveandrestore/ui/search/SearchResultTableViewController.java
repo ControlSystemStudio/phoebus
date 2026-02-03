@@ -223,7 +223,6 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 return;
             }
             tagMenuItem.disableProperty().set(userIdentity.isNull().get() ||
-                    selectedItemsProperty.size() != 1 ||
                     (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
                             !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
             NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();
@@ -241,8 +240,9 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
 
         contextMenu.getItems().addAll(loginMenuItem, tagGoldenMenuItem, tagMenuItem, restoreFromClientMenuItem, restoreFromServiceMenuItem);
 
-        resultTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        resultTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         resultTableView.setContextMenu(contextMenu);
+
 
         // Bind search result table to tableEntries observable
         Property<ObservableList<Node>> tableListProperty = new SimpleObjectProperty<>(tableEntries);

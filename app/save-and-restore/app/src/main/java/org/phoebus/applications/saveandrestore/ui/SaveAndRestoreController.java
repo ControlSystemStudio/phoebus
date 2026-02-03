@@ -1392,7 +1392,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         selectedItemsProperty.setAll(selectedItems.stream().map(TreeItem::getValue).toList());
 
         tagWithComment.disableProperty().set(userIdentity.isNull().get() ||
-                selectedItemsProperty.size() != 1 ||
                 (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
                         !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
         configureTagContextMenu(tagWithComment);
