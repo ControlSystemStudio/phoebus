@@ -4,7 +4,7 @@
 
 package org.phoebus.applications.saveandrestore.model.websocket;
 
-import org.phoebus.core.websocket.MessageType;
+import org.phoebus.core.websocket.common.MessageType;
 
 /**
  * Enum to indicate what type of web socket message the service is sending to clients.

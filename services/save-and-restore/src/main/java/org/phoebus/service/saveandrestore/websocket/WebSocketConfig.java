@@ -18,6 +18,7 @@
 package org.phoebus.service.saveandrestore.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.phoebus.core.websocket.common.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -27,7 +28,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import javax.servlet.ServletContext;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @SuppressWarnings("unused")
@@ -39,7 +40,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public ObjectMapper objectMapper;
 
     @Autowired
-    private String contextPath;
+    private String context;
 
     private final Logger logger = Logger.getLogger(WebSocketConfig.class.getName());
 
@@ -52,14 +53,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        String destination = contextPath.length() > 1 ? contextPath + "/web-socket/messages" : "/web-socket/messages";
-        config.enableSimpleBroker(destination)
+        logger.log(Level.INFO, "Configuring message broker using path " + context + Constants.WEB_SOCKET + Constants.MESSAGES);
+        config.enableSimpleBroker(context + Constants.WEB_SOCKET + Constants.MESSAGES)
                 .setHeartbeatValue(new long[]{30000, 30000})
                 .setTaskScheduler(this.messageBrokerTaskScheduler);
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/web-socket");
+        registry.addEndpoint(Constants.WEB_SOCKET);
     }
 }

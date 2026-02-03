@@ -22,7 +22,6 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -84,8 +83,13 @@ public class WebConfiguration {
         return Executors.newCachedThreadPool();
     }
 
+    /**
+     *
+     * @return The context path if other than "/", otherwise empty string.
+     */
     @Bean
-    public String contextPath(){
-        return servletContext.getContextPath();
+    public String context() {
+        return servletContext.getContextPath().length() > 1 ?
+                servletContext.getContextPath() : "";
     }
 }

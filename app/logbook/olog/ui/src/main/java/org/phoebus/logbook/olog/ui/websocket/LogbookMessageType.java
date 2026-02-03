@@ -18,7 +18,7 @@
 
 package org.phoebus.logbook.olog.ui.websocket;
 
-import org.phoebus.core.websocket.MessageType;
+import org.phoebus.core.websocket.common.MessageType;
 
 /**
  * Web socket message types particular to the logbook

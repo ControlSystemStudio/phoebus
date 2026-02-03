@@ -4,7 +4,7 @@
 
 package org.phoebus.applications.saveandrestore.model.websocket;
 
-import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 
 /**
  * Handler for web socket messages that have already been deserialized

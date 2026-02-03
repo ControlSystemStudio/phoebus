@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
-import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;

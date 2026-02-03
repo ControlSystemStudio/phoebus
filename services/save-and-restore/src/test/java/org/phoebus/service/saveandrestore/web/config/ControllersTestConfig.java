@@ -29,17 +29,17 @@ import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.Sna
 import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
+import org.springframework.mock.web.MockServletContext;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.socket.WebSocketSession;
 
+import javax.servlet.ServletContext;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -145,18 +145,31 @@ public class ControllersTestConfig {
     }
 
     @Bean
-    public SimpMessagingTemplate simpMessagingTemplate(){
+    public SimpMessagingTemplate simpMessagingTemplate() {
         return Mockito.mock(SimpMessagingTemplate.class);
     }
 
     @Bean
-    public SimpUserRegistry simpUserRegistry(){
+    public SimpUserRegistry simpUserRegistry() {
         return Mockito.mock(SimpUserRegistry.class);
     }
 
     @Bean
     public long connectionTimeout() {
         return 5000;
+    }
+
+    @Bean
+    public ServletContext servletContext() {
+        MockServletContext mockServletContext = new MockServletContext();
+        mockServletContext.setContextPath("/");
+        return mockServletContext;
+    }
+
+    @Bean
+    public String context() {
+        return servletContext().getContextPath().length() > 1 ?
+                servletContext().getContextPath() : "";
     }
 
 }

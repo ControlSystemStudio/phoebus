@@ -8,7 +8,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 
 /**
  * Custom JSON deserializer of {@link WebSocketMessage}s particular to the logbook app.
@@ -26,7 +26,7 @@ public class LogbookWebSocketMessageDeserializer extends StdDeserializer<WebSock
      * @param context    Context that can be used to access information about
      *                   this deserialization activity.
      * @return A {@link WebSocketMessage} object, or <code>null</code> if deserialization fails, e.g. due to
-     * unknown/invalid {@link org.phoebus.core.websocket.MessageType} or <code>null</code> payload.
+     * unknown/invalid {@link org.phoebus.core.websocket.common.MessageType} or <code>null</code> payload.
      */
     @Override
     public WebSocketMessage<?> deserialize(JsonParser jsonParser, DeserializationContext context) {
@@ -41,9 +41,8 @@ public class LogbookWebSocketMessageDeserializer extends StdDeserializer<WebSock
                 case LOG_ENTRY_UPDATED -> {
                     return new WebSocketMessage<>(logbookMessageType, payload.textValue());
                 }
-                case SHOW_BANNER -> {
-                    throw new RuntimeException("SHOW_BANNER not yet implemented");
-                }
+                case SHOW_BANNER -> throw new RuntimeException("SHOW_BANNER not yet implemented");
+
             }
         } catch (Exception e) {
             return null;

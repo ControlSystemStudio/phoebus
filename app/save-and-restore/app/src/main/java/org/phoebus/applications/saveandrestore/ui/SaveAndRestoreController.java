@@ -102,7 +102,7 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
-import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.selection.SelectionService;
@@ -816,8 +816,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             // Find the parent to which the new node is to be added
             TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
             TreeItem<Node> newTreeItem = createTreeItem(newNode);
-            parentTreeItem.getChildren().add(newTreeItem);
-            parentTreeItem.getChildren().sort(treeNodeComparator);
+            Platform.runLater(() -> {
+                parentTreeItem.getChildren().add(newTreeItem);
+                parentTreeItem.getChildren().sort(treeNodeComparator);
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -832,7 +834,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private void nodeRemoved(String nodeId) {
         TreeItem<Node> treeItemToRemove = recursiveSearch(nodeId, treeView.getRoot());
         if (treeItemToRemove != null) {
-            treeItemToRemove.getParent().getChildren().remove(treeItemToRemove);
+            Platform.runLater(() -> treeItemToRemove.getParent().getChildren().remove(treeItemToRemove));
         }
     }
 

@@ -18,7 +18,6 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -43,9 +42,10 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageDeserializer;
 import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageHandler;
 import org.phoebus.core.vtypes.VDisconnectedData;
-import org.phoebus.core.websocket.WebSocketMessage;
-import org.phoebus.core.websocket.WebSocketMessageHandler;
-import org.phoebus.core.websocket.springframework.WebSocketClientService;
+import org.phoebus.core.websocket.common.Constants;
+import org.phoebus.core.websocket.common.WebSocketMessage;
+import org.phoebus.core.websocket.client.WebSocketMessageHandler;
+import org.phoebus.core.websocket.client.WebSocketClientService;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.saveandrestore.util.VNoData;
@@ -90,7 +90,7 @@ public class SaveAndRestoreService implements WebSocketMessageHandler {
         String webSocketConnectUrl = Preferences.jmasarServiceUrl.trim().toLowerCase().startsWith("https://") ?
                 Preferences.jmasarServiceUrl.trim().replace("https", "wss") :
                 Preferences.jmasarServiceUrl.trim().replace("http", "ws");
-        webSocketConnectUrl += "/web-socket";
+        webSocketConnectUrl += Constants.WEB_SOCKET;
         webSocketClientService = new WebSocketClientService(webSocketConnectUrl);
         webSocketClientService.addWebSocketMessageHandler(this);
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());

@@ -86,7 +86,7 @@ import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.core.vtypes.VDisconnectedData;
-import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.saveandrestore.util.SnapshotUtil;

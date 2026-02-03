@@ -11,9 +11,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import org.phoebus.core.websocket.WebSocketMessage;
-import org.phoebus.core.websocket.WebSocketMessageHandler;
-import org.phoebus.core.websocket.springframework.WebSocketClientService;
+import org.phoebus.core.websocket.client.WebSocketMessageHandler;
+import org.phoebus.core.websocket.common.Constants;
+import org.phoebus.core.websocket.common.WebSocketMessage;
+import org.phoebus.core.websocket.client.WebSocketClientService;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
@@ -78,7 +79,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
         webSocketConnectUrl = Preferences.olog_url.trim().toLowerCase().startsWith("https://") ?
                 Preferences.olog_url.trim().replace("https", "wss") :
                 Preferences.olog_url.trim().replace("http", "ws");
-        webSocketConnectUrl += "/Olog/web-socket";
+        webSocketConnectUrl += "/Olog" + Constants.WEB_SOCKET;
     }
 
     /**

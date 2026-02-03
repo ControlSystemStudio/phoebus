@@ -2,9 +2,9 @@
  * Copyright (C) 2025 European Spallation Source ERIC.
  */
 
-package org.phoebus.core.websocket.springframework;
+package org.phoebus.core.websocket.client;
 
-import org.phoebus.core.websocket.WebSocketMessageHandler;
+import org.phoebus.core.websocket.common.Constants;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.StringMessageConverter;
@@ -66,7 +66,7 @@ public class WebSocketClientService {
      */
     private final String connectUrl;
     /**
-     * Subscription endpoint, e.g. /Olog/web-socket/messages
+     * Subscription endpoint, e.g. /Olog/web-socket/messages or /save-restore/web-socket/messages
      */
     private final String subscriptionEndpoint;
 
@@ -86,7 +86,7 @@ public class WebSocketClientService {
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        this.subscriptionEndpoint = path + "/messages";
+        this.subscriptionEndpoint = path + Constants.MESSAGES;
     }
 
     /**

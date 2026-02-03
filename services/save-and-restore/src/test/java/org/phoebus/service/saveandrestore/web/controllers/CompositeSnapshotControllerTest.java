@@ -31,7 +31,7 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
@@ -235,7 +235,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(org.phoebus.core.websocket.WebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test

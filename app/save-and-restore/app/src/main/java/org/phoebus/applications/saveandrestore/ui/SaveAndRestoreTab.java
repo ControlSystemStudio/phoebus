@@ -24,9 +24,10 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
-import org.phoebus.core.websocket.WebSocketMessage;
-import org.phoebus.core.websocket.WebSocketMessageHandler;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -36,7 +37,7 @@ import java.util.List;
 /**
  * Base class for save-n-restore {@link Tab}s containing common functionality.
  */
-public abstract class SaveAndRestoreTab extends Tab implements WebSocketMessageHandler {
+public abstract class SaveAndRestoreTab extends Tab implements SaveAndRestoreWebSocketMessageHandler{
 
     protected SaveAndRestoreBaseController controller;
 
@@ -65,11 +66,14 @@ public abstract class SaveAndRestoreTab extends Tab implements WebSocketMessageH
 
         setOnCloseRequest(event -> {
             if (doCloseCheck()) {
+                SaveAndRestoreService.getInstance().removeSaveAndRestoreWebSocketMessageHandler(this);
                 handleTabClosed();
             } else {
                 event.consume();
             }
         });
+
+        SaveAndRestoreService.getInstance().addSaveAndRestoreWebSocketMessageHandler(this);
     }
 
     /**
@@ -81,11 +85,6 @@ public abstract class SaveAndRestoreTab extends Tab implements WebSocketMessageH
         controller.secureStoreChanged(validTokens);
     }
 
-    @Override
-    public void handleWebSocketMessage(String saveAndRestoreWebSocketMessage) {
-
-    }
-
     /**
      * Performs suitable cleanup, e.g. close web socket and PVs (where applicable).
      */
@@ -95,9 +94,21 @@ public abstract class SaveAndRestoreTab extends Tab implements WebSocketMessageH
 
     /**
      * Checks if the tab may be closed, e.g. if data managed in the UI has been saved.
+     *
      * @return <code>false</code> if tab contains unsaved data, otherwise <code>true</code>
      */
     public boolean doCloseCheck() {
         return controller.doCloseCheck();
     }
+
+    @Override
+    public void handleSaveAndRestoreWebSocketMessage(WebSocketMessage<?> webSocketMessage){
+        if (webSocketMessage.messageType().equals(SaveAndRestoreMessageType.NODE_REMOVED)) {
+            String nodeId = (String) webSocketMessage.payload();
+            if (getId() != null && nodeId.equals(getId())) {
+                Platform.runLater(() -> getTabPane().getTabs().remove(this));
+            }
+        }
+    }
+
 }

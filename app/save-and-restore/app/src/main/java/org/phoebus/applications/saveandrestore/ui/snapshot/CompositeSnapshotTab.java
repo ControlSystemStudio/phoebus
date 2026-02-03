@@ -19,16 +19,13 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
-import org.phoebus.core.websocket.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -47,8 +44,7 @@ import java.util.logging.Logger;
  * {@link SnapshotTab} is used to show actual snapshot data.
  * </p>
  */
-public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
-
+public class CompositeSnapshotTab extends SaveAndRestoreTab {
 
     public CompositeSnapshotTab(SaveAndRestoreController saveAndRestoreController) {
 
@@ -94,8 +90,6 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocket
      * Configures UI to edit an existing composite snapshot {@link Node}
      *
      * @param compositeSnapshotNode non-null configuration {@link Node}
-     * @param snapshotNodes         A potentially empty (but non-null) list of snapshot nodes that should
-     *                              be added to the list of references snapshots.
      */
     public void editCompositeSnapshot(Node compositeSnapshotNode) {
         ((CompositeSnapshotController) controller).loadCompositeSnapshot(compositeSnapshotNode);
@@ -110,18 +104,4 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab implements WebSocket
     public void addToCompositeSnapshot(List<Node> snapshotNodes) {
         ((CompositeSnapshotController) controller).addToCompositeSnapshot(snapshotNodes);
     }
-
-    @Override
-    public void handleWebSocketMessage(String saveAndRestoreWebSocketMessage) {
-        /*
-        if (saveAndRestoreWebSocketMessage.messageType().equals(SaveAndRestoreMessageType.NODE_REMOVED)) {
-            String nodeId = (String) saveAndRestoreWebSocketMessage.payload();
-            if (getId() != null && nodeId.equals(getId())) {
-                Platform.runLater(() -> getTabPane().getTabs().remove(this));
-            }
-        }
-
-         */
-    }
-
 }

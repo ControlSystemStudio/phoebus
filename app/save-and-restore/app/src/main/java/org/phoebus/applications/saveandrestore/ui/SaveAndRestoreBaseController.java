@@ -21,7 +21,6 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.property.SimpleStringProperty;
 import org.phoebus.applications.saveandrestore.authentication.SaveAndRestoreAuthenticationScope;
-import org.phoebus.core.websocket.WebSocketMessage;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
@@ -50,7 +49,7 @@ public abstract class SaveAndRestoreBaseController {
             }
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestoreBaseController.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
-                    new SaveAndRestoreAuthenticationScope().getScope()+ " scope", e);
+                    new SaveAndRestoreAuthenticationScope().getScope() + " scope", e);
         }
     }
 
@@ -70,19 +69,13 @@ public abstract class SaveAndRestoreBaseController {
     }
 
     /**
-     * Default no-op implementation of a handler for {@link WebSocketMessage}s.
-     * @param webSocketMessage See {@link WebSocketMessage}
-     */
-    protected void handleWebSocketMessage(WebSocketMessage<?> webSocketMessage){
-    }
-
-    /**
      * Performs suitable cleanup, e.g. close web socket and PVs (where applicable).
      */
     public abstract void handleTabClosed();
 
     /**
      * Checks if the tab may be closed, e.g. if data managed in the UI has been saved.
+     *
      * @return <code>false</code> if tab contains unsaved data, otherwise <code>true</code>
      */
     public abstract boolean doCloseCheck();

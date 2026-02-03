@@ -26,7 +26,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Service;
 
-import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 
 
 import java.util.logging.Level;
@@ -48,7 +48,7 @@ public class WebSocketService {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private String contextPath;
+    private String context;
 
     private static final Logger logger = Logger.getLogger(WebSocketService.class.getName());
 
@@ -59,8 +59,7 @@ public class WebSocketService {
     public void sendMessageToClients(@NonNull WebSocketMessage<?> webSocketMessage) {
         try {
             String message = objectMapper.writeValueAsString(webSocketMessage);
-            String messageEndpoint = contextPath.length() > 0 ? contextPath : "";
-            simpMessagingTemplate.convertAndSend(messageEndpoint + "/web-socket/messages", message);
+            simpMessagingTemplate.convertAndSend(context + "/web-socket/messages", message);
         } catch (JsonProcessingException e) {
             logger.log(Level.WARNING, "Failed to write web socket message to json string", e);
         }

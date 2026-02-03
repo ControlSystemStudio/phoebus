@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
-import org.phoebus.core.websocket.WebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 
 /**
  * Custom JSON deserializer of {@link WebSocketMessage}s particular to save-and-restore.
@@ -31,7 +31,7 @@ public class SaveAndRestoreWebSocketMessageDeserializer extends StdDeserializer<
      * @param context    Context that can be used to access information about
      *                   this deserialization activity.
      * @return A {@link WebSocketMessage} object, or <code>null</code> if deserialization fails, e.g. due to
-     * unknown/invalid {@link org.phoebus.core.websocket.MessageType} or <code>null</code> payload.
+     * unknown/invalid {@link org.phoebus.core.websocket.common.MessageType} or <code>null</code> payload.
      */
     @Override
     public WebSocketMessage<?> deserialize(JsonParser jsonParser, DeserializationContext context) {
