@@ -489,7 +489,7 @@ that the context menu will only show tags common to all selected nodes.
 Tagging from search view
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The search result table of the Search And Filter view also supports a contect menu for the purpose of managing tags:
+The search result table of the Search And Filter view also supports a context menu for the purpose of managing tags:
 
 .. image:: images/search-result-context-menu.png
 
