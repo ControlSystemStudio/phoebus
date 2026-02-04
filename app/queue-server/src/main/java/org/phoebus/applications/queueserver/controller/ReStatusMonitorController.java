@@ -28,11 +28,11 @@ public final class ReStatusMonitorController implements Initializable {
         render(StatusBus.latest().get());
 
         listener = (obs, oldVal, newVal) -> render(newVal);
-        StatusBus.latest().addListener(listener);
+        StatusBus.addListener(listener);
     }
 
     public void shutdown() {
-        StatusBus.latest().removeListener(listener);
+        StatusBus.removeListener(listener);
     }
 
     private void render(StatusResponse s) {

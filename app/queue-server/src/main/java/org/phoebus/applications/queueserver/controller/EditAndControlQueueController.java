@@ -18,11 +18,11 @@ public class EditAndControlQueueController implements Initializable {
     @FXML private AnchorPane planQueueContainer;
     @FXML private AnchorPane planHistoryContainer;
     
-    private static final Logger LOG = Logger.getLogger(EditAndControlQueueController.class.getName());
+    private static final Logger logger = Logger.getLogger(EditAndControlQueueController.class.getPackageName());
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        LOG.info("Initializing EditAndControlQueueController");
+        logger.log(Level.FINE, "Initializing EditAndControlQueueController");
         loadInto(runningPlanContainer, "/org/phoebus/applications/queueserver/view/ReRunningPlan.fxml", new ReRunningPlanController(false));
         loadInto(planQueueContainer, "/org/phoebus/applications/queueserver/view/RePlanQueue.fxml", new RePlanQueueController(false));
         loadInto(planHistoryContainer, "/org/phoebus/applications/queueserver/view/RePlanHistory.fxml", new RePlanHistoryController(false));
@@ -40,7 +40,7 @@ public class EditAndControlQueueController implements Initializable {
             AnchorPane.setLeftAnchor(view, 0.0);
             AnchorPane.setRightAnchor(view, 0.0);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to load FXML: " + fxml, e);
+            logger.log(Level.SEVERE, "Failed to load FXML: " + fxml, e);
         }
     }
 

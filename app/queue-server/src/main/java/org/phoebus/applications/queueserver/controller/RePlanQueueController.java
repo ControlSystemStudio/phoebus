@@ -5,8 +5,10 @@ import org.phoebus.applications.queueserver.api.QueueGetPayload;
 import org.phoebus.applications.queueserver.api.QueueItem;
 import org.phoebus.applications.queueserver.api.StatusResponse;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.PlansCache;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
+import org.phoebus.applications.queueserver.util.PythonParameterConverter;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -22,6 +24,7 @@ import javafx.scene.text.Text;
 
 import java.net.URL;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,11 +42,13 @@ public final class RePlanQueueController implements Initializable {
     private final RunEngineService svc  = new RunEngineService();
     private final ObservableList<Row> rows = FXCollections.observableArrayList();
     private final Map<String, QueueItem> uid2item = new HashMap<>();
+    private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
+    private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
     private List<String> stickySel   = List.of();   // last user selection
     private boolean      ignoreSticky= false;       // guard while we rebuild
 
-    private static final Logger LOG =
-            Logger.getLogger(RePlanQueueController.class.getName());
+    private static final Logger logger =
+            Logger.getLogger(RePlanQueueController.class.getPackageName());
 
     private final boolean viewOnly;
 
@@ -105,38 +110,72 @@ public final class RePlanQueueController implements Initializable {
                     }
                 });
 
+        initializeAllowedInstructions();
+
+        // Use shared plans cache - copy to local map when loaded
+        if (PlansCache.isLoaded()) {
+            allowedPlans.clear();
+            allowedPlans.putAll(PlansCache.get());
+        }
+
+        // Listen for plans cache updates
+        PlansCache.addListener((o, oldV, newV) -> {
+            Platform.runLater(() -> {
+                allowedPlans.clear();
+                if (newV != null) {
+                    allowedPlans.putAll(newV);
+                }
+            });
+        });
+
+        // Listen for status changes to refresh queue
         ChangeListener<StatusResponse> poll =
-                (o,oldV,newV) -> Platform.runLater(() -> refresh(newV, List.of()));
-        StatusBus.latest().addListener(poll);
+                (o,oldV,newV) -> {
+                    // Run refresh in background thread to avoid blocking UI
+                    new Thread(() -> refresh(newV, List.of())).start();
+                };
+        StatusBus.addListener(poll);
 
         refresh(StatusBus.latest().get(), List.of());
+    }
+
+    private void initializeAllowedInstructions() {
+        Map<String, Object> queueStopInstr = new HashMap<>();
+        queueStopInstr.put("name", "queue_stop");
+        queueStopInstr.put("description", "Stop execution of the queue.");
+        queueStopInstr.put("parameters", List.of());
+        allowedInstructions.put("queue_stop", queueStopInstr);
     }
 
     private void refresh(StatusResponse st, Collection<String> explicitFocus) {
 
         if (st == null) {
-            ignoreSticky = true;
-            rows.clear(); uid2item.clear();
-            ignoreSticky = false;
-            updateButtonStates();
+            // Don't clear queue - keep last data visible for users
+            // Just update button states (will be disabled via StatusBus)
+            Platform.runLater(this::updateButtonStates);
             return;
         }
         try {
+            // Blocking HTTP call - now runs on background thread
             QueueGetPayload qp = svc.queueGetTyped();
-            ignoreSticky = true;
-            rebuildRows(qp.queue());
-            ignoreSticky = false;
 
-            List<String> focus = explicitFocus.isEmpty() ? stickySel
-                    : List.copyOf(explicitFocus);
-            applyFocus(focus);
-            stickySel = focus;
+            // UI updates must happen on FX thread
+            Platform.runLater(() -> {
+                ignoreSticky = true;
+                rebuildRows(qp.queue());
+                ignoreSticky = false;
 
-            loopBtn.setSelected(Optional.ofNullable(st.planQueueMode())
-                    .map(StatusResponse.PlanQueueMode::loop)
-                    .orElse(false));
+                List<String> focus = explicitFocus.isEmpty() ? stickySel
+                        : List.copyOf(explicitFocus);
+                applyFocus(focus);
+                stickySel = focus;
+
+                loopBtn.setSelected(Optional.ofNullable(st.planQueueMode())
+                        .map(StatusResponse.PlanQueueMode::loop)
+                        .orElse(false));
+            });
         } catch (Exception ex) {
-            LOG.warning("Queue refresh failed: " + ex.getMessage());
+            logger.log(Level.FINE, "Queue refresh failed: " + ex.getMessage());
         }
     }
 
@@ -146,7 +185,7 @@ public final class RePlanQueueController implements Initializable {
 
         for (QueueItem q : items) {
             rows.add(new Row(q.itemUid(), q.itemType(), q.name(),
-                    fmtParams(q), q.user(), q.userGroup()));
+                    fmtParams(q, q.itemType(), q.name()), q.user(), q.userGroup()));
             uid2item.put(q.itemUid(), q);
         }
         updateButtonStates();
@@ -224,7 +263,7 @@ public final class RePlanQueueController implements Initializable {
 
         List<String> focus = selectedUids();
         try { sendMove(focus, rows.get(ref).uid(), delta<0); refreshLater(focus); }
-        catch (Exception ex) { LOG.warning("Move failed: "+ex.getMessage()); }
+        catch (Exception ex) { logger.log(Level.WARNING, "Move failed: "+ex.getMessage()); }
     }
     private void moveAbsolute(int targetRow) {
         if (rows.isEmpty()) return;
@@ -236,7 +275,7 @@ public final class RePlanQueueController implements Initializable {
         boolean before = targetRow < selRows.get(0);
         List<String> focus = selectedUids();
         try { sendMove(focus, rows.get(targetRow).uid(), before); refreshLater(focus); }
-        catch (Exception ex) { LOG.warning("Move-abs failed: "+ex.getMessage()); }
+        catch (Exception ex) { logger.log(Level.WARNING, "Move-abs failed: "+ex.getMessage()); }
     }
 
     private void deleteSelected() {
@@ -249,7 +288,7 @@ public final class RePlanQueueController implements Initializable {
         try {
             svc.queueItemRemoveBatch(Map.of("uids", selectedUids()));
             refreshLater(nextFocus==null? List.of() : List.of(nextFocus));
-        } catch (Exception ex) { LOG.warning("Delete failed: "+ex.getMessage()); }
+        } catch (Exception ex) { logger.log(Level.WARNING, "Delete failed: "+ex.getMessage()); }
     }
 
     private void duplicateSelected() {
@@ -265,7 +304,7 @@ public final class RePlanQueueController implements Initializable {
             if (orig == null) return;
             try { svc.addAfter(orig, orig.itemUid()); }      // server returns nothing we need
             catch (Exception ex) {                           // log but continue
-                LOG.warning("Duplicate RPC failed: "+ex.getMessage());
+                logger.log(Level.WARNING, "Duplicate RPC failed: "+ex.getMessage());
             }
         });
 
@@ -285,17 +324,18 @@ public final class RePlanQueueController implements Initializable {
             stickySel = added.isEmpty() ? stickySel : List.of(added.get(0));
 
         } catch (Exception ex) {
-            LOG.warning("Refresh after duplicate failed: "+ex.getMessage());
+            logger.log(Level.WARNING, "Refresh after duplicate failed: "+ex.getMessage());
         }
     }
 
     private void clearQueue() { try { svc.queueClear(); }
-    catch (Exception ex) { LOG.warning("Clear failed: "+ex.getMessage()); } }
+    catch (Exception ex) { logger.log(Level.WARNING, "Clear failed: "+ex.getMessage()); } }
     private void setLoopMode(boolean loop){ try { svc.queueModeSet(Map.of("loop",loop)); }
-    catch (Exception ex){ LOG.warning("Loop-set failed: "+ex.getMessage()); } }
+    catch (Exception ex){ logger.log(Level.WARNING, "Loop-set failed: "+ex.getMessage()); } }
 
     private void updateButtonStates() {
-        boolean connected = StatusBus.latest().get()!=null;
+        StatusResponse status = StatusBus.latest().get();
+        boolean connected = status != null;
 
         var sel = table.getSelectionModel().getSelectedIndices();
         boolean hasSel = !table.getSelectionModel().getSelectedIndices().isEmpty();
@@ -313,6 +353,7 @@ public final class RePlanQueueController implements Initializable {
             loopBtn.setDisable(true);
             deselectBtn.setDisable(!hasSel);
         } else {
+            // Only require server connection (not environment open)
             upBtn.setDisable(!(connected && hasSel && !atTop));
             downBtn.setDisable(!(connected && hasSel && !atBot));
             topBtn.setDisable(upBtn.isDisable());
@@ -321,6 +362,7 @@ public final class RePlanQueueController implements Initializable {
             duplicateBtn.setDisable(deleteBtn.isDisable());
             clearBtn.setDisable(!(connected && !rows.isEmpty()));
             loopBtn.setDisable(!connected);
+            // Deselect always enabled when there's a selection
             deselectBtn.setDisable(!hasSel);
         }
     }
@@ -358,15 +400,49 @@ public final class RePlanQueueController implements Initializable {
     private static String firstLetter(String s) {
         return (s == null || s.isBlank()) ? "" : s.substring(0, 1).toUpperCase();
     }
-    private static String fmtParams(QueueItem q) {
+    private String fmtParams(QueueItem q, String itemType, String itemName) {
+        // Format args first
         String a = Optional.ofNullable(q.args()).orElse(List.of())
-                .stream().map(Object::toString)
+                .stream().map(PythonParameterConverter::toPythonRepr)
                 .collect(Collectors.joining(", "));
-        String k = Optional.ofNullable(q.kwargs()).orElse(Map.of())
-                .entrySet().stream()
-                .map(e -> e.getKey() + ": " + e.getValue())
-                .collect(Collectors.joining(", "));
+
+        // Get the plan/instruction definition to determine parameter order
+        Map<String, Object> itemInfo = null;
+        if ("plan".equals(itemType)) {
+            itemInfo = allowedPlans.get(itemName);
+        } else if ("instruction".equals(itemType)) {
+            itemInfo = allowedInstructions.get(itemName);
+        }
+
+        // Format kwargs in schema order if available
+        String k;
+        if (itemInfo != null) {
+            List<Map<String, Object>> parameters = (List<Map<String, Object>>) itemInfo.get("parameters");
+            if (parameters != null) {
+                Map<String, Object> kwargs = Optional.ofNullable(q.kwargs()).orElse(Map.of());
+                // Format kwargs in the order they appear in the schema
+                k = parameters.stream()
+                        .map(paramInfo -> (String) paramInfo.get("name"))
+                        .filter(kwargs::containsKey)
+                        .map(paramName -> paramName + ": " + PythonParameterConverter.toPythonRepr(kwargs.get(paramName)))
+                        .collect(Collectors.joining(", "));
+            } else {
+                // No parameters defined, use default formatting
+                k = formatKwargsDefault(q.kwargs());
+            }
+        } else {
+            // Plan/instruction not found in schema, use default formatting
+            k = formatKwargsDefault(q.kwargs());
+        }
+
         return Stream.of(a, k).filter(s -> !s.isEmpty())
+                .collect(Collectors.joining(", "));
+    }
+
+    private String formatKwargsDefault(Map<String, Object> kwargs) {
+        return Optional.ofNullable(kwargs).orElse(Map.of())
+                .entrySet().stream()
+                .map(e -> e.getKey() + ": " + PythonParameterConverter.toPythonRepr(e.getValue()))
                 .collect(Collectors.joining(", "));
     }
     private record Row(String uid, String itemType, String name,
