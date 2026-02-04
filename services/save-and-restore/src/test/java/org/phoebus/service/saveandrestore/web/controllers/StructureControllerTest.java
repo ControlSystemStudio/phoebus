@@ -25,14 +25,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = ControllersTestConfig.class)
+@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class, WebSecurityConfig.class})})
 @TestPropertySource(locations = "classpath:test_application.properties")
 @WebMvcTest(StructureController.class)
 public class StructureControllerTest {
@@ -81,11 +83,11 @@ public class StructureControllerTest {
     private String readOnlyAuthorization;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private WebSocketService webSocketService;
 
     @AfterEach
-    public void resetMocks(){
-        reset(webSocketHandler, nodeDAO);
+    public void resetMocks() {
+        reset(webSocketService, nodeDAO);
     }
 
     @Test
@@ -106,11 +108,11 @@ public class StructureControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(result.getResponse().getContentAsString(), Node.class);
 
-        verify(webSocketHandler, times(2)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(2)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
-    public void testMoveNode2() throws Exception{
+    public void testMoveNode2() throws Exception {
 
         when(nodeDAO.moveNodes(List.of("a"), "b", demoUser))
                 .thenReturn(Node.builder().uniqueId("2").uniqueId("a").userName(demoUser).build());
@@ -124,11 +126,11 @@ public class StructureControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
-    public void testMoveNode3() throws Exception{
+    public void testMoveNode3() throws Exception {
 
         MockHttpServletRequestBuilder request = post("/move")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
@@ -147,7 +149,7 @@ public class StructureControllerTest {
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -161,7 +163,7 @@ public class StructureControllerTest {
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -175,7 +177,7 @@ public class StructureControllerTest {
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -194,11 +196,11 @@ public class StructureControllerTest {
                 .param("to", "target");
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
-    public void testCopyNodes2() throws Exception{
+    public void testCopyNodes2() throws Exception {
 
         MockHttpServletRequestBuilder request = post("/copy")
                 .contentType(JSON)
@@ -217,7 +219,7 @@ public class StructureControllerTest {
                 .param("to", "");
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -241,6 +243,6 @@ public class StructureControllerTest {
                 .param("to", "target");
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 }

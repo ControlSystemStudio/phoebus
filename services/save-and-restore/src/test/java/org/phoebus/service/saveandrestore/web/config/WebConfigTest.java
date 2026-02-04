@@ -29,7 +29,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
-@ContextHierarchy({@ContextConfiguration(classes = {WebConfiguration.class, ControllersTestConfig.class})})
+@ContextHierarchy({@ContextConfiguration(classes = {WebConfiguration.class, ControllersTestConfig.class, WebSecurityConfig.class})})
 @TestPropertySource(locations = "classpath:test_application.properties")
 @SuppressWarnings("unused")
 public class WebConfigTest {

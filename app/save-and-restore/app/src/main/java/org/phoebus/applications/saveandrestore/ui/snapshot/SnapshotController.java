@@ -76,17 +76,17 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SnapshotMode;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
-import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.core.vtypes.VDisconnectedData;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
@@ -124,7 +124,8 @@ import java.util.stream.Collectors;
  * Once the snapshot has been saved, this controller calls the {@link SnapshotTab} API to load
  * the view associated with restore actions.
  */
-public class SnapshotController extends SaveAndRestoreBaseController implements WebSocketMessageHandler {
+public class SnapshotController extends SaveAndRestoreBaseController
+        implements SaveAndRestoreWebSocketMessageHandler {
 
 
     @SuppressWarnings("unused")
@@ -271,9 +272,11 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     @FXML
     protected TableColumn<TableEntry, ?> baseSnapshotColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<TableEntry, AlarmSeverity> storedSeverityColumn;
 
+    @SuppressWarnings("unused")
     @FXML
     private TableColumn<TableEntry, AlarmSeverity> liveSeverityColumn;
 
@@ -357,8 +360,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
      * determine which elements in the {@link List} to actually represent.
      *
      * <p>
-     *     Note that the list is cleared and recreated whenever snapshot data has changed, i.e.
-     *     when retrieved from service or when taking a snapshot.
+     * Note that the list is cleared and recreated whenever snapshot data has changed, i.e.
+     * when retrieved from service or when taking a snapshot.
      * </p>
      */
     protected final List<TableEntry> tableEntryItems = new ArrayList<>();
@@ -670,7 +673,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
 
         snapshotUtil = new SnapshotUtil();
 
-        webSocketClientService.addWebSocketMessageHandler(this);
+        saveAndRestoreService.addSaveAndRestoreWebSocketMessageHandler(this);
     }
 
     private void updateUi() {
@@ -870,8 +873,8 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     @Override
-    public void handleTabClosed(){
-        webSocketClientService.removeWebSocketMessageHandler(this);
+    public void handleTabClosed() {
+        saveAndRestoreService.removeSaveAndRestoreWebSocketMessageHandler(this);
         dispose();
     }
 
@@ -1001,9 +1004,10 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
-        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
-            Node node = (Node) saveAndRestoreWebSocketMessage.payload();
+    public void handleSaveAndRestoreWebSocketMessage(WebSocketMessage webSocketMessage) {
+
+        if (webSocketMessage.messageType().equals(SaveAndRestoreMessageType.NODE_UPDATED)) {
+            Node node = (Node) webSocketMessage.payload();
             if (tabIdProperty.get() != null && node.getUniqueId().equals(tabIdProperty.get())) {
                 loadSnapshot(node);
             }
@@ -1110,11 +1114,11 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(
                     Node.builder()
-                        .nodeType(NodeType.SNAPSHOT)
-                        // set name and description to preserve the name / comment fields
-                        .name(snapshotNameProperty.getValue())
-                        .description(snapshotCommentProperty.getValue())
-                        .build()
+                            .nodeType(NodeType.SNAPSHOT)
+                            // set name and description to preserve the name / comment fields
+                            .name(snapshotNameProperty.getValue())
+                            .description(snapshotCommentProperty.getValue())
+                            .build()
             );
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(snapshotItems);
@@ -1145,7 +1149,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
             if (snapshotItem.getValue().equals(VDisconnectedData.INSTANCE)) {
                 disconnectedPvEncountered.set(true);
                 Platform.runLater(() ->
-                    actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png"))));
+                        actionResultColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png"))));
                 break;
             }
         }
@@ -1154,7 +1158,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
                     snapshotItem.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
                 disconnectedReadbackPvEncountered.set(true);
                 Platform.runLater(() ->
-                    actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png"))));
+                        actionResultReadbackColumn.setGraphic(new ImageView(ImageCache.getImage(SnapshotController.class, "/icons/error.png"))));
 
                 break;
             }
@@ -1492,7 +1496,7 @@ public class SnapshotController extends SaveAndRestoreBaseController implements 
         });
 
         JobManager.schedule("Connect to PVs", monitor ->
-           tableEntryItems.forEach(TableEntry::connect));
+                tableEntryItems.forEach(TableEntry::connect));
 
         updateTable();
     }

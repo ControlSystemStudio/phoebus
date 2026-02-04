@@ -2,9 +2,10 @@
  * Copyright (C) 2025 European Spallation Source ERIC.
  */
 
-package org.phoebus.core.websocket.springframework;
+package org.phoebus.core.websocket.client;
 
-import org.phoebus.core.websocket.WebSocketMessageHandler;
+import org.phoebus.core.websocket.common.Constants;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.stomp.ConnectionLostException;
@@ -19,6 +20,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,8 +44,8 @@ import java.util.logging.Logger;
  * <p>
  *     Since web socket URL paths are currently hard coded, a remote peer (e.g. Spring Framework STOMP web socket service) must:
  *     <ul>
- *         <li>Publish a connect URL like ws(s)://host:port/path/web-socket, where path is optional.</li>
- *         <li>Publish a topic named /path/web-socket/messages, where path is optional.</li>
+ *         <li>Publish a connect URL like <code>ws(s)://host:port/path/web-socket</code>, where <code>path</code> is optional.</li>
+ *         <li>Publish a topic named <code>/path/web-socket/messages</code>, where <code>path</code> is optional.</li>
  *     </ul>
  * </p>
  * <p>
@@ -64,36 +66,38 @@ public class WebSocketClientService {
      */
     private final String connectUrl;
     /**
-     * Subscription endpoint, e.g. /Olog/web-socket/messages
+     * Subscription endpoint, e.g. /Olog/web-socket/messages or /save-restore/web-socket/messages
      */
     private final String subscriptionEndpoint;
-    /**
-     * Echo endpoint /Olog/web-socket/echo
-     */
-    private final String echoEndpoint;
 
     private static final Logger logger = Logger.getLogger(WebSocketClientService.class.getName());
 
     /**
      * Constructor if connect/disconnect  callbacks are not needed.
+     *
+     * @param connectUrl URL to the service web socket, e.g. <code>ws://localhost:8080/Olog/web.socket</code>.
+     *                   The subscription and echo endpoints are computed from the <code>connectUrl</code>.
      */
     @SuppressWarnings("unused")
-    public WebSocketClientService(String connectUrl, String subscriptionEndpoint, String echoEndpoint) {
+    public WebSocketClientService(@NonNull String connectUrl) {
         this.connectUrl = connectUrl;
-        this.subscriptionEndpoint = subscriptionEndpoint;
-        this.echoEndpoint = echoEndpoint;
+        URI uri = URI.create(connectUrl);
+        String path = uri.getPath();
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        this.subscriptionEndpoint = path + Constants.MESSAGES;
     }
 
     /**
-     * @param connectCallback      The non-null method called when connection to the remote web socket has been successfully established.
-     * @param disconnectCallback   The non-null method called when connection to the remote web socket has been lost, e.g.
-     *                             remote peer has been shut down.
-     * @param connectUrl           URL to the service web socket, e.g. ws://localhost:8080/Olog/web.socket
-     * @param subscriptionEndpoint E.g. /Olog/web-socket/messages
-     * @param echoEndpoint         E.g. /Olog/web-socket/echo. May be <code>null</code> if client has no need for echo messages.
+     * @param connectCallback    The non-null method called when connection to the remote web socket has been successfully established.
+     * @param disconnectCallback The non-null method called when connection to the remote web socket has been lost, e.g.
+     *                           remote peer has been shut down.
+     * @param connectUrl         URL to the service web socket, e.g. <code>ws://localhost:8080/Olog/web.socket</code>.
+     *                           The subscription and echo endpoints are computed from the <code>connectUrl</code>.
      */
-    public WebSocketClientService(Runnable connectCallback, Runnable disconnectCallback, String connectUrl, String subscriptionEndpoint, String echoEndpoint) {
-        this(connectUrl, subscriptionEndpoint, echoEndpoint);
+    public WebSocketClientService(Runnable connectCallback, Runnable disconnectCallback, @NonNull String connectUrl) {
+        this(connectUrl);
         this.connectCallback = connectCallback;
         this.disconnectCallback = disconnectCallback;
     }
@@ -114,18 +118,6 @@ public class WebSocketClientService {
 
     public void removeWebSocketMessageHandler(WebSocketMessageHandler webSocketMessageHandler) {
         webSocketMessageHandlers.remove(webSocketMessageHandler);
-    }
-
-    /**
-     * For debugging purposes: peer should just echo back the message on the subscribed topic.
-     *
-     * @param message Message for the service to echo
-     */
-    @SuppressWarnings("unused")
-    public void sendEcho(String message) {
-        if (stompSession != null && stompSession.isConnected() && echoEndpoint != null) {
-            stompSession.send(echoEndpoint, message);
-        }
     }
 
     /**
@@ -155,9 +147,9 @@ public class WebSocketClientService {
         logger.log(Level.INFO, "Attempting web socket connection to " + connectUrl);
         new Thread(() -> {
             while (true) {
-                try{
+                try {
                     synchronized (WebSocketClientService.this) {
-                        if(attemptReconnect.get()) {
+                        if (attemptReconnect.get()) {
                             stompSession = stompClient.connect(connectUrl, sessionHandler).get();
                             stompSession.subscribe(this.subscriptionEndpoint, new StompFrameHandler() {
                                 @Override
@@ -181,7 +173,7 @@ public class WebSocketClientService {
                 try {
                     Thread.sleep(10000);
                 } catch (InterruptedException e) {
-                    logger.log(Level.WARNING, "Got exception when trying to connect", e);
+                    logger.log(Level.WARNING, "Got exception when putting thread to sleep", e);
                 }
             }
         }).start();

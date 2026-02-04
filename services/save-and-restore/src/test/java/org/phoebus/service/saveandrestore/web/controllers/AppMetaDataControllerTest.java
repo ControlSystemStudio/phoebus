@@ -21,6 +21,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
+import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -40,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author georgweiss
  * Created 16 May 2019
  */
-@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class})})
+@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class, WebSecurityConfig.class})})
 @WebMvcTest(AppMetaDataControllerTest.class)
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test_application.properties")

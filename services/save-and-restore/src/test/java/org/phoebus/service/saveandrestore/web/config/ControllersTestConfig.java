@@ -27,22 +27,24 @@ import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.Ela
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.FilterRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.SnapshotDataRepository;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
+import org.springframework.mock.web.MockServletContext;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.socket.WebSocketSession;
 
+import javax.servlet.ServletContext;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@SpringBootConfiguration
+@TestConfiguration
 @ComponentScan(basePackages = "org.phoebus.service.saveandrestore.web.controllers")
-@Import(WebSecurityConfig.class)
 @SuppressWarnings("unused")
 @Profile("!IT")
 public class ControllersTestConfig {
@@ -133,18 +135,41 @@ public class ControllersTestConfig {
     }
 
     @Bean
-    public WebSocketSession webSocketSession(){
+    public WebSocketSession webSocketSession() {
         return Mockito.mock(WebSocketSession.class);
     }
 
     @Bean
-    public WebSocketHandler webSocketHandler(){
-        return Mockito.mock(WebSocketHandler.class);
+    public WebSocketService webSocketService() {
+        return Mockito.mock(WebSocketService.class);
     }
 
     @Bean
-    public long connectionTimeout(){
+    public SimpMessagingTemplate simpMessagingTemplate() {
+        return Mockito.mock(SimpMessagingTemplate.class);
+    }
+
+    @Bean
+    public SimpUserRegistry simpUserRegistry() {
+        return Mockito.mock(SimpUserRegistry.class);
+    }
+
+    @Bean
+    public long connectionTimeout() {
         return 5000;
+    }
+
+    @Bean
+    public ServletContext servletContext() {
+        MockServletContext mockServletContext = new MockServletContext();
+        mockServletContext.setContextPath("/");
+        return mockServletContext;
+    }
+
+    @Bean
+    public String context() {
+        return servletContext().getContextPath().length() > 1 ?
+                servletContext().getContextPath() : "";
     }
 
 }

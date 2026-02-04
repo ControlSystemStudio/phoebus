@@ -99,6 +99,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
     @FXML
     public void initialize() {
+        super.initialize();
 
         advancedSearchViewController.setSearchCallback(this::search);
         configureComboBox();
