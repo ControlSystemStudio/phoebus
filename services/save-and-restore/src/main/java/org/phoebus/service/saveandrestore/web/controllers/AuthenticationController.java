@@ -57,7 +57,7 @@ public class AuthenticationController extends BaseController {
         try {
             authenticationManager.authenticate(authentication);
         } catch (AuthenticationException e) {
-            Logger.getLogger(AuthenticationController.class.getName()).log(Level.WARNING, "Unable to authenticate user " + loginCredentials.username());
+            Logger.getLogger(AuthenticationController.class.getName()).log(Level.WARNING, "Unable to authenticate user " + loginCredentials.username(), e);
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         return new ResponseEntity<>(HttpStatus.OK);

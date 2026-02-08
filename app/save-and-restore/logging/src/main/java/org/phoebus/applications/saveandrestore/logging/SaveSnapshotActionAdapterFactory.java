@@ -77,7 +77,17 @@ public class SaveSnapshotActionAdapterFactory implements AdapterFactory {
         // This is needed!
         stringBuilder.append("|-|-|\n");
         stringBuilder.append("| Snapshot name | ").append(saveSnapshotActionInfo.getSnapshotName()).append(" |\n");
-        stringBuilder.append("| Comment | ").append(saveSnapshotActionInfo.getComment()).append(" |\n");
+        stringBuilder.append("| Comment | ").append(replaceNewLineChars(saveSnapshotActionInfo.getComment())).append(" |\n");
         stringBuilder.append("| Created | ").append(saveSnapshotActionInfo.getSnapshotCreatedDate()).append(" |\n");
+    }
+
+    /**
+     * Replace line feed or carriage return + line feed with space char. Used for instance to correctly create a markdown table
+     * for a snapshot where the comment field contains line feed or carriage return + line feed.
+     * @param input Input string
+     * @return The mangled string.
+     */
+    protected String replaceNewLineChars(String input) {
+        return input.replace("\n", " ").replace("\r", "");
     }
 }
