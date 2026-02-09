@@ -24,6 +24,7 @@ import org.phoebus.logbook.LogEntry;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SaveSnapshotActionAdapterFactoryTestData {
@@ -50,5 +51,23 @@ public class SaveSnapshotActionAdapterFactoryTestData {
         LogEntry logEntry = saveSnapshotActionAdapterFactory.adapt(saveSnapshotActionInfo, LogEntry.class).get();
         assertTrue(logEntry.getTitle().contains("snapshot name"));
         assertTrue(logEntry.getDescription().contains("snapshot name"));
+    }
+
+    @Test
+    public void testReplaceNewLineChars(){
+        String someString = "Foo Bar";
+        assertEquals("Foo Bar", saveSnapshotActionAdapterFactory.replaceNewLineChars(someString));
+
+        someString = "Foo\nBar";
+        assertEquals("Foo Bar", saveSnapshotActionAdapterFactory.replaceNewLineChars(someString));
+
+        someString = "Foo\r\nBar";
+        assertEquals("Foo Bar", saveSnapshotActionAdapterFactory.replaceNewLineChars(someString));
+
+        someString = "Foo\r\nBar\nBaz";
+        assertEquals("Foo Bar Baz", saveSnapshotActionAdapterFactory.replaceNewLineChars(someString));
+
+        someString = "Foo" + System.lineSeparator() + "Bar";
+        assertEquals("Foo Bar", saveSnapshotActionAdapterFactory.replaceNewLineChars(someString));
     }
 }
