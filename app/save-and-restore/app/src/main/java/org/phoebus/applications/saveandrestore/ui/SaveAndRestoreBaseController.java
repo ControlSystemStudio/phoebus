@@ -32,11 +32,9 @@ import java.util.logging.Logger;
 public abstract class SaveAndRestoreBaseController {
 
     protected final SimpleStringProperty userIdentity = new SimpleStringProperty();
-    //protected final WebSocketClientService webSocketClientService;
     protected final SaveAndRestoreService saveAndRestoreService;
 
     public SaveAndRestoreBaseController() {
-        //this.webSocketClientService = WebSocketClientService.getInstance();
         this.saveAndRestoreService = SaveAndRestoreService.getInstance();
         try {
             SecureStore secureStore = new SecureStore();
