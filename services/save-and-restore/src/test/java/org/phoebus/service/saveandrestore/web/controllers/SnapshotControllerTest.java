@@ -28,14 +28,16 @@ import org.mockito.stubbing.Answer;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,7 +45,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -57,7 +58,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = ControllersTestConfig.class)
+@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class, WebSecurityConfig.class})})
 @TestPropertySource(locations = "classpath:test_application.properties")
 @WebMvcTest(SnapshotController.class)
 public class SnapshotControllerTest {
@@ -83,11 +84,11 @@ public class SnapshotControllerTest {
     private String demoUser;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private WebSocketService webSocketService;
 
     @AfterEach
-    public void resetMocks(){
-        reset(webSocketHandler, nodeDAO);
+    public void resetMocks() {
+        reset(webSocketService, nodeDAO);
     }
 
 
@@ -108,7 +109,7 @@ public class SnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -123,7 +124,7 @@ public class SnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -149,7 +150,7 @@ public class SnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(result.getResponse().getContentAsString(), Snapshot.class);
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -172,11 +173,11 @@ public class SnapshotControllerTest {
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
-    public void testCreateSnapshot3() throws Exception{
+    public void testCreateSnapshot3() throws Exception {
 
         Node node = Node.builder().uniqueId("uniqueId").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
         Snapshot snapshot = new Snapshot();
@@ -193,7 +194,7 @@ public class SnapshotControllerTest {
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -219,7 +220,7 @@ public class SnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(result.getResponse().getContentAsString(), Snapshot.class);
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -236,7 +237,7 @@ public class SnapshotControllerTest {
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -254,11 +255,11 @@ public class SnapshotControllerTest {
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
-    public void testUpdateSnapshot4() throws Exception{
+    public void testUpdateSnapshot4() throws Exception {
 
         Node node = Node.builder().uniqueId("s").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
         Snapshot snapshot = new Snapshot();
@@ -275,7 +276,7 @@ public class SnapshotControllerTest {
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -296,7 +297,7 @@ public class SnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -309,7 +310,7 @@ public class SnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -329,11 +330,11 @@ public class SnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
-    public void testDeleteSnapshot4() throws Exception{
+    public void testDeleteSnapshot4() throws Exception {
 
         MockHttpServletRequestBuilder request =
                 delete("/node")
@@ -341,6 +342,6 @@ public class SnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 }

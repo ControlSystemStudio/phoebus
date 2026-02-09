@@ -24,6 +24,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.ArrayList;
@@ -34,7 +35,8 @@ import java.util.Properties;
 /**
  * Save-and-restore service main class.
  */
-@SpringBootApplication(scanBasePackages = "org.phoebus.service.saveandrestore")
+@SpringBootApplication
+@ComponentScan(basePackages = {"org.phoebus.service.saveandrestore"})
 @EnableScheduling
 @EnableAutoConfiguration
 public class Application {

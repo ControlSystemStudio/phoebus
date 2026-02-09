@@ -59,12 +59,12 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -82,7 +82,8 @@ import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class CompositeSnapshotController extends SaveAndRestoreBaseController implements WebSocketMessageHandler {
+public class CompositeSnapshotController extends SaveAndRestoreBaseController
+        implements SaveAndRestoreWebSocketMessageHandler {
 
     @SuppressWarnings("unused")
     @FXML
@@ -347,7 +348,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
             }
         });
 
-        webSocketClientService.addWebSocketMessageHandler(this);
+        saveAndRestoreService.addSaveAndRestoreWebSocketMessageHandler(this);
     }
 
     @FXML
@@ -443,8 +444,8 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     }
 
     @Override
-    public void handleTabClosed(){
-        webSocketClientService.removeWebSocketMessageHandler(this);
+    public void handleTabClosed() {
+        saveAndRestoreService.removeSaveAndRestoreWebSocketMessageHandler(this);
     }
 
     /**
@@ -554,9 +555,9 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController im
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
-        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_UPDATED)) {
-            Node node = (Node) saveAndRestoreWebSocketMessage.payload();
+    public void handleSaveAndRestoreWebSocketMessage(WebSocketMessage webSocketMessage) {
+        if (webSocketMessage.messageType().equals(SaveAndRestoreMessageType.NODE_UPDATED)) {
+            Node node = (Node) webSocketMessage.payload();
             if (tabIdProperty.get() != null && node.getUniqueId().equals(tabIdProperty.get())) {
                 loadCompositeSnapshot(node);
             }

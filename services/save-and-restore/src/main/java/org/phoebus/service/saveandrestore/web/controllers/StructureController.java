@@ -18,14 +18,19 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
@@ -45,7 +50,7 @@ public class StructureController extends BaseController {
     private NodeDAO nodeDAO;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private WebSocketService webSocketService;
 
     /**
      * Moves a list of source nodes to a new target (parent) node.
@@ -71,9 +76,9 @@ public class StructureController extends BaseController {
         Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
         Node targetNode = nodeDAO.moveNodes(nodes, to, principal.getName());
         // Update clients
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_UPDATED,
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_UPDATED,
                 targetNode));
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_UPDATED,
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_UPDATED,
                 sourceParentNode));
         return targetNode;
     }
@@ -101,7 +106,7 @@ public class StructureController extends BaseController {
         Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " copy");
         Node targetNode = nodeDAO.getNode(to);
         List<Node> newNodes = nodeDAO.copyNodes(nodes, to, principal.getName());
-        newNodes.forEach(n -> webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage<>(MessageType.NODE_ADDED, n.getUniqueId())));
+        newNodes.forEach(n -> webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_ADDED, n.getUniqueId())));
         return targetNode;
     }
 
