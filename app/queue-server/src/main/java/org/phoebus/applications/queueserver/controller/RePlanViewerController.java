@@ -238,7 +238,8 @@ public class RePlanViewerController implements Initializable {
     }
 
     public void showItem(QueueItem item) {
-        // Skip if same item already displayed (avoid unnecessary refresh/flash)
+        // Skip if same state (avoid unnecessary refresh/flash)
+        if (item == null && currentQueueItem == null) return;
         if (item != null && currentQueueItem != null &&
                 item.itemUid() != null && item.itemUid().equals(currentQueueItem.itemUid())) {
             return;
@@ -443,41 +444,35 @@ public class RePlanViewerController implements Initializable {
             return;
         }
 
-        try {
-            // Create a copy of the current item for adding to queue
-            QueueItem itemCopy = new QueueItem(
-                    currentQueueItem.itemType(),
-                    currentQueueItem.name(),
-                    currentQueueItem.args() != null ? currentQueueItem.args() : List.of(),
-                    currentQueueItem.kwargs() != null ? currentQueueItem.kwargs() : new HashMap<>(),
-                    null, // New item, no UID
-                    currentUser,
-                    currentUserGroup,
-                    null // No result for new item
-            );
+        // Capture insert position before starting background thread
+        String afterUid = QueueItemSelectionEvent.getInstance().getLastSelectedUid();
 
-            QueueItemAdd request = new QueueItemAdd(
-                    new QueueItemAdd.Item(itemCopy.itemType(), itemCopy.name(), itemCopy.args(), itemCopy.kwargs()),
-                    currentUser,
-                    currentUserGroup
-            );
+        QueueItem itemCopy = new QueueItem(
+                currentQueueItem.itemType(),
+                currentQueueItem.name(),
+                currentQueueItem.args() != null ? currentQueueItem.args() : List.of(),
+                currentQueueItem.kwargs() != null ? currentQueueItem.kwargs() : new HashMap<>(),
+                null,
+                currentUser,
+                currentUserGroup,
+                null
+        );
 
-            new Thread(() -> {
-                try {
-                    var response = svc.queueItemAdd(request);
-                    Platform.runLater(() -> {
-                        if (!response.success()) {
-                            logger.log(Level.WARNING, "Copy to queue failed", response.msg());
-                        }
-                    });
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Copy to queue error", e);
-                }
-            }).start();
+        QueueItemAdd request = new QueueItemAdd(
+                new QueueItemAdd.Item(itemCopy.itemType(), itemCopy.name(), itemCopy.args(), itemCopy.kwargs()),
+                currentUser,
+                currentUserGroup,
+                afterUid
+        );
 
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Copy to queue error", e);
-        }
+        new Thread(() -> {
+            try {
+                String newUid = svc.addItemGetUid(request);
+                QueueItemSelectionEvent.getInstance().requestSelectByUids(List.of(newUid));
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Copy to queue error", e);
+            }
+        }).start();
     }
 
     private void editCurrentItem() {

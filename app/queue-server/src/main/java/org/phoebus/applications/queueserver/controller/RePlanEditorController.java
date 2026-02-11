@@ -5,6 +5,7 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
 import org.phoebus.applications.queueserver.util.PlansCache;
+import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
 import org.phoebus.applications.queueserver.view.TabSwitchEvent;
@@ -713,6 +714,9 @@ public class RePlanEditorController implements Initializable {
 
             String itemType = planRadBtn.isSelected() ? "plan" : "instruction";
 
+            // Capture insert position before starting background thread
+            String afterUid = QueueItemSelectionEvent.getInstance().getLastSelectedUid();
+
             new Thread(() -> {
                 try {
                     // Use Python-based parameter conversion (in background thread to avoid blocking UI)
@@ -732,24 +736,22 @@ public class RePlanEditorController implements Initializable {
                     QueueItemAdd request = new QueueItemAdd(
                             new QueueItemAdd.Item(item.itemType(), item.name(), item.args(), item.kwargs()),
                             currentUser,
-                            currentUserGroup
+                            currentUserGroup,
+                            afterUid
                     );
 
-                    var response = svc.queueItemAdd(request);
+                    String newUid = svc.addItemGetUid(request);
+                    QueueItemSelectionEvent.getInstance().requestSelectByUids(List.of(newUid));
                     Platform.runLater(() -> {
-                        if (response.success()) {
-                            // Clear parameters but preserve radio button selection
-                            parameterRows.clear();
-                            choiceBox.getSelectionModel().clearSelection();
-                            // Don't reset radio button - keep current selection
-                            populateChoiceBox(planRadBtn.isSelected());
-                            // Switch to view tab
-                            TabSwitchEvent.getInstance().switchToTab("Plan Viewer");
-                            exitEditMode();
-                            showItemPreview();
-                        } else {
-                            showValidationError("Failed to add item to queue: " + response.msg());
-                        }
+                        // Clear parameters but preserve radio button selection
+                        parameterRows.clear();
+                        choiceBox.getSelectionModel().clearSelection();
+                        // Don't reset radio button - keep current selection
+                        populateChoiceBox(planRadBtn.isSelected());
+                        // Switch to view tab
+                        TabSwitchEvent.getInstance().switchToTab("Plan Viewer");
+                        exitEditMode();
+                        showItemPreview();
                     });
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Failed to add item to queue", e);
@@ -962,6 +964,9 @@ public class RePlanEditorController implements Initializable {
     }
 
     private void processBatchFile(String filePath, String fileType) {
+        // Capture insert position before starting background thread
+        String afterUid = QueueItemSelectionEvent.getInstance().getLastSelectedUid();
+
         new Thread(() -> {
             try {
                 List<QueueItem> items = new ArrayList<>();
@@ -975,23 +980,16 @@ public class RePlanEditorController implements Initializable {
 
                 if (!items.isEmpty()) {
                     final int itemCount = items.size();
-                    QueueItemAddBatch batchRequest = new QueueItemAddBatch(items, currentUser, currentUserGroup);
-                    var response = svc.queueItemAddBatch(batchRequest);
+                    QueueItemAddBatch batchRequest = new QueueItemAddBatch(items, currentUser, currentUserGroup, afterUid);
+                    List<String> newUids = svc.addBatchGetUids(batchRequest);
+                    QueueItemSelectionEvent.getInstance().requestSelectByUids(newUids);
 
                     Platform.runLater(() -> {
-                        if (response.success()) {
-                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                            alert.setTitle("Batch Upload Success");
-                            alert.setHeaderText(null);
-                            alert.setContentText("Successfully added " + itemCount + " items to queue.");
-                            alert.showAndWait();
-                        } else {
-                            Alert alert = new Alert(Alert.AlertType.ERROR);
-                            alert.setTitle("Batch Upload Failed");
-                            alert.setHeaderText(null);
-                            alert.setContentText("Failed to add items to queue: " + response.msg());
-                            alert.showAndWait();
-                        }
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Batch Upload Success");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Successfully added " + itemCount + " items to queue.");
+                        alert.showAndWait();
                     });
                 } else {
                     Platform.runLater(() -> {

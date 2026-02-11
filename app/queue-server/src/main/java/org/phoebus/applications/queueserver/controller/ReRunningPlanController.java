@@ -2,8 +2,10 @@ package org.phoebus.applications.queueserver.controller;
 
 import org.phoebus.applications.queueserver.api.QueueGetPayload;
 import org.phoebus.applications.queueserver.api.QueueItem;
+import org.phoebus.applications.queueserver.api.QueueItemAdd;
 import org.phoebus.applications.queueserver.api.StatusResponse;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
@@ -165,12 +167,22 @@ public final class ReRunningPlanController implements Initializable {
     private void copyToQueue() {
         if (cachedRunningItem == null) return;
 
-        try {
-            svc.queueItemAdd(cachedRunningItem);
-            logger.log(Level.FINE, "Copied running plan to queue: " + cachedRunningItem.name());
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Failed to copy running plan to queue", ex);
-        }
+        // Capture insert position before starting background thread
+        String afterUid = QueueItemSelectionEvent.getInstance().getLastSelectedUid();
+
+        QueueItem item = cachedRunningItem;
+        new Thread(() -> {
+            try {
+                QueueItemAdd req = new QueueItemAdd(
+                        QueueItemAdd.Item.from(item),
+                        "GUI Client", "primary", afterUid);
+                String newUid = svc.addItemGetUid(req);
+                QueueItemSelectionEvent.getInstance().requestSelectByUids(List.of(newUid));
+                logger.log(Level.FINE, "Copied running plan to queue: " + item.name());
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Failed to copy running plan to queue", ex);
+            }
+        }).start();
     }
 
 
