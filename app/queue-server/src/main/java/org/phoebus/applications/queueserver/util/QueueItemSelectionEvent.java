@@ -13,14 +13,17 @@ public class QueueItemSelectionEvent {
     private static final QueueItemSelectionEvent INSTANCE = new QueueItemSelectionEvent();
 
     private final List<Consumer<QueueItem>> listeners = new CopyOnWriteArrayList<>();
-    private final List<Consumer<String>> selectAndRefreshListeners = new CopyOnWriteArrayList<>();
     private static final Logger logger = Logger.getLogger(QueueItemSelectionEvent.class.getPackageName());
 
     /** The last selected item's UID (for inserting after) */
     private volatile String lastSelectedUid = null;
 
-    /** Pending selection request - UID that should be selected on next queue refresh */
-    private volatile String pendingSelectionUid = null;
+    /**
+     * Exact UIDs to select on the next queue refresh.
+     * Set by controllers after a successful add/copy HTTP call returns the new item UIDs.
+     * The queue controller checks this on every refresh and selects matching rows.
+     */
+    private volatile List<String> pendingSelectUids = null;
 
     private QueueItemSelectionEvent() {}
 
@@ -37,9 +40,6 @@ public class QueueItemSelectionEvent {
     }
 
     public void notifySelectionChanged(QueueItem selectedItem) {
-        // Track the last selected UID for insert-after operations
-        lastSelectedUid = (selectedItem != null) ? selectedItem.itemUid() : null;
-
         for (Consumer<QueueItem> listener : listeners) {
             try {
                 listener.accept(selectedItem);
@@ -47,6 +47,13 @@ public class QueueItemSelectionEvent {
                 logger.log(Level.WARNING, "Error in queue selection listener", e);
             }
         }
+    }
+
+    /**
+     * Set the UID of the last selected item (for insert-after operations).
+     */
+    public void setLastSelectedUid(String uid) {
+        this.lastSelectedUid = uid;
     }
 
     /**
@@ -58,59 +65,39 @@ public class QueueItemSelectionEvent {
     }
 
     /**
-     * Request that a specific UID be selected after refreshing the queue.
-     * This directly notifies listeners to refresh and select the item.
+     * Request that the queue controller select specific UIDs on the next refresh.
+     * Called from background threads after a successful add/copy HTTP response.
      */
-    public void requestSelection(String uid) {
-        pendingSelectionUid = uid;
-        // Directly tell the queue controller to refresh and select this UID
-        notifySelectAndRefreshListeners(uid);
+    public void requestSelectByUids(List<String> uids) {
+        pendingSelectUids = List.copyOf(uids);
     }
 
     /**
-     * Add a listener that gets called with a UID to select after refreshing.
-     * The listener should fetch the queue, rebuild, and select the item with that UID.
+     * Get the UIDs to select, or null if there are none pending.
      */
-    public void addSelectAndRefreshListener(Consumer<String> listener) {
-        selectAndRefreshListeners.add(listener);
+    public List<String> getPendingSelectUids() {
+        return pendingSelectUids;
     }
 
     /**
-     * Remove a select-and-refresh listener.
+     * Clear pending selection (called after UIDs were found and selected,
+     * or when the operation failed).
      */
-    public void removeSelectAndRefreshListener(Consumer<String> listener) {
-        selectAndRefreshListeners.remove(listener);
-    }
-
-    private void notifySelectAndRefreshListeners(String uid) {
-        for (Consumer<String> listener : selectAndRefreshListeners) {
-            try {
-                listener.accept(uid);
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Error in select-and-refresh listener", e);
-            }
-        }
+    public void clearPendingSelect() {
+        pendingSelectUids = null;
     }
 
     /**
-     * Get the pending selection UID (does not clear it).
+     * Check if there are UIDs waiting to be selected.
      */
-    public String getPendingSelection() {
-        return pendingSelectionUid;
-    }
-
-    /**
-     * Confirm that the pending selection was applied. Clears the pending selection.
-     */
-    public void confirmSelection() {
-        pendingSelectionUid = null;
+    public boolean hasPendingSelect() {
+        return pendingSelectUids != null;
     }
 
     /** Reset state for app restart */
     public void reset() {
         listeners.clear();
-        selectAndRefreshListeners.clear();
         lastSelectedUid = null;
-        pendingSelectionUid = null;
+        pendingSelectUids = null;
     }
 }
