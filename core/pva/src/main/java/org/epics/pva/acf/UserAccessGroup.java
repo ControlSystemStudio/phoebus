@@ -30,6 +30,6 @@ public record UserAccessGroup(String name, List<String> users)
     {
         return "UAG(" + name + ") { " + users.stream()
                                              .collect(Collectors.joining(", "))
-                                      + " }";
+                              + " }";
     }
 }

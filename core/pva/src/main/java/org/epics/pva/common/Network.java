@@ -36,7 +36,7 @@ public class Network
      *  If a name was already resolved, use the name.
      *  Otherwise use the numeric notation
      *
-     *  @param addr {@link InetAddress}
+     *  @param address {@link InetAddress}
      *  @return "the.host.name", "12.34.56.78" or IPv6 notation
      */
     public static String format(final InetAddress address)
