@@ -178,7 +178,7 @@ public class PythonParameterConverter {
             return new HashMap<>();
 
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Python parameter conversion failed", e);
+            logger.log(Level.FINE, "Python parameter conversion failed: " + e.getMessage());
             throw new RuntimeException("Parameter conversion failed: " + e.getMessage(), e);
         }
     }
