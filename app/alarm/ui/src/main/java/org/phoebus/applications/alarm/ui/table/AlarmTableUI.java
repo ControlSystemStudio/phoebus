@@ -776,7 +776,8 @@ public class AlarmTableUI extends BorderPane
         int i = 0;
         for (AlarmInfoRow row : table.getItems())
         {
-            if(pv_set.contains(row.pv.get())) {
+            if(pv_set.contains(row.pv.get()))
+            {
                 table.getSelectionModel().select(i);
             }
             ++i;
