@@ -67,14 +67,25 @@ public final class RunEngineService {
 
     public Envelope<?> queueItemAdd(QueueItem item,
                                     String   user,
-                                    String   group) throws Exception {
+                                    String   group,
+                                    String   afterUid) throws Exception {
 
-        QueueItemAdd req = new QueueItemAdd(QueueItemAdd.Item.from(item), user, group);
+        QueueItemAdd req = new QueueItemAdd(QueueItemAdd.Item.from(item), user, group, afterUid);
         return queueItemAdd(req);
     }
 
+    public Envelope<?> queueItemAdd(QueueItem item,
+                                    String   user,
+                                    String   group) throws Exception {
+        return queueItemAdd(item, user, group, null);
+    }
+
     public Envelope<?> queueItemAdd(QueueItem item) throws Exception {
-        return queueItemAdd(item, "GUI Client", "primary");
+        return queueItemAdd(item, "GUI Client", "primary", null);
+    }
+
+    public Envelope<?> queueItemAdd(QueueItem item, String afterUid) throws Exception {
+        return queueItemAdd(item, "GUI Client", "primary", afterUid);
     }
 
     /* ---- move helpers --------------------------------------------------- */
@@ -95,26 +106,41 @@ public final class RunEngineService {
                 : QueueItemMoveBatch.after (uids, ref));
     }
 
+    /* ---- UID-returning add helpers -------------------------------------- */
+
+    /** Add a single item and return the server-assigned UID. */
+    @SuppressWarnings("unchecked")
+    public String addItemGetUid(Object body) throws Exception {
+        Map<String, Object> response = http.send(ApiEndpoint.QUEUE_ITEM_ADD, body);
+        if (Boolean.TRUE.equals(response.get("success"))) {
+            Map<String, Object> item = (Map<String, Object>) response.get("item");
+            if (item != null) return (String) item.get("item_uid");
+        }
+        throw new RuntimeException("Failed to add item: " + response.get("msg"));
+    }
+
+    /** Add a batch of items and return the server-assigned UIDs. */
+    @SuppressWarnings("unchecked")
+    public List<String> addBatchGetUids(Object body) throws Exception {
+        Map<String, Object> response = http.send(ApiEndpoint.QUEUE_ITEM_ADD_BATCH, body);
+        if (Boolean.TRUE.equals(response.get("success"))) {
+            List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
+            if (items != null) {
+                return items.stream()
+                        .map(i -> (String) i.get("item_uid"))
+                        .filter(java.util.Objects::nonNull)
+                        .toList();
+            }
+        }
+        throw new RuntimeException("Failed to add batch: " + response.get("msg"));
+    }
+
     /* ---- duplicate helper ---------------------------------------------- */
 
-    public String addAfter(QueueItem item, String afterUid) throws Exception {
+    public void addAfter(QueueItem item, String afterUid) throws Exception {
         QueueItemAdd req = new QueueItemAdd(QueueItemAdd.Item.from(item),
-                "GUI Client", "primary");
-        Map<String,Object> body = Map.of(
-                "item",       req.item(),
-                "after_uid",  afterUid,
-                "user",       req.user(),
-                "user_group", req.userGroup());
-
-        Envelope<?> env = queueItemAdd(body);
-
-        Object payload = env.payload();
-        if (payload instanceof Map<?,?> p &&
-                p.get("item") instanceof Map<?,?> m &&
-                m.get("item_uid") != null) {
-            return m.get("item_uid").toString();
-        }
-        return null;
+                "GUI Client", "primary", afterUid);
+        queueItemAdd(req);
     }
 
     /* ---- batch-add helpers --------------------------------------------- */
