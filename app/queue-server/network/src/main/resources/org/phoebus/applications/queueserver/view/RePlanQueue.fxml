@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <TableView fx:id="table" layoutY="31.0" prefHeight="163.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="31.0">
+        <columns>
+            <TableColumn fx:id="idxCol" editable="false" minWidth="41.0" prefWidth="-1.0" sortable="false" text="Index" />
+          <TableColumn fx:id="typeCol" editable="false" minWidth="35.0" prefWidth="-1.0" sortable="false" text="Type" />
+            <TableColumn fx:id="nameCol" editable="false" minWidth="43.0" prefWidth="-1.0" sortable="false" text="Name" />
+          <TableColumn fx:id="paramCol" editable="false" minWidth="80.0" prefWidth="-1.0" sortable="false" text="Parameters" />
+            <TableColumn fx:id="userCol" editable="false" minWidth="37.0" prefWidth="-1.0" sortable="false" text="USER" />
+            <TableColumn fx:id="grpCol" editable="false" minWidth="51.0" prefWidth="-1.0" sortable="false" text="GROUP" />
+        </columns>
+      </TableView>
+      <HBox alignment="CENTER_LEFT" layoutY="1.0" prefHeight="26.0" prefWidth="337.0" spacing="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+         <children>
+            <Label text="QUEUE" HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <Button fx:id="upBtn" mnemonicParsing="false" text="Up" />
+                  <Button fx:id="downBtn" mnemonicParsing="false" text="Down" />
+                  <Button fx:id="topBtn" mnemonicParsing="false" text="Top" />
+                  <Button fx:id="bottomBtn" mnemonicParsing="false" text="Bottom" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <Button fx:id="deselectBtn" mnemonicParsing="false" text="Deselect" />
+                  <Button fx:id="clearBtn" mnemonicParsing="false" text="Clear" />
+               </children>
+            </HBox>
+            <ToggleButton fx:id="loopBtn" mnemonicParsing="false" text="Loop" HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="0.0" spacing="5.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <Button fx:id="deleteBtn" mnemonicParsing="false" text="Delete" />
+                  <Button fx:id="duplicateBtn" mnemonicParsing="false" text="Duplicate" />
+               </children>
+            </HBox>
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>
