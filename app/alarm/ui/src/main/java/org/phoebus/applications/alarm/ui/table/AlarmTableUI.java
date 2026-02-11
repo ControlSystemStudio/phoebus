@@ -357,7 +357,7 @@ public class AlarmTableUI extends BorderPane
         });
 
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
-        search.textProperty().addListener(prop -> selectRows(true));
+        search.textProperty().addListener(prop -> selectRows());
 
     	if (AlarmSystem.disable_notify_visible)
     	    return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
@@ -662,12 +662,12 @@ public class AlarmTableUI extends BorderPane
         update(active_rows, active);
         update(acknowledged_rows, acknowledged);
 
+        /* Move this up here out of update(), doesn't need to be ran twice */
+        selectRows();
+
         /* Now that the table has been appropriately updated, select any still valid pvs */
         selectPvs(this.active, active_selection);
         selectPvs(this.acknowledged, acknowledged_selection);
-
-        /* Move this up here out of update(), doesn't need to be ran twice */
-        selectRows(false);
     }
 
     /** Limit the number of alarms
@@ -716,14 +716,10 @@ public class AlarmTableUI extends BorderPane
     }
 
     /** Select all rows that match the current 'search' pattern */
-    private void selectRows(boolean clearSelection)
+    private void selectRows()
     {
-
-        if(clearSelection)
-        {
-            active.getSelectionModel().clearSelection();
-            acknowledged.getSelectionModel().clearSelection();
-        }
+        active.getSelectionModel().clearSelection();
+        acknowledged.getSelectionModel().clearSelection();
 
         final String glob = search.getText().trim();
         if(glob.isEmpty())
