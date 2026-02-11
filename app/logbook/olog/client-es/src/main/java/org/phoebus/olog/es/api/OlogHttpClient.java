@@ -67,6 +67,11 @@ public class OlogHttpClient implements LogClient {
     private static final String OLOG_CLIENT_INFO_HEADER = "X-Olog-Client-Info";
     private static final String CLIENT_INFO =
             "CS Studio " + Messages.AppVersion + " on " + System.getProperty("os.name");
+    /**
+     * Each endpoint needs this as by default the service's context path is /, but all
+     * API endpoints are prefixed with <code>Olog</code>.
+     */
+    public static final String OLOG_PREFIX = "/Olog";
 
     private static final Logger LOGGER = Logger.getLogger(OlogHttpClient.class.getName());
     private final List<LogEntryChangeHandler> changeHandlers = new ArrayList<>();
@@ -182,7 +187,7 @@ public class OlogHttpClient implements LogClient {
             }
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.olog_url + "/logs/multipart?" + QueryParamsHelper.mapToQueryParams(queryParams)))
+                    .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/logs/multipart?" + QueryParamsHelper.mapToQueryParams(queryParams)))
                     .header("Content-Type", httpRequestMultipartBody.getContentType())
                     .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
                     .header("Authorization", basicAuthenticationHeader)
@@ -225,7 +230,7 @@ public class OlogHttpClient implements LogClient {
     @Override
     public LogEntry findLogById(Long logId) {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.olog_url + "/logs/" + logId))
+                .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/logs/" + logId))
                 .header("Content-Type", CONTENT_TYPE_JSON)
                 .GET()
                 .build();
@@ -252,7 +257,7 @@ public class OlogHttpClient implements LogClient {
      */
     private SearchResult findLogs(MultivaluedMap<String, String> searchParams) throws RuntimeException {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.olog_url +
+                .uri(URI.create(Preferences.olog_url + OLOG_PREFIX +
                         "/logs/search?" + QueryParamsHelper.mapToQueryParams(searchParams)))
                 .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
                 .header("Content-Type", CONTENT_TYPE_JSON)
@@ -311,7 +316,7 @@ public class OlogHttpClient implements LogClient {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.olog_url + "/logs/" + logEntry.getId() + "?markup=commonmark"))
+                    .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/logs/" + logEntry.getId() + "?markup=commonmark"))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", basicAuthenticationHeader)
                     .POST(HttpRequest.BodyPublishers.ofString(OlogObjectMappers.logEntrySerializer.writeValueAsString(logEntry)))
@@ -345,7 +350,7 @@ public class OlogHttpClient implements LogClient {
     public void groupLogEntries(List<Long> logEntryIds) throws LogbookException {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.olog_url + "/logs/group"))
+                    .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/logs/group"))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", basicAuthenticationHeader)
                     .POST(HttpRequest.BodyPublishers.ofString(OlogObjectMappers.logEntrySerializer.writeValueAsString(logEntryIds)))
@@ -371,7 +376,7 @@ public class OlogHttpClient implements LogClient {
      * @return An {@link AuthenticationStatus} to indicate the outcome of the login attempt.
      */
     public AuthenticationStatus authenticate(String userName, String password) {
-        String stringBuilder = Preferences.olog_url +
+        String stringBuilder = Preferences.olog_url + OLOG_PREFIX +
                 "/login";
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -400,7 +405,7 @@ public class OlogHttpClient implements LogClient {
     @Override
     public String serviceInfo() {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.olog_url))
+                .uri(URI.create(Preferences.olog_url + OLOG_PREFIX))
                 .header("Content-Type", CONTENT_TYPE_JSON)
                 .GET()
                 .build();
@@ -428,7 +433,7 @@ public class OlogHttpClient implements LogClient {
     @Override
     public Collection<Logbook> listLogbooks() {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.olog_url + "/logbooks"))
+                .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/logbooks"))
                 .header("Content-Type", CONTENT_TYPE_JSON)
                 .GET()
                 .build();
@@ -445,7 +450,7 @@ public class OlogHttpClient implements LogClient {
     @Override
     public Collection<Tag> listTags() {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.olog_url + "/tags"))
+                .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/tags"))
                 .header("Content-Type", CONTENT_TYPE_JSON)
                 .GET()
                 .build();
@@ -462,7 +467,7 @@ public class OlogHttpClient implements LogClient {
     @Override
     public Collection<Property> listProperties() {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.olog_url + "/properties"))
+                .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/properties"))
                 .header("Content-Type", CONTENT_TYPE_JSON)
                 .GET()
                 .build();
@@ -481,7 +486,7 @@ public class OlogHttpClient implements LogClient {
     public InputStream getAttachment(Long logId, String attachmentName) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.olog_url + "/logs/attachments/" + logId + "/" +
+                    .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/logs/attachments/" + logId + "/" +
                             URLEncoder.encode(attachmentName, StandardCharsets.UTF_8).replace("+", "%20"))) // + char does not work in path element!
                     .GET()
                     .build();
@@ -506,7 +511,7 @@ public class OlogHttpClient implements LogClient {
     public SearchResult getArchivedEntries(long id) {
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.olog_url +
+                .uri(URI.create(Preferences.olog_url + OLOG_PREFIX +
                         "/logs/archived/" + id))
                 .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
                 .header("Content-Type", CONTENT_TYPE_JSON)
@@ -527,7 +532,7 @@ public class OlogHttpClient implements LogClient {
     public Collection<LogTemplate> getTemplates() {
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.olog_url +
+                .uri(URI.create(Preferences.olog_url + OLOG_PREFIX +
                         "/templates"))
                 .header("Content-Type", CONTENT_TYPE_JSON)
                 .GET()
@@ -554,7 +559,7 @@ public class OlogHttpClient implements LogClient {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.olog_url + "/templates"))
+                    .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/templates"))
                     .header("Content-Type", CONTENT_TYPE_JSON)
                     .header("Authorization", basicAuthenticationHeader)
                     .PUT(HttpRequest.BodyPublishers.ofString(OlogObjectMappers.logEntrySerializer.writeValueAsString(template)))
@@ -575,7 +580,7 @@ public class OlogHttpClient implements LogClient {
     @Override
     public Collection<LogEntryLevel> listLevels() {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Preferences.olog_url + "/levels"))
+                .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/levels"))
                 .GET()
                 .build();
 

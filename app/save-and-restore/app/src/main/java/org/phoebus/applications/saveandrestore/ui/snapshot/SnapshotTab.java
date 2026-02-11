@@ -17,7 +17,6 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
@@ -27,12 +26,9 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
-import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -51,7 +47,7 @@ import java.util.logging.Logger;
  * Note that this class is used also to show the snapshot view for {@link Node}s of type {@link NodeType#COMPOSITE_SNAPSHOT}.
  * </p>
  */
-public class SnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHandler {
+public class SnapshotTab extends SaveAndRestoreTab {
 
     public SaveAndRestoreService saveAndRestoreService;
 
@@ -138,15 +134,5 @@ public class SnapshotTab extends SaveAndRestoreTab implements WebSocketMessageHa
 
     public Node getConfigNode() {
         return ((SnapshotController) controller).getConfigurationNode();
-    }
-
-    @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
-        if (saveAndRestoreWebSocketMessage.messageType().equals(MessageType.NODE_REMOVED)) {
-            String nodeId = (String) saveAndRestoreWebSocketMessage.payload();
-            if (getId() != null && nodeId.equals(getId())) {
-                Platform.runLater(() -> getTabPane().getTabs().remove(this));
-            }
-        }
     }
 }

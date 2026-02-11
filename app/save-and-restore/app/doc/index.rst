@@ -95,7 +95,7 @@ Brief description of all items in the context menu (details on actions are outli
 * Delete - delete selected items.
 * Compare Snapshots - compare a snapshot in view to the selected.
 * Add Golden Tag - tag a snapshot as "golden".
-* Tags with comment - add/delete tag on a snapshot or composite snapshot.
+* Tags - add/delete tag on a snapshot or composite snapshot.
 * Copy unique id to clipboard - put a nodes unique string id on the clipboard.
 * Import ... from CSV - import configuration or configuration from CSV file.
 * Export ... to CSV - export configuration or snapshot to CSV file.
@@ -489,7 +489,7 @@ that the context menu will only show tags common to all selected nodes.
 Tagging from search view
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The search result table of the Search And Filter view also supports a contect menu for the purpose of managing tags:
+The search result table of the Search And Filter view also supports a context menu for the purpose of managing tags:
 
 .. image:: images/search-result-context-menu.png
 

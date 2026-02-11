@@ -10,9 +10,11 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SaveAndRestoreWebSocketMessageDeserializerTest {
 
@@ -20,32 +22,30 @@ public class SaveAndRestoreWebSocketMessageDeserializerTest {
 
     public SaveAndRestoreWebSocketMessageDeserializerTest(){
         SimpleModule module = new SimpleModule();
-        module.addDeserializer(SaveAndRestoreWebSocketMessage.class,
-                new WebMessageDeserializer(SaveAndRestoreWebSocketMessage.class));
+        module.addDeserializer(WebSocketMessage.class, new SaveAndRestoreWebSocketMessageDeserializer(WebSocketMessage.class));
         mapper.registerModule(module);
     }
 
     @Test
     public void test1() {
         try {
-            SaveAndRestoreWebSocketMessage<Node> webSocketMessage =
+            WebSocketMessage<Node> webSocketMessage =
                     mapper.readValue(getClass().getResourceAsStream("/websocketexample2.json"), new TypeReference<>() {
                     });
-            assertEquals(MessageType.NODE_UPDATED, webSocketMessage.messageType());
+            assertEquals(SaveAndRestoreMessageType.NODE_UPDATED, webSocketMessage.messageType());
             assertEquals("a", webSocketMessage.payload().getUniqueId());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Test
     public void test2() {
         try {
-            SaveAndRestoreWebSocketMessage<String> webSocketMessage =
+            WebSocketMessage<String> webSocketMessage =
                     mapper.readValue(getClass().getResourceAsStream("/websocketexample1.json"), new TypeReference<>() {
                     });
-            assertEquals(MessageType.NODE_ADDED, webSocketMessage.messageType());
+            assertEquals(SaveAndRestoreMessageType.NODE_ADDED, webSocketMessage.messageType());
             assertEquals("parentNodeId", webSocketMessage.payload());
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -55,10 +55,10 @@ public class SaveAndRestoreWebSocketMessageDeserializerTest {
     @Test
     public void test3() {
         try {
-            SaveAndRestoreWebSocketMessage<Filter> webSocketMessage =
+            WebSocketMessage<Filter> webSocketMessage =
                     mapper.readValue(getClass().getResourceAsStream("/websocketexample3.json"), new TypeReference<>() {
                     });
-            assertEquals(MessageType.FILTER_ADDED_OR_UPDATED, webSocketMessage.messageType());
+            assertEquals(SaveAndRestoreMessageType.FILTER_ADDED_OR_UPDATED, webSocketMessage.messageType());
             assertEquals("myFilter", webSocketMessage.payload().getName());
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -68,7 +68,7 @@ public class SaveAndRestoreWebSocketMessageDeserializerTest {
     @Test
     public void test4() {
         try {
-            SaveAndRestoreWebSocketMessage<Filter> webSocketMessage =
+            WebSocketMessage<Filter> webSocketMessage =
                     mapper.readValue(getClass().getResourceAsStream("/websocketexample4.json"), new TypeReference<>() {
                     });
             assertNull(webSocketMessage);
@@ -81,10 +81,10 @@ public class SaveAndRestoreWebSocketMessageDeserializerTest {
     @Test
     public void test5() {
         try {
-            SaveAndRestoreWebSocketMessage<Node> webSocketMessage =
+           WebSocketMessage<Node> webSocketMessage =
                     mapper.readValue(getClass().getResourceAsStream("/websocketexample5.json"), new TypeReference<>() {
                     });
-            assertNull(webSocketMessage.payload());
+            assertNull(webSocketMessage);
         }
         catch (Exception e) {
             throw new RuntimeException(e);
