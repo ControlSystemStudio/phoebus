@@ -119,7 +119,6 @@ public class AlarmTableUI extends BorderPane
     private final TableView<AlarmInfoRow> acknowledged = createTable(acknowledged_rows, false);
 
     final TextField search = new ClearingTextField();
-    private String previousSearchString = "";
 
     private final Label no_server = AlarmUI.createNoServerLabel();
 
@@ -358,10 +357,7 @@ public class AlarmTableUI extends BorderPane
         });
 
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
-        search.textProperty().addListener(prop -> {
-            selectRows();
-            previousSearchString = search.getText().trim();
-        });
+        search.textProperty().addListener(prop -> selectRows(true));
 
     	if (AlarmSystem.disable_notify_visible)
     	    return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
@@ -671,7 +667,7 @@ public class AlarmTableUI extends BorderPane
         selectPvs(this.acknowledged, acknowledged_selection);
 
         /* Move this up here out of update(), doesn't need to be ran twice */
-        selectRows();
+        selectRows(false);
     }
 
     /** Limit the number of alarms
@@ -720,35 +716,21 @@ public class AlarmTableUI extends BorderPane
     }
 
     /** Select all rows that match the current 'search' pattern */
-    private void selectRows()
+    private void selectRows(boolean clearSelection)
     {
-        final String glob = search.getText().trim();
 
-        /* Current search string is empty, if it wasn't previously empty, clear the selection. */
-        if(glob.isEmpty())
+        if(clearSelection)
         {
-            if(!previousSearchString.isEmpty())
-            {
-                active.getSelectionModel().clearSelection();
-                acknowledged.getSelectionModel().clearSelection();
-            }
-            return;
-        }
-
-        /* Search string has changed, clear the selection and redo the search,
-        this will clear any manually selected items, but this shouldn't be an issue
-        if users search and then manually select.
-         */
-        if(!previousSearchString.equals(glob))
-        {
-
             active.getSelectionModel().clearSelection();
             acknowledged.getSelectionModel().clearSelection();
         }
 
-        /* else, the search string hasn't changed but the state has, we are only adding the new alarms
-           that match the search string, any removals should be handled by filterOldSelection.
-         */
+        final String glob = search.getText().trim();
+        if(glob.isEmpty())
+        {
+            return;
+        }
+
         final Pattern pattern = Pattern.compile(RegExHelper.fullRegexFromGlob(glob),
                 Pattern.CASE_INSENSITIVE);
 
