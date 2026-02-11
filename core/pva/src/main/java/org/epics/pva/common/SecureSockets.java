@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2023-2025 Oak Ridge National Laboratory.
+ * Copyright (c) 2023-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.epics.pva.common;
 import static org.epics.pva.PVASettings.logger;
 
 import java.io.FileInputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -52,7 +53,7 @@ public class SecureSockets
 
     /** Initialize only once */
     private static boolean initialized = false;
-    
+
     /** Factory for secure server sockets */
     private static SSLServerSocketFactory tls_server_sockets;
 
@@ -316,23 +317,23 @@ public class SecureSockets
         public final String name;
 
         /** Host of the peer */
-        public final String hostname;
+        public final InetAddress host;
 
         /** PV for client certificate status */
         public final String status_pv_name;
 
-        TLSHandshakeInfo(final X509Certificate peer_cert, final String name, final String hostname, final String status_pv_name)
+        TLSHandshakeInfo(final X509Certificate peer_cert, final String name, final InetAddress host, final String status_pv_name)
         {
             this.peer_cert = peer_cert;
             this.name = name;
-            this.hostname = hostname;
+            this.host = host;
             this.status_pv_name = status_pv_name;
         }
 
         @Override
         public String toString()
         {
-            return "Name " + name + ", host " + hostname + ", cert status PV " + status_pv_name;
+            return "Name " + name + ", host " + host + ", cert status PV " + status_pv_name;
         }
 
         /** Get TLS/SSH info from socket
@@ -398,7 +399,7 @@ public class SecureSockets
                     name = principal.getName();
                 }
 
-                final TLSHandshakeInfo info = new TLSHandshakeInfo(peer_cert, name, socket.getInetAddress().getHostName(), status_pv_name);
+                final TLSHandshakeInfo info = new TLSHandshakeInfo(peer_cert, name, socket.getInetAddress(), status_pv_name);
 
                 return info;
             }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,9 +28,28 @@ import org.epics.pva.PVASettings;
 /** Network helpers
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class Network
 {
+    /** Format an {@link InetAddress}
+     *
+     *  Avoids reverse DNS lookup.
+     *  If a name was already resolved, use the name.
+     *  Otherwise use the numeric notation
+     *
+     *  @param addr {@link InetAddress}
+     *  @return "the.host.name", "12.34.56.78" or IPv6 notation
+     */
+    public static String format(final InetAddress address)
+    {
+        // Avoid reverse lookup. toString() returns "name/12.34.56.100"
+        // where name may be empty if it has not been resolved.
+        String host = address.toString();
+        int sep = host.indexOf('/');
+        if (sep > 0)
+            return host.substring(0, sep); // use name
+        return host.substring(1);      // use numeric notation
+    }
+
     /** @param channel UDP channel
      *  @return Local address or "UNBOUND"
      */
