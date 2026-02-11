@@ -7,6 +7,9 @@ import org.phoebus.applications.queueserver.api.QueueItem;
 import org.phoebus.applications.queueserver.api.QueueItemAddBatch;
 import org.phoebus.applications.queueserver.api.StatusResponse;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.PlansCache;
+import org.phoebus.applications.queueserver.util.PythonParameterConverter;
+import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -47,6 +50,8 @@ public final class RePlanHistoryController implements Initializable {
     private final RunEngineService   svc  = new RunEngineService();
     private final ObservableList<Row>rows = FXCollections.observableArrayList();
     private final Map<String,QueueItem> uid2item = new HashMap<>();
+    private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
+    private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
 
     private List<Integer> stickySel = List.of();
     private boolean       ignoreSel = false;
@@ -105,6 +110,19 @@ public final class RePlanHistoryController implements Initializable {
                     if (!ignoreSel) stickySel =
                             List.copyOf(table.getSelectionModel().getSelectedIndices());
                 });
+
+        initializeAllowedInstructions();
+
+        if (PlansCache.isLoaded()) {
+            allowedPlans.clear();
+            allowedPlans.putAll(PlansCache.get());
+        }
+        PlansCache.addListener((o2, oldP, newP) -> {
+            Platform.runLater(() -> {
+                allowedPlans.clear();
+                if (newP != null) allowedPlans.putAll(newP);
+            });
+        });
 
         ChangeListener<StatusResponse> l =
                 (o,oldV,nv) -> {
@@ -263,6 +281,9 @@ public final class RePlanHistoryController implements Initializable {
         var sel = table.getSelectionModel().getSelectedIndices();
         if (sel.isEmpty()) return;
 
+        // Capture insert position before starting background thread
+        String afterUid = QueueItemSelectionEvent.getInstance().getLastSelectedUid();
+
         List<QueueItem> clones = sel.stream()
                 .map(rows::get)
                 .map(r -> uid2item.get(r.uid))
@@ -279,13 +300,16 @@ public final class RePlanHistoryController implements Initializable {
                 ))
                 .toList();
 
-        try {
-            QueueItemAddBatch req =
-                    new QueueItemAddBatch(clones, "GUI Client", "primary");
-            svc.queueItemAddBatch(req);                   // service takes DTO, not Map
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Copy-to-Queue failed", ex);
-        }
+        new Thread(() -> {
+            try {
+                QueueItemAddBatch req =
+                        new QueueItemAddBatch(clones, "GUI Client", "primary", afterUid);
+                List<String> newUids = svc.addBatchGetUids(req);
+                QueueItemSelectionEvent.getInstance().requestSelectByUids(newUids);
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Copy-to-Queue failed", ex);
+            }
+        }).start();
     }
 
     private void clearHistory() {
@@ -365,14 +389,53 @@ public final class RePlanHistoryController implements Initializable {
     private static String firstLetter(String s){
         return (s==null||s.isBlank())?"":s.substring(0,1).toUpperCase();
     }
-    private static String fmtParams(QueueItem q){
+    private void initializeAllowedInstructions() {
+        Map<String, Object> queueStopInstr = new HashMap<>();
+        queueStopInstr.put("name", "queue_stop");
+        queueStopInstr.put("description", "Stop execution of the queue.");
+        queueStopInstr.put("parameters", List.of());
+        allowedInstructions.put("queue_stop", queueStopInstr);
+    }
+
+    @SuppressWarnings("unchecked")
+    private String fmtParams(QueueItem q){
         String a = Optional.ofNullable(q.args()).orElse(List.of())
-                .stream().map(Object::toString).collect(Collectors.joining(", "));
-        String k = Optional.ofNullable(q.kwargs()).orElse(Map.of())
-                .entrySet().stream()
-                .map(e -> e.getKey()+": "+e.getValue())
+                .stream().map(PythonParameterConverter::toPythonRepr)
                 .collect(Collectors.joining(", "));
+
+        Map<String, Object> itemInfo = null;
+        if ("plan".equals(q.itemType())) {
+            itemInfo = allowedPlans.get(q.name());
+        } else if ("instruction".equals(q.itemType())) {
+            itemInfo = allowedInstructions.get(q.name());
+        }
+
+        String k;
+        if (itemInfo != null) {
+            List<Map<String, Object>> parameters =
+                    (List<Map<String, Object>>) itemInfo.get("parameters");
+            if (parameters != null) {
+                Map<String, Object> kwargs = Optional.ofNullable(q.kwargs()).orElse(Map.of());
+                k = parameters.stream()
+                        .map(p -> (String) p.get("name"))
+                        .filter(kwargs::containsKey)
+                        .map(name -> name + ": " + PythonParameterConverter.toPythonRepr(kwargs.get(name)))
+                        .collect(Collectors.joining(", "));
+            } else {
+                k = formatKwargsDefault(q.kwargs());
+            }
+        } else {
+            k = formatKwargsDefault(q.kwargs());
+        }
+
         return Stream.of(a,k).filter(s->!s.isEmpty())
+                .collect(Collectors.joining(", "));
+    }
+
+    private static String formatKwargsDefault(Map<String, Object> kwargs) {
+        return Optional.ofNullable(kwargs).orElse(Map.of())
+                .entrySet().stream()
+                .map(e -> e.getKey() + ": " + PythonParameterConverter.toPythonRepr(e.getValue()))
                 .collect(Collectors.joining(", "));
     }
 
