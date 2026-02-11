@@ -24,6 +24,7 @@ import javafx.scene.text.Text;
 
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -46,6 +47,7 @@ public final class RePlanQueueController implements Initializable {
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
     private List<String> stickySel   = List.of();   // last user selection
     private boolean      ignoreSticky= false;       // guard while we rebuild
+    private final AtomicLong refreshSeq = new AtomicLong(); // discard stale bg refreshes
 
     private static final Logger logger =
             Logger.getLogger(RePlanQueueController.class.getPackageName());
@@ -131,12 +133,14 @@ public final class RePlanQueueController implements Initializable {
         // Listen for status changes to refresh queue
         ChangeListener<StatusResponse> poll =
                 (o,oldV,newV) -> {
-                    // Run refresh in background thread to avoid blocking UI
-                    new Thread(() -> refresh(newV, List.of())).start();
+                    long seq = refreshSeq.incrementAndGet();
+                    new Thread(() -> bgRefresh(newV, seq)).start();
                 };
         StatusBus.addListener(poll);
 
-        refresh(StatusBus.latest().get(), List.of());
+        // Initial refresh on background thread
+        long seq = refreshSeq.incrementAndGet();
+        new Thread(() -> bgRefresh(StatusBus.latest().get(), seq)).start();
     }
 
     private void initializeAllowedInstructions() {
@@ -147,36 +151,75 @@ public final class RePlanQueueController implements Initializable {
         allowedInstructions.put("queue_stop", queueStopInstr);
     }
 
-    private void refresh(StatusResponse st, Collection<String> explicitFocus) {
-
+    /**
+     * Background refresh: fetches queue data on a worker thread, then applies
+     * it on the FX thread.  Uses a generation counter ({@code seq}) so that
+     * out-of-order responses are silently discarded – only the latest data is
+     * ever applied to the UI.
+     */
+    private void bgRefresh(StatusResponse st, long seq) {
         if (st == null) {
-            // Don't clear queue - keep last data visible for users
-            // Just update button states (will be disabled via StatusBus)
-            Platform.runLater(this::updateButtonStates);
+            Platform.runLater(() -> {
+                if (seq < refreshSeq.get()) return;
+                updateButtonStates();
+            });
             return;
         }
         try {
-            // Blocking HTTP call - now runs on background thread
             QueueGetPayload qp = svc.queueGetTyped();
-
-            // UI updates must happen on FX thread
             Platform.runLater(() -> {
-                ignoreSticky = true;
-                rebuildRows(qp.queue());
-                ignoreSticky = false;
-
-                List<String> focus = explicitFocus.isEmpty() ? stickySel
-                        : List.copyOf(explicitFocus);
-                applyFocus(focus);
-                stickySel = focus;
-
-                loopBtn.setSelected(Optional.ofNullable(st.planQueueMode())
-                        .map(StatusResponse.PlanQueueMode::loop)
-                        .orElse(false));
+                if (seq < refreshSeq.get()) return; // stale – discard
+                applyQueueData(qp, List.of(), st);
             });
         } catch (Exception ex) {
             logger.log(Level.FINE, "Queue refresh failed: " + ex.getMessage());
         }
+    }
+
+    /** Applies fetched queue data to the UI.  Must be called on the FX thread. */
+    private void applyQueueData(QueueGetPayload qp, Collection<String> explicitFocus,
+                                StatusResponse st) {
+        QueueItemSelectionEvent selEvent = QueueItemSelectionEvent.getInstance();
+
+        ignoreSticky = true;
+        rebuildRows(qp.queue());
+        ignoreSticky = false;
+
+        List<String> focus;
+        List<String> pendingUids = selEvent.getPendingSelectUids();
+        if (pendingUids != null) {
+            // We have exact UIDs to select (from a successful add/copy response)
+            List<String> found = pendingUids.stream()
+                    .filter(uid2item::containsKey)
+                    .toList();
+            if (!found.isEmpty()) {
+                focus = found;
+                selEvent.clearPendingSelect();
+            } else {
+                // UIDs not yet in this refresh's data – keep for next cycle
+                focus = explicitFocus.isEmpty() ? stickySel
+                        : List.copyOf(explicitFocus);
+            }
+        } else if (!explicitFocus.isEmpty()) {
+            focus = List.copyOf(explicitFocus);
+        } else {
+            focus = stickySel;
+        }
+
+        applyFocus(focus);
+
+        // applyFocus suppresses intermediate notifications, so update
+        // stickySel and notify once here.
+        if (table.getSelectionModel().getSelectedItems().isEmpty()) {
+            stickySel = List.of();
+        } else {
+            stickySel = selectedUids();
+        }
+        notifySelectionChange();
+
+        loopBtn.setSelected(Optional.ofNullable(st.planQueueMode())
+                .map(StatusResponse.PlanQueueMode::loop)
+                .orElse(false));
     }
 
     private void rebuildRows(List<QueueItem> items) {
@@ -217,6 +260,9 @@ public final class RePlanQueueController implements Initializable {
 
         var sm = table.getSelectionModel();
         var fm = table.getFocusModel();
+
+        // Suppress intermediate listener notifications during clear+select
+        ignoreSticky = true;
         sm.clearSelection();
 
         int first = -1;
@@ -226,10 +272,26 @@ public final class RePlanQueueController implements Initializable {
                 if (first == -1) first = i;
             }
         }
-        if (first != -1) table.requestFocus();
+        ignoreSticky = false;
+
+        if (first != -1) {
+            final int scrollIdx = first;
+            table.scrollTo(scrollIdx);
+            // Defer focus to next pulse for reliable visual highlight
+            Platform.runLater(() -> table.requestFocus());
+        }
     }
     private void refreshLater(Collection<String> focus) {
-        Platform.runLater(() -> refresh(StatusBus.latest().get(), focus));
+        // Invalidate any pending background Platform.runLater blocks
+        refreshSeq.incrementAndGet();
+        StatusResponse st = StatusBus.latest().get();
+        if (st == null) { updateButtonStates(); return; }
+        try {
+            QueueGetPayload qp = svc.queueGetTyped();
+            applyQueueData(qp, focus, st);
+        } catch (Exception ex) {
+            logger.log(Level.FINE, "Queue refresh (explicit) failed: " + ex.getMessage());
+        }
     }
 
 
@@ -309,6 +371,9 @@ public final class RePlanQueueController implements Initializable {
         });
 
         try {
+            // Invalidate pending background refreshes so they don't overwrite our selection
+            refreshSeq.incrementAndGet();
+
             QueueGetPayload qp = svc.queueGetTyped();
             List<String> afterList = qp.queue().stream()
                     .map(QueueItem::itemUid).toList();
@@ -320,8 +385,11 @@ public final class RePlanQueueController implements Initializable {
             rebuildRows(qp.queue());
             ignoreSticky = false;
 
-            if (!added.isEmpty()) applyFocus(List.of(added.get(0)));      // first clone
-            stickySel = added.isEmpty() ? stickySel : List.of(added.get(0));
+            if (!added.isEmpty()) {
+                applyFocus(added);
+                stickySel = added;
+                notifySelectionChange();
+            }
 
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Refresh after duplicate failed: "+ex.getMessage());
@@ -458,6 +526,16 @@ public final class RePlanQueueController implements Initializable {
             selectedItem = uid2item.get(selectedRow.uid());
         }
 
-        QueueItemSelectionEvent.getInstance().notifySelectionChanged(selectedItem);
+        // Track the last selected UID for insert-after operations
+        // For multi-select, use the last item in the batch
+        String lastUid = null;
+        if (!selectedItems.isEmpty()) {
+            Row lastRow = selectedItems.get(selectedItems.size() - 1);
+            lastUid = lastRow.uid();
+        }
+
+        QueueItemSelectionEvent event = QueueItemSelectionEvent.getInstance();
+        event.setLastSelectedUid(lastUid);
+        event.notifySelectionChanged(selectedItem);
     }
 }
