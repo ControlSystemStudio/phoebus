@@ -19,7 +19,9 @@ import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.nt.PVATimeStamp;
 
 /** PVA server access permissions demo
- * *
+ *
+ *  Creates a {@link PVAServer} with {@link FileBasedServerAuthorization}
+ *
  *  @author Kay Kasemir
  */
 public class AccessPermissionsDemo
@@ -62,6 +64,7 @@ public class AccessPermissionsDemo
             });
 
             System.out.println("Check");
+            System.out.println();
             System.out.println("    pvmonitor ramp");
             System.out.println("    pvput limit 5");
             System.out.println();
