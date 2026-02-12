@@ -31,9 +31,17 @@ public class FileBasedServerAuthorization extends ServerAuthorization
      */
     public FileBasedServerAuthorization(final String pvlist_file, final String acf_file) throws Exception
     {
-        logger.log(Level.FINE, "FileBasedServerAuthorization using " + pvlist_file + " and " + acf_file);
-        pvlist = new PVListFile(pvlist_file);
-        access = new AccessConfigParser().parse(acf_file);
+        this(new PVListFile(pvlist_file),
+             new AccessConfigParser().parse(acf_file));
+    }
+
+    /** @param pvlist {@link PVListFile}
+     *  @param access {@link AccessConfig}
+     */
+    public FileBasedServerAuthorization(final PVListFile pvlist, final AccessConfig access)
+    {
+        this.pvlist = pvlist;
+        this.access = access;
     }
 
     @Override

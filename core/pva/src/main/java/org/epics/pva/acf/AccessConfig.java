@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.epics.pva.acf;
 
+import java.io.Reader;
+import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Map;
 
@@ -19,6 +21,15 @@ public class AccessConfig
     private final Map<String, UserAccessGroup> user_groups;
     private final Map<String, HostAccessGroup> host_groups;
     private final Map<String, AccessSecurityGroup> access_groups;
+
+    /** @return Default configuration where DEFAULT grants write access to anybody
+     *  @throws Exception on error
+     */
+    public static AccessConfig getDefault() throws Exception
+    {
+        final Reader reader = new InputStreamReader(AccessConfig.class.getResourceAsStream("default.acf"));
+        return new AccessConfigParser().parse("default.acf", reader);
+    }
 
     AccessConfig(Map<String, UserAccessGroup> user_groups,
                  Map<String, HostAccessGroup> host_groups,

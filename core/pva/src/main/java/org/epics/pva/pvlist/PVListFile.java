@@ -9,6 +9,8 @@ package org.epics.pva.pvlist;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +24,28 @@ public class PVListFile
     private List<DenyingRule> deny = new ArrayList<>();
     private List<AllowingRule> allow = new ArrayList<>();
 
-    /** @param filename `*.pvlist` file to partse
+    /** @return Built-in default pvlist that allows all access */
+    public static PVListFile getDefault() throws Exception
+    {
+        final Reader reader = new InputStreamReader(PVListFile.class.getResourceAsStream("default.pvlist"));
+        return new PVListFile("default.pvlist", reader);
+    }
+
+    /** @param filename `*.pvlist` file to parse
      *  @throws Exception on error
      */
     public PVListFile(final String filename) throws Exception
     {
-        try (BufferedReader reader = new BufferedReader(new FileReader(filename)))
+        this(filename, new FileReader(filename));
+    }
+
+    /** @param filename `*.pvlist` file to parse
+     *  @param file_reader {@link Reader} for that file
+     *  @throws Exception on error
+     */
+    public PVListFile(final String filename, final Reader file_reader) throws Exception
+    {
+        try (BufferedReader reader = new BufferedReader(file_reader))
         {
             String line;
             int lineno = 0;

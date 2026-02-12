@@ -9,8 +9,8 @@ package org.epics.pva.acf;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.List;
 
 /** Tokenizer for *.acf files
@@ -53,10 +53,14 @@ class AccessConfigTokenizer implements Closeable
     private int line_no = 0;
     private int column = 0;
 
-    public AccessConfigTokenizer(final String filename) throws Exception
+    /** @param filename File name (used for error messages)
+     *  @param stream_reader {@link Reader}
+     *  @throws Exception on error
+     */
+    public AccessConfigTokenizer(final String filename, final Reader file_reader) throws Exception
     {
         this.filename = filename;
-        reader = new BufferedReader(new FileReader(filename));
+        reader = new BufferedReader(file_reader);
         nextLine();
     }
 

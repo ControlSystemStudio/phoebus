@@ -9,7 +9,9 @@ package org.epics.pva.acf;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.io.FileReader;
 import java.net.InetAddress;
 
 import org.junit.jupiter.api.Test;
@@ -25,7 +27,7 @@ public class AccessConfigTest
     @Test
     public void testTokenizer() throws Exception
     {
-        try (AccessConfigTokenizer tokenizer = new AccessConfigTokenizer(FILE))
+        try (AccessConfigTokenizer tokenizer = new AccessConfigTokenizer(FILE, new FileReader(FILE)))
         {
             while (! tokenizer.done())
                 System.out.println(tokenizer.nextToken());
@@ -35,7 +37,7 @@ public class AccessConfigTest
     @Test
     public void testParser() throws Exception
     {
-        final AccessConfig acf = new AccessConfigParser().parse(FILE);
+        final AccessConfig acf = new AccessConfigParser().parse(FILE, new FileReader(FILE));
         System.out.println(acf);
 
         assertTrue(acf.getUserGroupNames().contains("expert"));
@@ -63,9 +65,21 @@ public class AccessConfigTest
     }
 
     @Test
+    public void testBuiltinDefault() throws Exception
+    {
+        final AccessConfig acf = AccessConfig.getDefault();
+        System.out.println(acf);
+        final AccessSecurityGroup asg = acf.getAccessGroup("DEFAULT");
+        assertNotNull(asg);
+        assertTrue(asg.mayWrite("Egon",     InetAddress.getByName("localhost")));
+        assertTrue(asg.mayWrite("Fred",     InetAddress.getByName("127.0.0.1")));
+        assertTrue(asg.mayWrite("Anybody",  InetAddress.getByName("10.23.93.200")));
+    }
+
+    @Test
     public void testDefault() throws Exception
     {
-        final AccessConfig acf = new AccessConfigParser().parse(FILE);
+        final AccessConfig acf = new AccessConfigParser().parse(FILE, new FileReader(FILE));
 
         final AccessSecurityGroup asg = acf.getAccessGroup("DEFAULT");
 
@@ -86,7 +100,7 @@ public class AccessConfigTest
     @Test
     public void testOpen() throws Exception
     {
-        final AccessConfig acf = new AccessConfigParser().parse(FILE);
+        final AccessConfig acf = new AccessConfigParser().parse(FILE, new FileReader(FILE));
 
         final AccessSecurityGroup asg = acf.getAccessGroup("OPEN");
         assertTrue(asg.mayWrite("Egon",    InetAddress.getByName("localhost")));
@@ -97,7 +111,7 @@ public class AccessConfigTest
     @Test
     public void testVacuum() throws Exception
     {
-        final AccessConfig acf = new AccessConfigParser().parse(FILE);
+        final AccessConfig acf = new AccessConfigParser().parse(FILE, new FileReader(FILE));
 
         final AccessSecurityGroup asg = acf.getAccessGroup("VACUUM");
         System.out.println(asg);

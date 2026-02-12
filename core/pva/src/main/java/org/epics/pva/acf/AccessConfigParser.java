@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.epics.pva.acf;
 
+import java.io.FileReader;
+import java.io.Reader;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +36,17 @@ public class AccessConfigParser
      */
     public AccessConfig parse(final String filename) throws Exception
     {
-        try (AccessConfigTokenizer tokenizer = new AccessConfigTokenizer(filename))
+        return parse(filename, new FileReader(filename));
+    }
+
+    /** @param filename '*.acf' file name
+     *  @param file_reader {@link Reader} for filename
+     *  @return {@link AccessConfig}
+     *  @throws Exception on error
+     */
+    public AccessConfig parse(final String filename, final Reader file_reader) throws Exception
+    {
+        try (AccessConfigTokenizer tokenizer = new AccessConfigTokenizer(filename, file_reader))
         {
             while (! tokenizer.done())
             {

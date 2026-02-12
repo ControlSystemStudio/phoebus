@@ -11,29 +11,33 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.net.InetAddress;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /** Unit test for {@link PVListFile} */
 class PVListFileTest
 {
-    private static PVListFile pvlist;
-
-    @BeforeAll
-    static void setUpBeforeClass() throws Exception
+    @Test
+    void testFileLoading() throws Exception
     {
-        pvlist = new PVListFile("src/test/resources/demo.pvlist");
+        final PVListFile pvlist = new PVListFile("src/test/resources/demo.pvlist");
+        System.out.println(pvlist);
     }
 
     @Test
-    void testFileLoading()
+    void testDefaultFile() throws Exception
     {
+        final PVListFile pvlist = PVListFile.getDefault();
         System.out.println(pvlist);
+        assertEquals("DEFAULT", pvlist.getAccess("Any", null));
+        assertEquals("DEFAULT", pvlist.getAccess("PV", null));
+        assertEquals("DEFAULT", pvlist.getAccess("Any", InetAddress.getByName("11.12.13.14")));
+        assertEquals("DEFAULT", pvlist.getAccess("PV", InetAddress.getByName("11.12.13.14")));
     }
 
     @Test
     void testDeny() throws Exception
     {
+        final PVListFile pvlist = new PVListFile("src/test/resources/demo.pvlist");
         // Specifically denied
         assertNull(pvlist.getAccess("Ignore:This",  null));
         // OK, but caught by general deny rule for that IP address
@@ -43,6 +47,7 @@ class PVListFileTest
     @Test
     void testAllow() throws Exception
     {
+        final PVListFile pvlist = new PVListFile("src/test/resources/demo.pvlist");
         // PV allowed by final catch-all in ASG(DEFAULT)
         assertEquals("DEFAULT", pvlist.getAccess("Basically:OK", null));
         // PV listed for ASG(RF)
