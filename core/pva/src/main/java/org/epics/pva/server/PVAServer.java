@@ -227,11 +227,11 @@ public class PVAServer implements AutoCloseable
         // Both client and server must support TLS
         final boolean tls = tls_requested  &&  !PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank();
         if (tls_requested  &&  !tls)
-                logger.log(Level.WARNING, "PVA Client " + client + " searches for '" + name + "' with TLS, but EPICS_PVAS_TLS_KEYCHAIN is not configured");
+                logger.log(Level.WARNING, () -> "PVA Client " + client + " searches for '" + name + "' with TLS, but EPICS_PVAS_TLS_KEYCHAIN is not configured");
 
         if (! authorization.allowSearch(name, client.getAddress()))
         {
-            logger.log(Level.FINE, "Ignoring PVA Client " + client + " search for '" + name + "'");
+            logger.log(Level.FINE, () -> "Ignoring PVA Client " + client + " search for '" + name + "'");
             return false;
         }
 
