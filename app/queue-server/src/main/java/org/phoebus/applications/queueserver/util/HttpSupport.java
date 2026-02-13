@@ -10,7 +10,7 @@ public final class HttpSupport {
 
     private HttpSupport() {}
 
-    public static final Logger LOG = Logger.getLogger("com.jbi.bluesky");
+    public static final Logger logger = Logger.getLogger(HttpSupport.class.getPackageName());
 
     /* ---------------- retry policy ----------- */
     public static final int    MAX_RETRIES        = 3;
@@ -29,6 +29,6 @@ public final class HttpSupport {
     }
 
     public static void fine(String msg) {
-        LOG.log(Level.FINE, msg);
+        logger.log(Level.FINE, msg);
     }
 }

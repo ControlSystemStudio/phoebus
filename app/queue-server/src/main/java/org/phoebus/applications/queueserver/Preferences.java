@@ -16,10 +16,19 @@ public class Preferences {
     public static String api_key;
 
     @Preference
+    public static String api_key_file;
+
+    @Preference
     public static boolean debug;
 
     @Preference
     public static int connectTimeout;
+
+    @Preference
+    public static boolean use_websockets;
+
+    @Preference
+    public static int update_interval_ms;
 
     static
     {

@@ -4,9 +4,13 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.PlansCache;
+import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
+import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
 import org.phoebus.applications.queueserver.view.TabSwitchEvent;
 import org.phoebus.applications.queueserver.view.ItemUpdateEvent;
+import org.phoebus.applications.queueserver.util.PythonParameterConverter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -50,7 +54,7 @@ public class RePlanEditorController implements Initializable {
     @FXML private TableColumn<ParameterRow, String> valueCol;
 
     private final RunEngineService svc = new RunEngineService();
-    private static final Logger LOG = Logger.getLogger(RePlanEditorController.class.getName());
+    private static final Logger logger = Logger.getLogger(RePlanEditorController.class.getPackageName());
     private final ObservableList<ParameterRow> parameterRows = FXCollections.observableArrayList();
     private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
@@ -63,6 +67,20 @@ public class RePlanEditorController implements Initializable {
     private final ObjectMapper objectMapper = new ObjectMapper();
     // Store original parameter values for reset functionality
     private final Map<String, Object> originalParameterValues = new HashMap<>();
+
+    /**
+     * Get the Python converter for use in background threads ONLY.
+     * Uses the shared singleton instance.
+     * NEVER call this from JavaFX thread - it will cause UI freezes.
+     */
+    private PythonParameterConverter getPythonConverter() {
+        PythonParameterConverter converter = PythonParameterConverter.getShared();
+        if (converter == null) {
+            // Shared init not done yet - create inline (rare fallback)
+            converter = new PythonParameterConverter();
+        }
+        return converter;
+    }
 
     private class EditableTableCell extends TableCell<ParameterRow, String> {
         private TextField textField;
@@ -88,9 +106,12 @@ public class RePlanEditorController implements Initializable {
                     setText(getString());
                     setGraphic(null);
 
-                    // Style based on enabled state and add tooltip
+                    // Style based on enabled state and validation
+                    // NOTE: Use simple UI validation here - never call Python converter from JavaFX thread
                     if (!row.isEnabled()) {
                         setStyle("-fx-text-fill: grey;");
+                    } else if (!row.isValidForUI()) {
+                        setStyle("-fx-text-fill: red;");
                     } else {
                         setStyle("");
                     }
@@ -132,15 +153,20 @@ public class RePlanEditorController implements Initializable {
             ParameterRow row = getTableRow().getItem();
             if (row != null) {
                 row.setValue(newValue);
+
+                // Update cell color based on Python validation
+                updateValidationColor(row);
+
                 switchToEditingMode();
                 updateButtonStates();
-                // Update cell color based on validation
-                updateValidationColor(row);
             }
         }
 
         private void updateValidationColor(ParameterRow row) {
-            if (row.validate()) {
+            // NOTE: Use simple UI validation here - never call Python converter from JavaFX thread
+            if (!row.isEnabled()) {
+                setStyle("-fx-text-fill: grey;");
+            } else if (row.isValidForUI()) {
                 setStyle("");
             } else {
                 setStyle("-fx-text-fill: red;");
@@ -208,69 +234,30 @@ public class RePlanEditorController implements Initializable {
         public boolean isOptional() { return isOptional.get(); }
         public Object getDefaultValue() { return defaultValue; }
 
-        public Object getParsedValue() {
-            if (!enabled.get()) return defaultValue;
+        /**
+         * Simple UI validation that doesn't use Python converter.
+         * Only checks if required parameters have values.
+         * Use this for UI feedback (cell colors, button states).
+         */
+        public boolean isValidForUI() {
+            if (!enabled.get()) {
+                return true;  // Disabled parameters are always valid
+            }
 
             String valueStr = value.get();
             if (valueStr == null || valueStr.trim().isEmpty()) {
-                return defaultValue;
+                return isOptional.get();  // Empty is valid only if optional
             }
 
-            try {
-                return parseLiteralValue(valueStr);
-            } catch (Exception e) {
-                return valueStr;
-            }
+            return true;  // Has a value, assume valid for UI purposes
         }
 
-        private Object parseLiteralValue(String valueStr) throws Exception {
-            valueStr = valueStr.trim();
-
-            // Handle None/null
-            if ("None".equals(valueStr) || "null".equals(valueStr)) {
-                return null;
-            }
-
-            // Handle booleans
-            if ("True".equals(valueStr) || "true".equals(valueStr)) {
-                return true;
-            }
-            if ("False".equals(valueStr) || "false".equals(valueStr)) {
-                return false;
-            }
-
-            // Handle strings (quoted)
-            if ((valueStr.startsWith("'") && valueStr.endsWith("'")) ||
-                    (valueStr.startsWith("\"") && valueStr.endsWith("\""))) {
-                return valueStr.substring(1, valueStr.length() - 1);
-            }
-
-            // Handle numbers
-            try {
-                if (valueStr.contains(".")) {
-                    return Double.parseDouble(valueStr);
-                } else {
-                    return Long.parseLong(valueStr);
-                }
-            } catch (NumberFormatException e) {
-                // Continue to other parsing attempts
-            }
-
-            // Handle lists and dicts using JSON parsing (similar to Python's literal_eval)
-            if (valueStr.startsWith("[") || valueStr.startsWith("{")) {
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    return mapper.readValue(valueStr, Object.class);
-                } catch (Exception e) {
-                    // Fall back to string if JSON parsing fails
-                }
-            }
-
-            // Default to string
-            return valueStr;
-        }
-
-        public boolean validate() {
+        /**
+         * Full validation using Python converter.
+         * NEVER call this from JavaFX thread - it will cause UI freezes!
+         * Only use in background threads before submitting to API.
+         */
+        public boolean validate(PythonParameterConverter converter) {
             if (!enabled.get()) {
                 return true;  // Disabled parameters are always valid
             }
@@ -280,8 +267,18 @@ public class RePlanEditorController implements Initializable {
                 return isOptional.get();
             }
 
+            // Validate using Python converter
             try {
-                getParsedValue();
+                List<PythonParameterConverter.ParameterInfo> testParams = List.of(
+                    new PythonParameterConverter.ParameterInfo(
+                        getName(),
+                        valueStr,
+                        true,
+                        isOptional.get(),
+                        getDefaultValue()
+                    )
+                );
+                converter.convertParameters(testParams);
                 return true;
             } catch (Exception e) {
                 return false;
@@ -298,16 +295,63 @@ public class RePlanEditorController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initializeTable();
         initializeControls();
-        loadAllowedPlansAndInstructions();
+        initializeAllowedInstructions();
+
+        // Use shared plans cache - copy to local map when loaded
+        if (PlansCache.isLoaded()) {
+            allowedPlans.clear();
+            allowedPlans.putAll(PlansCache.get());
+        }
+
+        // Listen for plans cache updates
+        PlansCache.addListener((o, oldV, newV) -> {
+            Platform.runLater(() -> {
+                allowedPlans.clear();
+                if (newV != null) {
+                    allowedPlans.putAll(newV);
+                }
+            });
+        });
+
+        // Listen for status changes to update button states and clear on disconnect
+        StatusBus.addListener((o, oldV, newV) -> {
+            // Clear the editor state when disconnected
+            if (newV == null) {
+                Platform.runLater(this::cancelEdit);
+            }
+            Platform.runLater(this::updateButtonStates);
+        });
 
         // Listen for edit requests from plan viewer
         PlanEditEvent.getInstance().addListener(this::editItem);
+    }
+
+    private void initializeAllowedInstructions() {
+        Map<String, Object> queueStopInstr = new HashMap<>();
+        queueStopInstr.put("name", "queue_stop");
+        queueStopInstr.put("description", "Stop execution of the queue.");
+        queueStopInstr.put("parameters", List.of());
+        allowedInstructions.put("queue_stop", queueStopInstr);
     }
 
     private void initializeTable() {
         paramCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         chkCol.setCellValueFactory(new PropertyValueFactory<>("enabled"));
         valueCol.setCellValueFactory(new PropertyValueFactory<>("value"));
+
+        // Fix paramCol and chkCol widths - not resizable
+        paramCol.setMinWidth(120);
+        paramCol.setPrefWidth(120);
+        paramCol.setMaxWidth(120);
+        paramCol.setResizable(false);
+
+        chkCol.setMinWidth(30);
+        chkCol.setPrefWidth(30);
+        chkCol.setMaxWidth(30);
+        chkCol.setResizable(false);
+
+        // valueCol fills remaining space
+        valueCol.setMinWidth(50);
 
         // Add tooltips to parameter names
         paramCol.setCellFactory(column -> {
@@ -352,6 +396,7 @@ public class RePlanEditorController implements Initializable {
             row.setEnabled(isChecked);
 
             // If unchecked, reset to default value; if checked and no value, set default
+            // NOTE: Use simple string conversion here - never call Python converter from JavaFX thread
             if (!isChecked) {
                 Object defaultValue = row.getDefaultValue();
                 row.setValue(defaultValue != null ? String.valueOf(defaultValue) : "");
@@ -363,11 +408,13 @@ public class RePlanEditorController implements Initializable {
             switchToEditingMode();
 
             updateButtonStates();
-            autoResizeColumns();
         });
 
         table.setItems(parameterRows);
         table.setEditable(true);
+
+        // Make Value column fill remaining space
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
 
     private void initializeControls() {
@@ -378,6 +425,13 @@ public class RePlanEditorController implements Initializable {
 
         // Setup ChoiceBox to auto-size to fit content exactly
         setupChoiceBoxAutoSizing();
+
+        // Lazy populate when user opens the dropdown (avoids UI freeze during connection)
+        choiceBox.setOnShowing(event -> {
+            if (choiceBox.getItems().isEmpty() && !allowedPlans.isEmpty()) {
+                populateChoiceBox(planRadBtn.isSelected());
+            }
+        });
 
         choiceBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
@@ -411,48 +465,6 @@ public class RePlanEditorController implements Initializable {
         cancelBtn.setOnAction(e -> cancelEdit());
 
         updateButtonStates();
-    }
-
-    private void loadAllowedPlansAndInstructions() {
-        new Thread(() -> {
-            try {
-                // Load plans from API - use raw Map instead of Envelope since response structure doesn't match
-                Map<String, Object> responseMap = svc.plansAllowedRaw();
-
-                if (responseMap != null && Boolean.TRUE.equals(responseMap.get("success"))) {
-                    allowedPlans.clear();
-
-                    if (responseMap.containsKey("plans_allowed")) {
-                        Map<String, Object> plansData = (Map<String, Object>) responseMap.get("plans_allowed");
-
-                        // Convert each plan entry to Map<String, Object>
-                        for (Map.Entry<String, Object> entry : plansData.entrySet()) {
-                            String planName = entry.getKey();
-                            Map<String, Object> planInfo = (Map<String, Object>) entry.getValue();
-                            allowedPlans.put(planName, planInfo);
-                        }
-                    } else {
-                        LOG.log(Level.WARNING, "No 'plans_allowed' key in response. Keys: " + responseMap.keySet());
-                    }
-                } else {
-                    LOG.log(Level.WARNING, "Plans response failed. Response: " + responseMap);
-                }
-
-                allowedInstructions.clear();
-                Map<String, Object> queueStopInstr = new HashMap<>();
-                queueStopInstr.put("name", "queue_stop");
-                queueStopInstr.put("description", "Stop execution of the queue.");
-                queueStopInstr.put("parameters", List.of());
-                allowedInstructions.put("queue_stop", queueStopInstr);
-
-                Platform.runLater(() -> {
-                    populateChoiceBox(planRadBtn.isSelected());
-                });
-
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to load plans", e);
-            }
-        }).start();
     }
 
     private void populateChoiceBox(boolean isPlans) {
@@ -541,13 +553,12 @@ public class RePlanEditorController implements Initializable {
 
             if (currentKwargs.containsKey(paramName)) {
                 Object value = currentKwargs.get(paramName);
-                currentValue = value != null ? String.valueOf(value) : "";
+                currentValue = value != null ? PythonParameterConverter.toPythonRepr(value) : "";
                 isEnabled = true;
             } else if (defaultValue != null) {
+                // Use simple string conversion - Python parsing will happen in background thread later
+                // NOTE: Never call Python converter from JavaFX thread to avoid UI freezes
                 currentValue = String.valueOf(defaultValue);
-                if (!isEditMode) {
-                    currentValue += " (default)";
-                }
             }
 
             ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
@@ -559,7 +570,6 @@ public class RePlanEditorController implements Initializable {
         }
 
         updateButtonStates();
-        autoResizeColumns();
     }
 
     private void addMetadataAndResults(QueueItem item) {
@@ -620,29 +630,11 @@ public class RePlanEditorController implements Initializable {
         return String.valueOf(value);
     }
 
-    private void autoResizeColumns() {
-        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
-        for (TableColumn<ParameterRow,?> col : table.getColumns()) {
-
-            Text tmp = new Text(col.getText());
-            double max = tmp.getLayoutBounds().getWidth();
-
-            for (int i = 0; i < parameterRows.size(); i++) {
-                Object cell = col.getCellData(i);
-                if (cell != null) {
-                    tmp = new Text(cell.toString());
-                    double w = tmp.getLayoutBounds().getWidth();
-                    if (w > max) max = w;
-                }
-            }
-            col.setPrefWidth(max + 14);
-        }
-    }
-
     private boolean areParametersValid() {
+        // NOTE: Use simple UI validation here - never call Python converter from JavaFX thread
         boolean allValid = true;
         for (ParameterRow row : parameterRows) {
-            boolean rowValid = row.validate();
+            boolean rowValid = row.isValidForUI();
             if (!rowValid) {
                 allValid = false;
             }
@@ -661,28 +653,56 @@ public class RePlanEditorController implements Initializable {
     }
 
     private void updateButtonStates() {
+        StatusResponse status = StatusBus.latest().get();
+        boolean isConnected = status != null;
+
         boolean hasSelectedPlan = choiceBox.getSelectionModel().getSelectedItem() != null;
         boolean isValid = areParametersValid();
-        boolean isConnected = true; // Assume connected for now - could check StatusBus later
         this.editorStateValid = isValid;
 
-        planRadBtn.setDisable(isEditMode);
-        instrRadBtn.setDisable(isEditMode);
-        choiceBox.setDisable(isEditMode);
+        // Disable controls when not connected (environment open not required)
+        table.setDisable(!isConnected);
+        planRadBtn.setDisable(!isConnected || isEditMode);
+        instrRadBtn.setDisable(!isConnected || isEditMode);
+        choiceBox.setDisable(!isConnected || isEditMode);
 
-        addBtn.setDisable(!hasSelectedPlan || !isValid || !isConnected);
+        addBtn.setDisable(!isConnected || !hasSelectedPlan || !isValid);
 
-        saveBtn.setDisable(!isEditMode || !hasSelectedPlan || !isValid || !isConnected ||
+        saveBtn.setDisable(!isConnected || !isEditMode || !hasSelectedPlan || !isValid ||
                 !"QUEUE ITEM".equals(currentItemSource));
 
         batchBtn.setDisable(!isConnected);
 
-        resetBtn.setDisable(!isEditMode);
-        cancelBtn.setDisable(!isEditMode);
+        resetBtn.setDisable(!isConnected || !isEditMode);
+        cancelBtn.setDisable(!isConnected || !isEditMode);
+    }
+
+    /**
+     * Build kwargs map using Python-based type conversion.
+     * All type conversion is handled by Python script using ast.literal_eval.
+     */
+    private Map<String, Object> buildKwargsWithPython() {
+        List<PythonParameterConverter.ParameterInfo> paramInfos = new ArrayList<>();
+
+        for (ParameterRow row : parameterRows) {
+            PythonParameterConverter.ParameterInfo paramInfo =
+                    new PythonParameterConverter.ParameterInfo(
+                            row.getName(),
+                            row.getValue(),
+                            row.isEnabled(),
+                            row.isOptional(),
+                            row.getDefaultValue()
+                    );
+            paramInfos.add(paramInfo);
+        }
+
+        // Use Python to convert parameters - no Java fallback
+        return getPythonConverter().convertParameters(paramInfos);
     }
 
     private void addItemToQueue() {
         if (!areParametersValid()) {
+            showValidationError("Some parameters have invalid values. Please check the red fields.");
             return;
         }
 
@@ -693,55 +713,72 @@ public class RePlanEditorController implements Initializable {
             }
 
             String itemType = planRadBtn.isSelected() ? "plan" : "instruction";
-            Map<String, Object> kwargs = new HashMap<>();
 
-            for (ParameterRow row : parameterRows) {
-                if (row.isEnabled()) {
-                    kwargs.put(row.getName(), row.getParsedValue());
-                }
-            }
-
-            QueueItem item = new QueueItem(
-                    itemType,
-                    selectedName,
-                    List.of(),
-                    kwargs,
-                    null,
-                    currentUser,
-                    currentUserGroup,
-                    null
-            );
-
-            QueueItemAdd request = new QueueItemAdd(
-                    new QueueItemAdd.Item(item.itemType(), item.name(), item.args(), item.kwargs()),
-                    currentUser,
-                    currentUserGroup
-            );
+            // Capture insert position before starting background thread
+            String afterUid = QueueItemSelectionEvent.getInstance().getLastSelectedUid();
 
             new Thread(() -> {
                 try {
-                    var response = svc.queueItemAdd(request);
+                    // Use Python-based parameter conversion (in background thread to avoid blocking UI)
+                    Map<String, Object> kwargs = buildKwargsWithPython();
+
+                    QueueItem item = new QueueItem(
+                            itemType,
+                            selectedName,
+                            List.of(),
+                            kwargs,
+                            null,
+                            currentUser,
+                            currentUserGroup,
+                            null
+                    );
+
+                    QueueItemAdd request = new QueueItemAdd(
+                            new QueueItemAdd.Item(item.itemType(), item.name(), item.args(), item.kwargs()),
+                            currentUser,
+                            currentUserGroup,
+                            afterUid
+                    );
+
+                    String newUid = svc.addItemGetUid(request);
+                    QueueItemSelectionEvent.getInstance().requestSelectByUids(List.of(newUid));
                     Platform.runLater(() -> {
-                        if (response.success()) {
-                            // Clear parameters but preserve radio button selection
-                            parameterRows.clear();
-                            choiceBox.getSelectionModel().clearSelection();
-                            // Don't reset radio button - keep current selection
-                            populateChoiceBox(planRadBtn.isSelected());
-                            // Switch to view tab
-                            TabSwitchEvent.getInstance().switchToTab("Plan Viewer");
-                            exitEditMode();
-                            showItemPreview();
-                        }
+                        // Clear parameters but preserve radio button selection
+                        parameterRows.clear();
+                        choiceBox.getSelectionModel().clearSelection();
+                        // Don't reset radio button - keep current selection
+                        populateChoiceBox(planRadBtn.isSelected());
+                        // Switch to view tab
+                        TabSwitchEvent.getInstance().switchToTab("Plan Viewer");
+                        exitEditMode();
+                        showItemPreview();
                     });
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.log(Level.WARNING, "Failed to add item to queue", e);
+                    Platform.runLater(() -> {
+                        String errorMsg = e.getMessage();
+                        if (errorMsg == null || errorMsg.isEmpty()) {
+                            errorMsg = e.getClass().getSimpleName();
+                        }
+                        showValidationError("Failed to add item to queue: " + errorMsg);
+                    });
                 }
             }).start();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Failed to add item to queue", e);
+            Platform.runLater(() -> {
+                showValidationError("Failed to add item: " + e.getMessage());
+            });
         }
+    }
+
+    private void showValidationError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Validation Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     private void saveItem() {
@@ -750,6 +787,7 @@ public class RePlanEditorController implements Initializable {
         }
 
         if (!areParametersValid()) {
+            showValidationError("Some parameters have invalid values. Please check the red fields.");
             return;
         }
 
@@ -760,27 +798,27 @@ public class RePlanEditorController implements Initializable {
             }
 
             String itemType = planRadBtn.isSelected() ? "plan" : "instruction";
-            Map<String, Object> kwargs = new HashMap<>();
-
-            for (ParameterRow row : parameterRows) {
-                if (row.isEnabled()) {
-                    kwargs.put(row.getName(), row.getParsedValue());
-                }
-            }
-
-            QueueItem updatedItem = new QueueItem(
-                    itemType,
-                    selectedName,
-                    List.of(),
-                    kwargs,
-                    currentItem.itemUid(),
-                    currentItem.user(),
-                    currentItem.userGroup(),
-                    currentItem.result()
-            );
+            String itemUid = currentItem.itemUid();
+            String user = currentItem.user();
+            String userGroup = currentItem.userGroup();
+            Map<String, Object> result = currentItem.result();
 
             new Thread(() -> {
                 try {
+                    // Use Python-based parameter conversion (in background thread to avoid blocking UI)
+                    Map<String, Object> kwargs = buildKwargsWithPython();
+
+                    QueueItem updatedItem = new QueueItem(
+                            itemType,
+                            selectedName,
+                            List.of(),
+                            kwargs,
+                            itemUid,
+                            user,
+                            userGroup,
+                            result
+                    );
+
                     var response = svc.queueItemUpdate(updatedItem);
                     Platform.runLater(() -> {
                         if (response.success()) {
@@ -795,16 +833,26 @@ public class RePlanEditorController implements Initializable {
                             exitEditMode();
                             showItemPreview();
                         } else {
-                            LOG.log(Level.WARNING, "Save failed: " + response.msg());
+                            showValidationError("Failed to save item: " + response.msg());
                         }
                     });
                 } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Save error", e);
+                    logger.log(Level.WARNING, "Failed to save item", e);
+                    Platform.runLater(() -> {
+                        String errorMsg = e.getMessage();
+                        if (errorMsg == null || errorMsg.isEmpty()) {
+                            errorMsg = e.getClass().getSimpleName();
+                        }
+                        showValidationError("Failed to save item: " + errorMsg);
+                    });
                 }
             }).start();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Failed to save item", e);
+            Platform.runLater(() -> {
+                showValidationError("Failed to save item: " + e.getMessage());
+            });
         }
     }
 
@@ -823,35 +871,28 @@ public class RePlanEditorController implements Initializable {
                 if (originalParameterValues.containsKey(paramName)) {
                     // Restore original value
                     Object originalValue = originalParameterValues.get(paramName);
-                    row.setValue(originalValue != null ? String.valueOf(originalValue) : "");
+                    row.setValue(originalValue != null ? PythonParameterConverter.toPythonRepr(originalValue) : "");
                     row.setEnabled(true);
                 } else {
                     // Parameter was not in original item, reset to default
+                    // NOTE: Use simple string conversion - never call Python converter from JavaFX thread
                     Object defaultValue = row.getDefaultValue();
-                    if (defaultValue != null) {
-                        row.setValue(String.valueOf(defaultValue));
-                    } else {
-                        row.setValue("");
-                    }
+                    row.setValue(defaultValue != null ? String.valueOf(defaultValue) : "");
                     row.setEnabled(!row.isOptional());
                 }
             }
         } else {
             // Reset to default values for new items
+            // NOTE: Use simple string conversion - never call Python converter from JavaFX thread
             for (ParameterRow row : parameterRows) {
                 Object defaultValue = row.getDefaultValue();
-                if (defaultValue != null) {
-                    row.setValue(String.valueOf(defaultValue));
-                } else {
-                    row.setValue("");
-                }
+                row.setValue(defaultValue != null ? String.valueOf(defaultValue) : "");
                 // Reset enabled state based on whether parameter is optional
                 row.setEnabled(!row.isOptional());
             }
         }
         // Keep edit mode active after reset - don't exit edit mode
         updateButtonStates();
-        autoResizeColumns();
     }
 
     private void cancelEdit() {
@@ -923,6 +964,9 @@ public class RePlanEditorController implements Initializable {
     }
 
     private void processBatchFile(String filePath, String fileType) {
+        // Capture insert position before starting background thread
+        String afterUid = QueueItemSelectionEvent.getInstance().getLastSelectedUid();
+
         new Thread(() -> {
             try {
                 List<QueueItem> items = new ArrayList<>();
@@ -936,23 +980,16 @@ public class RePlanEditorController implements Initializable {
 
                 if (!items.isEmpty()) {
                     final int itemCount = items.size();
-                    QueueItemAddBatch batchRequest = new QueueItemAddBatch(items, currentUser, currentUserGroup);
-                    var response = svc.queueItemAddBatch(batchRequest);
+                    QueueItemAddBatch batchRequest = new QueueItemAddBatch(items, currentUser, currentUserGroup, afterUid);
+                    List<String> newUids = svc.addBatchGetUids(batchRequest);
+                    QueueItemSelectionEvent.getInstance().requestSelectByUids(newUids);
 
                     Platform.runLater(() -> {
-                        if (response.success()) {
-                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                            alert.setTitle("Batch Upload Success");
-                            alert.setHeaderText(null);
-                            alert.setContentText("Successfully added " + itemCount + " items to queue.");
-                            alert.showAndWait();
-                        } else {
-                            Alert alert = new Alert(Alert.AlertType.ERROR);
-                            alert.setTitle("Batch Upload Failed");
-                            alert.setHeaderText(null);
-                            alert.setContentText("Failed to add items to queue: " + response.msg());
-                            alert.showAndWait();
-                        }
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Batch Upload Success");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Successfully added " + itemCount + " items to queue.");
+                        alert.showAndWait();
                     });
                 } else {
                     Platform.runLater(() -> {
@@ -965,7 +1002,7 @@ public class RePlanEditorController implements Initializable {
                 }
 
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Batch file processing error", e);
+                logger.log(Level.WARNING, "Batch file processing error", e);
                 Platform.runLater(() -> {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Error");

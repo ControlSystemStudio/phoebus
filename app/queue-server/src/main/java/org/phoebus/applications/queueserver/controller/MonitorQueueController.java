@@ -25,7 +25,7 @@ public class MonitorQueueController implements Initializable {
     @FXML private VBox stack;
 
     private final Map<TitledPane, Double> savedHeights = new HashMap<>();
-    private static final Logger LOG = Logger.getLogger(MonitorQueueController.class.getName());
+    private static final Logger logger = Logger.getLogger(MonitorQueueController.class.getPackageName());
 
     private static final String BAR_NORMAL =
             "-fx-background-color: linear-gradient(to bottom, derive(-fx-base,15%) 0%, derive(-fx-base,-5%) 100%);" +
@@ -34,7 +34,7 @@ public class MonitorQueueController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        LOG.info("Initializing MonitorQueueController");
+        logger.log(Level.FINE, "Initializing MonitorQueueController");
         loadInto(runningPlanContainer, "/org/phoebus/applications/queueserver/view/ReRunningPlan.fxml", new ReRunningPlanController(true));
         loadInto(planQueueContainer, "/org/phoebus/applications/queueserver/view/RePlanQueue.fxml", new RePlanQueueController(true));
         loadInto(planHistoryContainer, "/org/phoebus/applications/queueserver/view/RePlanHistory.fxml", new RePlanHistoryController(true));
@@ -76,7 +76,7 @@ public class MonitorQueueController implements Initializable {
             AnchorPane.setLeftAnchor(view, 0.0);
             AnchorPane.setRightAnchor(view, 0.0);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to load FXML: " + fxml, e);
+            logger.log(Level.SEVERE, "Failed to load FXML: " + fxml, e);
         }
     }
 
@@ -95,7 +95,10 @@ public class MonitorQueueController implements Initializable {
 
             bar.setOnMouseEntered(e -> bar.setCursor(Cursor.V_RESIZE));
 
-            bar.setOnMousePressed(e -> bar.setUserData(new double[]{ e.getScreenY() }));
+            bar.setOnMousePressed(e -> {
+                double localY = stack.sceneToLocal(e.getSceneX(), e.getSceneY()).getY();
+                bar.setUserData(new double[]{ localY });
+            });
 
             bar.setOnMouseDragged(e -> {
 
@@ -105,7 +108,8 @@ public class MonitorQueueController implements Initializable {
 
                 double[] d   = (double[]) bar.getUserData();
                 double lastY = d[0];                      // reference from previous event
-                double dy    = e.getScreenY() - lastY;    // incremental movement
+                double localY = stack.sceneToLocal(e.getSceneX(), e.getSceneY()).getY();
+                double dy    = localY - lastY;            // incremental movement
                 if (Math.abs(dy) < 0.1) return;           // jitter guard
 
                 /* title-bar heights so we never hide headers */
@@ -133,7 +137,7 @@ public class MonitorQueueController implements Initializable {
                     savedHeights.put(lower, newLow);
                 }
 
-                d[0] = e.getScreenY();                    // update reference point
+                d[0] = localY;                            // update reference point
             });
 
 
