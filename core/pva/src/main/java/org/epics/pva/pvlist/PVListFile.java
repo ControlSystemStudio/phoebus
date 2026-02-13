@@ -21,8 +21,8 @@ import org.epics.pva.pvlist.PVListFileRule.DenyingRule;
 /** Handle a `*.pvlist` file with DENY and ALLOW rules */
 public class PVListFile
 {
-    private List<DenyingRule> deny = new ArrayList<>();
-    private List<AllowingRule> allow = new ArrayList<>();
+    private final List<DenyingRule> deny = new ArrayList<>();
+    private final List<AllowingRule> allow = new ArrayList<>();
 
     /** @return Built-in default pvlist that allows all access */
     public static PVListFile getDefault() throws Exception
@@ -56,7 +56,7 @@ public class PVListFile
                 if (line.isBlank()  ||  line.startsWith("#"))
                     continue;
 
-                PVListFileRule rule;
+                final PVListFileRule rule;
                 try
                 {
                     rule = PVListFileRule.create(line);
