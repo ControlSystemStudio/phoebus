@@ -1,100 +1,110 @@
-# Java Bluesky Interface (JBI)
+# Phoebus Queue Server Application
 
-Prototype Java client for the [Bluesky QueueServer](https://blueskyproject.io/bluesky-queueserver/) REST API.  
-It includes:
+A JavaFX-based client for the [Bluesky QueueServer](https://blueskyproject.io/bluesky-queueserver/) that provides a graphical interface for managing experiment queues, monitoring status, and editing plans at beamlines and scientific facilities.
 
-* **BlueskyHttpClient** – thread-safe singleton with rate-limiting, automatic retries and JUL logging
-* **BlueskyService**   – one blocking call per API route
-* **CLI / REPL** – *testing utilities only*
-* **JavaFX UI** – the part you actually launch in normal use
+## Features
 
----
+### Queue Management
+- **View & Edit Queue**: See all queued plans with parameters, reorder items via drag-and-drop
+- **Execute Plans**: Start, stop, pause, resume, and abort plan execution
+- **Real-time Status**: Live updates via WebSocket connections showing queue state, running plans, and RE Manager status
+- **History View**: Browse completed plans with execution results and metadata
 
-##   Prerequisites
+### Plan Editing
+- **Interactive Plan Editor**: Create and modify plans with type-safe parameter editing
+- **Python Type Support**: Full support for Python types (strings, lists, dicts, booleans, numbers)
+- **Schema Validation**: Parameters validated against plan schemas from the Queue Server
+- **Live Preview**: See plan parameters as they will be sent to the server
 
-* Java 17
-* Maven
-* Running Bluesky HTTP Server at `http://localhost:60610`  
-  *single-user API key `a` assumed below*
+### Plan Viewer
+- **Plan Details**: View plan parameters, metadata, and execution results
+- **Parameter Display**: All parameters shown with correct Python syntax and types
+- **Copy to Queue**: Duplicate plans with one click
 
-```bash
-# 1) Start RE Manager
-start-re-manager --use-ipython-kernel=ON --zmq-publish-console=ON
+### Console Monitor
+- **Live Console Output**: Real-time streaming of Queue Server console output
+- **WebSocket Support**: Efficient streaming via WebSocket connections (fallback to HTTP polling)
+- **Autoscroll**: Automatically scroll to latest output with toggle control
 
-# 2) Start HTTP Server
-QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY=a \
-    uvicorn --host localhost --port 60610 bluesky_httpserver.server:app
-````
+## Quick Start
 
----
+### Prerequisites
 
-##   Configure
+- **Java 17** or later
+- **Maven** (for building from source)
+- **Bluesky Queue Server** running and accessible
 
-```bash
-export BLUESKY_API_KEY=a 
-```
+### Starting a Local Queue Server
 
----
-
-##  Build & run
-
-```bash
-mvn clean javafx:run
-```
-
-### Verbose logging
+Use the provided Docker setup for local development:
 
 ```bash
-mvn -Djava.util.logging.config.file=src/main/resources/logging.properties javafx:run
+cd services/bluesky-services
+docker-compose --profile container-redis up -d
 ```
 
----
+This starts:
+- Bluesky Queue Server (RE Manager) on ports 60615/60625
+- HTTP Server REST API on port 60610
+- Redis database on port 6380
 
-##   CLI / REPL (testing only)
+For details, see [services/bluesky-services/README.md](../../services/bluesky-services/README.md)
 
-| Tool     | Start (quiet)                                                                         | Start with request tracing (`FINE`)                                                                                                                        |
-| -------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **CLI**  | `mvn -q -Dexec.mainClass=util.org.phoebus.applications.queueserver.RunEngineCli  -Dexec.args="STATUS" exec:java` | `mvn -Djava.util.logging.config.file=src/main/resources/logging.properties -q -Dexec.mainClass=util.org.phoebus.applications.queueserver.RunEngineCli -Dexec.args="STATUS" exec:java` |
-| **REPL** | `mvn -q -Dexec.mainClass=util.org.phoebus.applications.queueserver.RunEngineRepl exec:java`                          | `mvn -Djava.util.logging.config.file=src/main/resources/logging.properties -q -Dexec.mainClass=util.org.phoebus.applications.queueserver.RunEngineRepl -Dexec.args="STATUS" exec:java`                                                                                                                         |
+### Configuration
 
-*CLI examples*
+Set environment variables to connect to your Queue Server:
 
 ```bash
-# list endpoints
-mvn -q -Dexec.mainClass=com.jbi.util.RunEngineClili -Dexec.args="list" exec:java
+# Queue Server HTTP address (default: http://localhost:60610)
+export QSERVER_HTTP_SERVER_URI=http://localhost:60610
 
-# start the queue
-mvn -q -Dexec.mainClass=com.jbi.util.RunEngineClili -Dexec.args="QUEUE_START" exec:java
+# API Key authentication
+export QSERVER_HTTP_SERVER_API_KEY=a
+
+# Or use a file containing the API key
+export QSERVER_HTTP_SERVER_API_KEYFILE=~/.phoebus/qserver_api_key.txt
 ```
 
-`ENDPOINT [body]` accepts a JSON literal, `@file.json`, or `@-` for stdin.
+### Building & Running
 
----
+#### As Part of Phoebus
 
-##   How logging works
-
-* Logger name: **`com.jbi.bluesky`**
-* Levels
-
-  * `INFO` – API errors
-  * `WARNING` – transport retries
-  * `FINE` – each HTTP call + latency
-* Enable by passing JVM flag
-  `-Djava.util.logging.config.file=src/main/resources/logging.properties`
-
----
-
-##   Tuning
-
-```java
-// rate limit (req/sec)
-BlueskyHttpClient.initialize("http://localhost:60610",
-                             System.getenv("BLUESKY_API_KEY"),
-                             3.0);
-
-// retry/back-off
-// edit src/main/java/com/jbi/util/HttpSupport.java
-MAX_RETRIES        = 5;
-INITIAL_BACKOFF_MS = 500;
-BACKOFF_MULTIPLIER = 1.5;
+```bash
+# From phoebus root directory
+mvn clean install -DskipTests
+cd phoebus-product/target
+./phoebus
 ```
+
+Then open **Applications → Queue Server** from the menu.
+
+#### Standalone Build
+
+```bash
+# From queue-server directory
+cd app/queue-server
+mvn clean install
+```
+
+## Configuration Options
+
+Configuration via **Edit → Preferences → Queue Server** or environment variables:
+
+| Preference        | Environment Variable              | Default                  | Description                           |
+|-------------------|-----------------------------------|--------------------------|---------------------------------------|
+| `queue_server_url`| `QSERVER_HTTP_SERVER_URI`         | `http://localhost:60610` | Queue Server HTTP address             |
+| `api_key`         | `QSERVER_HTTP_SERVER_API_KEY`     | *(none)*                 | API key for authentication            |
+| `api_key_file`    | `QSERVER_HTTP_SERVER_API_KEYFILE` | *(none)*                 | Path to file containing API key       |
+| `use_websockets`  | *(none)*                          | `true`                   | Use WebSockets for streaming data     |
+| `connectTimeout`  | *(none)*                          | `5000`                   | HTTP connection timeout (ms)          |
+| `debug`           | *(none)*                          | `false`                  | Enable HTTP request/response logging  |
+
+## Contributing
+
+When making changes:
+
+1. Ensure proper Python type handling in parameter editor
+2. Test with both WebSocket and HTTP fallback modes
+3. Verify API key authentication works
+4. Update documentation for new features
+5. Follow existing code style and patterns
