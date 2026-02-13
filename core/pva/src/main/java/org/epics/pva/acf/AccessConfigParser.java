@@ -80,7 +80,7 @@ public class AccessConfigParser
                     final HostAccessGroup hag = new HostAccessGroup(name, hosts);
                     host_groups.put(hag.name(), hag);
                 }
-                // UAG(name) { RULE... }
+                // ASG(name) { RULE... }
                 else if ("ASG".equals(token.keyword()))
                 {
                     final String name = parseName(tokenizer);
