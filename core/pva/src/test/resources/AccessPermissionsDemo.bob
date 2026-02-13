@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Access Demo</name>
+  <width>150</width>
+  <height>50</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Ramp:</text>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>pva://ramp</pv_name>
+    <x>50</x>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Limit:</text>
+    <y>30</y>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Update_1</name>
+    <pv_name>pva://limit</pv_name>
+    <x>50</x>
+    <y>30</y>
+    <vertical_alignment>0</vertical_alignment>
+    <wrap_words>true</wrap_words>
+  </widget>
+</display>

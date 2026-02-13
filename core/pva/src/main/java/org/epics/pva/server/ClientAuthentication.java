@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2025 Oak Ridge National Laboratory.
+ * Copyright (c) 2025-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.epics.pva.server;
 
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
 import org.epics.pva.common.PVAAuth;
@@ -16,17 +17,18 @@ import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.PVATypeRegistry;
 
-/** Determine authentication of a client connected to this server
+/** Describe authentication of a client connected to this server
  *  @author Kay Kasemir
  */
 public class ClientAuthentication
 {
-    public final static ClientAuthentication Anonymous = new ClientAuthentication(PVAAuth.anonymous, "nobody", "nohost");
+    final static ClientAuthentication Anonymous = new ClientAuthentication(PVAAuth.anonymous, "nobody", InetAddress.getLoopbackAddress());
 
     private final PVAAuth type;
-    private final String  user, host;
+    private final String  user;
+    private final InetAddress host;
 
-    ClientAuthentication(final PVAAuth type, final String user, final String host)
+    ClientAuthentication(final PVAAuth type, final String user, final InetAddress host)
     {
         this.type = type;
         this.user = user;
@@ -46,8 +48,8 @@ public class ClientAuthentication
     }
 
     /** @return Client's host */
-    public String getHost()
-    {   // TODO Use numeric IP address? Host name? InetAddress?
+    public InetAddress getHost()
+    {
         return host;
     }
 
@@ -64,7 +66,7 @@ public class ClientAuthentication
      *  @return {@link ClientAuthentication}
      *  @throws Exception on error
      */
-    public static ClientAuthentication decode(final ServerTCPHandler tcp, final ByteBuffer buffer, TLSHandshakeInfo tls_info) throws Exception
+    static ClientAuthentication decode(final ServerTCPHandler tcp, final ByteBuffer buffer, TLSHandshakeInfo tls_info) throws Exception
     {
         final String auth = PVAString.decodeString(buffer);
 
@@ -89,7 +91,8 @@ public class ClientAuthentication
                 if (element == null)
                     throw new Exception("Missing 'ca' authentication 'host', got " + info);
                 final String host = element.get();
-                return new ClientAuthentication(PVAAuth.ca, user, host);
+                final InetAddress addr = InetAddress.getByName(host);
+                return new ClientAuthentication(PVAAuth.ca, user, addr);
             }
             else // For other authentication methods, there should be no additional info structure
                 if (info != null)
@@ -97,8 +100,8 @@ public class ClientAuthentication
         }
 
         if (PVAAuth.x509.name().equals(auth))
-            return new ClientAuthentication(PVAAuth.x509, tls_info.name, tls_info.hostname);
+            return new ClientAuthentication(PVAAuth.x509, tls_info.name, tls_info.host);
 
-        return new ClientAuthentication(PVAAuth.anonymous, "nobody", tcp.getRemoteAddress().getHostString());
+        return new ClientAuthentication(PVAAuth.anonymous, "nobody", tcp.getRemoteAddress().getAddress());
     }
 }
