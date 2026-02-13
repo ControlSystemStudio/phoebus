@@ -22,7 +22,7 @@ import org.epics.pva.data.PVATypeRegistry;
  */
 public class ClientAuthentication
 {
-    public final static ClientAuthentication Anonymous = new ClientAuthentication(PVAAuth.anonymous, "nobody", InetAddress.getLoopbackAddress());
+    final static ClientAuthentication Anonymous = new ClientAuthentication(PVAAuth.anonymous, "nobody", InetAddress.getLoopbackAddress());
 
     private final PVAAuth type;
     private final String  user;
