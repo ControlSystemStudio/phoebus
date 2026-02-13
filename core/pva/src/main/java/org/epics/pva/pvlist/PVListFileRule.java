@@ -15,7 +15,8 @@ import org.epics.pva.common.Network;
 /** Rule that allows or denies access by PV name or client host */
 abstract class PVListFileRule
 {
-    public static final String DEFAULT = "DEFAULT";
+    /** Access group used when no specific one is provided */
+    public static final String DEFAULT_ASG = "DEFAULT";
 
     protected final Pattern pv_pattern;
 
@@ -105,7 +106,7 @@ abstract class PVListFileRule
         {
             if (parts.length >= 3)
                 return new AllowingRule(pv_pattern, parts[2]);
-            return new AllowingRule(pv_pattern, DEFAULT);
+            return new AllowingRule(pv_pattern, DEFAULT_ASG);
         }
         else if ("DENY".equalsIgnoreCase(parts[1]))
         {
