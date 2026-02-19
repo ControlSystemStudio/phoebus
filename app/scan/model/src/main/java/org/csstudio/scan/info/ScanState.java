@@ -45,7 +45,10 @@ public enum ScanState
     Finished("Finished - OK", false, true),
 
     /** Scan that executed in the past; data has been logged */
-    Logged("Logged", false, true);
+    Logged("Logged", false, true),
+
+    /** Scan is waiting to be executed */
+    Scheduled("Scheduled", false, false);
 
     final private String name;
     final private boolean active;
