@@ -43,6 +43,21 @@ Below screen shot shows the tree structure and a configuration editor.
 .. image:: images/screenshot1.png
    :width: 80%
 
+Annotations on nodes
+--------------------
+
+Snapshots and composite snapshots may be tagged with user defined tags, see :ref:`tagging`. Presence of one or multiple
+tags is indicated with a symbol to the right of the node name:
+
+.. image:: images/snapshot-with-tag.png
+
+Similarly, snapshots and composite snapshots referenced in other composite snapshots are annotated with a symbol to the
+right of the node name:
+
+.. image:: images/snapshot-with-references.png
+
+
+
 Node names and ordering
 -----------------------
 
@@ -71,7 +86,7 @@ Tree View Context Menu
 
 Most actions performed in the client UI are invoked from the tree view's context menu, which appears like so:
 
-.. image:: images/tree_view_context_menu.png
+.. image:: images/treeview-context-menu.png
     :width: 30%
 
 Since the set of applicable actions varies between node types, items in the context menu enabled/disabled
@@ -452,6 +467,8 @@ still interact with non-matching items.
 **NOTE:** When selecting a filter in the tree view, only matching items already present in the view will be highlighted.
 There may be additional nodes matching the current filter, but these will be rendered and highlighted only when their parent nodes
 are expanded. To easily find *all* matching items user will need to use the search tool.
+
+.. _tagging:
 
 Tagging
 -------

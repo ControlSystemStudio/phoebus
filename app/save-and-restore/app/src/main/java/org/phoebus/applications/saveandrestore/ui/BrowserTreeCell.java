@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeCell;
@@ -38,9 +39,13 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -183,6 +188,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     tagImage.setPreserveRatio(true);
                     hBox.getChildren().add(tagImage);
                 }
+                annotateContainedInCompositeSnapshot(node, hBox);
                 break;
             case COMPOSITE_SNAPSHOT:
                 hBox.getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
@@ -193,6 +199,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     tagImage.setPreserveRatio(true);
                     getChildren().add(tagImage);
                 }
+                annotateContainedInCompositeSnapshot(node, hBox);
                 break;
             case CONFIGURATION:
                 hBox.getChildren().add(new ImageView(ImageRepository.CONFIGURATION));
@@ -208,5 +215,18 @@ public class BrowserTreeCell extends TreeCell<Node> {
         }
 
         setGraphic(hBox);
+    }
+
+    private void annotateContainedInCompositeSnapshot(Node node, HBox hbox) {
+        JobManager.schedule("Annotate contained in snapshot", monitor -> {
+            MultivaluedMap<String, String> multivaluedMap = new MultivaluedHashMap<>();
+            multivaluedMap.put("referenced", List.of(node.getUniqueId()));
+            SearchResult searchResult = saveAndRestoreController.saveAndRestoreService.search(multivaluedMap);
+            if (searchResult.getHitCount() > 0) {
+                Platform.runLater(() -> {
+                    hbox.getChildren().add(new ImageView(ImageRepository.LINK));
+                });
+            }
+        });
     }
 }
