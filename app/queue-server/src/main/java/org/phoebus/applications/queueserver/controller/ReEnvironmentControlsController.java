@@ -14,6 +14,7 @@ import javafx.scene.control.ButtonType;
 import java.net.URL;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class ReEnvironmentControlsController implements Initializable {
@@ -23,10 +24,12 @@ public final class ReEnvironmentControlsController implements Initializable {
     @FXML private Button destroyBtn;
 
     private final RunEngineService svc = new RunEngineService();
-    private final Logger LOG = Logger.getLogger(getClass().getName());
+    private static final Logger logger = Logger.getLogger(ReEnvironmentControlsController.class.getPackageName());
 
     @Override public void initialize(URL url, ResourceBundle rb) {
-        StatusBus.latest().addListener(this::onStatus);
+        StatusBus.addListener(this::onStatus);
+        // Check current value in case status was already set before listener added
+        refreshButtons(StatusBus.latest().get());
     }
 
     private void onStatus(ObservableValue<?> src, Object oldV, Object newV) {
@@ -57,12 +60,12 @@ public final class ReEnvironmentControlsController implements Initializable {
 
     @FXML private void open() {
         try { svc.environmentOpen(); }
-        catch (Exception ex) { LOG.warning("environmentOpen: " + ex); }
+        catch (Exception ex) { logger.log(Level.WARNING, "environmentOpen: " + ex); }
     }
 
     @FXML private void close() {
         try { svc.environmentClose(); }
-        catch (Exception ex) { LOG.warning("environmentClose: " + ex); }
+        catch (Exception ex) { logger.log(Level.WARNING, "environmentClose: " + ex); }
     }
 
     @FXML private void destroy() {
@@ -75,9 +78,9 @@ public final class ReEnvironmentControlsController implements Initializable {
             if (response == ButtonType.OK) {
                 try { 
                     svc.environmentDestroy(); 
-                    LOG.info("Environment destroyed successfully");
+                    logger.log(Level.FINE, "Environment destroyed successfully");
                 } catch (Exception ex) { 
-                    LOG.warning("environmentDestroy: " + ex); 
+                    logger.log(Level.WARNING, "environmentDestroy: " + ex); 
                 }
             }
         });

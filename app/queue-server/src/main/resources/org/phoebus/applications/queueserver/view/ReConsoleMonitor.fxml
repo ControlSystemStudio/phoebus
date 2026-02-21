@@ -10,7 +10,7 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx/2!" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.queueserver.controller.ReConsoleMonitorController">
     <children>
-      <CheckBox fx:id="autoscrollChk" layoutX="1.0" layoutY="7.0" mnemonicParsing="false" text="Autoscroll" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="513.0" />
+      <CheckBox fx:id="autoscrollChk" layoutX="1.0" layoutY="7.0" mnemonicParsing="false" selected="true" text="Autoscroll" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="513.0" />
         <TextArea fx:id="textArea" editable="false" focusTraversable="false" layoutX="1.0" layoutY="36.0" style="-fx-border-color: grey;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="1.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="36.0" />
         <HBox alignment="CENTER_RIGHT" layoutX="314.0" layoutY="1.0" spacing="5.0" AnchorPane.leftAnchor="314.0" AnchorPane.rightAnchor="1.0">
             <children>

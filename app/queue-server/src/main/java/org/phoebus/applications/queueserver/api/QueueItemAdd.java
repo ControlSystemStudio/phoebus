@@ -10,7 +10,13 @@ import java.util.Map;
 public record QueueItemAdd(
         @JsonProperty("item") Item item,
         String user,
-        @JsonProperty("user_group") String userGroup) {
+        @JsonProperty("user_group") String userGroup,
+        @JsonProperty("after_uid") String afterUid) {
+
+    /** Convenience constructor – adds to end of queue. */
+    public QueueItemAdd(Item item, String user, String userGroup) {
+        this(item, user, userGroup, null);
+    }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Item(
