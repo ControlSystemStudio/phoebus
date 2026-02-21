@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot.data;
 
+import org.csstudio.javafx.rtplot.Trace;
+import org.csstudio.javafx.rtplot.internal.YAxisImpl;
+
 import java.time.Instant;
 
 /** One 'point' of a trace in the plot
@@ -48,4 +51,13 @@ public interface PlotDataItem<XTYPE extends Comparable<XTYPE>>
 
     /** @return if this data point is real or just a mechanical point, e.g. the 'now' point. */
     public default boolean isVirtual() { return false; }
+
+    /** @return a formatted string of this plot sample given the axis it is on */
+    public default String format(YAxisImpl<XTYPE> axis, Trace<XTYPE> trace) {
+        String label = axis.getTicks().formatDetailed(getValue());
+        final String units = trace.getUnits();
+        if (! units.isEmpty())
+            label += " " + units;
+        return label;
+    }
 }
