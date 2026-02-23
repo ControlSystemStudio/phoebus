@@ -11,7 +11,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -52,6 +51,7 @@ public class AlarmMessageLogger implements Runnable {
     private volatile boolean shouldReconnect = true;
     private volatile KafkaStreams currentStreams = null;
     private final long reconnectDelayMs;
+    private Thread shutdownHook = null;
 
     /**
      * Create a alarm logger for the alarm messages (both state and configuration)
@@ -90,6 +90,22 @@ public class AlarmMessageLogger implements Runnable {
             logger.log(Level.SEVERE, "Time based index creation failed.", ex);
         }
 
+        // Register shutdown hook once before retry loop
+        shutdownHook = new Thread("streams-"+topic+"-alarm-messages-shutdown-hook") {
+            @Override
+            public void run() {
+                logger.info("Shutdown hook triggered for topic " + topic);
+                shouldReconnect = false;
+                if (currentStreams != null) {
+                    logger.info("Closing Kafka Streams for topic " + topic);
+                    currentStreams.close(Duration.of(10, ChronoUnit.SECONDS));
+                    currentStreams = null;
+                }
+                logger.info("Shutting streams down for topic " + topic);
+            }
+        };
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
+
         // Retry loop for handling missing topics
         while (shouldReconnect) {
             try {
@@ -112,6 +128,16 @@ public class AlarmMessageLogger implements Runnable {
                     break;
                 }
             }
+        }
+
+        // Clean up shutdown hook when we're done
+        try {
+            if (shutdownHook != null) {
+                Runtime.getRuntime().removeShutdownHook(shutdownHook);
+                shutdownHook = null;
+            }
+        } catch (IllegalStateException e) {
+            // Ignore - shutdown already in progress
         }
 
         logger.info("Alarm message logger for topic " + topic + " has shut down");
@@ -188,36 +214,34 @@ public class AlarmMessageLogger implements Runnable {
                 return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
             }
 
-            // For other exceptions, log and shutdown
+            // For other exceptions, stop retry
             logger.log(Level.SEVERE, "Unrecoverable stream exception for topic " + topic, exception);
             shouldReconnect = false;
             return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
         });
 
+        // Simple latch to wait for streams to stop
         final CountDownLatch latch = new CountDownLatch(1);
-
-        // attach shutdown handler to catch control-c
-        Runtime.getRuntime().addShutdownHook(new Thread("streams-"+topic+"-alarm-messages-shutdown-hook") {
-            @Override
-            public void run() {
-                logger.info("Shutdown hook triggered for topic " + topic);
-                shouldReconnect = false;
-                if (currentStreams != null) {
-                    currentStreams.close(Duration.of(10, ChronoUnit.SECONDS));
-                    currentStreams = null;
-                }
-                logger.info("Shutting streams down for topic " + topic);
+        streams.setStateListener((newState, oldState) -> {
+            if (newState == KafkaStreams.State.NOT_RUNNING || newState == KafkaStreams.State.ERROR) {
                 latch.countDown();
             }
         });
 
         try {
             streams.start();
-            logger.info("Kafka Streams started successfully for topic " + topic);
+            logger.info("Kafka Streams started for topic " + topic);
+
+            // Wait for streams to stop (either due to exception or shutdown)
             latch.await();
-        } catch (Throwable e) {
-            logger.log(Level.SEVERE, "Error during Kafka Streams operation for topic " + topic, e);
-            throw new Exception("Kafka Streams failed", e);
+
+            // If stopped due to error, throw to trigger retry
+            if (streams.state() == KafkaStreams.State.ERROR) {
+                throw new Exception("Streams stopped with ERROR state");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new Exception("Interrupted", e);
         } finally {
             if (currentStreams != null) {
                 currentStreams.close(Duration.of(10, ChronoUnit.SECONDS));
