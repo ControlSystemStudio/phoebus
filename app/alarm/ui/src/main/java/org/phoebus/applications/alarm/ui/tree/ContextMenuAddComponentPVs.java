@@ -32,6 +32,11 @@ public class ContextMenuAddComponentPVs implements ContextMenuEntry {
     private static final Class<?> supportedTypes = ProcessVariable.class;
 
     @Override
+    public boolean isEnabled() {
+        return AlarmSystem.enable_add_to_alarm_context_menu;
+    }
+
+    @Override
     public String getName() {
         return "Add PVs to Alarm System";
     }

@@ -24,6 +24,7 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget.TabProperty;
 import org.csstudio.display.builder.representation.EmbeddedDisplayRepresentationUtil.DisplayAndGroup;
@@ -98,7 +99,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
      */
     private final AtomicReference<DisplayModel> active_content_model = new AtomicReference<>();
 
-    private final WidgetPropertyListener<String> tab_name_listener = (property, old_value, new_value) ->
+    private final UntypedWidgetPropertyListener tabs_listener = (property, old_value, new_value) ->
     {
         dirty_tabs.mark();
         toolkit.scheduleUpdate(this);
@@ -164,6 +165,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
         model_widget.propTabWidth().addUntypedPropertyListener(tabLookChangedListener);
         model_widget.propTabHeight().addUntypedPropertyListener(tabLookChangedListener);
         model_widget.propTabSpacing().addUntypedPropertyListener(tabLookChangedListener);
+        model_widget.propEnablePerTabColors().addUntypedPropertyListener(tabLookChangedListener);
         model_widget.propSelectedColor().addUntypedPropertyListener(tabLookChangedListener);
         model_widget.propDeselectedColor().addUntypedPropertyListener(tabLookChangedListener);
         model_widget.propFont().addUntypedPropertyListener(tabLookChangedListener);
@@ -187,6 +189,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
         model_widget.propTabWidth().removePropertyListener(tabLookChangedListener);
         model_widget.propTabHeight().removePropertyListener(tabLookChangedListener);
         model_widget.propTabSpacing().removePropertyListener(tabLookChangedListener);
+        model_widget.propEnablePerTabColors().removePropertyListener(tabLookChangedListener);
         model_widget.propSelectedColor().removePropertyListener(tabLookChangedListener);
         model_widget.propDeselectedColor().removePropertyListener(tabLookChangedListener);
         model_widget.propFont().removePropertyListener(tabLookChangedListener);
@@ -348,10 +351,12 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
     {
         for (TabProperty tab : removed)
         {
-            tab.name().removePropertyListener(tab_name_listener);
+            tab.name().removePropertyListener(tabs_listener);
             tab.file().removePropertyListener(tab_display_listener);
             tab.macros().removePropertyListener(tab_display_listener);
             tab.group().removePropertyListener(tab_display_listener);
+            tab.individual_selected_color().removePropertyListener(tabs_listener);
+            tab.individual_deselected_color().removePropertyListener(tabs_listener);
         }
     }
 
@@ -359,10 +364,12 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
     {
         for (TabProperty tab : added)
         {
+            tab.individual_selected_color().addUntypedPropertyListener(tabs_listener);
+            tab.individual_deselected_color().addUntypedPropertyListener(tabs_listener);
             tab.group().addUntypedPropertyListener(tab_display_listener);
             tab.macros().addUntypedPropertyListener(tab_display_listener);
             tab.file().addUntypedPropertyListener(tab_display_listener);
-            tab.name().addPropertyListener(tab_name_listener);
+            tab.name().addUntypedPropertyListener(tabs_listener);
         }
     }
 
@@ -382,15 +389,25 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
             jfx_node.setTabSize(model_widget.propTabWidth().getValue(),
                                 model_widget.propTabHeight().getValue());
             jfx_node.setTabSpacing(model_widget.propTabSpacing().getValue());
+            jfx_node.setEnablePerTabColors(model_widget.propEnablePerTabColors().getValue());
             jfx_node.setSelectedColor(JFXUtil.convert(model_widget.propSelectedColor().getValue()));
             jfx_node.setDeselectedColor(JFXUtil.convert(model_widget.propDeselectedColor().getValue()));
             jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
         }
         if (dirty_tabs.checkAndClear())
         {
-            final List<String> tabs = new ArrayList<>();
-            model_widget.propTabs().getValue().forEach(tab -> tabs.add(tab.name().getValue()));
-            jfx_node.setTabs(tabs);
+            final List<String> tab_names = new ArrayList<>();
+            final List<WidgetColor> tab_selected_colors = new ArrayList<>();
+            final List<WidgetColor> tab_deselected_colors = new ArrayList<>();
+
+            List<TabProperty> tabList = model_widget.propTabs().getValue();
+            tabList.forEach(tab -> {
+                tab_names.add(tab.name().getValue());
+                tab_selected_colors.add(tab.individual_selected_color().getValue());
+                tab_deselected_colors.add(tab.individual_deselected_color().getValue());
+            });
+
+            jfx_node.setTabs(tab_names, tab_selected_colors, tab_deselected_colors);
         }
         if (dirty_active_tab.checkAndClear())
             jfx_node.selectTab(model_widget.propActiveTab().getValue());

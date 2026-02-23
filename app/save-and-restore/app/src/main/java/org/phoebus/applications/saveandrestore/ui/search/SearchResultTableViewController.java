@@ -41,18 +41,19 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.RestoreMode;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.WebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.LoginMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromClientMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.RestoreFromServiceMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.TagGoldenMenuItem;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -80,7 +81,7 @@ import java.util.stream.Collectors;
  * Controller for the search result table.
  */
 public class SearchResultTableViewController extends SaveAndRestoreBaseController
-        implements Initializable, WebSocketMessageHandler {
+        implements Initializable, SaveAndRestoreWebSocketMessageHandler {
 
     @SuppressWarnings("unused")
     @FXML
@@ -223,7 +224,6 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
                 return;
             }
             tagMenuItem.disableProperty().set(userIdentity.isNull().get() ||
-                    selectedItemsProperty.size() != 1 ||
                     (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
                             !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
             NodeType selectedItemType = resultTableView.getSelectionModel().getSelectedItem().getNodeType();
@@ -241,8 +241,9 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
 
         contextMenu.getItems().addAll(loginMenuItem, tagGoldenMenuItem, tagMenuItem, restoreFromClientMenuItem, restoreFromServiceMenuItem);
 
-        resultTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        resultTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         resultTableView.setContextMenu(contextMenu);
+
 
         // Bind search result table to tableEntries observable
         Property<ObservableList<Node>> tableListProperty = new SimpleObjectProperty<>(tableEntries);
@@ -288,7 +289,7 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
             }
         });
 
-        webSocketClientService.addWebSocketMessageHandler(this);
+        saveAndRestoreService.addSaveAndRestoreWebSocketMessageHandler(this);
     }
 
     private ImageView getImageView(Node node) {
@@ -413,19 +414,19 @@ public class SearchResultTableViewController extends SaveAndRestoreBaseControlle
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
-        switch (saveAndRestoreWebSocketMessage.messageType()) {
+    public void handleSaveAndRestoreWebSocketMessage(WebSocketMessage webSocketMessage) {
+        switch ((SaveAndRestoreMessageType) webSocketMessage.messageType()) {
             case NODE_UPDATED, NODE_REMOVED, NODE_ADDED -> search();
         }
     }
 
     @Override
     public void handleTabClosed() {
-        webSocketClientService.removeWebSocketMessageHandler(this);
+        saveAndRestoreService.removeSaveAndRestoreWebSocketMessageHandler(this);
     }
 
     @Override
-    public boolean doCloseCheck(){
+    public boolean doCloseCheck() {
         return true;
     }
 }

@@ -21,7 +21,6 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.property.SimpleStringProperty;
 import org.phoebus.applications.saveandrestore.authentication.SaveAndRestoreAuthenticationScope;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
@@ -33,11 +32,9 @@ import java.util.logging.Logger;
 public abstract class SaveAndRestoreBaseController {
 
     protected final SimpleStringProperty userIdentity = new SimpleStringProperty();
-    protected final WebSocketClientService webSocketClientService;
     protected final SaveAndRestoreService saveAndRestoreService;
 
     public SaveAndRestoreBaseController() {
-        this.webSocketClientService = WebSocketClientService.getInstance();
         this.saveAndRestoreService = SaveAndRestoreService.getInstance();
         try {
             SecureStore secureStore = new SecureStore();
@@ -50,7 +47,7 @@ public abstract class SaveAndRestoreBaseController {
             }
         } catch (Exception e) {
             Logger.getLogger(SaveAndRestoreBaseController.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
-                    new SaveAndRestoreAuthenticationScope().getScope()+ " scope", e);
+                    new SaveAndRestoreAuthenticationScope().getScope() + " scope", e);
         }
     }
 
@@ -70,19 +67,13 @@ public abstract class SaveAndRestoreBaseController {
     }
 
     /**
-     * Default no-op implementation of a handler for {@link SaveAndRestoreWebSocketMessage}s.
-     * @param webSocketMessage See {@link SaveAndRestoreWebSocketMessage}
-     */
-    protected void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> webSocketMessage){
-    }
-
-    /**
      * Performs suitable cleanup, e.g. close web socket and PVs (where applicable).
      */
     public abstract void handleTabClosed();
 
     /**
      * Checks if the tab may be closed, e.g. if data managed in the UI has been saved.
+     *
      * @return <code>false</code> if tab contains unsaved data, otherwise <code>true</code>
      */
     public abstract boolean doCloseCheck();

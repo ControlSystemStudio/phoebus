@@ -1,0 +1,9 @@
+# acf where DEFAULT grants write access to any user from anywhere
+#
+# This is equivalent to an EPICS IOC where
+# no access security has been configured
+
+ASG(DEFAULT)
+{
+   RULE(1, WRITE)
+}

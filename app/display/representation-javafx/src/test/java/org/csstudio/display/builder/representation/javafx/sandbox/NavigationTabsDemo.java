@@ -8,10 +8,13 @@
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.csstudio.display.builder.model.properties.Direction;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.NavigationTabs;
 import org.phoebus.ui.javafx.ApplicationWrapper;
@@ -34,8 +37,10 @@ public class NavigationTabsDemo extends ApplicationWrapper
     {
         final NavigationTabs nav_tabs = new NavigationTabs();
 
-        final List<String> tabs = IntStream.range(1, 10).mapToObj(i -> "Step" + i).collect(Collectors.toList());
-        nav_tabs.setTabs(tabs);
+        final List<String> tab_names = IntStream.range(1, 10).mapToObj(i -> "Step" + i).collect(Collectors.toList());
+        final List<WidgetColor> tab_selected_colors = new ArrayList<>(Collections.nCopies(10, new WidgetColor(236,236,236)));
+        final List<WidgetColor> tab_deselected_colors = new ArrayList<>(Collections.nCopies(10, new WidgetColor(200,200,200)));
+        nav_tabs.setTabs(tab_names, tab_selected_colors, tab_deselected_colors);
         nav_tabs.setTabSize(80, 40);
         nav_tabs.setTabSpacing(5);
         nav_tabs.getBodyPane().getChildren().setAll(new Label("     Go on, select something!"));

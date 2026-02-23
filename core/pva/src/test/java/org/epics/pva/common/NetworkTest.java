@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,13 +25,30 @@ import org.junit.jupiter.api.Test;
 /** Unit test of Network helper
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class NetworkTest
 {
     // If running on a host that does not support IPv6,
     // ignore the checks that require a local "::1" IPv6 address
     private static final boolean ignore_local_ipv6 = Boolean.parseBoolean(System.getProperty("ignore_local_ipv6"))
                                                      || !PVASettings.EPICS_PVA_ENABLE_IPV6;
+
+    @Test
+    public void testFormat() throws Exception
+    {
+        assertEquals("127.0.0.1", Network.format(InetAddress.getByName("127.0.0.1")));
+        assertEquals("10.11.12.13", Network.format(InetAddress.getByName("10.11.12.13")));
+        if (! ignore_local_ipv6)
+            assertEquals("0:0:0:0:0:0:0:1", Network.format(InetAddress.getByName("::1")));
+        assertEquals("localhost", Network.format(InetAddress.getByName("localhost")));
+
+        // This will perform a name lookup
+        InetAddress addr = InetAddress.getByName("www.google.com");
+        // Address now contains something like "www.google.com/142.250.189.132"
+        System.out.println(addr);
+        System.out.println(addr.getHostAddress());
+        assertTrue(addr.getHostAddress().length() > 7);
+        assertEquals("www.google.com", Network.format(addr));
+    }
 
     @Test
     public void testBroadcastAddresses()

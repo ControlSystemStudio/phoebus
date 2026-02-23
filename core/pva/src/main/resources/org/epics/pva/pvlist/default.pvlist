@@ -1,0 +1,4 @@
+# pvlist that allows access to any PV,
+# placing all PVs in the 'DEFAULT' access group
+
+.*   ALLOW   DEFAULT

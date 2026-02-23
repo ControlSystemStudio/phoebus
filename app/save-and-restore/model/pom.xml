@@ -17,6 +17,18 @@
 			<version>5.0.3-SNAPSHOT</version>
 		</dependency>
 
+	  <dependency>
+		  <groupId>org.phoebus</groupId>
+		  <artifactId>core-websocket-common</artifactId>
+		  <version>5.0.3-SNAPSHOT</version>
+	  </dependency>
+
+	  <dependency>
+		  <groupId>org.phoebus</groupId>
+		  <artifactId>core-websocket-client</artifactId>
+		  <version>5.0.3-SNAPSHOT</version>
+	  </dependency>
+
 		<dependency>
 			<groupId>javax.json</groupId>
 			<artifactId>javax.json-api</artifactId>

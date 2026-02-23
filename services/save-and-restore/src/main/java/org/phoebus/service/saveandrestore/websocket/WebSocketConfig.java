@@ -18,33 +18,49 @@
 package org.phoebus.service.saveandrestore.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.phoebus.core.websocket.common.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @SuppressWarnings("unused")
 @Configuration
-@EnableWebSocket
-public class WebSocketConfig implements WebSocketConfigurer {
+@EnableWebSocketMessageBroker
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Autowired
     public ObjectMapper objectMapper;
 
     @Autowired
-    private List<WebSocket> sockets;
-
-    @Autowired
-    private WebSocketHandler webSocketHandler;
+    private String context;
 
     private final Logger logger = Logger.getLogger(WebSocketConfig.class.getName());
 
+    private TaskScheduler messageBrokerTaskScheduler;
+
+    @Autowired
+    public void setMessageBrokerTaskScheduler(@Lazy TaskScheduler taskScheduler) {
+        this.messageBrokerTaskScheduler = taskScheduler;
+    }
+
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketHandler, "/web-socket");
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        logger.log(Level.INFO, "Configuring message broker using path " + context + Constants.WEB_SOCKET + Constants.MESSAGES);
+        config.enableSimpleBroker(context + Constants.WEB_SOCKET + Constants.MESSAGES)
+                .setHeartbeatValue(new long[]{30000, 30000})
+                .setTaskScheduler(this.messageBrokerTaskScheduler);
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint(Constants.WEB_SOCKET);
     }
 }

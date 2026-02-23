@@ -344,9 +344,11 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                                 meter.setRange(observedMin - 1, observedMax + 1, false);
                                 newObservedMinAndMaxValues = false;
                                 linearMeterScaleHasChanged = true;
-                            } else if (meter.linearMeterScale.getValueRange().getLow() != 0.0 || meter.linearMeterScale.getValueRange().getHigh() != 100) {
-                                meter.setRange(0.0, 100.0, false);
-                                linearMeterScaleHasChanged = true;
+                            } else if (Double.isNaN(observedMin) || Double.isNaN(observedMax)) {
+                                if (meter.linearMeterScale.getValueRange().getLow() != 0.0 || meter.linearMeterScale.getValueRange().getHigh() != 100) {
+                                    meter.setRange(0.0, 100.0, false);
+                                    linearMeterScaleHasChanged = true;
+                                }
                             }
                         }
                     }
