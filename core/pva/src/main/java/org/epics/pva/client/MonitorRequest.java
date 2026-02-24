@@ -45,6 +45,8 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
 
     private final int request_id;
 
+    private final RecordOptions recordOptions;
+
     /** Next request to send, cycling from INIT to START.
      *  Cancel() then sets it to DESTROY.
      */
@@ -52,7 +54,6 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
 
     private volatile PVAStructure data;
 
-    private final int pipeline;
     private final AtomicInteger received_updates = new AtomicInteger();
 
     /** @param channel Channel to 'monitor'
@@ -63,9 +64,20 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
      */
     public MonitorRequest(final PVAChannel channel, final String request, final int pipeline, final MonitorListener listener) throws Exception
     {
+        this(channel, request, RecordOptions.builder().pipeline(pipeline).build(), listener);
+    }
+
+    /** @param channel Channel to 'monitor'
+     *  @param request Request string to monitor only selected fields of PV
+     * @param recordOptions Number of updates that server should pipeline, 0 to disable
+     *  @param listener Listener to invoke with received updates
+     *  @throws Exception on error
+     */
+    public MonitorRequest(final PVAChannel channel, final String request, final RecordOptions recordOptions, final MonitorListener listener) throws Exception
+    {
         this.channel = channel;
         this.request = request;
-        this.pipeline = pipeline;
+        this.recordOptions = recordOptions;
         this.listener = listener;
         this.request_id = channel.getClient().allocateRequestID();
         channel.getTCP().submit(this, this);
@@ -75,6 +87,10 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
     public int getRequestID()
     {
         return request_id;
+    }
+
+    private int pipeline() {
+        return recordOptions.pipeline();
     }
 
     @Override
@@ -91,18 +107,18 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
             buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
 
-            if (pipeline > 0)
+            if (pipeline() > 0)
                 state = (byte) (PVAHeader.CMD_SUB_PIPELINE | PVAHeader.CMD_SUB_INIT);
             buffer.put(state);
 
             // For pipeline, add record._options.pipeline=true to request
-            final FieldRequest field_request = new FieldRequest(pipeline, request);
+            final FieldRequest field_request = new FieldRequest(recordOptions, request);
             logger.log(Level.FINE, () -> "Monitor INIT request " + field_request);
             field_request.encodeType(buffer);
             field_request.encode(buffer);
             // Encode pipeline 'nfree'
-            if (pipeline > 0)
-                buffer.putInt(pipeline);
+            if (pipeline() > 0)
+                buffer.putInt(pipeline());
             buffer.putInt(size_offset, buffer.position() - payload_start);
         }
         else if (state == PVAHeader.CMD_SUB_PIPELINE)
@@ -200,8 +216,8 @@ class MonitorRequest implements AutoCloseable, RequestEncoder, ResponseHandler
             // With a responsive client, this jumps nfree up to the original 'pipeline' count.
             // With a slow client, for example stuck in listener.handleMonitor(),
             // the server will stop after sending nfree updates.
-            if (pipeline > 0  &&
-                received_updates.incrementAndGet() >= pipeline/2)
+            if (pipeline() > 0  &&
+                received_updates.incrementAndGet() >= pipeline()/2)
             {
                 state = PVAHeader.CMD_SUB_PIPELINE;
                 channel.getTCP().submit(this, this);
