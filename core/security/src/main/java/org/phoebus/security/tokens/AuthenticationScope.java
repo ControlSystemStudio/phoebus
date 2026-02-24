@@ -22,20 +22,7 @@ package org.phoebus.security.tokens;
 /**
  * Interface defining how to interact with {@link AuthenticationScope}s
  */
-public enum AuthenticationScope {
-
-    LOGBOOK("logbook"),
-    SAVE_AND_RESTORE("save-and-restore"),
-    NEO4J("graph-database"),
-    S3("aws-image-bucket"),
-    MONGODB("mongodb-ux"),
-    MARIADB("mariadb-ux");
-
-
-
-    private String name = null;
-
-    private String supportedNamePattern = "[a-z-]*";
+public interface AuthenticationScope{
 
     /**
      * @return A string that must be unique between implementations and must match regular expression [a-z-]*
