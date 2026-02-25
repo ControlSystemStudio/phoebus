@@ -184,7 +184,11 @@ public class EmailDialogController {
     @FXML
     public void initialize() {
 
-        txtTo.setText(prefs.get(LAST_TO, ""));
+        if(EmailPreferences.to == null || EmailPreferences.to.isBlank())
+            txtTo.setText(prefs.get(LAST_TO, ""));
+        else
+            txtTo.setText(EmailPreferences.to);
+
         if(EmailPreferences.from == null || EmailPreferences.from.isBlank())
             txtFrom.setText(prefs.get(LAST_FROM, ""));
         else

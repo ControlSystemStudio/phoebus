@@ -22,6 +22,7 @@ public class EmailPreferences
     @Preference public static String username;
     @Preference public static String password;
     @Preference public static String from;
+    @Preference public static String to;
 
     /** @return Is email supported? */
     public static final boolean isEmailSupported()
