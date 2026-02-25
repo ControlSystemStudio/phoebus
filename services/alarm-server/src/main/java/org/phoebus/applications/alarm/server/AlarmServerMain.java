@@ -8,7 +8,6 @@
 package org.phoebus.applications.alarm.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.phoebus.applications.alarm.AlarmSystemConstants;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
@@ -310,6 +309,7 @@ public class AlarmServerMain implements ServerModelListener {
      *     Quit
      * </ul>
      * <p>
+     *
      * @param path Alarm tree path
      * @param json Command
      */
@@ -407,8 +407,7 @@ public class AlarmServerMain implements ServerModelListener {
      * @param node Node where to start ack'ing all INVALID or UNDEFINED alarms
      */
     private void acknowledgeInvalidUndefined(final AlarmTreeItem<?> node) {
-        if (node instanceof AlarmServerPV) {
-            final AlarmServerPV pv_node = (AlarmServerPV) node;
+        if (node instanceof AlarmServerPV pv_node) {
             if (pv_node.getState().severity.ordinal() >= SeverityLevel.INVALID.ordinal())
                 pv_node.acknowledge(true);
         } else
@@ -417,8 +416,7 @@ public class AlarmServerMain implements ServerModelListener {
     }
 
     private void acknowledge(final AlarmTreeItem<?> node, final boolean acknowledge) {
-        if (node instanceof AlarmServerPV) {
-            final AlarmServerPV pv_node = (AlarmServerPV) node;
+        if (node instanceof AlarmServerPV pv_node) {
             pv_node.acknowledge(acknowledge);
         } else
             for (final AlarmTreeItem<?> child : node.getChildren())
@@ -433,15 +431,12 @@ public class AlarmServerMain implements ServerModelListener {
         Disabled
     }
 
-    ;
-
     private void listPVs(final AlarmTreeItem<?> node, final PVMode which) {
         listPVs(new AtomicInteger(), node, which);
     }
 
     private void listPVs(final AtomicInteger count, final AlarmTreeItem<?> node, final PVMode which) {
-        if (node instanceof AlarmServerPV) {
-            final AlarmServerPV pv_node = (AlarmServerPV) node;
+        if (node instanceof AlarmServerPV pv_node) {
             switch (which) {
                 case Disabled:
                     if (pv_node.isEnabled())
@@ -485,8 +480,6 @@ public class AlarmServerMain implements ServerModelListener {
         System.out.println("-help                                   - This text");
         System.out.println("-server             localhost:9092      - Kafka server with port number");
         System.out.println("-config             Accelerator         - Alarm configuration");
-        // Don't mention this option, prefer examples/create_topics.sh
-        // System.out.println("-create_topics              - Create Kafka topics for alarm configuration?");
         System.out.println("-settings           settings.{xml,ini}  - Import preferences (PV connectivity) from property format file");
         System.out.println("-noshell                                - Disable the command shell for running without a terminal");
         System.out.println("-export             config.xml          - Export alarm configuration to file");
@@ -517,7 +510,6 @@ public class AlarmServerMain implements ServerModelListener {
             String help_alt_arg = "-h";
             String server_arg = "-server";
             String config_arg = "-config";
-            String create_topics_arg = "-create_topics";
             String settings_arg = "-settings";
             String noshell_arg = "-noshell";
             String export_arg = "-export";
@@ -541,8 +533,7 @@ public class AlarmServerMain implements ServerModelListener {
             Set<String> flags = Set.of(
                     help_arg,
                     help_alt_arg,
-                    noshell_arg,
-                    create_topics_arg
+                    noshell_arg
             );
 
             // to handle arguments that may be provided via a settings file
@@ -570,8 +561,9 @@ public class AlarmServerMain implements ServerModelListener {
                 help();
                 return;
             }
-            if (parsed_args.containsKey(logging_arg))
+            if (parsed_args.containsKey(logging_arg)) {
                 LogManager.getLogManager().readConfiguration(new FileInputStream(parsed_args.get(logging_arg)));
+            }
             if (parsed_args.containsKey(settings_arg)) {
                 final String filename = parsed_args.get(settings_arg);
                 logger.info("Loading settings from " + filename);
@@ -596,20 +588,13 @@ public class AlarmServerMain implements ServerModelListener {
             kafka_properties = parsed_args.getOrDefault(kafka_props_arg, kafka_properties);
             use_shell = !parsed_args.containsKey(noshell_arg);
 
-            if (parsed_args.containsKey(connect_secs_arg))
+            if (parsed_args.containsKey(connect_secs_arg)) {
                 AlarmStateInitializer.CONNECTION_SECS = AlarmConfigTool.CONNECTION_SECS
                         = Long.parseLong(parsed_args.get(connect_secs_arg));
-
-            if (parsed_args.containsKey(stable_secs_arg))
+            }
+            if (parsed_args.containsKey(stable_secs_arg)) {
                 AlarmStateInitializer.STABILIZATION_SECS = AlarmConfigTool.STABILIZATION_SECS
                         = Long.parseLong(parsed_args.get(stable_secs_arg));
-
-            if (parsed_args.containsKey(create_topics_arg)) {
-                logger.info("Discovering and creating any missing topics at " + server);
-                CreateTopics.discoverAndCreateTopics(server, true, List.of(config,
-                                config + AlarmSystemConstants.COMMAND_TOPIC_SUFFIX,
-                                config + AlarmSystemConstants.TALK_TOPIC_SUFFIX),
-                        kafka_properties);
             }
             if (parsed_args.containsKey(export_arg)) {
                 final String filename = parsed_args.get(export_arg);
@@ -621,8 +606,9 @@ public class AlarmServerMain implements ServerModelListener {
                 logger.info("Import model from " + filename);
                 new AlarmConfigTool().importModel(filename, server, config, kafka_properties);
             }
-            if (parsed_args.containsKey(export_arg) || parsed_args.containsKey(import_arg))
+            if (parsed_args.containsKey(export_arg) || parsed_args.containsKey(import_arg)) {
                 return;
+            }
         } catch (final Exception ex) {
             help();
             System.out.println();

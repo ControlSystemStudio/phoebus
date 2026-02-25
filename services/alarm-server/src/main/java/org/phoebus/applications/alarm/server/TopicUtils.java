@@ -33,11 +33,11 @@ public class TopicUtils {
      * For more details on alarm topic configuration, see:
      * Refer to <a href="https://github.com/ControlSystemStudio/phoebus/tree/master/app/alarm#configure-alarm-topics">Configure Alarm Topics</a>
      *
-     * @param server           Kafka server
-     * @param topic            Base topic name
+     * @param server         Kafka server
+     * @param topic          Base topic name
      * @param kafkaPropsFile Extra Kafka properties file
      * @throws Exception If for instance an admin client could not be created or
-     * if the request to Kafka times out.
+     *                   if the request to Kafka times out.
      */
     public static void ensureKafkaTopics(String server, String topic, String kafkaPropsFile) throws Exception {
         var kafkaProps = KafkaHelper.loadPropsFromFile(kafkaPropsFile);
