@@ -37,6 +37,7 @@
     <module>imageviewer</module>
     <module>credentials-management</module>
     <module>eslog</module>
+    <module>queue-server</module>
     <module>ux-analytics</module>
   </modules>
 </project>
