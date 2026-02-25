@@ -20,10 +20,10 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.search.Filter;
-import org.phoebus.applications.saveandrestore.model.websocket.MessageType;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,7 +47,7 @@ public class FilterController extends BaseController {
     private NodeDAO nodeDAO;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private WebSocketService webSocketService;
 
     /**
      * Saves a new or updated {@link Filter}.
@@ -63,7 +63,7 @@ public class FilterController extends BaseController {
                              Principal principal) {
         filter.setUser(principal.getName());
         Filter savedFilter = nodeDAO.saveFilter(filter);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_ADDED_OR_UPDATED, filter));
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.FILTER_ADDED_OR_UPDATED, filter));
         return savedFilter;
     }
 
@@ -87,6 +87,6 @@ public class FilterController extends BaseController {
     @PreAuthorize("@authorizationHelper.maySaveOrDeleteFilter(#name, #root)")
     public void deleteFilter(@PathVariable final String name, Principal principal) {
         nodeDAO.deleteFilter(name);
-        webSocketHandler.sendMessage(new SaveAndRestoreWebSocketMessage(MessageType.FILTER_REMOVED, name));
+        webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.FILTER_REMOVED, name));
     }
 }

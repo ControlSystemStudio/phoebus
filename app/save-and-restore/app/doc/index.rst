@@ -43,6 +43,21 @@ Below screen shot shows the tree structure and a configuration editor.
 .. image:: images/screenshot1.png
    :width: 80%
 
+Annotations on nodes
+--------------------
+
+Snapshots and composite snapshots may be tagged with user defined tags, see :ref:`tagging`. Presence of one or multiple
+tags is indicated with a symbol to the right of the node name:
+
+.. image:: images/snapshot-with-tag.png
+
+Similarly, snapshots and composite snapshots referenced in other composite snapshots are annotated with a symbol to the
+right of the node name:
+
+.. image:: images/snapshot-with-references.png
+
+
+
 Node names and ordering
 -----------------------
 
@@ -71,7 +86,7 @@ Tree View Context Menu
 
 Most actions performed in the client UI are invoked from the tree view's context menu, which appears like so:
 
-.. image:: images/tree_view_context_menu.png
+.. image:: images/treeview-context-menu.png
     :width: 30%
 
 Since the set of applicable actions varies between node types, items in the context menu enabled/disabled
@@ -95,7 +110,7 @@ Brief description of all items in the context menu (details on actions are outli
 * Delete - delete selected items.
 * Compare Snapshots - compare a snapshot in view to the selected.
 * Add Golden Tag - tag a snapshot as "golden".
-* Tags with comment - add/delete tag on a snapshot or composite snapshot.
+* Tags - add/delete tag on a snapshot or composite snapshot.
 * Copy unique id to clipboard - put a nodes unique string id on the clipboard.
 * Import ... from CSV - import configuration or configuration from CSV file.
 * Export ... to CSV - export configuration or snapshot to CSV file.
@@ -453,6 +468,8 @@ still interact with non-matching items.
 There may be additional nodes matching the current filter, but these will be rendered and highlighted only when their parent nodes
 are expanded. To easily find *all* matching items user will need to use the search tool.
 
+.. _tagging:
+
 Tagging
 -------
 
@@ -489,7 +506,7 @@ that the context menu will only show tags common to all selected nodes.
 Tagging from search view
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The search result table of the Search And Filter view also supports a contect menu for the purpose of managing tags:
+The search result table of the Search And Filter view also supports a context menu for the purpose of managing tags:
 
 .. image:: images/search-result-context-menu.png
 

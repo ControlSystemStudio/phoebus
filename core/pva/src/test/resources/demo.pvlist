@@ -1,0 +1,46 @@
+# 'pvlist' example
+#
+# Syntax is similar to the CA or p4p Gateway:
+#
+#    {regular expression for PV name}     DENY
+#    {regular expression for PV name}     DENY FROM  {IP}
+#    {regular expression for PV name}     ALLOW
+#    {regular expression for PV name}     ALLOW  {ASG}
+#
+# https://epics-base.github.io/p4p/gw.html#pvlist-file
+#
+# If no ASG listed for ALLOW, it defaults to 'DEFAULT'
+#
+# Compared to the CA gateway, the mode is always
+# EVALUATION ORDER ALLOW, DENY
+#
+# This means that DENY has preference over ALLOW.
+# DENY statements are checked first and matching PVs are blocked,
+# even if an ALLOW statement would follow.
+
+# Ignore searches for PVs named 'Ignore:...' 
+Ignore:.*   DENY
+
+# Ignore searches for PVs from a certain beam line
+# BL10:.*   DENY
+
+# Ignore searches for any PVs from specific host,
+# useful to prevent search loops
+.*          DENY FROM 11.12.13.14
+
+# .*          DENY FROM 10.1.58.243
+# .*          DENY FROM 10.159.201.93
+
+.*          DENY FROM www.google.com
+
+# Then list ALLOW statements, where matching PVs are accepted
+# and considered to be in the access group ASG(DEFAULT)
+SomePV     ALLOW
+Vac:.*     ALLOW
+
+# PV where access is allowed to those in the ASG(RF)
+SomeRFSetting ALLOW RF
+
+# If a PV does not match any ALLOW rule, it is DENYed,
+# so add this if there are no specific ALLOW pattern
+.*          ALLOW

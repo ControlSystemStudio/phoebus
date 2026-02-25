@@ -21,7 +21,6 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,14 +31,16 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
-import org.phoebus.service.saveandrestore.websocket.WebSocketHandler;
+import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
+import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -60,7 +61,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = ControllersTestConfig.class)
+@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class, WebSecurityConfig.class})})
 @WebMvcTest(CompositeSnapshotController.class)
 @TestPropertySource(locations = "classpath:test_application.properties")
 public class CompositeSnapshotControllerTest {
@@ -84,7 +85,7 @@ public class CompositeSnapshotControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private WebSocketHandler webSocketHandler;
+    private WebSocketService webSocketService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -101,8 +102,8 @@ public class CompositeSnapshotControllerTest {
     }
 
     @AfterEach
-    public void resetMocks(){
-        reset(nodeDAO, webSocketHandler);
+    public void resetMocks() {
+        reset(nodeDAO, webSocketService);
     }
 
     @Test
@@ -124,7 +125,7 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, CompositeSnapshot.class);
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -141,7 +142,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -156,7 +157,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -170,12 +171,12 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
 
     }
 
     @Test
-    public void testCreateCompositeSnapshotWrongNodeType() throws Exception{
+    public void testCreateCompositeSnapshotWrongNodeType() throws Exception {
         Node node = Node.builder().uniqueId("c").nodeType(NodeType.SNAPSHOT).build();
         CompositeSnapshot compositeSnapshot1 = new CompositeSnapshot();
         compositeSnapshot1.setCompositeSnapshotNode(node);
@@ -186,7 +187,7 @@ public class CompositeSnapshotControllerTest {
                 .content(objectMapper.writeValueAsString(compositeSnapshot1));
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -213,7 +214,7 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, CompositeSnapshot.class);
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -234,7 +235,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -261,7 +262,7 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
@@ -284,11 +285,11 @@ public class CompositeSnapshotControllerTest {
 
         mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketHandler, times(1)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(1)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
-    public void testUpdateCompositeSnapshotWrongNodeType() throws Exception{
+    public void testUpdateCompositeSnapshotWrongNodeType() throws Exception {
         Node node = Node.builder().uniqueId("c").userName(demoUser).nodeType(NodeType.SNAPSHOT).build();
         CompositeSnapshot compositeSnapshot1 = new CompositeSnapshot();
         compositeSnapshot1.setCompositeSnapshotNode(node);
@@ -301,7 +302,7 @@ public class CompositeSnapshotControllerTest {
                 .content(objectMapper.writeValueAsString(compositeSnapshot1));
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        verify(webSocketHandler, times(0)).sendMessage(Mockito.any(SaveAndRestoreWebSocketMessage.class));
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test

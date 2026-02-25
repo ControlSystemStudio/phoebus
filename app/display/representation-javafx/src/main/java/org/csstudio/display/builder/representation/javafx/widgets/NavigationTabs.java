@@ -12,7 +12,9 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.csstudio.display.builder.model.properties.Direction;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.phoebus.ui.javafx.NonCachingScrollPane;
 
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -26,7 +28,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import org.phoebus.ui.javafx.NonCachingScrollPane;
 
 /** Navigation Tabs
  *
@@ -72,9 +73,19 @@ public class NavigationTabs extends BorderPane
     private final Pane body = new Pane();
 
     /** Labels for the tabs */
-    private final List<String> tabs = new CopyOnWriteArrayList<>();
+    private final List<String> tab_names = new CopyOnWriteArrayList<>();
 
+    /** Selected colors for the tabs */
+    private final List<WidgetColor> tab_selected_colors = new CopyOnWriteArrayList<>();
+
+    /** Deselected colors for the tabs */
+    private final List<WidgetColor> tab_deselected_colors = new CopyOnWriteArrayList<>();
+
+    /** Size and spacing for the tabs */
     private int tab_width = 100, tab_height = 50, tab_spacing = 2;
+
+    /** Enable per tab colors */
+    private boolean enable_per_tab_colors = false;
 
     /** Direction of tabs */
     private Direction direction = Direction.VERTICAL;
@@ -84,6 +95,7 @@ public class NavigationTabs extends BorderPane
                   deselected = Color.rgb(200, 200, 200);
 
     private Font font = null;
+    private int selected_tab = -1;
 
     /** Listener to selected tab
      *
@@ -122,22 +134,22 @@ public class NavigationTabs extends BorderPane
         this.listener = null;
     }
 
-    /** @param tabs Tab labels */
-    public void setTabs(final List<String> tabs)
+    /** @param tabs Tabs */
+    public void setTabs(final List<String> tab_names, final List<WidgetColor> tab_selected_colors, final List<WidgetColor> tab_deselected_colors)
     {
-        this.tabs.clear();
-        this.tabs.addAll(tabs);
+        this.tab_names.clear();
+        this.tab_names.addAll(tab_names);
+        this.tab_selected_colors.clear();
+        this.tab_selected_colors.addAll(tab_selected_colors);
+        this.tab_deselected_colors.clear();
+        this.tab_deselected_colors.addAll(tab_deselected_colors);
         updateTabs();
     }
 
     /** @return Index of the selected tab. -1 if there are no buttons or nothing selected */
     public int getSelectedTab()
     {
-        final ObservableList<Node> siblings = buttons.getChildren();
-        for (int i=0; i<siblings.size(); ++i)
-            if (((ToggleButton) siblings.get(i)).isSelected())
-                return i;
-        return -1;
+        return selected_tab;
     }
 
     /** Select a tab
@@ -202,6 +214,15 @@ public class NavigationTabs extends BorderPane
         updateTabs();
     }
 
+    /** @param enable per tab colors */
+    public void setEnablePerTabColors(final boolean enabled)
+    {
+        if (enable_per_tab_colors == enabled)
+            return;
+        enable_per_tab_colors = enabled;
+        updateTabs();
+    }
+
     /** @param color Color for selected tab */
     public void setSelectedColor(final Color color)
     {
@@ -250,17 +271,42 @@ public class NavigationTabs extends BorderPane
         buttons.getStyleClass().add("navtab_tabregion");
 
         // Create button for each tab
-        for (int i=0; i<tabs.size(); ++i)
-        {
-            final ToggleButton button = new ToggleButton(tabs.get(i));
+        Color tmpColor = deselected;
+        WidgetColor tmpWidgetColor = null;
+
+        for (int i = 0; i < tab_names.size(); ++i) {
+            final ToggleButton button = new ToggleButton(tab_names.get(i));
             // Buttons without text vanish, creating a gap in the tab lineup.
             if (button.getText().isEmpty())
                 button.setVisible(false);
             if (direction == Direction.HORIZONTAL)
                 button.pseudoClassStateChanged(HORIZONTAL, true);
 
+            if (getSelectedTab() == i) {
+                button.setSelected(true);
+                // Set color to global "selected" color value
+                tmpColor = selected;
+                // If the per-tab colors are enabled, the color to apply is to be found in the tab_selected_colors list
+                if (enable_per_tab_colors) {
+                    if (i < tab_selected_colors.size()) {
+                        tmpWidgetColor = tab_selected_colors.get(i);
+                        tmpColor = JFXUtil.convert(tmpWidgetColor);
+                    }
+                }		
+            } else {
+                // Set color to global "deselected" color value
+                tmpColor = deselected;
+                // If the per-tab colors are enabled, the color to apply is to be found in the tab_deselected_colors list
+                if (enable_per_tab_colors) {
+                    if (i < tab_deselected_colors.size()) {
+                        tmpWidgetColor = tab_deselected_colors.get(i);
+                        tmpColor = JFXUtil.convert(tmpWidgetColor);
+                    }
+                }
+            }
+
             // base color, '-fx-color', is either selected or deselected
-            button.setStyle("-fx-color: " + JFXUtil.webRGB(deselected));
+            button.setStyle("-fx-color: " + JFXUtil.webRGB(tmpColor));
             button.getStyleClass().add("navtab_button");
             button.setMinSize(ButtonBase.USE_PREF_SIZE, ButtonBase.USE_PREF_SIZE);
             button.setPrefSize(tab_width, tab_height);
@@ -277,12 +323,17 @@ public class NavigationTabs extends BorderPane
     private void handleTabSelection(final ToggleButton pressed, final boolean notify)
     {
         final ObservableList<Node> siblings = buttons.getChildren();
-        int i = 0, selected_tab = -1;
+        int i = 0;
+        selected_tab = -1;
+        Color tmpColor = deselected;
+        WidgetColor tmpWidgetColor = null;
         for (Node sibling : siblings)
         {
             final ToggleButton button = (ToggleButton) sibling;
             if (button == pressed)
             {
+                // Set color to global "selected" color value
+                tmpColor = selected;
                 // If user clicked a button that was already selected,
                 // it would now be de-selected, leaving nothing selected.
                 if (! pressed.isSelected())
@@ -290,14 +341,30 @@ public class NavigationTabs extends BorderPane
                     pressed.setSelected(true);
                 }
                 // Highlight active tab by setting it to the 'selected' color
-                pressed.setStyle("-fx-color: " + JFXUtil.webRGB(selected));
+                // If the per-tab colors are enabled, the color to apply is to be found in the tab_selected_colors list
+                if (enable_per_tab_colors) {
+                    if (i < tab_selected_colors.size()) {
+                        tmpWidgetColor = tab_selected_colors.get(i);
+                        tmpColor = JFXUtil.convert(tmpWidgetColor);
+                    }
+                }
+                pressed.setStyle("-fx-color: " + JFXUtil.webRGB(tmpColor));
                 selected_tab = i;
             }
             else if (button.isSelected())
             {
                 // Radio-button behavior: De-select other tabs
                 button.setSelected(false);
-                button.setStyle("-fx-color: " + JFXUtil.webRGB(deselected));
+                // Set color to global "deselected" color value
+                tmpColor = deselected;
+                // If the per-tab colors are enabled, the color to apply is to be found in the tab_deselected_colors list
+                if (enable_per_tab_colors) {
+                    if (i < tab_deselected_colors.size()) {
+                        tmpWidgetColor = tab_deselected_colors.get(i);
+                        tmpColor = JFXUtil.convert(tmpWidgetColor);
+                    }
+                }
+                button.setStyle("-fx-color: " + JFXUtil.webRGB(tmpColor));
             }
             ++i;
         }

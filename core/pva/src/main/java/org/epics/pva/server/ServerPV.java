@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2025 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.epics.pva.common.AccessRightsChange;
-import org.epics.pva.common.PVAAuth;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
@@ -261,10 +260,8 @@ public class ServerPV implements AutoCloseable
      */
     public boolean isWritable(final ClientAuthentication client_auth)
     {
-        // For now, as long as PV supports write access,
-        // any authenticated user (CA or X509) can write
-        // TODO Check user in ServerAuthorization
-        return writable.get()  &&  client_auth.getType() != PVAAuth.anonymous;
+        // Is PV fundamentally writable, and is the client authorized?
+        return writable.get()  &&  server.hasWriteAccess(getName(), client_auth);
     }
 
     /** Update write access

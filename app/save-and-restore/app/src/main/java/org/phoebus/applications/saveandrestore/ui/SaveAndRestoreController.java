@@ -80,7 +80,8 @@ import org.phoebus.applications.saveandrestore.model.search.FilterActivator;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessage;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreMessageType;
+import org.phoebus.applications.saveandrestore.model.websocket.SaveAndRestoreWebSocketMessageHandler;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.CopyUniqueIdToClipboardMenuItem;
 import org.phoebus.applications.saveandrestore.ui.contextmenu.CreateSnapshotMenuItem;
@@ -101,6 +102,7 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
+import org.phoebus.core.websocket.common.WebSocketMessage;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.selection.SelectionService;
@@ -132,7 +134,6 @@ import java.util.ResourceBundle;
 import java.util.ServiceLoader;
 import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -141,7 +142,7 @@ import java.util.stream.Collectors;
  * Main controller for the save and restore UI.
  */
 public class SaveAndRestoreController extends SaveAndRestoreBaseController
-        implements Initializable, WebSocketMessageHandler {
+        implements Initializable, SaveAndRestoreWebSocketMessageHandler {
 
     @FXML
     protected TreeView<Node> treeView;
@@ -252,7 +253,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
         // Tree items are first compared on type, then on name (case-insensitive).
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
@@ -368,10 +368,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         treeView.visibleProperty().bind(serviceConnected);
         errorPane.visibleProperty().bind(serviceConnected.not());
 
-        webSocketClientService.addWebSocketMessageHandler(this);
-        webSocketClientService.setConnectCallback(this::handleWebSocketConnected);
-        webSocketClientService.setDisconnectCallback(this::handleWebSocketDisconnected);
-        webSocketClientService.connect();
+        saveAndRestoreService.addSaveAndRestoreWebSocketMessageHandler(this);
+        saveAndRestoreService.setConnectCallback(this::handleWebSocketConnected);
+        saveAndRestoreService.setDisconnectCallback(this::handleWebSocketDisconnected);
+        saveAndRestoreService.connectWebSocket();
 
     }
 
@@ -383,7 +383,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         JobManager.schedule("Load save-and-restore tree data", monitor -> {
             Node rootNode = saveAndRestoreService.getRootNode();
-            treeInitializationCountDownLatch.countDown();
             TreeItem<Node> rootItem = createTreeItem(rootNode);
             List<String> savedTreeViewStructure = getSavedTreeStructure();
 
@@ -467,6 +466,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 childNodes.stream().map(this::createTreeItem).toList();
         targetItem.getChildren().setAll(list);
         targetItem.getChildren().sort(treeNodeComparator);
+        targetItem.setExpanded(true);
     }
 
     /**
@@ -816,8 +816,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             // Find the parent to which the new node is to be added
             TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
             TreeItem<Node> newTreeItem = createTreeItem(newNode);
-            parentTreeItem.getChildren().add(newTreeItem);
-            parentTreeItem.getChildren().sort(treeNodeComparator);
+            Platform.runLater(() -> {
+                parentTreeItem.getChildren().add(newTreeItem);
+                parentTreeItem.getChildren().sort(treeNodeComparator);
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -832,7 +834,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private void nodeRemoved(String nodeId) {
         TreeItem<Node> treeItemToRemove = recursiveSearch(nodeId, treeView.getRoot());
         if (treeItemToRemove != null) {
-            treeItemToRemove.getParent().getChildren().remove(treeItemToRemove);
+            Platform.runLater(() -> treeItemToRemove.getParent().getChildren().remove(treeItemToRemove));
         }
     }
 
@@ -861,7 +863,9 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         while (!nodeStack.isEmpty()) {
             Node currentNode = nodeStack.pop();
             TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
-            expandTreeNode(currentTreeItem);
+            if (!currentTreeItem.isExpanded()) {
+                expandTreeNode(currentTreeItem);
+            }
             parentTreeItem = currentTreeItem;
         }
 
@@ -940,9 +944,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     @Override
     public void handleTabClosed() {
-        tabPane.getTabs().forEach(t -> ((SaveAndRestoreTab)t).handleTabClosed());
+        tabPane.getTabs().forEach(t -> ((SaveAndRestoreTab) t).handleTabClosed());
         saveLocalState();
-        webSocketClientService.closeWebSocket();
+        saveAndRestoreService.removeSaveAndRestoreWebSocketMessageHandler(this);
+        saveAndRestoreService.closeWebSocket();
         filterActivators.forEach(FilterActivator::stop);
     }
 
@@ -1123,11 +1128,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * the {@link Filter}, then the {@link TreeView} is updated based on the search result.
      *
      * @param filter {@link Filter} selected by user or through business logic. If <code>null</code>, then the
-     *                             <code>no filter</code> {@link Filter} is applied.
+     *               <code>no filter</code> {@link Filter} is applied.
      */
     private void applyFilter(Filter filter) {
         treeView.getSelectionModel().clearSelection();
-        if(filter == null){
+        if (filter == null) {
             return;
         }
         Map<String, String> searchParams =
@@ -1174,7 +1179,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             filtersComboBox.valueProperty().set(filter);
             // If this is the current filter, update the tree view
             if (filter.equals(filtersComboBox.getSelectionModel().getSelectedItem())) {
-               currentFilterProperty.set(filter);
+                currentFilterProperty.set(filter);
             }
         }
     }
@@ -1349,9 +1354,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     private void openNode(String nodeId) {
         JobManager.schedule("Open save-and-restore node", monitor -> {
             try {
-                if (!treeInitializationCountDownLatch.await(30000, TimeUnit.SECONDS)) {
-                    return;
-                }
+                treeInitializationCountDownLatch.await();
             } catch (InterruptedException e) {
                 logger.log(Level.WARNING, "Failed to await tree view to load", e);
                 return;
@@ -1392,7 +1395,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         selectedItemsProperty.setAll(selectedItems.stream().map(TreeItem::getValue).toList());
 
         tagWithComment.disableProperty().set(userIdentity.isNull().get() ||
-                selectedItemsProperty.size() != 1 ||
                 (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
                         !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
         configureTagContextMenu(tagWithComment);
@@ -1438,13 +1440,14 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     @Override
-    public void handleWebSocketMessage(SaveAndRestoreWebSocketMessage<?> saveAndRestoreWebSocketMessage) {
-        switch (saveAndRestoreWebSocketMessage.messageType()) {
-            case NODE_ADDED -> nodeAdded((String) saveAndRestoreWebSocketMessage.payload());
-            case NODE_REMOVED -> nodeRemoved((String) saveAndRestoreWebSocketMessage.payload());
-            case NODE_UPDATED -> nodeChanged((Node) saveAndRestoreWebSocketMessage.payload());
-            case FILTER_ADDED_OR_UPDATED -> filterAddedOrUpdated((Filter) saveAndRestoreWebSocketMessage.payload());
-            case FILTER_REMOVED -> filterRemoved((String) saveAndRestoreWebSocketMessage.payload());
+    public void handleSaveAndRestoreWebSocketMessage(WebSocketMessage<?> webSocketMessage) {
+        SaveAndRestoreMessageType messageType = (SaveAndRestoreMessageType) webSocketMessage.messageType();
+        switch (messageType) {
+            case NODE_ADDED -> nodeAdded((String) webSocketMessage.payload());
+            case NODE_REMOVED -> nodeRemoved((String) webSocketMessage.payload());
+            case NODE_UPDATED -> nodeChanged((Node) webSocketMessage.payload());
+            case FILTER_ADDED_OR_UPDATED -> filterAddedOrUpdated((Filter) webSocketMessage.payload());
+            case FILTER_REMOVED -> filterRemoved((String) webSocketMessage.payload());
         }
     }
 
@@ -1478,6 +1481,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     /**
      * If auto {@link Filter} activation is enabled and the active filter matches <code>filterName</code>, then
      * this method will switch to <code>no filter</code> but maintain auto activation.
+     *
      * @param filterName Name/id of the de-activated filter.
      */
     public void deactivateFilter(String filterName) {
@@ -1500,16 +1504,16 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     @Override
-    public boolean doCloseCheck(){
-        for(Tab tab : tabPane.getTabs()){
-            if(!((SaveAndRestoreTab)tab).doCloseCheck()){
+    public boolean doCloseCheck() {
+        for (Tab tab : tabPane.getTabs()) {
+            if (!((SaveAndRestoreTab) tab).doCloseCheck()) {
                 return false;
             }
         }
         return true;
     }
 
-    private void findReferences(){
+    private void findReferences() {
         SearchAndFilterTab searchAndFilterTab = openSearchWindow();
         searchAndFilterTab.getController().findReferencesForSnapshot(treeView.getSelectionModel().getSelectedItems().get(0).getValue().getUniqueId());
     }
