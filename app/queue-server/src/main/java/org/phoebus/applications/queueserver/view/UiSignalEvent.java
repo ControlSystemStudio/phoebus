@@ -13,4 +13,9 @@ public final class UiSignalEvent {
     public static BooleanProperty envDestroyArmedProperty() {
         return ENV_DESTROY_ARMED;
     }
+
+    /** Reset state for app restart */
+    public static void reset() {
+        ENV_DESTROY_ARMED.set(false);
+    }
 }

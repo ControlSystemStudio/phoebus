@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.*?>
 <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="130.0" prefWidth="105.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.queueserver.controller.ReManagerConnectionController">
    <children>
@@ -11,21 +11,16 @@
             <Label text="Queue Server" />
             <VBox alignment="CENTER" spacing="7.0" style="-fx-border-color: #d9d9d9; -fx-border-radius: 2; -fx-border-width: 2; -fx-background-color: #f8f8f8;" VBox.vgrow="ALWAYS">
                <children>
-                  <Label fx:id="connectionStatusLabel" text="-----">
+                  <Label fx:id="connectionStatusLabel" text="OFFLINE" style="-fx-text-fill: grey;">
                      <VBox.margin>
                         <Insets />
                      </VBox.margin>
                   </Label>
-                  <Button fx:id="connectButton" mnemonicParsing="false" onAction="#connect" prefWidth="86.0" text="Connect">
+                  <ToggleButton fx:id="autoConnectToggle" mnemonicParsing="false" onAction="#toggleConnection" prefWidth="86.0" selected="true" text="Auto">
                      <VBox.margin>
-                        <Insets top="5.0" />
+                        <Insets bottom="5.0" top="5.0" />
                      </VBox.margin>
-                  </Button>
-                  <Button fx:id="disconnectButton" disable="true" mnemonicParsing="false" onAction="#disconnect" prefWidth="86.0" text="Disconnect">
-                     <VBox.margin>
-                        <Insets bottom="5.0" />
-                     </VBox.margin>
-                  </Button>
+                  </ToggleButton>
                </children>
                <VBox.margin>
                   <Insets />

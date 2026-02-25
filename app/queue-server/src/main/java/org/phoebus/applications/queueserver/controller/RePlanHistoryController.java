@@ -7,6 +7,9 @@ import org.phoebus.applications.queueserver.api.QueueItem;
 import org.phoebus.applications.queueserver.api.QueueItemAddBatch;
 import org.phoebus.applications.queueserver.api.StatusResponse;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.PlansCache;
+import org.phoebus.applications.queueserver.util.PythonParameterConverter;
+import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
 import org.phoebus.applications.queueserver.util.StatusBus;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -29,6 +32,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,13 +50,18 @@ public final class RePlanHistoryController implements Initializable {
     private final RunEngineService   svc  = new RunEngineService();
     private final ObservableList<Row>rows = FXCollections.observableArrayList();
     private final Map<String,QueueItem> uid2item = new HashMap<>();
+    private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
+    private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
 
     private List<Integer> stickySel = List.of();
     private boolean       ignoreSel = false;
-    private static final Logger LOG =
-            Logger.getLogger(RePlanHistoryController.class.getName());
+    private static final Logger logger =
+            Logger.getLogger(RePlanHistoryController.class.getPackageName());
 
     private final boolean viewOnly;
+
+    // Drag-to-select state
+    private int dragStartRow = -1;
 
     public RePlanHistoryController() {
         this(false); // default to editable
@@ -102,48 +111,153 @@ public final class RePlanHistoryController implements Initializable {
                             List.copyOf(table.getSelectionModel().getSelectedIndices());
                 });
 
-        ChangeListener<StatusResponse> l =
-                (o,oldV,nv) -> Platform.runLater(() -> refresh(nv));
-        StatusBus.latest().addListener(l);
+        initializeAllowedInstructions();
 
-        refresh(StatusBus.latest().get());
+        if (PlansCache.isLoaded()) {
+            allowedPlans.clear();
+            allowedPlans.putAll(PlansCache.get());
+        }
+        PlansCache.addListener((o2, oldP, newP) -> {
+            Platform.runLater(() -> {
+                allowedPlans.clear();
+                if (newP != null) allowedPlans.putAll(newP);
+            });
+        });
+
+        ChangeListener<StatusResponse> l =
+                (o,oldV,nv) -> {
+                    // Run refresh in background thread to avoid blocking UI
+                    new Thread(() -> refresh(nv)).start();
+                };
+        StatusBus.addListener(l);
+
+        // Add drag-to-select functionality
+        setupDragSelection();
+
+        // Run initial refresh in background thread
+        new Thread(() -> refresh(StatusBus.latest().get())).start();
+    }
+
+    /**
+     * Sets up drag-to-select functionality for the table.
+     * Users can click and drag to select multiple rows.
+     */
+    private void setupDragSelection() {
+        table.setOnMousePressed(event -> {
+            int index = getRowIndexAt(event.getY());
+            if (index >= 0 && index < rows.size()) {
+                dragStartRow = index;
+                // Don't consume - let normal click work
+            } else {
+                dragStartRow = -1;
+            }
+        });
+
+        table.setOnMouseDragged(event -> {
+            if (dragStartRow >= 0) {
+                int currentIndex = getRowIndexAt(event.getY());
+                if (currentIndex >= 0 && currentIndex < rows.size()) {
+                    selectRange(dragStartRow, currentIndex);
+                }
+                event.consume(); // Prevent default drag behavior
+            }
+        });
+
+        table.setOnMouseReleased(event -> {
+            dragStartRow = -1;
+        });
+    }
+
+    /**
+     * Gets the row index at the specified Y coordinate relative to the table.
+     */
+    private int getRowIndexAt(double y) {
+        // Get the fixed cell size or estimate
+        if (rows.isEmpty()) return -1;
+
+        // Look through visible rows
+        for (javafx.scene.Node node : table.lookupAll(".table-row-cell")) {
+            if (node instanceof TableRow) {
+                @SuppressWarnings("unchecked")
+                TableRow<Row> row = (TableRow<Row>) node;
+
+                // Convert to table's coordinate space
+                javafx.geometry.Bounds boundsInTable = table.sceneToLocal(
+                    row.localToScene(row.getBoundsInLocal())
+                );
+
+                if (y >= boundsInTable.getMinY() && y <= boundsInTable.getMaxY()) {
+                    return row.getIndex();
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Selects all rows between start and end indices (inclusive).
+     */
+    private void selectRange(int start, int end) {
+        table.getSelectionModel().clearSelection();
+        int from = Math.min(start, end);
+        int to = Math.max(start, end);
+        for (int i = from; i <= to; i++) {
+            table.getSelectionModel().select(i);
+        }
     }
 
     private void refresh(StatusResponse st) {
 
         if (st == null) {
-            ignoreSel = true; rows.clear(); uid2item.clear(); ignoreSel = false;
-            updateButtonStates(); return;
+            // Don't clear history - keep last data visible for users
+            // Just update button states (will be disabled via StatusBus)
+            Platform.runLater(this::updateButtonStates);
+            return;
         }
 
         try {
+            // Blocking HTTP call - runs on background thread
             HistoryGetPayload hp = svc.historyGetTyped();   // typed DTO
-            ignoreSel = true;
-            rebuildRows(hp.items());
-            ignoreSel = false;
-            restoreSelection(stickySel);
+            List<QueueItem> items = hp.items();
+
+            if (items == null) {
+                Platform.runLater(() -> {
+                    rows.clear();
+                    uid2item.clear();
+                    updateButtonStates();
+                });
+                return;
+            }
+
+            // Build rows in background thread (expensive fmtParams processing)
+            List<Row> newRows = new ArrayList<>(items.size());
+            Map<String, QueueItem> newUidMap = new HashMap<>();
+            for (QueueItem qi : items) {
+                newRows.add(new Row(
+                        qi.itemUid(),
+                        qi.itemType(),
+                        qi.name(),
+                        exitStatus(qi),
+                        fmtParams(qi),
+                        qi.user(),
+                        qi.userGroup()));
+                newUidMap.put(qi.itemUid(), qi);
+            }
+
+            // UI updates on FX thread
+            Platform.runLater(() -> {
+                ignoreSel = true;
+                rows.setAll(newRows);
+                uid2item.clear();
+                uid2item.putAll(newUidMap);
+                autoResizeColumns();
+                ignoreSel = false;
+                restoreSelection(stickySel);
+                updateButtonStates();
+            });
         } catch (Exception ex) {
-            LOG.warning("History refresh failed: "+ex.getMessage());
+            logger.log(Level.FINE, "History refresh failed: " + ex.getMessage());
         }
-    }
-
-    private void rebuildRows(List<QueueItem> items) {
-        rows.clear(); uid2item.clear();
-        if (items == null) { updateButtonStates(); return; }
-
-        for (QueueItem qi : items) {
-            rows.add(new Row(
-                    qi.itemUid(),
-                    qi.itemType(),
-                    qi.name(),
-                    exitStatus(qi),
-                    fmtParams(qi),
-                    qi.user(),
-                    qi.userGroup()));
-            uid2item.put(qi.itemUid(), qi);
-        }
-        autoResizeColumns();
-        updateButtonStates();
     }
 
     private void hookButtons() {
@@ -167,6 +281,9 @@ public final class RePlanHistoryController implements Initializable {
         var sel = table.getSelectionModel().getSelectedIndices();
         if (sel.isEmpty()) return;
 
+        // Capture insert position before starting background thread
+        String afterUid = QueueItemSelectionEvent.getInstance().getLastSelectedUid();
+
         List<QueueItem> clones = sel.stream()
                 .map(rows::get)
                 .map(r -> uid2item.get(r.uid))
@@ -183,18 +300,21 @@ public final class RePlanHistoryController implements Initializable {
                 ))
                 .toList();
 
-        try {
-            QueueItemAddBatch req =
-                    new QueueItemAddBatch(clones, "GUI Client", "primary");
-            svc.queueItemAddBatch(req);                   // service takes DTO, not Map
-        } catch (Exception ex) {
-            LOG.warning("Copy-to-Queue failed: "+ex.getMessage());
-        }
+        new Thread(() -> {
+            try {
+                QueueItemAddBatch req =
+                        new QueueItemAddBatch(clones, "GUI Client", "primary", afterUid);
+                List<String> newUids = svc.addBatchGetUids(req);
+                QueueItemSelectionEvent.getInstance().requestSelectByUids(newUids);
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Copy-to-Queue failed", ex);
+            }
+        }).start();
     }
 
     private void clearHistory() {
         try { svc.historyClear(); }
-        catch (Exception ex) { LOG.warning("Clear-history failed: "+ex.getMessage()); }
+        catch (Exception ex) { logger.log(Level.WARNING, "Clear-history failed", ex); }
     }
     
     private void exportHistory(PlanHistorySaver.Format fmt, String ext) {
@@ -209,15 +329,16 @@ public final class RePlanHistoryController implements Initializable {
                 HistoryGetPayload hp = svc.historyGetTyped();
                 List<QueueItem> items = hp.items();
                 PlanHistorySaver.save(items, f, fmt);
-                LOG.info(() -> "Exported plan history → " + f);
+                logger.log(Level.FINE, () -> "Exported plan history → " + f);
             } catch (Exception e) {
-                LOG.warning("Export history failed: " + e.getMessage());
+                logger.log(Level.WARNING, "Export history failed", e);
             }
         });
     }
 
     private void updateButtonStates() {
-        boolean connected = StatusBus.latest().get() != null;
+        StatusResponse status = StatusBus.latest().get();
+        boolean connected = status != null;
         boolean hasSel = !table.getSelectionModel().getSelectedIndices().isEmpty();
 
         if (viewOnly) {
@@ -225,8 +346,10 @@ public final class RePlanHistoryController implements Initializable {
             clearBtn.setDisable(true);
             deselectBtn.setDisable(!hasSel);
         } else {
+            // Only require server connection (not environment open)
             copyBtn.setDisable(!(connected && hasSel));
             clearBtn.setDisable(!(connected && !rows.isEmpty()));
+            // Deselect and export always enabled when there's data
             deselectBtn.setDisable(!hasSel);
         }
     }
@@ -266,14 +389,53 @@ public final class RePlanHistoryController implements Initializable {
     private static String firstLetter(String s){
         return (s==null||s.isBlank())?"":s.substring(0,1).toUpperCase();
     }
-    private static String fmtParams(QueueItem q){
+    private void initializeAllowedInstructions() {
+        Map<String, Object> queueStopInstr = new HashMap<>();
+        queueStopInstr.put("name", "queue_stop");
+        queueStopInstr.put("description", "Stop execution of the queue.");
+        queueStopInstr.put("parameters", List.of());
+        allowedInstructions.put("queue_stop", queueStopInstr);
+    }
+
+    @SuppressWarnings("unchecked")
+    private String fmtParams(QueueItem q){
         String a = Optional.ofNullable(q.args()).orElse(List.of())
-                .stream().map(Object::toString).collect(Collectors.joining(", "));
-        String k = Optional.ofNullable(q.kwargs()).orElse(Map.of())
-                .entrySet().stream()
-                .map(e -> e.getKey()+": "+e.getValue())
+                .stream().map(PythonParameterConverter::toPythonRepr)
                 .collect(Collectors.joining(", "));
+
+        Map<String, Object> itemInfo = null;
+        if ("plan".equals(q.itemType())) {
+            itemInfo = allowedPlans.get(q.name());
+        } else if ("instruction".equals(q.itemType())) {
+            itemInfo = allowedInstructions.get(q.name());
+        }
+
+        String k;
+        if (itemInfo != null) {
+            List<Map<String, Object>> parameters =
+                    (List<Map<String, Object>>) itemInfo.get("parameters");
+            if (parameters != null) {
+                Map<String, Object> kwargs = Optional.ofNullable(q.kwargs()).orElse(Map.of());
+                k = parameters.stream()
+                        .map(p -> (String) p.get("name"))
+                        .filter(kwargs::containsKey)
+                        .map(name -> name + ": " + PythonParameterConverter.toPythonRepr(kwargs.get(name)))
+                        .collect(Collectors.joining(", "));
+            } else {
+                k = formatKwargsDefault(q.kwargs());
+            }
+        } else {
+            k = formatKwargsDefault(q.kwargs());
+        }
+
         return Stream.of(a,k).filter(s->!s.isEmpty())
+                .collect(Collectors.joining(", "));
+    }
+
+    private static String formatKwargsDefault(Map<String, Object> kwargs) {
+        return Optional.ofNullable(kwargs).orElse(Map.of())
+                .entrySet().stream()
+                .map(e -> e.getKey() + ": " + PythonParameterConverter.toPythonRepr(e.getValue()))
                 .collect(Collectors.joining(", "));
     }
 

@@ -48,7 +48,7 @@ public final class RunEngineHttpClient {
     private final String base;
     private final String apiKey;
     private final RateLimiter limiter;
-    private static final Logger LOG = HttpSupport.LOG;
+    private static final Logger logger = HttpSupport.logger;
 
     private RunEngineHttpClient(String baseUrl, String apiKey, double permitsPerSecond) {
         this.http = HttpClient.newBuilder()
@@ -118,14 +118,14 @@ public final class RunEngineHttpClient {
             limiter.acquire();
             long t0 = System.nanoTime();
             try {
-                LOG.log(Level.FINEST, ep + " attempt " + attempt);
+                logger.log(Level.FINEST, ep + " attempt " + attempt);
                 HttpResponse<String> rsp = http.send(req, HttpResponse.BodyHandlers.ofString());
-                LOG.log(Level.FINEST, ep + " " + rsp.statusCode() + " " + HttpSupport.elapsed(t0) + " ms");
+                logger.log(Level.FINEST, ep + " " + rsp.statusCode() + " " + HttpSupport.elapsed(t0) + " ms");
                 check(rsp, ep);
                 return reader.apply(rsp);
             } catch (java.io.IOException ex) {
                 if (!HttpSupport.isRetryable(req) || attempt >= HttpSupport.MAX_RETRIES) throw ex;
-                LOG.log(Level.WARNING, ep + " transport error (" + ex.getClass().getSimpleName() +
+                logger.log(Level.FINE, ep + " transport error (" + ex.getClass().getSimpleName() +
                         "), retry in " + back + " ms (attempt " + attempt + ")");
                 Thread.sleep(back);
                 back = Math.round(back * HttpSupport.BACKOFF_MULTIPLIER);

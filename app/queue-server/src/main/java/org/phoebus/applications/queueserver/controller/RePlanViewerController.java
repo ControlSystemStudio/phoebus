@@ -2,7 +2,10 @@ package org.phoebus.applications.queueserver.controller;
 
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.client.RunEngineService;
+import org.phoebus.applications.queueserver.util.PlansCache;
 import org.phoebus.applications.queueserver.util.QueueItemSelectionEvent;
+import org.phoebus.applications.queueserver.util.PythonParameterConverter;
+import org.phoebus.applications.queueserver.util.StatusBus;
 import org.phoebus.applications.queueserver.view.PlanEditEvent;
 import org.phoebus.applications.queueserver.view.TabSwitchEvent;
 import org.phoebus.applications.queueserver.view.ItemUpdateEvent;
@@ -16,7 +19,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.text.Text;
 
 import java.net.URL;
 import java.util.*;
@@ -34,10 +36,19 @@ public class RePlanViewerController implements Initializable {
     @FXML private Button copyBtn, editBtn;
 
     private final RunEngineService svc = new RunEngineService();
-    private static final Logger LOG = Logger.getLogger(RePlanViewerController.class.getName());
+    private static final Logger logger = Logger.getLogger(RePlanViewerController.class.getPackageName());
     private final ObservableList<ParameterRow> parameterRows = FXCollections.observableArrayList();
     private final Map<String, Map<String, Object>> allowedPlans = new HashMap<>();
     private final Map<String, Map<String, Object>> allowedInstructions = new HashMap<>();
+
+    private PythonParameterConverter getPythonConverter() {
+        PythonParameterConverter converter = PythonParameterConverter.getShared();
+        if (converter == null) {
+            // Shared init not done yet - create inline (rare fallback)
+            converter = new PythonParameterConverter();
+        }
+        return converter;
+    }
 
     private QueueItem currentQueueItem;
     private String queueItemName = "-";
@@ -85,17 +96,64 @@ public class RePlanViewerController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initializeTable();
         initializeControls();
-        loadAllowedPlansAndInstructions();
+        initializeAllowedInstructions();
+
+        // Use shared plans cache - copy to local map when loaded
+        if (PlansCache.isLoaded()) {
+            allowedPlans.clear();
+            allowedPlans.putAll(PlansCache.get());
+        }
+
+        // Listen for plans cache updates
+        PlansCache.addListener((o, oldV, newV) -> {
+            Platform.runLater(() -> {
+                allowedPlans.clear();
+                if (newV != null) {
+                    allowedPlans.putAll(newV);
+                }
+            });
+        });
+
+        // Listen for status changes to update widget state and clear on disconnect
+        StatusBus.addListener((o, oldV, newV) -> {
+            // Clear the displayed item when disconnected
+            if (newV == null) {
+                Platform.runLater(() -> showItem(null));
+            }
+            Platform.runLater(this::updateWidgetState);
+        });
 
         QueueItemSelectionEvent.getInstance().addListener(this::showItem);
 
         ItemUpdateEvent.getInstance().addListener(this::handleItemUpdate);
     }
 
+    private void initializeAllowedInstructions() {
+        Map<String, Object> queueStopInstr = new HashMap<>();
+        queueStopInstr.put("name", "queue_stop");
+        queueStopInstr.put("description", "Stop execution of the queue.");
+        queueStopInstr.put("parameters", List.of());
+        allowedInstructions.put("queue_stop", queueStopInstr);
+    }
+
     private void initializeTable() {
         paramCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         chkCol.setCellValueFactory(new PropertyValueFactory<>("enabled"));
         valueCol.setCellValueFactory(new PropertyValueFactory<>("value"));
+
+        // Fix paramCol and chkCol widths - not resizable
+        paramCol.setMinWidth(120);
+        paramCol.setPrefWidth(120);
+        paramCol.setMaxWidth(120);
+        paramCol.setResizable(false);
+
+        chkCol.setMinWidth(30);
+        chkCol.setPrefWidth(30);
+        chkCol.setMaxWidth(30);
+        chkCol.setResizable(false);
+
+        // valueCol fills remaining space
+        valueCol.setMinWidth(50);
 
         paramCol.setCellFactory(column -> {
             TableCell<ParameterRow, String> cell = new TableCell<ParameterRow, String>() {
@@ -158,6 +216,9 @@ public class RePlanViewerController implements Initializable {
 
         table.setItems(parameterRows);
         table.setEditable(false); // Viewer is read-only
+
+        // Use constrained resize so valueCol fills remaining space
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
 
     private void initializeControls() {
@@ -176,39 +237,14 @@ public class RePlanViewerController implements Initializable {
         updateWidgetState();
     }
 
-    private void loadAllowedPlansAndInstructions() {
-        new Thread(() -> {
-            try {
-                Map<String, Object> responseMap = svc.plansAllowedRaw();
-
-                if (responseMap != null && Boolean.TRUE.equals(responseMap.get("success"))) {
-                    allowedPlans.clear();
-                    if (responseMap.containsKey("plans_allowed")) {
-                        Map<String, Object> plansData = (Map<String, Object>) responseMap.get("plans_allowed");
-                        for (Map.Entry<String, Object> entry : plansData.entrySet()) {
-                            String planName = entry.getKey();
-                            Map<String, Object> planInfo = (Map<String, Object>) entry.getValue();
-                            allowedPlans.put(planName, planInfo);
-                        }
-                    }
-                }
-
-                allowedInstructions.clear();
-                Map<String, Object> queueStopInstr = new HashMap<>();
-                queueStopInstr.put("name", "queue_stop");
-                queueStopInstr.put("description", "Stop execution of the queue.");
-                queueStopInstr.put("parameters", List.of());
-                allowedInstructions.put("queue_stop", queueStopInstr);
-
-                Platform.runLater(() -> updateWidgetState());
-
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to load plans", e);
-            }
-        }).start();
-    }
-
     public void showItem(QueueItem item) {
+        // Skip if same state (avoid unnecessary refresh/flash)
+        if (item == null && currentQueueItem == null) return;
+        if (item != null && currentQueueItem != null &&
+                item.itemUid() != null && item.itemUid().equals(currentQueueItem.itemUid())) {
+            return;
+        }
+
         currentQueueItem = item;
 
         String defaultName = "-";
@@ -250,9 +286,8 @@ public class RePlanViewerController implements Initializable {
     }
 
     private void loadParametersForItem(QueueItem item) {
-        parameterRows.clear();
-
         if (item == null) {
+            parameterRows.clear();
             return;
         }
 
@@ -270,52 +305,66 @@ public class RePlanViewerController implements Initializable {
 
         Map<String, Object> itemKwargs = item.kwargs() != null ? item.kwargs() : new HashMap<>();
 
-        for (Map<String, Object> paramInfo : parameters) {
-            String paramName = (String) paramInfo.get("name");
-            String description = (String) paramInfo.get("description");
-            if (description == null || description.isEmpty()) {
-                description = "Description for parameter '" + paramName + "' was not found...";
+        // Process parameters in background thread to avoid blocking UI with Python parsing
+        final List<Map<String, Object>> finalParameters = parameters;
+        final Map<String, Object> finalItemInfo = itemInfo;
+        new Thread(() -> {
+            List<ParameterRow> newRows = new ArrayList<>();
+
+            for (Map<String, Object> paramInfo : finalParameters) {
+                String paramName = (String) paramInfo.get("name");
+                String description = (String) paramInfo.get("description");
+                if (description == null || description.isEmpty()) {
+                    description = "Description for parameter '" + paramName + "' was not found...";
+                }
+                Object defaultValue = paramInfo.get("default");
+                boolean isOptional = defaultValue != null || "VAR_POSITIONAL".equals(paramInfo.get("kind")) ||
+                        "VAR_KEYWORD".equals(paramInfo.get("kind"));
+
+                String currentValue = "";
+                boolean isEnabled = false;
+
+                if (itemKwargs.containsKey(paramName)) {
+                    Object value = itemKwargs.get(paramName);
+                    currentValue = value != null ? PythonParameterConverter.toPythonRepr(value) : "";
+                    isEnabled = true;
+                } else if (defaultValue != null) {
+                    // Use normalizeAndRepr for defaults - they might be strings that need parsing
+                    currentValue = getPythonConverter().normalizeAndRepr(defaultValue);
+                    isEnabled = false;
+                }
+
+                boolean shouldShow = detailedView || isEnabled;
+
+                if (shouldShow) {
+                    ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
+                    newRows.add(row);
+                }
             }
-            Object defaultValue = paramInfo.get("default");
-            boolean isOptional = defaultValue != null || "VAR_POSITIONAL".equals(paramInfo.get("kind")) ||
-                    "VAR_KEYWORD".equals(paramInfo.get("kind"));
 
-            String currentValue = "";
-            boolean isEnabled = false;
+            // Add metadata rows in background too
+            List<ParameterRow> metadataRows = buildMetadataRows(item);
 
-            if (itemKwargs.containsKey(paramName)) {
-                Object value = itemKwargs.get(paramName);
-                currentValue = value != null ? String.valueOf(value) : "";
-                isEnabled = true;
-            } else if (defaultValue != null) {
-                currentValue = String.valueOf(defaultValue) + " (default)";
-                isEnabled = false;
-            }
-
-            boolean shouldShow = detailedView || isEnabled;
-
-            if (shouldShow) {
-                ParameterRow row = new ParameterRow(paramName, isEnabled, currentValue, description, isOptional, defaultValue);
-                parameterRows.add(row);
-            }
-        }
-
-        addMetadataAndResults(item);
-
-        autoResizeColumns();
+            // Update UI on FX thread
+            Platform.runLater(() -> {
+                parameterRows.setAll(newRows);
+                parameterRows.addAll(metadataRows);
+            });
+        }).start();
     }
 
-    private void addMetadataAndResults(QueueItem item) {
+    private List<ParameterRow> buildMetadataRows(QueueItem item) {
+        List<ParameterRow> rows = new ArrayList<>();
         if (item.result() == null) {
-            return;
+            return rows;
         }
 
         Map<String, Object> result = item.result();
-        
+
         if (!result.isEmpty()) {
-            ParameterRow separator = new ParameterRow("--- Metadata & Results ---", false, "", 
+            ParameterRow separator = new ParameterRow("--- Metadata & Results ---", false, "",
                 "Execution metadata and results", false, null);
-            parameterRows.add(separator);
+            rows.add(separator);
         }
 
         for (Map.Entry<String, Object> entry : result.entrySet()) {
@@ -323,66 +372,58 @@ public class RePlanViewerController implements Initializable {
             Object value = entry.getValue();
             String displayValue = formatResultValue(value);
             String description = "Result field: " + key;
-            
+
             ParameterRow row = new ParameterRow(key, true, displayValue, description, false, null);
-            parameterRows.add(row);
+            rows.add(row);
         }
+        return rows;
     }
 
     private String formatResultValue(Object value) {
         if (value == null) {
-            return "null";
+            return "None";
         }
-        
+
         if (value instanceof Map) {
             Map<?, ?> map = (Map<?, ?>) value;
             if (map.isEmpty()) {
                 return "{}";
             }
+            // For small maps, show the full Python repr
+            if (map.size() <= 3) {
+                return PythonParameterConverter.toPythonRepr(value);
+            }
             return "Map (" + map.size() + " entries)";
         }
-        
+
         if (value instanceof List) {
             List<?> list = (List<?>) value;
             if (list.isEmpty()) {
                 return "[]";
             }
+            // For small lists, show the full Python repr
+            if (list.size() <= 5) {
+                return PythonParameterConverter.toPythonRepr(value);
+            }
             return "List (" + list.size() + " items)";
         }
-        
+
         if (value instanceof String) {
             String str = (String) value;
             if (str.length() > 100) {
-                return str.substring(0, 97) + "...";
+                return "'" + str.substring(0, 97) + "...'";
             }
-            return str;
+            return PythonParameterConverter.toPythonRepr(value);
         }
-        
-        return String.valueOf(value);
-    }
 
-    private void autoResizeColumns() {
-        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
-        for (TableColumn<ParameterRow, ?> col : table.getColumns()) {
-            Text tmp = new Text(col.getText());
-            double max = tmp.getLayoutBounds().getWidth();
-
-            for (int i = 0; i < parameterRows.size(); i++) {
-                Object cell = col.getCellData(i);
-                if (cell != null) {
-                    tmp = new Text(cell.toString());
-                    double w = tmp.getLayoutBounds().getWidth();
-                    if (w > max) max = w;
-                }
-            }
-            col.setPrefWidth(max + 14);
-        }
+        return PythonParameterConverter.toPythonRepr(value);
     }
 
     private void updateWidgetState() {
-        boolean isItemAllowed = false;
-        boolean isConnected = true; // Assume connected for now
+        StatusResponse status = StatusBus.latest().get();
+        boolean isConnected = status != null;
 
+        boolean isItemAllowed = false;
         if (queueItemType != null && queueItemName != null && !"-".equals(queueItemName)) {
             if ("plan".equals(queueItemType)) {
                 isItemAllowed = allowedPlans.get(queueItemName) != null;
@@ -391,9 +432,11 @@ public class RePlanViewerController implements Initializable {
             }
         }
 
-        copyBtn.setDisable(!isItemAllowed || !isConnected);
-
-        editBtn.setDisable(!isItemAllowed);
+        // Disable controls when not connected (environment open not required)
+        table.setDisable(!isConnected);
+        paramChk.setDisable(!isConnected);
+        copyBtn.setDisable(!isConnected || !isItemAllowed);
+        editBtn.setDisable(!isConnected || !isItemAllowed);
     }
 
     private void copyToQueue() {
@@ -401,41 +444,35 @@ public class RePlanViewerController implements Initializable {
             return;
         }
 
-        try {
-            // Create a copy of the current item for adding to queue
-            QueueItem itemCopy = new QueueItem(
-                    currentQueueItem.itemType(),
-                    currentQueueItem.name(),
-                    currentQueueItem.args() != null ? currentQueueItem.args() : List.of(),
-                    currentQueueItem.kwargs() != null ? currentQueueItem.kwargs() : new HashMap<>(),
-                    null, // New item, no UID
-                    currentUser,
-                    currentUserGroup,
-                    null // No result for new item
-            );
+        // Capture insert position before starting background thread
+        String afterUid = QueueItemSelectionEvent.getInstance().getLastSelectedUid();
 
-            QueueItemAdd request = new QueueItemAdd(
-                    new QueueItemAdd.Item(itemCopy.itemType(), itemCopy.name(), itemCopy.args(), itemCopy.kwargs()),
-                    currentUser,
-                    currentUserGroup
-            );
+        QueueItem itemCopy = new QueueItem(
+                currentQueueItem.itemType(),
+                currentQueueItem.name(),
+                currentQueueItem.args() != null ? currentQueueItem.args() : List.of(),
+                currentQueueItem.kwargs() != null ? currentQueueItem.kwargs() : new HashMap<>(),
+                null,
+                currentUser,
+                currentUserGroup,
+                null
+        );
 
-            new Thread(() -> {
-                try {
-                    var response = svc.queueItemAdd(request);
-                    Platform.runLater(() -> {
-                        if (!response.success()) {
-                            LOG.log(Level.WARNING, "Copy to queue failed", response.msg());
-                        }
-                    });
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Copy to queue error", e);
-                }
-            }).start();
+        QueueItemAdd request = new QueueItemAdd(
+                new QueueItemAdd.Item(itemCopy.itemType(), itemCopy.name(), itemCopy.args(), itemCopy.kwargs()),
+                currentUser,
+                currentUserGroup,
+                afterUid
+        );
 
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Copy to queue error", e);
-        }
+        new Thread(() -> {
+            try {
+                String newUid = svc.addItemGetUid(request);
+                QueueItemSelectionEvent.getInstance().requestSelectByUids(List.of(newUid));
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Copy to queue error", e);
+            }
+        }).start();
     }
 
     private void editCurrentItem() {

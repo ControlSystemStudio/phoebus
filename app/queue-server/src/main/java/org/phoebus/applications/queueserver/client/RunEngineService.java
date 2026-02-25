@@ -29,13 +29,13 @@ import java.util.logging.Logger;
 public final class RunEngineService {
 
     private final RunEngineHttpClient http = RunEngineHttpClient.get();
-    private static final Logger LOG = Logger.getLogger(RunEngineService.class.getName());
+    private static final Logger logger = Logger.getLogger(RunEngineService.class.getPackageName());
 
     /* ---- Ping & status --------------------------------------------------- */
 
     public Envelope<?>          ping()                       throws Exception { return http.call(ApiEndpoint.PING,            NoBody.INSTANCE); }
     public StatusResponse status() throws Exception {
-        LOG.log(Level.FINEST, "Fetching status");
+        logger.log(Level.FINEST, "Fetching status");
         return http.send(ApiEndpoint.STATUS, NoBody.INSTANCE, StatusResponse.class);
     }
     public Envelope<?>          configGet()                  throws Exception { return http.call(ApiEndpoint.CONFIG_GET,      NoBody.INSTANCE); }
@@ -67,14 +67,25 @@ public final class RunEngineService {
 
     public Envelope<?> queueItemAdd(QueueItem item,
                                     String   user,
-                                    String   group) throws Exception {
+                                    String   group,
+                                    String   afterUid) throws Exception {
 
-        QueueItemAdd req = new QueueItemAdd(QueueItemAdd.Item.from(item), user, group);
+        QueueItemAdd req = new QueueItemAdd(QueueItemAdd.Item.from(item), user, group, afterUid);
         return queueItemAdd(req);
     }
 
+    public Envelope<?> queueItemAdd(QueueItem item,
+                                    String   user,
+                                    String   group) throws Exception {
+        return queueItemAdd(item, user, group, null);
+    }
+
     public Envelope<?> queueItemAdd(QueueItem item) throws Exception {
-        return queueItemAdd(item, "GUI Client", "primary");
+        return queueItemAdd(item, "GUI Client", "primary", null);
+    }
+
+    public Envelope<?> queueItemAdd(QueueItem item, String afterUid) throws Exception {
+        return queueItemAdd(item, "GUI Client", "primary", afterUid);
     }
 
     /* ---- move helpers --------------------------------------------------- */
@@ -95,26 +106,41 @@ public final class RunEngineService {
                 : QueueItemMoveBatch.after (uids, ref));
     }
 
+    /* ---- UID-returning add helpers -------------------------------------- */
+
+    /** Add a single item and return the server-assigned UID. */
+    @SuppressWarnings("unchecked")
+    public String addItemGetUid(Object body) throws Exception {
+        Map<String, Object> response = http.send(ApiEndpoint.QUEUE_ITEM_ADD, body);
+        if (Boolean.TRUE.equals(response.get("success"))) {
+            Map<String, Object> item = (Map<String, Object>) response.get("item");
+            if (item != null) return (String) item.get("item_uid");
+        }
+        throw new RuntimeException("Failed to add item: " + response.get("msg"));
+    }
+
+    /** Add a batch of items and return the server-assigned UIDs. */
+    @SuppressWarnings("unchecked")
+    public List<String> addBatchGetUids(Object body) throws Exception {
+        Map<String, Object> response = http.send(ApiEndpoint.QUEUE_ITEM_ADD_BATCH, body);
+        if (Boolean.TRUE.equals(response.get("success"))) {
+            List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
+            if (items != null) {
+                return items.stream()
+                        .map(i -> (String) i.get("item_uid"))
+                        .filter(java.util.Objects::nonNull)
+                        .toList();
+            }
+        }
+        throw new RuntimeException("Failed to add batch: " + response.get("msg"));
+    }
+
     /* ---- duplicate helper ---------------------------------------------- */
 
-    public String addAfter(QueueItem item, String afterUid) throws Exception {
+    public void addAfter(QueueItem item, String afterUid) throws Exception {
         QueueItemAdd req = new QueueItemAdd(QueueItemAdd.Item.from(item),
-                "GUI Client", "primary");
-        Map<String,Object> body = Map.of(
-                "item",       req.item(),
-                "after_uid",  afterUid,
-                "user",       req.user(),
-                "user_group", req.userGroup());
-
-        Envelope<?> env = queueItemAdd(body);
-
-        Object payload = env.payload();
-        if (payload instanceof Map<?,?> p &&
-                p.get("item") instanceof Map<?,?> m &&
-                m.get("item_uid") != null) {
-            return m.get("item_uid").toString();
-        }
-        return null;
+                "GUI Client", "primary", afterUid);
+        queueItemAdd(req);
     }
 
     /* ---- batch-add helpers --------------------------------------------- */
@@ -168,7 +194,7 @@ public final class RunEngineService {
     /* ───────── Console monitor ───────── */
 
     public InputStream streamConsoleOutput() throws Exception {
-        LOG.info("Opening console output stream");
+        logger.log(Level.FINE, "Opening console output stream");
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(http.getBaseUrl() + ApiEndpoint.STREAM_CONSOLE_OUTPUT.endpoint().path()))
                 .header("Authorization", "ApiKey " + http.getApiKey())
@@ -178,10 +204,10 @@ public final class RunEngineService {
         HttpResponse<InputStream> rsp =
                 http.httpClient().send(req, HttpResponse.BodyHandlers.ofInputStream());
         if (rsp.statusCode() < 200 || rsp.statusCode() >= 300) {
-            LOG.log(Level.WARNING, "Console stream failed with HTTP " + rsp.statusCode());
+            logger.log(Level.WARNING, "Console stream failed with HTTP " + rsp.statusCode());
             throw new IOException("console stream - HTTP " + rsp.statusCode());
         }
-        LOG.info("Console output stream opened successfully");
+        logger.log(Level.FINE, "Console output stream opened successfully");
         return rsp.body();
     }
 
@@ -251,7 +277,7 @@ public final class RunEngineService {
 
     public Envelope<?>          plansAllowed()               throws Exception { return http.call(ApiEndpoint.PLANS_ALLOWED,   NoBody.INSTANCE); }
     public Map<String, Object>  plansAllowedRaw()           throws Exception {
-        LOG.log(Level.FINE, "Fetching plans allowed (raw)");
+        logger.log(Level.FINE, "Fetching plans allowed (raw)");
         return http.send(ApiEndpoint.PLANS_ALLOWED,   NoBody.INSTANCE);
     }
     public Envelope<?>          devicesAllowed()             throws Exception { return http.call(ApiEndpoint.DEVICES_ALLOWED, NoBody.INSTANCE); }
@@ -292,4 +318,44 @@ public final class RunEngineService {
     public Envelope<?>          whoAmI()                      throws Exception { return http.call(ApiEndpoint.WHOAMI,        NoBody.INSTANCE); }
     public Envelope<?>          apiScopes()                   throws Exception { return http.call(ApiEndpoint.API_SCOPES,    NoBody.INSTANCE); }
     public Envelope<?>          logout()                      throws Exception { return http.call(ApiEndpoint.LOGOUT,       NoBody.INSTANCE); }
+
+    /* ---- WebSockets ------------------------------------------------------ */
+
+    /**
+     * Create a WebSocket connection to the console output stream.
+     * Messages are streamed in real-time as {"time": timestamp, "msg": text}.
+     *
+     * @return a WebSocket client that can be connected and listened to
+     */
+    public QueueServerWebSocket<ConsoleOutputWsMessage> createConsoleOutputWebSocket() {
+        String wsUrl = http.getBaseUrl().replace("http://", "ws://").replace("https://", "wss://")
+                + "/api/console_output/ws";
+        return new QueueServerWebSocket<>(wsUrl, http.getApiKey(), ConsoleOutputWsMessage.class);
+    }
+
+    /**
+     * Create a WebSocket connection to the status stream.
+     * Status messages are sent each time status is updated at RE Manager or at least once per second.
+     * Messages are formatted as {"time": timestamp, "msg": {"status": {...}}}.
+     *
+     * @return a WebSocket client that can be connected and listened to
+     */
+    public QueueServerWebSocket<StatusWsMessage> createStatusWebSocket() {
+        String wsUrl = http.getBaseUrl().replace("http://", "ws://").replace("https://", "wss://")
+                + "/api/status/ws";
+        return new QueueServerWebSocket<>(wsUrl, http.getApiKey(), StatusWsMessage.class);
+    }
+
+    /**
+     * Create a WebSocket connection to the system info stream.
+     * Info stream includes status messages and potentially other system messages.
+     * Messages are formatted as {"time": timestamp, "msg": {msg-class: msg-content}}.
+     *
+     * @return a WebSocket client that can be connected and listened to
+     */
+    public QueueServerWebSocket<SystemInfoWsMessage> createSystemInfoWebSocket() {
+        String wsUrl = http.getBaseUrl().replace("http://", "ws://").replace("https://", "wss://")
+                + "/api/info/ws";
+        return new QueueServerWebSocket<>(wsUrl, http.getApiKey(), SystemInfoWsMessage.class);
+    }
 }
