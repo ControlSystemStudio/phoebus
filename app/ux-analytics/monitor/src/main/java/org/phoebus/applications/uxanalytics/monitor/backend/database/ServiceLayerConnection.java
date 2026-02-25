@@ -92,7 +92,7 @@ public class ServiceLayerConnection implements BackendConnection{
     }
 
     private ServiceLayerConnection(){
-        tryAutoConnect(null);
+        tryAutoConnect();
     }
 
     private boolean checkConnection(){
@@ -144,8 +144,8 @@ public class ServiceLayerConnection implements BackendConnection{
     }
 
     @Override
-    public boolean tryAutoConnect(AuthenticationScope scope) {
-        return BackendConnection.super.tryAutoConnect(scope);
+    public boolean tryAutoConnect() {
+        return BackendConnection.super.tryAutoConnect();
     }
 
     @Override
