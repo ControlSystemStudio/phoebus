@@ -173,7 +173,6 @@ public class ServiceLayerConnection implements BackendConnection{
         HashMap<String, String> click = new HashMap<String,String>();
         click.put("x", x.toString());
         click.put("y", y.toString());
-        click.put("timestamp", Instant.now().toString());
         try {
             click.put("filename", FileUtils.analyticsPathForTab(who));
             String json = mapper.writeValueAsString(click);
