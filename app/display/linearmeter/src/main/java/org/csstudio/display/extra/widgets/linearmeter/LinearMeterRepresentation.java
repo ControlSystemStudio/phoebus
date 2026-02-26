@@ -105,7 +105,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
         TooltipSupport.attach(jfx_node, model_widget.propTooltip(), () ->
             FormatOptionHandler.format(model_widget.runtimePropValue().getValue(),
                                        model_widget.propFormat().getValue(),
-                                       -1,
+                                       model_widget.propPrecision().getValue(),
                                        model_widget.propShowUnits().getValue()));
     }
 
