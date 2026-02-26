@@ -68,9 +68,7 @@ public class ActiveWindowsService {
                                     try {
                                         //block until the model is ready
                                         instance.getRepresentation_init().get();
-                                        lock.lock();
                                         appendToMap(tabWrapper);
-                                        lock.unlock();
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -94,13 +92,11 @@ public class ActiveWindowsService {
                     for (javafx.stage.Window window : change.getAddedSubList()) {
                         if(window.getProperties().containsKey(DockStage.KEY_ID)){
                             String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
-                            lock.lock();
                             activeWindowsAndTabs.putIfAbsent(windowID, new ActiveTabsOfWindow(window));
                             for(DockPane item: DockStage.getDockPanes((Stage)window)){
                                 item.getTabs().removeListener(UXATabChangeListener);
                                 item.getTabs().addListener(UXATabChangeListener);
                             }
-                            lock.unlock();
                         }
                     }
                 }
@@ -108,9 +104,7 @@ public class ActiveWindowsService {
                     for(Window window: change.getRemoved()){
                         if(window.getProperties().containsKey(DockStage.KEY_ID)){
                             String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
-                            lock.lock();
                             activeWindowsAndTabs.remove(windowID);
-                            lock.unlock();
                         }
                     }
                 }
@@ -123,12 +117,10 @@ public class ActiveWindowsService {
 
     //this singleton will be the exclusive communicator with the window list
     public static ActiveWindowsService getInstance() {
-        lock.lock();
-        if(instance == null){
+        if (instance == null) {
             instance = new ActiveWindowsService();
             instance.addWindowChangeListener();
         }
-        lock.unlock();
         return instance;
     }
 
