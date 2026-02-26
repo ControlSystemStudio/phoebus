@@ -108,12 +108,26 @@ public class TooltipSupport
             if (vtype instanceof DisplayProvider && !Alarm.alarmOf(vtype).equals(Alarm.disconnected()) ) {
 
                 Range alarmRange = display.getAlarmRange();
-                double lolo = alarmRange.getMinimum();
-                double hihi = alarmRange.getMaximum();
+                double lolo;
+                double hihi;
+                if (!alarmRange.isReversed()) {
+                    lolo = alarmRange.getMinimum();
+                    hihi = alarmRange.getMaximum();
+                } else {
+                    lolo = alarmRange.getMaximum();
+                    hihi = alarmRange.getMinimum();
+                }
 
                 Range warningRange = display.getWarningRange();
-                double low = warningRange.getMinimum();
-                double high = warningRange.getMaximum();
+                double low;
+                double high;
+                if (!warningRange.isReversed()) {
+                    low = warningRange.getMinimum();
+                    high = warningRange.getMaximum();
+                }  else {
+                    low = warningRange.getMaximum();
+                    high = warningRange.getMinimum();
+                }
 
                 String pv_alarm_limits = Messages.HIHI + ": " + (Double.isNaN(hihi) ? Messages.NotSet : hihi) + System.lineSeparator() +
                                          Messages.HIGH + ": " + (Double.isNaN(high) ? Messages.NotSet : high) + System.lineSeparator() +
