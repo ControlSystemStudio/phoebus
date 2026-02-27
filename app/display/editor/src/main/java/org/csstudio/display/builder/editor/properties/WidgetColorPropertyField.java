@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.properties;
 
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
 import javafx.event.ActionEvent;

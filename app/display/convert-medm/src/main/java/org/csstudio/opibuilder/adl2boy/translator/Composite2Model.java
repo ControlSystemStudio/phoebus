@@ -12,7 +12,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.Resize;
 import org.csstudio.display.builder.model.widgets.GroupWidget;

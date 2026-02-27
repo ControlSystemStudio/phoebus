@@ -11,7 +11,7 @@ import java.util.List;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget.TraceWidgetProperty;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;

@@ -17,6 +17,7 @@ import java.util.StringTokenizer;
 
 import org.csstudio.display.builder.model.properties.NamedWidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
+import org.phoebus.ui.color.ConfigFileParser;
 
 /** Provider of {@link NamedWidgetFont}
  *

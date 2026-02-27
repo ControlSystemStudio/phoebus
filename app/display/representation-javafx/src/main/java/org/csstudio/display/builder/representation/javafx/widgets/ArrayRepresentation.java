@@ -24,7 +24,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;

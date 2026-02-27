@@ -17,8 +17,8 @@ import java.util.Optional;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.persist.NamedWidgetColors;
-import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColorService;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 

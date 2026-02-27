@@ -10,7 +10,7 @@ package org.csstudio.display.builder.representation.javafx;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
