@@ -162,6 +162,51 @@ public class ClientDemo
         }
     }
 
+    /**
+     * Test monitoring only the alarm updates.
+     * Requires using softIocPVX
+     */
+    @Test
+    public void testMonitorAlarm() throws Exception
+    {
+        // Create a client (auto-close)
+        try (final PVAClient pva = new PVAClient())
+        {
+            // Handler for received values
+            final CountDownLatch done = new CountDownLatch(300000);
+            final MonitorListener handle_values = (channel, changes, overruns, data) ->
+            {
+                System.out.println(channel.getName() + " = " + data);
+                done.countDown();
+            };
+
+            // When channel (re-)connects, subscribe.
+            // When channel disconnects, subscription is automatically dropped.
+            final ClientChannelListener handle_state = (channel, state) ->
+            {
+                if (state == ClientChannelState.CONNECTED)
+                    try
+                    {
+                        channel.subscribe("", RecordOptions.builder().dbeMask(RecordOptions.DBEMask.DBE_ALARM).build(), handle_values);
+                    }
+                    catch (Exception ex)
+                    {
+                        ex.printStackTrace();
+                    }
+                else
+                    System.out.println(channel.getName() + ": " + state);
+            };
+
+            // Create channel which then subscribes on connect
+            final PVAChannel ch1 = pva.getChannel("demo", handle_state);
+
+            done.await();
+
+            // Close channels
+            ch1.close();
+        }
+    }
+
 
     @Test
     public void testPipeline() throws Exception
