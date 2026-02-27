@@ -24,6 +24,9 @@ import javafx.stage.Stage;
 import org.phoebus.applications.email.EmailApp;
 import org.phoebus.email.EmailPreferences;
 import org.phoebus.email.EmailService;
+import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.MacroOrSystemProvider;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
@@ -57,6 +60,8 @@ public class EmailDialogController {
     private static final String LAST_FROM = "last_from";
 
     final Preferences prefs = PhoebusPreferenceService.userNodeForClass(EmailApp.class);
+
+    private final MacroOrSystemProvider systemMacros = new MacroOrSystemProvider(new Macros());
 
     private static final String TEXT_PLAIN = "text/plain";
     private static final String TEXT_HTML = "text/html";
@@ -183,12 +188,17 @@ public class EmailDialogController {
 
     @FXML
     public void initialize() {
+        String to = EmailPreferences.to;
+        if(to == null || to.isBlank())
+            to = prefs.get(LAST_TO, "");
 
-        txtTo.setText(prefs.get(LAST_TO, ""));
-        if(EmailPreferences.from == null || EmailPreferences.from.isBlank())
-            txtFrom.setText(prefs.get(LAST_FROM, ""));
-        else
-            txtFrom.setText(EmailPreferences.from);
+        txtTo.setText(substituteSystemMacros(to));
+
+        String from = EmailPreferences.from;
+        if(from == null || from.isBlank())
+            from = prefs.get(LAST_FROM, "");
+
+        txtFrom.setText(substituteSystemMacros(from));
 
         txtFrom.setPromptText("Enter your email address");
         txtTo.setPromptText("Enter receipient's email address(es)");
@@ -275,6 +285,18 @@ public class EmailDialogController {
     public void setAttachmets(final List<File> files)
     {
         att_files.setFiles(files);
+    }
+
+    private String substituteSystemMacros(String input) {
+        String output;
+        try {
+            output = MacroHandler.replace(systemMacros, input);
+        } catch (Exception ignored) {
+            logger.warning("Failed macro expansion in email address field. Using original string");
+            output = input;
+        }
+
+        return output;
     }
 
     private void recomputeTextArea() {
