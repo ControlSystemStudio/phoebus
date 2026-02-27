@@ -188,7 +188,6 @@ public class EmailDialogController {
 
     @FXML
     public void initialize() {
-
         String to = EmailPreferences.to;
         if(to == null || to.isBlank())
             to = prefs.get(LAST_TO, "");
