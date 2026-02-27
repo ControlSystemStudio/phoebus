@@ -11,6 +11,8 @@ import org.apache.kafka.clients.admin.ConfigEntry;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.ConfigResource;
 import org.phoebus.applications.alarm.client.KafkaHelper;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,15 @@ import java.util.logging.Logger;
 public class TopicUtils {
 
     private static final Logger logger = Logger.getLogger(TopicUtils.class.getName());
+
+    @SuppressWarnings("unused")
+    @Preference private static int numberOfPartitions;
+    @SuppressWarnings("unused")
+    @Preference private static int replicationFactor;
+
+    static {
+        AnnotatedPreferences.initialize(TopicUtils.class, "/alarm_server.properties");
+    }
 
     /**
      * Ensure that the required Kafka topics exist and are correctly configured.
@@ -69,7 +80,7 @@ public class TopicUtils {
      * @throws Exception If topic could not be created
      */
     private static void createTopic(AdminClient admin, String topic) throws Exception {
-        NewTopic newTopic = new NewTopic(topic, 1, (short) 1);
+        NewTopic newTopic = new NewTopic(topic, numberOfPartitions, (short) replicationFactor);
         try {
             admin.createTopics(List.of(newTopic)).all().get();
             logger.info("Created topic: " + topic);
