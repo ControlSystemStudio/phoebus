@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.phoebus.ui.color;
 
+import org.phoebus.util.config.FileToStreamFunction;
+
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;

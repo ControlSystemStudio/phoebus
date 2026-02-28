@@ -17,6 +17,7 @@ import java.util.StringTokenizer;
 
 import org.phoebus.ui.color.NamedWidgetColor;
 import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.util.config.ConfigFileParser;
 
 /** Provider of {@link NamedWidgetColor}
  *
