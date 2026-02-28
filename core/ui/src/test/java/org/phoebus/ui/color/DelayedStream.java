@@ -5,13 +5,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.model.persist;
-
-import static org.csstudio.display.builder.model.ModelPlugin.logger;
+package org.phoebus.ui.color;
 
 import java.io.InputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Logger;
 
 /** Test helper: Delayed access to a file
  *
@@ -20,6 +19,8 @@ import java.util.concurrent.CountDownLatch;
 @SuppressWarnings("nls")
 public class DelayedStream implements Callable<InputStream>
 {
+    private static final Logger logger = Logger.getLogger(DelayedStream.class.getName());
+
     private final CountDownLatch delay = new CountDownLatch(1);
     private final String filename;
 

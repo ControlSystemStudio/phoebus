@@ -5,9 +5,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.model.persist;
+package org.phoebus.ui.color;
 
-import static org.csstudio.display.builder.model.ModelPlugin.logger;
+import org.phoebus.util.config.FileToStreamFunction;
 
 import java.io.InputStream;
 import java.util.Optional;
@@ -16,10 +16,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.csstudio.display.builder.model.Preferences;
-import org.csstudio.display.builder.model.properties.NamedWidgetColor;
-import org.csstudio.display.builder.model.util.ModelThreadPool;
 
 /** Service that provides {@link NamedWidgetColors}
  *
@@ -31,6 +29,8 @@ import org.csstudio.display.builder.model.util.ModelThreadPool;
 @SuppressWarnings("nls")
 public class WidgetColorService
 {
+    private static final Logger logger = Logger.getLogger(WidgetColorService.class.getName());
+    private static final int READ_TIMEOUT_MS = 5000;
     /** Current set of named colors.
      *  When still in the process of loading,
      *  this future will be active, i.e. <code>! isDone()</code>.
@@ -50,7 +50,7 @@ public class WidgetColorService
      */
     public static void loadColors(final String[] names, final FileToStreamFunction opener)
     {
-        colors = ModelThreadPool.getExecutor().submit(() ->
+        colors = CompletableFuture.supplyAsync(() ->
         {
             final NamedWidgetColors colors = new NamedWidgetColors();
             for (String name : names)
@@ -89,7 +89,7 @@ public class WidgetColorService
         // When in the process of loading, wait a little bit..
         try
         {
-            return colors.get(Preferences.read_timeout, TimeUnit.MILLISECONDS);
+            return colors.get(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         }
         catch (TimeoutException timeout)
         {

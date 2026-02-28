@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelWriter;
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.opibuilder.adl2boy.translator.Arc2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Bar2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Byte2Model;

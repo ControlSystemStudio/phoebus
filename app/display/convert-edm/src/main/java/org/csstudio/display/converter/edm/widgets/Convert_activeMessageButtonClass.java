@@ -8,7 +8,7 @@
 package org.csstudio.display.converter.edm.widgets;
 
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.phoebus.ui.color.NamedWidgetColors;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;

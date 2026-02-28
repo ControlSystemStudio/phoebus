@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.model.persist;
+package org.phoebus.ui.color;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -15,8 +15,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
 
-import org.csstudio.display.builder.model.properties.NamedWidgetColor;
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.NamedWidgetColor;
+import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.util.config.ConfigFileParser;
 
 /** Provider of {@link NamedWidgetColor}
  *
