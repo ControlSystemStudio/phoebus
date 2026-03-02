@@ -11,8 +11,8 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.persist.WidgetColorService;
-import org.csstudio.display.builder.model.properties.NamedWidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
+import org.phoebus.ui.color.NamedWidgetColor;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

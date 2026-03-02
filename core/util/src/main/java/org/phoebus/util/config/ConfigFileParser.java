@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.model.persist;
+package org.phoebus.util.config;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -21,7 +21,7 @@ abstract public class ConfigFileParser
      *  @param stream Stream to read
      *  @throws Exception on error
      */
-    protected void read(final InputStream stream) throws Exception
+    public void read(final InputStream stream) throws Exception
     {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
         String line;

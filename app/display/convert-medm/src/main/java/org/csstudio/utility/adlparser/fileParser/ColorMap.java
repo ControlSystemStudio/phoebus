@@ -2,7 +2,7 @@ package org.csstudio.utility.adlparser.fileParser;
 
 import java.util.List;
 
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.utility.adlparser.internationalization.Messages;
 
 public class ColorMap {

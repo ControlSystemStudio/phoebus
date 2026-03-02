@@ -22,6 +22,8 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.ui.color.NamedWidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.ui.vtype.FormatOption;
 
 import java.time.Instant;

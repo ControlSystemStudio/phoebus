@@ -18,7 +18,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.Point;
 import org.csstudio.display.builder.model.properties.Points;
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
 import org.phoebus.framework.macros.MacroHandler;
