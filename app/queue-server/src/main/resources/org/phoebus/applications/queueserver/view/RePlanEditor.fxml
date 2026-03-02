@@ -13,8 +13,8 @@
     <children>
         <TableView fx:id="table" layoutY="31.0" prefHeight="50.0" AnchorPane.bottomAnchor="32.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="31.0">
             <columns>
-                <TableColumn fx:id="paramCol" editable="false" minWidth="74.0" prefWidth="-1.0" sortable="false" text="Parameter" />
-                <TableColumn fx:id="chkCol" editable="false" minWidth="5.0" prefWidth="-1.0" sortable="false" />
+                <TableColumn fx:id="paramCol" editable="false" minWidth="100.0" prefWidth="100.0" maxWidth="200.0" sortable="false" text="Parameter" />
+                <TableColumn fx:id="chkCol" editable="false" minWidth="30.0" prefWidth="30.0" maxWidth="30.0" sortable="false" />
                 <TableColumn fx:id="valueCol" editable="false" minWidth="41.0" prefWidth="-1.0" sortable="false" text="Value" />
             </columns>
         </TableView>
