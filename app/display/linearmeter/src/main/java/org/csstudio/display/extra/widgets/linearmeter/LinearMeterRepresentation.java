@@ -14,7 +14,9 @@ import org.csstudio.display.builder.model.properties.PropertyChangeHandler;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
+import org.csstudio.display.builder.representation.javafx.widgets.TooltipSupport;
 import org.epics.util.stats.Range;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.scene.layout.Pane;
 import org.epics.vtype.Display;
@@ -94,6 +96,17 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
     private <T> void addUntypedWidgetPropertyListener(WidgetProperty<T> widgetProperty, UntypedWidgetPropertyListener widgetPropertyListener) {
         widgetProperty.addUntypedPropertyListener(widgetPropertyListener);
         widgetPropertiesWithWidgetPropertyListeners.push(new Pair(widgetProperty, widgetPropertyListener));
+    }
+
+    @Override
+    protected void attachTooltip()
+    {
+        // Use formatted value for "$(pv_value)" instead of the default VType.toString()
+        TooltipSupport.attach(jfx_node, model_widget.propTooltip(), () ->
+            FormatOptionHandler.format(model_widget.runtimePropValue().getValue(),
+                                       model_widget.propFormat().getValue(),
+                                       model_widget.propPrecision().getValue(),
+                                       model_widget.propShowUnits().getValue()));
     }
 
     @Override

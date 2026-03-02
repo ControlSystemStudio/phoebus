@@ -217,6 +217,7 @@ public class LinearMeterWidget extends PVWidget {
     private WidgetProperty<WidgetColor> background;
     private WidgetProperty<WidgetFont> font;
     private WidgetProperty<FormatOption> format;
+    private WidgetProperty<Integer> precision;
     private WidgetProperty<Boolean> show_units;
     private WidgetProperty<Boolean> show_limits;
     private WidgetProperty<Boolean> show_warnings;
@@ -260,6 +261,7 @@ public class LinearMeterWidget extends PVWidget {
         properties.add(logScale = propLogScale.createProperty(this, false));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(format = propFormat.createProperty(this, FormatOption.DEFAULT));
+        properties.add(precision = propPrecision.createProperty(this, -1));
         properties.add(show_units = propShowUnits.createProperty(this, true));
         properties.add(scale_visible = propScaleVisible.createProperty(this, true));
         properties.add(show_limits = propShowLimits.createProperty(this, true));
@@ -323,6 +325,13 @@ public class LinearMeterWidget extends PVWidget {
      */
     public WidgetProperty<FormatOption> propFormat() {
         return format;
+    }
+
+    /**
+     * @return 'precision' property
+     */
+    public WidgetProperty<Integer> propPrecision() {
+        return precision;
     }
 
     /**
