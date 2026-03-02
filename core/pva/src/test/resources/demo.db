@@ -14,6 +14,24 @@ record(calc, "ramp$(N)")
   field(DESC, "ramp going up")
 }
 
+record(calc, "demo$(N)") {
+field(SCAN, "1 second")
+field(INPA, "demo$(N).VAL")
+field(CALC, "(A<100)?A+1:0")
+field(HIHI, "90")
+field(HHSV, "MAJOR")
+field(HIGH, "60")
+field(HSV, "MINOR")
+field(LOW, "30")
+field(LSV, "MINOR")
+field(LOLO, "10")
+field(LLSV, "MAJOR")
+field(HOPR, "125")
+field(ADEL, "0")
+field(MDEL, "0")
+}
+
+
 record(calc, "saw$(N)")
 {
   field(SCAN, "1 second")
