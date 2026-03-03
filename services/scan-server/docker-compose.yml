@@ -1,0 +1,16 @@
+services:
+  saveandrestore:
+    image: ghcr.io/controlsystemstudio/phoebus/service-save-and-restore:master
+    ports:
+      - "8080:8080"
+    environment:
+      ELASTICSEARCH_NETWORK_HOST: ${ELASTIC_HOST_IP_ADDRESS}
+      EPICS_PVA_ADDR_LIST: ${HOST_IP_ADDRESS}
+      EPICS_PVA_AUTO_ADDR_LIST: "NO"  
+      EPICS_PVA_ENABLE_IPV6: "false"  
+    command: >
+      /bin/bash -c "
+        java -DdefaultProtocol=pva -Dauthorization.permitall=false -Dauth.impl=demo -jar /saveandrestore/service-save-and-restore-*.jar"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
