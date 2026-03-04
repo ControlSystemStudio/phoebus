@@ -24,11 +24,11 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
-import org.phoebus.ui.color.NamedWidgetColors;
-import org.phoebus.ui.color.WidgetColorService;
-import org.phoebus.ui.color.NamedWidgetColor;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
+import org.phoebus.ui.color.NamedWidgetColor;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.javafx.ClearingTextField;
 

@@ -11,9 +11,9 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 
 import java.util.logging.Level;
 
+import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.phoebus.ui.color.NamedWidgetColors;
 import org.phoebus.ui.color.WidgetColorService;
-import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
 import javafx.application.Platform;
 import javafx.geometry.Orientation;

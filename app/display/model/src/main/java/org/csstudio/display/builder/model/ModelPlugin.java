@@ -10,9 +10,9 @@ package org.csstudio.display.builder.model;
 import java.util.logging.Logger;
 
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
-import org.phoebus.ui.color.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
+import org.phoebus.ui.color.WidgetColorService;
 
 /** Plugin information.
  *  @author Kay Kasemir

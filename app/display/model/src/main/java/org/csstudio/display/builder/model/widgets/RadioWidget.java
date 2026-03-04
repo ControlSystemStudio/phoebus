@@ -27,13 +27,13 @@ import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
-import org.phoebus.ui.color.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
-import org.phoebus.ui.color.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
 
 /** Widget that writes to PV from selection of items
  *  @author Amanda Carpenter

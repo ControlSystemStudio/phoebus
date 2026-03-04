@@ -31,13 +31,13 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
-import org.phoebus.ui.color.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
-import org.phoebus.ui.color.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.phoebus.ui.color.NamedWidgetColor;
+import org.phoebus.ui.color.NamedWidgetColors;
 import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 

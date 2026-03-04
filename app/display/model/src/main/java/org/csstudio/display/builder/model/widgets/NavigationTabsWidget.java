@@ -37,8 +37,8 @@ import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.Direction;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
 

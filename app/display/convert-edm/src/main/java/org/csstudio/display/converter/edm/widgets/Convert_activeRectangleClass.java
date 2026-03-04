@@ -18,9 +18,6 @@ import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.phoebus.ui.color.NamedWidgetColors;
-import org.phoebus.ui.color.WidgetColorService;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.widgets.BaseLEDWidget;
 import org.csstudio.display.builder.model.widgets.LEDWidget;
 import org.csstudio.display.builder.model.widgets.MultiStateLEDWidget;
@@ -30,6 +27,9 @@ import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmModel;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeRectangleClass;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
 
 /** Convert an EDM widget into Display Builder counterpart
  *  @author Kay Kasemir

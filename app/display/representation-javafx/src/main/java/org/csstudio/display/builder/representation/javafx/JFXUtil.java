@@ -16,8 +16,8 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.geometry.Pos;

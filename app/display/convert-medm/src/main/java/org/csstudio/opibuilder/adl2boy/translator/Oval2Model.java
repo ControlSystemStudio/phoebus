@@ -8,9 +8,6 @@ package org.csstudio.opibuilder.adl2boy.translator;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.phoebus.ui.color.NamedWidgetColors;
-import org.phoebus.ui.color.WidgetColorService;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.widgets.EllipseWidget;
 import org.csstudio.display.builder.model.widgets.MultiStateLEDWidget;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
@@ -18,6 +15,9 @@ import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgetParts.ADLDynamicAttribute;
 import org.csstudio.utility.adlparser.fileParser.widgets.ADLAbstractWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.Oval;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
 
 public class Oval2Model extends AbstractADL2Model<Widget> {
 

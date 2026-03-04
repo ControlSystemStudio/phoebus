@@ -8,11 +8,11 @@ package org.csstudio.opibuilder.adl2boy.translator;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.ADLAbstractWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.Rectangle;
+import org.phoebus.ui.color.WidgetColor;
 
 public class Rectangle2Model extends AbstractADL2Model<Widget> {
 

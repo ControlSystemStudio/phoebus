@@ -11,7 +11,6 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.ScriptPV;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoString;
@@ -19,6 +18,7 @@ import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoValue;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.PolylineWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
+import org.phoebus.ui.color.WidgetColor;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

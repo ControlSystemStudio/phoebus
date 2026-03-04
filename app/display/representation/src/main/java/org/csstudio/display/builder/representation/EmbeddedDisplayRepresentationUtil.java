@@ -20,8 +20,6 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelLoader;
-import org.phoebus.ui.color.NamedWidgetColors;
-import org.phoebus.ui.color.WidgetColorService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
@@ -29,6 +27,8 @@ import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
 import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColorService;
 
 /** Helper for common (SWT, JFX) representation code of {@link EmbeddedDisplayWidget}, {@link TemplateInstanceWidget} and {@link NavigationTabsWidget}
  *  @author Kay Kasemir

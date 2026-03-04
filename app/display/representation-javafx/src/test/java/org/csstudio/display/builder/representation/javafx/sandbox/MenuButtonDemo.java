@@ -7,9 +7,9 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.sandbox;
 
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.scene.Scene;

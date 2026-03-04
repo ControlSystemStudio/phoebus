@@ -4,9 +4,9 @@ import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
 import java.util.logging.Level;
 
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
+import org.phoebus.ui.color.WidgetColor;
 
 
 /** Predefined (named) colors and fonts */

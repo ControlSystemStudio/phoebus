@@ -12,8 +12,8 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.csstudio.display.builder.model.properties.Direction;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.ui.javafx.NonCachingScrollPane;
 
 import javafx.collections.ObservableList;

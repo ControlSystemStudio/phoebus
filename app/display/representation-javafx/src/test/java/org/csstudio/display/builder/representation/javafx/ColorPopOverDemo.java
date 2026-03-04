@@ -8,10 +8,10 @@
 package org.csstudio.display.builder.representation.javafx;
 
 import org.csstudio.display.builder.model.Widget;
-import org.phoebus.ui.color.NamedWidgetColors;
-import org.phoebus.ui.color.WidgetColorService;
 import org.csstudio.display.builder.model.properties.ColorWidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColorService;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.scene.Scene;

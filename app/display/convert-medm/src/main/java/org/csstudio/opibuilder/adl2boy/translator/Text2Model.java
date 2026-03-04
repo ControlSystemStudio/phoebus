@@ -9,11 +9,11 @@ package org.csstudio.opibuilder.adl2boy.translator;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.opibuilder.adl2boy.utilities.TextUtilities;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.TextWidget;
+import org.phoebus.ui.color.WidgetColor;
 
 public class Text2Model extends AbstractADL2Model<LabelWidget> {
 

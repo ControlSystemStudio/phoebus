@@ -8,7 +8,6 @@
 package org.csstudio.display.converter.edm.widgets;
 
 import org.csstudio.display.builder.model.Widget;
-import org.phoebus.ui.color.NamedWidgetColors;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
@@ -17,6 +16,7 @@ import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeMessageButtonClass;
 import org.csstudio.display.actions.WritePVAction;
+import org.phoebus.ui.color.NamedWidgetColors;
 
 import java.util.List;
 import java.util.logging.Level;

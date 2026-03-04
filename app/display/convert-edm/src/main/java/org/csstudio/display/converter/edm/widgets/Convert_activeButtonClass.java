@@ -8,11 +8,11 @@
 package org.csstudio.display.converter.edm.widgets;
 
 import org.csstudio.display.builder.model.Widget;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_activeButtonClass;
+import org.phoebus.ui.color.WidgetColor;
 
 /** Convert an EDM widget into Display Builder counterpart
  *  @author Kay Kasemir

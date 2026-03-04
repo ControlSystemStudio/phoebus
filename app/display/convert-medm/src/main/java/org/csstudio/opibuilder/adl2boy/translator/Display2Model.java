@@ -9,9 +9,9 @@ package org.csstudio.opibuilder.adl2boy.translator;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.ADLDisplay;
+import org.phoebus.ui.color.WidgetColor;
 
 /**
  *

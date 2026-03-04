@@ -12,7 +12,6 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.Resize;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
@@ -20,6 +19,7 @@ import org.csstudio.display.builder.model.widgets.GroupWidget.Style;
 import org.csstudio.display.converter.medm.Converter;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.Composite;
+import org.phoebus.ui.color.WidgetColor;
 
 // Turns into either GroupWidget or EmbeddedDisplayWidget
 @SuppressWarnings("nls")

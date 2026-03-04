@@ -5,13 +5,13 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.phoebus.ui.color.WidgetColor;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgetParts.CommandItem;
 import org.csstudio.utility.adlparser.fileParser.widgets.ShellCommand;
 import org.csstudio.display.actions.ExecuteCommandAction;
+import org.phoebus.ui.color.WidgetColor;
 
 public class ShellCommand2Model extends AbstractADL2Model<ActionButtonWidget> {
 
