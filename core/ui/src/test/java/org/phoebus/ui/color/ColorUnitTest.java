@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.ui.color;
 
+import org.phoebus.ui.color.NamedWidgetColor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
