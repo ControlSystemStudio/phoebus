@@ -57,6 +57,10 @@ abstract public class ModelItem
      */
     private volatile Color color = null;
 
+    /** RGB for item's area color
+     */
+    private volatile Color areaColor = null;
+
     /** How to display the trace */
     private volatile TraceType trace_type = Preferences.trace_type;
 
@@ -71,6 +75,9 @@ abstract public class ModelItem
 
     /** Point size [pixel] */
     private volatile int point_size = Preferences.line_width;
+
+    /** Area Opacity [percent] */
+    private volatile int areaOpacity = Preferences.opacity;
 
     /** Y-Axis */
     private volatile AxisConfig axis = null;
@@ -313,6 +320,43 @@ abstract public class ModelItem
         if (size == this.point_size)
             return;
         point_size = size;
+        fireItemLookChanged();
+    }
+
+    /** @return Area Opacity */
+    public int getAreaOpacity()
+    {
+        return areaOpacity;
+    }
+
+    /** @param opacity New area opacity */
+    public void setAreaOpacity(int opacity)
+    {
+        if (opacity < 0)
+            opacity = 0;
+        if (opacity == this.areaOpacity)
+            return;
+        areaOpacity = opacity;
+        fireItemLookChanged();
+    }
+
+    /** Get item's area color.
+     *  For new items, the area color is <code>color</code> until it's
+     *  either set via setAreaColor() or by adding it to a {@link Model}.
+     *  @return Item's area color
+     *  @see #setAreaColor(Color)
+     */
+    public Color getAreaColor()
+    {
+        return areaColor == null ? new Color(color.getRed(), color.getGreen(), color.getBlue(), (double) areaOpacity / 100) : areaColor;
+    }
+
+    /** @param new_col New color for this item */
+    public void setAreaColor(final Color new_col)
+    {
+        if (new_col.equals(areaColor))
+            return;
+        areaColor = new_col;
         fireItemLookChanged();
     }
 

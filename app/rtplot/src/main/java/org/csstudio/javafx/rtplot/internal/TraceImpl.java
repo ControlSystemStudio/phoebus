@@ -37,6 +37,8 @@ public class TraceImpl<XTYPE extends Comparable<XTYPE>> implements Trace<XTYPE>
 
     private volatile Color color;
 
+    private volatile Color areaColor;
+
     private volatile TraceType type;
 
     private volatile int width;
@@ -53,9 +55,22 @@ public class TraceImpl<XTYPE extends Comparable<XTYPE>> implements Trace<XTYPE>
 
 
     public TraceImpl(final String name,
+                     final String units,
+                     final PlotDataProvider<XTYPE> data,
+                     final Color color,
+                     final TraceType type, final int width,
+                     final LineStyle line_style,
+                     final PointType point_type, final int size,
+                     final int y_axis)
+    {
+        this(name, units, data, color, color, type, width, line_style, point_type, size, y_axis);
+    }
+
+    public TraceImpl(final String name,
             final String units,
             final PlotDataProvider<XTYPE> data,
             final Color color,
+            final Color areaColor,
             final TraceType type, final int width,
             final LineStyle line_style,
             final PointType point_type, final int size,
@@ -65,6 +80,7 @@ public class TraceImpl<XTYPE extends Comparable<XTYPE>> implements Trace<XTYPE>
         this.units = units == null ? "" : units;
         this.data = Objects.requireNonNull(data);
         this.color = Objects.requireNonNull(color);
+        this.areaColor = Objects.requireNonNull(areaColor);
         this.type = Objects.requireNonNull(type);
         this.width = width;
         this.line_style = line_style;
@@ -146,6 +162,20 @@ public class TraceImpl<XTYPE extends Comparable<XTYPE>> implements Trace<XTYPE>
     public void setColor(final Color color)
     {
         this.color = Objects.requireNonNull(color);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Color getAreaColor()
+    {
+        return areaColor;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void setAreaColor(final Color areaColor)
+    {
+        this.areaColor = Objects.requireNonNull(areaColor);
     }
 
     /** {@inheritDoc} */

@@ -68,6 +68,12 @@ public interface Trace<XTYPE extends Comparable<XTYPE>>
     /** @param color Color to use for this trace */
     public void setColor(final Color color);
 
+    /** @return Color to use for this trace */
+    public Color getAreaColor();
+
+    /** @param color Color to use for this trace */
+    public void setAreaColor(final Color color);
+
     /** @return How to draw this trace */
     public TraceType getType();
 

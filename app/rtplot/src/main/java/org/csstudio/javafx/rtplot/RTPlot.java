@@ -297,11 +297,6 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         plot.setBackground(GraphicsUtils.convert(Objects.requireNonNull(color), (int) (255*color.getOpacity())));
     }
 
-    /** Opacity (0 .. 100 %) of 'area' */
-    public void setOpacity(final int opacity)
-    {
-        plot.setAreaOpacity(opacity);
-    }
 
     /** @param color Grid color */
     public void setGridColor(final Color color)
@@ -456,18 +451,42 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
      *  @param units Units, may be <code>null</code>
      *  @param data
      *  @param color
+     *  @param areaColor
      *  @param type
      *  @param width
      *  @param y_axis
      *  @return {@link Trace} that was added
      */
     public Trace<XTYPE> addTrace(final String name, final String units,
-            final PlotDataProvider<XTYPE> data,
-            final Color color,
-            final TraceType type, final int width,
-            final LineStyle line_style,
-            final PointType point_type, final int size,
-            final int y_axis)
+                                 final PlotDataProvider<XTYPE> data,
+                                 final Color color,
+                                 final Color areaColor,
+                                 final TraceType type, final int width,
+                                 final LineStyle line_style,
+                                 final PointType point_type, final int size,
+                                 final int y_axis)
+    {
+        final TraceImpl<XTYPE> trace = new TraceImpl<>(name, units, data, color, areaColor, type, width, line_style, point_type, size, y_axis);
+        plot.addTrace(trace);
+        return trace;
+    }
+
+    /** @param name Name, must not be <code>null</code>
+     *  @param units Units, may be <code>null</code>
+     *  @param data
+     *  @param color
+     *  @param type
+     *  @param width
+     *  @param y_axis
+     *  @return {@link Trace} that was added
+     */
+    public Trace<XTYPE> addTrace(final String name, final String units,
+                                 final PlotDataProvider<XTYPE> data,
+                                 final Color color,
+                                 final TraceType type, final int width,
+                                 final LineStyle line_style,
+                                 final PointType point_type, final int size,
+                                 final int y_axis)
     {
         final TraceImpl<XTYPE> trace = new TraceImpl<>(name, units, data, color, type, width, line_style, point_type, size, y_axis);
         plot.addTrace(trace);
