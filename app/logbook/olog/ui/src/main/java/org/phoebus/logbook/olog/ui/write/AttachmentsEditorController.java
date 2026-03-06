@@ -23,9 +23,8 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -137,7 +136,7 @@ public class AttachmentsEditorController {
         Collection<Attachment> attachments = logEntry.getAttachments();
         if (attachments != null && !attachments.isEmpty()) {
             attachments.forEach(a -> {
-                if(a.getFile() != null){
+                if (a.getFile() != null) {
                     attachedFilesSize += getFileSize(a.getFile());
                 }
             });
@@ -294,22 +293,23 @@ public class AttachmentsEditorController {
     }
 
     /**
-     * Add
-     * @param files
+     * Adds attachment files
+     *
+     * @param files A list of {@link File}s
      */
     private void addFiles(List<File> files) {
         Platform.runLater(() -> sizesErrorMessage.set(null));
         if (!checkFileSizes(files)) {
             return;
         }
-        if(!checkForHeicFiles(files)){
+        if (!checkForHeicFiles(files)) {
             return;
         }
         MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
         for (File file : files) {
             OlogAttachment ologAttachment = new OlogAttachment();
             ologAttachment.setFile(file);
-            ologAttachment.setFileName(file.getName());
+            ologAttachment.setUniqueFilename(ologAttachment.getId() + "_" + file.getName());
             String mimeType = fileTypeMap.getContentType(file.getName());
             if (mimeType.startsWith("image")) {
                 ologAttachment.setContentType("image");
@@ -342,7 +342,7 @@ public class AttachmentsEditorController {
             OlogAttachment ologAttachment = new OlogAttachment(id);
             ologAttachment.setContentType("image");
             ologAttachment.setFile(imageFile);
-            ologAttachment.setFileName(imageFile.getName());
+            ologAttachment.setUniqueFilename(imageFile.getName());
             attachmentsViewController.addAttachments(List.of(ologAttachment));
             filesToDeleteAfterSubmit.add(ologAttachment.getFile());
         } catch (IOException e) {
@@ -361,7 +361,8 @@ public class AttachmentsEditorController {
 
     /**
      * Sets the file upload constraints information in the editor.
-     * @param maxFileSize Maximum size for a single file.
+     *
+     * @param maxFileSize    Maximum size for a single file.
      * @param maxRequestSize Maximum total size of all attachments.
      */
     public void setSizeLimits(String maxFileSize, String maxRequestSize) {
@@ -409,19 +410,20 @@ public class AttachmentsEditorController {
     /**
      * Clears list of {@link Attachment}s.
      */
-    public void clearAttachments(){
+    public void clearAttachments() {
         getAttachments().clear();
     }
 
     /**
      * Checks if any of the attached files uses extension heic or heics, which are unsupported. If a heic file
      * is detected, an error dialog is shown.
+     *
      * @param files List of {@link File}s to check.
      * @return <code>true</code> if all is well, i.e. no heic files deyected, otherwise <code>false</code>.
      */
-    private boolean checkForHeicFiles(List<File> files){
+    private boolean checkForHeicFiles(List<File> files) {
         File file = detectHeicFiles(files);
-        if(file != null){
+        if (file != null) {
             Alert alert = new Alert(AlertType.ERROR);
             alert.setHeaderText(MessageFormat.format(Messages.UnsupportedFileType, file.getAbsolutePath()));
             DialogHelper.positionDialog(alert, textArea, -200, -100);
@@ -433,15 +435,16 @@ public class AttachmentsEditorController {
 
     /**
      * Probes files for heic content, which is not supported.
+     *
      * @param files List of {@link File}s to check.
      * @return The first {@link File} in the list determined to have heic. If no such file
      * is detected, <code>null</code> is returned.
      */
-    private File detectHeicFiles(List<File> files){
-        for(File file : files){
+    private File detectHeicFiles(List<File> files) {
+        for (File file : files) {
             try {
                 String mimeType = MimeTypeDetector.determineMimeType(new FileInputStream(file));
-                if(mimeType != null && mimeType.toLowerCase().contains("image/heic")){
+                if (mimeType != null && mimeType.toLowerCase().contains("image/heic")) {
                     return file;
                 }
             } catch (IOException e) {
