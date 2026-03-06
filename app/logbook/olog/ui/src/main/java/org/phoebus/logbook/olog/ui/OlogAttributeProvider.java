@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import org.phoebus.logbook.Attachment;
 import java.util.List;
 import org.apache.commons.io.FilenameUtils;
+import org.phoebus.olog.es.api.OlogHttpClient;
 
 /**
  * An {@link AttributeProvider} used to style elements of a log entry. Other types of
@@ -76,7 +77,7 @@ public class OlogAttributeProvider implements AttributeProvider {
                 if (serviceUrl.endsWith("/")) {
                     serviceUrl = serviceUrl.substring(0, serviceUrl.length() - 1);
                 }
-                src = serviceUrl + "/" + src;
+                src = serviceUrl + "/" + OlogHttpClient.OLOG_PREFIX + "/" + src;
             }
             // If preview flag is true, the image url 'attachment/attachment_id'
             // has to be converted to 'file://attachment_path'
