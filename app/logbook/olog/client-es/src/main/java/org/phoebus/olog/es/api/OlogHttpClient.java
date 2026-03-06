@@ -183,7 +183,7 @@ public class OlogHttpClient implements LogClient {
             httpRequestMultipartBody.addTextPart("logEntry", OlogObjectMappers.logEntrySerializer.writeValueAsString(log), "application/json");
 
             for (Attachment attachment : log.getAttachments()) {
-                httpRequestMultipartBody.addFilePart(attachment.getFile());
+                httpRequestMultipartBody.addFilePart(attachment.getFile(), attachment.getUniqueFilename());
             }
 
             HttpRequest request = HttpRequest.newBuilder()

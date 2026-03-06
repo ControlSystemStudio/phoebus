@@ -154,10 +154,10 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                 ologLog.setProperties(Arrays.asList(track, experimentProperty));
                 List<Attachment> attachments = new ArrayList<>();
                 OlogAttachment attachment1 = new OlogAttachment("image_1.png");
-                attachment1.setFileName("image_1.png");
+                attachment1.setUniqueFilename("image_1.png");
                 attachment1.setContentType("image");
                 OlogAttachment attachment2 = new OlogAttachment("file_phoebus.txt");
-                attachment2.setFileName("file_phoebus.txt");
+                attachment2.setUniqueFilename("file_phoebus.txt");
                 attachment2.setContentType("text");
                 attachments.add(attachment1);
                 attachments.add(attachment2);
