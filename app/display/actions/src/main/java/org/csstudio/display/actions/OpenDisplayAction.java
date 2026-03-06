@@ -32,7 +32,8 @@ public class OpenDisplayAction extends ActionInfoBase {
     /**
      * Default {@link Target} is new tab.
      */
-    private Target target = Target.TAB;
+    private Target target = Target.REPLACE;
+    private Target modifierTarget = null;
 
     private Macros macros;
 
@@ -116,7 +117,7 @@ public class OpenDisplayAction extends ActionInfoBase {
     }
 
     public Target getTarget() {
-        return target;
+        return modifierTarget != null ? modifierTarget : target;
     }
 
     public Macros getMacros() {
@@ -197,10 +198,14 @@ public class OpenDisplayAction extends ActionInfoBase {
     @Override
     public void setModifiers(final MouseEvent event) {
         boolean middle_click = event.isMiddleButtonDown();
-        if (event.isShortcutDown() || middle_click) {
-            target = Target.TAB;
-        } else if (event.isShiftDown()) {
-            target = Target.WINDOW;
+        if (event.isShiftDown() && event.isShortcutDown()) {
+            modifierTarget = Target.REPLACE;
+        } else if (event.isShortcutDown()) {
+            modifierTarget = Target.TAB;
+        } else if (event.isShiftDown() || middle_click) {
+            modifierTarget = Target.WINDOW;
+        } else {
+            modifierTarget = null;
         }
     }
 
