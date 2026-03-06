@@ -77,7 +77,7 @@ public class OlogAttributeProvider implements AttributeProvider {
                 if (serviceUrl.endsWith("/")) {
                     serviceUrl = serviceUrl.substring(0, serviceUrl.length() - 1);
                 }
-                src = serviceUrl + "/" + OlogHttpClient.OLOG_PREFIX + "/" + src;
+                src = serviceUrl + OlogHttpClient.OLOG_PREFIX + "/" + src;
             }
             // If preview flag is true, the image url 'attachment/attachment_id'
             // has to be converted to 'file://attachment_path'
