@@ -53,6 +53,8 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -486,6 +488,27 @@ public class PhoebusApplication extends Application {
         menuBar = createMenu(main_stage);
         toolbar = createToolbar();
         createTopResourcesMenu();
+
+        menuBar.setOnDragOver(e -> {
+            final Dragboard db = e.getDragboard();
+            if (db.hasFiles()) // Allow any drag operation containing files
+                e.acceptTransferModes(TransferMode.MOVE);
+
+            e.consume();
+        });
+
+        menuBar.setOnDragDropped(e -> {
+            final Dragboard db = e.getDragboard();
+
+            if (db.hasFiles()) {
+                for (File file : db.getFiles()) {
+                    this.openResource(file.toURI(), true);
+                }
+            }
+
+            e.setDropCompleted(true);
+            e.consume();
+        });
 
         DockStage.configureStage(main_stage);
         // Patch ID of main window
