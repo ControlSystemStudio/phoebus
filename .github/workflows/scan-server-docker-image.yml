@@ -1,6 +1,7 @@
 name: Scan Server Docker Image CI
 
 on:
+  workflow_dispatch: 
   push:
     branches: [ "master" ]
     paths: services/scan-server/**
