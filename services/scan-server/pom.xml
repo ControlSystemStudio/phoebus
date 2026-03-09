@@ -158,6 +158,7 @@
             <manifest>
               <addClasspath>true</addClasspath>
               <mainClass>org.csstudio.scan.server.ScanServerInstance</mainClass>
+              <classpathPrefix>lib/</classpathPrefix>
             </manifest>
           </archive>
           <descriptorRefs>
