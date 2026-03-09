@@ -2,7 +2,7 @@ name: Scan Server Docker Image CI
 
 on:
   push:
-    branches: [ "CSSTUDIO-3583" ]
+    branches: [ "master" ]
     paths: services/scan-server/**
     tags:
       - '**'
