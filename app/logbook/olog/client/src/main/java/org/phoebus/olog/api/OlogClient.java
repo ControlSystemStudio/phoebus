@@ -14,7 +14,6 @@ import org.phoebus.logbook.Property;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.Tag;
 import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.HttpRequestMultipartBody;
 import org.phoebus.util.http.QueryParamsHelper;
@@ -374,7 +373,7 @@ public class OlogClient implements LogClient {
                     .build();
             HttpResponse<InputStream> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
 
-            if (httpResponse.statusCode() < 300){
+            if (httpResponse.statusCode() < 300) {
                 LOGGER.log(Level.WARNING, "Failed to get attachment");
                 throw new OlogException("Failed to get attachment");
             }
@@ -394,7 +393,7 @@ public class OlogClient implements LogClient {
                     .build();
             HttpResponse<InputStream> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
 
-            if (httpResponse.statusCode() < 300){
+            if (httpResponse.statusCode() < 300) {
                 LOGGER.log(Level.WARNING, "Failed to get attachment");
                 throw new OlogException("Failed to get attachment");
             }
@@ -417,7 +416,7 @@ public class OlogClient implements LogClient {
                         .GET()
                         .build();
                 HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-                if(httpResponse.statusCode() < 300){
+                if (httpResponse.statusCode() < 300) {
                     LOGGER.log(Level.WARNING, "Failed to get property " + property);
                     throw new OlogException(httpResponse.statusCode(), httpResponse.body());
                 }
@@ -480,7 +479,7 @@ public class OlogClient implements LogClient {
                     log.getAttachments().forEach(attachment -> {
 
                         HttpRequestMultipartBody httpRequestMultipartBody = new HttpRequestMultipartBody();
-                        httpRequestMultipartBody.addFilePart(attachment.getFile());
+                        httpRequestMultipartBody.addFilePart(attachment.getFile(), attachment.getUniqueFilename());
 
                         HttpRequest attachmentRequest = HttpRequest.newBuilder()
                                 .uri(URI.create(Preferences.olog_url + "/attachments/" + createdLog.getId()))
@@ -542,7 +541,7 @@ public class OlogClient implements LogClient {
             if (httpResponse.statusCode() < 300)
                 return new OlogLog(OBJECT_MAPPER.readValue(httpResponse.body(), XmlLog.class));
             else
-               throw new OlogException(httpResponse.statusCode(), httpResponse.body());
+                throw new OlogException(httpResponse.statusCode(), httpResponse.body());
         }
     }
 

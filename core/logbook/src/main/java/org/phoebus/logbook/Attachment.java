@@ -18,16 +18,29 @@ public interface Attachment {
 
     /**
      * In some cases the client must be able to set the (unique) id.
-     * @param id
+     * @param id A unique id for the {@link Attachment}
      */
     default void setId(String id){}
     
-    public String getName();
+    String getName();
 
-    public File getFile();
+    File getFile();
 
-    public String getContentType();
+    String getContentType();
 
-    public Boolean getThumbnail();
+    Boolean getThumbnail();
 
+    /**
+     * Implementations must make sure this returns a string that:
+     * <ul>
+     *     <li>Is unique between all attachments in a log entry submission.</li>
+     *     <li>Preserves the file extension, if the original file defines it.</li>
+     * </ul>
+     * Note that this is practice <i>not</i> the same as the name of a file
+     * picked from the file system.
+     * @return A {@link String} unique between all attachments in a log entry submission.
+     */
+    default String getUniqueFilename(){
+        return null;
+    }
 }

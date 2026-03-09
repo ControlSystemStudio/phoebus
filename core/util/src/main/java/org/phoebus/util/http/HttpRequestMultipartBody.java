@@ -63,9 +63,11 @@ public class HttpRequestMultipartBody {
      * application/octet-stream if probe fails.
      *
      * @param file A <code>non-null</code> file.
+     * @param uniqueFileName A file name that must be unique between all attachment files in a log entry submission. Note
+     *                       that a file extension - where applicable - must be present.
      * @throws RuntimeException if the file does not exist or cannot be read.
      */
-    public void addFilePart(File file) {
+    public void addFilePart(File file, String uniqueFileName) {
         if (file == null){
             throw new RuntimeException("File part must not be null");
         }
@@ -84,7 +86,7 @@ public class HttpRequestMultipartBody {
         } catch (IOException e) {
             Logger.getLogger(HttpRequestMultipartBody.class.getName()).log(Level.WARNING, "Unable to determine content type of file " + file.getAbsolutePath(), e);
         }
-        stringBuilder.append("\r\n--").append(boundary).append("\r\nContent-Disposition: form-data; name=\"").append("files").append("\"; filename=\"").append(file.getName()).append("\"");
+        stringBuilder.append("\r\n--").append(boundary).append("\r\nContent-Disposition: form-data; name=\"").append("files").append("\"; filename=\"").append(uniqueFileName).append("\"");
         stringBuilder.append("\r\nContent-Type: ").append(contentType).append("\r\n\r\n");
 
         byteArrayOutputStream.writeBytes(stringBuilder.toString().getBytes(StandardCharsets.UTF_8));
