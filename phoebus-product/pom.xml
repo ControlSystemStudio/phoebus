@@ -291,6 +291,16 @@
             <artifactId>core-pv-jackie</artifactId>
             <version>5.0.3-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>app-analytics-ui</artifactId>
+            <version>5.0.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>app-analytics-monitor</artifactId>
+            <version>5.0.3-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
