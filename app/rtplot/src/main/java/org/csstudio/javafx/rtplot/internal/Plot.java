@@ -686,7 +686,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
 
         for (YAxisImpl<XTYPE> y_axis : y_axes)
             for (Trace<XTYPE> trace : y_axis.getTraces())
-                trace_painter.paint(gc, plot_area.getBounds(), opacity, x_transform, y_axis, trace);
+                trace_painter.paint(gc, plot_area.getBounds(), x_transform, y_axis, trace);
 
         drawPlotMarkers(gc);
         gc.setClip(null);
