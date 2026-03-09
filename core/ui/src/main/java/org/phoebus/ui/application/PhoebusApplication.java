@@ -53,6 +53,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
@@ -481,6 +482,29 @@ public class PhoebusApplication extends Application {
         return toolbar;
     }
 
+    /**
+     * Event handler for when a file is being dragged into the application to open it.
+     */
+    private void onDragOverFile(DragEvent e) {
+        final Dragboard db = e.getDragboard();
+        if (db.hasFiles()) // Allow any drag operation containing files
+            e.acceptTransferModes(TransferMode.MOVE);
+
+        e.consume();
+    }
+
+    /**
+     * See `onDragOverFile` - this is called when the drag item was released.
+     */
+    private void onDragDroppedFile(DragEvent e) {
+        final Dragboard db = e.getDragboard();
+
+        this.openDroppedResources(db);
+
+        e.setDropCompleted(true);
+        e.consume();
+    }
+
     private void startUI(final MementoTree memento, final JobMonitor monitor) throws Exception {
         monitor.beginTask(Messages.MonitorTaskUi, 4);
 
@@ -489,26 +513,10 @@ public class PhoebusApplication extends Application {
         toolbar = createToolbar();
         createTopResourcesMenu();
 
-        menuBar.setOnDragOver(e -> {
-            final Dragboard db = e.getDragboard();
-            if (db.hasFiles()) // Allow any drag operation containing files
-                e.acceptTransferModes(TransferMode.MOVE);
-
-            e.consume();
-        });
-
-        menuBar.setOnDragDropped(e -> {
-            final Dragboard db = e.getDragboard();
-
-            if (db.hasFiles()) {
-                for (File file : db.getFiles()) {
-                    this.openResource(file.toURI(), true);
-                }
-            }
-
-            e.setDropCompleted(true);
-            e.consume();
-        });
+        menuBar.setOnDragOver(this::onDragOverFile);
+        menuBar.setOnDragDropped(this::onDragDroppedFile);
+        toolbar.setOnDragOver(this::onDragOverFile);
+        toolbar.setOnDragDropped(this::onDragDroppedFile);
 
         DockStage.configureStage(main_stage);
         // Patch ID of main window
@@ -1174,6 +1182,25 @@ public class PhoebusApplication extends Application {
             return null;
         default_application = result.get();
         return applications.get(options.indexOf(result.get()));
+    }
+
+    /**
+     * Callback to trigger the loading of dragged resources.
+     * For each file the "Choose editor" dialog is shown.
+     */
+    public void openDroppedResources(final Dragboard db) {
+
+        if (!db.hasFiles())
+            return;
+
+        var files = db.getFiles(); // Copy, because the event is going to be gone
+
+        Platform.runLater(() -> {
+            // Run this delayed, closing the drag event first, such that the icon will disappear from the UI
+            for (File file : files) {
+                this.openResource(file.toURI(), true);
+            }
+        });
     }
 
     /**
