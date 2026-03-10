@@ -1,7 +1,6 @@
 name: Scan Server Docker Image CI
 
 on:
-  workflow_dispatch: 
   push:
     branches: [ "master" ]
     paths: services/scan-server/**
@@ -38,7 +37,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn --batch-mode --update-snapshots package
+      run: mvn -Pexecutable-jar --batch-mode --update-snapshots package
     - name: Login to the registry
       uses: docker/login-action@v3
       with:
