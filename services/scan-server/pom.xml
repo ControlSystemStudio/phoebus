@@ -166,9 +166,6 @@
                 <goals>
                   <goal>repackage</goal>
                 </goals>
-                <configuration>
-                  <finalName>service-scan-server-fat-${project.version}</finalName>
-                </configuration>
               </execution>
             </executions>
           </plugin>
