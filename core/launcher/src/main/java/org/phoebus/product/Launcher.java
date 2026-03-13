@@ -2,6 +2,7 @@ package org.phoebus.product;
 
 import javafx.application.Application;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.framework.preferences.PropertyPreferenceWriter;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -9,10 +10,7 @@ import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.ApplicationServer;
 import org.phoebus.ui.application.PhoebusApplication;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -25,11 +23,14 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
 @SuppressWarnings("nls")
 public class Launcher {
     private static final String LOGGING_OPTION = "-logging";
     private static final String DEFAULT_LOGGING_FILE="/logging.properties";
     private static final String LOGGING_PROP = "java.util.logging.config.file";
+    private static final String SETTINGS_SNAPSHOT = "settings_snapshot";
 
     public static void main(final String[] original_args) throws Exception {
         // First Handle arguments, potentially not even starting the UI
@@ -217,6 +218,19 @@ public class Launcher {
             Preferences.importPreferences(new FileInputStream(location));
         else
             PropertyPreferenceLoader.load(location);
+
+        // Preference settings
+        final ByteArrayOutputStream prefs_buf = new ByteArrayOutputStream();
+        try
+        {
+            PropertyPreferenceWriter.save(prefs_buf);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot list preferences", ex);
+        }
+
+        Preferences.userRoot().put(SETTINGS_SNAPSHOT, prefs_buf.toString());
     }
 
     private static void help() {
