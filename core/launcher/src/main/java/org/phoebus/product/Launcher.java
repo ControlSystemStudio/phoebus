@@ -99,11 +99,7 @@ public class Launcher {
         if (site_settings.canRead())
         {
             logger.info("Loading bundled settings from " + site_settings.getAbsolutePath());
-            final FileInputStream fileInputStream = new FileInputStream(site_settings);
-            if (site_settings.getName().endsWith(".xml"))
-                Preferences.importPreferences(fileInputStream);
-            else
-                PropertyPreferenceLoader.load(fileInputStream);
+            LoadSettings(site_settings.getName());
         }
 
         // Handle arguments, potentially not even starting the UI
@@ -140,11 +136,7 @@ public class Launcher {
                     iter.remove();
 
                     logger.info("Loading settings from " + location);
-                    if (location.endsWith(".xml"))
-                        Preferences.importPreferences(new FileInputStream(location));
-                    else
-                        PropertyPreferenceLoader.load(location);
-
+                    LoadSettings(location);
                 } else if (cmd.equals("-export_settings")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -export_settings file name");
@@ -218,6 +210,13 @@ public class Launcher {
 
         // Remaining args passed on
         Application.launch(PhoebusApplication.class, args.toArray(new String[args.size()]));
+    }
+
+    private static void LoadSettings(String location) throws Exception {
+        if (location.endsWith(".xml"))
+            Preferences.importPreferences(new FileInputStream(location));
+        else
+            PropertyPreferenceLoader.load(location);
     }
 
     private static void help() {
