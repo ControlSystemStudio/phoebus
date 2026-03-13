@@ -297,7 +297,6 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
             final PlotDataItem<XTYPE> item = data.get(i);
             final int x = clipX(Math.round(x_transform.transform(item.getPosition())));
             final double value = item.getValue();
-            System.out.println(value);
             if (poly_x.size() > 0  && x != last_x)
             {   // Staircase from last 'y'..
                 poly_x.add(x);
