@@ -65,9 +65,9 @@
 
   <properties>
     <project.build.outputTimestamp>2025-07-14T19:59:13Z</project.build.outputTimestamp>
-    <epics.version>7.0.10</epics.version>
-    <epics.util.version>1.0.7</epics.util.version>
-    <vtype.version>1.0.7</vtype.version>
+    <epics.version>7.0.11</epics.version>
+    <epics.util.version>1.0.8</epics.util.version>
+    <vtype.version>1.0.8</vtype.version>
     <openjfx.version>21.0.7</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.17</batik.version>
