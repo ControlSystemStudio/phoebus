@@ -59,6 +59,12 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
+            <artifactId>app-utility-preference-manager</artifactId>
+            <version>5.0.3-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.phoebus</groupId>
             <artifactId>app-logbook-olog-ui</artifactId>
             <version>5.0.3-SNAPSHOT</version>
             <optional>true</optional>

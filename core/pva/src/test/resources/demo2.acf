@@ -1,0 +1,39 @@
+# Demo of access security file
+
+# User groups
+UAG (expert)
+{ "Mary Ann",
+   Egon,
+   ky9
+}
+UAG (vacuum)
+{ "Mary Ann"
+}
+
+
+# Host groups
+HAG (local)      { localhost    , 127.0.0.1, 10.1.58.243 }
+HAG (well_known) { www.google.com }
+
+# By default, all can read but only experts can write
+ASG(DEFAULT)
+{
+   RULE(1, READ) # Actually, with PVA you can always read
+   RULE(1, WRITE)
+   {  # Conditions for write access
+      UAG(expert)
+      HAG(local)
+   }
+}
+
+# OPEN allows anybody to write from anywhere
+ASG(OPEN)
+{
+   RULE(1, WRITE)
+}
+
+# VACUUM write access is limited to members of the vacuum group
+ASG(VACUUM)
+{
+   RULE(1, WRITE) { UAG(vacuum) }
+}

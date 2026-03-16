@@ -47,6 +47,11 @@
         </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+      <version>${spring.boot.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-streams</artifactId>
       <version>${kafka.version}</version>
@@ -176,7 +181,7 @@
           <plugin>
             <groupId>io.github.kbuntrock</groupId>
             <artifactId>openapi-maven-plugin</artifactId>
-            <version>0.0.28</version>
+            <version>0.0.29</version>
             <executions>
               <execution>
                 <id>documentation</id>

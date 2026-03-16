@@ -43,4 +43,7 @@ public class ImageRepository {
             ImageCache.getImage(ImageRepository.class, "/icons/save-and-restore/edit-configuration.png");
     public static final Image SNAPSHOT_ADD_TAG =
         ImageCache.getImage(ImageRepository.class, "/icons/save-and-restore/snapshot-add_tag.png");
+    public static final Image LINK =
+            ImageCache.getImage(ImageRepository.class, "/icons/save-and-restore/link.png");
+
 }

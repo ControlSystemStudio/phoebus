@@ -249,7 +249,7 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
                 OlogAttachment fileAttachment = new OlogAttachment();
                 fileAttachment.setContentType(attachment.getContentType());
                 fileAttachment.setThumbnail(false);
-                fileAttachment.setFileName(attachment.getName());
+                fileAttachment.setUniqueFilename(attachment.getName());
                 // Determine file extension, needed to support transition to Image Viewer app for image attachments
                 String fileExtension = "";
                 int indexOfLastDot = attachment.getName().lastIndexOf('.');

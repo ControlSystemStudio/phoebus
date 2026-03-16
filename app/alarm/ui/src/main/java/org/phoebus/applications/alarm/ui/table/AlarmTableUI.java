@@ -10,10 +10,7 @@ package org.phoebus.applications.alarm.ui.table;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -657,8 +654,20 @@ public class AlarmTableUI extends BorderPane
     {
         limitAlarmCount(active, active_count, "Active Alarms: ");
         limitAlarmCount(acknowledged, acknowledged_count, "Acknowledged Alarms: ");
+
+        /* Previously selected items that are still valid with the new alarm lists */
+        List<String> active_selection = extractOldSelection(this.active, active);
+        List<String> acknowledged_selection = extractOldSelection(this.acknowledged, acknowledged);
+
         update(active_rows, active);
         update(acknowledged_rows, acknowledged);
+
+        /* Move this up here out of update(), doesn't need to be ran twice */
+        selectRows();
+
+        /* Now that the table has been appropriately updated, select any still valid pvs */
+        selectPvs(this.active, active_selection);
+        selectPvs(this.acknowledged, acknowledged_selection);
     }
 
     /** Limit the number of alarms
@@ -704,29 +713,29 @@ public class AlarmTableUI extends BorderPane
         else // Trim items, input has fewer elements
             items.remove(N, items.size());
 
-        selectRows();
     }
 
     /** Select all rows that match the current 'search' pattern */
     private void selectRows()
     {
+        active.getSelectionModel().clearSelection();
+        acknowledged.getSelectionModel().clearSelection();
+
         final String glob = search.getText().trim();
-        if (glob.isEmpty())
+        if(glob.isEmpty())
         {
-            active.getSelectionModel().clearSelection();
-            acknowledged.getSelectionModel().clearSelection();
             return;
         }
 
         final Pattern pattern = Pattern.compile(RegExHelper.fullRegexFromGlob(glob),
-                                                Pattern.CASE_INSENSITIVE);
+                Pattern.CASE_INSENSITIVE);
+
         selectRows(active, pattern);
         selectRows(acknowledged, pattern);
     }
 
     private void selectRows(final TableView<AlarmInfoRow> table, final Pattern pattern)
     {
-        table.getSelectionModel().clearSelection();
 
         int i = 0;
         for (AlarmInfoRow row : table.getItems())
@@ -736,5 +745,45 @@ public class AlarmTableUI extends BorderPane
                 table.getSelectionModel().select(i);
             ++i;
         }
+    }
+
+    /** adds a list of pvs to the selection **/
+    private void selectPvs(final TableView<AlarmInfoRow> table, final List<String> pvs) {
+        HashSet<String> pv_set = new HashSet<>(pvs);
+
+        int i = 0;
+        for (AlarmInfoRow row : table.getItems())
+        {
+            if(pv_set.contains(row.pv.get()))
+            {
+                table.getSelectionModel().select(i);
+            }
+            ++i;
+        }
+    }
+
+    /** Find all selected items that are still valid in this new state **/
+    private List<String> extractOldSelection(final TableView<AlarmInfoRow> table, final List<AlarmInfoRow> input)
+    {
+        /* input objects are probably not equal, compare them by their pv names */
+        final HashSet<String> pvs = new HashSet<>();
+        for(AlarmInfoRow row : input)
+        {
+            pvs.add(row.pv.get());
+        }
+
+        final List<String> validSelection = new ArrayList<>();
+        for(AlarmInfoRow row : table.getSelectionModel().getSelectedItems())
+        {
+            String pv = row.pv.get();
+            if(pvs.contains(pv))
+            {
+                validSelection.add(pv);
+            }
+        }
+
+        table.getSelectionModel().clearSelection();
+
+        return validSelection;
     }
 }

@@ -44,9 +44,9 @@ public class EnabledState
         this.enabled = enabled;
     }
 
-    /** @return Time to (re-)enable */
+    /** @return Time to (re-)enable, or null if no date is set */
     public String getDateString() {
-        return enabled_date.format(formatter);
+        return enabled_date != null ? enabled_date.format(formatter) : "";
     }
 
     @Override

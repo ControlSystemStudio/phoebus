@@ -29,8 +29,6 @@ public class OlogAttachment implements Attachment {
 
     protected Boolean thumbnail;
 
-    protected Long fileSize;
-
     private File file;
 
     /**
@@ -51,17 +49,15 @@ public class OlogAttachment implements Attachment {
         this.id = id;
     }
 
-    /**
-     * @return the fileName
-     */
-    public String getFileName() {
+    @Override
+    public String getUniqueFilename() {
         return fileName;
     }
 
     /**
      * @param fileName the fileName to set
      */
-    public void setFileName(String fileName) {
+    public void setUniqueFilename(String fileName) {
         this.fileName = fileName;
     }
 

@@ -42,6 +42,8 @@ import org.csstudio.trends.databrowser3.ui.properties.RemoveUnusedAxes;
 import org.csstudio.trends.databrowser3.ui.sampleview.SampleView;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.csstudio.trends.databrowser3.ui.selection.DatabrowserSelection;
+import org.csstudio.trends.databrowser3.ui.smoothview.SmoothView;
+import org.csstudio.trends.databrowser3.ui.waveformoverlapview.WaveformOverlapView;
 import org.csstudio.trends.databrowser3.ui.waveformview.WaveformView;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
@@ -86,13 +88,15 @@ public class Perspective extends SplitPane
     private ExportView export = null;
     private SampleView inspect = null;
     private WaveformView waveform = null;
-
+    private SmoothView smooth = null;
+    private WaveformOverlapView overlap = null;
+    
     private final Controller controller;
     private final TabPane left_tabs = new TabPane(),
                           bottom_tabs = new TabPane();
     private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), bottom_tabs);
     private PropertyPanel property_panel;
-    private Tab search_tab, properties_tab, export_tab, inspect_tab, waveform_tab = null;
+    private Tab search_tab, properties_tab, export_tab, inspect_tab, waveform_tab, smooth_tab, overlap_tab = null;
 
 
     /** @param minimal Only show the essentials? */
@@ -190,6 +194,22 @@ public class Perspective extends SplitPane
             createWaveformTab();
             showBottomTab(waveform_tab);
         });
+
+        final MenuItem show_smooth = new MenuItem(Messages.SmoothView, Activator.getIcon("smooth"));
+        show_smooth.setOnAction(event ->
+        {
+            createSmoothab();
+            showBottomTab(smooth_tab);
+        });
+
+
+        final MenuItem show_overlap = new MenuItem(Messages.WaveformOverlapView, Activator.getIcon("overlap"));
+        show_overlap.setOnAction(event ->
+        {
+            createWaveformOverlapTab();
+            showBottomTab(overlap_tab);
+        });
+
         final MenuItem refresh = new MenuItem(Messages.Refresh, Activator.getIcon("refresh_remote"));
         refresh.setOnAction(event -> controller.refresh());
 
@@ -266,7 +286,7 @@ public class Perspective extends SplitPane
                 }
             }
 
-            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform, refresh);
+            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform,show_smooth, show_overlap, refresh);
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
@@ -313,6 +333,25 @@ public class Perspective extends SplitPane
             waveform_tab = new Tab(Messages.OpenWaveformView, waveform);
             waveform_tab.setGraphic(Activator.getIcon("wavesample"));
             waveform_tab.setOnClosed(evt -> autoMinimizeBottom());
+        }
+    }
+
+
+    private void createSmoothab() {
+        if (smooth_tab == null) {
+            smooth = new SmoothView(model);
+            smooth_tab = new Tab(Messages.SmoothView, smooth);
+            smooth_tab.setGraphic(Activator.getIcon("smooth"));
+            smooth_tab.setOnClosed(evt -> autoMinimizeBottom());
+        }
+    }
+
+    private void createWaveformOverlapTab() {
+        if (overlap_tab == null) {
+            overlap = new WaveformOverlapView(model);
+            overlap_tab = new Tab(Messages.WaveformOverlapView, overlap);
+            overlap_tab.setGraphic(Activator.getIcon("overlap"));
+            overlap_tab.setOnClosed(evt -> autoMinimizeBottom());
         }
     }
 
