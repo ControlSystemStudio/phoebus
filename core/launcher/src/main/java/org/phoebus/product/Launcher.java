@@ -96,11 +96,11 @@ public class Launcher {
         Locations.initialize();
         // Check for site-specific settings.ini bundled into distribution
         // before potentially adding command-line settings.
-        final File site_settings = new File(Locations.install(), "settings.ini");
-        if (site_settings.canRead())
+        final File siteSettings = new File(Locations.install(), "settings.ini");
+        if (siteSettings.canRead())
         {
-            logger.info("Loading bundled settings from " + site_settings.getAbsolutePath());
-            LoadSettings(site_settings.getName());
+            logger.info("Loading bundled settings from " + siteSettings.getAbsolutePath());
+            loadSettings(siteSettings.getName());
         }
 
         // Handle arguments, potentially not even starting the UI
@@ -137,7 +137,7 @@ public class Launcher {
                     iter.remove();
 
                     logger.info("Loading settings from " + location);
-                    LoadSettings(location);
+                    loadSettings(location);
                 } else if (cmd.equals("-export_settings")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -export_settings file name");
@@ -213,24 +213,24 @@ public class Launcher {
         Application.launch(PhoebusApplication.class, args.toArray(new String[args.size()]));
     }
 
-    private static void LoadSettings(String location) throws Exception {
+    private static void loadSettings(String location) throws Exception {
         if (location.endsWith(".xml"))
             Preferences.importPreferences(new FileInputStream(location));
         else
             PropertyPreferenceLoader.load(location);
 
         // Preference settings
-        final ByteArrayOutputStream prefs_buf = new ByteArrayOutputStream();
+        final ByteArrayOutputStream prefsBuf = new ByteArrayOutputStream();
         try
         {
-            PropertyPreferenceWriter.save(prefs_buf);
+            PropertyPreferenceWriter.save(prefsBuf);
         }
         catch (Exception ex)
         {
             logger.log(Level.WARNING, "Cannot list preferences", ex);
         }
 
-        Preferences.userRoot().put(SETTINGS_SNAPSHOT, prefs_buf.toString());
+        Preferences.userRoot().put(SETTINGS_SNAPSHOT, prefsBuf.toString());
     }
 
     private static void help() {
