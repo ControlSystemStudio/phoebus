@@ -371,8 +371,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         saveAndRestoreService.addSaveAndRestoreWebSocketMessageHandler(this);
         saveAndRestoreService.setConnectCallback(this::handleWebSocketConnected);
         saveAndRestoreService.setDisconnectCallback(this::handleWebSocketDisconnected);
-        saveAndRestoreService.connectWebSocket();
-
+        JobManager.schedule("Connect to save&restore WS", monitor -> saveAndRestoreService.connectWebSocket());
     }
 
     /**
