@@ -62,6 +62,7 @@ public class PVA_Preferences
                                 "epics_pva_addr_list",
                                 "epics_pva_auto_addr_list",
                                 "epics_pva_name_servers",
+                                "epics_pva_enable_ipv6",
                                 "epics_pva_server_port",
                                 "epics_pva_broadcast_port",
                                 "epics_pva_conn_tmo",
