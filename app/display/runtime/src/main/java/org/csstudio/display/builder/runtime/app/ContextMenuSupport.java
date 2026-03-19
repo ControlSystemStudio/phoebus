@@ -243,7 +243,9 @@ class ContextMenuSupport {
 
         items.add(new SeparatorMenuItem());
 
-        items.add(new DisplayToolbarAction(instance));
+        // Do not add the show/hide toolbar context menu item in a standalone window
+        if (!instance.getDockItem().getDockPane().isStandAloneWindow())
+            items.add(new DisplayToolbarAction(instance));
 
         // If the editor is available, add "Open in Editor"
         final AppResourceDescriptor editor = ApplicationService.findApplication("display_editor");
