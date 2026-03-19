@@ -60,6 +60,18 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
     /** Show on right side? */
     private volatile boolean is_right = false;
 
+    /** When {@code true}, rotated tick labels always use the 'up' direction
+     *  (bottom-to-top) regardless of {@link #is_right}.  This keeps the text
+     *  orientation of a right-side scale identical to a left-side scale.
+     */
+    private boolean force_text_up = false;
+
+    /** When {@code true}, tick labels are drawn perpendicular to the axis (readable
+     *  across the axis). When {@code false} (RTPlot default), they are rotated parallel
+     *  to the axis.
+     */
+    private boolean perpendicular_tick_labels = false;
+
     /** Traces on this axis.
      *
      *  <p>{@link CopyOnWriteArrayList} adds thread safety.
@@ -140,6 +152,15 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         requestRefresh();
     }
 
+    /** Force rotated tick labels to always read bottom-to-top ('up'),
+     *  matching the orientation of a left-side axis.
+     *  @param force {@code true} to override the default text direction
+     */
+    public void setForceTextUp(final boolean force)
+    {
+        force_text_up = force;
+    }
+
     /** Add trace to axis
      *  @param trace {@link Trace}
      *  @throws IllegalArgumentException if trace already on axis
@@ -199,13 +220,28 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
 
         gc.setFont(scale_font);
         metrics = gc.getFontMetrics();
-        final int scale_size = metrics.getHeight();
+        final int scale_size;
+        if (perpendicular_tick_labels)
+        {
+            // Horizontal labels: axis width must accommodate the widest label string.
+            int max_w = metrics.getHeight(); // minimum width = one font-height
+            for (final MajorTick<?> tick : ticks.getMajorTicks())
+            {
+                final String lbl = tick.getLabel();
+                if (!lbl.isEmpty())
+                    max_w = Math.max(max_w, metrics.stringWidth(lbl));
+            }
+            scale_size = max_w;
+        }
+        else
+            scale_size = metrics.getHeight();
 
         // Width of labels, width of (rotated) axis text, tick markers.
         return lines * x_sep + scale_size + TICK_LENGTH;
     }
 
-    private int computeLabelLayout(Graphics2D gc){
+    private int computeLabelLayout(final Graphics2D gc)
+    {
 
         FontMetrics metrics = gc.getFontMetrics();
         final int x_sep = metrics.getHeight();
@@ -269,6 +305,29 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
     }
 
     /** {@inheritDoc} */
+    /** Set a user-specified format for all major tick labels on this axis.
+     *  @param fmt Format to apply, or {@code null} to restore automatic formatting.
+     */
+    public void setLabelFormat(final java.text.NumberFormat fmt)
+    {
+        if (ticks instanceof LinearTicks)
+            ((LinearTicks) ticks).setLabelFormat(fmt);
+        requestLayout();
+    }
+
+    /** Configure whether tick labels are drawn as horizontal (readable) text.
+     *  @param horizontal {@code true} → left-to-right text; {@code false} → rotated 90°.
+     */
+    public void setPerpendicularTickLabels(final boolean perpendicular)
+    {
+        if (perpendicular_tick_labels == perpendicular)
+            return;
+        perpendicular_tick_labels = perpendicular;
+        if (ticks instanceof LinearTicks)
+            ((LinearTicks) ticks).setPerpendicularTickLabels(perpendicular);
+        requestLayout();
+    }
+
     @Override
     public int[] getPixelGaps(final Graphics2D gc)
     {
@@ -282,7 +341,13 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         if (major_ticks.isEmpty())
             return super.getPixelGaps(gc);
 
-        // Measure first and last tick
+        if (perpendicular_tick_labels)
+        {
+            // Horizontal labels: top/bottom gap = half a line height
+            final int half = metrics.getHeight() / 2;
+            return new int[] { half, half };
+        }
+        // Vertical (rotated) labels: gap = half the string width
         final int low = metrics.stringWidth(major_ticks.get(0).getLabel());
         final int high = metrics.stringWidth(major_ticks.get(major_ticks.size()-1).getLabel());
 
@@ -323,17 +388,24 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         gc.drawLine(line_x, region.y, line_x, region.y + region.height-1);
         computeTicks(gc);
 
-        // Major tick marks
-        Rectangle avoid = null;
-        for (MajorTick<Double> tick : ticks.getMajorTicks())
+        final List<MajorTick<Double>> majorTicks = ticks.getMajorTicks();
+        // Skip the visibility pass when LogTicks already thinned the labeled set:
+        // a second greedy pass would destroy the intentional symmetric spacing.
+        final boolean skipVisibility = (ticks instanceof LogTicks) && ((LogTicks) ticks).isThinned();
+        final boolean[] showLabel = skipVisibility
+                ? allLabeled(majorTicks)
+                : computeTickLabelVisibility(majorTicks, gc.getFontMetrics());
+
+        // Major tick marks and labels
+        for (int mi = 0; mi < majorTicks.size(); mi++)
         {
+            final MajorTick<Double> tick = majorTicks.get(mi);
             final int y = getScreenCoord(tick.getValue());
             gc.setStroke(TICK_STROKE);
             gc.drawLine(line_x, y, tick_x, y);
 
-            // Grid line
             if (show_grid)
-            {   // Dashed line
+            {   // Dashed grid line
                 gc.setColor(grid_color);
                 gc.setStroke(new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 1, new float[] { 5 }, 0));
                 gc.drawLine(plot_bounds.x, y, plot_bounds.x + plot_bounds.width-1, y);
@@ -341,16 +413,17 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
             }
             gc.setStroke(old_width);
 
-            // Tick Label
-            avoid = drawTickLabel(gc, y, tick.getLabel(), false, avoid);
+            if (showLabel[mi])
+                drawTickLabel(gc, y, tick.getLabel(), false);
         }
 
         // Minor tick marks
-        for (MinorTick<Double> tick : ticks.getMinorTicks())
-        {
-            final int y = getScreenCoord(tick.getValue());
-            gc.drawLine(minor_x, y, line_x, y);
-        }
+        if (isShowMinorTicks())
+            for (MinorTick<Double> tick : ticks.getMinorTicks())
+            {
+                final int y = getScreenCoord(tick.getValue());
+                gc.drawLine(minor_x, y, line_x, y);
+            }
 
         gc.setColor(old_fg);
         gc.setBackground(old_bg);
@@ -374,54 +447,158 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         {   // Draw labels at pre-computed locations
             if (i > 0)
                 GraphicsUtils.drawVerticalText(gc, label_x.get(i-1), label_y.get(i-1) - label_y_separation,
-                        label_provider.getSeparator(), !is_right);
+                        label_provider.getSeparator(), force_text_up || !is_right);
             gc.setColor(GraphicsUtils.convert(label_provider.getColor()));
             GraphicsUtils.drawVerticalText(gc,
-                    label_x.get(i), label_y.get(i), label_provider.getLabel(), !is_right);
+                    label_x.get(i), label_y.get(i), label_provider.getLabel(), force_text_up || !is_right);
             gc.setColor(old_fg);
             ++i;
         }
     }
 
-    /** @param gc
-     *  @param screen_y Screen location of label along the axis
-     *  @param mark Label text
-     *  @param floating Add 'floating' box?
-     *  @param avoid Outline of previous label to avoid
-     *  @return Outline of this label or the last one if skipping this label
+    /** Return a mask where every tick that has a non-empty label is {@code true}.
+     *
+     *  <p>Used when {@link LogTicks#isThinned()} is {@code true} — the
+     *  labeled subset was already chosen by {@link LogTicks#thinDecades} so a
+     *  second culling pass must not run.
      */
-    private Rectangle drawTickLabel(final Graphics2D gc, final int screen_y, final String mark, final boolean floating, final Rectangle avoid)
+    private static boolean[] allLabeled(final List<MajorTick<Double>> majorTicks)
+    {
+        final boolean[] show = new boolean[majorTicks.size()];
+        for (int i = 0; i < show.length; i++)
+            show[i] = !majorTicks.get(i).getLabel().isEmpty();
+        return show;
+    }
+
+    /** Pre-compute which major tick labels should be painted.
+     *
+     *  <p>Two-pass algorithm: the first and last labeled ticks are always shown.
+     *  An intermediate tick is shown only when there is enough pixel gap to
+     *  both the previously shown tick <em>and</em> the final tick, preventing
+     *  crowding without the erratic endpoint disappearance that a purely
+     *  forward-scanning overlap check can produce.
+     *
+     *  <p>Gap is measured in font-height units so it matches how a human
+     *  perceives the spacing of 90°-rotated label text.
+     *
+     *  @param majorTicks Ordered list of major ticks
+     *  @param sm         Font metrics for the current scale font
+     *  @return Boolean mask (same length as {@code majorTicks});
+     *          {@code true} means the label should be painted
+     */
+    private boolean[] computeTickLabelVisibility(
+            final List<MajorTick<Double>> majorTicks, final FontMetrics sm)
+    {
+        final int n = majorTicks.size();
+        final boolean[] show = new boolean[n];
+
+        // Locate first and last ticks that carry a non-empty label
+        int firstIdx = -1, lastIdx = -1;
+        for (int i = 0; i < n; i++)
+            if (!majorTicks.get(i).getLabel().isEmpty())
+            {
+                if (firstIdx < 0) firstIdx = i;
+                lastIdx = i;
+            }
+        if (firstIdx < 0)
+            return show;  // nothing to show
+
+        show[firstIdx] = true;
+        if (lastIdx > firstIdx)
+            show[lastIdx] = true;
+
+        // One font-height of breathing room prevents labels from running together
+        // (e.g. "1E11E4").  For rotated labels the physical extent along the axis
+        // equals stringWidth; for horizontal labels it equals getHeight().
+        final int charGap    = sm.getHeight();
+        final int lastExtent = perpendicular_tick_labels
+                ? sm.getHeight()
+                : sm.stringWidth(majorTicks.get(lastIdx).getLabel());
+        final int yLast      = getScreenCoord(majorTicks.get(lastIdx).getValue());
+        int prevIdx = firstIdx;
+        int yPrev   = getScreenCoord(majorTicks.get(firstIdx).getValue());
+
+        for (int i = firstIdx + 1; i < lastIdx; i++)
+        {
+            final String lbl = majorTicks.get(i).getLabel();
+            if (lbl.isEmpty())
+                continue;
+            final int y           = getScreenCoord(majorTicks.get(i).getValue());
+            final int extent      = perpendicular_tick_labels ? sm.getHeight() : sm.stringWidth(lbl);
+            final int prevExtent  = perpendicular_tick_labels ? sm.getHeight() : sm.stringWidth(majorTicks.get(prevIdx).getLabel());
+            final int minFromPrev = extent / 2 + prevExtent / 2 + charGap;
+            final int minFromLast = extent / 2 + lastExtent  / 2 + charGap;
+            if (Math.abs(y - yPrev) >= minFromPrev  &&  Math.abs(yLast - y) >= minFromLast)
+            {
+                show[i] = true;
+                yPrev   = y;
+                prevIdx = i;
+            }
+        }
+        return show;
+    }
+
+    /** Draw a single tick label at the given screen position.
+     *
+     *  @param gc       Graphics context
+     *  @param screen_y Pixel position along the axis
+     *  @param mark     Label text to draw
+     *  @param floating When {@code true}, surround the label with a floating box
+     */
+    private void drawTickLabel(final Graphics2D gc, final int screen_y, final String mark, final boolean floating)
     {
         final Rectangle region = getBounds();
         gc.setFont(scale_font);
         final FontMetrics metrics = gc.getFontMetrics();
+
+        if (perpendicular_tick_labels)
+        {
+            final int mark_width  = metrics.stringWidth(mark);
+            final int mark_height = metrics.getHeight();
+            final int x = is_right ? region.x + TICK_LENGTH
+                                   : region.x + region.width - TICK_LENGTH - mark_width;
+            // Vertically centre the baseline on screen_y
+            final int y_baseline = screen_y + metrics.getAscent() - mark_height / 2;
+
+            if (floating)
+            {
+                final Rectangle outline = new Rectangle(x - BORDER, screen_y - mark_height/2 - BORDER,
+                        mark_width + 2*BORDER, mark_height + 2*BORDER);
+                if (is_right)
+                    gc.drawLine(x - TICK_LENGTH, screen_y, x, screen_y);
+                else
+                    gc.drawLine(x + mark_width, screen_y, x + mark_width + TICK_LENGTH, screen_y);
+                gc.clearRect(outline.x, outline.y, outline.width, outline.height);
+                gc.drawRect(outline.x, outline.y, outline.width, outline.height);
+            }
+            gc.drawString(mark, x, y_baseline);
+            return;
+        }
+
+        // Rotated (default) path
         final int mark_height = metrics.stringWidth(mark);
         final int mark_width = metrics.getHeight();
         final int x = is_right ? region.x + TICK_LENGTH : region.x + region.width - TICK_LENGTH - mark_width;
-        int y = screen_y  - mark_height/2;
-        // Correct location of top label to remain within region
+        int y = screen_y - mark_height / 2;
+        // Clamp only to keep label from going above the top of the image.
+        // Do NOT clamp to region boundaries — that would push endpoint labels
+        // inward, making them physically closer to neighbours than the
+        // visibility pre-check expected, causing visual overlap.
         if (y < 0)
             y = 0;
 
-        final Rectangle outline = new Rectangle(x-BORDER,  y-BORDER, mark_width+2*BORDER, mark_height+2*BORDER);
         if (floating)
         {
+            final Rectangle outline = new Rectangle(x - BORDER, y - BORDER, mark_width + 2*BORDER, mark_height + 2*BORDER);
             if (is_right)
                 gc.drawLine(x - TICK_LENGTH, screen_y, x, screen_y);
             else
                 gc.drawLine(x + mark_width, screen_y, x + mark_width + TICK_LENGTH, screen_y);
-
-            // Box around label
             gc.clearRect(outline.x, outline.y, outline.width, outline.height);
             gc.drawRect(outline.x, outline.y, outline.width, outline.height);
         }
 
-        if (avoid != null  &&  outline.intersects(avoid))
-            return avoid;
-        // Debug: Outline of text
-        // gc.drawRect(x,  y, mark_width, mark_height); // Debug outline of tick label
-        GraphicsUtils.drawVerticalText(gc, x, y, mark, !is_right);
-        return outline;
+        GraphicsUtils.drawVerticalText(gc, x, y, mark, force_text_up || !is_right);
     }
 
     /** {@inheritDoc} */
@@ -434,6 +611,6 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         final int y0 = getScreenCoord(tick);
         final String mark = ticks.formatDetailed(tick);
 
-        drawTickLabel(gc, y0, mark, true, null);
+        drawTickLabel(gc, y0, mark, true);
     }
 }

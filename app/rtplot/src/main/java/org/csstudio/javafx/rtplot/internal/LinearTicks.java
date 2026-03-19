@@ -53,6 +53,61 @@ public class LinearTicks extends Ticks<Double>
     /** Threshold for order-of-magnitude to use exponential notation */
     private long exponential_threshold = 4;
 
+    /** User-specified override format, or {@code null} for automatic selection.
+     *  When set, it is applied to all non-empty major tick labels after
+     *  {@code compute()} finishes its internal layout.
+     */
+    private volatile NumberFormat label_fmt_override = null;
+
+    /** When {@code true}, the axis draws tick labels perpendicular to the axis direction.
+     *  When {@code false} (default for RTPlot charts), they are rotated parallel to the axis.
+     */
+    private volatile boolean perpendicular_tick_labels = false;
+
+    /** Set a user-specified format for all major tick labels.
+     *  @param fmt Format to apply, or {@code null} to restore automatic formatting.
+     */
+    public void setLabelFormat(final NumberFormat fmt)
+    {
+        label_fmt_override = fmt;
+    }
+
+    /** @return The current label format override, or {@code null} if automatic. */
+    public NumberFormat getLabelFormatOverride()
+    {
+        return label_fmt_override;
+    }
+
+    /** Configure whether tick labels are drawn as horizontal (readable) text.
+     *  @param horizontal {@code true} to draw labels horizontally (left-to-right);
+     *                    {@code false} to draw them rotated 90° (RTPlot default).
+     */
+    public void setPerpendicularTickLabels(final boolean perpendicular)
+    {
+        perpendicular_tick_labels = perpendicular;
+    }
+
+    /** @return {@code true} if tick labels are drawn perpendicular to the axis. */
+    public boolean isPerpendicularTickLabels()
+    {
+        return perpendicular_tick_labels;
+    }
+
+    /** Re-apply {@code fmt} to every non-empty major tick label in {@code ticks}.
+     *  @param ticks List to mutate in-place
+     *  @param fmt   Format to use
+     */
+    protected static void relabelTicks(final List<MajorTick<Double>> ticks,
+                                       final NumberFormat fmt)
+    {
+        for (int i = 0; i < ticks.size(); i++)
+        {
+            final MajorTick<Double> t = ticks.get(i);
+            if (!t.getLabel().isEmpty())
+                ticks.set(i, new MajorTick<>(t.getValue(), fmt.format(t.getValue())));
+        }
+    }
+
     /** @param order_of_magnitude determines when to use exponential notation */
     public void setExponentialThreshold(long order_of_magnitude)
     {
@@ -289,7 +344,7 @@ public class LinearTicks extends Ticks<Double>
      *  @param precision
      *  @return NumberFormat
      */
-    protected static NumberFormat createDecimalFormat(final int precision)
+    public static NumberFormat createDecimalFormat(final int precision)
     {
         final NumberFormat fmt = NumberFormat.getNumberInstance(LOCALE);
         fmt.setGroupingUsed(false);
@@ -304,7 +359,7 @@ public class LinearTicks extends Ticks<Double>
      *  @param mantissa_precision
      *  @return NumberFormat
      */
-    protected static NumberFormat createExponentialFormat(final Integer mantissa_precision)
+    public static NumberFormat createExponentialFormat(final Integer mantissa_precision)
     {
         return exponential_formats.computeIfAbsent(mantissa_precision, prec ->
         {
