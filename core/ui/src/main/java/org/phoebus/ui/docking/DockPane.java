@@ -33,6 +33,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -45,6 +46,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
@@ -543,9 +545,11 @@ public class DockPane extends TabPane
     /** Accept dock items */
     private void handleDragOver(final DragEvent event)
     {
-        if (!isFixed()  &&
-            DockItem.dragged_item.get() != null)
+        // For files or for tabs:
+        if (event.getDragboard().hasFiles() ||
+                        !isFixed() && DockItem.dragged_item.get() != null)
             event.acceptTransferModes(TransferMode.MOVE);
+
         event.consume();
     }
 
@@ -568,51 +572,56 @@ public class DockPane extends TabPane
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
-        if (!event.getDragboard().hasContent(DockItem.DOCK_ITEM)){
-            return;
+        final Dragboard db = event.getDragboard();
+        if (db.hasFiles()) {
+            PhoebusApplication.INSTANCE.openDroppedResources(db);
+
+        } else if (db.hasContent(DockItem.DOCK_ITEM)) {
+            final DockItem item = DockItem.dragged_item.getAndSet(null);
+            if (item == null)
+                logger.log(Level.SEVERE, "Empty drop, " + event);
+            else {
+                logger.log(Level.INFO, "Somebody dropped " + item + " into " + this);
+                final TabPane old_parent = item.getTabPane();
+
+                // Unexpected, but would still "work" at this time
+                if (!(old_parent instanceof DockPane))
+                    logger.log(Level.SEVERE, "DockItem is not in DockPane but " + old_parent);
+
+                // When moving to a new scene,
+                // assert that styles used in old scene are still available
+                final Scene old_scene = old_parent.getScene();
+                final Scene scene = getScene();
+                if (scene != old_scene)
+                    for (String css : old_scene.getStylesheets())
+                        Styles.set(scene, css);
+
+                // Move tab. In principle,
+                // (1) first remove from old parent,
+                // (2) then add to new parent.
+                // But modifying tabs triggers tab listener, which registers SplitPane.merge()
+                // in Platform.runLater(). The merge could re-arrange tab panes,
+                // we when we later want to add the tab, we'll face a different scene graph.
+                // Issue the tab addition (2) with runlater right now so it'll happen before any
+                // split pane cleanup.
+                Platform.runLater(() ->
+                {
+                    // When adding the tab to its new parent (this dock) right away,
+                    // the tab would sometimes not properly render until the pane is resized.
+                    // Moving to the next UI tick helps
+                    logger.log(Level.INFO, "Adding " + item + " to " + this);
+                    addTab(item);
+                    Platform.runLater(this::autoHideTabs);
+                });
+
+                // With tab addition already in the UI thread queue, remove item from old tab
+                logger.log(Level.INFO, "Removing " + item + " from " + old_parent);
+                old_parent.getTabs().remove(item);
+            }
+        } else {
+            return; // No idea how to handle this dragged item
         }
-        final DockItem item = DockItem.dragged_item.getAndSet(null);
-        if (item == null)
-            logger.log(Level.SEVERE, "Empty drop, " + event);
-        else
-        {
-            logger.log(Level.INFO, "Somebody dropped " + item + " into " + this);
-            final TabPane old_parent = item.getTabPane();
 
-            // Unexpected, but would still "work" at this time
-            if (! (old_parent instanceof DockPane))
-                logger.log(Level.SEVERE, "DockItem is not in DockPane but " + old_parent);
-
-            // When moving to a new scene,
-            // assert that styles used in old scene are still available
-            final Scene old_scene = old_parent.getScene();
-            final Scene scene = getScene();
-            if (scene != old_scene)
-                for (String css : old_scene.getStylesheets())
-                    Styles.set(scene, css);
-
-            // Move tab. In principle,
-            // (1) first remove from old parent,
-            // (2) then add to new parent.
-            // But modifying tabs triggers tab listener, which registers SplitPane.merge()
-            // in Platform.runLater(). The merge could re-arrange tab panes,
-            // we when we later want to add the tab, we'll face a different scene graph.
-            // Issue the tab addition (2) with runlater right now so it'll happen before any
-            // split pane cleanup.
-            Platform.runLater(() ->
-            {
-                // When adding the tab to its new parent (this dock) right away,
-                // the tab would sometimes not properly render until the pane is resized.
-                // Moving to the next UI tick helps
-                logger.log(Level.INFO, "Adding " + item + " to " + this);
-                addTab(item);
-                Platform.runLater(this::autoHideTabs);
-            });
-
-            // With tab addition already in the UI thread queue, remove item from old tab
-            logger.log(Level.INFO, "Removing " + item + " from " + old_parent);
-            old_parent.getTabs().remove(item);
-        }
         event.setDropCompleted(true);
         event.consume();
     }
