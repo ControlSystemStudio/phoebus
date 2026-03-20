@@ -1,0 +1,42 @@
+name: Launcher Build
+
+on:
+  push:
+    paths:
+      - "launcher/**"
+      - ".github/workflows/launcher-build.yml"
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build-rust:
+    name: Build Rust Launcher for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: phoebus-launcher.exe
+            target_path: target/release/launcher.exe
+          - os: ubuntu-latest
+            artifact_name: phoebus-launcher-linux
+            target_path: target/release/launcher
+          - os: macos-latest
+            artifact_name: phoebus-launcher-mac
+            target_path: target/release/launcher
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Release
+        run: |
+          cd launcher
+          cargo build --release
+
+      - name: Upload Launcher Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: launcher-${{ matrix.os }}
+          path: launcher/${{ matrix.target_path }}

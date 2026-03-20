@@ -1,0 +1,9 @@
+[package]
+name = "launcher"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.56"
