@@ -88,7 +88,7 @@ public class OpenDisplayActionHandler implements ActionHandler {
             }
             else if (openDisplayActionInfo.getTarget().equals(OpenDisplayAction.Target.STANDALONE))
             {
-                new_model.setStandAlone(true);
+                new_model.setStandalone(true);
                 toolkit.submit(() ->
                 {
                     final ToolkitRepresentation<Object, Object> new_toolkit =

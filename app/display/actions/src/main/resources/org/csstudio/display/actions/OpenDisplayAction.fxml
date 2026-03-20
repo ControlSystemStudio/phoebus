@@ -42,7 +42,7 @@
           <HBox.margin>
                 <Insets right="10.0" />
           </HBox.margin></RadioButton>
-      <RadioButton fx:id="newStandaloneRadioButton" text="New StandAlone Window" />
+      <RadioButton fx:id="newStandaloneRadioButton" text="New Standalone Window" />
       <GridPane.margin>
          <Insets bottom="5.0" top="5.0" />
       </GridPane.margin>

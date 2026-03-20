@@ -154,7 +154,7 @@ public class DisplayRuntimeInstance implements AppInstance
 
         new ContextMenuSupport(this);
 
-        if (last_toolbar_visible && !dock_pane.isStandAloneWindow())
+        if (last_toolbar_visible && !dock_pane.isStandaloneWindow())
             layout.setTop(toolbar);
 
         layout.setCenter(representation.createModelRoot());
@@ -270,7 +270,7 @@ public class DisplayRuntimeInstance implements AppInstance
         memento.getBoolean(TAG_TOOLBAR).ifPresent(this::showToolbar);
         memento.getBoolean(TAG_STANDALONE).ifPresent(standalone ->
         {
-            dock_item.getDockPane().setAsStandAloneWindow(standalone);
+            dock_item.getDockPane().setAsStandaloneWindow(standalone);
         });
     }
 
@@ -281,8 +281,8 @@ public class DisplayRuntimeInstance implements AppInstance
         if (! JFXRepresentation.DEFAULT_ZOOM_LEVEL.equals(zoom))
             memento.setString(TAG_ZOOM, zoom);
         memento.setBoolean(TAG_TOOLBAR, isToolbarVisible());
-        if (dock_item.getDockPane().isStandAloneWindow())
-            memento.setBoolean(TAG_STANDALONE, dock_item.getDockPane().isStandAloneWindow());
+        if (dock_item.getDockPane().isStandaloneWindow())
+            memento.setBoolean(TAG_STANDALONE, dock_item.getDockPane().isStandaloneWindow());
     }
 
     /** Handle Alt-left & right as navigation keys */

@@ -239,7 +239,7 @@ public class DockStage
         });
 
         if (standalone)
-            pane.setAsStandAloneWindow(true);
+            pane.setAsStandaloneWindow(true);
 
         return pane;
     }

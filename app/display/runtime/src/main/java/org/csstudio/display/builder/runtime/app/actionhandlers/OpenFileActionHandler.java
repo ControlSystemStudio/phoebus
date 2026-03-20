@@ -39,10 +39,10 @@ public class OpenFileActionHandler implements ActionHandler {
             toolkit.execute(() ->
             {
                 DockPane dockPane = DisplayRuntimeInstance.ofDisplayModel(top_model).getDockItem().getDockPane();
-                if (dockPane.isStandAloneWindow()) {
+                if (dockPane.isStandaloneWindow()) {
                     // Open the file in the main Phoebus window if launched from
                     // a standalone screen.
-                    DockPane.setActiveDockPane(DockPane.getMainDockPain());
+                    DockPane.setActiveDockPane(DockPane.getMainDockPane());
                 }
                 try
                 {

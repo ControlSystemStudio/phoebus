@@ -93,11 +93,11 @@ class ContextMenuSupport {
                     DisplayRuntimeInstance displayRuntimeInstance = DisplayRuntimeInstance.ofDisplayModel(displayModel);
                     DockItem dockItem = displayRuntimeInstance.getDockItem();
                     DockPane dockPane = dockItem.getDockPane();
-                    if (dockPane.isStandAloneWindow()) {
-                        // If in a standalone window or defined in the preference, set the active dock pane
+                    if (dockPane.isStandaloneWindow()) {
+                        // If in a standalone window, set the active dock pane
                         // to be the 'main' Phoebus pain instead of the current dock pane
                         setFocus = () -> {
-                            DockPane.setActiveDockPane(DockPane.getMainDockPain());
+                            DockPane.setActiveDockPane(DockPane.getMainDockPane());
                             Stage stage = DockPane.getActiveStage();
                             if (stage != null) {
                                 stage.requestFocus();
@@ -264,7 +264,7 @@ class ContextMenuSupport {
         items.add(new SeparatorMenuItem());
 
         // Do not add the show/hide toolbar context menu item in a standalone window
-        if (!instance.getDockItem().getDockPane().isStandAloneWindow())
+        if (!instance.getDockItem().getDockPane().isStandaloneWindow())
             items.add(new DisplayToolbarAction(instance));
 
         // If the editor is available, add "Open in Editor"

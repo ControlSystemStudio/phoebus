@@ -60,7 +60,7 @@ public class DockItemRepresentation extends JFXRepresentation
         final Stage new_stage = new Stage();
 
         // Configure for docking, i.e. with DockPane
-        DockStage.configureStage(new_stage, new Geometry(null), model.isStandAlone());
+        DockStage.configureStage(new_stage, new Geometry(null), model.isStandalone());
 
         // Use location and size from model for the window
         double x = model.propX().getValue();

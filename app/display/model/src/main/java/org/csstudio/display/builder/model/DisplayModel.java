@@ -158,12 +158,12 @@ public class DisplayModel extends Widget
         return VERSION;
     }
     
-    public boolean isStandAlone()
+    public boolean isStandalone()
     {
         return standalone;
     }
     
-    public void setStandAlone(boolean standalone)
+    public void setStandalone(boolean standalone)
     {
         this.standalone = standalone;
     }

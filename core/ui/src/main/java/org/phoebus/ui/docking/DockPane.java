@@ -159,7 +159,7 @@ public class DockPane extends TabPane
     /**
      * @return The 'main' Phoebus dock pane
      */
-    public static DockPane getMainDockPain() {
+    public static DockPane getMainDockPane() {
         for (Stage stage : DockStage.getDockStages()) 
         {
             if (stage.getProperties().get(DockStage.KEY_ID).equals(DockStage.ID_MAIN)) {
@@ -304,12 +304,12 @@ public class DockPane extends TabPane
 
     protected LinkedList<DockItem> tabsInOrderOfFocus = new LinkedList<>();
 
-    public void setAsStandAloneWindow(boolean standalone)
+    public void setAsStandaloneWindow(boolean standalone)
     {
         this.standalone = standalone;
     }
     
-    public boolean isStandAloneWindow()
+    public boolean isStandaloneWindow()
     {
         return standalone;
     }
@@ -575,7 +575,7 @@ public class DockPane extends TabPane
 
     private void doAutoHideTabs(final Scene scene)
     {
-    	final boolean do_hide = (getTabs().size() == 1  &&  !always_show_tabs) || isStandAloneWindow();
+    	final boolean do_hide = (getTabs().size() == 1  &&  !always_show_tabs) || isStandaloneWindow();
 
         // Hack from https://www.snip2code.com/Snippet/300911/A-trick-to-hide-the-tab-area-in-a-JavaFX :
         // Locate the header's pane and set height to zero
