@@ -90,6 +90,9 @@ public class RTTank extends Canvas
     /** Is the right-side scale displayed? */
     private volatile boolean right_scale_visible = false;
 
+    /** Border width in pixels around the tank body; 0 = no border (default) */
+    private volatile int border_width = 0;
+
     /** Current value, i.e. fill level */
     private volatile double value = 5.0;
 
@@ -204,6 +207,13 @@ public class RTTank extends Canvas
         right_scale.setScaleFont(font);
     }
 
+    /** @param width Border width in pixels around the tank body (0 = no border) */
+    public void setBorderWidth(final int width)
+    {
+        border_width = Math.max(0, width);
+        requestUpdate();
+    }
+
     /** @param color Background color */
     public void setBackground(final javafx.scene.paint.Color color)
     {
@@ -284,10 +294,28 @@ public class RTTank extends Canvas
         case DECIMAL:
             fmt = LinearTicks.createDecimalFormat(prec);
             break;
-        case ENGINEERING:
         case EXPONENTIAL:
-        default:
             fmt = LinearTicks.createExponentialFormat(prec);
+            break;
+        case ENGINEERING:
+            // Engineering format constrains the exponent to multiples of 3.
+            // RTTank places ticks via the axis algorithm which does not guarantee
+            // that constraint, so this is a best-effort approximation using
+            // exponential notation with the requested precision.
+            fmt = LinearTicks.createExponentialFormat(prec);
+            break;
+        case COMPACT:
+            // COMPACT picks decimal or exponential per value depending on magnitude.
+            // A scale axis applies one NumberFormat to all tick labels, so per-value
+            // switching cannot be expressed as a single static format.
+            // Fall back to automatic formatting, which already chooses a compact
+            // representation based on the axis range.
+            fmt = null;
+            break;
+        default:
+            // HEX, STRING, BINARY, SEXAGESIMAL, etc. are not meaningful for a
+            // numeric scale axis.  Fall back to automatic formatting.
+            fmt = null;
             break;
         }
         scale.setLabelFormat(fmt);
@@ -522,9 +550,14 @@ public class RTTank extends Canvas
         else
             gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, level, arc, arc);
 
-        // Dark outline around the tank body
-        gc.setColor(foreground);
-        gc.drawRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height, arc, arc);
+        // Optional border around the tank body
+        if (border_width > 0)
+        {
+            gc.setColor(foreground);
+            gc.setStroke(new BasicStroke(border_width));
+            gc.drawRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height, arc, arc);
+            gc.setStroke(new BasicStroke(1f));
+        }
 
         // Draw alarm / warning limit lines over the tank body
         final double lim_lolo = limit_lolo;

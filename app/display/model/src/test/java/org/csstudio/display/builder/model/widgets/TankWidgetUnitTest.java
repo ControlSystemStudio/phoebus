@@ -82,6 +82,7 @@ public class TankWidgetUnitTest
         assertThat(tank.propPrecision().getValue(), equalTo(2));
         assertThat(tank.propLogScale().getValue(), equalTo(false));
         assertThat(tank.propHorizontal().getValue(), equalTo(false));
+        assertThat(tank.propBorderWidth().getValue(), equalTo(0));
     }
 
     /** Verify that alarm properties appear together and in the expected
@@ -135,6 +136,7 @@ public class TankWidgetUnitTest
         original.propLevelHigh().setValue(170.0);
         original.propLevelHiHi().setValue(190.0);
         original.propOppositeScaleVisible().setValue(true);
+        original.propBorderWidth().setValue(3);
         original.propPerpendicularTickLabels().setValue(true);
         original.propFormat().setValue(FormatOption.DECIMAL);
         original.propPrecision().setValue(3);
@@ -161,6 +163,7 @@ public class TankWidgetUnitTest
         assertThat(xml, containsString("<alarm_limits_from_pv>"));
         assertThat(xml, containsString("<show_alarm_limits>"));
         assertThat(xml, containsString("<opposite_scale_visible>"));
+        assertThat(xml, containsString("<tank_border_width>"));
         assertThat(xml, containsString("<level_lolo>"));
 
         // Deserialize
@@ -179,6 +182,7 @@ public class TankWidgetUnitTest
         assertThat(tank.propLevelHigh().getValue(), equalTo(170.0));
         assertThat(tank.propLevelHiHi().getValue(), equalTo(190.0));
         assertThat(tank.propOppositeScaleVisible().getValue(), equalTo(true));
+        assertThat(tank.propBorderWidth().getValue(), equalTo(3));
         assertThat(tank.propPerpendicularTickLabels().getValue(), equalTo(true));
         assertThat(tank.propFormat().getValue(), equalTo(FormatOption.DECIMAL));
         assertThat(tank.propPrecision().getValue(), equalTo(3));
@@ -208,5 +212,6 @@ public class TankWidgetUnitTest
         assertThat(xml, not(containsString("<show_alarm_limits>")));
         assertThat(xml, not(containsString("<level_lolo>")));
         assertThat(xml, not(containsString("<opposite_scale_visible>")));
+        assertThat(xml, not(containsString("<tank_border_width>")));
     }
 }

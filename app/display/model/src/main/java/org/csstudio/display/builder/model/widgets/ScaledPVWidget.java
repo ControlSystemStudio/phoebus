@@ -78,14 +78,14 @@ public abstract class ScaledPVWidget extends PVWidget
         newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "level_lolo",
                                     Messages.WidgetProperties_LevelLoLo);
 
-    /** 'level_lo' — LO (minor warning) lower threshold; {@code NaN} = inactive */
+    /** 'level_low' — LO (minor warning) lower threshold; {@code NaN} = inactive */
     public static final WidgetPropertyDescriptor<Double> propLevelLow =
-        newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "level_lo",
+        newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "level_low",
                                     Messages.WidgetProperties_LevelLow);
 
-    /** 'level_hi' — HI (minor warning) upper threshold; {@code NaN} = inactive */
+    /** 'level_high' — HI (minor warning) upper threshold; {@code NaN} = inactive */
     public static final WidgetPropertyDescriptor<Double> propLevelHigh =
-        newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "level_hi",
+        newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "level_high",
                                     Messages.WidgetProperties_LevelHigh);
 
     /** 'level_hihi' — HIHI (major alarm) upper threshold; {@code NaN} = inactive */

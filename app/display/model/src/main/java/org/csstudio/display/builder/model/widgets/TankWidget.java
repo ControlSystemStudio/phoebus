@@ -77,6 +77,13 @@ public class TankWidget extends ScaledPVWidget
         }
     };
 
+    /** 'tank_border_width' — width in pixels of the border drawn around the
+     *  tank body; 0 (default) means no border, preserving the original look.
+     */
+    public static final WidgetPropertyDescriptor<Integer> propTankBorderWidth =
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tank_border_width",
+                                     Messages.WidgetProperties_BorderWidth, 0, 100);
+
     /** 'empty_color' */
     public static final WidgetPropertyDescriptor<WidgetColor> propEmptyColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "empty_color", Messages.WidgetProperties_EmptyColor);
@@ -174,6 +181,7 @@ public class TankWidget extends ScaledPVWidget
     private volatile WidgetProperty<Integer> precision;
     private volatile WidgetProperty<Boolean> log_scale;
     private volatile WidgetProperty<Boolean> horizontal;
+    private volatile WidgetProperty<Integer>  border_width_prop;
 
 
     /** Constructor */
@@ -199,6 +207,7 @@ public class TankWidget extends ScaledPVWidget
         properties.add(precision = propScalePrecision.createProperty(this, 2));
         properties.add(log_scale = propLogscale.createProperty(this, false));
         properties.add(horizontal = propHorizontal.createProperty(this, false));
+        properties.add(border_width_prop = propTankBorderWidth.createProperty(this, 0));
     }
 
     @Override
@@ -286,5 +295,11 @@ public class TankWidget extends ScaledPVWidget
     public WidgetProperty<Boolean> propHorizontal()
     {
         return horizontal;
+    }
+
+    /** @return 'border_width' property (0 = no border) */
+    public WidgetProperty<Integer> propBorderWidth()
+    {
+        return border_width_prop;
     }
 }

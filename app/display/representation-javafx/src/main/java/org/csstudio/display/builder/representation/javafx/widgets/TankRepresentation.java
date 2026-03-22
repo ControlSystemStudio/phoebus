@@ -67,6 +67,8 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propMinorAlarmColor().addUntypedPropertyListener(lookListener);
         model_widget.propMajorAlarmColor().addUntypedPropertyListener(lookListener);
         model_widget.propOppositeScaleVisible().addUntypedPropertyListener(lookListener);
+        model_widget.propBorderWidth().addUntypedPropertyListener(lookListener);
+        model_widget.propLogScale().addUntypedPropertyListener(lookListener);
 
         model_widget.propShowAlarmLimits().addUntypedPropertyListener(valueListener);
         model_widget.propLevelLoLo().addUntypedPropertyListener(valueListener);
@@ -77,7 +79,6 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueListener);
         model_widget.propMinimum().addUntypedPropertyListener(valueListener);
         model_widget.propMaximum().addUntypedPropertyListener(valueListener);
-        model_widget.propLogScale().addUntypedPropertyListener(valueListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
         model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
         valueChanged(null, null, null);
@@ -101,6 +102,8 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propMinorAlarmColor().removePropertyListener(lookListener);
         model_widget.propMajorAlarmColor().removePropertyListener(lookListener);
         model_widget.propOppositeScaleVisible().removePropertyListener(lookListener);
+        model_widget.propBorderWidth().removePropertyListener(lookListener);
+        model_widget.propLogScale().removePropertyListener(lookListener);
 
         model_widget.propShowAlarmLimits().removePropertyListener(valueListener);
         model_widget.propLevelLoLo().removePropertyListener(valueListener);
@@ -111,7 +114,6 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().removePropertyListener(valueListener);
         model_widget.propMinimum().removePropertyListener(valueListener);
         model_widget.propMaximum().removePropertyListener(valueListener);
-        model_widget.propLogScale().removePropertyListener(valueListener);
         model_widget.runtimePropValue().removePropertyListener(valueListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         super.unregisterListeners();
@@ -181,8 +183,6 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         else
             value = VTypeUtil.getValueNumber(vtype).doubleValue();
         tank.setValue(value);
-
-        tank.setLogScale(model_widget.propLogScale().getValue());
     }
 
     private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)
@@ -232,12 +232,14 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
             tank.setScaleVisible(model_widget.propScaleVisible().getValue());
             tank.setShowMinorTicks(model_widget.propShowMinorTicks().getValue());
             tank.setPerpendicularTickLabels(model_widget.propPerpendicularTickLabels().getValue());
+            tank.setLogScale(model_widget.propLogScale().getValue());
             tank.setLabelFormat(model_widget.propFormat().getValue(),
                                 model_widget.propPrecision().getValue());
             tank.setAlarmColors(
                 JFXUtil.convert(model_widget.propMinorAlarmColor().getValue()),
                 JFXUtil.convert(model_widget.propMajorAlarmColor().getValue()));
             tank.setRightScaleVisible(model_widget.propOppositeScaleVisible().getValue());
+            tank.setBorderWidth(model_widget.propBorderWidth().getValue());
         }
     }
 }
