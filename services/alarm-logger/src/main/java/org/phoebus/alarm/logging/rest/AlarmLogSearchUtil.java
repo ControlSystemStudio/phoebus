@@ -77,7 +77,7 @@ public class AlarmLogSearchUtil {
      */
     public static List<AlarmLogMessage> search(ElasticsearchClient client,
                                                Map<String, String> searchParameters) {
-        logger.info("searching for alarm log entires : " +
+        logger.fine("searching for alarm log entires : " +
                 searchParameters.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining()));
 
         Instant fromInstant = Instant.EPOCH;

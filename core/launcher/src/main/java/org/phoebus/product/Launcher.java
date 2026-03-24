@@ -2,6 +2,7 @@ package org.phoebus.product;
 
 import javafx.application.Application;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.framework.preferences.PropertyPreferenceWriter;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -9,10 +10,7 @@ import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.ApplicationServer;
 import org.phoebus.ui.application.PhoebusApplication;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -25,11 +23,14 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
 @SuppressWarnings("nls")
 public class Launcher {
     private static final String LOGGING_OPTION = "-logging";
     private static final String DEFAULT_LOGGING_FILE="/logging.properties";
     private static final String LOGGING_PROP = "java.util.logging.config.file";
+    private static final String SETTINGS_SNAPSHOT = "settings_snapshot";
 
     public static void main(final String[] original_args) throws Exception {
         // First Handle arguments, potentially not even starting the UI
@@ -95,15 +96,11 @@ public class Launcher {
         Locations.initialize();
         // Check for site-specific settings.ini bundled into distribution
         // before potentially adding command-line settings.
-        final File site_settings = new File(Locations.install(), "settings.ini");
-        if (site_settings.canRead())
+        final File siteSettings = new File(Locations.install(), "settings.ini");
+        if (siteSettings.canRead())
         {
-            logger.info("Loading bundled settings from " + site_settings.getAbsolutePath());
-            final FileInputStream fileInputStream = new FileInputStream(site_settings);
-            if (site_settings.getName().endsWith(".xml"))
-                Preferences.importPreferences(fileInputStream);
-            else
-                PropertyPreferenceLoader.load(fileInputStream);
+            logger.info("Loading bundled settings from " + siteSettings.getAbsolutePath());
+            loadSettings(siteSettings.getName());
         }
 
         // Handle arguments, potentially not even starting the UI
@@ -140,11 +137,7 @@ public class Launcher {
                     iter.remove();
 
                     logger.info("Loading settings from " + location);
-                    if (location.endsWith(".xml"))
-                        Preferences.importPreferences(new FileInputStream(location));
-                    else
-                        PropertyPreferenceLoader.load(location);
-
+                    loadSettings(location);
                 } else if (cmd.equals("-export_settings")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -export_settings file name");
@@ -218,6 +211,26 @@ public class Launcher {
 
         // Remaining args passed on
         Application.launch(PhoebusApplication.class, args.toArray(new String[args.size()]));
+    }
+
+    private static void loadSettings(String location) throws Exception {
+        if (location.endsWith(".xml"))
+            Preferences.importPreferences(new FileInputStream(location));
+        else
+            PropertyPreferenceLoader.load(location);
+
+        // Preference settings
+        final ByteArrayOutputStream prefsBuf = new ByteArrayOutputStream();
+        try
+        {
+            PropertyPreferenceWriter.save(prefsBuf);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot list preferences", ex);
+        }
+
+        Preferences.userRoot().put(SETTINGS_SNAPSHOT, prefsBuf.toString());
     }
 
     private static void help() {
