@@ -1189,6 +1189,13 @@ public class PhoebusApplication extends Application {
             }
         }
 
+        // If current active pane is a standalone then switch the
+        // active pane to be the main dock pane so that applications
+        // etc open there and not in place of the standalone
+        if (DockPane.getActiveDockPane().isStandaloneWindow()) {
+            DockPane.setActiveDockPane(DockPane.getMainDockPane());
+        }
+
         logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
         application.create(resource);
     }
