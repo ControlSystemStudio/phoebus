@@ -502,6 +502,25 @@ public class OlogHttpClient implements LogClient {
         }
     }
 
+    @Override
+    public InputStream getAttachment(Long logId, Attachment attachment){
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/attachment/" + attachment.getId()))
+                    .GET()
+                    .build();
+            HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            if (response.statusCode() >= 300) {
+                LOGGER.log(Level.WARNING, "failed to obtain attachment: " + new String(response.body().readAllBytes()));
+                return null;
+            }
+            return response.body();
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "failed to obtain attachment", e);
+            return null;
+        }
+    }
+
     /**
      * @param id Unique log entry id
      * @return A {@link SearchResult} containing a list of {@link LogEntry} objects representing the

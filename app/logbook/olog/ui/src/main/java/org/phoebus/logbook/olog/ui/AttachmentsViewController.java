@@ -47,7 +47,12 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Attachment;
+import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogService;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.LogbookPreferences;
+import org.phoebus.olog.es.api.OlogHttpClient;
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -57,6 +62,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -231,6 +237,12 @@ public class AttachmentsViewController {
         attachments.setAll(Collections.emptyList());
     }
 
+    /**
+     * Sets the list of {@link Attachment}s when UI is created. This list is non-empty for instance if
+     * log entry is created from OPI (in which case the attschment is automatically added to a log entry),
+     * or when editing an existing entry containing attachments.
+     * @param attachmentsList List of {@link Attachment}s
+     */
     public void setAttachments(Collection<Attachment> attachmentsList) {
         Platform.runLater(() -> {
             this.attachments.setAll(attachmentsList);
@@ -278,7 +290,7 @@ public class AttachmentsViewController {
      * @param attachment The image {@link Attachment} selected by user.
      */
     private void showImagePreview(Attachment attachment) {
-        if (attachment.getFile() != null && attachment.getFile().exists()) {
+        if (attachment.getFile() != null && attachment.getFile().exists()) { // Attachment exists on disk
             // Load image data off UI thread...
             JobManager.schedule("Show image attachment", monitor -> {
                 try {
@@ -297,6 +309,26 @@ public class AttachmentsViewController {
                             .log(Level.SEVERE, "Unable to load image file " + attachment.getFile().getAbsolutePath(), ex);
                 }
             });
+        }
+        else{ // Attachment must be retrieved from service
+            LogClient logClient = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient();
+            try {
+                InputStream inputStream = logClient.getAttachment(-1L, attachment);
+                if(inputStream != null){
+                    BufferedImage bufferedImage = ImageIO.read(inputStream);
+                    if (bufferedImage == null) {
+                        return;
+                    }
+                    Platform.runLater(() -> {
+                        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+                        imagePreview.visibleProperty().setValue(true);
+                        imagePreview.setImage(image);
+                    });
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(AttachmentsViewController.class.getName())
+                        .log(Level.SEVERE, "Unable to get attachment " + attachment.getName() + " from service", ex);
+            }
         }
     }
 
