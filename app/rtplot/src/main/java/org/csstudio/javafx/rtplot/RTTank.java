@@ -119,11 +119,11 @@ public class RTTank extends Canvas
         widthProperty().addListener(resize_listener);
         heightProperty().addListener(resize_listener);
 
-        // 50Hz default throttle
+        // 20Hz default throttle
         update_throttle = new UpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
         {
             if (needUpdate.getAndSet(false)){
-                plot_image = updateImageBuffer();
+                plot_image = updateImageBuffer(); // This will return null if image buffer instantiation times out
                 if(plot_image != null){
                     redrawSafely();
                 }
@@ -253,7 +253,7 @@ public class RTTank extends Canvas
         if (buffer == null)
             return null;
         final BufferedImage image = buffer.getImage();
-        final Graphics2D gc = image.createGraphics();
+        final Graphics2D gc = buffer.getGraphics();
 
         gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         gc.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
