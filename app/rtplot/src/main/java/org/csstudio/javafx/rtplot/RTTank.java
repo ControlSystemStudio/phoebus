@@ -68,6 +68,8 @@ public class RTTank extends Canvas
     /** Is the scale displayed or not. */
     private volatile boolean scale_visible = true;
 
+    protected final AtomicBoolean needUpdate = new AtomicBoolean(true);
+
     /** Listener to {@link PlotPart}s, triggering refresh of canvas */
     protected final PlotPartListener plot_part_listener = new PlotPartListener()
     {
@@ -120,10 +122,18 @@ public class RTTank extends Canvas
         // 50Hz default throttle
         update_throttle = new UpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
         {
-            plot_image = updateImageBuffer();
-            redrawSafely();
+            if (needUpdate.getAndSet(false)){
+                plot_image = updateImageBuffer();
+                if(plot_image != null){
+                    redrawSafely();
+                }
+                else{
+                    requestUpdate();
+                }
+            }
         });
     }
+
 
     /** Update the dormant time between updates
      *  @param dormant_time How long throttle remains dormant after a trigger
@@ -196,8 +206,8 @@ public class RTTank extends Canvas
     }
 
     /** Set value range
-     *  @param low
-     *  @param high
+     *  @param low Lower limit
+     *  @param high Upper limit
      */
     public void setRange(final double low, final double high)
     {
@@ -243,7 +253,7 @@ public class RTTank extends Canvas
         if (buffer == null)
             return null;
         final BufferedImage image = buffer.getImage();
-        final Graphics2D gc = buffer.getGraphics();
+        final Graphics2D gc = image.createGraphics();
 
         gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         gc.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
@@ -306,6 +316,7 @@ public class RTTank extends Canvas
     /** Request a complete redraw of the plot */
     final public void requestUpdate()
     {
+        needUpdate.set(true);
         update_throttle.trigger();
     }
 
