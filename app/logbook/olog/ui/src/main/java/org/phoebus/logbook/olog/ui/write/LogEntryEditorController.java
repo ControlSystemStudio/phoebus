@@ -734,13 +734,11 @@ public class LogEntryEditorController {
             ologLog.setLevel(selectedLevelProperty.get());
             ologLog.setLogbooks(getSelectedLogbooks());
             ologLog.setTags(getSelectedTags());
-            if (editMode.equals(EditMode.NEW_LOG_ENTRY)) {
-                ologLog.setAttachments(attachmentsEditorController.getAttachments());
-            }
-            else{
+            ologLog.setAttachments(attachmentsEditorController.getAttachments());
+            ologLog.setProperties(logPropertiesEditorController.getProperties());
+            if (editMode.equals(EditMode.UPDATE_LOG_ENTRY)) {
                 ologLog.setId(logEntry.getId());
             }
-            ologLog.setProperties(logPropertiesEditorController.getProperties());
 
             LogClient logClient =
                     logFactory.getLogClient(new SimpleAuthenticationToken(usernameProperty.get(), passwordProperty.get()));
