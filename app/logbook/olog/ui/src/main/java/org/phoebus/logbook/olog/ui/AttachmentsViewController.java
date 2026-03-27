@@ -290,46 +290,33 @@ public class AttachmentsViewController {
      * @param attachment The image {@link Attachment} selected by user.
      */
     private void showImagePreview(Attachment attachment) {
-        if (attachment.getFile() != null && attachment.getFile().exists()) { // Attachment exists on disk
-            // Load image data off UI thread...
-            JobManager.schedule("Show image attachment", monitor -> {
-                try {
-                    BufferedImage bufferedImage = ImageIO.read(attachment.getFile());
-                    // BufferedImage may be null due to lazy loading strategy.
-                    if (bufferedImage == null) {
-                        return;
-                    }
-                    Platform.runLater(() -> {
-                        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-                        imagePreview.visibleProperty().setValue(true);
-                        imagePreview.setImage(image);
-                    });
-                } catch (IOException ex) {
-                    Logger.getLogger(AttachmentsViewController.class.getName())
-                            .log(Level.SEVERE, "Unable to load image file " + attachment.getFile().getAbsolutePath(), ex);
-                }
-            });
-        }
-        else{ // Attachment must be retrieved from service
-            LogClient logClient = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient();
+        JobManager.schedule("Show image attachment", monitor -> {
             try {
-                InputStream inputStream = logClient.getAttachment(-1L, attachment);
-                if(inputStream != null){
-                    BufferedImage bufferedImage = ImageIO.read(inputStream);
-                    if (bufferedImage == null) {
-                        return;
-                    }
-                    Platform.runLater(() -> {
-                        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-                        imagePreview.visibleProperty().setValue(true);
-                        imagePreview.setImage(image);
-                    });
+                BufferedImage bufferedImage = null;
+                if (attachment.getFile() != null && attachment.getFile().exists()) { // Attachment exists on disk
+                    bufferedImage = ImageIO.read(attachment.getFile());
                 }
+                else { // Attachment must be retrieved from service
+                    LogClient logClient = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient();
+                    InputStream inputStream = logClient.getAttachment(-1L, attachment);
+                    if (inputStream != null) {
+                        bufferedImage = ImageIO.read(inputStream);
+                    }
+                }
+                if (bufferedImage == null) {
+                    return;
+                }
+                BufferedImage _bufferedImage = bufferedImage;
+                Platform.runLater(() -> {
+                    Image image = SwingFXUtils.toFXImage(_bufferedImage, null);
+                    imagePreview.visibleProperty().setValue(true);
+                    imagePreview.setImage(image);
+                });
             } catch (Exception ex) {
                 Logger.getLogger(AttachmentsViewController.class.getName())
-                        .log(Level.SEVERE, "Unable to get attachment " + attachment.getName() + " from service", ex);
+                        .log(Level.SEVERE, "Unable to load image file " + attachment.getName(), ex);
             }
-        }
+        });
     }
 
     /**
