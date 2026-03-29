@@ -9,6 +9,8 @@ package org.csstudio.javafx.rtplot;
 
 import org.junit.jupiter.api.Test;
 
+import org.phoebus.ui.vtype.FormatOption;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -86,5 +88,18 @@ public class RTTankTest
         // Both hidden
         tank.setScaleVisible(false);
         tank.setRightScaleVisible(false);
+    }
+
+    /** setLabelFormat with SIGNIFICANT should not throw */
+    @Test
+    public void testSignificantFormat()
+    {
+        final RTTank tank = new RTTank();
+        // Should accept SIGNIFICANT without error
+        tank.setLabelFormat(FormatOption.SIGNIFICANT, 3);
+        tank.setLabelFormat(FormatOption.SIGNIFICANT, 1);
+        // Switching back to other formats should also work
+        tank.setLabelFormat(FormatOption.DECIMAL, 2);
+        tank.setLabelFormat(FormatOption.DEFAULT, 0);
     }
 }

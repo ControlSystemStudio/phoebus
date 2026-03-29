@@ -312,6 +312,23 @@ public class RTTank extends Canvas
             // representation based on the axis range.
             fmt = null;
             break;
+        case SIGNIFICANT:
+            // Significant-digits formatting (like C/Java %g).  Each tick value
+            // is individually formatted with the requested number of significant
+            // digits, choosing decimal or exponential notation per value.
+            final String pattern = "%." + prec + "g";
+            fmt = new NumberFormat() {
+                @Override public StringBuffer format(double v, StringBuffer buf, java.text.FieldPosition pos) {
+                    return buf.append(String.format(java.util.Locale.ROOT, pattern, v));
+                }
+                @Override public StringBuffer format(long v, StringBuffer buf, java.text.FieldPosition pos) {
+                    return buf.append(String.format(java.util.Locale.ROOT, pattern, (double) v));
+                }
+                @Override public Number parse(String s, java.text.ParsePosition pos) {
+                    throw new UnsupportedOperationException();
+                }
+            };
+            break;
         default:
             // HEX, STRING, BINARY, SEXAGESIMAL, etc. are not meaningful for a
             // numeric scale axis.  Fall back to automatic formatting.
