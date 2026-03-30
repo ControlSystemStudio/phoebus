@@ -68,6 +68,8 @@ public class RTTank extends Canvas
     /** Is the scale displayed or not. */
     private volatile boolean scale_visible = true;
 
+    protected final AtomicBoolean needUpdate = new AtomicBoolean(true);
+
     /** Listener to {@link PlotPart}s, triggering refresh of canvas */
     protected final PlotPartListener plot_part_listener = new PlotPartListener()
     {
@@ -117,13 +119,21 @@ public class RTTank extends Canvas
         widthProperty().addListener(resize_listener);
         heightProperty().addListener(resize_listener);
 
-        // 50Hz default throttle
+        // 20Hz default throttle
         update_throttle = new UpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
         {
-            plot_image = updateImageBuffer();
-            redrawSafely();
+            if (needUpdate.getAndSet(false)){
+                plot_image = updateImageBuffer(); // This will return null if image buffer instantiation times out
+                if(plot_image != null){
+                    redrawSafely();
+                }
+                else{
+                    requestUpdate();
+                }
+            }
         });
     }
+
 
     /** Update the dormant time between updates
      *  @param dormant_time How long throttle remains dormant after a trigger
@@ -196,8 +206,8 @@ public class RTTank extends Canvas
     }
 
     /** Set value range
-     *  @param low
-     *  @param high
+     *  @param low Lower limit
+     *  @param high Upper limit
      */
     public void setRange(final double low, final double high)
     {
@@ -306,6 +316,7 @@ public class RTTank extends Canvas
     /** Request a complete redraw of the plot */
     final public void requestUpdate()
     {
+        needUpdate.set(true);
         update_throttle.trigger();
     }
 
