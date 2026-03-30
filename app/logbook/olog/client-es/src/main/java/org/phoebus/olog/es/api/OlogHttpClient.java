@@ -32,6 +32,7 @@ import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.HttpRequestMultipartBody;
 import org.phoebus.util.http.QueryParamsHelper;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.InputStream;
@@ -158,7 +159,7 @@ public class OlogHttpClient implements LogClient {
 
     @Override
     public LogEntry set(LogEntry log) throws LogbookException {
-        return save(log, null);
+        return save(log, null, HttpMethod.PUT);
     }
 
     /**
@@ -171,7 +172,7 @@ public class OlogHttpClient implements LogClient {
      * @throws LogbookException E.g. due to invalid log entry data, or if attachment content type
      *                          cannot be determined.
      */
-    private LogEntry save(LogEntry log, LogEntry inReplyTo) throws LogbookException {
+    private LogEntry save(LogEntry log, LogEntry inReplyTo, String method) throws LogbookException {
         try {
             javax.ws.rs.core.MultivaluedMap<String, String> queryParams = new javax.ws.rs.core.MultivaluedHashMap<>();
             queryParams.putSingle("markup", "commonmark");
@@ -183,24 +184,29 @@ public class OlogHttpClient implements LogClient {
             httpRequestMultipartBody.addTextPart("logEntry", OlogObjectMappers.logEntrySerializer.writeValueAsString(log), "application/json");
 
             for (Attachment attachment : log.getAttachments()) {
-                httpRequestMultipartBody.addFilePart(attachment.getFile(), attachment.getUniqueFilename());
+                if(attachment.getFile() != null){
+                    httpRequestMultipartBody.addFilePart(attachment.getFile(), attachment.getUniqueFilename());
+                }
             }
+
+            HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofByteArray(httpRequestMultipartBody.getBytes());
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/logs/multipart?" + QueryParamsHelper.mapToQueryParams(queryParams)))
                     .header("Content-Type", httpRequestMultipartBody.getContentType())
                     .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
                     .header("Authorization", basicAuthenticationHeader)
-                    .PUT(HttpRequest.BodyPublishers.ofByteArray(httpRequestMultipartBody.getBytes()))
+                    .method(method, bodyPublisher)
+                    //.PUT(HttpRequest.BodyPublishers.ofByteArray(httpRequestMultipartBody.getBytes()))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if(response.statusCode() == 401){
-                LOGGER.log(Level.SEVERE, "Failed to create log entry: user not authenticated");
+                LOGGER.log(Level.SEVERE, "Failed to create or update log entry: user not authenticated");
                 throw new LogbookException(Messages.SubmissionFailedInvalidCredentials);
             }
             else if (response.statusCode() >= 300) {
-                LOGGER.log(Level.SEVERE, "Failed to create log entry: " + response.body());
+                LOGGER.log(Level.SEVERE, "Failed to create or update log entry: " + response.body());
                 throw new LogbookException(response.body());
             } else {
                 return OlogObjectMappers.logEntryDeserializer.readValue(response.body(), OlogLog.class);
@@ -213,7 +219,7 @@ public class OlogHttpClient implements LogClient {
 
     @Override
     public LogEntry reply(LogEntry log, LogEntry inReplyTo) throws LogbookException {
-        return save(log, inReplyTo);
+        return save(log, inReplyTo, HttpMethod.PUT);
     }
 
     /**
@@ -305,32 +311,21 @@ public class OlogHttpClient implements LogClient {
     }
 
     /**
-     * Updates an existing {@link LogEntry}. Note that unlike the {@link #save(LogEntry, LogEntry)} API,
-     * this does not support attachments, i.e. it does not set up a multipart request to the service.
+     * Updates an existing {@link LogEntry}.
+     * <p>NOTE:</p>
+     * The list of attachments in the {@link LogEntry} may contain additional attachments added by the user. Moreover,
+     * attachments listed in the {@link LogEntry} subject to change, but not listed in the {@link LogEntry} submitted
+     * to the service, will be removed. This makes it possible for a user to update an entry such that a
+     * potentially erroneous attachment is replaced by a correct one.
      *
      * @param logEntry - the updated log entry
      * @return The updated {@link LogEntry}
      */
     @Override
-    public LogEntry update(LogEntry logEntry) {
-
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Preferences.olog_url + OLOG_PREFIX + "/logs/" + logEntry.getId() + "?markup=commonmark"))
-                    .header("Content-Type", CONTENT_TYPE_JSON)
-                    .header("Authorization", basicAuthenticationHeader)
-                    .POST(HttpRequest.BodyPublishers.ofString(OlogObjectMappers.logEntrySerializer.writeValueAsString(logEntry)))
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            LogEntry updated = OlogObjectMappers.logEntryDeserializer.readValue(response.body(), OlogLog.class);
-            changeHandlers.forEach(h -> h.logEntryChanged(updated));
-            return updated;
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Unable to update log entry id=" + logEntry.getId(), e);
-            return null;
-        }
+    public LogEntry update(LogEntry logEntry) throws LogbookException{
+        LogEntry updated = save(logEntry, null, HttpMethod.POST);
+        changeHandlers.forEach(h -> h.logEntryChanged(updated));
+        return updated;
     }
 
     @Override
