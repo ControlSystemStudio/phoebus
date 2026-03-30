@@ -9,7 +9,7 @@ package org.csstudio.javafx.rtplot;
 
 import org.junit.jupiter.api.Test;
 
-import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.ScaleFormat;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -96,10 +96,10 @@ public class RTTankTest
     {
         final RTTank tank = new RTTank();
         // Should accept SIGNIFICANT without error
-        tank.setLabelFormat(FormatOption.SIGNIFICANT, 3);
-        tank.setLabelFormat(FormatOption.SIGNIFICANT, 1);
+        tank.setLabelFormat(ScaleFormat.SIGNIFICANT, 3);
+        tank.setLabelFormat(ScaleFormat.SIGNIFICANT, 1);
         // Switching back to other formats should also work
-        tank.setLabelFormat(FormatOption.DECIMAL, 2);
-        tank.setLabelFormat(FormatOption.DEFAULT, 0);
+        tank.setLabelFormat(ScaleFormat.DECIMAL, 2);
+        tank.setLabelFormat(ScaleFormat.DEFAULT, 0);
     }
 }

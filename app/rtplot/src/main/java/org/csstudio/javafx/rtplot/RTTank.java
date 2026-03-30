@@ -26,7 +26,7 @@ import org.csstudio.javafx.rtplot.internal.YAxisImpl;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.phoebus.ui.javafx.BufferUtil;
 import org.phoebus.ui.javafx.UpdateThrottle;
-import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.ScaleFormat;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -280,14 +280,14 @@ public class RTTank extends Canvas
     }
 
     /** Configure the number format used for scale tick labels.
-     *  @param format    Display format; {@code null} or {@link FormatOption#DEFAULT} restores automatic formatting.
+     *  @param format    Display format; {@code null} or {@link ScaleFormat#DEFAULT} restores automatic formatting.
      *  @param precision Number of decimal places; clamped to [0, 15].
      */
-    public void setLabelFormat(final FormatOption format, final int precision)
+    public void setLabelFormat(final ScaleFormat format, final int precision)
     {
         final int prec = Math.max(0, Math.min(15, precision));
         final NumberFormat fmt;
-        if (format == null  ||  format == FormatOption.DEFAULT)
+        if (format == null  ||  format == ScaleFormat.DEFAULT)
             fmt = null;
         else switch (format)
         {
@@ -330,8 +330,6 @@ public class RTTank extends Canvas
             };
             break;
         default:
-            // HEX, STRING, BINARY, SEXAGESIMAL, etc. are not meaningful for a
-            // numeric scale axis.  Fall back to automatic formatting.
             fmt = null;
             break;
         }

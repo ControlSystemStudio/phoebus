@@ -14,11 +14,8 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFillColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFormat;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propLogscale;
-
-import org.phoebus.ui.vtype.FormatOption;
 
 import java.util.Arrays;
 import java.util.List;
@@ -108,10 +105,6 @@ public class TankWidget extends ScaledPVWidget
     public static final WidgetPropertyDescriptor<Boolean>   propOppositeScaleVisible =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "opposite_scale_visible", Messages.WidgetProperties_OppositeScaleVisible);
 
-    /** 'precision' — number of decimal places (0..15) */
-    public static final WidgetPropertyDescriptor<Integer>   propScalePrecision =
-        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "precision", Messages.WidgetProperties_Precision, 0, 15);
-
     /** Widget configurator to read legacy *.opi files*/
     private static class CustomConfigurator extends WidgetConfigurator
     {
@@ -177,8 +170,6 @@ public class TankWidget extends ScaledPVWidget
     private volatile WidgetProperty<Boolean> show_minor_ticks;
     private volatile WidgetProperty<Boolean> perpendicular_tick_labels;
     private volatile WidgetProperty<Boolean> opposite_scale_visible;
-    private volatile WidgetProperty<FormatOption> format;
-    private volatile WidgetProperty<Integer> precision;
     private volatile WidgetProperty<Boolean> log_scale;
     private volatile WidgetProperty<Boolean> horizontal;
     private volatile WidgetProperty<Integer>  border_width_prop;
@@ -203,8 +194,6 @@ public class TankWidget extends ScaledPVWidget
         properties.add(opposite_scale_visible = propOppositeScaleVisible.createProperty(this, false));
         properties.add(show_minor_ticks = propShowMinorTicks.createProperty(this, true));
         properties.add(perpendicular_tick_labels = propPerpendicularTickLabels.createProperty(this, false));
-        properties.add(format    = propFormat.createProperty(this, FormatOption.DEFAULT));
-        properties.add(precision = propScalePrecision.createProperty(this, 2));
         properties.add(log_scale = propLogscale.createProperty(this, false));
         properties.add(horizontal = propHorizontal.createProperty(this, false));
         properties.add(border_width_prop = propTankBorderWidth.createProperty(this, 0));
@@ -271,18 +260,6 @@ public class TankWidget extends ScaledPVWidget
     public WidgetProperty<Boolean> propOppositeScaleVisible()
     {
         return opposite_scale_visible;
-    }
-
-    /** @return 'format' property */
-    public WidgetProperty<FormatOption> propFormat()
-    {
-        return format;
-    }
-
-    /** @return 'precision' property */
-    public WidgetProperty<Integer> propPrecision()
-    {
-        return precision;
     }
 
     /** @return 'log_scale' property */

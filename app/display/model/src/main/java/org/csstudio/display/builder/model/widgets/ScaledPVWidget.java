@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newColorPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newDoublePropertyDescriptor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newIntegerPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
@@ -17,12 +18,15 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import java.util.List;
 
 import org.csstudio.display.builder.model.Messages;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.vtype.ScaleFormat;
 
 /** Base class for PV widgets that display a numeric value on a scale
  *  (Tank, Thermometer, ProgressBar and similar).
@@ -62,6 +66,24 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 public abstract class ScaledPVWidget extends PVWidget
 {
     // ---- Property descriptors -------------------------------------------
+
+    /** 'format' — scale label number format (ScaleFormat subset) */
+    public static final WidgetPropertyDescriptor<ScaleFormat> propScaleFormat =
+        new WidgetPropertyDescriptor<>(
+                WidgetPropertyCategory.DISPLAY, "format", Messages.WidgetProperties_Format)
+        {
+            @Override
+            public EnumWidgetProperty<ScaleFormat> createProperty(final Widget widget,
+                                                                   final ScaleFormat default_value)
+            {
+                return new EnumWidgetProperty<>(this, widget, default_value);
+            }
+        };
+
+    /** 'precision' — number of decimal places (0..15) */
+    public static final WidgetPropertyDescriptor<Integer> propScalePrecision =
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "precision",
+                                     Messages.WidgetProperties_Precision, 0, 15);
 
     /** 'alarm_limits_from_pv' — use PV alarm metadata for LOLO/LO/HI/HIHI? */
     public static final WidgetPropertyDescriptor<Boolean> propAlarmLimitsFromPV =
@@ -105,6 +127,8 @@ public abstract class ScaledPVWidget extends PVWidget
 
     // ---- Instance fields ------------------------------------------------
 
+    private volatile WidgetProperty<ScaleFormat>  format;
+    private volatile WidgetProperty<Integer>      precision;
     private volatile WidgetProperty<Boolean>     limits_from_pv;
     private volatile WidgetProperty<Boolean>     alarm_limits_from_pv;
     private volatile WidgetProperty<Double>      minimum;
@@ -136,6 +160,8 @@ public abstract class ScaledPVWidget extends PVWidget
         final WidgetProperty<?> alarm_border_prop = propBorderAlarmSensitive();
         properties.remove(alarm_border_prop);
 
+        properties.add(format               = propScaleFormat.createProperty(this, ScaleFormat.DEFAULT));
+        properties.add(precision             = propScalePrecision.createProperty(this, 2));
         properties.add(limits_from_pv       = propLimitsFromPV.createProperty(this, true));
         properties.add(minimum              = propMinimum.createProperty(this, 0.0));
         properties.add(maximum              = propMaximum.createProperty(this, 100.0));
@@ -151,6 +177,12 @@ public abstract class ScaledPVWidget extends PVWidget
         properties.add(major_alarm_color    = propMajorAlarmColor.createProperty(this,
                 WidgetColorService.getColor(NamedWidgetColors.ALARM_MAJOR)));
     }
+
+    /** @return 'format' property (scale label format) */
+    public WidgetProperty<ScaleFormat> propFormat()          { return format; }
+
+    /** @return 'precision' property */
+    public WidgetProperty<Integer> propPrecision()           { return precision; }
 
     /** @return 'limits_from_pv' property (min/max display range) */
     public WidgetProperty<Boolean> propLimitsFromPV()        { return limits_from_pv; }

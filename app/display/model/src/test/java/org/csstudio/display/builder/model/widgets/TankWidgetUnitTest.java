@@ -14,7 +14,7 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.junit.jupiter.api.Test;
-import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.ScaleFormat;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -78,7 +78,7 @@ public class TankWidgetUnitTest
         assertThat(tank.propOppositeScaleVisible().getValue(), equalTo(false));
         assertThat(tank.propShowMinorTicks().getValue(), equalTo(true));
         assertThat(tank.propPerpendicularTickLabels().getValue(), equalTo(false));
-        assertThat(tank.propFormat().getValue(), equalTo(FormatOption.DEFAULT));
+        assertThat(tank.propFormat().getValue(), equalTo(ScaleFormat.DEFAULT));
         assertThat(tank.propPrecision().getValue(), equalTo(2));
         assertThat(tank.propLogScale().getValue(), equalTo(false));
         assertThat(tank.propHorizontal().getValue(), equalTo(false));
@@ -138,7 +138,7 @@ public class TankWidgetUnitTest
         original.propOppositeScaleVisible().setValue(true);
         original.propBorderWidth().setValue(3);
         original.propPerpendicularTickLabels().setValue(true);
-        original.propFormat().setValue(FormatOption.DECIMAL);
+        original.propFormat().setValue(ScaleFormat.DECIMAL);
         original.propPrecision().setValue(3);
 
         // Serialize — disable skip_defaults so ALL properties appear
@@ -184,7 +184,7 @@ public class TankWidgetUnitTest
         assertThat(tank.propOppositeScaleVisible().getValue(), equalTo(true));
         assertThat(tank.propBorderWidth().getValue(), equalTo(3));
         assertThat(tank.propPerpendicularTickLabels().getValue(), equalTo(true));
-        assertThat(tank.propFormat().getValue(), equalTo(FormatOption.DECIMAL));
+        assertThat(tank.propFormat().getValue(), equalTo(ScaleFormat.DECIMAL));
         assertThat(tank.propPrecision().getValue(), equalTo(3));
     }
 
