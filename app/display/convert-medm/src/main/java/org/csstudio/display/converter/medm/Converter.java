@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelWriter;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.opibuilder.adl2boy.translator.Arc2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Bar2Model;
 import org.csstudio.opibuilder.adl2boy.translator.Byte2Model;
@@ -48,6 +47,7 @@ import org.csstudio.opibuilder.adl2boy.translator.Valuator2Model;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.ColorMap;
 import org.csstudio.utility.adlparser.fileParser.ParserADL;
+import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.framework.workbench.FileHelper;
 
 /** MEDM Converter

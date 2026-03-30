@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.properties.NamedWidgetFont;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
+import org.phoebus.util.config.FileToStreamFunction;
 
 /** Service that provides {@link NamedWidgetFonts}
  *

@@ -8,10 +8,10 @@ package org.csstudio.opibuilder.adl2boy.translator;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.Indicator;
+import org.phoebus.ui.color.WidgetColor;
 
 // TODO Better 'indicator' representation than TextUpdate
 public class Indicator2Model extends AbstractADL2Model<TextUpdateWidget> {

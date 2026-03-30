@@ -9,10 +9,10 @@ package org.csstudio.opibuilder.adl2boy.translator;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.opibuilder.adl2boy.utilities.TextUtilities;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.TextEntryWidget;
+import org.phoebus.ui.color.WidgetColor;
 
 public class TextEntry2Model extends AbstractADL2Model<org.csstudio.display.builder.model.widgets.TextEntryWidget> {
 

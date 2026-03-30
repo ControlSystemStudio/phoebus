@@ -8,7 +8,6 @@ package org.csstudio.opibuilder.adl2boy.translator;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
@@ -17,6 +16,7 @@ import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.MessageButton;
 import org.csstudio.display.actions.WritePVAction;
+import org.phoebus.ui.color.WidgetColor;
 
 import java.util.ArrayList;
 import java.util.List;
