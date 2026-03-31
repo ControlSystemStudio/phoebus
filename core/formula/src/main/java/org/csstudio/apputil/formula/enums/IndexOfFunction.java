@@ -1,8 +1,10 @@
 package org.csstudio.apputil.formula.enums;
 
 import org.csstudio.apputil.formula.spi.FormulaFunction;
+import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VInt;
 import org.epics.vtype.VType;
@@ -52,6 +54,18 @@ public class IndexOfFunction implements FormulaFunction {
                     Display.none());
         } else
         {
+            if (args[0] instanceof VDouble)
+            {
+                final VDouble v = (VDouble)args[0];
+                if (v.getValue().isNaN() &&
+                        (v.getAlarm() == Alarm.none() || v.getAlarm() == Alarm.disconnected()))
+                {
+                    // Connection has not yet been made to the PV
+                    // so don't throw an exception yet
+                    return args[0];
+                }
+            }
+            // Otherwise throw exception
             throw new Exception("Function " + getName() + " requires an enum argument " + Arrays.toString(args));
         }
 
