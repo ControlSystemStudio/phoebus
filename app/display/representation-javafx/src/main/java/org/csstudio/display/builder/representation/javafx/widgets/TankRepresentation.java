@@ -34,8 +34,9 @@ import javafx.scene.transform.Translate;
 public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidget>
 {
     private final DirtyFlag dirty_look = new DirtyFlag();
-    private final UntypedWidgetPropertyListener lookListener = this::lookChanged;
-    private final UntypedWidgetPropertyListener valueListener = this::valueChanged;
+    private final UntypedWidgetPropertyListener lookListener   = this::lookChanged;
+    private final UntypedWidgetPropertyListener valueListener  = this::valueChanged;
+    private final UntypedWidgetPropertyListener limitsListener = this::limitsChanged;
     private final WidgetPropertyListener<Boolean> orientationChangedListener = this::orientationChanged;
 
     private volatile RTTank tank;
@@ -70,18 +71,23 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propBorderWidth().addUntypedPropertyListener(lookListener);
         model_widget.propLogScale().addUntypedPropertyListener(lookListener);
 
-        model_widget.propShowAlarmLimits().addUntypedPropertyListener(valueListener);
-        model_widget.propLevelLoLo().addUntypedPropertyListener(valueListener);
-        model_widget.propLevelLow().addUntypedPropertyListener(valueListener);
-        model_widget.propLevelHigh().addUntypedPropertyListener(valueListener);
-        model_widget.propLevelHiHi().addUntypedPropertyListener(valueListener);
-        model_widget.propAlarmLimitsFromPV().addUntypedPropertyListener(valueListener);
+        // Range and fill-level; need re-evaluation on every PV sample
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueListener);
         model_widget.propMinimum().addUntypedPropertyListener(valueListener);
         model_widget.propMaximum().addUntypedPropertyListener(valueListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
+        // Alarm limits; only need re-evaluation when limit properties change.
+        // When alarm_limits_from_pv=true, valueChanged() calls applyAlarmLimits() too.
+        model_widget.propShowAlarmLimits().addUntypedPropertyListener(limitsListener);
+        model_widget.propAlarmLimitsFromPV().addUntypedPropertyListener(limitsListener);
+        model_widget.propLevelLoLo().addUntypedPropertyListener(limitsListener);
+        model_widget.propLevelLow().addUntypedPropertyListener(limitsListener);
+        model_widget.propLevelHigh().addUntypedPropertyListener(limitsListener);
+        model_widget.propLevelHiHi().addUntypedPropertyListener(limitsListener);
         model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
+        // Initial apply — order matters: range first, then limits, then value
         valueChanged(null, null, null);
+        limitsChanged(null, null, null);
     }
 
     @Override
@@ -105,16 +111,16 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propBorderWidth().removePropertyListener(lookListener);
         model_widget.propLogScale().removePropertyListener(lookListener);
 
-        model_widget.propShowAlarmLimits().removePropertyListener(valueListener);
-        model_widget.propLevelLoLo().removePropertyListener(valueListener);
-        model_widget.propLevelLow().removePropertyListener(valueListener);
-        model_widget.propLevelHigh().removePropertyListener(valueListener);
-        model_widget.propLevelHiHi().removePropertyListener(valueListener);
-        model_widget.propAlarmLimitsFromPV().removePropertyListener(valueListener);
         model_widget.propLimitsFromPV().removePropertyListener(valueListener);
         model_widget.propMinimum().removePropertyListener(valueListener);
         model_widget.propMaximum().removePropertyListener(valueListener);
         model_widget.runtimePropValue().removePropertyListener(valueListener);
+        model_widget.propShowAlarmLimits().removePropertyListener(limitsListener);
+        model_widget.propAlarmLimitsFromPV().removePropertyListener(limitsListener);
+        model_widget.propLevelLoLo().removePropertyListener(limitsListener);
+        model_widget.propLevelLow().removePropertyListener(limitsListener);
+        model_widget.propLevelHigh().removePropertyListener(limitsListener);
+        model_widget.propLevelHiHi().removePropertyListener(limitsListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         super.unregisterListeners();
     }
@@ -125,11 +131,15 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         toolkit.scheduleUpdate(this);
     }
 
+    /** Update the display range and fill level.  Called on every PV value change.
+     *  Alarm limits from PV metadata are also refreshed here (the metadata is
+     *  carried inside the VType on every update).  Manually-configured limits
+     *  are managed exclusively by {@link #limitsChanged}.
+     */
     private void valueChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         final VType vtype = model_widget.runtimePropValue().getValue();
 
-        // --- Min / Max ---
         double min_val = model_widget.propMinimum().getValue();
         double max_val = model_widget.propMaximum().getValue();
         if (model_widget.propLimitsFromPV().getValue())
@@ -143,46 +153,63 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         }
         tank.setRange(min_val, max_val);
 
-        // --- Alarm limit lines ---
-        if (model_widget.propShowAlarmLimits().getValue())
+        // Alarm metadata is embedded in the VType, so re-check it on every update.
+        // When using widget-configured limits, limitsChanged() handles updates instead.
+        if (model_widget.propAlarmLimitsFromPV().getValue())
+            applyAlarmLimits(vtype);
+
+        final double value = toolkit.isEditMode()
+            ? (min_val + max_val) / 2
+            : VTypeUtil.getValueNumber(vtype).doubleValue();
+        tank.setValue(value);
+    }
+
+    /** Re-apply alarm limit lines.  Called when any limit property changes.
+     *  Also invoked from {@link #valueChanged} when limits come from the PV.
+     */
+    private void limitsChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
+    {
+        applyAlarmLimits(model_widget.runtimePropValue().getValue());
+    }
+
+    /** Push the current alarm limits to the tank, reading from PV metadata or
+     *  widget properties depending on {@code alarm_limits_from_pv}.
+     *  Clears all limit lines when {@code show_alarm_limits} is {@code false}.
+     */
+    private void applyAlarmLimits(final VType vtype)
+    {
+        if (!model_widget.propShowAlarmLimits().getValue())
         {
-            double lolo, lo, hi, hihi;
-            if (model_widget.propAlarmLimitsFromPV().getValue())
-            {   // Read from PV alarm metadata
-                final Display display_info = Display.displayOf(vtype);
-                if (display_info != null)
-                {
-                    final Range minor = display_info.getWarningRange();
-                    final Range major = display_info.getAlarmRange();
-                    lo   = minor.getMinimum();
-                    hi   = minor.getMaximum();
-                    lolo = major.getMinimum();
-                    hihi = major.getMaximum();
-                }
-                else
-                {   // PV connected but no metadata yet — show nothing
-                    lolo = lo = hi = hihi = Double.NaN;
-                }
+            tank.setLimits(Double.NaN, Double.NaN, Double.NaN, Double.NaN);
+            return;
+        }
+        final double lolo, lo, hi, hihi;
+        if (model_widget.propAlarmLimitsFromPV().getValue())
+        {
+            final Display display_info = Display.displayOf(vtype);
+            if (display_info != null)
+            {
+                final Range minor = display_info.getWarningRange();
+                final Range major = display_info.getAlarmRange();
+                lo   = minor.getMinimum();
+                hi   = minor.getMaximum();
+                lolo = major.getMinimum();
+                hihi = major.getMaximum();
             }
             else
-            {   // Read from widget properties
-                lolo = model_widget.propLevelLoLo().getValue();
-                lo   = model_widget.propLevelLow().getValue();
-                hi   = model_widget.propLevelHigh().getValue();
-                hihi = model_widget.propLevelHiHi().getValue();
+            {   // PV connected but no metadata yet — show nothing
+                lolo = lo = hi = hihi = Double.NaN;
             }
-            tank.setLimits(lolo, lo, hi, hihi);
-            tank.setLimitsFromPV(model_widget.propAlarmLimitsFromPV().getValue());
         }
         else
-            tank.setLimits(Double.NaN, Double.NaN, Double.NaN, Double.NaN);
-
-        double value;
-        if (toolkit.isEditMode())
-            value = (min_val + max_val) / 2;
-        else
-            value = VTypeUtil.getValueNumber(vtype).doubleValue();
-        tank.setValue(value);
+        {
+            lolo = model_widget.propLevelLoLo().getValue();
+            lo   = model_widget.propLevelLow().getValue();
+            hi   = model_widget.propLevelHigh().getValue();
+            hihi = model_widget.propLevelHiHi().getValue();
+        }
+        tank.setLimits(lolo, lo, hi, hihi);
+        tank.setLimitsFromPV(model_widget.propAlarmLimitsFromPV().getValue());
     }
 
     private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)

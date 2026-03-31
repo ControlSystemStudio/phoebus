@@ -79,7 +79,7 @@ public class TankWidget extends ScaledPVWidget
      */
     public static final WidgetPropertyDescriptor<Integer> propTankBorderWidth =
         newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tank_border_width",
-                                     Messages.WidgetProperties_BorderWidth, 0, 100);
+                                     Messages.WidgetProperties_BorderWidth, 0, 5);
 
     /** 'empty_color' */
     public static final WidgetPropertyDescriptor<WidgetColor> propEmptyColor =

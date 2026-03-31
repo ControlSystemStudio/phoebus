@@ -207,10 +207,10 @@ public class RTTank extends Canvas
         right_scale.setScaleFont(font);
     }
 
-    /** @param width Border width in pixels around the tank body (0 = no border) */
+    /** @param width Border width in pixels around the tank body (0 = no border, max = 5) */
     public void setBorderWidth(final int width)
     {
-        border_width = Math.max(0, width);
+        border_width = Math.max(0, Math.min(5, width));
         requestUpdate();
     }
 
@@ -313,21 +313,7 @@ public class RTTank extends Canvas
             fmt = null;
             break;
         case SIGNIFICANT:
-            // Significant-digits formatting (like C/Java %g).  Each tick value
-            // is individually formatted with the requested number of significant
-            // digits, choosing decimal or exponential notation per value.
-            final String pattern = "%." + prec + "g";
-            fmt = new NumberFormat() {
-                @Override public StringBuffer format(double v, StringBuffer buf, java.text.FieldPosition pos) {
-                    return buf.append(String.format(java.util.Locale.ROOT, pattern, v));
-                }
-                @Override public StringBuffer format(long v, StringBuffer buf, java.text.FieldPosition pos) {
-                    return buf.append(String.format(java.util.Locale.ROOT, pattern, (double) v));
-                }
-                @Override public Number parse(String s, java.text.ParsePosition pos) {
-                    throw new UnsupportedOperationException();
-                }
-            };
+            fmt = significantDigitsFormat(prec);
             break;
         default:
             fmt = null;
@@ -336,6 +322,32 @@ public class RTTank extends Canvas
         scale.setLabelFormat(fmt);
         right_scale.setLabelFormat(fmt);
         requestUpdate();
+    }
+
+    /** Build a {@link NumberFormat} that formats each value to {@code prec} significant
+     *  figures using {@code %g}-style notation (decimal or scientific per value magnitude).
+     */
+    private static NumberFormat significantDigitsFormat(final int prec)
+    {
+        final String pattern = "%." + prec + "g";
+        return new NumberFormat()
+        {
+            @Override
+            public StringBuffer format(final double v, final StringBuffer buf, final java.text.FieldPosition pos)
+            {
+                return buf.append(String.format(java.util.Locale.ROOT, pattern, v));
+            }
+            @Override
+            public StringBuffer format(final long v, final StringBuffer buf, final java.text.FieldPosition pos)
+            {
+                return buf.append(String.format(java.util.Locale.ROOT, pattern, (double) v));
+            }
+            @Override
+            public Number parse(final String s, final java.text.ParsePosition pos)
+            {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     /** Set alarm and warning limit values to display as horizontal lines on the tank.
@@ -398,6 +410,7 @@ public class RTTank extends Canvas
     {
         scale.setPerpendicularTickLabels(perpendicular);
         right_scale.setPerpendicularTickLabels(perpendicular);
+        need_layout.set(true);   // scale width changes between rotated and perpendicular modes
         requestUpdate();
     }
 
@@ -456,6 +469,32 @@ public class RTTank extends Canvas
         gc.drawLine(pb.x, y, pb.x + pb.width, y);
     }
 
+    /** Compute the fill height in pixels for the current value.
+     *  Handles both linear and logarithmic scales.
+     *
+     *  @param plotHeight Pixel height of the plot area
+     *  @param min        Scale minimum (&lt; max)
+     *  @param max        Scale maximum
+     *  @param current    Current PV value
+     *  @param logscale   Whether the scale uses log spacing
+     *  @return Fill level in pixels: 0 = empty, plotHeight = full
+     */
+    private static int computeFillLevel(final int plotHeight, final double min, final double max,
+                                        final double current, final boolean logscale)
+    {
+        if (current <= min)
+            return 0;
+        if (current >= max)
+            return plotHeight;
+        if (logscale) // by mellguth2, https://github.com/ControlSystemStudio/phoebus/issues/2726
+        {   // Refuse to map if any input is non-positive (log undefined)
+            if (min <= 0 || max <= 0 || current <= 0)
+                return 0;
+            return (int) (plotHeight * Math.log(current / min) / Math.log(max / min));
+        }
+        return (int) (plotHeight * (current - min) / (max - min) + 0.5);
+    }
+
     /** Compute layout of plot components.
      *  Supports independent left and right scales; the plot area sits
      *  between them.  A 1-pixel inset is added on any edge that has no
@@ -480,11 +519,14 @@ public class RTTank extends Canvas
             ends[1] = Math.max(ends[1], r_ends[1]);
         }
 
-        // Small inset so the tank outline is not clipped on edges without a scale
-        final int inset_left   = (left_width  == 0) ? 1 : 0;
-        final int inset_right  = (right_width == 0) ? 1 : 0;
-        final int inset_top    = (ends[1] == 0) ? 1 : 0;
-        final int inset_bottom = (ends[0] == 0) ? 1 : 0;
+        // Inset = ceil(border_width/2) keeps the outer stroke edge inside the canvas.
+        // On sides with a scale the label area provides ample margin so inset=0.
+        // When there is no border, inset=1 is the original clip guard.
+        final int half_bw_ceil = (border_width + 1) / 2;
+        final int inset_left   = (left_width  == 0) ? Math.max(1, half_bw_ceil) : 0;
+        final int inset_right  = (right_width == 0) ? Math.max(1, half_bw_ceil) : 0;
+        final int inset_top    = (ends[1] == 0) ? Math.max(1, half_bw_ceil) : 0;
+        final int inset_bottom = (ends[0] == 0) ? Math.max(1, half_bw_ceil) : 0;
 
         final int top    = bounds.y + ends[1] + inset_top;
         final int height = bounds.height - ends[0] - ends[1] - inset_top - inset_bottom;
@@ -537,22 +579,7 @@ public class RTTank extends Canvas
         final double min = Math.min(range.getLow(), range.getHigh());
         final double max = Math.max(range.getLow(), range.getHigh());
         final double current = value;
-        final int level;
-        if (current <= min)
-            level = 0;
-        else if (current >= max)
-            level = plot_bounds.height;
-        else if (max == min)
-            level = 0;
-        else if (scale.isLogarithmic()) // by mellguth2, https://github.com/ControlSystemStudio/phoebus/issues/2726
-        {   // refuse to try any mapping if negatives or zero are involved
-            if (min <= 0 || max <= 0.0 || current <= 0.0)
-                level = 0;
-            else
-                level = (int) (plot_bounds.height * Math.log(current/min) / Math.log(max/min));
-        }
-        else // linear scale
-            level = (int) (plot_bounds.height * (current - min) / (max - min) + 0.5);
+        final int level = computeFillLevel(plot_bounds.height, min, max, current, scale.isLogarithmic());
 
         final int arc = Math.min(plot_bounds.width, plot_bounds.height) / 10;
         gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, plot_bounds.x+plot_bounds.width/2, 0, empty_shadow, true));
@@ -565,12 +592,21 @@ public class RTTank extends Canvas
         else
             gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, level, arc, arc);
 
-        // Optional border around the tank body
+        // Optional border: stroked CENTRED on plot_bounds — no integer half-pixel
+        // shifting.  The inner half of the stroke covers the fill edge (no gap);
+        // the outer half extends beyond plot_bounds into the inset margin.
+        // Ticks land at plot_bounds edges = centre of the border stroke, matching
+        // the CS-Studio BOY convention.
         if (border_width > 0)
         {
+            // Java2D: fillRoundRect covers x..x+w-1, drawRoundRect strokes x..x+w.
+            // Using w-1, h-1 aligns the stroke centre with the fill boundary,
+            // making all four edges symmetric.
             gc.setColor(foreground);
             gc.setStroke(new BasicStroke(border_width));
-            gc.drawRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height, arc, arc);
+            gc.drawRoundRect(plot_bounds.x, plot_bounds.y,
+                             plot_bounds.width - 1, plot_bounds.height - 1,
+                             arc, arc);
             gc.setStroke(new BasicStroke(1f));
         }
 
@@ -593,8 +629,6 @@ public class RTTank extends Canvas
             drawLimitLineAt(gc, plot_bounds, min, max, lim_hihi, limit_major_color);
             gc.setStroke(new BasicStroke(1f));
         }
-
-        gc.setColor(background);
 
         gc.dispose();
 
