@@ -115,13 +115,12 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                     // Clicking with the primary (left) button selects the widget ..
                     if (event.isPrimaryButtonDown())
                     {
-                        // .. but ignore the group widget when Alt key is held.
-                        // This allows 'rubberbanding' within a group while Alt is held.
-                        // Without Alt, a click within a group would select-click the group,
-                        // consuming the event and preventing a any rubberband selection.
+                        // .. but ignore container widgets when Alt key is held.
+                        // This allows 'rubberbanding' within a group/tab/array/etc. while Alt is held.
+                        // Without Alt, a click within a container would select-click it,
+                        // consuming the event and preventing any rubberband selection.
                         if (event.isAltDown()  &&
-                            (model_widget instanceof GroupWidget ||
-                             model_widget instanceof TabsWidget))
+                            ChildrenProperty.getChildren(model_widget) != null)
                         {
                             // System.out.println("Ignoring click in " + model_widget);
                             return;
