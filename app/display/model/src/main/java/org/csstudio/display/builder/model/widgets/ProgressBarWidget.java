@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,38 +7,59 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFillColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propLogscale;
+import static org.csstudio.display.builder.model.widgets.TankWidget.propScaleVisible;
+import static org.csstudio.display.builder.model.widgets.TankWidget.propShowMinorTicks;
 
 import java.util.Arrays;
 import java.util.List;
 
+import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyCategory;
+import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-/** Widget that displays a progress bar
+/** Widget that displays a progress bar with an optional numeric scale.
+ *
+ *  <p>Extends {@link ScaledPVWidget} to inherit common scale/limit properties
+ *  (min/max range, format, precision, alarm limit lines).  The bar uses the
+ *  same rendering engine as {@link TankWidget} ({@code RTTank}) so the scale
+ *  and alarm-limit features are identical.
+ *
+ *  <p>Existing {@code .bob} files load unchanged: {@code fill_color},
+ *  {@code background_color}, {@code horizontal}, {@code limits_from_pv},
+ *  {@code minimum}, {@code maximum} and {@code log_scale} keep the same
+ *  XML names.  New properties ({@code format}, {@code precision},
+ *  {@code scale_visible}, {@code show_minor_ticks}, alarm limit properties)
+ *  are silently ignored by older Phoebus versions.
+ *
  *  @author Kay Kasemir
  *  @author Amanda Carpenter
+ *  @author Heredie Delvalle &mdash; CLS, ScaledPVWidget refactoring, scale support
  */
 @SuppressWarnings("nls")
-public class ProgressBarWidget extends PVWidget
+public class ProgressBarWidget extends ScaledPVWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -55,7 +76,7 @@ public class ProgressBarWidget extends PVWidget
         }
     };
 
-    /** Widget configurator to read legacy *.opi files*/
+    /** Widget configurator to read legacy *.opi files */
     private static class ProgressBarConfigurator extends WidgetConfigurator
     {
         public ProgressBarConfigurator(final Version xml_version)
@@ -72,24 +93,21 @@ public class ProgressBarWidget extends PVWidget
             if (xml_version.getMajor() < 2)
             {
                 final ProgressBarWidget bar = (ProgressBarWidget) widget;
-                // BOY progress bar reserved room on top for limit markers,
-                // and on bottom for scale
+                // BOY reserved room on top for limit markers and on the bottom for
+                // a scale. This widget now actually has a scale, so only adjust for
+                // the marker area that has been removed.
                 if (XMLUtil.getChildBoolean(xml, "show_markers").orElse(true))
                 {
-                    // This widget has no markers on top, so move widget down and reduce height.
-                    // There is no 'marker font', seems to have constant height
                     final int reduce = 25;
                     bar.propY().setValue(bar.propY().getValue() + reduce);
                     bar.propHeight().setValue(bar.propHeight().getValue() - reduce);
                 }
-                // Do use space below where BOY placed markers for the bar itself.
-                // In the future, there could be a scale.
 
                 final Element el = XMLUtil.getChildElement(xml, "color_fillbackground");
                 if (el != null)
                     bar.propBackgroundColor().readFromXML(model_reader, el);
 
-                // Create text update for the value indicator
+                // Create a companion TextUpdate widget for the BOY value label.
                 if (XMLUtil.getChildBoolean(xml, "show_label").orElse(true))
                 {
                     final Document doc = xml.getOwnerDocument();
@@ -125,31 +143,37 @@ public class ProgressBarWidget extends PVWidget
         return new ProgressBarConfigurator(persisted_version);
     }
 
-    private volatile WidgetProperty<Boolean> limits_from_pv;
-    private volatile WidgetProperty<Double> minimum;
-    private volatile WidgetProperty<Double> maximum;
-    private volatile WidgetProperty<Boolean> log_scale;
+    private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<WidgetColor> fill_color;
     private volatile WidgetProperty<WidgetColor> background_color;
-    private volatile WidgetProperty<Boolean> horizontal;
+    private volatile WidgetProperty<Boolean>     log_scale;
+    private volatile WidgetProperty<Boolean>     horizontal;
+    private volatile WidgetProperty<Boolean>     scale_visible;
+    private volatile WidgetProperty<Boolean>     show_minor_ticks;
 
     /** Constructor */
     public ProgressBarWidget()
     {
-        super(WIDGET_DESCRIPTOR.getType());
+        super(WIDGET_DESCRIPTOR.getType(), 300, 30);
     }
 
     @Override
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
-        properties.add(fill_color = propFillColor.createProperty(this, new WidgetColor(60, 255, 60)));
+        properties.add(font            = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
+        properties.add(fill_color      = propFillColor.createProperty(this, new WidgetColor(60, 255, 60)));
         properties.add(background_color = propBackgroundColor.createProperty(this, new WidgetColor(250, 250, 250)));
-        properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
-        properties.add(minimum = propMinimum.createProperty(this, 0.0));
-        properties.add(maximum = propMaximum.createProperty(this, 100.0));
-        properties.add(log_scale = propLogscale.createProperty(this, false));
-        properties.add(horizontal = propHorizontal.createProperty(this, true));
+        properties.add(log_scale       = propLogscale.createProperty(this, false));
+        properties.add(horizontal      = propHorizontal.createProperty(this, true));
+        properties.add(scale_visible   = propScaleVisible.createProperty(this, false));
+        properties.add(show_minor_ticks = propShowMinorTicks.createProperty(this, true));
+    }
+
+    /** @return 'font' property */
+    public WidgetProperty<WidgetFont> propFont()
+    {
+        return font;
     }
 
     /** @return 'fill_color' property */
@@ -164,24 +188,6 @@ public class ProgressBarWidget extends PVWidget
         return background_color;
     }
 
-    /** @return 'limits_from_pv' property */
-    public WidgetProperty<Boolean> propLimitsFromPV()
-    {
-        return limits_from_pv;
-    }
-
-    /** @return 'minimum' property */
-    public WidgetProperty<Double> propMinimum()
-    {
-        return minimum;
-    }
-
-    /** @return 'maximum' property */
-    public WidgetProperty<Double> propMaximum()
-    {
-        return maximum;
-    }
-
     /** @return 'log_scale' property */
     public WidgetProperty<Boolean> propLogScale()
     {
@@ -192,5 +198,17 @@ public class ProgressBarWidget extends PVWidget
     public WidgetProperty<Boolean> propHorizontal()
     {
         return horizontal;
+    }
+
+    /** @return 'scale_visible' property */
+    public WidgetProperty<Boolean> propScaleVisible()
+    {
+        return scale_visible;
+    }
+
+    /** @return 'show_minor_ticks' property */
+    public WidgetProperty<Boolean> propShowMinorTicks()
+    {
+        return show_minor_ticks;
     }
 }
