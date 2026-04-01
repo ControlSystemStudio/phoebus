@@ -72,6 +72,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
         model_widget.propShowMinorTicks().addUntypedPropertyListener(lookListener);
         model_widget.propOppositeScaleVisible().addUntypedPropertyListener(lookListener);
         model_widget.propPerpendicularTickLabels().addUntypedPropertyListener(lookListener);
+        model_widget.propBorderWidth().addUntypedPropertyListener(lookListener);
         model_widget.propLogScale().addUntypedPropertyListener(lookListener);
         model_widget.propFormat().addUntypedPropertyListener(lookListener);
         model_widget.propPrecision().addUntypedPropertyListener(lookListener);
@@ -109,6 +110,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
         model_widget.propShowMinorTicks().removePropertyListener(lookListener);
         model_widget.propOppositeScaleVisible().removePropertyListener(lookListener);
         model_widget.propPerpendicularTickLabels().removePropertyListener(lookListener);
+        model_widget.propBorderWidth().removePropertyListener(lookListener);
         model_widget.propLogScale().removePropertyListener(lookListener);
         model_widget.propFormat().removePropertyListener(lookListener);
         model_widget.propPrecision().removePropertyListener(lookListener);
@@ -263,6 +265,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
             tank.setShowMinorTicks(model_widget.propShowMinorTicks().getValue());
             tank.setRightScaleVisible(model_widget.propOppositeScaleVisible().getValue());
             tank.setPerpendicularTickLabels(model_widget.propPerpendicularTickLabels().getValue());
+            tank.setBorderWidth(model_widget.propBorderWidth().getValue());
             tank.setLogScale(model_widget.propLogScale().getValue());
             tank.setLabelFormat(model_widget.propFormat().getValue(),
                                 model_widget.propPrecision().getValue());

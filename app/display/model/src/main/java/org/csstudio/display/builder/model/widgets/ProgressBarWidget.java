@@ -151,6 +151,7 @@ public class ProgressBarWidget extends ScaledPVWidget
     private volatile WidgetProperty<Boolean>     show_minor_ticks;
     private volatile WidgetProperty<Boolean>     opposite_scale_visible;
     private volatile WidgetProperty<Boolean>     perpendicular_tick_labels;
+    private volatile WidgetProperty<Integer>     border_width_prop;
 
     /** Constructor */
     public ProgressBarWidget()
@@ -171,6 +172,7 @@ public class ProgressBarWidget extends ScaledPVWidget
         properties.add(show_minor_ticks        = propShowMinorTicks.createProperty(this, true));
         properties.add(opposite_scale_visible  = propOppositeScaleVisible.createProperty(this, false));
         properties.add(perpendicular_tick_labels = propPerpendicularTickLabels.createProperty(this, false));
+        properties.add(border_width_prop         = propBorderWidth.createProperty(this, 0));
     }
 
     /** @return 'font' property */
@@ -225,5 +227,11 @@ public class ProgressBarWidget extends ScaledPVWidget
     public WidgetProperty<Boolean> propPerpendicularTickLabels()
     {
         return perpendicular_tick_labels;
+    }
+
+    /** @return 'border_width' property (0 = no border) */
+    public WidgetProperty<Integer> propBorderWidth()
+    {
+        return border_width_prop;
     }
 }

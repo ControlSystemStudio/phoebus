@@ -8,7 +8,6 @@
 package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newColorPropertyDescriptor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newIntegerPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFillColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
@@ -73,13 +72,6 @@ public class TankWidget extends ScaledPVWidget
         }
     };
 
-    /** 'tank_border_width' — width in pixels of the border drawn around the
-     *  tank body; 0 (default) means no border, preserving the original look.
-     */
-    public static final WidgetPropertyDescriptor<Integer> propTankBorderWidth =
-        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tank_border_width",
-                                     Messages.WidgetProperties_BorderWidth, 0, 5);
-
     /** 'empty_color' */
     public static final WidgetPropertyDescriptor<WidgetColor> propEmptyColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "empty_color", Messages.WidgetProperties_EmptyColor);
@@ -98,6 +90,11 @@ public class TankWidget extends ScaledPVWidget
         {
             if (! super.configureFromXML(model_reader, widget, xml))
                 return false;
+
+            // Migrate old 'tank_border_width' XML key to the renamed common 'border_width'.
+            final Element bw_compat = XMLUtil.getChildElement(xml, "tank_border_width");
+            if (bw_compat != null)
+                ((TankWidget) widget).propBorderWidth().readFromXML(model_reader, bw_compat);
 
             if (xml_version.getMajor() < 2)
             {
@@ -175,7 +172,7 @@ public class TankWidget extends ScaledPVWidget
         properties.add(perpendicular_tick_labels = propPerpendicularTickLabels.createProperty(this, false));
         properties.add(log_scale = propLogscale.createProperty(this, false));
         properties.add(horizontal = propHorizontal.createProperty(this, false));
-        properties.add(border_width_prop = propTankBorderWidth.createProperty(this, 0));
+        properties.add(border_width_prop = propBorderWidth.createProperty(this, 0));
     }
 
     @Override
