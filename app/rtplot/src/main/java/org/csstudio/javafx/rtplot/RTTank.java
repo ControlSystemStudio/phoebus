@@ -335,12 +335,12 @@ public class RTTank extends Canvas
             @Override
             public StringBuffer format(final double v, final StringBuffer buf, final java.text.FieldPosition pos)
             {
-                return buf.append(String.format(java.util.Locale.ROOT, pattern, v));
+                return buf.append(normaliseExponent(String.format(java.util.Locale.ROOT, pattern, v)));
             }
             @Override
             public StringBuffer format(final long v, final StringBuffer buf, final java.text.FieldPosition pos)
             {
-                return buf.append(String.format(java.util.Locale.ROOT, pattern, (double) v));
+                return buf.append(normaliseExponent(String.format(java.util.Locale.ROOT, pattern, (double) v)));
             }
             @Override
             public Number parse(final String s, final java.text.ParsePosition pos)
@@ -348,6 +348,25 @@ public class RTTank extends Canvas
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    /** Normalise a {@code %g}-formatted string to match Phoebus axis convention:
+     *  uppercase {@code E}, no leading zeros on the exponent, no {@code +} sign.
+     *  Examples: {@code "1.0e-01"} &rarr; {@code "1.0E-1"},
+     *            {@code "2.5e+02"} &rarr; {@code "2.5E2"}.
+     */
+    private static String normaliseExponent(final String s)
+    {
+        final int e = s.indexOf('e');
+        if (e < 0)
+            return s;   // decimal notation — no exponent to fix
+        final String mantissa = s.substring(0, e);
+        String exp = s.substring(e + 1);            // e.g. "-01", "+02"
+        final boolean neg = exp.startsWith("-");
+        exp = exp.replaceFirst("^[+-]?0*", "");     // strip sign & leading zeros
+        if (exp.isEmpty())
+            exp = "0";
+        return mantissa + "E" + (neg ? "-" : "") + exp;
     }
 
     /** Set alarm and warning limit values to display as horizontal lines on the tank.

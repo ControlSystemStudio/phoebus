@@ -280,6 +280,12 @@ public class LinearTicks extends Ticks<Double>
             major_ticks.add(0, new MajorTick<>(low, format(low)));
             major_ticks.add(new MajorTick<>(high, format(high)));
         }
+
+        // Apply user-specified label format override if set.
+        final NumberFormat override = getLabelFormatOverride();
+        if (override != null)
+            relabelTicks(major_ticks, override);
+
         this.major_ticks = major_ticks;
         this.minor_ticks = minor_ticks;
     }
@@ -385,9 +391,9 @@ public class LinearTicks extends Ticks<Double>
             return "Inf";
         // Patch numbers that are "very close to zero"
         // to avoid "-0.00" or "0.0e-22"
-        if (Math.abs(num) < zero_threshold)
-            return num_fmt.format(0.0);
-        return num_fmt.format(num);
+        final double val = Math.abs(num) < zero_threshold ? 0.0 : num;
+        final NumberFormat override = getLabelFormatOverride();
+        return (override != null) ? override.format(val) : num_fmt.format(val);
     }
 
     /** {@inheritDoc} */
