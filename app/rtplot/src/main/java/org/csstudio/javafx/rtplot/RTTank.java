@@ -16,6 +16,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -350,6 +351,11 @@ public class RTTank extends Canvas
         };
     }
 
+    /** Pre-compiled pattern for stripping the sign and leading zeros from a
+     *  {@code %g} exponent string such as {@code "-01"} or {@code "+02"}.
+     */
+    private static final Pattern EXP_LEADING_ZEROS = Pattern.compile("^[+-]?0*");
+
     /** Normalise a {@code %g}-formatted string to match Phoebus axis convention:
      *  uppercase {@code E}, no leading zeros on the exponent, no {@code +} sign.
      *  Examples: {@code "1.0e-01"} &rarr; {@code "1.0E-1"},
@@ -361,12 +367,10 @@ public class RTTank extends Canvas
         if (e < 0)
             return s;   // decimal notation — no exponent to fix
         final String mantissa = s.substring(0, e);
-        String exp = s.substring(e + 1);            // e.g. "-01", "+02"
-        final boolean neg = exp.startsWith("-");
-        exp = exp.replaceFirst("^[+-]?0*", "");     // strip sign & leading zeros
-        if (exp.isEmpty())
-            exp = "0";
-        return mantissa + "E" + (neg ? "-" : "") + exp;
+        final String raw = s.substring(e + 1);      // e.g. "-01", "+02"
+        final boolean neg = raw.startsWith("-");
+        final String digits = EXP_LEADING_ZEROS.matcher(raw).replaceFirst("");
+        return mantissa + "E" + (neg ? "-" : "") + (digits.isEmpty() ? "0" : digits);
     }
 
     /** Set alarm and warning limit values to display as horizontal lines on the tank.
