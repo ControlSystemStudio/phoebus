@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFillColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
@@ -25,8 +24,6 @@ import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.WidgetPropertyCategory;
-import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
@@ -105,6 +102,16 @@ public class ProgressBarWidget extends ScaledPVWidget
                 final Element el = XMLUtil.getChildElement(xml, "color_fillbackground");
                 if (el != null)
                     bar.propBackgroundColor().readFromXML(model_reader, el);
+
+                // BOY's 'show_scale' boolean maps to our 'scale_visible' property.
+                final Element showScaleEl = XMLUtil.getChildElement(xml, "show_scale");
+                if (showScaleEl != null)
+                    bar.propScaleVisible().readFromXML(model_reader, showScaleEl);
+
+                // BOY's 'scale_font' maps to our 'font' property.
+                final Element scaleFontEl = XMLUtil.getChildElement(xml, "scale_font");
+                if (scaleFontEl != null)
+                    bar.propFont().readFromXML(model_reader, scaleFontEl);
 
                 // Create a companion TextUpdate widget for the BOY value label.
                 if (XMLUtil.getChildBoolean(xml, "show_label").orElse(true))

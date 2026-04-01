@@ -91,11 +91,6 @@ public class TankWidget extends ScaledPVWidget
             if (! super.configureFromXML(model_reader, widget, xml))
                 return false;
 
-            // Migrate old 'tank_border_width' XML key to the renamed common 'border_width'.
-            final Element bw_compat = XMLUtil.getChildElement(xml, "tank_border_width");
-            if (bw_compat != null)
-                ((TankWidget) widget).propBorderWidth().readFromXML(model_reader, bw_compat);
-
             if (xml_version.getMajor() < 2)
             {
                 final TankWidget tank = (TankWidget) widget;

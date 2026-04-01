@@ -22,10 +22,10 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
-import org.phoebus.ui.color.NamedWidgetColors;
-import org.phoebus.ui.color.WidgetColorService;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
+import org.phoebus.ui.color.NamedWidgetColors;
 import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
 import org.phoebus.ui.vtype.ScaleFormat;
 
 /** Base class for PV widgets that display a numeric value on a scale
@@ -46,7 +46,7 @@ import org.phoebus.ui.vtype.ScaleFormat;
  *        overrides the manual LOLO/LO/HI/HIHI levels.  New property;
  *        old Phoebus silently ignores the XML element.</li>
  *    <li>Manual {@code minimum} / {@code maximum} range.</li>
- *    <li>A {@code show_limits} toggle for alarm-limit visual markers.</li>
+    *    <li>A {@code show_alarm_limits} toggle for alarm-limit visual markers.</li>
  *    <li>Manual LOLO / LO / HI / HIHI thresholds (NaN = inactive).</li>
  *    <li>Configurable minor/major alarm colours defaulting to the named
  *        {@code ALARM_MINOR} / {@code ALARM_MAJOR} palette entries.</li>

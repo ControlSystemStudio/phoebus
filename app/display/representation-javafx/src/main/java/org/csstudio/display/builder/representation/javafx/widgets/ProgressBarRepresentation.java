@@ -28,11 +28,10 @@ import javafx.scene.transform.Translate;
 
 /** Creates JavaFX item for model widget.
  *
- *  <p>Uses {@link RTTank} as the rendering engine so the bar gains
- *  a numeric scale, configurable tick format/precision, and alarm
- *  limit lines at no extra maintenance cost.  The tank body border
- *  is always hidden ({@code setBorderWidth(0)}) so the widget looks
- *  like a plain fill bar rather than a tank.
+ *  <p>Uses {@link RTTank} as the rendering engine so the bar
+ *  gains a numeric scale, configurable tick format and precision,
+ *  optional second scale, and alarm limit lines — all at no extra
+ *  maintenance cost versus the plain JavaFX {@code ProgressBar}.
  *
  *  @author Kay Kasemir
  *  @author Amanda Carpenter
@@ -53,8 +52,6 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
     public Pane createJFXNode() throws Exception
     {
         tank = new RTTank();
-        // Never show the visual tank-body outline: this is a bar, not a tank.
-        tank.setBorderWidth(0);
         tank.setUpdateThrottle(Preferences.image_update_delay, TimeUnit.MILLISECONDS);
         return new Pane(tank);
     }
