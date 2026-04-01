@@ -13,8 +13,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propLogscale;
-import static org.csstudio.display.builder.model.widgets.TankWidget.propScaleVisible;
-import static org.csstudio.display.builder.model.widgets.TankWidget.propShowMinorTicks;
+
 
 import java.util.Arrays;
 import java.util.List;
@@ -150,6 +149,8 @@ public class ProgressBarWidget extends ScaledPVWidget
     private volatile WidgetProperty<Boolean>     horizontal;
     private volatile WidgetProperty<Boolean>     scale_visible;
     private volatile WidgetProperty<Boolean>     show_minor_ticks;
+    private volatile WidgetProperty<Boolean>     opposite_scale_visible;
+    private volatile WidgetProperty<Boolean>     perpendicular_tick_labels;
 
     /** Constructor */
     public ProgressBarWidget()
@@ -166,8 +167,10 @@ public class ProgressBarWidget extends ScaledPVWidget
         properties.add(background_color = propBackgroundColor.createProperty(this, new WidgetColor(250, 250, 250)));
         properties.add(log_scale       = propLogscale.createProperty(this, false));
         properties.add(horizontal      = propHorizontal.createProperty(this, true));
-        properties.add(scale_visible   = propScaleVisible.createProperty(this, false));
-        properties.add(show_minor_ticks = propShowMinorTicks.createProperty(this, true));
+        properties.add(scale_visible          = propScaleVisible.createProperty(this, false));
+        properties.add(show_minor_ticks        = propShowMinorTicks.createProperty(this, true));
+        properties.add(opposite_scale_visible  = propOppositeScaleVisible.createProperty(this, false));
+        properties.add(perpendicular_tick_labels = propPerpendicularTickLabels.createProperty(this, false));
     }
 
     /** @return 'font' property */
@@ -210,5 +213,17 @@ public class ProgressBarWidget extends ScaledPVWidget
     public WidgetProperty<Boolean> propShowMinorTicks()
     {
         return show_minor_ticks;
+    }
+
+    /** @return 'opposite_scale_visible' property */
+    public WidgetProperty<Boolean> propOppositeScaleVisible()
+    {
+        return opposite_scale_visible;
+    }
+
+    /** @return 'perpendicular_tick_labels' property */
+    public WidgetProperty<Boolean> propPerpendicularTickLabels()
+    {
+        return perpendicular_tick_labels;
     }
 }

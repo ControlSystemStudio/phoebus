@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newColorPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newIntegerPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
@@ -84,26 +83,6 @@ public class TankWidget extends ScaledPVWidget
     /** 'empty_color' */
     public static final WidgetPropertyDescriptor<WidgetColor> propEmptyColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "empty_color", Messages.WidgetProperties_EmptyColor);
-    /** 'scale_visible' */
-    public static final WidgetPropertyDescriptor<Boolean>   propScaleVisible =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scale_visible", Messages.WidgetProperties_ScaleVisible);
-
-    /** 'show_minor_ticks' */
-    public static final WidgetPropertyDescriptor<Boolean>   propShowMinorTicks =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_minor_ticks", Messages.WidgetProperties_ShowMinorTicks);
-
-    /** 'perpendicular_tick_labels' &mdash; draw scale labels perpendicular
-     *  to the axis direction (horizontal text beside vertical scale)
-     */
-    public static final WidgetPropertyDescriptor<Boolean>   propPerpendicularTickLabels =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "perpendicular_tick_labels", Messages.WidgetProperties_PerpendicularTickLabels);
-
-    /** 'opposite_scale_visible' &mdash; show a second scale on the opposite
-     *  side of the tank (right for vertical, bottom for horizontal).
-     *  Inspired by CS-Studio BOY which could show markers on both sides.
-     */
-    public static final WidgetPropertyDescriptor<Boolean>   propOppositeScaleVisible =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "opposite_scale_visible", Messages.WidgetProperties_OppositeScaleVisible);
 
     /** Widget configurator to read legacy *.opi files*/
     private static class CustomConfigurator extends WidgetConfigurator

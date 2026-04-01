@@ -125,6 +125,26 @@ public abstract class ScaledPVWidget extends PVWidget
         newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "major_alarm_color",
                                    Messages.WidgetProperties_MajorAlarmColor);
 
+    /** 'scale_visible' — show the numeric scale (tick marks and labels) */
+    public static final WidgetPropertyDescriptor<Boolean> propScaleVisible =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scale_visible",
+                                     Messages.WidgetProperties_ScaleVisible);
+
+    /** 'show_minor_ticks' — show minor tick marks on the scale */
+    public static final WidgetPropertyDescriptor<Boolean> propShowMinorTicks =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_minor_ticks",
+                                     Messages.WidgetProperties_ShowMinorTicks);
+
+    /** 'opposite_scale_visible' — show a second scale on the opposite side */
+    public static final WidgetPropertyDescriptor<Boolean> propOppositeScaleVisible =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "opposite_scale_visible",
+                                     Messages.WidgetProperties_OppositeScaleVisible);
+
+    /** 'perpendicular_tick_labels' — draw scale labels perpendicular to the axis */
+    public static final WidgetPropertyDescriptor<Boolean> propPerpendicularTickLabels =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "perpendicular_tick_labels",
+                                     Messages.WidgetProperties_PerpendicularTickLabels);
+
     // ---- Instance fields ------------------------------------------------
 
     private volatile WidgetProperty<ScaleFormat>  format;
