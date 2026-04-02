@@ -222,17 +222,14 @@ public class DockPane extends TabPane
 
         // Allow dropping a DockItem.
         //
-        // DRAG_OVER uses a capture-phase filter (parent-before-child) so DockPane
-        // always calls acceptTransferModes() before any child node (e.g. a TreeView
-        // inside the file-browser) can consume the event and silently reject the drop.
-        // Without this, drops onto content-heavy panes would silently float the tab.
+        // DRAG_OVER and DRAG_DROPPED use capture-phase filters.  When the pointer
+        // is over a DockItem tab-label, the filter does NOT consume the event so
+        // DockItem's own handlers can fire (green highlight, swap/insert logic).
+        // When the pointer is over the pane body or empty tab-bar space, the filter
+        // consumes the event and DockPane handles the drop (merge or split).
         //
         // DRAG_ENTERED/EXITED use bubble handlers so they only fire when the drag
-        // truly enters/exits DockPane.  A filter on EXITED would also fire whenever
-        // the cursor enters any *child* node, spuriously clearing the zone border.
-        //
-        // DRAG_DROPPED uses a capture-phase filter so DockPane always handles the
-        // drop before any DockItem tab-header handler can consume it.
+        // truly enters/exits DockPane, not for every child-node transition.
         addEventFilter(DragEvent.DRAG_OVER,    this::handleDragOver);
         setOnDragEntered(this::handleDragEntered);
         setOnDragExited(this::handleDragExited);
@@ -590,22 +587,33 @@ public class DockPane extends TabPane
         setBorder(Border.EMPTY);
     }
 
-    /** Accept dock items, tracking the drop zone as the pointer moves */
+    /** Accept dock items, tracking the drop zone as the pointer moves.
+     *
+     *  <p>This is a capture-phase filter: it fires before any child node.
+     *  When the pointer is over a DockItem tab-label we accept the transfer mode
+     *  (so the drop is not rejected by content nodes below) but do NOT consume,
+     *  letting DockItem's own handlers provide the green highlight and handle
+     *  the tab-on-tab swap/insert.  For all other positions we consume and
+     *  DockPane handles zone borders and the eventual drop.
+     */
     private void handleDragOver(final DragEvent event)
     {
         if (!isFixed()  &&  DockItem.dragged_item.get() != null)
         {
             event.acceptTransferModes(TransferMode.MOVE);
-            // Keep zone border in sync with pointer position
+
             final DropZone zone = getDropZone(event.getX(), event.getY());
             if (zone != active_drop_zone)
             {
                 active_drop_zone = zone;
                 updateZoneBorder(zone);
             }
-            // Consume only when we handle the drag, so non-dock-item drags
-            // (e.g. OS file drop onto the file browser) can still reach child nodes.
-            event.consume();
+
+            // Let DockItem tab-label handlers fire when the cursor is over
+            // the tab header strip; consume everywhere else so child content
+            // nodes (TreeView, etc.) cannot silently reject the drop.
+            if (event.getY() > tab_bar_bottom)
+                event.consume();
         }
     }
 
@@ -626,6 +634,23 @@ public class DockPane extends TabPane
         active_drop_zone = DropZone.CENTER;
         clearDropZoneStyle();
         event.consume();
+    }
+
+    /** Check whether the node under the cursor belongs to a tab header.
+     *  Walks up from the pick result looking for a {@code .tab} style-class node.
+     *  This is O(scene-graph depth) — typically 3-5 parent nodes — and only called
+     *  once per drop, not during the hot DRAG_OVER path.
+     */
+    private boolean isOverTabNode(final DragEvent event)
+    {
+        Node n = event.getPickResult().getIntersectedNode();
+        while (n != null  &&  n != this)
+        {
+            if (n.getStyleClass().contains("tab"))
+                return true;
+            n = n.getParent();
+        }
+        return false;
     }
 
     /** Determine drop zone from pointer position relative to this pane.
@@ -702,27 +727,33 @@ public class DockPane extends TabPane
         }
     }
 
-    /** Accept a dropped tab, either merging it into this pane or splitting based on drop zone */
+    /** Accept a dropped tab: merge into this pane (centre zone) or split (edge zone).
+     *
+     *  <p>Tab-on-tab drops (reorder within same pane, or insert next to a specific
+     *  tab from another pane) are handled by {@link DockItem}'s own handlers on
+     *  {@code name_tab}.  Those handlers fire after this capture filter because they
+     *  are bubble-phase; this filter returns early so the event can reach them.
+     *  DockPane handles drops on the pane body, empty tab-bar space, and edge zones.
+     */
     private void handleDrop(final DragEvent event)
     {
         if (!event.getDragboard().hasContent(DockItem.DOCK_ITEM))
+            return;
+
+        // When the cursor is directly over a tab header, let DockItem's own
+        // handler on name_tab manage the swap/insert.  Clean up the pane border
+        // since no further DockPane handler will run for this drop.
+        if (isOverTabNode(event))
         {
-            // Not our content; let the event continue its normal dispatch.
-            // Do NOT consume here so other handlers (e.g. file-browser) can still act.
+            clearDropZoneStyle();
+            active_drop_zone = DropZone.CENTER;
             return;
         }
 
         final DockItem item = DockItem.dragged_item.getAndSet(null);
         if (item == null)
-        {
-            logger.log(Level.SEVERE, "Empty drop, " + event);
-            event.setDropCompleted(true);
-            event.consume();
             return;
-        }
 
-        // Recalculate zone from actual drop coordinates — active_drop_zone can be stale
-        // if DRAG_EXITED fired on a child node just before the drop.
         final DropZone zone = getDropZone(event.getX(), event.getY());
         clearDropZoneStyle();
         active_drop_zone = DropZone.CENTER;
@@ -733,23 +764,12 @@ public class DockPane extends TabPane
             mergeTabIntoPaneDeferred(item);
         else
         {
-            copyStylesFromScene(item);  // only needed when moving to a different scene
+            copyStylesFromScene(item);
             splitAndPlaceTabAsync(item, zone);
         }
 
         event.setDropCompleted(true);
         event.consume();
-
-        // After a DnD gesture the containing window can lose OS-level focus.
-        // Window.requestFocus() re-asserts it so that the first mouse action after
-        // the drop is not swallowed as a 'focus click'.  Guarded against the rare
-        // case where the pane leaves the scene between drop and deferred execution.
-        Platform.runLater(() ->
-        {
-            final Scene s = getScene();
-            if (s != null)
-                s.getWindow().requestFocus();
-        });
     }
 
     /** When a tab moves to a different scene, ensure that scene has the same stylesheets. */
