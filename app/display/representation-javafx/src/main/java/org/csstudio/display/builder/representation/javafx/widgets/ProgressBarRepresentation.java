@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2026 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,139 +7,83 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
-import java.util.concurrent.TimeUnit;
-
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
-import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.csstudio.javafx.rtplot.RTTank;
-import org.epics.util.stats.Range;
+import org.csstudio.javafx.rtplot.internal.util.Log10;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
+import org.phoebus.ui.javafx.Styles;
 
-import javafx.scene.layout.Pane;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
-/** Creates JavaFX item for model widget.
- *
- *  <p>Uses {@link RTTank} as the rendering engine so the bar
- *  gains a numeric scale, configurable tick format and precision,
- *  optional second scale, and alarm limit lines — all at no extra
- *  maintenance cost versus the plain JavaFX {@code ProgressBar}.
- *
+/** Creates JavaFX item for model widget
  *  @author Kay Kasemir
  *  @author Amanda Carpenter
- *  @author Heredie Delvalle &mdash; CLS, RTTank-based refactoring, scale support
  */
 @SuppressWarnings("nls")
-public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, ProgressBarWidget>
+public class ProgressBarRepresentation extends RegionBaseRepresentation<ProgressBar, ProgressBarWidget>
 {
     private final DirtyFlag dirty_look = new DirtyFlag();
-    private final UntypedWidgetPropertyListener lookListener   = this::lookChanged;
-    private final UntypedWidgetPropertyListener valueListener  = this::valueChanged;
-    private final UntypedWidgetPropertyListener limitsListener = this::limitsChanged;
+    private final DirtyFlag dirty_value = new DirtyFlag();
+    private final UntypedWidgetPropertyListener lookChangedListener = this::lookChanged;
     private final WidgetPropertyListener<Boolean> orientationChangedListener = this::orientationChanged;
-
-    private volatile RTTank tank;
+    private final UntypedWidgetPropertyListener valueChangedListener = this::valueChanged;
+    private volatile double percentage = 0.0;
 
     @Override
-    public Pane createJFXNode() throws Exception
+    public ProgressBar createJFXNode() throws Exception
     {
-        tank = new RTTank();
-        tank.setUpdateThrottle(Preferences.image_update_delay, TimeUnit.MILLISECONDS);
-        return new Pane(tank);
+        final ProgressBar bar = new ProgressBar();
+        return bar;
     }
 
     @Override
     protected void registerListeners()
     {
         super.registerListeners();
-        model_widget.propWidth().addUntypedPropertyListener(lookListener);
-        model_widget.propHeight().addUntypedPropertyListener(lookListener);
-        model_widget.propFont().addUntypedPropertyListener(lookListener);
-        model_widget.propFillColor().addUntypedPropertyListener(lookListener);
-        model_widget.propBackgroundColor().addUntypedPropertyListener(lookListener);
-        model_widget.propScaleVisible().addUntypedPropertyListener(lookListener);
-        model_widget.propShowMinorTicks().addUntypedPropertyListener(lookListener);
-        model_widget.propOppositeScaleVisible().addUntypedPropertyListener(lookListener);
-        model_widget.propPerpendicularTickLabels().addUntypedPropertyListener(lookListener);
-        model_widget.propBorderWidth().addUntypedPropertyListener(lookListener);
-        model_widget.propLogScale().addUntypedPropertyListener(lookListener);
-        model_widget.propFormat().addUntypedPropertyListener(lookListener);
-        model_widget.propPrecision().addUntypedPropertyListener(lookListener);
-        model_widget.propMinorAlarmColor().addUntypedPropertyListener(lookListener);
-        model_widget.propMajorAlarmColor().addUntypedPropertyListener(lookListener);
-
-        model_widget.propLimitsFromPV().addUntypedPropertyListener(valueListener);
-        model_widget.propMinimum().addUntypedPropertyListener(valueListener);
-        model_widget.propMaximum().addUntypedPropertyListener(valueListener);
-        model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
-
-        model_widget.propShowAlarmLimits().addUntypedPropertyListener(limitsListener);
-        model_widget.propAlarmLimitsFromPV().addUntypedPropertyListener(limitsListener);
-        model_widget.propLevelLoLo().addUntypedPropertyListener(limitsListener);
-        model_widget.propLevelLow().addUntypedPropertyListener(limitsListener);
-        model_widget.propLevelHigh().addUntypedPropertyListener(limitsListener);
-        model_widget.propLevelHiHi().addUntypedPropertyListener(limitsListener);
-
+        model_widget.propFillColor().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propWidth().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propHeight().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propLimitsFromPV().addUntypedPropertyListener(valueChangedListener);
+        model_widget.propMinimum().addUntypedPropertyListener(valueChangedListener);
+        model_widget.propMaximum().addUntypedPropertyListener(valueChangedListener);
+        model_widget.propLogScale().addUntypedPropertyListener(valueChangedListener);
+        model_widget.runtimePropValue().addUntypedPropertyListener(valueChangedListener);
         model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
-
-        // Initial apply — range and fill first, then limits
         valueChanged(null, null, null);
-        limitsChanged(null, null, null);
     }
 
     @Override
     protected void unregisterListeners()
     {
-        model_widget.propWidth().removePropertyListener(lookListener);
-        model_widget.propHeight().removePropertyListener(lookListener);
-        model_widget.propFont().removePropertyListener(lookListener);
-        model_widget.propFillColor().removePropertyListener(lookListener);
-        model_widget.propBackgroundColor().removePropertyListener(lookListener);
-        model_widget.propScaleVisible().removePropertyListener(lookListener);
-        model_widget.propShowMinorTicks().removePropertyListener(lookListener);
-        model_widget.propOppositeScaleVisible().removePropertyListener(lookListener);
-        model_widget.propPerpendicularTickLabels().removePropertyListener(lookListener);
-        model_widget.propBorderWidth().removePropertyListener(lookListener);
-        model_widget.propLogScale().removePropertyListener(lookListener);
-        model_widget.propFormat().removePropertyListener(lookListener);
-        model_widget.propPrecision().removePropertyListener(lookListener);
-        model_widget.propMinorAlarmColor().removePropertyListener(lookListener);
-        model_widget.propMajorAlarmColor().removePropertyListener(lookListener);
-
-        model_widget.propLimitsFromPV().removePropertyListener(valueListener);
-        model_widget.propMinimum().removePropertyListener(valueListener);
-        model_widget.propMaximum().removePropertyListener(valueListener);
-        model_widget.runtimePropValue().removePropertyListener(valueListener);
-
-        model_widget.propShowAlarmLimits().removePropertyListener(limitsListener);
-        model_widget.propAlarmLimitsFromPV().removePropertyListener(limitsListener);
-        model_widget.propLevelLoLo().removePropertyListener(limitsListener);
-        model_widget.propLevelLow().removePropertyListener(limitsListener);
-        model_widget.propLevelHigh().removePropertyListener(limitsListener);
-        model_widget.propLevelHiHi().removePropertyListener(limitsListener);
-
+        model_widget.propFillColor().removePropertyListener(lookChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(lookChangedListener);
+        model_widget.propWidth().removePropertyListener(lookChangedListener);
+        model_widget.propHeight().removePropertyListener(lookChangedListener);
+        model_widget.propLimitsFromPV().removePropertyListener(valueChangedListener);
+        model_widget.propMinimum().removePropertyListener(valueChangedListener);
+        model_widget.propMaximum().removePropertyListener(valueChangedListener);
+        model_widget.propLogScale().removePropertyListener(valueChangedListener);
+        model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         super.unregisterListeners();
     }
 
-    private void lookChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
-    {
-        dirty_look.mark();
-        toolkit.scheduleUpdate(this);
-    }
-
     private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)
     {
-        // When the user changes orientation in the editor, swap width ↔ height
-        // so the widget visually rotates rather than stretching.
+        // When interactively changing orientation, swap width <-> height.
+        // This will only affect interactive changes once the widget is represented on the screen.
+        // Initially, when the widget is loaded from XML, the representation
+        // doesn't exist and the original width, height and orientation are applied
+        // without triggering a swap.
         if (toolkit.isEditMode())
         {
             final int w = model_widget.propWidth().getValue();
@@ -150,77 +94,61 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
         lookChanged(prop, old, horizontal);
     }
 
-    /** Update the display range and fill level.  Called on every PV value change. */
+    private void lookChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
+    {
+        dirty_look.mark();
+        toolkit.scheduleUpdate(this);
+    }
+
     private void valueChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         final VType vtype = model_widget.runtimePropValue().getValue();
 
+        final boolean limits_from_pv = model_widget.propLimitsFromPV().getValue();
         double min_val = model_widget.propMinimum().getValue();
         double max_val = model_widget.propMaximum().getValue();
-        if (model_widget.propLimitsFromPV().getValue())
+        if (limits_from_pv)
         {
+            // Try display range from PV
             final Display display_info = Display.displayOf(vtype);
-            if (display_info != null && display_info.getDisplayRange().isFinite())
+            if (display_info != null)
             {
                 min_val = display_info.getDisplayRange().getMinimum();
                 max_val = display_info.getDisplayRange().getMaximum();
             }
         }
-        tank.setRange(min_val, max_val);
-
-        // Re-read alarm limits from PV metadata on every value update.
-        if (model_widget.propAlarmLimitsFromPV().getValue())
-            applyAlarmLimits(vtype);
-
-        final double value = toolkit.isEditMode()
-            ? (min_val + max_val) / 2
-            : VTypeUtil.getValueNumber(vtype).doubleValue();
-        tank.setValue(value);
-    }
-
-    /** Re-apply alarm limit lines when a limit property changes. */
-    private void limitsChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
-    {
-        applyAlarmLimits(model_widget.runtimePropValue().getValue());
-    }
-
-    /** Push the current alarm limits to the tank from PV metadata or widget properties. */
-    private void applyAlarmLimits(final VType vtype)
-    {
-        if (!model_widget.propShowAlarmLimits().getValue())
+        // Fall back to 0..100 range
+        if (min_val >= max_val)
         {
-            tank.setLimits(Double.NaN, Double.NaN, Double.NaN, Double.NaN);
-            return;
+            min_val = 0.0;
+            max_val = 100.0;
         }
-        final double lolo, lo, hi, hihi;
-        if (model_widget.propAlarmLimitsFromPV().getValue())
+
+        // Determine percentage of value within the min..max range
+        final double value = VTypeUtil.getValueNumber(vtype).doubleValue();
+        final double percentage;
+
+        if (model_widget.propLogScale().getValue())
         {
-            final Display display_info = Display.displayOf(vtype);
-            if (display_info != null)
-            {
-                final Range minor = display_info.getWarningRange();
-                final Range major = display_info.getAlarmRange();
-                lo   = minor.getMinimum();
-                hi   = minor.getMaximum();
-                lolo = major.getMinimum();
-                hihi = major.getMaximum();
-            }
+            final double d = Log10.log10(max_val) - Log10.log10(min_val);
+            if (d == 0)
+                percentage = Double.NaN;
             else
-                lolo = lo = hi = hihi = Double.NaN;
+                percentage = (Log10.log10(value) - Log10.log10(min_val)) / d;
         }
         else
-        {
-            lolo = model_widget.propLevelLoLo().getValue();
-            lo   = model_widget.propLevelLow().getValue();
-            hi   = model_widget.propLevelHigh().getValue();
-            hihi = model_widget.propLevelHiHi().getValue();
-        }
-        tank.setLimits(lolo, lo, hi, hihi);
-        tank.setLimitsFromPV(model_widget.propAlarmLimitsFromPV().getValue());
-    }
+            percentage = (value - min_val) / (max_val - min_val);
 
-    /** Track whether orientation transforms are currently applied. */
-    private boolean was_transformed = false;
+        // Limit to 0.0 .. 1.0
+        if (percentage < 0.0  ||  !Double.isFinite(percentage))
+            this.percentage = 0.0;
+        else if (percentage > 1.0)
+            this.percentage = 1.0;
+        else
+            this.percentage = percentage;
+        dirty_value.mark();
+        toolkit.scheduleUpdate(this);
+    }
 
     @Override
     public void updateChanges()
@@ -228,47 +156,66 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
         super.updateChanges();
         if (dirty_look.checkAndClear())
         {
-            double width  = model_widget.propWidth().getValue();
+            boolean horizontal = model_widget.propHorizontal().getValue();
+            double width = model_widget.propWidth().getValue();
             double height = model_widget.propHeight().getValue();
-
-            // A horizontal bar is rendered by RTTank as if vertical (RTTank is
-            // always vertical internally) and then rotated 90° clockwise.
-            if (model_widget.propHorizontal().getValue())
+            if (!horizontal)
             {
-                tank.getTransforms().setAll(new Translate(width, 0),
-                                            new Rotate(90, 0, 0));
-                was_transformed = true;
-                tank.setWidth(height);
-                tank.setHeight(width);
+                jfx_node.getTransforms().setAll(
+                        new Translate(0, height),
+                        new Rotate(-90, 0, 0));
+                jfx_node.setPrefSize(height, width);
             }
             else
             {
-                if (was_transformed)
-                    tank.getTransforms().clear();
-                was_transformed = false;
-                tank.setWidth(width);
-                tank.setHeight(height);
+                jfx_node.getTransforms().clear();
+                jfx_node.setPrefSize(width, height);
             }
-            jfx_node.setPrefSize(width, height);
 
-            tank.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
-            // Background is the outer canvas margin; emptyColor is the unfilled bar portion.
-            // Map both to background_color so the whole widget has a uniform background.
-            final javafx.scene.paint.Color bg = JFXUtil.convert(model_widget.propBackgroundColor().getValue());
-            tank.setBackground(bg);
-            tank.setEmptyColor(bg);
-            tank.setFillColor(JFXUtil.convert(model_widget.propFillColor().getValue()));
-            tank.setScaleVisible(model_widget.propScaleVisible().getValue());
-            tank.setShowMinorTicks(model_widget.propShowMinorTicks().getValue());
-            tank.setRightScaleVisible(model_widget.propOppositeScaleVisible().getValue());
-            tank.setPerpendicularTickLabels(model_widget.propPerpendicularTickLabels().getValue());
-            tank.setBorderWidth(model_widget.propBorderWidth().getValue());
-            tank.setLogScale(model_widget.propLogScale().getValue());
-            tank.setLabelFormat(model_widget.propFormat().getValue(),
-                                model_widget.propPrecision().getValue());
-            tank.setAlarmColors(
-                    JFXUtil.convert(model_widget.propMinorAlarmColor().getValue()),
-                    JFXUtil.convert(model_widget.propMajorAlarmColor().getValue()));
+            // Default 'inset' of .bar uses 7 pixels.
+            // A widget sized 15 has 8 pixels left for the bar.
+            // Select leaner style where .bar uses full size.
+            Styles.update(jfx_node, "SmallBar",
+                          Math.min(width, height) <= 15);
+
+            // Could clear style and use setBackground(),
+            // but result is very plain.
+            // Tweaking the color used by CSS keeps overall style.
+            // See also http://stackoverflow.com/questions/13467259/javafx-how-to-change-progressbar-color-dynamically
+            final StringBuilder style = new StringBuilder();
+
+            // Color of the progress bar / foreground
+            style.append("-fx-accent: ").append(JFXUtil.webRGB(
+                    JFXUtil.convert(
+                            model_widget.propFillColor().getValue()
+                    )
+            )).append(" !important; ");
+
+            // Color of the background underneath the progress bar
+            // Note per moderna.css the background is actually three layers of color
+            // with fx-shadow-highlight-color on the bottom,
+            // then fx-text-box-border,
+            // and finally fx-control-inner-background on top, all stacked in place with offsets.
+            // This gives the illusion of having a bordered box with a shadow instead of actually being a
+            // bordered box with a shadow...
+            // Fortunately, the bottom-most color (the 'shadow') is already transparent so we can leave it alone
+            // Unfortunately, the middle color (the "border" color) is a solid gray color (#ececec), so we must
+            // override it with its rgba equivalent so that it has transparency matching the picked background color.
+            style.append("-fx-control-inner-background: ")
+                    .append(JFXUtil.webRGB(
+                            JFXUtil.convert(
+                                    model_widget.propBackgroundColor().getValue()))
+                            )
+                    .append(";");
+            style.append("-fx-text-box-border: rgba(236, 236, 236, ")
+                    .append(JFXUtil.webAlpha(model_widget.propBackgroundColor().getValue()))
+                    .append(");");
+            style.append("-fx-shadow-highlight-color: rgba(236, 236, 236, ")
+                    .append(JFXUtil.webAlpha(model_widget.propBackgroundColor().getValue()))
+                    .append(");");
+            jfx_node.setStyle(style.toString());
         }
+        if (dirty_value.checkAndClear())
+            jfx_node.setProgress(percentage);
     }
 }

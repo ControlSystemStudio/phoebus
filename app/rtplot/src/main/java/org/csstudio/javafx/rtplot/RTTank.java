@@ -167,7 +167,11 @@ public class RTTank extends Canvas
         widthProperty().addListener(resize_listener);
         heightProperty().addListener(resize_listener);
 
-        // 20Hz default throttle
+        // 20Hz default throttle.
+        // When parallel_rendering is enabled, each tank renders on the shared thread pool
+        // so that many tanks on a display update concurrently.  The default (false) serialises
+        // all renders on the single global UpdateThrottle.TIMER thread — safe but slow for
+        // displays with many Tank / ProgressBar widgets.
         update_throttle = new UpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
         {
             if (needUpdate.getAndSet(false)){
@@ -179,7 +183,7 @@ public class RTTank extends Canvas
                     requestUpdate();
                 }
             }
-        });
+        }, Activator.parallel_rendering ? Activator.thread_pool : UpdateThrottle.TIMER);
 
         // Configure right-side scale — must happen after update_throttle is
         // initialised because setOnRight() triggers requestUpdate() via the

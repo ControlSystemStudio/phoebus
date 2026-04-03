@@ -52,6 +52,7 @@ import org.csstudio.display.builder.model.widgets.ThermometerWidget;
 import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
+import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
@@ -105,7 +106,9 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(PictureWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new PictureRepresentation()),
             entry(PolygonWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new PolygonRepresentation()),
             entry(PolylineWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new PolylineRepresentation()),
-            entry(ProgressBarWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new ProgressBarRepresentation()),
+            entry(ProgressBarWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) (Preferences.progressbar_scale_mode
+                    ? new RTProgressBarRepresentation()
+                    : new ProgressBarRepresentation())),
             entry(RadioWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new RadioRepresentation()),
             entry(RectangleWidget.WIDGET_DESCRIPTOR,       () -> (WidgetRepresentation) new RectangleRepresentation()),
             entry(ScaledSliderWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new ScaledSliderRepresentation()),
