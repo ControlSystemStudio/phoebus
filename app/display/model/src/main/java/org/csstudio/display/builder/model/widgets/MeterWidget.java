@@ -18,6 +18,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPrecision;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propShowUnits;
+import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propLogscale;
 
 import java.util.Arrays;
 import java.util.List;
@@ -158,6 +159,7 @@ public class MeterWidget extends PVWidget
     private volatile WidgetProperty<Boolean> limits_from_pv;
     private volatile WidgetProperty<Double> minimum;
     private volatile WidgetProperty<Double> maximum;
+    private volatile WidgetProperty<Boolean> log_scale;
 
     /** Constructor */
     public MeterWidget()
@@ -195,6 +197,7 @@ public class MeterWidget extends PVWidget
         properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
+        properties.add(log_scale = propLogscale.createProperty(this, false));
     }
 
     /** @return 'foreground_color' property */
@@ -273,5 +276,11 @@ public class MeterWidget extends PVWidget
     public WidgetProperty<Double> propMaximum()
     {
         return maximum;
+    }
+
+    /** @return 'log_scale' property */
+    public WidgetProperty<Boolean> propLogScale()
+    {
+        return log_scale;
     }
 }

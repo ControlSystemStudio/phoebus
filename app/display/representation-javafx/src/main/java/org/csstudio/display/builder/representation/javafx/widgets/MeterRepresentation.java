@@ -64,6 +64,7 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
         model_widget.propMaximum().addUntypedPropertyListener(valueListener);
         model_widget.propShowValue().addUntypedPropertyListener(valueListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
+        model_widget.propLogScale().addUntypedPropertyListener(valueListener);
         valueChanged(null, null, null);
     }
 
@@ -82,6 +83,7 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
         model_widget.propMaximum().removePropertyListener(valueListener);
         model_widget.propShowValue().removePropertyListener(valueListener);
         model_widget.runtimePropValue().removePropertyListener(valueListener);
+        model_widget.propLogScale().removePropertyListener(valueListener);
         super.unregisterListeners();
     }
 
@@ -142,6 +144,8 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
         }
         else
             meter.setValue(value, "");
+
+        meter.setLogScale(model_widget.propLogScale().getValue());
     }
 
     @Override

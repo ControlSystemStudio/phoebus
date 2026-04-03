@@ -131,7 +131,15 @@ public class MeterScale extends NumericAxis
         if (Double.isFinite(value))
         {
             final AxisRange<Double> range = getValueRange();
-            return start_angle + (value - range.getLow()) * angle_range / (range.getHigh() - range.getLow());
+            if (isLogarithmic())
+            {
+                return start_angle + Math.log10(value/range.getLow()) * angle_range / Math.log10(range.getHigh()/range.getLow());
+            }
+            else
+            {
+                return start_angle + (value - range.getLow()) * angle_range / (range.getHigh() - range.getLow());
+            }
+
         }
         else
             return Double.NaN;
