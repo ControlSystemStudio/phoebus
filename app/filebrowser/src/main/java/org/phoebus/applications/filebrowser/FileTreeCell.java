@@ -191,13 +191,13 @@ final class FileTreeCell extends TreeTableCell<FileInfo, File> {
                 {
                     // System.out.println("Add tree item for " + new_name + " to " + target_item.getValue());
                     final ObservableList<TreeItem<FileInfo>> siblings = target_item.getChildren();
-                    final FileTreeItem new_item = new FileTreeItem(mon, new_name);
-                    siblings.add(new_item);
+                    final FileTreeItem newItem = new FileTreeItem(mon, new_name);
+                    siblings.add(newItem);
                     FileTreeItem.sortSiblings(siblings);
                     // Expand the target folder so the moved/copied file is
                     // immediately visible, then select it.
                     target_item.setExpanded(true);
-                    final int idx = getTreeTableView().getRow(new_item);
+                    final int idx = getTreeTableView().getRow(newItem);
                     if (idx >= 0)
                         getTreeTableView().getSelectionModel().select(idx);
                 });
