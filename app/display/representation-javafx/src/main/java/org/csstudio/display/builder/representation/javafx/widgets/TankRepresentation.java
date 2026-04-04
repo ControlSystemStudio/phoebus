@@ -42,6 +42,7 @@ public class TankRepresentation extends RTScaledWidgetRepresentation<TankWidget>
         model_widget.propEmptyColor().addUntypedPropertyListener(lookListener);
         model_widget.propScaleVisible().addUntypedPropertyListener(lookListener);
         model_widget.propShowMinorTicks().addUntypedPropertyListener(lookListener);
+        model_widget.propShowScaleLabels().addUntypedPropertyListener(lookListener);
         model_widget.propPerpendicularTickLabels().addUntypedPropertyListener(lookListener);
         model_widget.propFormat().addUntypedPropertyListener(lookListener);
         model_widget.propPrecision().addUntypedPropertyListener(lookListener);
@@ -63,6 +64,7 @@ public class TankRepresentation extends RTScaledWidgetRepresentation<TankWidget>
         model_widget.propEmptyColor().removePropertyListener(lookListener);
         model_widget.propScaleVisible().removePropertyListener(lookListener);
         model_widget.propShowMinorTicks().removePropertyListener(lookListener);
+        model_widget.propShowScaleLabels().removePropertyListener(lookListener);
         model_widget.propPerpendicularTickLabels().removePropertyListener(lookListener);
         model_widget.propFormat().removePropertyListener(lookListener);
         model_widget.propPrecision().removePropertyListener(lookListener);
@@ -82,6 +84,7 @@ public class TankRepresentation extends RTScaledWidgetRepresentation<TankWidget>
         tank.setEmptyColor(JFXUtil.convert(model_widget.propEmptyColor().getValue()));
         tank.setScaleVisible(model_widget.propScaleVisible().getValue());
         tank.setShowMinorTicks(model_widget.propShowMinorTicks().getValue());
+        tank.setScaleLabelsVisible(model_widget.propShowScaleLabels().getValue());
         tank.setPerpendicularTickLabels(model_widget.propPerpendicularTickLabels().getValue());
         tank.setLogScale(model_widget.propLogScale().getValue());
         tank.setLabelFormat(model_widget.propFormat().getValue(),
