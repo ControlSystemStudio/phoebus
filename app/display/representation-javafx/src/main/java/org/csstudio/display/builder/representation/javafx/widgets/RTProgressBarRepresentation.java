@@ -34,6 +34,18 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class RTProgressBarRepresentation extends RTScaledWidgetRepresentation<ProgressBarWidget>
 {
+    /** Called once after {@link #tank} is created; switch on flat-track and
+     *  progress-bar inner padding (set dynamically per {@code scale_visible}
+     *  in {@link #applyLookToTank}). */
+    @Override
+    protected void configureTank()
+    {
+        // The original JFX ProgressBar has a flat (solid) track background —
+        // no gradient.  Enabling flat_track removes the darker-center gradient
+        // that RTTank normally uses for the Tank widget's empty region.
+        tank.setFlatTrack(true);
+    }
+
     @Override
     protected boolean isHorizontal()
     {
@@ -88,7 +100,8 @@ public class RTProgressBarRepresentation extends RTScaledWidgetRepresentation<Pr
         // the outer margin, giving a uniform "bar-track" appearance.
         tank.setEmptyColor(bg);
         tank.setFillColor(JFXUtil.convert(model_widget.propFillColor().getValue()));
-        tank.setScaleVisible(model_widget.propScaleVisible().getValue());
+        final boolean scale_visible = model_widget.propScaleVisible().getValue();
+        tank.setScaleVisible(scale_visible);
         tank.setShowMinorTicks(model_widget.propShowMinorTicks().getValue());
         tank.setRightScaleVisible(model_widget.propOppositeScaleVisible().getValue());
         tank.setPerpendicularTickLabels(model_widget.propPerpendicularTickLabels().getValue());
@@ -96,5 +109,10 @@ public class RTProgressBarRepresentation extends RTScaledWidgetRepresentation<Pr
         tank.setLogScale(model_widget.propLogScale().getValue());
         tank.setLabelFormat(model_widget.propFormat().getValue(),
                             model_widget.propPrecision().getValue());
+        // When there is no scale the canvas fills the widget boundary edge-to-edge.
+        // Apply inner padding to match the inset margin of the stock JFX ProgressBar
+        // (~7 px total / ~3 px per side in the default CSS), so displays from older
+        // Phoebus versions look consistent after switching to scale mode.
+        tank.setInnerPadding(scale_visible ? 0 : 3);
     }
 }

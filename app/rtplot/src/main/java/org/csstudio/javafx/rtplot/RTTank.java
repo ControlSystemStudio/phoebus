@@ -94,6 +94,17 @@ public class RTTank extends Canvas
     /** Border width in pixels around the tank body; 0 = no border (default) */
     private volatile int border_width = 0;
 
+    /** Extra inset from canvas edge to plot body on all four sides.
+     *  0 = default tank look; positive values give a recessed bar-track
+     *  appearance suitable for progress-bar use without a visible scale. */
+    private volatile int inner_padding = 0;
+
+    /** When {@code true}, the empty (unfilled) portion of the tank is painted
+     *  with a solid colour instead of the default left-to-center gradient.
+     *  Use for progress-bar style tracks where the JFX original has a flat
+     *  background and only the filled bar carries a visual gradient. */
+    private volatile boolean flat_track = false;
+
     /** Current value, i.e. fill level */
     private volatile double value = 5.0;
 
@@ -216,6 +227,30 @@ public class RTTank extends Canvas
     public void setBorderWidth(final int width)
     {
         border_width = Math.max(0, Math.min(5, width));
+        requestUpdate();
+    }
+
+    /** Extra inset from all four canvas edges to the plot body.
+     *  Set to 0 (default) for the standard tank look.  Set to a positive
+     *  value (e.g. 4) when using RTTank as a progress-bar track so that
+     *  the filled area is visually inset from the widget boundary,
+     *  matching the margin of the JFX {@code ProgressBar} CSS style.
+     *  @param pixels padding in pixels; clamped to [0, 20] */
+    public void setInnerPadding(final int pixels)
+    {
+        inner_padding = Math.max(0, Math.min(20, pixels));
+        need_layout.set(true);
+        requestUpdate();
+    }
+
+    /** Control whether the unfilled track region is painted with a solid colour
+     *  ({@code true}) or the default left-to-center gradient ({@code false}).
+     *  Enable for progress-bar use to match the flat track background of the
+     *  JFX {@code ProgressBar}; disable (default) to keep the Tank look.
+     *  @param flat {@code true} = solid track, {@code false} = gradient track */
+    public void setFlatTrack(final boolean flat)
+    {
+        flat_track = flat;
         requestUpdate();
     }
 
@@ -549,11 +584,14 @@ public class RTTank extends Canvas
         // Inset = ceil(border_width/2) keeps the outer stroke edge inside the canvas.
         // On sides with a scale the label area provides ample margin so inset=0.
         // When there is no border, inset=1 is the original clip guard.
+        // inner_padding is added on top of all four sides regardless of scale presence;
+        // it is 0 for the standard tank and > 0 for the progress-bar track mode.
         final int half_bw_ceil = (border_width + 1) / 2;
-        final int inset_left   = (left_width  == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_right  = (right_width == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_top    = (ends[1] == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_bottom = (ends[0] == 0) ? Math.max(1, half_bw_ceil) : 0;
+        final int ip = inner_padding;
+        final int inset_left   = (left_width  == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
+        final int inset_right  = (right_width == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
+        final int inset_top    = (ends[1] == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
+        final int inset_bottom = (ends[0] == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
 
         final int top    = bounds.y + ends[1] + inset_top;
         final int height = bounds.height - ends[0] - ends[1] - inset_top - inset_bottom;
@@ -609,8 +647,10 @@ public class RTTank extends Canvas
         final int level = computeFillLevel(plot_bounds.height, min, max, current, scale.isLogarithmic());
 
         final int arc = Math.min(plot_bounds.width, plot_bounds.height) / 10;
-        gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, plot_bounds.x+plot_bounds.width/2, 0, empty_shadow, true));
-
+        if (flat_track)
+            gc.setColor(empty);
+        else
+            gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, plot_bounds.x+plot_bounds.width/2, 0, empty_shadow, true));
         gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height, arc, arc);
 
         gc.setPaint(new GradientPaint(plot_bounds.x, 0, fill, plot_bounds.x+plot_bounds.width/2, 0, fill_highlight, true));
