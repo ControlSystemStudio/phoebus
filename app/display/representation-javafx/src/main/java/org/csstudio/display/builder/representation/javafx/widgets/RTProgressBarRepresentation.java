@@ -34,15 +34,16 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class RTProgressBarRepresentation extends RTScaledWidgetRepresentation<ProgressBarWidget>
 {
-    /** Called once after {@link #tank} is created; switch on flat-track and
-     *  progress-bar inner padding (set dynamically per {@code scale_visible}
-     *  in {@link #applyLookToTank}). */
+    /** Called once after {@link #tank} is created; switch on the flat-track
+     *  rendering style for the unfilled bar region.  All other per-widget
+     *  settings (inner padding, scale labels, …) are applied on every
+     *  look update by {@link #applyLookToTank}. */
     @Override
     protected void configureTank()
     {
-        // The original JFX ProgressBar has a flat (solid) track background —
-        // no gradient.  Enabling flat_track removes the darker-center gradient
-        // that RTTank normally uses for the Tank widget's empty region.
+        // The stock JFX ProgressBar has a flat (solid) track background.
+        // flat_track replaces RTTank's darker-center gradient so the empty
+        // region is uniformly filled, matching the CSS default style.
         tank.setFlatTrack(true);
     }
 
@@ -62,12 +63,14 @@ public class RTProgressBarRepresentation extends RTScaledWidgetRepresentation<Pr
         model_widget.propBackgroundColor().addUntypedPropertyListener(lookListener);
         model_widget.propScaleVisible().addUntypedPropertyListener(lookListener);
         model_widget.propShowMinorTicks().addUntypedPropertyListener(lookListener);
+        model_widget.propShowScaleLabels().addUntypedPropertyListener(lookListener);
         model_widget.propOppositeScaleVisible().addUntypedPropertyListener(lookListener);
         model_widget.propPerpendicularTickLabels().addUntypedPropertyListener(lookListener);
         model_widget.propBorderWidth().addUntypedPropertyListener(lookListener);
         model_widget.propLogScale().addUntypedPropertyListener(lookListener);
         model_widget.propFormat().addUntypedPropertyListener(lookListener);
         model_widget.propPrecision().addUntypedPropertyListener(lookListener);
+        model_widget.propInnerPadding().addUntypedPropertyListener(lookListener);
         model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
     }
 
@@ -81,12 +84,14 @@ public class RTProgressBarRepresentation extends RTScaledWidgetRepresentation<Pr
         model_widget.propBackgroundColor().removePropertyListener(lookListener);
         model_widget.propScaleVisible().removePropertyListener(lookListener);
         model_widget.propShowMinorTicks().removePropertyListener(lookListener);
+        model_widget.propShowScaleLabels().removePropertyListener(lookListener);
         model_widget.propOppositeScaleVisible().removePropertyListener(lookListener);
         model_widget.propPerpendicularTickLabels().removePropertyListener(lookListener);
         model_widget.propBorderWidth().removePropertyListener(lookListener);
         model_widget.propLogScale().removePropertyListener(lookListener);
         model_widget.propFormat().removePropertyListener(lookListener);
         model_widget.propPrecision().removePropertyListener(lookListener);
+        model_widget.propInnerPadding().removePropertyListener(lookListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
     }
 
@@ -103,16 +108,13 @@ public class RTProgressBarRepresentation extends RTScaledWidgetRepresentation<Pr
         final boolean scale_visible = model_widget.propScaleVisible().getValue();
         tank.setScaleVisible(scale_visible);
         tank.setShowMinorTicks(model_widget.propShowMinorTicks().getValue());
+        tank.setScaleLabelsVisible(model_widget.propShowScaleLabels().getValue());
         tank.setRightScaleVisible(model_widget.propOppositeScaleVisible().getValue());
         tank.setPerpendicularTickLabels(model_widget.propPerpendicularTickLabels().getValue());
         tank.setBorderWidth(model_widget.propBorderWidth().getValue());
         tank.setLogScale(model_widget.propLogScale().getValue());
         tank.setLabelFormat(model_widget.propFormat().getValue(),
                             model_widget.propPrecision().getValue());
-        // When there is no scale the canvas fills the widget boundary edge-to-edge.
-        // Apply inner padding to match the inset margin of the stock JFX ProgressBar
-        // (~7 px total / ~3 px per side in the default CSS), so displays from older
-        // Phoebus versions look consistent after switching to scale mode.
-        tank.setInnerPadding(scale_visible ? 0 : 3);
+        tank.setInnerPadding(model_widget.propInnerPadding().getValue());
     }
 }

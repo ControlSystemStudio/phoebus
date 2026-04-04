@@ -12,7 +12,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propLogscale;
-
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newIntegerPropertyDescriptor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +25,8 @@ import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyCategory;
+import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
@@ -48,7 +50,8 @@ import org.w3c.dom.Element;
  *  {@code background_color}, {@code horizontal}, {@code limits_from_pv},
  *  {@code minimum}, {@code maximum} and {@code log_scale} keep the same
  *  XML names.  New properties ({@code format}, {@code precision},
- *  {@code scale_visible}, {@code show_minor_ticks}, alarm limit properties)
+ *  {@code scale_visible}, {@code show_minor_ticks}, {@code show_scale_labels},
+ *  {@code inner_padding}, alarm limit properties)
  *  are silently ignored by older Phoebus versions.
  *
  *  @author Kay Kasemir
@@ -72,11 +75,19 @@ public class ProgressBarWidget extends ScaledPVWidget
      *  {@code RegionBaseRepresentation} for all widget types). */
     public static final Set<String> SCALE_MODE_PROPS = Set.of(
         "format", "precision",
-        "scale_visible", "show_minor_ticks", "opposite_scale_visible",
-        "perpendicular_tick_labels", "font",
+        "scale_visible", "show_minor_ticks", "show_scale_labels",
+        "opposite_scale_visible", "perpendicular_tick_labels", "font",
+        "inner_padding",
         "alarm_limits_from_pv", "show_alarm_limits",
         "level_lolo", "level_low", "level_high", "level_hihi",
         "minor_alarm_color", "major_alarm_color");
+
+    /** 'inner_padding' — extra inset from widget edge to the fill bar, in pixels (0..20).
+     *  Defaults to 3, matching the CSS inset of the stock JFX ProgressBar.
+     *  Set to 0 for a tight, edge-to-edge bar with no surrounding gap. */
+    public static final WidgetPropertyDescriptor<Integer> propInnerPadding =
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "inner_padding",
+                                     Messages.WidgetProperties_InnerPadding, 0, 20);
 
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -177,9 +188,11 @@ public class ProgressBarWidget extends ScaledPVWidget
     private volatile WidgetProperty<Boolean>     horizontal;
     private volatile WidgetProperty<Boolean>     scale_visible;
     private volatile WidgetProperty<Boolean>     show_minor_ticks;
+    private volatile WidgetProperty<Boolean>     show_scale_labels;
     private volatile WidgetProperty<Boolean>     opposite_scale_visible;
     private volatile WidgetProperty<Boolean>     perpendicular_tick_labels;
     private volatile WidgetProperty<Integer>     border_width_prop;
+    private volatile WidgetProperty<Integer>     inner_padding_prop;
 
     /** Constructor */
     public ProgressBarWidget()
@@ -198,9 +211,11 @@ public class ProgressBarWidget extends ScaledPVWidget
         properties.add(horizontal      = propHorizontal.createProperty(this, true));
         properties.add(scale_visible          = propScaleVisible.createProperty(this, false));
         properties.add(show_minor_ticks        = propShowMinorTicks.createProperty(this, true));
+        properties.add(show_scale_labels       = propShowScaleLabels.createProperty(this, true));
         properties.add(opposite_scale_visible  = propOppositeScaleVisible.createProperty(this, false));
         properties.add(perpendicular_tick_labels = propPerpendicularTickLabels.createProperty(this, false));
         properties.add(border_width_prop         = propBorderWidth.createProperty(this, 0));
+        properties.add(inner_padding_prop        = propInnerPadding.createProperty(this, 3));
     }
 
     /** @return 'font' property */
@@ -245,6 +260,12 @@ public class ProgressBarWidget extends ScaledPVWidget
         return show_minor_ticks;
     }
 
+    /** @return 'show_scale_labels' property */
+    public WidgetProperty<Boolean> propShowScaleLabels()
+    {
+        return show_scale_labels;
+    }
+
     /** @return 'opposite_scale_visible' property */
     public WidgetProperty<Boolean> propOppositeScaleVisible()
     {
@@ -261,5 +282,11 @@ public class ProgressBarWidget extends ScaledPVWidget
     public WidgetProperty<Integer> propBorderWidth()
     {
         return border_width_prop;
+    }
+
+    /** @return 'inner_padding' property (extra inset between widget edge and fill bar, 0..20 px) */
+    public WidgetProperty<Integer> propInnerPadding()
+    {
+        return inner_padding_prop;
     }
 }

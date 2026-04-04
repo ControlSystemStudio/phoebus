@@ -145,6 +145,11 @@ public abstract class ScaledPVWidget extends PVWidget
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "perpendicular_tick_labels",
                                      Messages.WidgetProperties_PerpendicularTickLabels);
 
+    /** 'show_scale_labels' — show tick label text on the scale (ticks are always drawn) */
+    public static final WidgetPropertyDescriptor<Boolean> propShowScaleLabels =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_scale_labels",
+                                     Messages.WidgetProperties_ShowScaleLabels);
+
     /** 'border_width' — width in pixels of the border drawn around the widget (0..5) */
     public static final WidgetPropertyDescriptor<Integer> propBorderWidth =
         newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "border_width",

@@ -254,6 +254,21 @@ public class RTTank extends Canvas
         requestUpdate();
     }
 
+    /** Show or hide tick label text on the scale while keeping tick marks visible.
+     *  <p>Use this to stack multiple scaled widgets with a single labelled scale:
+     *  only the first widget shows text; the rest show aligned tick marks only,
+     *  saving horizontal (or vertical) space without losing alignment cues.
+     *  <p>Layout and repaint are triggered automatically by the axis when
+     *  the value actually changes; no-op when unchanged.
+     *  @param visible {@code true} (default) = labels shown; {@code false} = ticks only */
+    public void setScaleLabelsVisible(final boolean visible)
+    {
+        // Each axis fires its own requestLayout()/requestRefresh() via plot_part_listener
+        // when the state changes, propagating need_layout and requestUpdate automatically.
+        scale.setScaleLabelsVisible(visible);
+        right_scale.setScaleLabelsVisible(visible);
+    }
+
     /** @param color Background color */
     public void setBackground(final javafx.scene.paint.Color color)
     {

@@ -139,6 +139,7 @@ public class TankWidget extends ScaledPVWidget
     private volatile WidgetProperty<WidgetColor> empty_color;
     private volatile WidgetProperty<Boolean> scale_visible;
     private volatile WidgetProperty<Boolean> show_minor_ticks;
+    private volatile WidgetProperty<Boolean> show_scale_labels;
     private volatile WidgetProperty<Boolean> perpendicular_tick_labels;
     private volatile WidgetProperty<Boolean> opposite_scale_visible;
     private volatile WidgetProperty<Boolean> log_scale;
@@ -164,6 +165,7 @@ public class TankWidget extends ScaledPVWidget
         properties.add(scale_visible = propScaleVisible.createProperty(this, true));
         properties.add(opposite_scale_visible = propOppositeScaleVisible.createProperty(this, false));
         properties.add(show_minor_ticks = propShowMinorTicks.createProperty(this, true));
+        properties.add(show_scale_labels = propShowScaleLabels.createProperty(this, true));
         properties.add(perpendicular_tick_labels = propPerpendicularTickLabels.createProperty(this, false));
         properties.add(log_scale = propLogscale.createProperty(this, false));
         properties.add(horizontal = propHorizontal.createProperty(this, false));
@@ -219,6 +221,12 @@ public class TankWidget extends ScaledPVWidget
     public WidgetProperty<Boolean> propShowMinorTicks()
     {
         return show_minor_ticks;
+    }
+
+    /** @return 'show_scale_labels' property */
+    public WidgetProperty<Boolean> propShowScaleLabels()
+    {
+        return show_scale_labels;
     }
 
     /** @return 'perpendicular_tick_labels' property */
