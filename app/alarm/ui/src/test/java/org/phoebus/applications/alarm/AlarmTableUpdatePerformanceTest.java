@@ -47,7 +47,7 @@ import static org.hamcrest.Matchers.lessThan;
  * @see <a href="https://github.com/ControlSystemStudio/phoebus/issues/3504">Issue #3504</a>
  */
 @SuppressWarnings("nls")
-public class AlarmTableUpdatePerformanceTest
+class AlarmTableUpdatePerformanceTest
 {
     private static final int N = 150;  // Large enough to expose O(N^2) but fast to run
 
@@ -67,7 +67,7 @@ public class AlarmTableUpdatePerformanceTest
      * by the copy loop triggers a full re-sort of the SortedList.
      */
     @Test
-    public void testOldBehaviorTriggersExcessiveSorts()
+    void testOldBehaviorTriggersExcessiveSorts()
     {
         final ObservableList<AlarmInfoRow> rows =
                 FXCollections.observableArrayList(AlarmInfoRow.CHANGING_PROPERTIES);
@@ -101,6 +101,8 @@ public class AlarmTableUpdatePerformanceTest
         // The old code triggers far more comparisons than a single sort would.
         assertThat("Old code should trigger many more comparisons than a single sort",
                 oldComparisons, greaterThan(singleSortUpperBound));
+        // Confirm sorted view has all N rows (exercises the sorted variable).
+        assertThat(sorted.size(), equalTo(N));
     }
 
     /**
@@ -109,7 +111,7 @@ public class AlarmTableUpdatePerformanceTest
      * The final row order must also be correct.
      */
     @Test
-    public void testFixSuppressesIntermediateSortsAndPreservesOrder()
+    void testFixSuppressesIntermediateSortsAndPreservesOrder()
     {
         final ObservableList<AlarmInfoRow> rows =
                 FXCollections.observableArrayList(AlarmInfoRow.CHANGING_PROPERTIES);
@@ -160,7 +162,7 @@ public class AlarmTableUpdatePerformanceTest
      * the same final sort order.
      */
     @Test
-    public void testFixOutperformsOldCodeAndProducesSameOrder()
+    void testFixOutperformsOldCodeAndProducesSameOrder()
     {
         final List<AlarmInfoRow> inputs = new ArrayList<>(N);
         for (int i = 0; i < N; i++)
