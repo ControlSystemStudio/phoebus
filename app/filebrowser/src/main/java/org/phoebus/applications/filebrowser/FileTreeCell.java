@@ -96,6 +96,9 @@ final class FileTreeCell extends TreeTableCell<FileInfo, File> {
                 // might still be present...
                 final TreeItem<FileInfo> deleted_item = getTableRow().getTreeItem();
                 deleted_item.getParent().getChildren().remove(deleted_item);
+                // Clear the stale selection so the tree view does not remain
+                // in a confused highlighted state after the item is removed.
+                getTreeTableView().getSelectionModel().clearSelection();
             }
             else
                 logger.log(Level.FINE, "Drag (COPY) completed.");
@@ -188,8 +191,15 @@ final class FileTreeCell extends TreeTableCell<FileInfo, File> {
                 {
                     // System.out.println("Add tree item for " + new_name + " to " + target_item.getValue());
                     final ObservableList<TreeItem<FileInfo>> siblings = target_item.getChildren();
-                    siblings.add(new FileTreeItem(mon, new_name));
+                    final FileTreeItem new_item = new FileTreeItem(mon, new_name);
+                    siblings.add(new_item);
                     FileTreeItem.sortSiblings(siblings);
+                    // Expand the target folder so the moved/copied file is
+                    // immediately visible, then select it.
+                    target_item.setExpanded(true);
+                    final int idx = getTreeTableView().getRow(new_item);
+                    if (idx >= 0)
+                        getTreeTableView().getSelectionModel().select(idx);
                 });
             }
             catch (Exception ex)
