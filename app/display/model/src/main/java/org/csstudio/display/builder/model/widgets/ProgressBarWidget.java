@@ -63,14 +63,17 @@ public class ProgressBarWidget extends ScaledPVWidget
      *  to hide irrelevant entries when the legacy JFX ProgressBar rendering is selected,
      *  keeping the panel uncluttered for operators who do not need scale features.
      *
-     *  <p>Properties used by <em>both</em> renderers — {@code minimum}, {@code maximum},
-     *  {@code limits_from_pv}, {@code horizontal}, {@code log_scale},
-     *  {@code fill_color}, {@code background_color} — are intentionally absent. */
+     *  <p>Properties used by <em>both</em> renderers are intentionally absent, including
+     *  {@code minimum}, {@code maximum}, {@code limits_from_pv}, {@code horizontal},
+     *  {@code log_scale}, {@code fill_color}, {@code background_color},
+     *  {@code border_width} (drawn as a CSS outer border by {@code RegionBaseRepresentation}
+     *  in the legacy renderer; as an inner canvas border in RTTank mode), and
+     *  {@code border_alarm_sensitive} (alarm-sensitive outer border, also handled by
+     *  {@code RegionBaseRepresentation} for all widget types). */
     public static final Set<String> SCALE_MODE_PROPS = Set.of(
         "format", "precision",
         "scale_visible", "show_minor_ticks", "opposite_scale_visible",
-        "perpendicular_tick_labels", "border_width", "font",
-        "border_alarm_sensitive",
+        "perpendicular_tick_labels", "font",
         "alarm_limits_from_pv", "show_alarm_limits",
         "level_lolo", "level_low", "level_high", "level_hihi",
         "minor_alarm_color", "major_alarm_color");
