@@ -7,11 +7,15 @@
  *******************************************************************************/
 package org.phoebus.ui.help;
 
+import static org.phoebus.ui.application.PhoebusApplication.logger;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.prefs.Preferences;
+import java.util.logging.Level;
 
+import org.phoebus.framework.preferences.PropertyPreferenceWriter;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
@@ -46,7 +50,6 @@ import javafx.scene.web.WebView;
 @SuppressWarnings("nls")
 public class OpenAbout implements MenuEntry
 {
-    private static final String SETTINGS_SNAPSHOT = "settings_snapshot";
     /** Non-<code>null</code> while the 'about' dialog is shown */
     private Alert dialog;
 
@@ -191,12 +194,22 @@ public class OpenAbout implements MenuEntry
         area.setEditable(false);
         final Tab props = new Tab(Messages.HelpAboutSysFea, area);
 
-        String settings_snapshot = Preferences.userRoot().get(SETTINGS_SNAPSHOT, "");
+        // Preference settings
+        final ByteArrayOutputStream prefs_buf = new ByteArrayOutputStream();
+        try
+        {
+            PropertyPreferenceWriter.save(prefs_buf);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot list preferences", ex);
+        }
+
         WebView webView = new WebView();
         String content = "<html><head><style>" +
         	    "body {font-family: monospace;}" +
         	    "</style></head><body>";
-        content += settings_snapshot;
+        content += prefs_buf.toString();
         content += "</body></html>";
         webView.getEngine().loadContent(content);
 
@@ -204,6 +217,7 @@ public class OpenAbout implements MenuEntry
 
         final Tab prefs = new Tab(Messages.HelpAboutPrefs, webView);
 
-        return new TabPane(apps, envs, props, prefs);
+        final TabPane tabs = new TabPane(apps, envs, props, prefs);
+        return tabs;
     }
 }
