@@ -191,12 +191,12 @@ public class OpenAbout implements MenuEntry
         area.setEditable(false);
         final Tab props = new Tab(Messages.HelpAboutSysFea, area);
 
-        String settingsSnapshot = Preferences.userRoot().get(SETTINGS_SNAPSHOT, "");
+        String settings_snapshot = Preferences.userRoot().get(SETTINGS_SNAPSHOT, "");
         WebView webView = new WebView();
         String content = "<html><head><style>" +
         	    "body {font-family: monospace;}" +
         	    "</style></head><body>";
-        content += settingsSnapshot;
+        content += settings_snapshot;
         content += "</body></html>";
         webView.getEngine().loadContent(content);
 

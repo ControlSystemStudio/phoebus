@@ -100,7 +100,7 @@ public class Launcher {
         if (siteSettings.canRead())
         {
             logger.info("Loading bundled settings from " + siteSettings.getAbsolutePath());
-            loadSettings(siteSettings.getAbsolutePath());
+            loadSettings(siteSettings.getName());
         }
 
         // Handle arguments, potentially not even starting the UI
