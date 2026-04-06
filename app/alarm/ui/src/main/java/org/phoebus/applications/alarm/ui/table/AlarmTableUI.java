@@ -695,24 +695,43 @@ public class AlarmTableUI extends BorderPane
      */
     private void update(final ObservableList<AlarmInfoRow> items, final List<AlarmInfoRow> input)
     {
-        // Similar, but might trigger a full table redraw:
-        // items.setAll(input);
+        // The ObservableList was created with the CHANGING_PROPERTIES extractor, so every
+        // property set inside copy() fires a list-change event.  The SortedList wrapping
+        // it responds to each event by re-sorting, producing O(N²·log N) work for N rows.
+        //
+        // Fix: temporarily detach the SortedList's comparator before the copy loop.
+        // With a null comparator the SortedList mirrors the source in insertion order and
+        // skips the re-sort on item-property events.  A single O(N·log N) sort happens
+        // when we rebind at the end.
+        final TableView<AlarmInfoRow> table = (items == active_rows) ? active : acknowledged;
+        @SuppressWarnings("unchecked")
+        final SortedList<AlarmInfoRow> sorted = (SortedList<AlarmInfoRow>) table.getItems();
+        sorted.comparatorProperty().unbind();
+        sorted.setComparator(null);
 
-        // Update content of common list entries
-        int N = Math.min(items.size(), input.size());
-        for (int i=0; i<N; ++i)
-            items.get(i).copy(input.get(i));
-
-        N = input.size();
-        if (N > items.size())
+        try
         {
-            // Additional elements if input is larger that existing list
-            for (int i=items.size(); i<N; ++i)
-                items.add(input.get(i));
-        }
-        else // Trim items, input has fewer elements
-            items.remove(N, items.size());
+            // Update content of common list entries
+            int N = Math.min(items.size(), input.size());
+            for (int i=0; i<N; ++i)
+                items.get(i).copy(input.get(i));
 
+            N = input.size();
+            if (N > items.size())
+            {
+                // Additional elements if input is larger that existing list
+                for (int i=items.size(); i<N; ++i)
+                    items.add(input.get(i));
+            }
+            else // Trim items, input has fewer elements
+                items.remove(N, items.size());
+        }
+        finally
+        {
+            // Rebind: SortedList immediately acquires the table comparator and
+            // performs exactly one sort of all N updated rows.
+            sorted.comparatorProperty().bind(table.comparatorProperty());
+        }
     }
 
     /** Select all rows that match the current 'search' pattern */
