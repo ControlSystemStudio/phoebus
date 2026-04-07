@@ -9,7 +9,7 @@ build:
     - openjdk-25-jdk
   jobs:
     pre_build:
-      - mvn clean install
+      - mvn clean install -DskipTests
 
 # Build from the docs/ directory with Sphinx
 sphinx:
