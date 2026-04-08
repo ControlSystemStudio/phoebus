@@ -66,11 +66,6 @@ public class WidgetRuntime<MW extends Widget> {
     public final static Logger logger = Logger.getLogger(WidgetRuntime.class.getPackageName());
 
     /**
-     * Extension point for contributing custom widget runtime
-     */
-    public static final String EXTENSION_POINT = "org.csstudio.display.builder.runtime.widgets";
-
-    /**
      * The widget handled by this runtime
      */
     protected MW widget;
@@ -83,7 +78,7 @@ public class WidgetRuntime<MW extends Widget> {
     /**
      * start() involves background jobs to start script support etc.
      * This latch indicates that they have completed
-     * and lazily set variables (action_scripts, writable_pvs, ..)
+     * and lazily set variables (action_scripts, writable_pvs, ...)
      * can now be used.
      */
     private volatile CountDownLatch started = new CountDownLatch(1);
@@ -237,7 +232,8 @@ public class WidgetRuntime<MW extends Widget> {
                     try {
                         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
                         final RuntimePV pv = PVFactory.getPV(expanded);
-                        action_pvs.put(expanded, pv);
+                        String cleanPvName = getCleanPvName(expanded);
+                        action_pvs.put(cleanPvName, pv);
                         addPV(pv, true);
                     } catch (Exception ex) {
                         logger.log(Level.WARNING, widget + " cannot start action to write PV '" + pv_name + "'", ex);
@@ -256,6 +252,26 @@ public class WidgetRuntime<MW extends Widget> {
             RuntimeUtil.getExecutor().execute(this::startScripts);
         else
             started.countDown();
+    }
+
+    /**
+     * Get PV Name without initialisation value
+     */
+    private String getCleanPvName(String expandedName) {
+
+        String nameToCheck = expandedName;
+        // For local PV,
+        if (nameToCheck.startsWith("loc://")) {
+            // strip optional data type ...
+            int sep = nameToCheck.indexOf('<');
+            if (sep > 0)
+                nameToCheck = nameToCheck.substring(0, sep);
+            // or initializer ...
+            sep = nameToCheck.indexOf('(');
+            if (sep > 0)
+                nameToCheck = nameToCheck.substring(0, sep);
+        }
+        return nameToCheck;
     }
 
     /**
@@ -395,31 +411,20 @@ public class WidgetRuntime<MW extends Widget> {
      */
     public void writePV(final String pv_name, final Object value) throws Exception {
         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
-        String name_to_check = expanded;
-        // For local PV,
-        if (name_to_check.startsWith("loc://")) {
-            // strip optional data type ...
-            int sep = name_to_check.indexOf('<');
-            if (sep > 0)
-                name_to_check = name_to_check.substring(0, sep);
-            // or initializer ..
-            sep = name_to_check.indexOf('(');
-            if (sep > 0)
-                name_to_check = name_to_check.substring(0, sep);
-        }
+        String nameToCheck = getCleanPvName(expanded);
         awaitStartup();
         final Map<String, RuntimePV> safe_pvs = writable_pvs;
         if (safe_pvs != null) {
-            final RuntimePV pv = safe_pvs.get(name_to_check);
+            final RuntimePV pv = safe_pvs.get(nameToCheck);
             if(pv != null) {
                     try {
                         pv.write(value);
                     } catch (final Exception ex) {
-                        throw new Exception("Failed to write " + value + " to PV " + name_to_check, ex);
+                        throw new WidgetRuntimeException("Failed to write " + value + " to PV " + nameToCheck, ex);
                     }
                 }
             else {
-                throw new Exception("Unknown PV '" + pv_name + "' (expanded: '" + name_to_check + "')");
+                throw new WidgetRuntimeException("Unknown PV '" + pv_name + "' (expanded: '" + nameToCheck + "')");
             }
         }
     }
