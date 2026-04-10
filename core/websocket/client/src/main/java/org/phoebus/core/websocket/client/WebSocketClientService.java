@@ -242,12 +242,12 @@ public class WebSocketClientService {
         public void handleTransportError(StompSession session, Throwable exception) {
             if (exception instanceof ConnectionLostException) {
                 logger.log(Level.WARNING, "Connection lost, will attempt to reconnect", exception);
+                if (disconnectCallback != null) {
+                    disconnectCallback.run();
+                }
                 connect();
             } else {
-                logger.log(Level.WARNING, "Handling transport exception", exception);
-            }
-            if (disconnectCallback != null) {
-                disconnectCallback.run();
+                logger.log(Level.WARNING, "Got transport exception", exception);
             }
         }
     }
