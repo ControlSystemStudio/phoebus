@@ -146,7 +146,7 @@ public class MeterWidget extends PVWidget
         newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "knob_color", Messages.WidgetProperties_KnobColor);
 
     /** Property */
-    public static WidgetPropertyDescriptor<Boolean> propLogarithmicScale =
+    public static final WidgetPropertyDescriptor<Boolean> propLogarithmicScale =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "logScale", Messages.WidgetProperties_LogScale);
 
     private volatile WidgetProperty<WidgetColor> foreground;
