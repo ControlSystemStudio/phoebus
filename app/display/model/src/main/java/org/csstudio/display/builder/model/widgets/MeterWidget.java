@@ -146,7 +146,7 @@ public class MeterWidget extends PVWidget
         newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "knob_color", Messages.WidgetProperties_KnobColor);
 
     /** Property */
-    public static WidgetPropertyDescriptor<Boolean> propLogscale =
+    public static WidgetPropertyDescriptor<Boolean> propLogarithmicScale =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "logScale", Messages.WidgetProperties_LogScale);
 
     private volatile WidgetProperty<WidgetColor> foreground;
@@ -200,7 +200,7 @@ public class MeterWidget extends PVWidget
         properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
-        properties.add(log_scale = propLogscale.createProperty(this, false));
+        properties.add(log_scale = propLogarithmicScale.createProperty(this, false));
     }
 
     /** @return 'foreground_color' property */
