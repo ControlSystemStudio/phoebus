@@ -68,7 +68,12 @@ def calcBlockRange(val):
     return range(val-val%3, val-val%3+3)
 
 from org.csstudio.display.builder.model.persist import WidgetColorService
-from org.csstudio.display.builder.model.properties import WidgetColor
+try:
+    # Try original WidgetColor
+    from org.csstudio.display.builder.model.properties import WidgetColor
+except:
+    # Use new WidgetColor
+    from org.phoebus.ui.color import WidgetColor
 from org.csstudio.display.builder.model.persist import NamedWidgetColors
 
 display = widget.getDisplayModel()

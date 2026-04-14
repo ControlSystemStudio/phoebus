@@ -1,5 +1,10 @@
 from org.csstudio.display.builder.runtime.script import PVUtil
-from org.csstudio.display.builder.model.properties import WidgetColor
+try:
+    # Try original WidgetColor
+    from org.csstudio.display.builder.model.properties import WidgetColor
+except:
+    # Use new WidgetColor
+    from org.phoebus.ui.color import WidgetColor
 
 pid_out = PVUtil.getDouble(pvs[0])
 sine = PVUtil.getDouble(pvs[1])

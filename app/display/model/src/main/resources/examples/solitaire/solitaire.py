@@ -98,7 +98,12 @@ def solve():
 # ------------ Visualization via display model -------
 
 from org.csstudio.display.builder.model import WidgetFactory
-from org.csstudio.display.builder.model.properties import WidgetColor
+try:
+    # Try original WidgetColor
+    from org.csstudio.display.builder.model.properties import WidgetColor
+except:
+    # Use new WidgetColor
+    from org.phoebus.ui.color import WidgetColor
 from time import time, sleep
 
 TOP = 100
