@@ -327,12 +327,7 @@ and writing the result back to the table.</text>
           <text><![CDATA[# Example for updating individual cell colors
 
 from org.csstudio.display.builder.runtime.script import ScriptUtil
-try:
-    # Try original WidgetColor
-    from org.csstudio.display.builder.model.properties import WidgetColor
-except:
-    # Use new WidgetColor
-    from org.phoebus.ui.color import WidgetColor
+from org.phoebus.ui.color import WidgetColor
 from java.lang import Math
 
 # 'widget' is the action button that invoked the script
@@ -394,12 +389,7 @@ table.setCellValue(1, 0, "Thingy")
           <text><![CDATA[# This example sets a complete table of colors
 
 from org.csstudio.display.builder.runtime.script import ScriptUtil
-try:
-    # Try original WidgetColor
-    from org.csstudio.display.builder.model.properties import WidgetColor
-except:
-    # Use new WidgetColor
-    from org.phoebus.ui.color import WidgetColor
+from org.phoebus.ui.color import WidgetColor
 from java.lang import Math
 from java.util import ArrayList
 
