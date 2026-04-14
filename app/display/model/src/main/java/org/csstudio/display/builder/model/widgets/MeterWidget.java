@@ -107,6 +107,10 @@ public class MeterWidget extends PVWidget
                     ||
                     !XMLUtil.getChildBoolean(xml, "show_markers").orElse(true))
                     meter.propShowLimits().setValue(false);
+
+                // Map log_scale property to logScale
+                XMLUtil.getChildBoolean(xml, "log_scale")
+                        .ifPresent(meter.propLogScale()::setValue);
             }
             else if (xml_version.getMajor() < 3)
             {   // Display Builder meter based on 3rd party JFX lib
