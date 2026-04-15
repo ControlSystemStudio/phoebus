@@ -13,8 +13,16 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import org.epics.pva.PVASettings;
 import org.epics.pva.common.CertificateStatus;
 import org.epics.pva.common.CertificateStatusListener;
 import org.epics.pva.common.CertificateStatusMonitor;
@@ -49,6 +57,14 @@ class ServerTCPHandler extends TCPHandler
                               new RPCHandler(),
                               new CancelHandler());
 
+    /** Timer for cert status timeout */
+    private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(run ->
+    {
+        final Thread thread = new Thread(run, "Server Cert Status Timer");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     /** Server that holds all the PVs */
     private final PVAServer server;
 
@@ -67,6 +83,30 @@ class ServerTCPHandler extends TCPHandler
     /** Handler for updates from {@link CertificateStatusMonitor} */
     private final CertificateStatusListener certificate_status_listener;
 
+    /** Gate that completes when client cert status is confirmed VALID.
+     *  Pre-completed if no cert status PV extension on the client cert.
+     */
+    private final CompletableFuture<Void> client_cert_status_gate;
+
+    /** Pending CreateChannel replies held until client cert status is confirmed */
+    private final Queue<PendingChannelCreate> pending_channel_creates = new ConcurrentLinkedQueue<>();
+
+    /** Scheduled timeout for client cert status gate, or null */
+    private volatile ScheduledFuture<?> cert_status_timeout;
+
+    /** A CreateChannel reply deferred because client cert status is not yet confirmed */
+    static class PendingChannelCreate
+    {
+        final ServerPV pv;
+        final int cid;
+
+        PendingChannelCreate(final ServerPV pv, final int cid)
+        {
+            this.pv = pv;
+            this.cid = cid;
+        }
+    }
+
     public ServerTCPHandler(final PVAServer server, final Socket client, final TLSHandshakeInfo tls_info) throws Exception
     {
         super(false);
@@ -80,25 +120,51 @@ class ServerTCPHandler extends TCPHandler
 
         server.register(this);
 
-        certificate_status_listener = update->
-        {
-            final ClientAuthentication auth = getClientAuthentication();
-            logger.log(Level.FINER, () -> "Certificate update for " + this + ": " + auth);
-
-            // 1) Initial client_auth is Anonymous
-            // When TLS connection starts,
-            // 2a) CertificateStatusMonitor looks for CERT:STATUS:.., initial update has Anonymous from 1)
-            // 2b) ValidationHandler will setClientAuthentication(x509 info from TLS)
-            //     If somebody called getClientAuthentication(), they'd get Anon/invalid because no "Valid" update, yet
-            // 3) "Valid" update from CertificateStatusMonitor tends to happen just after that
-            //    --> Update all ServerPVs to send AccessRightsChange, in case there are already Server PVs
-            server.updatePermissions(this, auth);
-
-            // Channel created? CreateChannelHandler.sendChannelCreated sends initial AccessRightsChange
-            // ServerPV.setWritable will send updated AccessRightsChange
-        };
         if (tls_info != null  &&  !tls_info.status_pv_name.isEmpty())
+        {
+            client_cert_status_gate = new CompletableFuture<>();
+            certificate_status_listener = update->
+            {
+                final ClientAuthentication auth = getClientAuthentication();
+                logger.log(Level.FINER, () -> "Certificate update for " + this + ": " + auth);
+
+                // 1) Initial client_auth is Anonymous
+                // When TLS connection starts,
+                // 2a) CertificateStatusMonitor looks for CERT:STATUS:.., initial update has Anonymous from 1)
+                // 2b) ValidationHandler will setClientAuthentication(x509 info from TLS)
+                //     If somebody called getClientAuthentication(), they'd get Anon/invalid because no "Valid" update, yet
+                // 3) "Valid" update from CertificateStatusMonitor tends to happen just after that
+                //    --> Update all ServerPVs to send AccessRightsChange, in case there are already Server PVs
+                server.updatePermissions(this, auth);
+
+                if (update.isValid())
+                {
+                    client_cert_status_gate.complete(null);
+                    flushPendingChannelCreates();
+                }
+                else if (update.isUnrecoverable())
+                {
+                    logger.log(Level.WARNING, () -> "Client cert " + (update.isRevoked() ? "REVOKED" : "EXPIRED") + " for " + this + ", shutting down connection");
+                    client_cert_status_gate.complete(null);
+                    server.shutdownConnection(this);
+                }
+
+                // Channel created? CreateChannelHandler.sendChannelCreated sends initial AccessRightsChange
+                // ServerPV.setWritable will send updated AccessRightsChange
+            };
             certificate_status = CertificateStatusMonitor.instance().checkCertStatus(tls_info, certificate_status_listener);
+            cert_status_timeout = timer.schedule(this::handleCertStatusTimeout, PVASettings.EPICS_PVA_CERT_STATUS_TMO, TimeUnit.SECONDS);
+        }
+        else
+        {
+            client_cert_status_gate = CompletableFuture.completedFuture(null);
+            certificate_status_listener = update->
+            {
+                final ClientAuthentication auth = getClientAuthentication();
+                logger.log(Level.FINER, () -> "Certificate update for " + this + ": " + auth);
+                server.updatePermissions(this, auth);
+            };
+        }
 
         startReceiver();
         startSender();
@@ -191,9 +257,49 @@ class ServerTCPHandler extends TCPHandler
         return client_auth;
     }
 
+    /** @return Is the client cert status confirmed (gate completed)? */
+    boolean isClientCertStatusConfirmed()
+    {
+        return client_cert_status_gate.isDone();
+    }
+
+    /** Queue a CreateChannel reply until client cert status is confirmed
+     *  @param pv The server PV
+     *  @param cid Client channel ID
+     */
+    void queuePendingChannelCreate(final ServerPV pv, final int cid)
+    {
+        logger.log(Level.FINE, () -> "Deferring CreateChannel reply for '" + pv + "' [CID " + cid + "] until client cert status confirmed");
+        pending_channel_creates.add(new PendingChannelCreate(pv, cid));
+    }
+
+    private void flushPendingChannelCreates()
+    {
+        PendingChannelCreate pending;
+        while ((pending = pending_channel_creates.poll()) != null)
+        {
+            final ServerPV pv = pending.pv;
+            final int cid = pending.cid;
+            logger.log(Level.FINE, () -> "Flushing deferred CreateChannel reply for '" + pv + "' [CID " + cid + "]");
+            CreateChannelHandler.sendChannelCreated(this, pv, cid);
+        }
+    }
+
+    private void handleCertStatusTimeout()
+    {
+        if (! client_cert_status_gate.isDone())
+        {
+            logger.log(Level.WARNING, () -> "Client cert status not confirmed within " + PVASettings.EPICS_PVA_CERT_STATUS_TMO + "s for " + this + ", releasing pending CreateChannel replies with degraded access");
+            client_cert_status_gate.complete(null);
+            flushPendingChannelCreates();
+        }
+    }
+
     @Override
     protected void onReceiverExited(final boolean running)
     {
+        if (cert_status_timeout != null)
+            cert_status_timeout.cancel(false);
         if (certificate_status != null)
         {
             CertificateStatusMonitor.instance().remove(certificate_status, certificate_status_listener);

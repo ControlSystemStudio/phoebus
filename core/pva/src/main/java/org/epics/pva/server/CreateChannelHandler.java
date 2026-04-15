@@ -46,12 +46,15 @@ class CreateChannelHandler implements CommandHandler<ServerTCPHandler>
             {
                 logger.log(Level.FINE, () ->  "Channel create request '" + name + "' [CID " + cid + "]");
                 pv.addClient(tcp, cid);
-                sendChannelCreated(tcp, pv, cid);
+                if (tcp.isClientCertStatusConfirmed())
+                    sendChannelCreated(tcp, pv, cid);
+                else
+                    tcp.queuePendingChannelCreate(pv, cid);
             }
         }
     }
 
-    private void sendChannelCreated(final ServerTCPHandler tcp, final ServerPV pv, int cid) throws Exception
+    static void sendChannelCreated(final ServerTCPHandler tcp, final ServerPV pv, int cid)
     {
         tcp.submit((version, buffer) ->
         {

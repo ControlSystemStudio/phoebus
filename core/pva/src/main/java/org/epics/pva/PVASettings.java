@@ -21,13 +21,6 @@ import java.util.logging.Logger;
  */
 public class PVASettings
 {
-    /** PVA protocol version for XDG path construction.
-     *
-     *  <p>Matches PVXS versionString() so that the Java client
-     *  and PVXS share the same well-known keychain locations.
-     */
-    private static final String PVA_VERSION = "1.5";
-
     /** Common logger
      *
      *  Usage of levels:
@@ -267,6 +260,16 @@ public class PVASettings
 
 
 
+    /** Timeout [seconds] for waiting for certificate status PV to confirm VALID
+     *
+     *  <p>After a TLS handshake, if the certificate includes a status PV extension
+     *  (OID 1.3.6.1.4.1.37427.1), the connection will wait for the status PV
+     *  to report VALID before allowing data operations.
+     *  If not confirmed within this timeout, the connection enters degraded mode:
+     *  data operations are released with a warning.
+     */
+    public static int EPICS_PVA_CERT_STATUS_TMO = 30;
+
     /** Whether to allow PVA to use IPv6
      *
      *  <p> If this is false then PVA will not attempt to
@@ -319,6 +322,7 @@ public class PVASettings
         EPICS_PVA_FAST_BEACON_MIN = get("EPICS_PVA_FAST_BEACON_MIN", EPICS_PVA_FAST_BEACON_MIN);
         EPICS_PVA_FAST_BEACON_MAX = get("EPICS_PVA_FAST_BEACON_MAX", EPICS_PVA_FAST_BEACON_MAX);
         EPICS_PVA_MAX_BEACON_AGE = get("EPICS_PVA_MAX_BEACON_AGE", EPICS_PVA_MAX_BEACON_AGE);
+        EPICS_PVA_CERT_STATUS_TMO = get("EPICS_PVA_CERT_STATUS_TMO", EPICS_PVA_CERT_STATUS_TMO);
         EPICS_PVA_ENABLE_IPV6 = get("EPICS_PVA_ENABLE_IPV6", EPICS_PVA_ENABLE_IPV6);
     }
 
@@ -365,6 +369,13 @@ public class PVASettings
     {
         return Integer.parseInt(get(name, Integer.toString(default_value)));
     }
+
+    /** PVA protocol version for XDG path construction.
+     *
+     *  <p>Matches PVXS versionString() so that the Java client
+     *  and PVXS share the same well-known keychain locations.
+     */
+    private static final String PVA_VERSION = "1.5";
 
     /** Get XDG config home directory.
      *

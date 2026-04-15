@@ -24,8 +24,11 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.CertificateStatus;
+import org.epics.pva.common.CertificateStatusListener;
 import org.epics.pva.common.SecureSockets;
-import org.epics.pva.common.SecureSockets.TLSHandshakeInfo;;
+import org.epics.pva.common.SecureSockets.OwnCertInfo;
+import org.epics.pva.common.SecureSockets.TLSHandshakeInfo;
 
 /** Listen to TCP connections
  *
@@ -54,6 +57,12 @@ class ServerTCPListener
     private volatile boolean running = true;
     private volatile Thread listen_thread;
 
+    /** Server's own certificate status, or null if own cert has no status PV extension */
+    private volatile CertificateStatus server_own_cert_status;
+
+    /** Listener for server own cert status updates */
+    private final CertificateStatusListener server_own_cert_listener = this::handleServerOwnCertStatusUpdate;
+
     public ServerTCPListener(final PVAServer server) throws Exception
     {
         this.server = server;
@@ -76,6 +85,19 @@ class ServerTCPListener
         }
         else
             tls_server_socket = null;
+
+        // Subscribe to server's own cert status as early as possible
+        // (shared subscription created in SecureSockets.initialize(), register listener here)
+        if (tls)
+        {
+            final OwnCertInfo own_info = SecureSockets.getServerOwnCertInfo();
+            if (own_info != null  &&  own_info.cert_status != null)
+            {
+                logger.log(Level.FINE, () -> "Registering listener on server own cert status PV: " + own_info.status_pv_name);
+                server_own_cert_status = own_info.cert_status;
+                server_own_cert_status.addListener(server_own_cert_listener);
+            }
+        }
 
         // Start accepting connections
         listen_thread = new Thread(this::listen, name);
@@ -253,9 +275,35 @@ class ServerTCPListener
         logger.log(Level.FINER, Thread.currentThread().getName() + " done.");
     }
 
+    private void handleServerOwnCertStatusUpdate(final CertificateStatus update)
+    {
+        if (update.isValid())
+        {
+            logger.log(Level.FINE, "Server own cert status VALID");
+        }
+        else if (update.isUnrecoverable())
+        {
+            logger.log(Level.SEVERE, () -> "Server own cert status " + (update.isRevoked() ? "REVOKED" : "EXPIRED") + ", stopping TLS listener");
+            // Stop accepting new TLS connections; existing connections are not killed
+            running = false;
+        }
+        else
+        {
+            logger.log(Level.WARNING, "Server own cert status UNKNOWN/degraded, continuing at degraded trust");
+        }
+    }
+
     public void close()
     {
         running = false;
+
+        // Remove own cert status listener (shared subscription, don't unsubscribe)
+        if (server_own_cert_status != null)
+        {
+            server_own_cert_status.removeListener(server_own_cert_listener);
+            server_own_cert_status = null;
+        }
+
         // Close sockets, wait a little for threads to exit
         try
         {
