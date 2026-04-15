@@ -14,6 +14,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.Principal;
 import java.security.cert.Certificate;
@@ -63,16 +65,18 @@ public class SecureSockets
     /** X509 certificates loaded from the keychain mapped by principal name of the certificate */
     public static Map<String, X509Certificate> keychain_x509_certificates = new ConcurrentHashMap<>();
 
-    /** @param keychain_setting "/path/to/keychain;password"
+    /** @param keychain_setting "/path/to/keychain", "/path/to/keychain;password",
+     *         or just "/path/to/keychain" with password in a separate *_PWD_FILE
+     *  @param is_server true for server keychain (uses EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE),
+     *                   false for client (uses EPICS_PVA_TLS_KEYCHAIN_PWD_FILE)
      *  @return {@link SSLContext} with 'keystore' and 'truststore' set to content of keystore
      *  @throws Exception on error
      */
-    private static SSLContext createContext(final String keychain_setting) throws Exception
+    private static SSLContext createContext(final String keychain_setting, final boolean is_server) throws Exception
     {
         final String path;
         final char[] pass;
 
-        // We support the default "" empty as well as actual passwords, but not null for no password
         final int sep = keychain_setting.indexOf(';');
         if (sep > 0)
         {
@@ -82,7 +86,7 @@ public class SecureSockets
         else
         {
             path = keychain_setting;
-            pass = "".toCharArray();
+            pass = readKeychainPassword(is_server);
         }
 
         logger.log(Level.FINE, () -> "Loading keychain '" + path + "'");
@@ -154,6 +158,28 @@ public class SecureSockets
         return context;
     }
 
+    private static char[] readKeychainPassword(final boolean is_server)
+    {
+        final String pwd_file = is_server ? PVASettings.EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE
+                                          : PVASettings.EPICS_PVA_TLS_KEYCHAIN_PWD_FILE;
+        if (! pwd_file.isEmpty())
+        {
+            try
+            {
+                final String password = Files.readString(Path.of(pwd_file)).trim();
+                logger.log(Level.FINE, () -> "Read keychain password from " + pwd_file);
+                return password.toCharArray();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Error reading password file " + pwd_file, ex);
+            }
+        }
+        // Java PKCS12: null skips encrypted sections (loses CA certs).
+        // Empty array attempts decryption with retry via NUL char fallback.
+        return new char[0];
+    }
+
     private static synchronized void initialize() throws Exception
     {
         if (initialized)
@@ -161,13 +187,13 @@ public class SecureSockets
 
         if (! PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank())
         {
-            final SSLContext context = createContext(PVASettings.EPICS_PVAS_TLS_KEYCHAIN);
+            final SSLContext context = createContext(PVASettings.EPICS_PVAS_TLS_KEYCHAIN, true);
             tls_server_sockets = context.getServerSocketFactory();
         }
 
         if (! PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank())
         {
-            final SSLContext context = createContext(PVASettings.EPICS_PVA_TLS_KEYCHAIN);
+            final SSLContext context = createContext(PVASettings.EPICS_PVA_TLS_KEYCHAIN, false);
             tls_client_sockets = context.getSocketFactory();
         }
         initialized = true;

@@ -153,6 +153,22 @@ public class PVASettings
      */
     public static String EPICS_PVAS_TLS_KEYCHAIN = "";
 
+    /** Path to a file containing the password for the PVA server keychain.
+     *
+     *  <p>Alternative to embedding the password in {@link #EPICS_PVAS_TLS_KEYCHAIN}
+     *  using the "/path/to/file;password" syntax.
+     *  When set, the password is read from this file instead, with leading and trailing
+     *  whitespace stripped.
+     *  Takes precedence over an inline password in {@link #EPICS_PVAS_TLS_KEYCHAIN}
+     *  when no ";" separator is present in that setting.
+     *
+     *  <p>Intended for environments where secrets are mounted as files,
+     *  for example Kubernetes pods using a {@code Secret} volume.
+     *
+     *  <p>When empty, no password file is used.
+     */
+    public static String EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE = "";
+
     /** Secure server options
      *
      *  <ul>
@@ -182,6 +198,22 @@ public class PVASettings
      *  and searches via EPICS_PVA_NAME_SERVERS will also use TLS.
      */
     public static String EPICS_PVA_TLS_KEYCHAIN = "";
+
+    /** Path to a file containing the password for the PVA client keychain.
+     *
+     *  <p>Alternative to embedding the password in {@link #EPICS_PVA_TLS_KEYCHAIN}
+     *  using the "/path/to/file;password" syntax.
+     *  When set, the password is read from this file instead, with leading and trailing
+     *  whitespace stripped.
+     *  Takes precedence over an inline password in {@link #EPICS_PVA_TLS_KEYCHAIN}
+     *  when no ";" separator is present in that setting.
+     *
+     *  <p>Intended for environments where secrets are mounted as files,
+     *  for example Kubernetes pods using a {@code Secret} volume.
+     *
+     *  <p>When empty, no password file is used.
+     */
+    public static String EPICS_PVA_TLS_KEYCHAIN_PWD_FILE = "";
 
     /** TCP buffer size for sending data
      *
@@ -281,9 +313,11 @@ public class PVASettings
         EPICS_PVA_TCP_SOCKET_TMO = get("EPICS_PVA_TCP_SOCKET_TMO", EPICS_PVA_TCP_SOCKET_TMO);
         EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
         EPICS_PVAS_TLS_KEYCHAIN = get("EPICS_PVAS_TLS_KEYCHAIN", EPICS_PVAS_TLS_KEYCHAIN);
+        EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE = get("EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE", EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE);
         EPICS_PVAS_TLS_OPTIONS = get("EPICS_PVAS_TLS_OPTIONS", EPICS_PVAS_TLS_OPTIONS);
         require_client_cert =  EPICS_PVAS_TLS_OPTIONS.contains("client_cert=require");
         EPICS_PVA_TLS_KEYCHAIN = get("EPICS_PVA_TLS_KEYCHAIN", EPICS_PVA_TLS_KEYCHAIN);
+        EPICS_PVA_TLS_KEYCHAIN_PWD_FILE = get("EPICS_PVA_TLS_KEYCHAIN_PWD_FILE", EPICS_PVA_TLS_KEYCHAIN_PWD_FILE);
         if (EPICS_PVA_TLS_KEYCHAIN.isEmpty()  &&  !EPICS_PVAS_TLS_KEYCHAIN.isEmpty())
         {
             EPICS_PVA_TLS_KEYCHAIN = EPICS_PVAS_TLS_KEYCHAIN;
