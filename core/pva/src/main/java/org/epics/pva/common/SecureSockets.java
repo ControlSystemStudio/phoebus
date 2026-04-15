@@ -113,6 +113,29 @@ public class SecureSockets
                     final String principal = x509.getSubjectX500Principal().toString();
                     logger.log(Level.FINE, "Keychain alias '" + alias + "' is X509 key and certificate for " + principal);
                     keychain_x509_certificates.put(principal, x509);
+
+                    // Add CA certs from the key entry's chain as trusted entries.
+                    // Java's TrustManagerFactory only trusts trustedCertEntry aliases,
+                    // not the CA chain attached to a keyEntry.
+                    // PVXS does the equivalent in extractCAs() (openssl.cpp).
+                    final Certificate[] chain = key_store.getCertificateChain(alias);
+                    if (chain != null)
+                    {
+                        for (int i = 1; i < chain.length; i++)
+                        {
+                            if (chain[i] instanceof X509Certificate ca_cert)
+                            {
+                                final String ca_alias = "ca-chain-" + alias + "-" + i;
+                                if (! key_store.containsAlias(ca_alias))
+                                {
+                                    key_store.setCertificateEntry(ca_alias, ca_cert);
+                                    final String ca_name = ca_cert.getSubjectX500Principal().toString();
+                                    logger.log(Level.FINE, "Added CA from chain as trusted: " + ca_name);
+                                    keychain_x509_certificates.put(ca_name, ca_cert);
+                                }
+                            }
+                        }
+                    }
                 }
                 // Could print 'key', but jdk.event.security logger already logs the cert at FINE level
                 // and logging the key would show the private key
