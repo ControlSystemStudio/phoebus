@@ -61,6 +61,9 @@ class ClientTCPHandler extends TCPHandler
     /** Is this a TLS connection or plain TCP? */
     private final boolean tls;
 
+    /** Authentication method negotiated during connection validation */
+    private volatile ClientAuthentication authentication;
+
     /** Client context */
     private final PVAClient client;
 
@@ -160,10 +163,16 @@ class ClientTCPHandler extends TCPHandler
         return client;
     }
 
+    /** @return <code>true</code> if this connection uses TLS */
+    public boolean isTLS()
+    {
+        return tls;
+    }
+
     /** When using TLS, the socket has a peer (server, IOC) certificate
      *  @return Name from server's certificate, or <code>null</code>
      */
-    String getServerX509Name()
+    public String getServerX509Name()
     {
         try
         {
@@ -180,10 +189,17 @@ class ClientTCPHandler extends TCPHandler
     /** When using TLS, the socket may come with a local (client) certificate
      *  that TLS uses to authenticate to the server.
      *  @return Name from client's certificate, or <code>null</code> */
-    String getClientX509Name()
+    public String getClientX509Name()
     {
         return tls ? SecureSockets.getPrincipalCN(((SSLSocket) socket).getSession().getLocalPrincipal())
                    : null;
+    }
+
+    /** @return Authentication method description, e.g. "x509", "ca(user@host)", or "anonymous". Null before validation. */
+    public String getAuthenticationInfo()
+    {
+        final ClientAuthentication auth = authentication;
+        return auth != null ? auth.toString() : null;
     }
 
     /** @param channel Channel that uses this TCP connection */
@@ -406,6 +422,7 @@ class ClientTCPHandler extends TCPHandler
         // it will send a CMD_VALIDATED = 9 message with StatusOK and close the TCP connection.
 
         // Reply to Connection Validation request.
+        this.authentication = auth;
         logger.log(Level.FINE, () -> "Sending connection validation response, auth = " + auth);
         // Since send thread is not running, yet, send directly
         PVAHeader.encodeMessageHeader(send_buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_CONNECTION_VALIDATION, 4+2+2+1);
