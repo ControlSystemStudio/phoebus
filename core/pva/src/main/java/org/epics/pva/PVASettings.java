@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.epics.pva;
 
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +21,13 @@ import java.util.logging.Logger;
  */
 public class PVASettings
 {
+    /** PVA protocol version for XDG path construction.
+     *
+     *  <p>Matches PVXS versionString() so that the Java client
+     *  and PVXS share the same well-known keychain locations.
+     */
+    private static final String PVA_VERSION = "1.5";
+
     /** Common logger
      *
      *  Usage of levels:
@@ -281,6 +289,15 @@ public class PVASettings
         EPICS_PVA_TCP_SOCKET_TMO = get("EPICS_PVA_TCP_SOCKET_TMO", EPICS_PVA_TCP_SOCKET_TMO);
         EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
         EPICS_PVAS_TLS_KEYCHAIN = get("EPICS_PVAS_TLS_KEYCHAIN", EPICS_PVAS_TLS_KEYCHAIN);
+        if (EPICS_PVAS_TLS_KEYCHAIN.isEmpty())
+        {
+            final String xdg_server = getXdgPvaKeychainPath("server.p12");
+            if (!xdg_server.isEmpty())
+            {
+                EPICS_PVAS_TLS_KEYCHAIN = xdg_server;
+                logger.log(Level.CONFIG, "EPICS_PVAS_TLS_KEYCHAIN auto-discovered at " + xdg_server);
+            }
+        }
         EPICS_PVAS_TLS_OPTIONS = get("EPICS_PVAS_TLS_OPTIONS", EPICS_PVAS_TLS_OPTIONS);
         require_client_cert =  EPICS_PVAS_TLS_OPTIONS.contains("client_cert=require");
         EPICS_PVA_TLS_KEYCHAIN = get("EPICS_PVA_TLS_KEYCHAIN", EPICS_PVA_TLS_KEYCHAIN);
@@ -288,6 +305,15 @@ public class PVASettings
         {
             EPICS_PVA_TLS_KEYCHAIN = EPICS_PVAS_TLS_KEYCHAIN;
             logger.log(Level.CONFIG, "EPICS_PVA_TLS_KEYCHAIN (empty) updated from EPICS_PVAS_TLS_KEYCHAIN");
+        }
+        if (EPICS_PVA_TLS_KEYCHAIN.isEmpty())
+        {
+            final String xdg_client = getXdgPvaKeychainPath("client.p12");
+            if (!xdg_client.isEmpty())
+            {
+                EPICS_PVA_TLS_KEYCHAIN = xdg_client;
+                logger.log(Level.CONFIG, "EPICS_PVA_TLS_KEYCHAIN auto-discovered at " + xdg_client);
+            }
         }
         EPICS_PVA_SEND_BUFFER_SIZE = get("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
         EPICS_PVA_FAST_BEACON_MIN = get("EPICS_PVA_FAST_BEACON_MIN", EPICS_PVA_FAST_BEACON_MIN);
@@ -338,5 +364,57 @@ public class PVASettings
     public static int get(final String name, final int default_value)
     {
         return Integer.parseInt(get(name, Integer.toString(default_value)));
+    }
+
+    /** Get XDG config home directory.
+     *
+     *  <p>Uses {@code XDG_CONFIG_HOME} environment variable if set.
+     *  Falls back to {@code $HOME/.config} on Unix or
+     *  {@code %USERPROFILE%} on Windows,
+     *  matching the PVXS {@code getXdgConfigHome()} behavior.
+     *
+     *  @return XDG config home path, or empty string if home cannot be determined
+     */
+    private static String getXdgConfigHome()
+    {
+        final String xdg = System.getenv("XDG_CONFIG_HOME");
+        if (xdg != null  &&  !xdg.isEmpty())
+            return xdg;
+
+        final String home = System.getProperty("user.home");
+        if (home == null  ||  home.isEmpty())
+            return "";
+
+        if (System.getProperty("os.name", "").toLowerCase().startsWith("win"))
+            return home;
+
+        return home + File.separator + ".config";
+    }
+
+    /** Try to find a PVA keychain at the XDG well-known location.
+     *
+     *  <p>Constructs the path
+     *  {@code <xdg_config_home>/pva/<PVA_VERSION>/<filename>}
+     *  and returns it if the file exists, otherwise returns empty string.
+     *  This mirrors the PVXS fallback in {@code config.cpp} when
+     *  {@code EPICS_PVA_TLS_KEYCHAIN} / {@code EPICS_PVAS_TLS_KEYCHAIN}
+     *  are not configured.
+     *
+     *  @param filename Keychain filename, e.g. "client.p12" or "server.p12"
+     *  @return Absolute path to the keychain file, or empty string if not found
+     */
+    private static String getXdgPvaKeychainPath(final String filename)
+    {
+        final String config_home = getXdgConfigHome();
+        if (config_home.isEmpty())
+            return "";
+
+        final String path = config_home + File.separator + "pva"
+                          + File.separator + PVA_VERSION
+                          + File.separator + filename;
+        final File file = new File(path);
+        if (file.isFile()  &&  file.canRead())
+            return path;
+        return "";
     }
 }
