@@ -289,7 +289,7 @@ public class PVASettings
         EPICS_PVA_TCP_SOCKET_TMO = get("EPICS_PVA_TCP_SOCKET_TMO", EPICS_PVA_TCP_SOCKET_TMO);
         EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
         EPICS_PVAS_TLS_KEYCHAIN = get("EPICS_PVAS_TLS_KEYCHAIN", EPICS_PVAS_TLS_KEYCHAIN);
-        if (EPICS_PVAS_TLS_KEYCHAIN.isEmpty())
+        if (EPICS_PVAS_TLS_KEYCHAIN.isEmpty()  &&  !isDefined("EPICS_PVAS_TLS_KEYCHAIN"))
         {
             final String xdg_server = getXdgPvaKeychainPath("server.p12");
             if (!xdg_server.isEmpty())
@@ -306,7 +306,7 @@ public class PVASettings
             EPICS_PVA_TLS_KEYCHAIN = EPICS_PVAS_TLS_KEYCHAIN;
             logger.log(Level.CONFIG, "EPICS_PVA_TLS_KEYCHAIN (empty) updated from EPICS_PVAS_TLS_KEYCHAIN");
         }
-        if (EPICS_PVA_TLS_KEYCHAIN.isEmpty())
+        if (EPICS_PVA_TLS_KEYCHAIN.isEmpty()  &&  !isDefined("EPICS_PVA_TLS_KEYCHAIN"))
         {
             final String xdg_client = getXdgPvaKeychainPath("client.p12");
             if (!xdg_client.isEmpty())
@@ -364,6 +364,21 @@ public class PVASettings
     public static int get(final String name, final int default_value)
     {
         return Integer.parseInt(get(name, Integer.toString(default_value)));
+    }
+
+    /** Check whether a setting has been explicitly defined as a Java property or environment variable.
+     *
+     *  <p>Unlike {@link #get(String, String)}, this returns {@code true} even when the
+     *  variable is defined but set to an empty string.  This is used to distinguish
+     *  "user explicitly set the variable to empty (disable TLS)" from
+     *  "variable is absent (fall back to auto-discovery)".
+     *
+     *  @param name Name of setting
+     *  @return {@code true} if the setting is present as a Java property or environment variable
+     */
+    private static boolean isDefined(final String name)
+    {
+        return System.getProperty(name) != null  ||  System.getenv(name) != null;
     }
 
     /** Get XDG config home directory.
