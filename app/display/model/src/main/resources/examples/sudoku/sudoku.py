@@ -67,9 +67,9 @@ def calcPVIndex(row, col):
 def calcBlockRange(val):
     return range(val-val%3, val-val%3+3)
 
-from org.csstudio.display.builder.model.persist import WidgetColorService
 from org.phoebus.ui.color import WidgetColor
-from org.csstudio.display.builder.model.persist import NamedWidgetColors
+from org.phoebus.ui.color import WidgetColorService
+from org.phoebus.ui.color import NamedWidgetColors
 
 display = widget.getDisplayModel()
 text = WidgetColorService.getColor(NamedWidgetColors.TEXT)
