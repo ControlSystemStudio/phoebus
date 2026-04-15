@@ -8,6 +8,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.properties;
 
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
+
 /** Legacy compatibility wrapper for {@link org.phoebus.ui.color.NamedWidgetColor}.
  *
  * @deprecated Use {@link org.phoebus.ui.color.NamedWidgetColor}.
@@ -24,6 +26,8 @@ public class NamedWidgetColor extends org.phoebus.ui.color.NamedWidgetColor
     public NamedWidgetColor(final String name, final int red, final int green, final int blue)
     {
         super(name, red, green, blue);
+        logger.warning("Deprecated wrapper in use: org.csstudio.display.builder.model.properties.NamedWidgetColor. " +
+                "Use org.phoebus.ui.color.NamedWidgetColor.");
     }
 
     /** Construct named RGBA color.
@@ -36,6 +40,8 @@ public class NamedWidgetColor extends org.phoebus.ui.color.NamedWidgetColor
     public NamedWidgetColor(final String name, final int red, final int green, final int blue, final int alpha)
     {
         super(name, red, green, blue, alpha);
+        logger.warning("Deprecated wrapper in use: org.csstudio.display.builder.model.properties.NamedWidgetColor. " +
+                "Use org.phoebus.ui.color.NamedWidgetColor.");
     }
 }
 

@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.properties;
 
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
+
 /** Legacy compatibility wrapper for {@link org.phoebus.ui.color.WidgetColor}.
  *
  * @deprecated Use {@link org.phoebus.ui.color.WidgetColor}.
@@ -22,6 +24,8 @@ public class WidgetColor extends org.phoebus.ui.color.WidgetColor
     public WidgetColor(final int red, final int green, final int blue)
     {
         super(red, green, blue);
+        logger.warning("Deprecated wrapper in use: org.csstudio.display.builder.model.properties.WidgetColor. " +
+                "Use org.phoebus.ui.color.WidgetColor.");
     }
 
     /** Construct RGBA color.
@@ -33,6 +37,8 @@ public class WidgetColor extends org.phoebus.ui.color.WidgetColor
     public WidgetColor(final int red, final int green, final int blue, final int alpha)
     {
         super(red, green, blue, alpha);
+        logger.warning("Deprecated wrapper in use: org.csstudio.display.builder.model.properties.WidgetColor. " +
+                "Use org.phoebus.ui.color.WidgetColor.");
     }
 }
 
