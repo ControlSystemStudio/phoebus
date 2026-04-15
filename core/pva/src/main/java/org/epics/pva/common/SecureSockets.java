@@ -137,9 +137,8 @@ public class SecureSockets
 
     private static char[] readKeychainPassword(final boolean is_server)
     {
-        final String env_name = is_server ? "EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE"
-                                          : "EPICS_PVA_TLS_KEYCHAIN_PWD_FILE";
-        final String pwd_file = PVASettings.get(env_name, "");
+        final String pwd_file = is_server ? PVASettings.EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE
+                                          : PVASettings.EPICS_PVA_TLS_KEYCHAIN_PWD_FILE;
         if (! pwd_file.isEmpty())
         {
             try
