@@ -14,6 +14,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.Principal;
 import java.security.cert.Certificate;
@@ -63,16 +65,65 @@ public class SecureSockets
     /** X509 certificates loaded from the keychain mapped by principal name of the certificate */
     public static Map<String, X509Certificate> keychain_x509_certificates = new ConcurrentHashMap<>();
 
-    /** @param keychain_setting "/path/to/keychain;password"
-     *  @return {@link SSLContext} with 'keystore' and 'truststore' set to content of keystore
+    /** Own certificate info extracted from the client keychain during context creation, or null */
+    private static volatile OwnCertInfo client_own_cert_info;
+
+    /** Own certificate info extracted from the server keychain during context creation, or null */
+    private static volatile OwnCertInfo server_own_cert_info;
+
+    /** Info about the local (own) certificate's status PV extension and live subscription */
+    public static class OwnCertInfo
+    {
+        public final X509Certificate certificate;
+        public final String status_pv_name;
+
+        /** Live cert status subscription, set after subscribing in initialize(). Null before subscription. */
+        public volatile CertificateStatus cert_status;
+
+        OwnCertInfo(final X509Certificate certificate, final String status_pv_name)
+        {
+            this.certificate = certificate;
+            this.status_pv_name = status_pv_name;
+        }
+    }
+
+    /** @return Own-cert info for client TLS context, or null if no status PV extension */
+    public static OwnCertInfo getClientOwnCertInfo()
+    {
+        return client_own_cert_info;
+    }
+
+    /** @return Own-cert info for server TLS context, or null if no status PV extension */
+    public static OwnCertInfo getServerOwnCertInfo()
+    {
+        return server_own_cert_info;
+    }
+
+    /** Result of creating an SSL context, including own-cert status PV info */
+    private static class ContextInfo
+    {
+        final SSLContext context;
+        final OwnCertInfo own_cert_info;
+
+        ContextInfo(final SSLContext context, final OwnCertInfo own_cert_info)
+        {
+            this.context = context;
+            this.own_cert_info = own_cert_info;
+        }
+    }
+
+    /** @param keychain_setting "/path/to/keychain", "/path/to/keychain;password",
+     *         or just "/path/to/keychain" with password in a separate *_PWD_FILE
+     *  @param is_server true for server keychain (uses EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE),
+     *                   false for client (uses EPICS_PVA_TLS_KEYCHAIN_PWD_FILE)
+     *  @return {@link ContextInfo} with SSLContext and optional own-cert status PV info
      *  @throws Exception on error
      */
-    private static SSLContext createContext(final String keychain_setting) throws Exception
+    private static ContextInfo createContext(final String keychain_setting, final boolean is_server) throws Exception
     {
         final String path;
         final char[] pass;
 
-        // We support the default "" empty as well as actual passwords, but not null for no password
         final int sep = keychain_setting.indexOf(';');
         if (sep > 0)
         {
@@ -82,7 +133,7 @@ public class SecureSockets
         else
         {
             path = keychain_setting;
-            pass = "".toCharArray();
+            pass = readKeychainPassword(is_server);
         }
 
         logger.log(Level.FINE, () -> "Loading keychain '" + path + "'");
@@ -90,7 +141,10 @@ public class SecureSockets
         final KeyStore key_store = KeyStore.getInstance("PKCS12");
         key_store.load(new FileInputStream(path), pass);
 
-        // Track each loaded certificate by its principal name
+        // Track each loaded certificate by its principal name,
+        // and extract own-cert status PV extension from key entries
+        OwnCertInfo own_cert_info = null;
+
         for (String alias : Collections.list(key_store.aliases()))
         {
             if (key_store.isCertificateEntry(alias))
@@ -113,6 +167,48 @@ public class SecureSockets
                     final String principal = x509.getSubjectX500Principal().toString();
                     logger.log(Level.FINE, "Keychain alias '" + alias + "' is X509 key and certificate for " + principal);
                     keychain_x509_certificates.put(principal, x509);
+
+                    // Extract certificate-status-PV extension (OID 1.3.6.1.4.1.37427.1) from own cert
+                    if (own_cert_info == null)
+                    {
+                        try
+                        {
+                            final byte[] ext_value = x509.getExtensionValue("1.3.6.1.4.1.37427.1");
+                            final String status_pv = decodeDERString(ext_value);
+                            if (! status_pv.isEmpty())
+                            {
+                                own_cert_info = new OwnCertInfo(x509, status_pv);
+                                logger.log(Level.FINE, "Own certificate status PV: '" + status_pv + "'");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.log(Level.WARNING, "Error extracting status PV from own certificate", ex);
+                        }
+                    }
+
+                    // Add CA certs from the key entry's chain as trusted entries.
+                    // Java's TrustManagerFactory only trusts trustedCertEntry aliases,
+                    // not the CA chain attached to a keyEntry.
+                    // PVXS does the equivalent in extractCAs() (openssl.cpp).
+                    final Certificate[] chain = key_store.getCertificateChain(alias);
+                    if (chain != null)
+                    {
+                        for (int i = 1; i < chain.length; i++)
+                        {
+                            if (chain[i] instanceof X509Certificate ca_cert)
+                            {
+                                final String ca_alias = "ca-chain-" + alias + "-" + i;
+                                if (! key_store.containsAlias(ca_alias))
+                                {
+                                    key_store.setCertificateEntry(ca_alias, ca_cert);
+                                    final String ca_name = ca_cert.getSubjectX500Principal().toString();
+                                    logger.log(Level.FINE, "Added CA from chain as trusted: " + ca_name);
+                                    keychain_x509_certificates.put(ca_name, ca_cert);
+                                }
+                            }
+                        }
+                    }
                 }
                 // Could print 'key', but jdk.event.security logger already logs the cert at FINE level
                 // and logging the key would show the private key
@@ -128,7 +224,30 @@ public class SecureSockets
         final SSLContext context = SSLContext.getInstance("TLS");
         context.init(key_manager.getKeyManagers(), trust_manager.getTrustManagers(), null);
 
-        return context;
+        return new ContextInfo(context, own_cert_info);
+    }
+
+    private static char[] readKeychainPassword(final boolean is_server)
+    {
+        final String env_name = is_server ? "EPICS_PVAS_TLS_KEYCHAIN_PWD_FILE"
+                                          : "EPICS_PVA_TLS_KEYCHAIN_PWD_FILE";
+        final String pwd_file = PVASettings.get(env_name, "");
+        if (! pwd_file.isEmpty())
+        {
+            try
+            {
+                final String password = Files.readString(Path.of(pwd_file)).trim();
+                logger.log(Level.FINE, () -> "Read keychain password from " + pwd_file);
+                return password.toCharArray();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Error reading password file " + pwd_file, ex);
+            }
+        }
+        // Java PKCS12: null skips encrypted sections (loses CA certs).
+        // Empty array attempts decryption with retry via NUL char fallback.
+        return new char[0];
     }
 
     private static synchronized void initialize() throws Exception
@@ -138,16 +257,41 @@ public class SecureSockets
 
         if (! PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank())
         {
-            final SSLContext context = createContext(PVASettings.EPICS_PVAS_TLS_KEYCHAIN);
-            tls_server_sockets = context.getServerSocketFactory();
+            final ContextInfo info = createContext(PVASettings.EPICS_PVAS_TLS_KEYCHAIN, true);
+            tls_server_sockets = info.context.getServerSocketFactory();
+            server_own_cert_info = info.own_cert_info;
+            subscribeOwnCertStatus(server_own_cert_info, "Server");
         }
 
         if (! PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank())
         {
-            final SSLContext context = createContext(PVASettings.EPICS_PVA_TLS_KEYCHAIN);
-            tls_client_sockets = context.getSocketFactory();
+            final ContextInfo info = createContext(PVASettings.EPICS_PVA_TLS_KEYCHAIN, false);
+            tls_client_sockets = info.context.getSocketFactory();
+            client_own_cert_info = info.own_cert_info;
+            subscribeOwnCertStatus(client_own_cert_info, "Client");
         }
         initialized = true;
+    }
+
+    /** Subscribe to own cert status PV immediately at keychain-read time.
+     *  @param own_info OwnCertInfo extracted from keychain, or null
+     *  @param label "Client" or "Server" for logging
+     */
+    private static void subscribeOwnCertStatus(final OwnCertInfo own_info, final String label)
+    {
+        if (own_info == null)
+            return;
+        logger.log(Level.FINE, () -> label + " subscribing to own cert status PV: " + own_info.status_pv_name);
+        own_info.cert_status = CertificateStatusMonitor.instance().checkCertStatus(
+                own_info.certificate, own_info.status_pv_name, update ->
+                {
+                    if (update.isValid())
+                        logger.log(Level.FINE, () -> label + " own cert status VALID");
+                    else if (update.isUnrecoverable())
+                        logger.log(Level.SEVERE, () -> label + " own cert status " + (update.isRevoked() ? "REVOKED" : "EXPIRED"));
+                    else
+                        logger.log(Level.WARNING, () -> label + " own cert status UNKNOWN");
+                });
     }
 
     /** Create server socket
@@ -274,8 +418,13 @@ public class SecureSockets
     {
         if (der_value == null)
             return "";
-        // https://en.wikipedia.org/wiki/X.690#DER_encoding:
-        // Type 4, length 0..127, characters
+        // X509Certificate.getExtensionValue() returns a DER OCTET STRING
+        // that wraps the actual extension content.
+        // The extension content itself is a DER-encoded string
+        // (OCTET STRING 0x04 or UTF8String 0x0C), so we must unwrap two layers:
+        //   Outer: 0x04 <len> <inner DER>
+        //   Inner: 0x04|0x0C <len> <actual string bytes>
+        // https://en.wikipedia.org/wiki/X.690#DER_encoding
         if (der_value.length < 2)
             throw new Exception("Need DER type and size, only received " + der_value.length + " bytes");
         if (der_value[0] != 0x04)
@@ -284,7 +433,20 @@ public class SecureSockets
             throw new Exception("Can only handle strings of length 0-127, got " + der_value[1]);
         if (der_value[1] != der_value.length-2)
             throw new Exception("DER string length " + der_value[1] + " but " + (der_value.length-2) + " data items");
-        return new String(der_value, 2, der_value[1]);
+
+        // Unwrap outer OCTET STRING to get the inner DER-encoded string
+        final int inner_offset = 2;
+        final int inner_len = der_value.length - 2;
+        if (inner_len < 2)
+            throw new Exception("Inner DER too short: " + inner_len + " bytes");
+        final byte inner_tag = der_value[inner_offset];
+        // Accept OCTET STRING (0x04), UTF8String (0x0C), or IA5String (0x16) as inner type
+        if (inner_tag != 0x04  &&  inner_tag != 0x0C  &&  inner_tag != 0x16)
+            throw new Exception(String.format("Expected inner DER string type 0x04, 0x0C, or 0x16, got 0x%02X", inner_tag));
+        final int str_len = der_value[inner_offset + 1] & 0xFF;
+        if (str_len != inner_len - 2)
+            throw new Exception("Inner DER string length " + str_len + " but " + (inner_len-2) + " data bytes");
+        return new String(der_value, inner_offset + 2, str_len);
     }
 
     /** Get CN from principal
@@ -353,6 +515,24 @@ public class SecureSockets
             // but no obvious way to catch that
             socket.startHandshake();
 
+            return extractPeerInfo(socket);
+        }
+
+        /** Extract peer certificate info from an already-handshaken SSL socket.
+         *
+         *  <p>Unlike {@link #fromSocket}, this does not call startHandshake()
+         *  and is safe to use when the handshake was already performed.
+         *
+         *  @param socket {@link SSLSocket} that has completed handshake
+         *  @return {@link TLSHandshakeInfo} or <code>null</code>
+         */
+        public static TLSHandshakeInfo fromHandshakenSocket(final SSLSocket socket)
+        {
+            return extractPeerInfo(socket);
+        }
+
+        private static TLSHandshakeInfo extractPeerInfo(final SSLSocket socket)
+        {
             try
             {
                 // Log certificate chain, grep cert status PV name

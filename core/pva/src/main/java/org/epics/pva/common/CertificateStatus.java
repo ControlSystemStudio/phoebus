@@ -15,6 +15,10 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Date;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -55,6 +59,14 @@ public class CertificateStatus
         UNKNOWN, VALID, PENDING, PENDING_APPROVAL, PENDING_RENEWAL, EXPIRED, REVOKED
     }
 
+    /** Timer for OCSP response validity expiration */
+    private static final ScheduledExecutorService ocsp_timer = Executors.newSingleThreadScheduledExecutor(run ->
+    {
+        final Thread thread = new Thread(run, "OCSP Validity Timer");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     /** Certificate to check */
     private final X509Certificate certificate;
 
@@ -63,6 +75,9 @@ public class CertificateStatus
 
     /** Status of the certificate */
     private final AtomicReference<StatusOptions> status = new AtomicReference<>(StatusOptions.UNKNOWN);
+
+    /** Scheduled OCSP validity expiration, or null */
+    private volatile ScheduledFuture<?> ocsp_expiration;
 
     /** Listeners to status changes */
     private final CopyOnWriteArrayList<CertificateStatusListener> listeners = new CopyOnWriteArrayList<>();
@@ -86,7 +101,7 @@ public class CertificateStatus
     }
 
     /** @param listener Listener to add (with initial update) */
-    void addListener(final CertificateStatusListener listener)
+    public void addListener(final CertificateStatusListener listener)
     {
         listeners.add(listener);
         // Send initial update
@@ -97,7 +112,7 @@ public class CertificateStatus
     /** @param listener Listener to remove
      *  @return Was that the last listener, can CertificateStatus be removed?
      */
-    boolean removeListener(final CertificateStatusListener listener)
+    public boolean removeListener(final CertificateStatusListener listener)
     {
         if (! listeners.remove(listener))
             throw new IllegalStateException("Unknown CertificateStatusListener");
@@ -108,6 +123,25 @@ public class CertificateStatus
     public boolean isValid()
     {
         return status.get() == StatusOptions.VALID;
+    }
+
+    /** @return Is the certificate revoked? (unrecoverable) */
+    public boolean isRevoked()
+    {
+        return status.get() == StatusOptions.REVOKED;
+    }
+
+    /** @return Is the certificate expired? (unrecoverable) */
+    public boolean isExpired()
+    {
+        return status.get() == StatusOptions.EXPIRED;
+    }
+
+    /** @return Is the status unrecoverable (REVOKED or EXPIRED)? */
+    public boolean isUnrecoverable()
+    {
+        final StatusOptions s = status.get();
+        return s == StatusOptions.REVOKED  ||  s == StatusOptions.EXPIRED;
     }
 
     /** PVAChannel connection handler, starts monitor */
@@ -246,6 +280,7 @@ public class CertificateStatus
                     logger.log(Level.FINER, "OCSP status is GOOD");
                     status.set(StatusOptions.VALID);
                     ocsp_confirmation = true;
+                    scheduleOcspExpiration(until);
                     break;
                 }
                 else if (response_status instanceof RevokedStatus revoked)
@@ -276,6 +311,30 @@ public class CertificateStatus
         notifyListeners();
     }
 
+    private void scheduleOcspExpiration(final Date next_update)
+    {
+        final ScheduledFuture<?> prev = ocsp_expiration;
+        if (prev != null)
+            prev.cancel(false);
+
+        if (next_update == null)
+            return;
+
+        final long delay_ms = next_update.getTime() - System.currentTimeMillis();
+        if (delay_ms <= 0)
+            return;
+
+        logger.log(Level.FINER, () -> "Scheduling OCSP validity expiration for " + pv.getName() + " in " + delay_ms + " ms");
+        ocsp_expiration = ocsp_timer.schedule(() ->
+        {
+            if (status.compareAndSet(StatusOptions.VALID, StatusOptions.UNKNOWN))
+            {
+                logger.log(Level.WARNING, () -> "OCSP response for " + pv.getName() + " expired without renewal, status reverts to UNKNOWN");
+                notifyListeners();
+            }
+        }, delay_ms, TimeUnit.MILLISECONDS);
+    }
+
     private void notifyListeners()
     {
         for (var listener : listeners)
@@ -287,6 +346,9 @@ public class CertificateStatus
     {
         if (! listeners.isEmpty())
             throw new IllegalStateException("CertificateStatus(" + getPVName() + ") is still in use");
+        final ScheduledFuture<?> timer = ocsp_expiration;
+        if (timer != null)
+            timer.cancel(false);
         pv.close();
     }
 

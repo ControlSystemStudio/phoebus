@@ -9,6 +9,7 @@ package org.epics.pva.common;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.security.cert.X509Certificate;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
@@ -53,12 +54,16 @@ public class CertificateStatusMonitor
     /** PVA Client used for all CERT:STATUS:... PVs */
     private PVAClient client = null;
 
-    /** Constructor of the singleton instance */
+    /** Constructor of the singleton instance.
+     *  Creates a PVAClient with TLS disabled to avoid infinite recursion:
+     *  cert status monitoring requires a PVA connection which must not
+     *  itself trigger cert status monitoring.
+     */
     private CertificateStatusMonitor()
     {
         try
         {
-            client = new PVAClient();
+            client = new PVAClient(true);
         }
         catch (Exception ex)
         {
@@ -88,13 +93,23 @@ public class CertificateStatusMonitor
      */
     public synchronized CertificateStatus checkCertStatus(final TLSHandshakeInfo tls_info,final CertificateStatusListener listener)
     {
-        if (!tls_info.status_pv_name.startsWith("CERT:STATUS:"))
-            throw new IllegalArgumentException("Need CERT:STATUS:... PV, got " + tls_info.status_pv_name);
+        return checkCertStatus(tls_info.peer_cert, tls_info.status_pv_name, listener);
+    }
 
-        logger.log(Level.FINER, () -> "Checking " + tls_info.status_pv_name + " for '" + tls_info.name + "'");
+    /** @param certificate X.509 certificate to monitor
+     *  @param status_pv_name CERT:STATUS:... PV name from the certificate's extension
+     *  @param listener Listener to invoke for certificate status updates
+     *  @return {@link CertificateStatus} to which we're subscribed, need to unsubscribe when no longer needed
+     */
+    public synchronized CertificateStatus checkCertStatus(final X509Certificate certificate, final String status_pv_name, final CertificateStatusListener listener)
+    {
+        if (!status_pv_name.startsWith("CERT:STATUS:"))
+            throw new IllegalArgumentException("Need CERT:STATUS:... PV, got " + status_pv_name);
 
-        final CertificateStatus cert_stat = certificate_states.computeIfAbsent(tls_info.status_pv_name,
-                stat_pv_name -> new CertificateStatus(client, tls_info.peer_cert, tls_info.status_pv_name));
+        logger.log(Level.FINER, () -> "Checking " + status_pv_name + " for '" + certificate.getSubjectX500Principal() + "'");
+
+        final CertificateStatus cert_stat = certificate_states.computeIfAbsent(status_pv_name,
+                stat_pv_name -> new CertificateStatus(client, certificate, status_pv_name));
         cert_stat.addListener(listener);
 
         return cert_stat;
