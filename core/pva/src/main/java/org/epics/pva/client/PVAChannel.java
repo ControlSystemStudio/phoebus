@@ -111,6 +111,44 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
         return copy;
     }
 
+    /** @return <code>true</code> if the connection uses TLS, <code>false</code> for plain TCP or when disconnected */
+    public boolean isTLS()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        return handler != null && handler.isTLS();
+    }
+
+    /** @return Common Name from the server's X.509 certificate, or <code>null</code> if not using TLS or disconnected */
+    public String getServerX509Name()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        return handler != null ? handler.getServerX509Name() : null;
+    }
+
+    /** @return Common Name from the client's X.509 certificate used for authentication, or <code>null</code> */
+    public String getClientX509Name()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        return handler != null ? handler.getClientX509Name() : null;
+    }
+
+    /** @return Authentication method description, or <code>null</code> when disconnected */
+    public String getAuthenticationInfo()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        return handler != null ? handler.getAuthenticationInfo() : null;
+    }
+
+    /** @return Server address as host:port, or <code>null</code> when disconnected */
+    public String getRemoteAddress()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        if (handler == null)
+            return null;
+        final java.net.InetSocketAddress addr = handler.getRemoteAddress();
+        return addr.getAddress().getHostAddress() + ":" + addr.getPort();
+    }
+
     /** @return Server channel ID */
     int getSID()
     {
