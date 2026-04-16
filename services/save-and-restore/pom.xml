@@ -4,13 +4,13 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>services</artifactId>
-		<version>5.0.3-SNAPSHOT</version>
+		<version>5.0.3</version>
 	</parent>
 
 	<groupId>org.phoebus</groupId>
 	<artifactId>service-save-and-restore</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
-  <version>5.0.3-SNAPSHOT</version>
+  <version>5.0.3</version>
 
 	<properties>
 		<commons.collections.version>4.4</commons.collections.version>
@@ -60,30 +60,30 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-model</artifactId>
-			<version>5.0.3-SNAPSHOT</version>
+			<version>5.0.3</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-util</artifactId>
-			<version>5.0.3-SNAPSHOT</version>
+			<version>5.0.3</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-pv-pva</artifactId>
-			<version>5.0.3-SNAPSHOT</version>
+			<version>5.0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-pv-ca</artifactId>
-			<version>5.0.3-SNAPSHOT</version>
+			<version>5.0.3</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-websocket-common</artifactId>
-			<version>5.0.3-SNAPSHOT</version>
+			<version>5.0.3</version>
 		</dependency>
 
 		<dependency>
