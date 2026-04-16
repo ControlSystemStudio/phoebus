@@ -6,14 +6,14 @@ import java.util.List;
 
 import org.csstudio.display.builder.model.*;
 import org.csstudio.display.builder.model.persist.ModelReader;
-import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
-import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.PVWidget;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.vtype.FormatOption;
 import org.w3c.dom.Element;
@@ -217,6 +217,7 @@ public class LinearMeterWidget extends PVWidget {
     private WidgetProperty<WidgetColor> background;
     private WidgetProperty<WidgetFont> font;
     private WidgetProperty<FormatOption> format;
+    private WidgetProperty<Integer> precision;
     private WidgetProperty<Boolean> show_units;
     private WidgetProperty<Boolean> show_limits;
     private WidgetProperty<Boolean> show_warnings;
@@ -260,6 +261,7 @@ public class LinearMeterWidget extends PVWidget {
         properties.add(logScale = propLogScale.createProperty(this, false));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(format = propFormat.createProperty(this, FormatOption.DEFAULT));
+        properties.add(precision = propPrecision.createProperty(this, -1));
         properties.add(show_units = propShowUnits.createProperty(this, true));
         properties.add(scale_visible = propScaleVisible.createProperty(this, true));
         properties.add(show_limits = propShowLimits.createProperty(this, true));
@@ -323,6 +325,13 @@ public class LinearMeterWidget extends PVWidget {
      */
     public WidgetProperty<FormatOption> propFormat() {
         return format;
+    }
+
+    /**
+     * @return 'precision' property
+     */
+    public WidgetProperty<Integer> propPrecision() {
+        return precision;
     }
 
     /**

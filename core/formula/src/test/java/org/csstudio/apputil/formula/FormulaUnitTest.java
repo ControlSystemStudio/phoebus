@@ -7,11 +7,16 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula;
 
+import org.csstudio.apputil.formula.enums.IndexOfFunction;
+
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
 import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.phoebus.core.vtypes.VTypeHelper;
@@ -291,6 +296,31 @@ public class FormulaUnitTest {
         } catch (Exception ex) {
             assertThat(ex.getMessage(), containsString("arguments"));
         }
+    }
+
+    @Test
+    public void testEnums() throws Exception {
+        Formula f = new Formula("enumOf(1, arrayOf(1,2,3), arrayOf(\"a\",\"b\",\"c\"))");
+        assertEquals("b", VTypeHelper.toString(f.eval()));
+
+        f = new Formula("indexOf(enumOf(1, arrayOf(1,2,3), arrayOf(\"a\",\"b\",\"c\")))");
+        assertEquals(1, VTypeHelper.toDouble(f.eval()));
+
+        // Exception is thrown
+        IndexOfFunction indexFunc = new IndexOfFunction();
+        try {
+            indexFunc.compute(VDouble.of(3.2, Alarm.none(), Time.now(), Display.none()));
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Function indexOf requires an enum argument"));
+        }
+
+        // Disconnected or not set values should not throw an exception
+        // and should return the same input.
+        VType input = VDouble.of(Double.NaN, Alarm.none(), Time.now(), Display.none());
+        assertEquals(indexFunc.compute(input), input);
+
+        input = VDouble.of(Double.NaN, Alarm.disconnected(), Time.now(), Display.none());
+        assertEquals(indexFunc.compute(input), input);
     }
 
     @Test

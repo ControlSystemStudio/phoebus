@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.ColorWidgetProperty;
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.PopOver;
 

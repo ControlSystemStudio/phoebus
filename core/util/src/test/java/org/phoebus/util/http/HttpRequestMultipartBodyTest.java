@@ -37,7 +37,7 @@ public class HttpRequestMultipartBodyTest {
         fileOutputStream.flush();
         fileOutputStream.close();
 
-        httpRequestMultipartBody.addFilePart(file);
+        httpRequestMultipartBody.addFilePart(file, file.getName());
 
         String body = new String(httpRequestMultipartBody.getBytes());
 

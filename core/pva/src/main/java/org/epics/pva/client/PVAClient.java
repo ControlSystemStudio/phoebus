@@ -62,6 +62,9 @@ public class PVAClient implements AutoCloseable
     /** TCP handlers by server address */
     private final ConcurrentHashMap<InetSocketAddress, ClientTCPHandler> tcp_handlers = new ConcurrentHashMap<>();
 
+    /** When true, all connections use plain TCP, ignoring TLS flags from search responses */
+    private final boolean tls_disabled;
+
     private final AtomicInteger request_ids = new AtomicInteger();
 
     /** Create a new PVAClient
@@ -80,6 +83,21 @@ public class PVAClient implements AutoCloseable
      */
     public PVAClient() throws Exception
     {
+        this(false);
+    }
+
+    /** Create a new PVAClient
+     *
+     *  @param tls_disabled When <code>true</code>, all connections use plain TCP,
+     *                      ignoring the TLS flag in search responses.
+     *                      Used by the {@link org.epics.pva.common.CertificateStatusMonitor}
+     *                      to avoid infinite recursion: monitoring cert status requires a
+     *                      PVA connection, which must not itself require cert status monitoring.
+     * @throws Exception on error
+     */
+    public PVAClient(final boolean tls_disabled) throws Exception
+    {
+        this.tls_disabled = tls_disabled;
         final List<AddressInfo> name_server_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_NAME_SERVERS, PVASettings.EPICS_PVA_SERVER_PORT);
 
         final List<AddressInfo> udp_search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST, PVASettings.EPICS_PVA_BROADCAST_PORT);
@@ -91,13 +109,14 @@ public class PVAClient implements AutoCloseable
 
         // TCP traffic is handled by one ClientTCPHandler per address (IP, socket).
         // Pass helper to channel search for getting such a handler.
+        // When tls_disabled, force use_tls=false regardless of what the server advertises.
         final BiFunction<InetSocketAddress, Boolean, ClientTCPHandler> tcp_provider = (the_addr, use_tls) ->
             tcp_handlers.computeIfAbsent(the_addr, addr ->
             {
                 try
                 {
                     // If absent, create with initial empty GUID
-                    return new ClientTCPHandler(this, addr, Guid.EMPTY, use_tls);
+                    return new ClientTCPHandler(this, addr, Guid.EMPTY, tls_disabled ? false : use_tls);
                 }
                 catch (Exception ex)
                 {
@@ -106,7 +125,7 @@ public class PVAClient implements AutoCloseable
                 return null;
 
             });
-        search = new ChannelSearch(udp, udp_search_addresses, tcp_provider, name_server_addresses);
+        search = new ChannelSearch(udp, udp_search_addresses, tcp_provider, name_server_addresses, tls_disabled);
 
         udp.start();
         search.start();
@@ -243,6 +262,14 @@ public class PVAClient implements AutoCloseable
             return;
         }
 
+        // When TLS is disabled (e.g. inner cert-status client), skip TLS search responses.
+        // The server also listens on a plain TCP port and will send a separate response for that.
+        if (tls_disabled && tls)
+        {
+            logger.log(Level.FINE, () -> "Skipping TLS search response from " + server + " (TLS disabled)");
+            return;
+        }
+
         // Reply for specific channel
         final PVAChannel channel = search.unregister(channel_id);
         // Late reply for search that was already satisfied?
@@ -268,11 +295,12 @@ public class PVAClient implements AutoCloseable
         channel.setState(ClientChannelState.FOUND);
         logger.log(Level.FINE, () -> "Reply for " + channel + " from " + (tls ? "TLS " : "TCP ") + server + " " + guid);
 
+        final boolean use_tls = tls_disabled ? false : tls;
         final ClientTCPHandler tcp = tcp_handlers.computeIfAbsent(server, addr ->
         {
             try
             {
-                return new ClientTCPHandler(this, addr, guid, tls);
+                return new ClientTCPHandler(this, addr, guid, use_tls);
             }
             catch (Exception ex)
             {

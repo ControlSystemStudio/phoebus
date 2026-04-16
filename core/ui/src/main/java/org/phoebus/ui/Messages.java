@@ -55,6 +55,8 @@ public class Messages
     public static String Format_SexagesimalDMS;
     /**Format_SexagesimalHMS */
     public static String Format_SexagesimalHMS;
+    /**Format_Significant */
+    public static String Format_Significant;
     /**Format_String */
     public static String Format_String;
     /**InstallExamples */

@@ -8,7 +8,6 @@
 package org.csstudio.display.converter.edm.widgets;
 
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
@@ -19,6 +18,7 @@ import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_shellCmdClass;
 import org.csstudio.display.actions.ExecuteCommandAction;
 import org.csstudio.display.actions.OpenFileAction;
+import org.phoebus.ui.color.NamedWidgetColors;
 
 import java.util.ArrayList;
 import java.util.List;

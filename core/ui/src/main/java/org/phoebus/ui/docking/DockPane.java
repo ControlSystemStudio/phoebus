@@ -25,6 +25,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Control;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -53,6 +54,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /** Pane that contains {@link DockItem}s
@@ -70,6 +72,16 @@ public class DockPane extends TabPane
     public static final Logger logger = Logger.getLogger(DockPane.class.getPackageName());
 
     final static Image close_icon = ImageCache.getImage(DockItem.class, "/icons/remove.png");
+
+    /** Drop zone within a {@link DockPane} as determined by mouse position during a drag */
+    enum DropZone { CENTER, LEFT, RIGHT, TOP, BOTTOM }
+
+    /** Fraction of pane width/height from each edge that acts as a split drop zone */
+    private static final double SPLIT_ZONE_FRACTION = 0.25;
+
+    /** Fallback tab-strip height used before the first layout pass completes.
+     *  Matches the default JavaFX TabPane header height at 100% scaling. */
+    private static final double DEFAULT_TAB_BAR_HEIGHT = 35.0;
 
     private static CopyOnWriteArrayList<DockPaneListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -188,6 +200,15 @@ public class DockPane extends TabPane
     /** Is this dock pane 'fixed' ? */
     private boolean fixed = false;
 
+    /** Drop zone last seen under the mouse — used only to skip redundant border redraws in handleDragOver */
+    private DropZone active_drop_zone = DropZone.CENTER;
+
+    /** Bottom Y of the tab header strip in DockPane-local coordinates.
+     *  Drops at or above this line merge as a tab rather than split.
+     *  Updated in handleTabChanges() so it stays accurate without a scene-graph
+     *  walk on every DRAG_OVER event. */
+    private double tab_bar_bottom = DEFAULT_TAB_BAR_HEIGHT;
+
     /** Create DockPane
      *  @param tabs
      */
@@ -199,11 +220,20 @@ public class DockPane extends TabPane
         // Show 'x' to close on all tabs
         setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
 
-        // Allow dropping a DockItem
-        setOnDragOver(this::handleDragOver);
+        // Allow dropping a DockItem.
+        //
+        // DRAG_OVER and DRAG_DROPPED use capture-phase filters.  When the pointer
+        // is over a DockItem tab-label, the filter does NOT consume the event so
+        // DockItem's own handlers can fire (green highlight, swap/insert logic).
+        // When the pointer is over the pane body or empty tab-bar space, the filter
+        // consumes the event and DockPane handles the drop (merge or split).
+        //
+        // DRAG_ENTERED/EXITED use bubble handlers so they only fire when the drag
+        // truly enters/exits DockPane, not for every child-node transition.
+        addEventFilter(DragEvent.DRAG_OVER,    this::handleDragOver);
         setOnDragEntered(this::handleDragEntered);
         setOnDragExited(this::handleDragExited);
-        setOnDragDropped(this::handleDrop);
+        addEventFilter(DragEvent.DRAG_DROPPED, this::handleDrop);
 
         // This pane, just opened, is the active one for now
         setActiveDockPane(this);
@@ -402,12 +432,16 @@ public class DockPane extends TabPane
         // change in unforeseen ways
         if (getTabs().isEmpty()) {
             Platform.runLater(this::mergeEmptyAnonymousSplit);
-
         }
         else
+        {
             // Update tabs on next UI tick so that findTabHeader() can succeed
             // in case this is in a newly created SplitDock
             Platform.runLater(this::autoHideTabs);
+            // Refresh the cached tab-strip boundary here (post-layout) rather than
+            // on every DRAG_OVER event, avoiding a scene-graph walk during dragging.
+            Platform.runLater(this::refreshTabBarBottom);
+        }
     }
 
     private StackPane findTabHeader()
@@ -540,142 +574,327 @@ public class DockPane extends TabPane
                         .collect(Collectors.toList());
     }
 
-    /** Accept dock items */
+    /** Remove the drop-zone highlight, restoring the pane's normal appearance.
+     *
+     *  <p>Two calls are required because two different mechanisms were used to set
+     *  the highlight: split-zone edges use an inline CSS style (highest cascade
+     *  priority, overrides stylesheets), while the CENTER green border uses a
+     *  programmatic {@link #setBorder} call (lower priority).  Clearing only one
+     *  would leave the other visible. */
+    private void clearDropZoneStyle()
+    {
+        setStyle("");
+        setBorder(Border.EMPTY);
+    }
+
+    /** Accept dock items, tracking the drop zone as the pointer moves.
+     *
+     *  <p>This is a capture-phase filter: it fires before any child node.
+     *  When the pointer is over a DockItem tab-label we accept the transfer mode
+     *  (so the drop is not rejected by content nodes below) but do NOT consume,
+     *  letting DockItem's own handlers provide the green highlight and handle
+     *  the tab-on-tab swap/insert.  For all other positions we consume and
+     *  DockPane handles zone borders and the eventual drop.
+     */
     private void handleDragOver(final DragEvent event)
     {
-        if (!isFixed()  &&
-            DockItem.dragged_item.get() != null)
+        if (!isFixed()  &&  DockItem.dragged_item.get() != null)
+        {
             event.acceptTransferModes(TransferMode.MOVE);
-        event.consume();
+
+            final DropZone zone = getDropZone(event.getX(), event.getY());
+            if (zone != active_drop_zone)
+            {
+                active_drop_zone = zone;
+                updateZoneBorder(zone);
+            }
+
+            // Let DockItem tab-label handlers fire when the cursor is over
+            // the tab header strip; consume everywhere else so child content
+            // nodes (TreeView, etc.) cannot silently reject the drop.
+            if (event.getY() > tab_bar_bottom)
+                event.consume();
+        }
     }
 
-    /** Highlight while 'drop' is possible */
+    /** Highlight on entry, initialising the zone for the current pointer position */
     private void handleDragEntered(final DragEvent event)
     {
-        if (!isFixed()  &&
-            DockItem.dragged_item.get() != null)
-            setBorder(DockItem.DROP_ZONE_BORDER);
+        if (!isFixed()  &&  DockItem.dragged_item.get() != null)
+        {
+            active_drop_zone = getDropZone(event.getX(), event.getY());
+            updateZoneBorder(active_drop_zone);
+        }
         event.consume();
     }
 
-    /** Remove Highlight */
+    /** Remove highlight and reset zone on exit */
     private void handleDragExited(final DragEvent event)
     {
-        setBorder(Border.EMPTY);
+        active_drop_zone = DropZone.CENTER;
+        clearDropZoneStyle();
         event.consume();
     }
 
-    /** Accept a dropped tab */
-    private void handleDrop(final DragEvent event)
+    /** Check whether the node under the cursor belongs to a tab header.
+     *  Walks up from the pick result looking for a {@code .tab} style-class node.
+     *  This is O(scene-graph depth) — typically 3-5 parent nodes — and only called
+     *  once per drop, not during the hot DRAG_OVER path.
+     */
+    private boolean isOverTabNode(final DragEvent event)
     {
-        if (!event.getDragboard().hasContent(DockItem.DOCK_ITEM)){
+        Node n = event.getPickResult().getIntersectedNode();
+        while (n != null  &&  n != this)
+        {
+            if (n.getStyleClass().contains("tab"))
+                return true;
+            n = n.getParent();
+        }
+        return false;
+    }
+
+    /** Determine drop zone from pointer position relative to this pane.
+     *  Drops within the tab header strip always map to CENTER (merge-as-tab).
+     *  The outer {@value #SPLIT_ZONE_FRACTION} of each remaining edge is a split zone.
+     *  @param x Pointer x in pane-local coordinates
+     *  @param y Pointer y in pane-local coordinates
+     *  @return {@link DropZone}
+     */
+    private DropZone getDropZone(final double x, final double y)
+    {
+        // tab_bar_bottom is refreshed by handleTabChanges(), not here, to avoid
+        // a scene-graph walk on every pointer-move event during a drag.
+        if (y <= tab_bar_bottom)
+            return DropZone.CENTER;
+
+        final double edge_w = getWidth()  * SPLIT_ZONE_FRACTION;
+        final double edge_h = getHeight() * SPLIT_ZONE_FRACTION;
+        if (x < edge_w)               return DropZone.LEFT;
+        if (x > getWidth()  - edge_w) return DropZone.RIGHT;
+        if (y < edge_h)               return DropZone.TOP;
+        if (y > getHeight() - edge_h) return DropZone.BOTTOM;
+        return DropZone.CENTER;
+    }
+
+    /** Update the cached tab-strip bottom boundary.
+     *  Called after layout changes (tab add/remove), not during drag events.
+     *  getBoundsInParent() gives DockPane-local coordinates directly because
+     *  findTabHeader() confirms the header's parent is this pane.
+     */
+    private void refreshTabBarBottom()
+    {
+        final StackPane header = findTabHeader();
+        if (header != null)
+            tab_bar_bottom = header.getBoundsInParent().getMaxY();
+    }
+
+    /** Highlight the edge where the new pane will appear if the user drops here.
+     *  Green full border = merge-as-tab (CENTER zone).
+     *  Blue single-edge highlight = split on that edge.
+     *
+     *  <p>Inline CSS (-fx-border-*) is used because it sits at highest cascade priority
+     *  and cannot be overridden by the application's author stylesheet.
+     *  @param zone Active {@link DropZone}
+     */
+    private void updateZoneBorder(final DropZone zone)
+    {
+        if (zone == DropZone.CENTER)
+        {
+            // Restore CSS control, then apply the programmatic green border
+            setStyle("");
+            setBorder(DockItem.DROP_ZONE_BORDER);
             return;
         }
+        // Inline style overrides any stylesheet border; clear the programmatic border first
+        // so only the inline style is active.
+        setBorder(Border.EMPTY);
+        setStyle(splitEdgeStyle(zone));
+    }
+
+    /** @param zone A split zone (LEFT/RIGHT/TOP/BOTTOM) — never CENTER
+     *  @return Inline CSS that draws a 4px blue line on the edge where the new pane will appear
+     *  @throws IllegalArgumentException if called with CENTER (caller must guard this)
+     */
+    private static String splitEdgeStyle(final DropZone zone)
+    {
+        switch (zone)
+        {
+            case LEFT:   return "-fx-border-color: transparent transparent transparent dodgerblue; -fx-border-width: 0 0 0 4;";
+            case RIGHT:  return "-fx-border-color: transparent dodgerblue transparent transparent; -fx-border-width: 0 4 0 0;";
+            case TOP:    return "-fx-border-color: dodgerblue transparent transparent transparent; -fx-border-width: 4 0 0 0;";
+            case BOTTOM: return "-fx-border-color: transparent transparent dodgerblue transparent; -fx-border-width: 0 0 4 0;";
+            default:     throw new IllegalArgumentException("splitEdgeStyle requires a split zone, got: " + zone);
+        }
+    }
+
+    /** Accept a dropped tab: merge into this pane (centre zone) or split (edge zone).
+     *
+     *  <p>Tab-on-tab drops (reorder within same pane, or insert next to a specific
+     *  tab from another pane) are handled by {@link DockItem}'s own handlers on
+     *  {@code name_tab}.  Those handlers fire after this capture filter because they
+     *  are bubble-phase; this filter returns early so the event can reach them.
+     *  DockPane handles drops on the pane body, empty tab-bar space, and edge zones.
+     */
+    private void handleDrop(final DragEvent event)
+    {
+        if (!event.getDragboard().hasContent(DockItem.DOCK_ITEM))
+            return;
+
+        // When the cursor is directly over a tab header, let DockItem's own
+        // handler on name_tab manage the swap/insert.  Clean up the pane border
+        // since no further DockPane handler will run for this drop.
+        if (isOverTabNode(event))
+        {
+            clearDropZoneStyle();
+            active_drop_zone = DropZone.CENTER;
+            return;
+        }
+
         final DockItem item = DockItem.dragged_item.getAndSet(null);
         if (item == null)
-            logger.log(Level.SEVERE, "Empty drop, " + event);
+            return;
+
+        final DropZone zone = getDropZone(event.getX(), event.getY());
+        clearDropZoneStyle();
+        active_drop_zone = DropZone.CENTER;
+
+        logger.log(Level.INFO, "Dropped " + item + " into " + this + " zone=" + zone);
+
+        if (zone == DropZone.CENTER)
+            mergeTabIntoPaneDeferred(item);
         else
         {
-            logger.log(Level.INFO, "Somebody dropped " + item + " into " + this);
-            final TabPane old_parent = item.getTabPane();
-
-            // Unexpected, but would still "work" at this time
-            if (! (old_parent instanceof DockPane))
-                logger.log(Level.SEVERE, "DockItem is not in DockPane but " + old_parent);
-
-            // When moving to a new scene,
-            // assert that styles used in old scene are still available
-            final Scene old_scene = old_parent.getScene();
-            final Scene scene = getScene();
-            if (scene != old_scene)
-                for (String css : old_scene.getStylesheets())
-                    Styles.set(scene, css);
-
-            // Move tab. In principle,
-            // (1) first remove from old parent,
-            // (2) then add to new parent.
-            // But modifying tabs triggers tab listener, which registers SplitPane.merge()
-            // in Platform.runLater(). The merge could re-arrange tab panes,
-            // we when we later want to add the tab, we'll face a different scene graph.
-            // Issue the tab addition (2) with runlater right now so it'll happen before any
-            // split pane cleanup.
-            Platform.runLater(() ->
-            {
-                // When adding the tab to its new parent (this dock) right away,
-                // the tab would sometimes not properly render until the pane is resized.
-                // Moving to the next UI tick helps
-                logger.log(Level.INFO, "Adding " + item + " to " + this);
-                addTab(item);
-                Platform.runLater(this::autoHideTabs);
-            });
-
-            // With tab addition already in the UI thread queue, remove item from old tab
-            logger.log(Level.INFO, "Removing " + item + " from " + old_parent);
-            old_parent.getTabs().remove(item);
+            copyStylesFromScene(item);
+            splitAndPlaceTabAsync(item, zone);
         }
+
         event.setDropCompleted(true);
         event.consume();
     }
 
-    /** Split this dock pane
-     *  @param horizontally <code>true</code> for horizontal, else vertical split
-     *  @return SplitDock, which contains this dock pane as first (top, left) item, and a new DockPane as the second (bottom, left) item
+    /** When a tab moves to a different scene, ensure that scene has the same stylesheets. */
+    private void copyStylesFromScene(final DockItem item)
+    {
+        final TabPane old_parent = item.getTabPane();
+        if (!(old_parent instanceof DockPane))
+            logger.log(Level.SEVERE, "DockItem is not in DockPane but " + old_parent);
+        final Scene old_scene = old_parent.getScene();
+        final Scene scene = getScene();
+        if (scene != old_scene)
+            for (String css : old_scene.getStylesheets())
+                Styles.set(scene, css);
+    }
+
+    /** Move a dragged tab into this pane (centre-zone drop).
+     *
+     *  <p>No-ops when the item is already in this pane to avoid a transient empty state
+     *  that would trigger a spurious {@code mergeEmptyAnonymousSplit}.
+     *  For cross-pane moves, the remove and add happen in the same deferred UI pulse
+     *  so the source pane is never empty long enough to trigger a merge.
+     */
+    private void mergeTabIntoPaneDeferred(final DockItem item)
+    {
+        final TabPane old_parent = item.getTabPane();
+        if (old_parent == this)
+            return;  // Tab is already home; nothing to do
+        copyStylesFromScene(item);
+        Platform.runLater(() ->
+        {
+            logger.log(Level.INFO, "Adding " + item + " to " + this);
+            old_parent.getTabs().remove(item);
+            addTab(item);
+            Platform.runLater(this::autoHideTabs);
+        });
+    }
+
+    /** Split this pane in the direction implied by {@code zone} and place the dropped
+     *  tab into the newly created pane.
+     *
+     *  <p>The remove and add are both deferred into the same UI tick so the source
+     *  pane is never visibly empty between the two operations.
+     */
+    private void splitAndPlaceTabAsync(final DockItem item, final DropZone zone)
+    {
+        final TabPane old_parent = item.getTabPane();
+        final boolean horizontally = (zone == DropZone.LEFT  || zone == DropZone.RIGHT);
+        final boolean newPaneFirst = (zone == DropZone.LEFT  || zone == DropZone.TOP);
+
+        // split() modifies the scene graph on the UI thread synchronously
+        final SplitDock new_split = split(horizontally, newPaneFirst);
+        final int new_pane_index  = newPaneFirst ? 0 : 1;
+        final DockPane new_pane   = (DockPane) new_split.getItems().get(new_pane_index);
+
+        Platform.runLater(() ->
+        {
+            logger.log(Level.INFO, "Adding " + item + " to split pane " + new_pane);
+            old_parent.getTabs().remove(item);
+            new_pane.addTab(item);
+            Platform.runLater(new_pane::autoHideTabs);
+        });
+    }
+
+    /** Split this dock pane.
+     *  This pane becomes the first (left/top) item; a new empty pane becomes second (right/bottom).
+     *  @param horizontally <code>true</code> for a left/right split, <code>false</code> for top/bottom
+     *  @return SplitDock containing this pane and the new empty DockPane
      */
     public SplitDock split(final boolean horizontally)
     {
+        return split(horizontally, false);
+    }
+
+    /** Split this dock pane.
+     *  @param horizontally  <code>true</code> for a left/right split, <code>false</code> for top/bottom
+     *  @param newPaneFirst  <code>true</code> to place the new empty pane as the first (left/top) item
+     *  @return SplitDock containing this pane and the new empty DockPane
+     */
+    SplitDock split(final boolean horizontally, final boolean newPaneFirst)
+    {
+        final DockPane new_pane = new DockPane();
+        // The DockPane() constructor calls setActiveDockPane(new_pane), advertising
+        // the empty new pane as active and firing activeDockItemChanged(null) to all
+        // listeners.  Restore 'this' immediately so listeners never see a null-item
+        // state, especially during a live drag.  When the dragged tab lands in new_pane,
+        // addTab() will call setActiveDockPane(new_pane) correctly.
+        setActiveDockPane(this);
+        dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
+
+        final Control first  = newPaneFirst ? new_pane : this;
+        final Control second = newPaneFirst ? this     : new_pane;
+
         final SplitDock split;
 
         if (dock_parent instanceof SplitDock)
         {
             final SplitDock parent = (SplitDock) dock_parent;
             // Remove this dock pane from parent
-            final boolean first = parent.removeItem(this);
-            // Place in split alongside a new dock pane
-            final DockPane new_pane = new DockPane();
-            dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
-            split = new SplitDock(parent, horizontally, this, new_pane);
+            final boolean was_first = parent.removeItem(this);
+            split = new SplitDock(parent, horizontally, first, second);
             setDockParent(split);
             new_pane.setDockParent(split);
-            // Place that new split in the border pane
-            parent.addItem(first, split);
+            parent.addItem(was_first, split);
         }
         else if (dock_parent instanceof BorderPane)
         {
             final BorderPane parent = (BorderPane) dock_parent;
-            // Remove this dock pane from BorderPane
             parent.setCenter(null);
-            // Place in split alongside a new dock pane
-            final DockPane new_pane = new DockPane();
-            dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
-            split = new SplitDock(parent, horizontally, this, new_pane);
+            split = new SplitDock(parent, horizontally, first, second);
             setDockParent(split);
             new_pane.setDockParent(split);
-            // Place that new split in the border pane
             parent.setCenter(split);
         }
-        else if (dock_parent instanceof SplitPane) // "dock_parent instanceof SplitPane" is for the case of the ESS-specific Navigator application running
+        else if (dock_parent instanceof SplitPane) // ESS-specific Navigator application
         {
             final SplitPane parent = (SplitPane) dock_parent;
-            // Remove this dock pane from BorderPane
-            Optional<Double> dividerPosition;
-            if (parent.getDividerPositions().length > 0) {
-                dividerPosition = Optional.of(parent.getDividerPositions()[0]);
-            }
-            else {
-                dividerPosition = Optional.empty();
-            }
+            Optional<Double> dividerPosition = parent.getDividerPositions().length > 0
+                    ? Optional.of(parent.getDividerPositions()[0])
+                    : Optional.empty();
             parent.getItems().remove(this);
-            // Place in split alongside a new dock pane
-            final DockPane new_pane = new DockPane();
-            dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
-            split = new SplitDock(parent, horizontally, this, new_pane);
+            split = new SplitDock(parent, horizontally, first, second);
             setDockParent(split);
             new_pane.setDockParent(split);
-            // Place that new split in the border pane
             parent.getItems().add(split);
-            if (dividerPosition.isPresent()) {
-                parent.setDividerPosition(0, dividerPosition.get());
-            }
+            dividerPosition.ifPresent(pos -> parent.setDividerPosition(0, pos));
         }
         else
             throw new IllegalStateException("Cannot split, dock_parent is " + dock_parent);
@@ -697,6 +916,12 @@ public class DockPane extends TabPane
     /** If this pane is within a SplitDock, not named, and empty, merge! */
     void mergeEmptyAnonymousSplit()
     {
+        // This is called via Platform.runLater.  In the window between scheduling
+        // and execution, a tab may have been added back (e.g. during a drag-drop
+        // async dance).  Only act when the pane is actually empty.
+        if (!getTabs().isEmpty())
+            return;
+
         if (! (dock_parent instanceof SplitDock))
         {
             dockPaneEmptyListeners.forEach(DockPaneEmptyListener::allTabsClosed);

@@ -1,4 +1,5 @@
 from org.csstudio.display.builder.runtime.script import PVUtil, ScriptUtil
+from org.phoebus.ui.color import WidgetColorService
 
 def findConflicts(row, col, value):
 	conflicts = []

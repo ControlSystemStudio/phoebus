@@ -284,6 +284,8 @@ public class FormatOptionHandler
             buf.insert(0, "0b");
             return buf.toString();
         }
+        if (option == FormatOption.SIGNIFICANT)
+            return String.format(LOCALE, "%." + precision + "g", value.doubleValue());
         if (option == FormatOption.SEXAGESIMAL)
             return SexagesimalFormat.format(value.doubleValue(), precision);
         if (option == FormatOption.SEXAGESIMAL_HMS)

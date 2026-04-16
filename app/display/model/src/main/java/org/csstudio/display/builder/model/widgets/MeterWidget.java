@@ -32,12 +32,12 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
-import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
-import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.ui.vtype.FormatOption;
 import org.w3c.dom.Element;
@@ -145,6 +145,10 @@ public class MeterWidget extends PVWidget
     public static final WidgetPropertyDescriptor<WidgetColor> propKnobColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.MISC, "knob_color", Messages.WidgetProperties_KnobColor);
 
+    /** Property */
+    public static final WidgetPropertyDescriptor<Boolean> propLogarithmicScale =
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "log_scale", Messages.WidgetProperties_LogScale);
+
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetFont> font;
@@ -158,6 +162,7 @@ public class MeterWidget extends PVWidget
     private volatile WidgetProperty<Boolean> limits_from_pv;
     private volatile WidgetProperty<Double> minimum;
     private volatile WidgetProperty<Double> maximum;
+    private volatile WidgetProperty<Boolean> log_scale;
 
     /** Constructor */
     public MeterWidget()
@@ -195,6 +200,7 @@ public class MeterWidget extends PVWidget
         properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
+        properties.add(log_scale = propLogarithmicScale.createProperty(this, false));
     }
 
     /** @return 'foreground_color' property */
@@ -273,5 +279,11 @@ public class MeterWidget extends PVWidget
     public WidgetProperty<Double> propMaximum()
     {
         return maximum;
+    }
+
+    /** @return 'log_scale' property */
+    public WidgetProperty<Boolean> propLogScale()
+    {
+        return log_scale;
     }
 }

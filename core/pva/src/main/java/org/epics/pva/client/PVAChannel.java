@@ -111,6 +111,44 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
         return copy;
     }
 
+    /** @return <code>true</code> if the connection uses TLS, <code>false</code> for plain TCP or when disconnected */
+    public boolean isTLS()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        return handler != null && handler.isTLS();
+    }
+
+    /** @return Common Name from the server's X.509 certificate, or <code>null</code> if not using TLS or disconnected */
+    public String getServerX509Name()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        return handler != null ? handler.getServerX509Name() : null;
+    }
+
+    /** @return Common Name from the client's X.509 certificate used for authentication, or <code>null</code> */
+    public String getClientX509Name()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        return handler != null ? handler.getClientX509Name() : null;
+    }
+
+    /** @return Authentication method description, or <code>null</code> when disconnected */
+    public String getAuthenticationInfo()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        return handler != null ? handler.getAuthenticationInfo() : null;
+    }
+
+    /** @return Server address as host:port, or <code>null</code> when disconnected */
+    public String getRemoteAddress()
+    {
+        final ClientTCPHandler handler = tcp.get();
+        if (handler == null)
+            return null;
+        final java.net.InetSocketAddress addr = handler.getRemoteAddress();
+        return addr.getAddress().getHostAddress() + ":" + addr.getPort();
+    }
+
     /** @return Server channel ID */
     int getSID()
     {
@@ -336,10 +374,28 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
      */
     public AutoCloseable subscribe(final String request, final int pipeline, final MonitorListener listener) throws Exception
     {
+        return subscribe(request, RecordOptions.builder().pipeline(pipeline).build(), listener);
+    }
+
+    /** Start a subscription with different record options
+     *
+     *  <p>Asks the server to send a certain number of 'pipelined' updates.
+     *  Client automatically requests more updates as soon as half the pipelined updates
+     *  are received. In case the client gets overloaded and cannot do this,
+     *  the server will thus pause after sending the pipelined updates.
+     *
+     *  @param request Request, "" for all fields, or "field_a, field_b.subfield"
+     *  @param recordOptions Number of updates to recordOptions
+     *  @param listener Will be invoked with channel and latest value
+     *  @return {@link AutoCloseable}, used to close the subscription
+     *  @throws Exception on error
+     */
+    public AutoCloseable subscribe(final String request, final RecordOptions recordOptions, final MonitorListener listener) throws Exception
+    {
         // MonitorRequest submits itself to TCPHandler
         // and registers as response handler,
         // so we can later retrieve it via its requestID
-        final MonitorRequest subscription = new MonitorRequest(this, request, pipeline, listener);
+        final MonitorRequest subscription = new MonitorRequest(this, request, recordOptions, listener);
         subscriptions.add(subscription);
         return subscription;
     }

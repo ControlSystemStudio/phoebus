@@ -61,6 +61,13 @@ public class RTMeter extends ImageView
     /** Area of this meter */
     protected volatile Rectangle area = new Rectangle(0, 0, 0, 0);
 
+    /** @param logscale Use log scale for y-axis? */
+    public void setLogScale(final boolean logscale)
+    {
+        scale.setLogarithmic(logscale);
+        requestUpdate();
+    }
+
     /** Listener to {@link PlotPart}s (scale), triggering refresh of meter */
     protected final PlotPartListener plot_part_listener = new PlotPartListener()
     {

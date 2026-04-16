@@ -47,15 +47,14 @@ class SearchResponseHandler implements CommandHandler<ClientTCPHandler>
             throw new Exception("PVA Server " + tcp + " sent invalid search reply", ex);
         }
 
-        // If reply is "*:port", then use this TCP connection's address.
-        // Client will find existing TCP connection via that address and re-use it.
-        // This is the expected case when directly connecting to a PVA server via
-        // its TCP port.
-        // Otherwise, in case we queried a name server which then points to the actual PVA server,
-        // use address as provided, and connect to it or re-use in case we already have a TCP connection to that address:port.
+        // If reply is "*:port", then use this TCP connection's address
+        // but preserve the port from the response.
+        // The port matters because the server may advertise a TLS port (e.g. 5075)
+        // that differs from the name server's TCP port (e.g. 5175).
+        // This matches the UDP handler behavior in ClientUDPHandler.handleSearchReply.
         InetSocketAddress server = response.server;
         if (server.getAddress().isAnyLocalAddress())
-            server = tcp.getRemoteAddress();
+            server = new InetSocketAddress(tcp.getRemoteAddress().getAddress(), server.getPort());
 
         if (response.found)
         {

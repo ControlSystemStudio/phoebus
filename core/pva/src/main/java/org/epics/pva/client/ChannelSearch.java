@@ -187,6 +187,9 @@ class ChannelSearch
 
     private final ClientUDPHandler udp;
 
+    /** When true, TLS is excluded from search requests and ignored in responses */
+    private final boolean tls_disabled;
+
     /** Create ClientTCPHandler from IP address and 'tls' flag */
     private final BiFunction<InetSocketAddress, Boolean, ClientTCPHandler> tcp_provider;
 
@@ -206,15 +209,18 @@ class ChannelSearch
      *  @param udp_addresses UDP addresses to search
      *  @param tcp_provider Function that creates ClientTCPHandler for IP address and 'tls' flag
      *  @param name_server_addresses TCP addresses to search
+     *  @param tls_disabled When true, exclude TLS from search protocol list
      *  @throws Exception on error
      */
     public ChannelSearch(final ClientUDPHandler udp,
                          final List<AddressInfo> udp_addresses,
                          final BiFunction<InetSocketAddress, Boolean, ClientTCPHandler> tcp_provider,
-                         final List<AddressInfo> name_server_addresses) throws Exception
+                         final List<AddressInfo> name_server_addresses,
+                         final boolean tls_disabled) throws Exception
     {
         this.udp = udp;
         this.tcp_provider = tcp_provider;
+        this.tls_disabled = tls_disabled;
 
         // Each bucket holds set of channels to search in that time slot
         for (int i=0; i<MAX_SEARCH_PERIOD+2; ++i)
@@ -434,7 +440,7 @@ class ChannelSearch
     /** Issue a PVA server list request */
     public void list()
     {
-        final boolean tls = !PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank();
+        final boolean tls = !tls_disabled && !PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank();
 
         // Search is invoked for new SearchedChannel(channel, now)
         // as well as by regular, timed search.
@@ -452,8 +458,9 @@ class ChannelSearch
     private void search(final Collection<SearchRequest.Channel> channels)
     {
         // Do we support TLS? This will be encoded in the search requests
-        // to tell server if we can support TLS?
-        final boolean tls = !PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank();
+        // to tell server if we can support TLS.
+        // When tls_disabled, never advertise TLS so servers respond with TCP only.
+        final boolean tls = !tls_disabled && !PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank();
 
         // Search via TCP
         for (AddressInfo name_server : name_server_addresses)

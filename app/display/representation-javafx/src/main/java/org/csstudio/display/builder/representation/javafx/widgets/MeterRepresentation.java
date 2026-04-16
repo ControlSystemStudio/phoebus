@@ -10,12 +10,12 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.persist.NamedWidgetColors;
-import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.MeterWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.javafx.rtplot.RTMeter;
+import org.phoebus.ui.color.NamedWidgetColors;
+import org.phoebus.ui.color.WidgetColorService;
 import org.epics.util.stats.Range;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
@@ -64,6 +64,7 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
         model_widget.propMaximum().addUntypedPropertyListener(valueListener);
         model_widget.propShowValue().addUntypedPropertyListener(valueListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
+        model_widget.propLogScale().addUntypedPropertyListener(valueListener);
         valueChanged(null, null, null);
     }
 
@@ -82,6 +83,7 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
         model_widget.propMaximum().removePropertyListener(valueListener);
         model_widget.propShowValue().removePropertyListener(valueListener);
         model_widget.runtimePropValue().removePropertyListener(valueListener);
+        model_widget.propLogScale().removePropertyListener(valueListener);
         super.unregisterListeners();
     }
 
@@ -142,6 +144,8 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
         }
         else
             meter.setValue(value, "");
+
+        meter.setLogScale(model_widget.propLogScale().getValue());
     }
 
     @Override

@@ -59,7 +59,7 @@ services:
       - bluesky-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:60610/api/status"]
+      test: ["CMD", "curl", "-f", "http://localhost:60610/api/status?api_key=a"]
       interval: 30s
       timeout: 10s
       retries: 3

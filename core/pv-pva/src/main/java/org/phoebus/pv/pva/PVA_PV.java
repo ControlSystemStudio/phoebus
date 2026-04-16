@@ -207,6 +207,36 @@ public class PVA_PV extends PV
         return channel.write(true, name_helper.getRequest(), new_value);
     }
 
+    /** @return <code>true</code> if the connection to the server uses TLS */
+    public boolean isTLS()
+    {
+        return channel.isTLS();
+    }
+
+    /** @return Common Name from the server's X.509 certificate, or <code>null</code> */
+    public String getServerX509Name()
+    {
+        return channel.getServerX509Name();
+    }
+
+    /** @return Common Name from the client's X.509 certificate, or <code>null</code> */
+    public String getClientX509Name()
+    {
+        return channel.getClientX509Name();
+    }
+
+    /** @return Authentication method description, or <code>null</code> when disconnected */
+    public String getAuthenticationInfo()
+    {
+        return channel.getAuthenticationInfo();
+    }
+
+    /** @return Server address as host:port, or <code>null</code> when disconnected */
+    public String getRemoteAddress()
+    {
+        return channel.getRemoteAddress();
+    }
+
     @Override
     protected void close()
     {

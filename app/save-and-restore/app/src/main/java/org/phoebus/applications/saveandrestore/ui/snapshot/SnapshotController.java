@@ -463,8 +463,8 @@ public class SnapshotController extends SaveAndRestoreBaseController
         showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
         showLiveReadbackButton.selectedProperty()
                 .addListener((a, o, n) -> {
-                    this.showReadbacks.set(n);
-                    actionResultReadbackColumn.visibleProperty().setValue(actionResultReadbackColumn.getGraphic() != null);
+                    showReadbacks.set(n);
+                    actionResultReadbackColumn.visibleProperty().setValue(actionResultReadbackColumn.getGraphic() != null && showReadbacks.get());
                 });
 
         ImageView showHideDeltaPercentageButtonImageView = new ImageView(new Image(getClass().getResourceAsStream("/icons/show_hide_delta_percentage.png")));

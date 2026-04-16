@@ -16,6 +16,8 @@ import java.awt.Stroke;
 import org.csstudio.javafx.rtplot.AxisRange;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 
+import static org.csstudio.javafx.rtplot.internal.util.Log10.log10;
+
 /** 'Round' numeric scale for a meter.
  *  @author Kay Kasemir
  */
@@ -131,7 +133,15 @@ public class MeterScale extends NumericAxis
         if (Double.isFinite(value))
         {
             final AxisRange<Double> range = getValueRange();
-            return start_angle + (value - range.getLow()) * angle_range / (range.getHigh() - range.getLow());
+            if (isLogarithmic())
+            {
+                return start_angle + (log10(value) - log10(range.getLow())) * angle_range / (log10(range.getHigh()) - log10(range.getLow()));
+            }
+            else
+            {
+                return start_angle + (value - range.getLow()) * angle_range / (range.getHigh() - range.getLow());
+            }
+
         }
         else
             return Double.NaN;

@@ -55,6 +55,8 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
 
     protected volatile boolean show_grid = false;
 
+    /** Show minor tick marks? */
+    protected volatile boolean show_minor_ticks = true;
     protected volatile Color grid_color;
 
     private AtomicBoolean visible = new AtomicBoolean(true);
@@ -164,6 +166,21 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
     public void setGridColor(final Color grid_color)
     {
         this.grid_color = grid_color;
+    }
+
+    /** @return Whether minor tick marks are shown */
+    public boolean isShowMinorTicks()
+    {
+        return show_minor_ticks;
+    }
+
+    /** @param show {@code true} to show minor tick marks */
+    public void setShowMinorTicks(final boolean show)
+    {
+        if (show_minor_ticks == show)
+            return;
+        show_minor_ticks = show;
+        requestRefresh();
     }
 
     /** {@inheritDoc} */

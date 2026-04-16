@@ -113,6 +113,29 @@ public class SecureSockets
                     final String principal = x509.getSubjectX500Principal().toString();
                     logger.log(Level.FINE, "Keychain alias '" + alias + "' is X509 key and certificate for " + principal);
                     keychain_x509_certificates.put(principal, x509);
+
+                    // Add CA certs from the key entry's chain as trusted entries.
+                    // Java's TrustManagerFactory only trusts trustedCertEntry aliases,
+                    // not the CA chain attached to a keyEntry.
+                    // PVXS does the equivalent in extractCAs() (openssl.cpp).
+                    final Certificate[] chain = key_store.getCertificateChain(alias);
+                    if (chain != null)
+                    {
+                        for (int i = 1; i < chain.length; i++)
+                        {
+                            if (chain[i] instanceof X509Certificate ca_cert)
+                            {
+                                final String ca_alias = "ca-chain-" + alias + "-" + i;
+                                if (! key_store.containsAlias(ca_alias))
+                                {
+                                    key_store.setCertificateEntry(ca_alias, ca_cert);
+                                    final String ca_name = ca_cert.getSubjectX500Principal().toString();
+                                    logger.log(Level.FINE, "Added CA from chain as trusted: " + ca_name);
+                                    keychain_x509_certificates.put(ca_name, ca_cert);
+                                }
+                            }
+                        }
+                    }
                 }
                 // Could print 'key', but jdk.event.security logger already logs the cert at FINE level
                 // and logging the key would show the private key
@@ -274,8 +297,13 @@ public class SecureSockets
     {
         if (der_value == null)
             return "";
-        // https://en.wikipedia.org/wiki/X.690#DER_encoding:
-        // Type 4, length 0..127, characters
+        // X509Certificate.getExtensionValue() returns a DER OCTET STRING
+        // that wraps the actual extension content.
+        // The extension content itself is a DER-encoded string
+        // (OCTET STRING 0x04 or UTF8String 0x0C), so we must unwrap two layers:
+        //   Outer: 0x04 <len> <inner DER>
+        //   Inner: 0x04|0x0C <len> <actual string bytes>
+        // https://en.wikipedia.org/wiki/X.690#DER_encoding
         if (der_value.length < 2)
             throw new Exception("Need DER type and size, only received " + der_value.length + " bytes");
         if (der_value[0] != 0x04)
@@ -284,7 +312,20 @@ public class SecureSockets
             throw new Exception("Can only handle strings of length 0-127, got " + der_value[1]);
         if (der_value[1] != der_value.length-2)
             throw new Exception("DER string length " + der_value[1] + " but " + (der_value.length-2) + " data items");
-        return new String(der_value, 2, der_value[1]);
+
+        // Unwrap outer OCTET STRING to get the inner DER-encoded string
+        final int inner_offset = 2;
+        final int inner_len = der_value.length - 2;
+        if (inner_len < 2)
+            throw new Exception("Inner DER too short: " + inner_len + " bytes");
+        final byte inner_tag = der_value[inner_offset];
+        // Accept OCTET STRING (0x04), UTF8String (0x0C), or IA5String (0x16) as inner type
+        if (inner_tag != 0x04  &&  inner_tag != 0x0C  &&  inner_tag != 0x16)
+            throw new Exception(String.format("Expected inner DER string type 0x04, 0x0C, or 0x16, got 0x%02X", inner_tag));
+        final int str_len = der_value[inner_offset + 1] & 0xFF;
+        if (str_len != inner_len - 2)
+            throw new Exception("Inner DER string length " + str_len + " but " + (inner_len-2) + " data bytes");
+        return new String(der_value, inner_offset + 2, str_len);
     }
 
     /** Get CN from principal

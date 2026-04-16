@@ -46,7 +46,12 @@ public enum FormatOption
 
     // Binary was added when PVA introduced it.
     /** Binary, precision determines the number of 01010101 */
-    BINARY(Messages.Format_Binary, true);
+    BINARY(Messages.Format_Binary, true),
+
+    /** Significant-digits formatting (C/Java {@code %g}).  Precision determines
+     *  the total number of significant digits rather than fraction digits.
+     *  Chooses decimal or exponential notation per value depending on magnitude. */
+    SIGNIFICANT(Messages.Format_Significant, true);
 
     // To remain compatible with previous versions of this enum,
     // new options must be added to the end.

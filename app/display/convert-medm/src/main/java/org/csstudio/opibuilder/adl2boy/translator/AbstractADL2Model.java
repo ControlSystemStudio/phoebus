@@ -19,7 +19,6 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.widgetParts.ADLBasicAttribute;
@@ -28,6 +27,7 @@ import org.csstudio.utility.adlparser.fileParser.widgetParts.ADLDynamicAttribute
 import org.csstudio.utility.adlparser.fileParser.widgetParts.ADLObject;
 import org.csstudio.utility.adlparser.fileParser.widgets.ADLAbstractWidget;
 import org.csstudio.utility.adlparser.fileParser.widgets.IWidgetWithColorsInBase;
+import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.framework.macros.Macros;
 
 /**

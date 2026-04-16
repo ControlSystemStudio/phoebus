@@ -632,4 +632,48 @@ public class FormatOptionHandlerTest
         System.out.println(Arrays.toString((String[])parsed));
         assertThat(parsed, equalTo(new String[] { "Al \"Ed\" Stone", "Jane" }));
     }
+
+    @Test
+    public void testSignificant()
+    {
+        // Significant-digits formatting uses Java's %g specifier.
+        // Precision controls total significant digits, not fraction digits.
+        VType number = VDouble.of(0.001234, Alarm.none(), Time.now(), display);
+        String text = FormatOptionHandler.format(number, FormatOption.SIGNIFICANT, 3, false);
+        System.out.println(text);
+        assertThat(text, equalTo("0.00123"));
+
+        number = VDouble.of(1.234, Alarm.none(), Time.now(), display);
+        text = FormatOptionHandler.format(number, FormatOption.SIGNIFICANT, 3, false);
+        System.out.println(text);
+        assertThat(text, equalTo("1.23"));
+
+        number = VDouble.of(123.4, Alarm.none(), Time.now(), display);
+        text = FormatOptionHandler.format(number, FormatOption.SIGNIFICANT, 3, false);
+        System.out.println(text);
+        assertThat(text, equalTo("123"));
+
+        number = VDouble.of(12340.0, Alarm.none(), Time.now(), display);
+        text = FormatOptionHandler.format(number, FormatOption.SIGNIFICANT, 3, false);
+        System.out.println(text);
+        assertThat(text, equalTo("1.23e+04"));
+
+        // With units
+        number = VDouble.of(0.1234, Alarm.none(), Time.now(), display);
+        text = FormatOptionHandler.format(number, FormatOption.SIGNIFICANT, 3, true);
+        System.out.println(text);
+        assertThat(text, equalTo("0.123 V"));
+
+        // Single significant digit
+        number = VDouble.of(12.34, Alarm.none(), Time.now(), display);
+        text = FormatOptionHandler.format(number, FormatOption.SIGNIFICANT, 1, false);
+        System.out.println(text);
+        assertThat(text, equalTo("1e+01"));
+
+        // Zero
+        number = VDouble.of(0.0, Alarm.none(), Time.now(), display);
+        text = FormatOptionHandler.format(number, FormatOption.SIGNIFICANT, 3, false);
+        System.out.println(text);
+        assertThat(text, equalTo("0.00"));
+    }
 }

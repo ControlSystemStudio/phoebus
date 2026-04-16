@@ -66,11 +66,6 @@ public class WidgetRuntime<MW extends Widget> {
     public final static Logger logger = Logger.getLogger(WidgetRuntime.class.getPackageName());
 
     /**
-     * Extension point for contributing custom widget runtime
-     */
-    public static final String EXTENSION_POINT = "org.csstudio.display.builder.runtime.widgets";
-
-    /**
      * The widget handled by this runtime
      */
     protected MW widget;
@@ -83,7 +78,7 @@ public class WidgetRuntime<MW extends Widget> {
     /**
      * start() involves background jobs to start script support etc.
      * This latch indicates that they have completed
-     * and lazily set variables (action_scripts, writable_pvs, ..)
+     * and lazily set variables (action_scripts, writable_pvs, ...)
      * can now be used.
      */
     private volatile CountDownLatch started = new CountDownLatch(1);
@@ -106,7 +101,8 @@ public class WidgetRuntime<MW extends Widget> {
      */
     // This is empty for most widgets, or contains very few PVs,
     // so using List with linear lookup by name and not a HashMap
-    private volatile List<RuntimePV> writable_pvs = null;
+    // Set pv_name as Key to find the corresponding RuntimePV
+    private volatile Map<String,RuntimePV> writable_pvs = null;
 
     /**
      * Handlers for widget's behaviorScripts property,
@@ -229,14 +225,15 @@ public class WidgetRuntime<MW extends Widget> {
         // Prepare action-related PVs
         final List<ActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0) {
-            final List<RuntimePV> action_pvs = new ArrayList<>();
+            final Map<String, RuntimePV> action_pvs = new HashMap<>();
             for (final ActionInfo action : actions) {
                 if (action instanceof WritePVAction) {
                     final String pv_name = ((WritePVAction) action).getPV();
                     try {
                         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
                         final RuntimePV pv = PVFactory.getPV(expanded);
-                        action_pvs.add(pv);
+                        String cleanPvName = getCleanPvName(expanded);
+                        action_pvs.put(cleanPvName, pv);
                         addPV(pv, true);
                     } catch (Exception ex) {
                         logger.log(Level.WARNING, widget + " cannot start action to write PV '" + pv_name + "'", ex);
@@ -255,6 +252,26 @@ public class WidgetRuntime<MW extends Widget> {
             RuntimeUtil.getExecutor().execute(this::startScripts);
         else
             started.countDown();
+    }
+
+    /**
+     * Get PV Name without initialisation value
+     */
+    private String getCleanPvName(String expandedName) {
+
+        String nameToCheck = expandedName;
+        // For local PV,
+        if (nameToCheck.startsWith("loc://")) {
+            // strip optional data type ...
+            int sep = nameToCheck.indexOf('<');
+            if (sep > 0)
+                nameToCheck = nameToCheck.substring(0, sep);
+            // or initializer ...
+            sep = nameToCheck.indexOf('(');
+            if (sep > 0)
+                nameToCheck = nameToCheck.substring(0, sep);
+        }
+        return nameToCheck;
     }
 
     /**
@@ -394,31 +411,22 @@ public class WidgetRuntime<MW extends Widget> {
      */
     public void writePV(final String pv_name, final Object value) throws Exception {
         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
-        String name_to_check = expanded;
-        // For local PV,
-        if (name_to_check.startsWith("loc://")) {
-            // strip optional data type ...
-            int sep = name_to_check.indexOf('<');
-            if (sep > 0)
-                name_to_check = name_to_check.substring(0, sep);
-            // or initializer ..
-            sep = name_to_check.indexOf('(');
-            if (sep > 0)
-                name_to_check = name_to_check.substring(0, sep);
-        }
+        String nameToCheck = getCleanPvName(expanded);
         awaitStartup();
-        final List<RuntimePV> safe_pvs = writable_pvs;
-        if (safe_pvs != null)
-            for (final RuntimePV pv : safe_pvs)
-                if (pv.getName().equals(name_to_check)) {
+        final Map<String, RuntimePV> safe_pvs = writable_pvs;
+        if (safe_pvs != null) {
+            final RuntimePV pv = safe_pvs.get(nameToCheck);
+            if(pv != null) {
                     try {
                         pv.write(value);
                     } catch (final Exception ex) {
-                        throw new Exception("Failed to write " + value + " to PV " + name_to_check, ex);
+                        throw new WidgetRuntimeException("Failed to write " + value + " to PV " + nameToCheck, ex);
                     }
-                    return;
                 }
-        throw new Exception("Unknown PV '" + pv_name + "' (expanded: '" + name_to_check + "')");
+            else {
+                throw new WidgetRuntimeException("Unknown PV '" + pv_name + "' (expanded: '" + nameToCheck + "')");
+            }
+        }
     }
 
     /**
@@ -441,13 +449,15 @@ public class WidgetRuntime<MW extends Widget> {
         awaitStartup();
         widget.propClass().removePropertyListener(update_widget_class);
 
-        final List<RuntimePV> safe_pvs = writable_pvs;
-        if (safe_pvs != null) {
-            for (final RuntimePV pv : safe_pvs) {
-                removePV(pv);
-                PVFactory.releasePV(pv);
+        if(writable_pvs != null && !writable_pvs.isEmpty()) {
+            final Collection<RuntimePV> safe_pvs = writable_pvs.values();
+            if (safe_pvs != null) {
+                for (final RuntimePV pv : safe_pvs) {
+                    removePV(pv);
+                    PVFactory.releasePV(pv);
+                }
+                writable_pvs = null;
             }
-            writable_pvs = null;
         }
 
         final PVNameToValueBinding binding = pv_name_binding.getAndSet(null);

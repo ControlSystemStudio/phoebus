@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2026 Oak Ridge National Laboratory.
+ * Copyright (c) 2026 Brookhaven National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,68 +8,40 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.properties;
 
-import org.csstudio.display.builder.model.persist.NamedWidgetColors;
-import org.csstudio.display.builder.model.persist.WidgetColorService;
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
-/** Description of a named color
+/** Legacy compatibility wrapper for {@link org.phoebus.ui.color.NamedWidgetColor}.
  *
- *  @see NamedWidgetColors
- *  @see WidgetColorService
- *  @author Kay Kasemir
+ * @deprecated Use {@link org.phoebus.ui.color.NamedWidgetColor}.
  */
-// Implementation avoids AWT, SWT, JavaFX color
-public class NamedWidgetColor extends WidgetColor
+@Deprecated(since = "5.0.3")
+public class NamedWidgetColor extends org.phoebus.ui.color.NamedWidgetColor
 {
-    private final String name;
-
-    /** Construct named color
-     *  @param name Name of the color
-     *  @param red Red component, range {@code 0-255}
+    /** Construct named RGB color.
+     *  @param name  Name of the color
+     *  @param red   Red component, range {@code 0-255}
      *  @param green Green component, range {@code 0-255}
-     *  @param blue Blue component, range {@code 0-255}
+     *  @param blue  Blue component, range {@code 0-255}
+     */
+    public NamedWidgetColor(final String name, final int red, final int green, final int blue)
+    {
+        super(name, red, green, blue);
+        logger.warning("Deprecated wrapper in use: org.csstudio.display.builder.model.properties.NamedWidgetColor. " +
+                "Use org.phoebus.ui.color.NamedWidgetColor.");
+    }
+
+    /** Construct named RGBA color.
+     *  @param name  Name of the color
+     *  @param red   Red component, range {@code 0-255}
+     *  @param green Green component, range {@code 0-255}
+     *  @param blue  Blue component, range {@code 0-255}
      *  @param alpha Alpha component, range {@code 0} (transparent) to {@code 255} (opaque)
      */
     public NamedWidgetColor(final String name, final int red, final int green, final int blue, final int alpha)
     {
-        super(red, green, blue, alpha);
-        this.name = name;
-    }
-
-    /** Construct named color
-     *  @param name Name of the color
-     *  @param red Red component, range {@code 0-255}
-     *  @param green Green component, range {@code 0-255}
-     *  @param blue Blue component, range {@code 0-255}
-     */
-    public NamedWidgetColor(final String name, final int red, final int green, final int blue)
-    {
-        this(name, red, green, blue, 255);
-    }
-
-    /** @return Name */
-    public String getName()
-    {
-        return name;
-    }
-
-    // In comparisons, the names must match.
-    // Current RGB may actually differ!
-    @Override
-    public int hashCode()
-    {
-        return name.hashCode();
-    }
-
-    @Override
-    public boolean equals(final Object obj)
-    {
-        return (obj instanceof NamedWidgetColor)  &&
-               name.equals(((NamedWidgetColor)obj).name);
-    }
-
-    @Override
-    public String toString()
-    {
-        return name;
+        super(name, red, green, blue, alpha);
+        logger.warning("Deprecated wrapper in use: org.csstudio.display.builder.model.properties.NamedWidgetColor. " +
+                "Use org.phoebus.ui.color.NamedWidgetColor.");
     }
 }
+

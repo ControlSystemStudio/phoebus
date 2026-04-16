@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.csstudio.display.builder.model.properties.Direction;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.NavigationTabs;
+import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import javafx.scene.Scene;
