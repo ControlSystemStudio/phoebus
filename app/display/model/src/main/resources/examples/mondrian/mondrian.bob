@@ -8,7 +8,7 @@
       <text><![CDATA[# Embedded python script
 from random import random, randint
 from org.csstudio.display.builder.model import WidgetFactory
-from org.csstudio.display.builder.model.properties import WidgetColor
+from org.phoebus.ui.color import WidgetColor
 
 display = widget.getDisplayModel()
 

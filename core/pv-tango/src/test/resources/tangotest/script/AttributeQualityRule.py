@@ -2,7 +2,7 @@
 
 from org.csstudio.display.builder.runtime.script import PVUtil
 from java import lang
-from org.csstudio.display.builder.model.properties import WidgetColor
+from org.phoebus.ui.color import WidgetColor
 
 
 try:
