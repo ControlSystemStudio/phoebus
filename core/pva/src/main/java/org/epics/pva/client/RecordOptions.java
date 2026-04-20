@@ -47,21 +47,25 @@ public class RecordOptions {
         private boolean completion;
         private int pipeline;
         private DBEMask dbeMask = null;
+
         public Builder() {
         }
 
-        Builder  completion(boolean completion) {
+        public Builder completion(boolean completion) {
             this.completion = completion;
             return this;
         }
-        Builder pipeline(int pipeline) {
+
+        public Builder pipeline(int pipeline) {
             this.pipeline = pipeline;
             return this;
         }
-        Builder dbeMask(DBEMask dbeMask) {
+
+        public Builder dbeMask(DBEMask dbeMask) {
             this.dbeMask = dbeMask;
             return this;
         }
+
         public RecordOptions build() {
             return new RecordOptions(completion, pipeline, dbeMask);
         }
