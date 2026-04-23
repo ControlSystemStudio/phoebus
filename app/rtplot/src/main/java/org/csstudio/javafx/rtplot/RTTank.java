@@ -16,6 +16,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -92,6 +93,17 @@ public class RTTank extends Canvas
 
     /** Border width in pixels around the tank body; 0 = no border (default) */
     private volatile int border_width = 0;
+
+    /** Extra inset from canvas edge to plot body on all four sides.
+     *  0 = default tank look; positive values give a recessed bar-track
+     *  appearance suitable for progress-bar use without a visible scale. */
+    private volatile int inner_padding = 0;
+
+    /** When {@code true}, the empty (unfilled) portion of the tank is painted
+     *  with a solid colour instead of the default left-to-center gradient.
+     *  Use for progress-bar style tracks where the JFX original has a flat
+     *  background and only the filled bar carries a visual gradient. */
+    private volatile boolean flat_track = false;
 
     /** Current value, i.e. fill level */
     private volatile double value = 5.0;
@@ -212,6 +224,45 @@ public class RTTank extends Canvas
     {
         border_width = Math.max(0, Math.min(5, width));
         requestUpdate();
+    }
+
+    /** Extra inset from all four canvas edges to the plot body.
+     *  Set to 0 (default) for the standard tank look.  Set to a positive
+     *  value (e.g. 4) when using RTTank as a progress-bar track so that
+     *  the filled area is visually inset from the widget boundary,
+     *  matching the margin of the JFX {@code ProgressBar} CSS style.
+     *  @param pixels padding in pixels; clamped to [0, 20] */
+    public void setInnerPadding(final int pixels)
+    {
+        inner_padding = Math.max(0, Math.min(20, pixels));
+        need_layout.set(true);
+        requestUpdate();
+    }
+
+    /** Control whether the unfilled track region is painted with a solid colour
+     *  ({@code true}) or the default left-to-center gradient ({@code false}).
+     *  Enable for progress-bar use to match the flat track background of the
+     *  JFX {@code ProgressBar}; disable (default) to keep the Tank look.
+     *  @param flat {@code true} = solid track, {@code false} = gradient track */
+    public void setFlatTrack(final boolean flat)
+    {
+        flat_track = flat;
+        requestUpdate();
+    }
+
+    /** Show or hide tick label text on the scale while keeping tick marks visible.
+     *  <p>Use this to stack multiple scaled widgets with a single labelled scale:
+     *  only the first widget shows text; the rest show aligned tick marks only,
+     *  saving horizontal (or vertical) space without losing alignment cues.
+     *  <p>Layout and repaint are triggered automatically by the axis when
+     *  the value actually changes; no-op when unchanged.
+     *  @param visible {@code true} (default) = labels shown; {@code false} = ticks only */
+    public void setScaleLabelsVisible(final boolean visible)
+    {
+        // Each axis fires its own requestLayout()/requestRefresh() via plot_part_listener
+        // when the state changes, propagating need_layout and requestUpdate automatically.
+        scale.setScaleLabelsVisible(visible);
+        right_scale.setScaleLabelsVisible(visible);
     }
 
     /** @param color Background color */
@@ -335,12 +386,12 @@ public class RTTank extends Canvas
             @Override
             public StringBuffer format(final double v, final StringBuffer buf, final java.text.FieldPosition pos)
             {
-                return buf.append(String.format(java.util.Locale.ROOT, pattern, v));
+                return buf.append(normaliseExponent(String.format(java.util.Locale.ROOT, pattern, v)));
             }
             @Override
             public StringBuffer format(final long v, final StringBuffer buf, final java.text.FieldPosition pos)
             {
-                return buf.append(String.format(java.util.Locale.ROOT, pattern, (double) v));
+                return buf.append(normaliseExponent(String.format(java.util.Locale.ROOT, pattern, (double) v)));
             }
             @Override
             public Number parse(final String s, final java.text.ParsePosition pos)
@@ -348,6 +399,28 @@ public class RTTank extends Canvas
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    /** Pre-compiled pattern for stripping the sign and leading zeros from a
+     *  {@code %g} exponent string such as {@code "-01"} or {@code "+02"}.
+     */
+    private static final Pattern EXP_LEADING_ZEROS = Pattern.compile("^[+-]?0*");
+
+    /** Normalise a {@code %g}-formatted string to match Phoebus axis convention:
+     *  uppercase {@code E}, no leading zeros on the exponent, no {@code +} sign.
+     *  Examples: {@code "1.0e-01"} &rarr; {@code "1.0E-1"},
+     *            {@code "2.5e+02"} &rarr; {@code "2.5E2"}.
+     */
+    private static String normaliseExponent(final String s)
+    {
+        final int e = s.indexOf('e');
+        if (e < 0)
+            return s;   // decimal notation — no exponent to fix
+        final String mantissa = s.substring(0, e);
+        final String raw = s.substring(e + 1);      // e.g. "-01", "+02"
+        final boolean neg = raw.startsWith("-");
+        final String digits = EXP_LEADING_ZEROS.matcher(raw).replaceFirst("");
+        return mantissa + "E" + (neg ? "-" : "") + (digits.isEmpty() ? "0" : digits);
     }
 
     /** Set alarm and warning limit values to display as horizontal lines on the tank.
@@ -519,14 +592,13 @@ public class RTTank extends Canvas
             ends[1] = Math.max(ends[1], r_ends[1]);
         }
 
-        // Inset = ceil(border_width/2) keeps the outer stroke edge inside the canvas.
-        // On sides with a scale the label area provides ample margin so inset=0.
-        // When there is no border, inset=1 is the original clip guard.
+        // Inset: half border-width rounded up, plus inner_padding on all sides.
         final int half_bw_ceil = (border_width + 1) / 2;
-        final int inset_left   = (left_width  == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_right  = (right_width == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_top    = (ends[1] == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_bottom = (ends[0] == 0) ? Math.max(1, half_bw_ceil) : 0;
+        final int ip = inner_padding;
+        final int inset_left   = (left_width  == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
+        final int inset_right  = (right_width == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
+        final int inset_top    = (ends[1] == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
+        final int inset_bottom = (ends[0] == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
 
         final int top    = bounds.y + ends[1] + inset_top;
         final int height = bounds.height - ends[0] - ends[1] - inset_top - inset_bottom;
@@ -582,8 +654,10 @@ public class RTTank extends Canvas
         final int level = computeFillLevel(plot_bounds.height, min, max, current, scale.isLogarithmic());
 
         final int arc = Math.min(plot_bounds.width, plot_bounds.height) / 10;
-        gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, plot_bounds.x+plot_bounds.width/2, 0, empty_shadow, true));
-
+        if (flat_track)
+            gc.setColor(empty);
+        else
+            gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, plot_bounds.x+plot_bounds.width/2, 0, empty_shadow, true));
         gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height, arc, arc);
 
         gc.setPaint(new GradientPaint(plot_bounds.x, 0, fill, plot_bounds.x+plot_bounds.width/2, 0, fill_highlight, true));
@@ -610,30 +684,35 @@ public class RTTank extends Canvas
             gc.setStroke(new BasicStroke(1f));
         }
 
-        // Draw alarm / warning limit lines over the tank body
-        final double lim_lolo = limit_lolo;
-        final double lim_lo   = limit_lo;
-        final double lim_hi   = limit_hi;
-        final double lim_hihi = limit_hihi;
-        if (normal && (!Double.isNaN(lim_lolo) || !Double.isNaN(lim_lo) ||
-                        !Double.isNaN(lim_hi)   || !Double.isNaN(lim_hihi)))
-        {
-            if (limits_from_pv)
-                gc.setStroke(new BasicStroke(2f));
-            else
-                gc.setStroke(new BasicStroke(2f, BasicStroke.CAP_BUTT,
-                        BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_lolo, limit_major_color);
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_lo,   limit_minor_color);
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_hi,   limit_minor_color);
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_hihi, limit_major_color);
-            gc.setStroke(new BasicStroke(1f));
-        }
+        drawAlarmLimits(gc, plot_bounds, normal, min, max);
 
         gc.dispose();
 
         // Convert to JFX
         return SwingFXUtils.toFXImage(image, null);
+    }
+
+    /** Draw alarm/warning limit lines over the tank body, if any limits are set */
+    private void drawAlarmLimits(final Graphics2D gc, final Rectangle plot_bounds,
+                                 final boolean normal, final double min, final double max)
+    {
+        final double lim_lolo = limit_lolo;
+        final double lim_lo   = limit_lo;
+        final double lim_hi   = limit_hi;
+        final double lim_hihi = limit_hihi;
+        if (!normal || (Double.isNaN(lim_lolo) && Double.isNaN(lim_lo) &&
+                        Double.isNaN(lim_hi)   && Double.isNaN(lim_hihi)))
+            return;
+        if (limits_from_pv)
+            gc.setStroke(new BasicStroke(2f));
+        else
+            gc.setStroke(new BasicStroke(2f, BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
+        drawLimitLineAt(gc, plot_bounds, min, max, lim_lolo, limit_major_color);
+        drawLimitLineAt(gc, plot_bounds, min, max, lim_lo,   limit_minor_color);
+        drawLimitLineAt(gc, plot_bounds, min, max, lim_hi,   limit_minor_color);
+        drawLimitLineAt(gc, plot_bounds, min, max, lim_hihi, limit_major_color);
+        gc.setStroke(new BasicStroke(1f));
     }
 
     /** Request a complete redraw of the plot */
