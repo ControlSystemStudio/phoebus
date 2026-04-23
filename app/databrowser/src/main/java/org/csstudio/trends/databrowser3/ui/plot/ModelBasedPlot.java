@@ -368,6 +368,7 @@ public class ModelBasedPlot
         // These happen to not cause an immediate redraw, so
         // set even if no change
         trace.setColor(item.getPaintColor());
+        trace.setAreaColor(item.getAreaColor());
         trace.setType(item.getTraceType());
         trace.setWidth(item.getLineWidth());
         trace.setLineStyle(item.getLineStyle());
