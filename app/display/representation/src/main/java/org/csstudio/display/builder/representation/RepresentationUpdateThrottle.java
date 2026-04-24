@@ -53,6 +53,9 @@ public class RepresentationUpdateThrottle
     /** Pause between updates to prevent flooding the UI thread */
     private static final long update_delay = Preferences.update_delay;
 
+    /** Singleton instance of this class */
+    private static RepresentationUpdateThrottle INSTANCE;
+
     /** Executor for UI thread */
     private final Executor gui_executor;
 
@@ -73,8 +76,21 @@ public class RepresentationUpdateThrottle
      */
     private final Set<WidgetRepresentation<?, ?, ?>> updateable = new LinkedHashSet<>();
 
+    /** Get instance of this class to perform updates on the UI thread. This class
+     * is a singleton to ensure that only one thread is scheduling jobs on the UI
+     * thread.
+     *
+     *  @param gui_executor Executor for UI thread
+     */
+    public static RepresentationUpdateThrottle getInstance(final Executor gui_executor) {
+        if(INSTANCE == null) {
+            INSTANCE = new RepresentationUpdateThrottle(gui_executor);
+        }
+        return INSTANCE;
+    }
+
     /** @param gui_executor Executor for UI thread */
-    public RepresentationUpdateThrottle(final Executor gui_executor)
+    private RepresentationUpdateThrottle(final Executor gui_executor)
     {
         final String name = "RepresentationUpdateThrottle" + instance.incrementAndGet();
         logger.log(Level.FINE, "Create " + name);
