@@ -28,7 +28,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @SuppressWarnings("nls")
 public class UpdateThrottleTest
 {
-    private final RepresentationUpdateThrottle throttle = new RepresentationUpdateThrottle(Executors.newSingleThreadExecutor());
+    private final RepresentationUpdateThrottle throttle = RepresentationUpdateThrottle.getInstance(Executors.newSingleThreadExecutor());
 
     private class TestWidgetRepresentation extends WidgetRepresentation<Object, Object, Widget>
     {
