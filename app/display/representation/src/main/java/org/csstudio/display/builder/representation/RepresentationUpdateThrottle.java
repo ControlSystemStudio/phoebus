@@ -38,9 +38,6 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class RepresentationUpdateThrottle
 {
-    /** Instance counter to aid in debugging the throttle start/shutdown */
-    private static final AtomicInteger instance = new AtomicInteger();
-
     /** Period in seconds for logging update performance */
     private static final int performance_log_period_secs = Preferences.performance_log_period_secs;
 
@@ -54,7 +51,7 @@ public class RepresentationUpdateThrottle
     private static final long update_delay = Preferences.update_delay;
 
     /** Singleton instance of this class */
-    private static RepresentationUpdateThrottle INSTANCE;
+    private static RepresentationUpdateThrottle instance;
 
     /** Executor for UI thread */
     private final Executor gui_executor;
@@ -83,16 +80,16 @@ public class RepresentationUpdateThrottle
      *  @param gui_executor Executor for UI thread
      */
     public static RepresentationUpdateThrottle getInstance(final Executor gui_executor) {
-        if(INSTANCE == null) {
-            INSTANCE = new RepresentationUpdateThrottle(gui_executor);
+        if(instance == null) {
+            instance = new RepresentationUpdateThrottle(gui_executor);
         }
-        return INSTANCE;
+        return instance;
     }
 
     /** @param gui_executor Executor for UI thread */
     private RepresentationUpdateThrottle(final Executor gui_executor)
     {
-        final String name = "RepresentationUpdateThrottle" + instance.incrementAndGet();
+        final String name = "RepresentationUpdateThrottle";
         logger.log(Level.FINE, "Create " + name);
         this.gui_executor = gui_executor;
         throttle_thread = new Thread(this::doRun);
