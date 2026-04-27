@@ -78,14 +78,10 @@ public class SendLogbookAction extends MenuItem {
         ologLog.setDescription(body != null ? body : "");
 
         if (image_file != null) {
-            try {
-                final Attachment attachment = AttachmentImpl.of(image_file, "image", false);
-                List<Attachment> attachments = new ArrayList<>();
-                attachments.add(attachment);
-                ologLog.setAttachments(attachments);
-            } catch (FileNotFoundException ex) {
-                logger.log(Level.WARNING, "Cannot attach " + image_file, ex);
-            }
+            final Attachment attachment = AttachmentImpl.of(image_file, "image", false);
+            List<Attachment> attachments = new ArrayList<>();
+            attachments.add(attachment);
+            ologLog.setAttachments(attachments);
         }
         new LogEntryEditorStage(ologLog).show();
     }
