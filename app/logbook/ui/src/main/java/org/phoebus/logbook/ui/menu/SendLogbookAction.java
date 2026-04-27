@@ -95,15 +95,8 @@ public class SendLogbookAction extends MenuItem
 
         if (image_file != null)
         {
-            try
-            {
-                final Attachment attachment = AttachmentImpl.of(image_file, "image", false);
-                logEntryBuilder.attach(attachment);
-            }
-            catch (FileNotFoundException ex)
-            {
-                logger.log(Level.WARNING, "Cannot attach " + image_file, ex);
-            }
+            final Attachment attachment = AttachmentImpl.of(image_file, "image", false);
+            logEntryBuilder.attach(attachment);
         }
 
         final LogEntryModel model = new LogEntryModel(logEntryBuilder.createdDate(Instant.now()).build());

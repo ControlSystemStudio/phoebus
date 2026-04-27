@@ -98,11 +98,7 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                         .withTags(new HashSet<Tag>(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))))
                         .inLogbooks(new HashSet<Logbook>(Arrays.asList(LogbookImpl.of("Operations", "active"))));
                 listOfFiles.forEach(file -> {
-                    try {
-                        lb.attach(AttachmentImpl.of(file));
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
+                    lb.attach(AttachmentImpl.of(file));
                 });
                 controller.setLogEntry(lb.build());
             });
