@@ -92,11 +92,7 @@ public class LogEntryCalenderDemo extends ApplicationWrapper {
             }
             lb.appendDescription(sb.toString());
             listOfFiles.forEach(file -> {
-                try {
-                    lb.attach(AttachmentImpl.of(file));
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+                lb.attach(AttachmentImpl.of(file));
             });
             logs.add(lb.build());
         }

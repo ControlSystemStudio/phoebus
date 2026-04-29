@@ -119,11 +119,7 @@ public class LogEntryCellDemo extends ApplicationWrapper {
                         .inLogbooks(new HashSet<Logbook>(Arrays.asList(LogbookImpl.of("Operations", "active"), LogbookImpl.of("Electrical", "active"))))
                         .owner("nsls2-user");
                 listOfFiles.forEach(file -> {
-                    try {
-                        lb.attach(AttachmentImpl.of(file));
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
+                    lb.attach(AttachmentImpl.of(file));
                 });
                 controller.setLogEntry(new TableViewListItem(lb.build(), true));
             });

@@ -135,11 +135,7 @@ public class LogEntryTableDemo extends ApplicationWrapper {
             lb.appendDescription(sb.toString());
             if (i % 2 != 0) {
                 listOfFiles.forEach(file -> {
-                    try {
-                        lb.attach(AttachmentImpl.of(file));
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
+                    lb.attach(AttachmentImpl.of(file));
                 });
                 lb.appendProperty(experimentProperty);
                 lb.appendProperty(track);
