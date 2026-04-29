@@ -138,13 +138,12 @@ public class AttachmentsEditorController {
             attachments.forEach(a -> {
                 if (a.getFile() != null) {
                     attachedFilesSize += getFileSize(a.getFile());
+                    filesToDeleteAfterSubmit.add(a.getFile());
                 }
             });
         }
 
         attachmentsViewController.setAttachments(attachments);
-
-        filesToDeleteAfterSubmit.addAll(attachments.stream().map(Attachment::getFile).toList());
 
         removeButton.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
         removeButton.disableProperty().bind(Bindings.isEmpty(attachmentsViewController.getSelectedAttachments()));

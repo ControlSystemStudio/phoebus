@@ -266,6 +266,18 @@ Please consider the following limitations of the log entry group feature:
 
 .. _preferences:
 
+Updating an existing log entry
+------------------------------
+
+Existing log entries may be modified with respect to all parts of the log entry, except author and create/modify date.
+A right click on an item in the list view will bring up the context menu from which the user can select Edit, see below.
+
+**NOTE**: when editing a log entry, the attachments view will show the attachments added when the entry was created
+or modified. In this view users may add further attachments, but also remove the ones added previously. Removed attachments
+will then be accessible only when inspecting the history of the entry.
+
+.. image:: images/ContextMenuEdit.png
+
 Preferences
 -----------
 
