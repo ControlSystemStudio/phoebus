@@ -38,6 +38,9 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class RepresentationUpdateThrottle
 {
+    /** Reference counter to determine when to safely shutdown */
+    private static final AtomicInteger reference_count = new AtomicInteger();
+
     /** Period in seconds for logging update performance */
     private static final int performance_log_period_secs = Preferences.performance_log_period_secs;
 
@@ -83,6 +86,7 @@ public class RepresentationUpdateThrottle
         if(instance == null) {
             instance = new RepresentationUpdateThrottle(gui_executor);
         }
+        reference_count.incrementAndGet();
         return instance;
     }
 
@@ -231,7 +235,13 @@ public class RepresentationUpdateThrottle
     /** Shutdown the throttle thread and wait for it to exit */
     public void shutdown()
     {
+        // Only shutdown if this is the last reference
+        if (reference_count.decrementAndGet() != 0){
+            return;
+        }
+
         run = false;
+        instance = null;
         synchronized (updateable)
         {
             updateable.notifyAll();
