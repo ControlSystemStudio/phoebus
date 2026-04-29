@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -111,15 +111,20 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         return device_names.toArray(new String[device_names.size()]);
     }
 
-    private double getLoopStart()
+    /** @return Lower loop limit */
+    double getLoopStart()
     {
         return Math.min(command.getStart(), command.getEnd());
     }
-    private double getLoopEnd()
+
+    /** @return Upper loop limit */
+    double getLoopEnd()
     {
         return Math.max(command.getStart(), command.getEnd());
     }
-    private double getLoopStep()
+
+    /** @return Loop step, might toggle direction */
+    double getLoopStep()
     {
         final double step  = direction * command.getStepSize();
         // Revert direction for next iteration of the complete loop?
@@ -128,8 +133,25 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         return step;
     }
 
-    public int getNumSteps() {
+    /** @return Number of loop steps */
+    int getNumSteps()
+    {
         return (int)Math.ceil(Math.abs(((command.getEnd() - command.getStart()) / command.getStepSize()))) + 1;
+    }
+
+    /** @param start Start value, might be upper or lower limit
+     *  @param step Loop step value, positive or negative
+     *  @param i Loop index
+     *  @return Loop value
+     */
+    double computeStep(double start, double step, int i)
+    {
+        // Compute loop value, but limit to upper or lower
+        // end depending on step direction
+        if (step >= 0)
+            return Math.min(start + i * step, getLoopEnd());
+        else
+            return Math.max(start + i * step, getLoopStart());
     }
 
     /** {@inheritDoc} */
@@ -143,7 +165,7 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         double start = step < 0 ? getLoopEnd() : getLoopStart();
         int num_steps = getNumSteps();
         for (int i = 0; i < num_steps; i++)
-            simulateStep(context, device, start + i * step);
+            simulateStep(context, device, computeStep(start, step, i));
     }
 
     /** Simulate one step in the loop iteration
@@ -211,7 +233,7 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         int num_steps = getNumSteps();
 
         for (int i = 0; i < num_steps; i++)
-            executeStep(context, device, condition, readback, start + i * step);
+            executeStep(context, device, condition, readback, computeStep(start, step, i));
     }
 
     /** Execute one step of the loop
