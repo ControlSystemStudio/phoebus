@@ -38,7 +38,7 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class RepresentationUpdateThrottle
 {
-    /** Reference counter to determine when to safely shutdown */
+    /** Reference counter to aid in debugging the throttle start/shutdown */
     private static final AtomicInteger reference_count = new AtomicInteger();
 
     /** Period in seconds for logging update performance */
@@ -80,22 +80,22 @@ public class RepresentationUpdateThrottle
      * is a singleton to ensure that only one thread is scheduling jobs on the UI
      * thread.
      *
-     *  @param gui_executor Executor for UI thread
+     *  @param guiExecutor Executor for UI thread
      */
-    public static RepresentationUpdateThrottle getInstance(final Executor gui_executor) {
+    public static synchronized RepresentationUpdateThrottle getInstance(final Executor guiExecutor) {
         if(instance == null) {
-            instance = new RepresentationUpdateThrottle(gui_executor);
+            instance = new RepresentationUpdateThrottle(guiExecutor);
         }
         reference_count.incrementAndGet();
         return instance;
     }
 
-    /** @param gui_executor Executor for UI thread */
-    private RepresentationUpdateThrottle(final Executor gui_executor)
+    /** @param guiExecutor Executor for UI thread */
+    private RepresentationUpdateThrottle(final Executor guiExecutor)
     {
         final String name = "RepresentationUpdateThrottle";
         logger.log(Level.FINE, "Create " + name);
-        this.gui_executor = gui_executor;
+        this.gui_executor = guiExecutor;
         throttle_thread = new Thread(this::doRun);
         throttle_thread.setName(name);
         throttle_thread.setDaemon(true);
@@ -235,26 +235,6 @@ public class RepresentationUpdateThrottle
     /** Shutdown the throttle thread and wait for it to exit */
     public void shutdown()
     {
-        // Only shutdown if this is the last reference
-        if (reference_count.decrementAndGet() != 0){
-            return;
-        }
-
-        run = false;
-        instance = null;
-        synchronized (updateable)
-        {
-            updateable.notifyAll();
-        }
-        try
-        {
-            throttle_thread.join(2000);
-        }
-        catch (final InterruptedException ex)
-        {
-            // Ignore, closing down anyway
-        }
-        if (throttle_thread.isAlive())
-            logger.log(Level.WARNING, "Representation update throttle fails to terminate within 2 seconds");
+        reference_count.decrementAndGet();
     }
 }
