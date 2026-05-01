@@ -86,7 +86,8 @@ public class RepresentationUpdateThrottle
         if(instance == null) {
             instance = new RepresentationUpdateThrottle(guiExecutor);
         }
-        reference_count.incrementAndGet();
+        logger.log(Level.FINE, "RepresentationUpdateThrottle getInstance() reference count: "
+                + reference_count.incrementAndGet());
         return instance;
     }
 
@@ -235,6 +236,7 @@ public class RepresentationUpdateThrottle
     /** Shutdown the throttle thread and wait for it to exit */
     public void shutdown()
     {
-        reference_count.decrementAndGet();
+        logger.log(Level.FINE, "RepresentationUpdateThrottle shutdown() reference count: "
+                + reference_count.decrementAndGet());
     }
 }
