@@ -30,6 +30,13 @@ public class Activator
     @Preference(name="shady_future") private static int[] rgba;
     public static final Color shady_future;
 
+    /** When true, RTTank renders on the shared thread pool (one thread per CPU
+     *  core) so many simultaneous Tank / ProgressBar instances update in
+     *  parallel.  When false, all renders serialise on a single global thread
+     *  (the pre-fix behaviour). Controlled by the {@code parallel_rendering}
+     *  preference. */
+    @Preference(name="parallel_rendering") public static boolean parallel_rendering;
+
     /** Thread pool for scrolling, throttling updates
      * 
      *  <p>One per CPU core allows that many plots to run updateImageBuffer in parallel.
