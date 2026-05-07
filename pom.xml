@@ -304,42 +304,6 @@
       </plugins>
     </build>
   </profile>
-  <!-- profile for and the website from the .rst files -->
-  <profile>
-    <id>sphinx</id>
-    <build>
-      <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-site-plugin</artifactId>
-            <version>3.7.1</version>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-project-info-reports-plugin</artifactId>
-            <version>3.0.0</version>
-          </plugin>          
-          <!-- Generate the documentation for the Phoebus -->
-          <plugin>
-            <groupId>kr.motd.maven</groupId>
-            <artifactId>sphinx-maven-plugin</artifactId>
-            <version>2.10.0</version>
-            <configuration>
-              <sourceDirectory>${basedir}/docs/source</sourceDirectory>
-              <outputDirectory>${basedir}/docs/build/html</outputDirectory>
-            </configuration>
-            <executions>
-              <execution>
-                <phase>package</phase>
-                <goals>
-                  <goal>generate</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
     <!-- Profile for generating L10n status report. Execute mvn site -P l10n-status.
          The report will be located at target/site/l10n-status.html -->
     <profile>
