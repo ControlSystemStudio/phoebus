@@ -22,7 +22,7 @@ public class OpenDataBrowserActionController extends ActionControllerBase {
     private final StringProperty pvNameProperty = new SimpleStringProperty();
     private final StringProperty timeframeProperty = new SimpleStringProperty();
 
-    public OpenDataBrowserActionController(Widget widget, OpenDataBrowserAction openDataBrowserActionInfo){
+    public OpenDataBrowserActionController(OpenDataBrowserAction openDataBrowserActionInfo){
         descriptionProperty.set(openDataBrowserActionInfo.getDescription());
         pvNameProperty.setValue(openDataBrowserActionInfo.getPVs());
         timeframeProperty.setValue(openDataBrowserActionInfo.getTimeframe());
@@ -32,6 +32,7 @@ public class OpenDataBrowserActionController extends ActionControllerBase {
      * Init
      */
     @FXML
+    @Override
     public void initialize() {
         super.initialize();
         pvNames.textProperty().bindBidirectional(pvNameProperty);

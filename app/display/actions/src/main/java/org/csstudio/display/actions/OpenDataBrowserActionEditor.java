@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public class OpenDataBrowserActionEditor implements ActionEditor {
 
     private OpenDataBrowserActionController openDataBrowserActionController;
-    private Node editorUi;
+    private Node openDataBowserEditorUi;
 
     @Override
     public boolean matchesAction(String type) {
@@ -32,19 +32,17 @@ public class OpenDataBrowserActionEditor implements ActionEditor {
 
     @Override
     public Node getEditorUi() {
-        return editorUi;
+        return openDataBowserEditorUi;
     }
 
     @Override
     public void configure(Widget widget, ActionInfo actionInfo) {
-        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-
         FXMLLoader fxmlLoader = new FXMLLoader();
-        fxmlLoader.setResources(resourceBundle);
+        fxmlLoader.setResources(NLS.getMessages(Messages.class));
         fxmlLoader.setLocation(this.getClass().getResource("OpenDataBrowserAction.fxml"));
         fxmlLoader.setControllerFactory(clazz -> {
             try {
-                return clazz.getConstructor(Widget.class, OpenDataBrowserAction.class).newInstance(widget, actionInfo);
+                return clazz.getConstructor(OpenDataBrowserAction.class).newInstance(actionInfo);
             } catch (Exception e) {
                 Logger.getLogger(OpenDataBrowserActionEditor.class.getName()).log(Level.SEVERE, "Failed to construct OpenDataBrowserActionController", e);
             }
@@ -52,7 +50,7 @@ public class OpenDataBrowserActionEditor implements ActionEditor {
         });
 
         try {
-            editorUi = fxmlLoader.load();
+            openDataBowserEditorUi = fxmlLoader.load();
             openDataBrowserActionController = fxmlLoader.getController();
         } catch (IOException e) {
             Logger.getLogger(OpenDataBrowserActionEditor.class.getName()).log(Level.SEVERE, "Failed to load the OpenDataBrowserAction UI", e);

@@ -3,10 +3,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!--
-  ~ Copyright (C) 2024 European Spallation Source ERIC.
-  -->
-
 <GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.actions.OpenDataBrowserActionController">
    <children>
       <Label text="%ActionsDialog_Description" />

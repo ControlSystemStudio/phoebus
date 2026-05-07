@@ -25,6 +25,21 @@ public class OpenDataBrowserActionHandler implements ActionHandler {
 
     private final Logger logger = Logger.getLogger(OpenDataBrowserActionHandler.class.getName());
 
+    /**
+     * Expand macros that may exist in the PV name
+     * @param name PV name
+     * @param macros Macros available
+     * @return PV name with macros replaced
+     */
+    private String expandMacros(String name, MacroValueProvider macros) {
+        try {
+            name = MacroHandler.replace(macros, name);
+        } catch (Exception ignore) {
+            // NOP
+        }
+        return name;
+    }
+
     @Override
     public void handleAction(Widget sourceWidget, ActionInfo pluggableActionInfo) {
         OpenDataBrowserAction action = (OpenDataBrowserAction) pluggableActionInfo;
@@ -37,20 +52,12 @@ public class OpenDataBrowserActionHandler implements ActionHandler {
             final String pvNames = action.getPVs().strip();
             final String timeframe = action.getTimeframe().strip();
 
-            // Build URI from list of PVs
-            String pvURI = "pv://?";
             String[] pvs = pvNames.split(" ");
             for (int i = 0; i < pvs.length; i++) {
-                try {
-                    pvs[i] = MacroHandler.replace(macros, pvs[i]);
-                    pvURI = pvURI.concat(pvs[i]);
-                    if (i < pvs.length - 1)
-                        pvURI = pvURI.concat("&");
-                } catch (Exception ignore) {
-                    // NOP
-                }
+                pvs[i] = expandMacros(pvs[i], macros);
             }
-            final String finalPvURI = pvURI;
+            // Build URI from list of PVs
+            String pvURI = "pv://?" + String.join("&", pvs);
 
             // Set timeframe
             TimeRelativeInterval timeInterval;
@@ -68,7 +75,7 @@ public class OpenDataBrowserActionHandler implements ActionHandler {
             toolkit.submit(() ->
             {   // Create databrowser instance
                 DataBrowserInstance instance = ApplicationService.createInstance(DataBrowserApp.NAME,
-                        ResourceParser.createResourceURI(finalPvURI));
+                        ResourceParser.createResourceURI(pvURI));
 
                 // Set the default archiver
                 for (String pv: pvs) {
@@ -82,9 +89,9 @@ public class OpenDataBrowserActionHandler implements ActionHandler {
                 return null;
             });
         }
-        catch (Throwable ex)
+        catch (Exception ex)
         {
-            logger.log(Level.WARNING, action+" failed. Cannot open data browser", ex);
+            logger.log(Level.WARNING, ex, () -> action + " failed. Cannot open data browser");
         }
     }
 
