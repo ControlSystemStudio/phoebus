@@ -100,7 +100,7 @@ public class SymbolWidget extends PVWidget {
         (widget, index) -> {
             String symbol = DEFAULT_SYMBOL;
             try {
-                if (index > 0)
+                if (index > 0 && index <= ((SymbolWidget)widget).propSymbols().size())
                     symbol = ((SymbolWidget)widget).propSymbols().getElement(index - 1).getValue();
             } catch (IndexOutOfBoundsException e) {
                 // It is expected when a widget with more than 2 symbols is parsed
