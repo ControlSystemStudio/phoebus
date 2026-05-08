@@ -87,8 +87,7 @@ public class SearchUtil {
         int searchResultSize = defaultSearchSize;
         int from = 0;
 
-        LOG.info("buildSearchRequest() called");
-        LOG.info("  searchParameters: " + searchParameters);
+        LOG.trace("New search: " + searchParameters);
 
         for (Entry<String, List<String>> parameter : searchParameters.entrySet()) {
             String s = parameter.getKey().strip().toLowerCase();
