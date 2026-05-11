@@ -38,8 +38,8 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class RepresentationUpdateThrottle
 {
-    /** Instance counter to aid in debugging the throttle start/shutdown */
-    private static final AtomicInteger instance = new AtomicInteger();
+    /** Reference counter to aid in debugging the throttle start/shutdown */
+    private static final AtomicInteger reference_count = new AtomicInteger();
 
     /** Period in seconds for logging update performance */
     private static final int performance_log_period_secs = Preferences.performance_log_period_secs;
@@ -52,6 +52,9 @@ public class RepresentationUpdateThrottle
 
     /** Pause between updates to prevent flooding the UI thread */
     private static final long update_delay = Preferences.update_delay;
+
+    /** Singleton instance of this class */
+    private static RepresentationUpdateThrottle instance;
 
     /** Executor for UI thread */
     private final Executor gui_executor;
@@ -73,12 +76,28 @@ public class RepresentationUpdateThrottle
      */
     private final Set<WidgetRepresentation<?, ?, ?>> updateable = new LinkedHashSet<>();
 
-    /** @param gui_executor Executor for UI thread */
-    public RepresentationUpdateThrottle(final Executor gui_executor)
+    /** Get instance of this class to perform updates on the UI thread. This class
+     * is a singleton to ensure that only one thread is scheduling jobs on the UI
+     * thread.
+     *
+     *  @param guiExecutor Executor for UI thread
+     */
+    public static synchronized RepresentationUpdateThrottle getInstance(final Executor guiExecutor) {
+        if(instance == null) {
+            instance = new RepresentationUpdateThrottle(guiExecutor);
+        }
+        reference_count.incrementAndGet();
+        logger.log(Level.FINE, () -> "RepresentationUpdateThrottle getInstance() reference count: "
+                + reference_count.get());
+        return instance;
+    }
+
+    /** @param guiExecutor Executor for UI thread */
+    private RepresentationUpdateThrottle(final Executor guiExecutor)
     {
-        final String name = "RepresentationUpdateThrottle" + instance.incrementAndGet();
+        final String name = "RepresentationUpdateThrottle";
         logger.log(Level.FINE, "Create " + name);
-        this.gui_executor = gui_executor;
+        this.gui_executor = guiExecutor;
         throttle_thread = new Thread(this::doRun);
         throttle_thread.setName(name);
         throttle_thread.setDaemon(true);
@@ -218,20 +237,8 @@ public class RepresentationUpdateThrottle
     /** Shutdown the throttle thread and wait for it to exit */
     public void shutdown()
     {
-        run = false;
-        synchronized (updateable)
-        {
-            updateable.notifyAll();
-        }
-        try
-        {
-            throttle_thread.join(2000);
-        }
-        catch (final InterruptedException ex)
-        {
-            // Ignore, closing down anyway
-        }
-        if (throttle_thread.isAlive())
-            logger.log(Level.WARNING, "Representation update throttle fails to terminate within 2 seconds");
+        reference_count.decrementAndGet();
+        logger.log(Level.FINE, () -> "RepresentationUpdateThrottle shutdown() reference count: "
+                + reference_count.get());
     }
 }

@@ -26,9 +26,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class UpdateThrottleTest
+class UpdateThrottleTest
 {
-    private final RepresentationUpdateThrottle throttle = new RepresentationUpdateThrottle(Executors.newSingleThreadExecutor());
+    private final RepresentationUpdateThrottle throttle = RepresentationUpdateThrottle.getInstance(Executors.newSingleThreadExecutor());
 
     private class TestWidgetRepresentation extends WidgetRepresentation<Object, Object, Widget>
     {
@@ -79,7 +79,7 @@ public class UpdateThrottleTest
     }
 
     @Test
-    public void demonstrateUpdateThrottle() throws Throwable
+    void demonstrateUpdateThrottle() throws Throwable
     {
         final AtomicInteger updates_a = new AtomicInteger();
         final AtomicInteger updates_b = new AtomicInteger();

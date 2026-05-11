@@ -74,7 +74,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
 
     private final boolean edit_mode;
 
-    private final RepresentationUpdateThrottle throttle = new RepresentationUpdateThrottle(this);
+    private final RepresentationUpdateThrottle throttle = RepresentationUpdateThrottle.getInstance(this);
 
     /**
      * Listener list
