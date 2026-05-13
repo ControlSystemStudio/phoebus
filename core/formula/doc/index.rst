@@ -16,6 +16,7 @@ You can use the following operators :
 | " **\*** " - Multiplication.
 | " **/** " - Division.
 | " **^** " - Power.
+| " **%** " - Modulo.
 | **rnd(x)** - Return a floating point number between 0 and x.
 | **max(expression...)** - Return the maximum between all expressions.
 | **min(expression...)** - Return the minimum between all expressions.
