@@ -18,6 +18,24 @@ Date: TBD
 * Scan infor parser performance improvement.
 * PV race condition fix.
 * Highlight overdrawn area of embedded display in edit mode.
+* RTPlot / Tank widget: new ``parallel_rendering`` preference
+  (``org.csstudio.javafx.rtplot/parallel_rendering``).
+  When ``true``, each RTTank instance renders on the shared thread-pool rather
+  than on the single global ``UpdateThrottle.TIMER`` thread, eliminating the
+  serialisation bottleneck that caused visible lag with many simultaneous Tank
+  or scale-mode Progress Bar widgets.  Defaults to ``false``; requires restart.
+* Display Builder: new ``progressbar_scale_mode`` preference
+  (``org.csstudio.display.builder.representation/progressbar_scale_mode``).
+  When ``true``, the Progress Bar widget is rendered by the RTTank engine,
+  adding a numeric scale, tick marks, format/precision control, an optional
+  second (opposite) scale, and alarm-limit lines (``level_lolo`` /
+  ``level_low`` / ``level_high`` / ``level_hihi``).  When ``false`` (default),
+  the standard JFX ``ProgressBar`` look-and-feel is preserved.
+  Requires restart.
+* Display Builder (internal): extracted ``RTScaledWidgetRepresentation``
+  abstract base class, shared by ``TankRepresentation`` and the new
+  ``RTProgressBarRepresentation``, to eliminate duplicated range/orientation
+  update logic.
 
 
 Release 4.6.4 

@@ -59,6 +59,8 @@ import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetClassProperty;
+import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
+import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.ui.color.NamedWidgetColor;
 import org.phoebus.ui.color.WidgetColor;
@@ -161,6 +163,14 @@ public class PropertyPanelSection extends GridPane {
             // 'class' is not used for the class definition itself,
             // it's only shown for displays where classes are then applied
             if (property instanceof WidgetClassProperty && class_mode)
+                continue;
+
+            // When using the legacy JFX ProgressBar rendering, hide properties that
+            // only affect the RTTank-based scale rendering — they have no effect and
+            // would only confuse operators.
+            if (!Preferences.progressbar_scale_mode
+                    && property.getWidget() instanceof ProgressBarWidget
+                    && ProgressBarWidget.SCALE_MODE_PROPS.contains(property.getName()))
                 continue;
 
             // Start of new category that needs to be shown?

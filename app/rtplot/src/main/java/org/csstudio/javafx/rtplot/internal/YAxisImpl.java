@@ -60,6 +60,12 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
     /** Show on right side? */
     private volatile boolean is_right = false;
 
+    /** When {@code false}, tick marks are drawn but tick label text is suppressed.
+     *  Use this to stack multiple scaled widgets with a single labelled scale:
+     *  only the first widget shows text; the rest show aligned tick marks only.
+     *  <p>Read on the Java2D render thread; written from the JFX thread — must be volatile. */
+    private volatile boolean show_labels = true;
+
     /** When {@code true}, rotated tick labels always use the 'up' direction
      *  (bottom-to-top) regardless of {@link #is_right}.  This keeps the text
      *  orientation of a right-side scale identical to a left-side scale.
@@ -161,6 +167,21 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         force_text_up = force;
     }
 
+    /** Show or hide tick label text while keeping tick marks visible.
+     *  When {@code false}, the axis is rendered as ticks-only, consuming
+     *  less horizontal space.  Tick spacing is unchanged, so stacked
+     *  progress bars or tanks can share a single labelled scale.
+     *  @param show {@code true} (default) = labels visible; {@code false} = ticks only
+     */
+    public void setScaleLabelsVisible(final boolean show)
+    {
+        if (show_labels == show)
+            return;
+        show_labels = show;
+        requestLayout();
+        requestRefresh();
+    }
+
     /** Add trace to axis
      *  @param trace {@link Trace}
      *  @throws IllegalArgumentException if trace already on axis
@@ -208,6 +229,10 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
 
         if (! isVisible())
             return 0;
+
+        // Ticks-only mode: only tick marks, no label text — just TICK_LENGTH wide.
+        if (!show_labels)
+            return TICK_LENGTH;
 
         this.region = region;
         gc.setFont(label_font);
@@ -334,6 +359,10 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         if (! isVisible())
             return super.getPixelGaps(gc);
 
+        // Ticks-only mode: no labels extend past the tick positions.
+        if (!show_labels)
+            return new int[] { 0, 0 };
+
         gc.setFont(scale_font);
         final FontMetrics metrics = gc.getFontMetrics();
 
@@ -413,7 +442,7 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
             }
             gc.setStroke(old_width);
 
-            if (showLabel[mi])
+            if (showLabel[mi] && show_labels)
                 drawTickLabel(gc, y, tick.getLabel(), false);
         }
 
@@ -428,8 +457,11 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         gc.setColor(old_fg);
         gc.setBackground(old_bg);
 
-        gc.setFont(label_font);
-        paintLabels(gc);
+        if (show_labels)
+        {
+            gc.setFont(label_font);
+            paintLabels(gc);
+        }
     }
 
     protected void paintLabels(final Graphics2D gc)
