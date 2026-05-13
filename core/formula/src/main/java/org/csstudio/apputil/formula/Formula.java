@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,7 @@ import org.csstudio.apputil.formula.node.LessEqualNode;
 import org.csstudio.apputil.formula.node.LessThanNode;
 import org.csstudio.apputil.formula.node.MaxNode;
 import org.csstudio.apputil.formula.node.MinNode;
+import org.csstudio.apputil.formula.node.ModNode;
 import org.csstudio.apputil.formula.node.MulNode;
 import org.csstudio.apputil.formula.node.NotEqualNode;
 import org.csstudio.apputil.formula.node.NotNode;
@@ -433,6 +434,11 @@ public class Formula implements Node
             {
                 s.next();
                 n = new DivNode(n, parseUnary(s));
+            }
+            else if (s.get() == '%')
+            {
+                s.next();
+                n = new ModNode(n, parseUnary(s));
             }
             else break;
         }
