@@ -51,12 +51,6 @@ tags is indicated with a symbol to the right of the node name:
 
 .. image:: images/snapshot-with-tag.png
 
-Similarly, snapshots and composite snapshots referenced in other composite snapshots are annotated with a symbol to the
-right of the node name:
-
-.. image:: images/snapshot-with-references.png
-
-
 
 Node names and ordering
 -----------------------
@@ -279,7 +273,7 @@ The composite snapshot can be saved when a case sensitive name and a description
 
 * The combined list of PV names in the referenced snapshots must not contain duplicates. This is checked for each item dropped into the list when editing a composite snapshot. If duplicates are detected, an error dialog is shown.
 
-* Snapshots and composite snapshots cannot be deleted if referenced in a composite snapshot.
+* Snapshots and composite snapshots cannot be deleted if referenced in any composite snapshot. This is indicated by disabling the Delete context menu item.
 
 Edit Composite Snapshot using drag-n-drop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
