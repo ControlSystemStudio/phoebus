@@ -134,6 +134,8 @@ import java.util.ResourceBundle;
 import java.util.ServiceLoader;
 import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -1405,8 +1407,39 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         compareSnapshotsMenuItem.disableProperty().set(!compareSnapshotsPossible());
         deleteNodeMenuItem.disableProperty().set(getUserIdentity().isNull().get() ||
                 selectedItemsProperty.stream().anyMatch(n -> n.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) ||
-                !hasSameParent());
+                !hasSameParent() ||
+                hasReferences(selectedItemsProperty.get(0)));
         pasteMenuItem.disableProperty().set(!mayPaste());
+    }
+
+    /**
+     * Queries service if the specified {@link Node} is referenced in any composite snapshot.
+     *
+     * @param node The node to check.
+     * @return <code>true</code> if the {@link Node} is referenced.
+     */
+    private boolean hasReferences(Node node) {
+        if (node.getNodeType().equals(NodeType.FOLDER) || node.getNodeType().equals(NodeType.CONFIGURATION)) {
+            return false;
+        }
+        AtomicBoolean hasReferences = new AtomicBoolean(false);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        JobManager.schedule("Find references", monitor -> {
+            MultivaluedMap<String, String> multivaluedMap = new MultivaluedHashMap<>();
+            multivaluedMap.put("referenced", List.of(node.getUniqueId()));
+            try {
+                hasReferences.set(saveAndRestoreService.search(multivaluedMap).getHitCount() > 0);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to check for references for node " + node.getUniqueId(), e);
+            }
+            countDownLatch.countDown();
+        });
+        try {
+            countDownLatch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.log(Level.WARNING, "Timeout when checking references for node " + node.getUniqueId(), e);
+        }
+        return hasReferences.get();
     }
 
     /**
