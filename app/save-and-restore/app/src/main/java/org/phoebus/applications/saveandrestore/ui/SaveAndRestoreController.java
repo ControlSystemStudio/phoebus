@@ -1427,7 +1427,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         JobManager.schedule("Find references", monitor -> {
             MultivaluedMap<String, String> multivaluedMap = new MultivaluedHashMap<>();
             multivaluedMap.put("referenced", List.of(node.getUniqueId()));
-            hasReferences.set(saveAndRestoreService.search(multivaluedMap).getHitCount() > 0);
+            try {
+                hasReferences.set(saveAndRestoreService.search(multivaluedMap).getHitCount() > 0);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to check for references for node " + node.getUniqueId(), e);
+            }
             countDownLatch.countDown();
         });
         try {
