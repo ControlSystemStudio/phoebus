@@ -16,6 +16,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -166,7 +167,11 @@ public class RTTank extends Canvas
         widthProperty().addListener(resize_listener);
         heightProperty().addListener(resize_listener);
 
-        // 20Hz default throttle
+        // 20Hz default throttle.
+        // When parallel_rendering is enabled, each tank renders on the shared thread pool
+        // so that many tanks on a display update concurrently.  The default (false) serialises
+        // all renders on the single global UpdateThrottle.TIMER thread — safe but slow for
+        // displays with many Tank / ProgressBar widgets.
         update_throttle = new UpdateThrottle(50, TimeUnit.MILLISECONDS, () ->
         {
             if (needUpdate.getAndSet(false)){
@@ -178,7 +183,7 @@ public class RTTank extends Canvas
                     requestUpdate();
                 }
             }
-        });
+        }, Activator.parallel_rendering ? Activator.thread_pool : UpdateThrottle.TIMER);
 
         // Configure right-side scale — must happen after update_throttle is
         // initialised because setOnRight() triggers requestUpdate() via the
@@ -335,12 +340,12 @@ public class RTTank extends Canvas
             @Override
             public StringBuffer format(final double v, final StringBuffer buf, final java.text.FieldPosition pos)
             {
-                return buf.append(String.format(java.util.Locale.ROOT, pattern, v));
+                return buf.append(normaliseExponent(String.format(java.util.Locale.ROOT, pattern, v)));
             }
             @Override
             public StringBuffer format(final long v, final StringBuffer buf, final java.text.FieldPosition pos)
             {
-                return buf.append(String.format(java.util.Locale.ROOT, pattern, (double) v));
+                return buf.append(normaliseExponent(String.format(java.util.Locale.ROOT, pattern, (double) v)));
             }
             @Override
             public Number parse(final String s, final java.text.ParsePosition pos)
@@ -348,6 +353,28 @@ public class RTTank extends Canvas
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    /** Pre-compiled pattern for stripping the sign and leading zeros from a
+     *  {@code %g} exponent string such as {@code "-01"} or {@code "+02"}.
+     */
+    private static final Pattern EXP_LEADING_ZEROS = Pattern.compile("^[+-]?0*");
+
+    /** Normalise a {@code %g}-formatted string to match Phoebus axis convention:
+     *  uppercase {@code E}, no leading zeros on the exponent, no {@code +} sign.
+     *  Examples: {@code "1.0e-01"} &rarr; {@code "1.0E-1"},
+     *            {@code "2.5e+02"} &rarr; {@code "2.5E2"}.
+     */
+    private static String normaliseExponent(final String s)
+    {
+        final int e = s.indexOf('e');
+        if (e < 0)
+            return s;   // decimal notation — no exponent to fix
+        final String mantissa = s.substring(0, e);
+        final String raw = s.substring(e + 1);      // e.g. "-01", "+02"
+        final boolean neg = raw.startsWith("-");
+        final String digits = EXP_LEADING_ZEROS.matcher(raw).replaceFirst("");
+        return mantissa + "E" + (neg ? "-" : "") + (digits.isEmpty() ? "0" : digits);
     }
 
     /** Set alarm and warning limit values to display as horizontal lines on the tank.
