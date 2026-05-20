@@ -1,4 +1,8 @@
-package org.phoebus.applications.alarm.ui.tree.datetimepicker;
+/*
+ * Copyright (C) 2025 European Spallation Source ERIC.
+ */
+
+package org.phoebus.applications.alarm.ui.config;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,15 +18,15 @@ import javafx.util.StringConverter;
 /**
  * A DateTimePicker with configurable datetime format where both date and time can be changed
  * via the text field and the date can additionally be changed via the JavaFX default date picker.
- * Modified from https://github.com/edvin/tornadofx-controls/blob/master/src/main/java/tornadofx/control/DateTimePicker.java
+ * Modified from <a href='https://github.com/edvin/tornadofx-controls/blob/master/src/main/java/tornadofx/control/DateTimePicker.java'>DateTimePicker</a>
  */
 @SuppressWarnings("unused")
 public class DateTimePicker extends DatePicker {
     private static final String DefaultFormat = "yyyy-MM-dd HH:mm";
 
 	private DateTimeFormatter formatter;
-	private ObjectProperty<LocalDateTime> dateTimeValue = new SimpleObjectProperty<>(null);
-	private ObjectProperty<String> format = new SimpleObjectProperty<String>() {
+	private final ObjectProperty<LocalDateTime> dateTimeValue = new SimpleObjectProperty<>(null);
+	private final ObjectProperty<String> format = new SimpleObjectProperty<>() {
 		@Override
         public void set(String newValue) {
 			super.set(newValue);
