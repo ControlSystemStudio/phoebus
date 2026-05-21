@@ -86,6 +86,9 @@ public class OpenDataBrowserActionHandler implements ActionHandler {
                 // Set timeframe
                 instance.getModel().setTimerange(timeInterval);
 
+                // Disable saving dialog as we can relaunch from action
+                instance.getModel().setSaveChanges(false);
+
                 return null;
             });
         }
