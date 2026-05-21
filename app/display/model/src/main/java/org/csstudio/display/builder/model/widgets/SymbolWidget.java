@@ -99,13 +99,8 @@ public class SymbolWidget extends PVWidget {
         Messages.WidgetProperties_Symbols,
         (widget, index) -> {
             String symbol = DEFAULT_SYMBOL;
-            try {
-                if (index > 0)
-                    symbol = ((SymbolWidget)widget).propSymbols().getElement(index - 1).getValue();
-            } catch (IndexOutOfBoundsException e) {
-                // It is expected when a widget with more than 2 symbols is parsed
-                // and the property is being populated --> safe to ignore
-            }
+            if (index > 0 && index <= ((SymbolWidget)widget).propSymbols().size())
+                symbol = ((SymbolWidget)widget).propSymbols().getElement(index - 1).getValue();
             return propSymbol(index).createProperty(widget, symbol);
         },
         0
