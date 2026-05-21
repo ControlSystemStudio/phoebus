@@ -20,9 +20,15 @@ public class Messages
     public static String delayTooltip1;
     public static String delayTooltip2;
     public static String disableAlarmFailed;
+    public static String disableAlarms;
     public static String disabled;
     public static String disabledUntil;
     public static String enableAlarmFailed;
+    public static String enableAlarms;
+    public static String headerAlreadyDisabled;
+    public static String headerAlreadyEnabled;
+    public static String headerConfirmDisable;
+    public static String headerConfirmEnable;
     public static String moveItemFailed;
     public static String partlyDisabled;
     public static String promptTitle;
