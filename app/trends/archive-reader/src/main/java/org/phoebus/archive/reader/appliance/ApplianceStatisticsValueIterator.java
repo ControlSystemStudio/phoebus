@@ -3,6 +3,8 @@ package org.phoebus.archive.reader.appliance;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
@@ -26,6 +28,9 @@ import org.phoebus.util.time.TimestampHelper;
  *
  */
 public class ApplianceStatisticsValueIterator extends ApplianceMeanValueIterator {
+
+    private static final Logger logger =
+            Logger.getLogger(ApplianceStatisticsValueIterator.class.getPackage().getName());
 
     private Iterator<EpicsMessage> stdIterator;
     private GenMsgIterator stdStream;
@@ -128,7 +133,7 @@ public class ApplianceStatisticsValueIterator extends ApplianceMeanValueIterator
             try {
                 s.close();
             } catch (IOException e) {
-                // log and continue — super.close() must still run
+                logger.log(Level.WARNING, e, () -> "Failed to close statistics sub-stream");
             }
         }
     }

@@ -174,12 +174,20 @@ public class ArchiveFetchJob implements JobRunnable
                     final Throwable cause = ex.getCause();
                     if (cause instanceof UnknownChannelException)
                         archives_without_channel.add(archive);
-                    else if (! cancelled)
-                        listener.archiveFetchFailed(ArchiveFetchJob.this, archive,
-                                cause instanceof Exception ? (Exception) cause : ex);
+                    else
+                    {
+                        final Throwable logged = cause != null ? cause : ex;
+                        logger.log(Level.WARNING, logged,
+                                () -> "Archive fetch failed for source: " + archive.getName());
+                        if (! cancelled)
+                            listener.archiveFetchFailed(ArchiveFetchJob.this, archive,
+                                    cause instanceof Exception ? (Exception) cause : ex);
+                    }
                 }
                 catch (Exception ex)
                 {
+                    logger.log(Level.WARNING, ex,
+                            () -> "Archive fetch error for source: " + archive.getName());
                     if (! cancelled)
                         listener.archiveFetchFailed(ArchiveFetchJob.this, archive, ex);
                 }

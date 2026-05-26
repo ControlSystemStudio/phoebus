@@ -131,10 +131,12 @@ public class ApplianceArchiveReader implements ArchiveReader {
             try {
                 it = new ApplianceOptimizedValueIterator(this, name, start, end, count, useStatistics);
             } catch (ArchiverApplianceInvalidTypeException e) {
-                //binning not supported
+                //binning not supported for this PV type — expected for enum/waveform
+                logger.log(Level.FINE, "Optimized operator not supported for PV type, falling back: " + name, e);
                 binningSupported = false;
             } catch (ArchiverApplianceException e) {
                 //optimized operator not supported on the server, fall back to the old way
+                logger.log(Level.WARNING, "Optimized operator failed for " + name + ", falling back to count-based path", e);
             }
         }
 
@@ -155,6 +157,7 @@ public class ApplianceArchiveReader implements ArchiveReader {
                                 it = new ApplianceMeanValueIterator(this, name, start, end, count);
                             }
                         } catch (ArchiverApplianceInvalidTypeException e) {
+                            logger.log(Level.FINE, "Binning not supported for PV type, using non-numeric path: " + name, e);
                             binningSupported = false;
                         }
                     }
@@ -166,6 +169,7 @@ public class ApplianceArchiveReader implements ArchiveReader {
                 }
             } catch (ArchiverApplianceException e) {
                 //fallback for older archiver appliance, which didn't have the nth operator
+                logger.log(Level.WARNING, "Count-based path failed for " + name + ", falling back to raw values", e);
                 try {
                     it = new ApplianceRawValueIterator(this, name, start, end);
                 } catch (ArchiverApplianceException exc) {

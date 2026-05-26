@@ -3,6 +3,8 @@ package org.phoebus.archive.reader.appliance;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
@@ -51,6 +53,9 @@ import org.phoebus.util.time.TimestampHelper;
  *
  */
 public abstract class ApplianceValueIterator implements ValueIterator {
+
+    private static final Logger logger =
+            Logger.getLogger(ApplianceValueIterator.class.getPackage().getName());
 
     protected EnumDisplay enumDisplay;
     protected Display display;
@@ -260,6 +265,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
                 closed = true;
             }
         } catch (IOException e) {
+            logger.log(Level.WARNING, e, () -> "Failed to close stream for PV: " + name);
             throw new IllegalStateException(e);
         }
     }
