@@ -1,0 +1,199 @@
+package org.csstudio.trends.databrowser3.archive;
+
+import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
+import org.csstudio.trends.databrowser3.model.PVItem;
+import org.csstudio.trends.databrowser3.preferences.Preferences;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.phoebus.archive.reader.ArchiveReader;
+import org.phoebus.archive.reader.ValueIterator;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class ArchiveFetchJobTest {
+
+    // --- test-only subclass -------------------------------------------------
+
+    /** Subclass that skips JobManager scheduling and injects fake readers. */
+    static class TestableFetchJob extends ArchiveFetchJob {
+        private final java.util.Map<String, ArchiveReader> readers = new java.util.LinkedHashMap<>();
+
+        TestableFetchJob(PVItem item, Instant start, Instant end, ArchiveFetchJobListener listener) {
+            super(item, start, end, listener, true);
+        }
+
+        void whenUrl(String url, ArchiveReader reader) {
+            readers.put(url, reader);
+        }
+
+        @Override
+        protected ArchiveReader openReader(String url) throws Exception {
+            ArchiveReader r = readers.get(url);
+            if (r == null)
+                throw new Exception("No fake reader registered for URL: " + url);
+            return r;
+        }
+    }
+
+    // --- helpers ------------------------------------------------------------
+
+    private static VType makeValue() {
+        return VDouble.of(1.0, Alarm.none(), Time.now(), Display.none());
+    }
+
+    private static ValueIterator oneValueIterator() throws Exception {
+        VType v = makeValue();
+        ValueIterator it = mock(ValueIterator.class);
+        when(it.hasNext()).thenReturn(true, false);
+        when(it.next()).thenReturn(v);
+        return it;
+    }
+
+    private static ArchiveReader readerReturning(ValueIterator valueIterator) throws Exception {
+        ArchiveReader r = mock(ArchiveReader.class);
+        when(r.getRawValues(any(), any(), any())).thenReturn(valueIterator);
+        when(r.getOptimizedValues(any(), any(), any(), anyInt())).thenReturn(valueIterator);
+        return r;
+    }
+
+    // --- tests --------------------------------------------------------------
+
+    @Test
+    @Timeout(5)
+    void faultySourceTimesOutAndLoopContinues() throws Exception {
+        PVItem item = new PVItem("TESTPV", 0.0);
+        item.addArchiveDataSource(new ArchiveDataSource("src://slow", "Slow"));
+        item.addArchiveDataSource(new ArchiveDataSource("src://fast", "Fast"));
+
+        List<String> errors = Collections.synchronizedList(new ArrayList<>());
+        List<String> completed = Collections.synchronizedList(new ArrayList<>());
+        ArchiveFetchJobListener listener = new ArchiveFetchJobListener() {
+            @Override public void fetchCompleted(ArchiveFetchJob job) { completed.add("done"); }
+            @Override public void archiveFetchFailed(ArchiveFetchJob job, ArchiveDataSource archive, Exception error) {
+                errors.add(archive.getName());
+            }
+            @Override public void channelNotFound(ArchiveFetchJob job, boolean found, List<ArchiveDataSource> failed) {}
+        };
+
+        // Slow reader: blocks until released (simulates unresponsive archiver)
+        CountDownLatch readerBlocking = new CountDownLatch(1);
+        CountDownLatch releaseReader = new CountDownLatch(1);
+        ValueIterator blockingIter = mock(ValueIterator.class);
+        when(blockingIter.hasNext()).thenAnswer(inv -> {
+            readerBlocking.countDown();
+            releaseReader.await();
+            return false;
+        });
+        ArchiveReader slowReader = readerReturning(blockingIter);
+
+        ValueIterator fastIter = oneValueIterator();
+        ArchiveReader fastReader = readerReturning(fastIter);
+
+        int savedTimeout = Preferences.archive_read_timeout_ms;
+        Preferences.archive_read_timeout_ms = 500;
+        try {
+            TestableFetchJob job = new TestableFetchJob(item, Instant.now().minusSeconds(60), Instant.now(), listener);
+            job.whenUrl("src://slow", slowReader);
+            job.whenUrl("src://fast", fastReader);
+
+            ArchiveFetchJob.WorkerThread worker = job.new WorkerThread();
+            worker.run();
+
+            releaseReader.countDown(); // unblock the carrier thread so it can clean up
+
+            assertEquals(List.of("Slow"), errors, "slow source should report timeout failure");
+            assertEquals(List.of("done"), completed, "fast source result should complete the job");
+        } finally {
+            Preferences.archive_read_timeout_ms = savedTimeout;
+            releaseReader.countDown(); // safety: unblock in case test fails early
+        }
+    }
+
+    @Test
+    @Timeout(5)
+    void healthySourceCompletesWithinTimeout() throws Exception {
+        PVItem item = new PVItem("TESTPV", 0.0);
+        item.addArchiveDataSource(new ArchiveDataSource("src://fast", "Fast"));
+
+        List<String> errors = new ArrayList<>();
+        AtomicReference<ArchiveFetchJob> completedJob = new AtomicReference<>();
+        ArchiveFetchJobListener listener = new ArchiveFetchJobListener() {
+            @Override public void fetchCompleted(ArchiveFetchJob job) { completedJob.set(job); }
+            @Override public void archiveFetchFailed(ArchiveFetchJob job, ArchiveDataSource archive, Exception error) {
+                errors.add(error.getMessage());
+            }
+            @Override public void channelNotFound(ArchiveFetchJob job, boolean found, List<ArchiveDataSource> failed) {}
+        };
+
+        ValueIterator fastIter = oneValueIterator();
+        ArchiveReader fastReader = readerReturning(fastIter);
+
+        TestableFetchJob job = new TestableFetchJob(item, Instant.now().minusSeconds(60), Instant.now(), listener);
+        job.whenUrl("src://fast", fastReader);
+
+        ArchiveFetchJob.WorkerThread worker = job.new WorkerThread();
+        worker.run();
+
+        assertTrue(errors.isEmpty(), "no errors expected for healthy source, got: " + errors);
+        assertNotNull(completedJob.get(), "fetchCompleted should have been called");
+    }
+
+    @Test
+    @Timeout(5)
+    void cancelInterruptsPendingFetch() throws Exception {
+        PVItem item = new PVItem("TESTPV", 0.0);
+        item.addArchiveDataSource(new ArchiveDataSource("src://slow", "Slow"));
+
+        ArchiveFetchJobListener listener = new ArchiveFetchJobListener() {
+            @Override public void fetchCompleted(ArchiveFetchJob job) {}
+            @Override public void archiveFetchFailed(ArchiveFetchJob job, ArchiveDataSource archive, Exception error) {}
+            @Override public void channelNotFound(ArchiveFetchJob job, boolean found, List<ArchiveDataSource> failed) {}
+        };
+
+        CountDownLatch readerBlocking = new CountDownLatch(1);
+        CountDownLatch releaseReader = new CountDownLatch(1);
+        ValueIterator blockingIter = mock(ValueIterator.class);
+        when(blockingIter.hasNext()).thenAnswer(inv -> {
+            readerBlocking.countDown();
+            releaseReader.await();
+            return false;
+        });
+        ArchiveReader slowReader = readerReturning(blockingIter);
+
+        // Long timeout so cancellation (not timeout) drives the exit
+        int savedTimeout = Preferences.archive_read_timeout_ms;
+        Preferences.archive_read_timeout_ms = 30_000;
+        try {
+            TestableFetchJob job = new TestableFetchJob(item, Instant.now().minusSeconds(60), Instant.now(), listener);
+            job.whenUrl("src://slow", slowReader);
+
+            ArchiveFetchJob.WorkerThread worker = job.new WorkerThread();
+
+            Thread t = new Thread(worker::run);
+            t.start();
+
+            readerBlocking.await(); // wait until the fetch is blocked
+            worker.cancel();        // signal cancellation + cancel active reader
+            releaseReader.countDown(); // unblock the carrier thread
+
+            t.join(3000);
+            assertFalse(t.isAlive(), "WorkerThread should have exited after cancel()");
+        } finally {
+            Preferences.archive_read_timeout_ms = savedTimeout;
+            releaseReader.countDown();
+        }
+    }
+}

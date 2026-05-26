@@ -128,7 +128,7 @@ public class ArchiveFetchJob implements JobRunnable
                                                archive.getName(), ++i, archives.size());
                 try
                 (
-                    final ArchiveReader the_reader = ArchiveReaders.createReader(url);
+                    final ArchiveReader the_reader = openReader(url);
                 )
                 {
                     reader.set(the_reader);
@@ -203,6 +203,25 @@ public class ArchiveFetchJob implements JobRunnable
         this.end = end;
         this.listener = listener;
         this.job = JobManager.schedule(toString(), this);
+    }
+
+    /** Test-only constructor: does not schedule via JobManager. */
+    ArchiveFetchJob(final PVItem item, final Instant start, final Instant end,
+                    final ArchiveFetchJobListener listener, final boolean testOnly)
+    {
+        this.item = item;
+        this.start = start;
+        this.end = end;
+        this.listener = listener;
+        this.job = null;
+    }
+
+    /** Create an {@link ArchiveReader} for the given URL.
+     *  Override in tests to inject fakes.
+     */
+    protected ArchiveReader openReader(final String url) throws Exception
+    {
+        return ArchiveReaders.createReader(url);
     }
 
     /** @return PVItem for which this job was created */
