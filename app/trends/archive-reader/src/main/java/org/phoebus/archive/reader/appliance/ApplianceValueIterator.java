@@ -65,7 +65,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
 
     private final IteratorListener listener;
 
-    protected boolean closed = false;
+    protected volatile boolean closed = false;
 
     private static Object lock = new Object();
 
@@ -126,8 +126,10 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      * @see org.csstudio.archive.reader.ValueIterator#hasNext()
      */
     @Override
-    public synchronized boolean hasNext() {
-        return !closed && mainIterator != null && mainIterator.hasNext();
+    public boolean hasNext() {
+        if (closed || mainIterator == null)
+            return false;
+        return mainIterator.hasNext();
     }
 
     /*
