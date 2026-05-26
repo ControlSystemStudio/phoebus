@@ -9,14 +9,17 @@ package org.csstudio.trends.databrowser3.archive;
 
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -82,6 +85,9 @@ public class ArchiveFetchJob implements JobRunnable
         /** Archive reader that's currently queried */
         private AtomicReference<ArchiveReader> reader = new AtomicReference<>();
 
+        /** Future for the per-source fetch currently in progress */
+        private final AtomicReference<Future<List<VType>>> currentFetch = new AtomicReference<>();
+
         /** @return Message that somehow indicates progress */
         public String getMessage()
         {
@@ -92,6 +98,10 @@ public class ArchiveFetchJob implements JobRunnable
         public void cancel()
         {
             cancelled = true;
+
+            final Future<List<VType>> pending = currentFetch.getAndSet(null);
+            if (pending != null)
+                pending.cancel(true);
 
             final ArchiveReader the_reader = reader.get();
             if (the_reader != null)
@@ -117,51 +127,65 @@ public class ArchiveFetchJob implements JobRunnable
 
             final Collection<ArchiveDataSource> archives = item.getArchiveDataSources();
             final List<ArchiveDataSource> archives_without_channel = new ArrayList<>();
+            final int bins_final = bins;
             int i = 0;
             for (ArchiveDataSource archive : archives)
             {
                 if (cancelled)
                     break;
-                final String url = archive.getUrl();
                 // Display "N/total", using '1' for the first sub-archive.
                 message = MessageFormat.format(Messages.ArchiveFetchDetailFmt,
                                                archive.getName(), ++i, archives.size());
-                try
-                (
-                    final ArchiveReader the_reader = openReader(url);
-                )
+
+                final Future<List<VType>> fetch = Activator.thread_pool.submit(
+                        () -> fetchFromSource(archive, bins_final));
+                currentFetch.set(fetch);
+                if (cancelled)
                 {
-                    reader.set(the_reader);
-                    try
-                    (
-                        final ValueIterator value_iter = (item.getRequestType() == RequestType.RAW)
-                                            ? the_reader.getRawValues(item.getResolvedName(), start, end)
-                                            : the_reader.getOptimizedValues(item.getResolvedName(), start, end, bins)
-                    )
+                    fetch.cancel(true);
+                    break;
+                }
+                try
+                {
+                    final List<VType> result = (Preferences.archive_read_timeout_ms <= 0)
+                            ? fetch.get()
+                            : fetch.get(Preferences.archive_read_timeout_ms, TimeUnit.MILLISECONDS);
+                    if (!cancelled)
                     {
-                        // Get samples into array
-                        final List<VType> result = new ArrayList<>();
-                        while (value_iter.hasNext())
-                            result.add(value_iter.next());
                         samples += result.size();
                         item.mergeArchivedSamples(archive.getName(), result);
                     }
-                    catch (UnknownChannelException e)
-                    {
-                        // Do not immediately notify about unknown channels. First search for the data in all archive
-                        // sources and only report this kind of errors at the end
+                }
+                catch (TimeoutException ex)
+                {
+                    fetch.cancel(true);
+                    final ArchiveReader timed_out = reader.getAndSet(null);
+                    if (timed_out != null)
+                        timed_out.cancel();
+                    logger.log(Level.WARNING,
+                            "Archive source timed out after " + Preferences.archive_read_timeout_ms
+                            + " ms, skipping: " + archive.getName());
+                    if (! cancelled)
+                        listener.archiveFetchFailed(ArchiveFetchJob.this, archive,
+                                new IOException("Read timeout (" + Preferences.archive_read_timeout_ms + " ms)"));
+                }
+                catch (ExecutionException ex)
+                {
+                    final Throwable cause = ex.getCause();
+                    if (cause instanceof UnknownChannelException)
                         archives_without_channel.add(archive);
-                    }
-                    finally
-                    {
-                        reader.set(null);
-                    }
+                    else if (! cancelled)
+                        listener.archiveFetchFailed(ArchiveFetchJob.this, archive,
+                                cause instanceof Exception ? (Exception) cause : ex);
                 }
                 catch (Exception ex)
-                {   // Tell listener unless it's the result of a 'cancel'?
+                {
                     if (! cancelled)
                         listener.archiveFetchFailed(ArchiveFetchJob.this, archive, ex);
-                    // Continue with the next data source
+                }
+                finally
+                {
+                    currentFetch.set(null);
                 }
             }
             final long end_time = System.currentTimeMillis();
@@ -178,6 +202,45 @@ public class ArchiveFetchJob implements JobRunnable
                         archives_without_channel);
 
             listener.fetchCompleted(ArchiveFetchJob.this);
+        }
+
+        /** Fetch all samples from one archive source.
+         *  Runs on a carrier thread inside a timed Future.
+         *  @return list of samples
+         *  @throws Exception on fetch error
+         */
+        List<VType> fetchFromSource(final ArchiveDataSource archive, final int bins) throws Exception
+        {
+            try (final ArchiveReader the_reader = openReader(archive.getUrl()))
+            {
+                // If a timeout or cancel fired while openReader() was blocking,
+                // bail now so the try-with-resources closes the_reader cleanly.
+                if (Thread.currentThread().isInterrupted())
+                    throw new InterruptedException("Interrupted during open");
+                reader.set(the_reader);
+                try
+                (
+                    final ValueIterator value_iter = (item.getRequestType() == RequestType.RAW)
+                            ? the_reader.getRawValues(item.getResolvedName(), start, end)
+                            : the_reader.getOptimizedValues(item.getResolvedName(), start, end, bins)
+                )
+                {
+                    final List<VType> result = new ArrayList<>();
+                    while (value_iter.hasNext())
+                        result.add(value_iter.next());
+                    return result;
+                }
+                finally
+                {
+                    reader.set(null);
+                }
+            }
+            finally
+            {
+                // Clear any stale interrupt flag before the carrier thread
+                // returns to the shared pool, so subsequent tasks are not poisoned.
+                Thread.interrupted();
+            }
         }
 
         @Override
