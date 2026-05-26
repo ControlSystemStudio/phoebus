@@ -63,11 +63,9 @@ public abstract class ApplianceValueIterator implements ValueIterator {
     protected final Instant start;
     protected final Instant end;
 
-    private final IteratorListener listener;
-
     protected volatile boolean closed = false;
 
-    private static Object lock = new Object();
+    private final Object lock = new Object();
 
     /**
      * Constructs a new ApplianceValueIterator.
@@ -77,13 +75,11 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      * @param start the start of the time window of the data
      * @param end the end of the time window of the data
      */
-    protected ApplianceValueIterator(ApplianceArchiveReader reader, String name, Instant start, Instant end,
-            IteratorListener listener) {
+    protected ApplianceValueIterator(ApplianceArchiveReader reader, String name, Instant start, Instant end) {
         this.reader = reader;
         this.name = name;
         this.start = start;
         this.end = end;
-        this.listener = listener;
     }
 
     /**
@@ -266,7 +262,6 @@ public abstract class ApplianceValueIterator implements ValueIterator {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-        listener.finished(this);
     }
 
     /**

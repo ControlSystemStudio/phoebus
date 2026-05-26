@@ -52,8 +52,8 @@ public class ApplianceStatisticsValueIterator extends ApplianceMeanValueIterator
      * @throws ArchiverApplianceInvalidTypeException if the type of data cannot be returned in optimized format
      */
     public ApplianceStatisticsValueIterator(ApplianceArchiveReader reader, String name, Instant start, Instant end,
-        int points, IteratorListener listener) throws ArchiverApplianceException, IOException {
-        super(reader, name, start, end, points, listener);
+        int points) throws ArchiverApplianceException, IOException {
+        super(reader, name, start, end, points);
     }
 
     @Override
@@ -111,24 +111,25 @@ public class ApplianceStatisticsValueIterator extends ApplianceMeanValueIterator
      */
     @Override
     public void close() {
-        try {
-            synchronized (this) {
-                if (stdStream != null) {
-                    stdStream.close();
-                }
-                if (minStream != null) {
-                    minStream.close();
-                }
-                if (maxStream != null) {
-                    maxStream.close();
-                }
-                if (countStream != null) {
-                    countStream.close();
-                }
+        synchronized (this) {
+            try {
+                closeStream(stdStream);
+                closeStream(minStream);
+                closeStream(maxStream);
+                closeStream(countStream);
+            } finally {
                 super.close();
             }
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
+        }
+    }
+
+    private static void closeStream(GenMsgIterator s) {
+        if (s != null) {
+            try {
+                s.close();
+            } catch (IOException e) {
+                // log and continue — super.close() must still run
+            }
         }
     }
 

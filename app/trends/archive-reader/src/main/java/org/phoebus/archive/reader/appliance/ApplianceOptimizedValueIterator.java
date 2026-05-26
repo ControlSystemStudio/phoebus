@@ -44,16 +44,15 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
      * @param points the number of requested points
      * @param useStatistics true if the returned data should include statistics or false if only mean value should be
      *            present
-     * @param listener the listener that is notified when the iterator is closed
      *
      * @throws IOException if there was an error during the data fetch process
      * @throws ArchiverApplianceInvalidTypeException if the type of data cannot be returned in optimized format
      * @throws ArchiverApplianceException if it is not possible to load optimised data for the selected PV
      */
     public ApplianceOptimizedValueIterator(ApplianceArchiveReader reader, String name, Instant start, Instant end,
-            int points, boolean useStatistics, IteratorListener listener) throws ArchiverApplianceException,
+            int points, boolean useStatistics) throws ArchiverApplianceException,
             IOException {
-        super(reader, name, start, end, listener);
+        super(reader, name, start, end);
         this.requestedPoints = points;
         this.useStatistics = useStatistics;
         this.display = determineDisplay(reader, name, end);
