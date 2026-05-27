@@ -65,7 +65,7 @@ public class PreferencesReader
             if (prop == null)
             {
                 Logger.getLogger(PreferencesReader.class.getPackageName())
-                      .log(Level.SEVERE, "Reading Preferences: Java system property or Environment variable'" + prop_spec + "' is not defined");
+                      .log(Level.FINE, "Reading Preferences: Java system property or Environment variable '" + prop_spec + "' is not defined");
                 break;
             }
             else
