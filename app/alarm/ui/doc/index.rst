@@ -136,29 +136,9 @@ Alarm Configuration Options
 
 Alarm configurations are imported into the Alarm Server in an XML 
 format, the schema for which may be found `here <https://github.com/ControlSystemStudio/phoebus/app/alarm/examples/alarm_configuration.xsd>`_.
-The options for an entry in the hierarchical alarm configuration
-always include guidance, display links etc. as described further below.
-In addition, alarm PV entries have the following settings.
 
-Description
-^^^^^^^^^^^
-This text is displayed in the alarm table when the alarm triggers.
-
-The description is also used by the alarm annunciator.
-By default, the annunciator will start the actual message with
-the alarm severity. For example, a description of "Vacuum Problem"
-will be annunciated as for example "Minor Alarm: Vacuum Problem".
-The addition of the alarm severity can be disabled by starting
-the description with a "\*" as in "\* Vacuum Problem".
-
-When there is a flurry of alarms, the annunciator will summarize
-them to "There are 10 more alarms". To assert that certain alarms
-are always annunciated, even if they occur within a burst of other alarms,
-start the message with "!" (or "\*!").
-
-
-Behavior
-^^^^^^^^
+Behavior - PV entries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
  * Enabled:
    De-select to disable an alarm, i.e. to ignore the value of this alarm trigger PV.
@@ -171,10 +151,14 @@ Behavior
    Should the alarm be annunciated (if the annunciator is running), or should it only
    be displayed silently?
 
+ * Disable until:
+   Disables an alarm and sets a date and time when the alarm
+   would be enabled automatically. User may select absolute or relative date/time.
+
  * Alarm Delay:
    Only alarm if the trigger PV remains in alarm for at least this time,
    see examples below.
-   
+
  * Alarm Count:
    Used in combination with the alarm delay.
    If the trigger PVs exhibits a not-OK alarm severity more than 'count' times
@@ -188,9 +172,8 @@ Behavior
 
  * Enabling Filter:
    An optional expression that can enable the alarm based on other PVs.
-   
-   Example: `'abc' > 10` will only enable this alarm if the PV 'abc' has a value above 10.
 
+   Example: `'abc' > 10` will only enable this alarm if the PV 'abc' has a value above 10.
 
 The Alarm Delay and Count work in combination.
 By default, with both the alarm delay and count at zero, a non-OK PV severity is right away recognized.
@@ -230,8 +213,45 @@ guidance and display links which allow the user to figure out:
  * What does this alarm mean? What should I do about it?
  * What displays allow me to see more, where can I do something about the alarm?
 
+Behavior - component entries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ * Enabled:
+   Enable or disable all PV items in the subtree.
+
+ * Disable until:
+   Disables an all PV items in the subtree and set a date and time when the alarms
+   would be enabled automatically. User may select absolute or relative date/time.
+
+Note:
+
+ * An enable date will be set even if a PV item is already disabled.
+
+ * Ticking the Enable check box will enable all PVs in the subtree when saving the changes,
+   including those that have an enable date set.
+
+ * If an enable date is set on any PV in the subtree, it is not possible to set an enable
+   date.
+
+Description - PV entries only
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This text is displayed in the alarm table when the alarm triggers.
+
+The description is also used by the alarm annunciator.
+By default, the annunciator will start the actual message with
+the alarm severity. For example, a description of "Vacuum Problem"
+will be annunciated as for example "Minor Alarm: Vacuum Problem".
+The addition of the alarm severity can be disabled by starting
+the description with a "\*" as in "\* Vacuum Problem".
+
+When there is a flurry of alarms, the annunciator will summarize
+them to "There are 10 more alarms". To assert that certain alarms
+are always annunciated, even if they occur within a burst of other alarms,
+start the message with "!" (or "\*!").
+
 Guidance
---------
+^^^^^^^^
 
 Each alarm should have at least one guidance message to explain the meaning
 of an alarm to the user, to list for example contact information for subsystem experts.
@@ -249,7 +269,7 @@ parent components of the alarm hierarchy.
 
 
 Displays
---------
+^^^^^^^^
 
 As with Guidance, each alarm should have at least one link to a control
 system display that shows the actual alarm PV and the surrounding subsystem.
@@ -275,7 +295,7 @@ Examples::
     file:///path/to/display.bob?MACRO=Value&OTHER=42$NAME=Text+with+spaces
 
 Automated Actions
------------------
+^^^^^^^^^^^^^^^^
 
 Automated actions are performed when the node in the alarm hierarchy enters and remains in
 an active alarm state for some time.
