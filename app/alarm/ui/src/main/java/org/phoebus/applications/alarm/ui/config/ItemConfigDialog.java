@@ -11,6 +11,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.ScrollPane;
 import javafx.stage.Modality;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.nls.NLS;
@@ -21,9 +22,9 @@ import java.util.logging.Logger;
 /**
  * Dialog for editing {@link AlarmTreeItem}.
  *
- * <p>Layout is defined in {@code ItemConfigDialog.fxml}.
+ * <p>Layout is defined in {@code LeafConfigDialog.fxml}.
  * Runtime wiring (model data, bindings, event handlers) is handled by
- * {@link ItemConfigDialogController}.
+ * {@link LeafConfigDialogController}.
  *
  * <p>When pressing "OK", the dialog sends the updated configuration.
  */
@@ -40,13 +41,17 @@ public class ItemConfigDialog extends Dialog<Boolean> {
         try {
             final FXMLLoader fxmlLoader = new FXMLLoader();
             fxmlLoader.setResources(NLS.getMessages(Messages.class));
-            fxmlLoader.setLocation(this.getClass().getResource("ItemConfigDialog.fxml"));
+            if (item instanceof AlarmClientLeaf){
+                fxmlLoader.setLocation(this.getClass().getResource("LeafConfigDialog.fxml"));
+            }
+            else{
+                fxmlLoader.setLocation(this.getClass().getResource("ComponentConfigDialog.fxml"));
+            }
             fxmlLoader.setControllerFactory(clazz -> {
                 try {
-                    return clazz.getConstructor(AlarmClient.class,
-                                    AlarmTreeItem.class).newInstance(model, item);
+                    return clazz.getConstructor(AlarmClient.class, AlarmTreeItem.class).newInstance(model, item);
                 } catch (Exception e) {
-                    Logger.getLogger(ItemConfigDialog.class.getName()).log(Level.SEVERE, "Failed to construct ItemConfigDialogController", e);
+                    Logger.getLogger(ItemConfigDialog.class.getName()).log(Level.SEVERE, "Failed to construct ConfigDialogController", e);
                 }
                 return null;
             });
@@ -57,12 +62,12 @@ public class ItemConfigDialog extends Dialog<Boolean> {
             // ── OK-button validation filter ───────────────────────────────────────
             final Button ok = (Button) getDialogPane().lookupButton(ButtonType.OK);
             ok.addEventFilter(ActionEvent.ACTION,
-                    event -> ((ItemConfigDialogController)fxmlLoader.getController()).validateAndStore());
+                    event -> ((ConfigDialogController)fxmlLoader.getController()).validateAndStore());
 
             getDialogPane().setContent(root);
 
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to load ItemConfigDialog.fxml", ex);
+            throw new RuntimeException("Failed to load LeafConfigDialog.fxml", ex);
         }
 
         setResizable(true);

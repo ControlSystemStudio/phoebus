@@ -26,12 +26,13 @@ public class ComponentActionHelper {
 
     /**
      * Updates a component or PV node to enable or disable alarms
-     * @param node The visual component relative to which a confirmation dialog is positioned.
-     * @param model {@link AlarmClient} dispatching producer messages.
-     * @param items {@link List} of items subject for update, e.g. selected by user.
+     *
+     * @param node   The visual component relative to which a confirmation dialog is positioned.
+     * @param model  {@link AlarmClient} dispatching producer messages.
+     * @param items  {@link List} of items subject for update, e.g. selected by user.
      * @param enable If <code>true</code>, enable alarms on selected nodes, otherwise disable.
      */
-    public static void updateEnablement(final Node node, final AlarmClient model, final List<AlarmTreeItem<?>> items, boolean enable){
+    public static void updateEnablement(final Node node, final AlarmClient model, final List<AlarmTreeItem<?>> items, boolean enable) {
         final List<AlarmClientLeaf> pvs = new ArrayList<>();
         for (AlarmTreeItem<?> item : items) {
             findAffectedPVs(item, pvs, enable);
@@ -47,8 +48,7 @@ public class ComponentActionHelper {
                         enable
                                 ? Messages.headerAlreadyEnabled
                                 : Messages.headerAlreadyDisabled);
-            }
-            else {
+            } else {
                 dialog.setHeaderText(MessageFormat.format(
                         enable
                                 ? Messages.headerConfirmEnable
@@ -63,8 +63,7 @@ public class ComponentActionHelper {
 
         JobManager.schedule(enable ? Messages.enableAlarms : Messages.disableAlarms, monitor ->
         {
-            for (AlarmClientLeaf pv : pvs)
-            {
+            for (AlarmClientLeaf pv : pvs) {
                 final AlarmClientLeaf copy = pv.createDetachedCopy();
                 if (copy.setEnabled(enable))
                     try {
@@ -79,21 +78,19 @@ public class ComponentActionHelper {
         });
     }
 
-    /** @param item Node where to start recursing for PVs that would be affected
-     *  @param pvs Array to update with PVs that would be affected
+    /**
+     * @param item Node where to start recursing for PVs that would be affected
+     * @param pvs  Array to update with PVs that would be affected
      */
-    private static void findAffectedPVs(final AlarmTreeItem<?> item, final List<AlarmClientLeaf> pvs, boolean enable)
-    {
-        if (item instanceof AlarmClientLeaf)
-        {
+    public static void findAffectedPVs(final AlarmTreeItem<?> item, final List<AlarmClientLeaf> pvs, boolean enable) {
+        if (item instanceof AlarmClientLeaf) {
             final AlarmClientLeaf pv = (AlarmClientLeaf) item;
             // If pv has different enablement, and wasn't already added
             // because selection contains its parent as well as the PV itself...
-            if (pv.isEnabled() != enable  &&  !pvs.contains(pv)) {
+            if (pv.isEnabled() != enable && !pvs.contains(pv)) {
                 pvs.add(pv);
             }
-        }
-        else {
+        } else {
             for (AlarmTreeItem<?> sub : item.getChildren()) {
                 findAffectedPVs(sub, pvs, enable);
             }

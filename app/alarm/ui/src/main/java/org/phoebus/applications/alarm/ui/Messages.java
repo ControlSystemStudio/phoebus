@@ -28,6 +28,7 @@ public class Messages
     public static String headerAlreadyDisabled;
     public static String headerAlreadyEnabled;
     public static String headerConfirmDisable;
+    public static String headerConfirmDisableWithEnableDate;
     public static String headerConfirmEnable;
     public static String moveItemFailed;
     public static String partlyDisabled;

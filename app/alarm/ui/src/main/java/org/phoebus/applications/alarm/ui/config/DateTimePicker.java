@@ -96,7 +96,7 @@ public class DateTimePicker extends DatePicker {
 		this.dateTimeValue.set(dateTimeValue);
 	}
 
-	private ObjectProperty<LocalDateTime> dateTimeValueProperty() {
+	protected ObjectProperty<LocalDateTime> dateTimeValueProperty() {
 		return dateTimeValue;
 	}
 
