@@ -37,9 +37,8 @@ public class ItemConfigDialog extends Dialog<Boolean> {
         initModality(Modality.NONE);
         setTitle(Messages.configure + " " + item.getName());
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
+        final FXMLLoader fxmlLoader = new FXMLLoader();
         try {
-            final FXMLLoader fxmlLoader = new FXMLLoader();
             fxmlLoader.setResources(NLS.getMessages(Messages.class));
             if (item instanceof AlarmClientLeaf){
                 fxmlLoader.setLocation(this.getClass().getResource("LeafConfigDialog.fxml"));
@@ -67,7 +66,7 @@ public class ItemConfigDialog extends Dialog<Boolean> {
             getDialogPane().setContent(root);
 
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to load LeafConfigDialog.fxml", ex);
+            throw new RuntimeException("Failed to load " + fxmlLoader.getLocation(), ex);
         }
 
         setResizable(true);
