@@ -9,18 +9,14 @@ package org.csstudio.trends.databrowser3.archive;
 
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.trends.databrowser3.Activator;
@@ -74,7 +70,7 @@ public class ArchiveFetchJob implements JobRunnable
      *  Instead of directly accessing the archive, ArchiveFetchJob launches
      *  a WorkerThread for the actual archive access, so that the Job
      *  can then poll the progress monitor for cancellation and if
-     *  necessary interrupt the WorkerThread which might be 'stuck'
+     *  necessary cancel the archive reader when it is 'stuck'
      *  in a long running operation.
      */
     class WorkerThread implements Runnable
@@ -83,10 +79,7 @@ public class ArchiveFetchJob implements JobRunnable
         private volatile boolean cancelled = false;
 
         /** Archive reader that's currently queried */
-        private AtomicReference<ArchiveReader> reader = new AtomicReference<>();
-
-        /** Future for the per-source fetch currently in progress */
-        private final AtomicReference<Future<List<VType>>> currentFetch = new AtomicReference<>();
+        private volatile ArchiveReader reader;
 
         /** @return Message that somehow indicates progress */
         public String getMessage()
@@ -98,14 +91,9 @@ public class ArchiveFetchJob implements JobRunnable
         public void cancel()
         {
             cancelled = true;
-
-            final Future<List<VType>> pending = currentFetch.getAndSet(null);
-            if (pending != null)
-                pending.cancel(true);
-
-            final ArchiveReader the_reader = reader.get();
-            if (the_reader != null)
-                the_reader.cancel();
+            final ArchiveReader r = reader;
+            if (r != null)
+                r.cancel();
         }
 
         /** {@inheritDoc} */
@@ -137,63 +125,27 @@ public class ArchiveFetchJob implements JobRunnable
                 message = MessageFormat.format(Messages.ArchiveFetchDetailFmt,
                                                archive.getName(), ++i, archives.size());
 
-                final Future<List<VType>> fetch = Activator.thread_pool.submit(
-                        () -> fetchFromSource(archive, bins_final));
-                currentFetch.set(fetch);
-                if (cancelled)
-                {
-                    fetch.cancel(true);
-                    break;
-                }
                 try
                 {
-                    final List<VType> result = (Preferences.archive_read_timeout_ms <= 0)
-                            ? fetch.get()
-                            : fetch.get(Preferences.archive_read_timeout_ms, TimeUnit.MILLISECONDS);
+                    final List<VType> fetched = fetchFromSource(archive, bins_final);
                     if (!cancelled)
                     {
-                        samples += result.size();
-                        item.mergeArchivedSamples(archive.getName(), result);
+                        samples += fetched.size();
+                        item.mergeArchivedSamples(archive.getName(), fetched);
                     }
                 }
-                catch (TimeoutException ex)
+                catch (UnknownChannelException ex)
                 {
-                    fetch.cancel(true);
-                    final ArchiveReader timed_out = reader.getAndSet(null);
-                    if (timed_out != null)
-                        timed_out.cancel();
-                    logger.log(Level.WARNING,
-                            "Archive source timed out after " + Preferences.archive_read_timeout_ms
-                            + " ms, skipping: " + archive.getName());
-                    if (! cancelled)
-                        listener.archiveFetchFailed(ArchiveFetchJob.this, archive,
-                                new IOException("Read timeout (" + Preferences.archive_read_timeout_ms + " ms)"));
-                }
-                catch (ExecutionException ex)
-                {
-                    final Throwable cause = ex.getCause();
-                    if (cause instanceof UnknownChannelException)
-                        archives_without_channel.add(archive);
-                    else
-                    {
-                        final Throwable logged = cause != null ? cause : ex;
-                        logger.log(Level.WARNING, logged,
-                                () -> "Archive fetch failed for source: " + archive.getName());
-                        if (! cancelled)
-                            listener.archiveFetchFailed(ArchiveFetchJob.this, archive,
-                                    cause instanceof Exception ? (Exception) cause : ex);
-                    }
+                    // Do not immediately notify about unknown channels. First search for the data in all archive
+                    // sources and only report this kind of errors at the end
+                    archives_without_channel.add(archive);
                 }
                 catch (Exception ex)
                 {
                     logger.log(Level.WARNING, ex,
-                            () -> "Archive fetch error for source: " + archive.getName());
-                    if (! cancelled)
+                            () -> "Archive fetch failed for source: " + archive.getName());
+                    if (!cancelled)
                         listener.archiveFetchFailed(ArchiveFetchJob.this, archive, ex);
-                }
-                finally
-                {
-                    currentFetch.set(null);
                 }
             }
             final long end_time = System.currentTimeMillis();
@@ -213,7 +165,7 @@ public class ArchiveFetchJob implements JobRunnable
         }
 
         /** Fetch all samples from one archive source.
-         *  Runs on a carrier thread inside a timed Future.
+         *  Runs directly on WorkerThread, timed by the outer polling loop.
          *  @return list of samples
          *  @throws Exception on fetch error
          */
@@ -221,11 +173,7 @@ public class ArchiveFetchJob implements JobRunnable
         {
             try (final ArchiveReader the_reader = openReader(archive.getUrl()))
             {
-                // If a timeout or cancel fired while openReader() was blocking,
-                // bail now so the try-with-resources closes the_reader cleanly.
-                if (Thread.currentThread().isInterrupted())
-                    throw new InterruptedException("Interrupted during open");
-                reader.set(the_reader);
+                reader = the_reader;
                 try
                 (
                     final ValueIterator value_iter = (item.getRequestType() == RequestType.RAW)
@@ -240,14 +188,8 @@ public class ArchiveFetchJob implements JobRunnable
                 }
                 finally
                 {
-                    reader.set(null);
+                    reader = null;
                 }
-            }
-            finally
-            {
-                // Clear any stale interrupt flag before the carrier thread
-                // returns to the shared pool, so subsequent tasks are not poisoned.
-                Thread.interrupted();
             }
         }
 
@@ -338,6 +280,8 @@ public class ArchiveFetchJob implements JobRunnable
             final Future<?> done = Activator.thread_pool.submit(worker);
             // Poll worker and progress monitor
             long start = System.currentTimeMillis();
+            String lastSourceMessage = "";
+            long sourceStartTime = System.currentTimeMillis();
             while (!done.isDone())
             {   // Wait until worker is done, or time out to update info message
                 try
@@ -348,13 +292,19 @@ public class ArchiveFetchJob implements JobRunnable
                 {
                     // Ignore
                 }
+                final String currentMessage = worker.getMessage();
+                if (!currentMessage.equals(lastSourceMessage))
+                {
+                    lastSourceMessage = currentMessage;
+                    sourceStartTime = System.currentTimeMillis();
+                }
                 final long seconds = (System.currentTimeMillis() - start) / 1000;
                 final String info = MessageFormat.format(Messages.ArchiveFetchProgressFmt,
-                                                         worker.getMessage(), seconds);
+                                                         currentMessage, seconds);
                 monitor.updateTaskName(info);
-                // Try to cancel the worker in response to user's cancel request.
-                // Continues to cancel the worker until isDone()
-                if (monitor.isCanceled())
+                if (monitor.isCanceled()
+                        || (Preferences.archive_read_timeout_ms > 0
+                            && System.currentTimeMillis() - sourceStartTime > Preferences.archive_read_timeout_ms))
                     worker.cancel();
             }
         }

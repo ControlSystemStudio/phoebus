@@ -76,10 +76,9 @@ class ArchiveFetchJobTest {
 
     @Test
     @Timeout(5)
-    void faultySourceTimesOutAndLoopContinues() throws Exception {
+    void timeoutCancelsJob() throws Exception {
         PVItem item = new PVItem("TESTPV", 0.0);
         item.addArchiveDataSource(new ArchiveDataSource("src://slow", "Slow"));
-        item.addArchiveDataSource(new ArchiveDataSource("src://fast", "Fast"));
 
         List<String> errors = Collections.synchronizedList(new ArrayList<>());
         List<String> completed = Collections.synchronizedList(new ArrayList<>());
@@ -102,25 +101,24 @@ class ArchiveFetchJobTest {
         });
         ArchiveReader slowReader = readerReturning(blockingIter);
 
-        ValueIterator fastIter = oneValueIterator();
-        ArchiveReader fastReader = readerReturning(fastIter);
-
-        int savedTimeout = Preferences.archive_read_timeout_ms;
-        Preferences.archive_read_timeout_ms = 500;
         try {
             TestableFetchJob job = new TestableFetchJob(item, Instant.now().minusSeconds(60), Instant.now(), listener);
             job.whenUrl("src://slow", slowReader);
-            job.whenUrl("src://fast", fastReader);
 
             ArchiveFetchJob.WorkerThread worker = job.new WorkerThread();
-            worker.run();
+            Thread t = new Thread(worker::run);
+            t.start();
 
-            releaseReader.countDown(); // unblock the carrier thread so it can clean up
+            readerBlocking.await();    // wait until fetch is stuck on slow source
+            worker.cancel();           // simulate outer-loop timeout firing
+            releaseReader.countDown(); // unblock the reader so it can exit cleanly
 
-            assertEquals(List.of("Slow"), errors, "slow source should report timeout failure");
-            assertEquals(List.of("done"), completed, "fast source result should complete the job");
+            t.join(3000);
+            assertFalse(t.isAlive(), "WorkerThread should have exited after cancel");
+
+            assertTrue(errors.isEmpty(), "cancel does not report a per-source error");
+            assertTrue(completed.isEmpty(), "fetchCompleted is not called when job is cancelled");
         } finally {
-            Preferences.archive_read_timeout_ms = savedTimeout;
             releaseReader.countDown(); // safety: unblock in case test fails early
         }
     }
