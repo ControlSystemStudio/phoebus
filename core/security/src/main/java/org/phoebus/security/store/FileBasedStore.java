@@ -8,6 +8,7 @@ import javax.crypto.spec.PBEKeySpec;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.KeyStore;
 import java.util.Collections;
 import java.util.List;
@@ -28,11 +29,10 @@ public class FileBasedStore implements Store<String, String> {
     private final SecretKeyFactory kf = SecretKeyFactory.getInstance("PBE");
     private final KeyStore store;
     private final File secure_file;
-    private byte[] secureStoreByteArray;
     private final char[] store_pass;
     private final KeyStore.ProtectionParameter pp;
 
-    private static final Logger LOGGER = Logger.getLogger(SecureStore.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(FileBasedStore.class.getName());
 
     /**
      * Create with default file in 'user' location
@@ -63,6 +63,14 @@ public class FileBasedStore implements Store<String, String> {
      * @throws Exception on error
      */
     public FileBasedStore(final File secure_file, final char[] store_pass) throws Exception {
+
+        File secureFileDir = secure_file.getParentFile();
+        if (!secureFileDir.exists()) {
+            if(!secureFileDir.mkdirs()){
+                throw new IOException("Cannot create directory for secure store");
+            }
+        }
+
         this.secure_file = secure_file;
         this.store_pass = store_pass;
 
