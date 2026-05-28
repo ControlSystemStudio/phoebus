@@ -54,6 +54,8 @@ public class Preferences
     /** Setting */
     @Preference public static int archive_fetch_delay;
     /** Setting */
+    @Preference public static int archive_read_timeout_ms;
+    /** Setting */
     @Preference public static int concurrent_requests;
     /** Setting */
     @Preference public static ArchiveRescale archive_rescale;

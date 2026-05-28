@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.csstudio.trends.databrowser3.Activator;
@@ -71,7 +70,7 @@ public class ArchiveFetchJob implements JobRunnable
      *  Instead of directly accessing the archive, ArchiveFetchJob launches
      *  a WorkerThread for the actual archive access, so that the Job
      *  can then poll the progress monitor for cancellation and if
-     *  necessary interrupt the WorkerThread which might be 'stuck'
+     *  necessary cancel the archive reader when it is 'stuck'
      *  in a long running operation.
      */
     class WorkerThread implements Runnable
@@ -80,7 +79,7 @@ public class ArchiveFetchJob implements JobRunnable
         private volatile boolean cancelled = false;
 
         /** Archive reader that's currently queried */
-        private AtomicReference<ArchiveReader> reader = new AtomicReference<>();
+        private volatile ArchiveReader reader;
 
         /** @return Message that somehow indicates progress */
         public String getMessage()
@@ -92,10 +91,9 @@ public class ArchiveFetchJob implements JobRunnable
         public void cancel()
         {
             cancelled = true;
-
-            final ArchiveReader the_reader = reader.get();
-            if (the_reader != null)
-                the_reader.cancel();
+            final ArchiveReader r = reader;
+            if (r != null)
+                r.cancel();
         }
 
         /** {@inheritDoc} */
@@ -117,51 +115,37 @@ public class ArchiveFetchJob implements JobRunnable
 
             final Collection<ArchiveDataSource> archives = item.getArchiveDataSources();
             final List<ArchiveDataSource> archives_without_channel = new ArrayList<>();
+            final int bins_final = bins;
             int i = 0;
             for (ArchiveDataSource archive : archives)
             {
                 if (cancelled)
                     break;
-                final String url = archive.getUrl();
                 // Display "N/total", using '1' for the first sub-archive.
                 message = MessageFormat.format(Messages.ArchiveFetchDetailFmt,
                                                archive.getName(), ++i, archives.size());
+
                 try
-                (
-                    final ArchiveReader the_reader = ArchiveReaders.createReader(url);
-                )
                 {
-                    reader.set(the_reader);
-                    try
-                    (
-                        final ValueIterator value_iter = (item.getRequestType() == RequestType.RAW)
-                                            ? the_reader.getRawValues(item.getResolvedName(), start, end)
-                                            : the_reader.getOptimizedValues(item.getResolvedName(), start, end, bins)
-                    )
+                    final List<VType> fetched = fetchFromSource(archive, bins_final);
+                    if (!cancelled)
                     {
-                        // Get samples into array
-                        final List<VType> result = new ArrayList<>();
-                        while (value_iter.hasNext())
-                            result.add(value_iter.next());
-                        samples += result.size();
-                        item.mergeArchivedSamples(archive.getName(), result);
-                    }
-                    catch (UnknownChannelException e)
-                    {
-                        // Do not immediately notify about unknown channels. First search for the data in all archive
-                        // sources and only report this kind of errors at the end
-                        archives_without_channel.add(archive);
-                    }
-                    finally
-                    {
-                        reader.set(null);
+                        samples += fetched.size();
+                        item.mergeArchivedSamples(archive.getName(), fetched);
                     }
                 }
+                catch (UnknownChannelException ex)
+                {
+                    // Do not immediately notify about unknown channels. First search for the data in all archive
+                    // sources and only report this kind of errors at the end
+                    archives_without_channel.add(archive);
+                }
                 catch (Exception ex)
-                {   // Tell listener unless it's the result of a 'cancel'?
-                    if (! cancelled)
+                {
+                    logger.log(Level.WARNING, ex,
+                            () -> "Archive fetch failed for source: " + archive.getName());
+                    if (!cancelled)
                         listener.archiveFetchFailed(ArchiveFetchJob.this, archive, ex);
-                    // Continue with the next data source
                 }
             }
             final long end_time = System.currentTimeMillis();
@@ -178,6 +162,35 @@ public class ArchiveFetchJob implements JobRunnable
                         archives_without_channel);
 
             listener.fetchCompleted(ArchiveFetchJob.this);
+        }
+
+        /** Fetch all samples from one archive source.
+         *  Runs directly on WorkerThread, timed by the outer polling loop.
+         *  @return list of samples
+         *  @throws Exception on fetch error
+         */
+        List<VType> fetchFromSource(final ArchiveDataSource archive, final int bins) throws Exception
+        {
+            try (final ArchiveReader the_reader = openReader(archive.getUrl()))
+            {
+                reader = the_reader;
+                try
+                (
+                    final ValueIterator value_iter = (item.getRequestType() == RequestType.RAW)
+                            ? the_reader.getRawValues(item.getResolvedName(), start, end)
+                            : the_reader.getOptimizedValues(item.getResolvedName(), start, end, bins)
+                )
+                {
+                    final List<VType> result = new ArrayList<>();
+                    while (value_iter.hasNext())
+                        result.add(value_iter.next());
+                    return result;
+                }
+                finally
+                {
+                    reader = null;
+                }
+            }
         }
 
         @Override
@@ -203,6 +216,25 @@ public class ArchiveFetchJob implements JobRunnable
         this.end = end;
         this.listener = listener;
         this.job = JobManager.schedule(toString(), this);
+    }
+
+    /** Test-only constructor: does not schedule via JobManager. */
+    ArchiveFetchJob(final PVItem item, final Instant start, final Instant end,
+                    final ArchiveFetchJobListener listener, final boolean testOnly)
+    {
+        this.item = item;
+        this.start = start;
+        this.end = end;
+        this.listener = listener;
+        this.job = null;
+    }
+
+    /** Create an {@link ArchiveReader} for the given URL.
+     *  Override in tests to inject fakes.
+     */
+    protected ArchiveReader openReader(final String url) throws Exception
+    {
+        return ArchiveReaders.createReader(url);
     }
 
     /** @return PVItem for which this job was created */
@@ -248,6 +280,8 @@ public class ArchiveFetchJob implements JobRunnable
             final Future<?> done = Activator.thread_pool.submit(worker);
             // Poll worker and progress monitor
             long start = System.currentTimeMillis();
+            String lastSourceMessage = "";
+            long sourceStartTime = System.currentTimeMillis();
             while (!done.isDone())
             {   // Wait until worker is done, or time out to update info message
                 try
@@ -258,13 +292,19 @@ public class ArchiveFetchJob implements JobRunnable
                 {
                     // Ignore
                 }
+                final String currentMessage = worker.getMessage();
+                if (!currentMessage.equals(lastSourceMessage))
+                {
+                    lastSourceMessage = currentMessage;
+                    sourceStartTime = System.currentTimeMillis();
+                }
                 final long seconds = (System.currentTimeMillis() - start) / 1000;
                 final String info = MessageFormat.format(Messages.ArchiveFetchProgressFmt,
-                                                         worker.getMessage(), seconds);
+                                                         currentMessage, seconds);
                 monitor.updateTaskName(info);
-                // Try to cancel the worker in response to user's cancel request.
-                // Continues to cancel the worker until isDone()
-                if (monitor.isCanceled())
+                if (monitor.isCanceled()
+                        || (Preferences.archive_read_timeout_ms > 0
+                            && System.currentTimeMillis() - sourceStartTime > Preferences.archive_read_timeout_ms))
                     worker.cancel();
             }
         }

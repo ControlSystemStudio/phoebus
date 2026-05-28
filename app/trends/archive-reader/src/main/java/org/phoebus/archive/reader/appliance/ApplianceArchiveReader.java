@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
@@ -29,14 +31,16 @@ import org.phoebus.util.time.TimestampHelper;
  *
  * @author Miha Novak miha.novak@cosylab.com
  */
-public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
+public class ApplianceArchiveReader implements ArchiveReader {
+
+    private static final Logger logger = Logger.getLogger(ApplianceArchiveReader.class.getName());
 
     private final String httpURL;
     private final String pbrawURL;
     private final boolean useStatistics;
     private final boolean useNewOptimizedOperator;
 
-    private Map<ApplianceValueIterator, ApplianceArchiveReader> iterators = Collections.synchronizedMap(
+    Map<ApplianceValueIterator, ApplianceArchiveReader> iterators = Collections.synchronizedMap(
                new WeakHashMap<ApplianceValueIterator, ApplianceArchiveReader>());
 
     /**
@@ -109,7 +113,7 @@ public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
             throws UnknownChannelException, Exception {
         try {
             name = stripSchema(name);
-            ApplianceRawValueIterator it = new ApplianceRawValueIterator(this, name, start, end, this);
+            ApplianceRawValueIterator it = new ApplianceRawValueIterator(this, name, start, end);
             iterators.put(it,this);
             return it;
         } catch (ArchiverApplianceException ex) {
@@ -125,12 +129,14 @@ public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
         if (useNewOptimizedOperator) {
             //try to fetch the data using the new optimized operator
             try {
-                it = new ApplianceOptimizedValueIterator(this, name, start, end, count, useStatistics, this);
+                it = new ApplianceOptimizedValueIterator(this, name, start, end, count, useStatistics);
             } catch (ArchiverApplianceInvalidTypeException e) {
-                //binning not supported
+                //binning not supported for this PV type — expected for enum/waveform
+                logger.log(Level.FINE, "Optimized operator not supported for PV type, falling back: " + name, e);
                 binningSupported = false;
             } catch (ArchiverApplianceException e) {
                 //optimized operator not supported on the server, fall back to the old way
+                logger.log(Level.WARNING, "Optimized operator failed for " + name + ", falling back to count-based path", e);
             }
         }
 
@@ -139,31 +145,33 @@ public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
             try {
                 int points = getNumberOfPoints(name, start, end);
                 if (points <= count) {
-                    it = new ApplianceRawValueIterator(this, name, start, end, this);
+                    it = new ApplianceRawValueIterator(this, name, start, end);
                 } else {
                     //only fetch if binning is "still" supported
                     if (binningSupported) {
                         try {
                             //try to bin the values using the mean and std etc. This will work for numeric scalar PVs
                             if (useStatistics) {
-                                it = new ApplianceStatisticsValueIterator(this, name, start, end, count,this);
+                                it = new ApplianceStatisticsValueIterator(this, name, start, end, count);
                             } else {
-                                it = new ApplianceMeanValueIterator(this, name, start, end, count,this);
+                                it = new ApplianceMeanValueIterator(this, name, start, end, count);
                             }
                         } catch (ArchiverApplianceInvalidTypeException e) {
+                            logger.log(Level.FINE, "Binning not supported for PV type, using non-numeric path: " + name, e);
                             binningSupported = false;
                         }
                     }
 
                     if (!binningSupported) {
                         //if binning is not supported (string, waveform type), try nth operator
-                        it = new ApplianceNonNumericOptimizedValueIterator(this, name, start, end, count, points,this);
+                        it = new ApplianceNonNumericOptimizedValueIterator(this, name, start, end, count, points);
                     }
                 }
             } catch (ArchiverApplianceException e) {
                 //fallback for older archiver appliance, which didn't have the nth operator
+                logger.log(Level.WARNING, "Count-based path failed for " + name + ", falling back to raw values", e);
                 try {
-                    it = new ApplianceRawValueIterator(this, name, start, end, this);
+                    it = new ApplianceRawValueIterator(this, name, start, end);
                 } catch (ArchiverApplianceException exc) {
                     throw new UnknownChannelException(name);
                 }
@@ -177,7 +185,11 @@ public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
     public void cancel() {
         ApplianceValueIterator[] its = iterators.keySet().toArray(new ApplianceValueIterator[0]);
         for (ApplianceValueIterator a : its) {
-            a.close();
+            try {
+                a.close();
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Failed to close iterator during cancel", ex);
+            }
         }
     }
 
@@ -313,11 +325,6 @@ public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
             }
         }
         return 0;
-    }
-
-    @Override
-    public void finished(ApplianceValueIterator iterator) {
-        iterators.remove(iterator);
     }
 
     private static String stripSchema(String name) {

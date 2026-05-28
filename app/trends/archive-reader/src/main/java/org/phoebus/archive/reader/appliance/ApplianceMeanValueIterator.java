@@ -33,16 +33,14 @@ public class ApplianceMeanValueIterator extends ApplianceValueIterator {
      * @param start start of the time period
      * @param end end of the time period
      * @param points the number of requested points
-     * @param listener the listener that is notified when the iterator is closed
-     *
      * @throws IOException if there was an error during the data fetch process
      * @throws ArchiverApplianceException if it is not possible to load optimized data for the selected PV
      * @throws ArchiverApplianceInvalidTypeException if the type of data cannot be returned in optimized format
      */
     public ApplianceMeanValueIterator(ApplianceArchiveReader reader,
-            String name, Instant start, Instant end, int points, IteratorListener listener)
+            String name, Instant start, Instant end, int points)
                     throws ArchiverApplianceException, IOException {
-        super(reader,name,start,end,listener);
+        super(reader, name, start, end);
         this.requestedPoints = points;
         this.display = determineDisplay(reader, name, end);
         fetchData();

@@ -3,6 +3,8 @@ package org.phoebus.archive.reader.appliance;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
@@ -52,6 +54,9 @@ import org.phoebus.util.time.TimestampHelper;
  */
 public abstract class ApplianceValueIterator implements ValueIterator {
 
+    private static final Logger logger =
+            Logger.getLogger(ApplianceValueIterator.class.getPackage().getName());
+
     protected EnumDisplay enumDisplay;
     protected Display display;
     protected GenMsgIterator mainStream;
@@ -63,11 +68,9 @@ public abstract class ApplianceValueIterator implements ValueIterator {
     protected final Instant start;
     protected final Instant end;
 
-    private final IteratorListener listener;
+    protected volatile boolean closed = false;
 
-    protected boolean closed = false;
-
-    private static Object lock = new Object();
+    private final Object lock = new Object();
 
     /**
      * Constructs a new ApplianceValueIterator.
@@ -77,13 +80,11 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      * @param start the start of the time window of the data
      * @param end the end of the time window of the data
      */
-    protected ApplianceValueIterator(ApplianceArchiveReader reader, String name, Instant start, Instant end,
-            IteratorListener listener) {
+    protected ApplianceValueIterator(ApplianceArchiveReader reader, String name, Instant start, Instant end) {
         this.reader = reader;
         this.name = name;
         this.start = start;
         this.end = end;
-        this.listener = listener;
     }
 
     /**
@@ -126,8 +127,10 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      * @see org.csstudio.archive.reader.ValueIterator#hasNext()
      */
     @Override
-    public synchronized boolean hasNext() {
-        return !closed && mainIterator != null && mainIterator.hasNext();
+    public boolean hasNext() {
+        if (closed || mainIterator == null)
+            return false;
+        return mainIterator.hasNext();
     }
 
     /*
@@ -262,9 +265,9 @@ public abstract class ApplianceValueIterator implements ValueIterator {
                 closed = true;
             }
         } catch (IOException e) {
+            logger.log(Level.WARNING, e, () -> "Failed to close stream for PV: " + name);
             throw new IllegalStateException(e);
         }
-        listener.finished(this);
     }
 
     /**

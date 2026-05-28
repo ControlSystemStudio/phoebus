@@ -3,6 +3,8 @@ package org.phoebus.archive.reader.appliance;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
@@ -26,6 +28,9 @@ import org.phoebus.util.time.TimestampHelper;
  *
  */
 public class ApplianceStatisticsValueIterator extends ApplianceMeanValueIterator {
+
+    private static final Logger logger =
+            Logger.getLogger(ApplianceStatisticsValueIterator.class.getPackage().getName());
 
     private Iterator<EpicsMessage> stdIterator;
     private GenMsgIterator stdStream;
@@ -52,8 +57,8 @@ public class ApplianceStatisticsValueIterator extends ApplianceMeanValueIterator
      * @throws ArchiverApplianceInvalidTypeException if the type of data cannot be returned in optimized format
      */
     public ApplianceStatisticsValueIterator(ApplianceArchiveReader reader, String name, Instant start, Instant end,
-        int points, IteratorListener listener) throws ArchiverApplianceException, IOException {
-        super(reader, name, start, end, points, listener);
+        int points) throws ArchiverApplianceException, IOException {
+        super(reader, name, start, end, points);
     }
 
     @Override
@@ -111,24 +116,25 @@ public class ApplianceStatisticsValueIterator extends ApplianceMeanValueIterator
      */
     @Override
     public void close() {
-        try {
-            synchronized (this) {
-                if (stdStream != null) {
-                    stdStream.close();
-                }
-                if (minStream != null) {
-                    minStream.close();
-                }
-                if (maxStream != null) {
-                    maxStream.close();
-                }
-                if (countStream != null) {
-                    countStream.close();
-                }
+        synchronized (this) {
+            try {
+                closeStream(stdStream);
+                closeStream(minStream);
+                closeStream(maxStream);
+                closeStream(countStream);
+            } finally {
                 super.close();
             }
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
+        }
+    }
+
+    private static void closeStream(GenMsgIterator s) {
+        if (s != null) {
+            try {
+                s.close();
+            } catch (IOException e) {
+                logger.log(Level.WARNING, e, () -> "Failed to close statistics sub-stream");
+            }
         }
     }
 
