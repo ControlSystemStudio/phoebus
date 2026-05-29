@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
 
 # deployment unit
 COPY target/service-save-and-restore-*.jar /saveandrestore/service-save-and-restore-*.jar

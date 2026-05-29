@@ -29,7 +29,7 @@ import java.util.PrimitiveIterator;
  * 
  * <p>
  * This parser has specifically been written in order to minimize the
- * dependencies needed for parsing JSON document. It only uses the Java 17 SE
+ * dependencies needed for parsing JSON document. It only uses the Java SE
  * API and the Apache Commons Lang 3 library.
  * </p>
  * 

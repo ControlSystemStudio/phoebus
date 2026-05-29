@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
 
 # deployment unit
 COPY target/service-scan-server-*.jar /scanserver/service-scan-server-*.jar
