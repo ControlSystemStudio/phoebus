@@ -2,7 +2,7 @@ sudo: required
 language: java
 dist: xenial
 jdk:
-  - openjdk17
+  - openjdk21
 
 services:
   - xvfb
