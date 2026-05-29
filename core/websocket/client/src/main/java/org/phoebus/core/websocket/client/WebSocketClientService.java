@@ -19,6 +19,7 @@ import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
+import javax.websocket.DeploymentException;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.ArrayList;
@@ -142,7 +143,7 @@ public class WebSocketClientService {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.initialize();
         stompClient.setTaskScheduler(threadPoolTaskScheduler);
-        stompClient.setDefaultHeartbeat(new long[]{30000, 30000});
+        stompClient.setDefaultHeartbeat(new long[]{60000, 60000});
         StompSessionHandler sessionHandler = new StompSessionHandler();
         logger.log(Level.INFO, "Attempting web socket connection to " + connectUrl);
         new Thread(() -> {
@@ -228,11 +229,14 @@ public class WebSocketClientService {
         }
 
         /**
-         * If remote peer goes away because the service is shut down, or because
-         * of a network connection issue, we get a {@link ConnectionLostException}. In this case
-         * a reconnection thread is started. If on the other hand a connection attempt fails, we get
-         * a different type of exception (javax.websocket.DeploymentException), in which case a
-         * reconnection thread is not started.
+         * Handles error for different type of {@link Exception}s:
+         * <ol>
+         *     <li>{@link DeploymentException}: unable to connect, i.e. do not start a new connection thread.</li>
+         *     <li>{@link ConnectionLostException}: service not reachable, e.g. due to network issues or service down.
+         *     Connection thread started.</li>
+         *     <li>{@link IllegalStateException}: service very busy or being debugged, i.e. heartbeat messages
+         *     not received. Connection thread started.</li>
+         * </ol>
          *
          * @param session   the client STOMP session
          * @param exception the exception that occurred. This is evaluated to determine if a reconnection
@@ -240,14 +244,15 @@ public class WebSocketClientService {
          */
         @Override
         public void handleTransportError(StompSession session, Throwable exception) {
-            if (exception instanceof ConnectionLostException) {
+            if(exception instanceof DeploymentException){
+                logger.log(Level.WARNING, "Unable to connect", exception);
+            }
+            else {
                 logger.log(Level.WARNING, "Connection lost, will attempt to reconnect", exception);
-                if (disconnectCallback != null) {
+                if (exception instanceof ConnectionLostException && disconnectCallback != null) {
                     disconnectCallback.run();
                 }
                 connect();
-            } else {
-                logger.log(Level.WARNING, "Got transport exception", exception);
             }
         }
     }
