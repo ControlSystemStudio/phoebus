@@ -8,10 +8,6 @@
 
     <artifactId>save-and-restore-util</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
-  <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-    </properties>
 
     <dependencies>
         <dependency>

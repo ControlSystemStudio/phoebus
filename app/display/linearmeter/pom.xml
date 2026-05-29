@@ -10,10 +10,6 @@
 
     <artifactId>app-display-linearmeter</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-    </properties>
 
     <dependencies>
         <dependency>
