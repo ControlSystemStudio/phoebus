@@ -75,10 +75,8 @@ public abstract class ConfigDialogController {
     @FXML
     private StackPane actionsPlaceholder;
 
-    protected TitleDetailTable guidance;
-    protected TitleDetailTable displays;
-    protected TitleDetailTable commands;
-    protected TitleDetailDelayTable actions;
+    @FXML
+    protected OptionsTablesController optionsTablesViewController;
 
     protected final AlarmClient alarmClient;
     protected final AlarmTreeItem<?> alarmTreeItem;
@@ -97,23 +95,6 @@ public abstract class ConfigDialogController {
     public void initialize() {
 
         path.setText(alarmTreeItem.getPathName());
-
-        // ── Shared tables (guidance, displays, commands, actions) ─────────────
-        guidance = new TitleDetailTable(alarmTreeItem.getGuidance());
-        guidance.setPrefHeight(100);
-        guidancePlaceholder.getChildren().setAll(guidance);
-
-        displays = new TitleDetailTable(alarmTreeItem.getDisplays());
-        displays.setPrefHeight(100);
-        displaysPlaceholder.getChildren().setAll(displays);
-
-        commands = new TitleDetailTable(alarmTreeItem.getCommands());
-        commands.setPrefHeight(100);
-        commandsPlaceholder.getChildren().setAll(commands);
-
-        actions = new TitleDetailDelayTable(alarmTreeItem.getActions());
-        actions.setPrefHeight(100);
-        actionsPlaceholder.getChildren().setAll(actions);
 
         relativeDate.valueProperty().bindBidirectional(relativeDateProperty);
         enabledDatePicker.dateTimeValueProperty().bindBidirectional(enableDateProperty);

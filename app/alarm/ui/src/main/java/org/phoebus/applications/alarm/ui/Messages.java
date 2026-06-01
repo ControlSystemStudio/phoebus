@@ -15,6 +15,8 @@ public class Messages
 
     public static String acknowledgeFailed;
     public static String addComponentFailed;
+    public static String automatedActions;
+    public static String commands;
     public static String configure;
     public static String delayTooltip0;
     public static String delayTooltip1;
@@ -23,8 +25,10 @@ public class Messages
     public static String disableAlarms;
     public static String disabled;
     public static String disabledUntil;
+    public static String displays;
     public static String enableAlarmFailed;
     public static String enableAlarms;
+    public static String guidance;
     public static String headerAlreadyDisabled;
     public static String headerAlreadyEnabled;
     public static String headerConfirmDisable;

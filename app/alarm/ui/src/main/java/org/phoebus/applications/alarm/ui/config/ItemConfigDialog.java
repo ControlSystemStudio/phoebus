@@ -48,9 +48,26 @@ public class ItemConfigDialog extends Dialog<Boolean> {
             }
             fxmlLoader.setControllerFactory(clazz -> {
                 try {
-                    return clazz.getConstructor(AlarmClient.class, AlarmTreeItem.class).newInstance(model, item);
+                    if(clazz.isAssignableFrom(LeafConfigDialogController.class)) {
+                        return clazz.getConstructor(AlarmClient.class, AlarmTreeItem.class).newInstance(model, item);
+                    }
+                    if(clazz.isAssignableFrom(ComponentConfigDialogController.class)) {
+                        return clazz.getConstructor(AlarmClient.class, AlarmTreeItem.class).newInstance(model, item);
+                    }
+                    else if(clazz.isAssignableFrom(TitleDetailTableController.class)) {
+                        return new TitleDetailTableController();
+                    }
+                    else if(clazz.isAssignableFrom(TitleDetailDelayTableController.class)) {
+                        return new TitleDetailDelayTableController();
+                    }
+                    else if(clazz.isAssignableFrom(OptionsTablesController.class)) {
+                        return clazz.getConstructor(AlarmTreeItem.class).newInstance(item);
+                    }
+                    else if(clazz.isAssignableFrom(TitleDetailToolbarController.class)){
+                        return new TitleDetailToolbarController();
+                    }
                 } catch (Exception e) {
-                    Logger.getLogger(ItemConfigDialog.class.getName()).log(Level.SEVERE, "Failed to construct ConfigDialogController", e);
+                    Logger.getLogger(ItemConfigDialog.class.getName()).log(Level.SEVERE, "Failed to construct controller for " + clazz.getName(), e);
                 }
                 return null;
             });

@@ -131,11 +131,10 @@ public class ComponentConfigDialogController extends ConfigDialogController {
             return;
         }
 
-        // Next store guidance, displays...
-        alarmTreeItem.setGuidance(guidance.getItems());
-        alarmTreeItem.setDisplays(displays.getItems());
-        alarmTreeItem.setCommands(commands.getItems());
-        alarmTreeItem.setActions(actions.getItems());
+        alarmTreeItem.setGuidance(optionsTablesViewController.getGuidance());
+        alarmTreeItem.setDisplays(optionsTablesViewController.getDisplays());
+        alarmTreeItem.setCommands(optionsTablesViewController.getCommands());
+        alarmTreeItem.setActions(optionsTablesViewController.getActions());
 
         try {
             alarmClient.sendItemConfigurationUpdate(alarmTreeItem.getPathName(), alarmTreeItem);

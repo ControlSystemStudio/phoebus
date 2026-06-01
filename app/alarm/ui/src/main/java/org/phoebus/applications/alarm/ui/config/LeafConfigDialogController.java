@@ -184,10 +184,10 @@ public class LeafConfigDialogController extends ConfigDialogController {
         // TODO Check filter expression
         pv.setFilter(enablingFilterProperty.getValue());
 
-        pv.setGuidance(guidance.getItems());
-        pv.setDisplays(displays.getItems());
-        pv.setCommands(commands.getItems());
-        pv.setActions(actions.getItems());
+        pv.setGuidance(optionsTablesViewController.getGuidance());
+        pv.setDisplays(optionsTablesViewController.getDisplays());
+        pv.setCommands(optionsTablesViewController.getCommands());
+        pv.setActions(optionsTablesViewController.getActions());
 
         try {
             alarmClient.sendItemConfigurationUpdate(alarmTreeItem.getPathName(), pv);

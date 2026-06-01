@@ -5,7 +5,8 @@
 <?import javafx.scene.layout.*?>
 <?import org.phoebus.applications.alarm.ui.config.*?>
 
-<ScrollPane fx:id="scroll" fitToWidth="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.alarm.ui.config.LeafConfigDialogController">
+<ScrollPane fx:id="scroll" fitToWidth="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="org.phoebus.applications.alarm.ui.config.LeafConfigDialogController">
 
     <GridPane fx:id="layout" hgap="5" vgap="5">
         <padding>
@@ -102,48 +103,18 @@
             </tooltip>
         </TextField>
 
+        <fx:include fx:id="optionsTablesView" source="OptionsTables.fxml" prefHeight="800" prefWidth="400" GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS"/>
 
-        <!-- Row 7 – Guidance label (spans 2 columns) -->
-        <Label text="%guidance" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="7" />
-
-        <!-- Row 8 – Guidance table placeholder (spans 2 columns) -->
-
-        <StackPane fx:id="guidancePlaceholder" prefHeight="100" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="8" />
-
-        <!-- Row 9 – Displays label -->
-        <Label text="%displays" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="9" />
-
-        <!-- Row 10 – Displays table placeholder -->
-        <StackPane fx:id="displaysPlaceholder" prefHeight="100" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="10" />
-
-        <!-- Row 11 – Commands label -->
-        <Label text="%commands" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="11" />
-
-        <!-- Row 12 – Commands table placeholder -->
-        <StackPane fx:id="commandsPlaceholder" prefHeight="100" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="12" />
-
-        <!-- Row 13 – Automated Actions label -->
-        <Label text="%automatedActions" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="13" />
-
-        <!-- Row 14 – Automated Actions table placeholder -->
-        <StackPane fx:id="actionsPlaceholder" prefHeight="100" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="14" />
-      <rowConstraints>
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-      </rowConstraints>
+        <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+        </rowConstraints>
 
     </GridPane>
 </ScrollPane>
