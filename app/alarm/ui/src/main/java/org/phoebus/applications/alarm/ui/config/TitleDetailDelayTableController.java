@@ -23,9 +23,11 @@ import javafx.util.converter.DefaultStringConverter;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.ui.tree.ValidatingTextFieldTableCell;
+import org.phoebus.ui.javafx.UpdateThrottle;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * FXML controller for TitleDetailDelayTable.fxml.
@@ -78,7 +80,9 @@ public class TitleDetailDelayTableController extends TitleDetailTableController 
      * Configure table columns particular for this view.
      */
     @Override
-    public void configureColumns() {
+    public void configure() {
+
+        table.setItems(items);
 
         optionColumn.setCellFactory(ComboBoxTableCell.forTableColumn(ActionOption.values()));
         optionColumn.setCellValueFactory(
@@ -126,6 +130,7 @@ public class TitleDetailDelayTableController extends TitleDetailTableController 
                     items.get(row).detail,
                     event.getNewValue()));
         });
+
         titleColumn.setOnEditCommit(event ->
         {
             final int row = event.getTablePosition().getRow();
@@ -193,12 +198,23 @@ public class TitleDetailDelayTableController extends TitleDetailTableController 
         items.add(new TitleDetailDelay("", "", 0));
 
         // Trigger editing the title of new item
-        Platform.runLater(() ->
-        {
-            final int row = items.size() - 1;
-            table.getSelectionModel().clearAndSelect(row);
-            table.edit(row, table.getColumns().get(0));
-        });
+        UpdateThrottle.TIMER.schedule(() -> Platform.runLater(() ->
+            {
+                final int row = items.size() - 1;
+                table.getSelectionModel().clearAndSelect(row);
+                table.edit(row, table.getColumns().get(0));
+            }), 200, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Populate the table with an initial list of items.
+     * The original list is not modified.
+     *
+     * @param initial_items Items to display initially.
+     */
+    @Override
+    public void setItems(final List<? extends TitleDetail> initial_items) {
+        items.setAll(initial_items.stream().map(i -> (TitleDetailDelay)i).toList());
     }
 
     // ── DelayTableCell (inner class – unchanged logic) ─────────────────────────

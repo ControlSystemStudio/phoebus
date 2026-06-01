@@ -103,10 +103,12 @@ public class ComponentConfigDialogController extends ConfigDialogController {
 
         if(disabled.isEmpty()) {
             enabled.setSelected(true);
+            itemEnabledProperty.setValue(true);
         }
         else if (alarmClientLeaves.size() != disabled.size()) {
             partlyDisabledLabel.setVisible(true);
             enabled.setSelected(false);
+            itemEnabledProperty.setValue(false);
         }
 
         if (!withEnableDate.isEmpty()) {

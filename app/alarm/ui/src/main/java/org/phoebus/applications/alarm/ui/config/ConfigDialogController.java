@@ -24,8 +24,6 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.Messages;
-import org.phoebus.applications.alarm.ui.tree.TitleDetailDelayTable;
-import org.phoebus.applications.alarm.ui.tree.TitleDetailTable;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.util.time.TimeParser;
 

@@ -56,6 +56,10 @@ public class TitleDetailToolbarController {
         titleDetailTableController.handleDelete();
     }
 
+    /**
+     * Configures the button states based on the number of selected items in the {@link javafx.scene.control.TableView}.
+     * @param numberOfSelectedItems
+     */
     public void setButtonStates(int numberOfSelectedItems){
         final boolean nothing = numberOfSelectedItems <= 0;
         upButton.setDisable(nothing);

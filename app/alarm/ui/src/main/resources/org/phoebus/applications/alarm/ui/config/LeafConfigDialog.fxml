@@ -20,16 +20,9 @@
             <ColumnConstraints hgrow="ALWAYS" />
         </columnConstraints>
 
-        <!-- ═══════════════════════════════════════════
-             Row 0 – Path  (read-only)
-             ═══════════════════════════════════════════ -->
+
         <Label text="%path" GridPane.columnIndex="0" GridPane.rowIndex="0" />
         <TextField fx:id="path" editable="false" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" />
-
-        <!-- ═══════════════════════════════════════════
-             Leaf-only section  (rows 1-6)
-             Visibility controlled by the controller.
-             ═══════════════════════════════════════════ -->
 
         <!-- Row 1 – Description -->
         <Label fx:id="descriptionLabel" text="%description" GridPane.columnIndex="0" GridPane.rowIndex="1" />
@@ -61,10 +54,7 @@
 
         <!-- Row 3 – Disable until (DateTimePicker + relative ComboBox) -->
         <Label fx:id="disableUntilLabel" text="%disableUntil" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-        <!--
-            DateTimePicker is a custom control; it is created/injected by the controller.
-            The HBox here acts as the container that the controller populates.
-        -->
+
         <HBox fx:id="untilBox" alignment="CENTER" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
 
             <DateTimePicker fx:id="enabledDatePicker" prefHeight="25" prefWidth="280">
@@ -81,10 +71,7 @@
 
         <!-- Row 4 – Alarm Delay -->
         <Label fx:id="delayLabel" text="%alarmDelay" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-        <!--
-            Spinner value factory (0..MAX_VALUE) is set in the controller.
-            The dynamic tooltip text is also set in the controller.
-        -->
+
         <Spinner fx:id="delay" editable="true" prefWidth="80" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
         <!-- Row 5 – Alarm Count -->
@@ -103,6 +90,7 @@
             </tooltip>
         </TextField>
 
+        <!-- Row 7 - table views for guidance, displays... -->
         <fx:include fx:id="optionsTablesView" source="OptionsTables.fxml" prefHeight="800" prefWidth="400" GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS"/>
 
         <rowConstraints>

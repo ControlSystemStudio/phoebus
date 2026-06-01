@@ -36,6 +36,10 @@ public class OptionsTablesController {
         this.item = item;
     }
 
+    /**
+     * Handles the dynamic aspects of the {@link TitleDetailTableController}s, i.e. sets a title
+     * and the {@link AlarmTreeItem} data.
+     */
     public void initialize(){
         guidanceViewController.setTitle(Messages.guidance);
         guidanceViewController.setItems(item.getGuidance());
@@ -47,18 +51,34 @@ public class OptionsTablesController {
         actionsViewController.setItems(item.getActions());
     }
 
+    /**
+     * 
+     * @return The guidance data managed by the user in the {@link javafx.scene.control.TableView}
+     */
     public List<TitleDetail> getGuidance(){
         return guidanceViewController.getItems().stream().map(i -> (TitleDetail)i).toList();
     }
 
+    /**
+     *
+     * @return The displays data managed by the user in the {@link javafx.scene.control.TableView}
+     */
     public List<TitleDetail> getDisplays(){
         return displaysViewController.getItems().stream().map(i -> (TitleDetail)i).toList();
     }
 
+    /**
+     *
+     * @return The commands data managed by the user in the {@link javafx.scene.control.TableView}
+     */
     public List<TitleDetail> getCommands(){
         return commandsViewController.getItems().stream().map(i -> (TitleDetail)i).toList();
     }
 
+    /**
+     *
+     * @return The automated actions data managed by the user in the {@link javafx.scene.control.TableView}
+     */
     public List<TitleDetailDelay> getActions(){
         return actionsViewController.getItems().stream().map(i -> (TitleDetailDelay)i).toList();
     }

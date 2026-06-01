@@ -58,18 +58,17 @@ public class TitleDetailTableController {
 
     private final ObservableList<TitleDetail> items = FXCollections.observableArrayList();
 
+    /**
+     * Performs initialization common for this controller and {@link TitleDetailDelayTableController}.
+     */
     public void initialize() {
 
         titleDetailToolbarViewController.setTitleDetailTableController(this);
-
-        table.setItems(items);
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         // Title column
         titleColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().title));
         titleColumn.setCellFactory(ValidatingTextFieldTableCell.forTableColumn(new DefaultStringConverter()));
-
-        configureColumns();
 
         final InvalidationListener item_selected = prop ->
                 titleDetailToolbarViewController.setButtonStates(table.getSelectionModel().getSelectedCells().size());
@@ -77,12 +76,16 @@ public class TitleDetailTableController {
         // Apply initial state
         item_selected.invalidated(null);
 
+        configure();
+
     }
 
     /**
-     * Configure table columns particular for this view.
+     * Configures view for class specific items.
      */
-    public void configureColumns(){
+    public void configure(){
+
+        table.setItems(items);
 
         titleColumn.setOnEditCommit(event ->
         {
@@ -129,7 +132,9 @@ public class TitleDetailTableController {
         return items;
     }
 
-
+    /**
+     * Adds a new row in the {@link TableView}
+     */
     public void handleAdd() {
         items.add(new TitleDetail("", ""));
 
@@ -144,6 +149,9 @@ public class TitleDetailTableController {
                 200, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Prepares selected table row for edit.
+     */
     public void handleEdit() {
         final int row = table.getSelectionModel().getSelectedIndex();
         if (row < 0)
@@ -157,6 +165,9 @@ public class TitleDetailTableController {
                 items.set(row, new TitleDetail(value.title, details)));
     }
 
+    /**
+     * Moves table row up
+     */
     public void handleUp() {
         final List<Integer> idx =
                 new ArrayList<>(table.getSelectionModel().getSelectedIndices());
@@ -175,6 +186,9 @@ public class TitleDetailTableController {
         }
     }
 
+    /**
+     * Moves table row down
+     */
     public void handleDown() {
         final List<Integer> idx =
                 new ArrayList<>(table.getSelectionModel().getSelectedIndices());
@@ -193,6 +207,9 @@ public class TitleDetailTableController {
         }
     }
 
+    /**
+     * Deletes a row from the {@link TableView}
+     */
     public void handleDelete() {
         final List<Integer> idx =
                 new ArrayList<>(table.getSelectionModel().getSelectedIndices());
@@ -202,6 +219,10 @@ public class TitleDetailTableController {
             items.remove(i);
     }
 
+    /**
+     * Sets the title for the section (guidance, displays...)
+     * @param title Localized string for the title.
+     */
     public void setTitle(String title) {
         titleLabel.setText(title);
     }

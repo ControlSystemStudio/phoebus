@@ -46,7 +46,7 @@ public class DateTimePicker extends DatePicker {
         alignColumnCountWithFormat();
         getEditor().setTextFormatter(new TextFormatter<>(new InternalConverter()));
 
-		// Syncronize changes to the underlying date value back to the dateTimeValue
+		// Synchronize changes to the underlying date value back to the dateTimeValue
 		valueProperty().addListener((observable, oldValue, newValue) -> {
 			if (newValue == null) {
 				dateTimeValue.set(null);
