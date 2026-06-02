@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -558,9 +559,21 @@ public class XMLPersistence
             writer.writeEndElement();
 
             // PVs (Formulas)
+            // All PVs must appear before formulas
             writer.writeStartElement(TAG_PVLIST);
-            for (ModelItem item : model.getItems())
-                item.write(writer);
+
+            List<PVItem> pvItems =
+                    model.getItems().stream().filter(i -> i instanceof PVItem).map(PVItem.class::cast).toList();
+            for(PVItem pvItem : pvItems){
+                pvItem.write(writer);
+            }
+
+            List<FormulaItem> formulaItems =
+                    model.getItems().stream().filter(i -> i instanceof FormulaItem).map(FormulaItem.class::cast).toList();
+            for(FormulaItem formulaItem : formulaItems){
+                formulaItem.write(writer);
+            }
+
             writer.writeEndElement();
         }
         writer.writeEndElement();
