@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -78,6 +79,10 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
         final List<String> new_headers = new ArrayList<>();
         for (ColumnProperty column : model_widget.propColumns().getValue())
             new_headers.add(column.name().getValue());
+
+        Optional<ColumnProperty> anyColumnEditable = model_widget.propColumns().getValue()
+                .stream().filter(columnProperty -> columnProperty.editable().getValue()).findFirst();
+        model_widget.propEditable().setValue(anyColumnEditable.isPresent());
         headers = new_headers;
         dirty_columns.mark();
         toolkit.scheduleUpdate(this);
@@ -169,6 +174,16 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
 
         model_widget.runtimeValue().addPropertyListener(valueListener);
         model_widget.runtimeCellColors().addPropertyListener(colorsListener);
+
+        model_widget.propEditable().addPropertyListener(new WidgetPropertyListener<Boolean>() {
+            @Override
+            public void propertyChanged(WidgetProperty<Boolean> property, Boolean old_value, Boolean new_value) {
+                if(!new_value){
+                    List<String> options = model_widget.getColumnOptions(0);
+                    System.out.println(options);
+                }
+            }
+        });
     }
 
     @Override
