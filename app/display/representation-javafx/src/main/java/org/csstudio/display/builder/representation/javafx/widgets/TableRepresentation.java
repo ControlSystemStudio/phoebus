@@ -53,6 +53,7 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
     private final WidgetPropertyListener<List<ColumnProperty>> columnsListener = this::columnsChanged;
     private final WidgetPropertyListener<Object> valueListener = this::valueChanged;
     private final WidgetPropertyListener<List<List<WidgetColor>>> colorsListener = this::cellColorsChanged;
+    private final WidgetPropertyListener<Boolean> tableEditableListener = this::tableEditableChanged;
 
     /** Most recent column headers */
     private volatile List<String> headers = Collections.emptyList();
@@ -69,7 +70,6 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
     private volatile boolean updating_table = false;
 
     /** Listener for any changes in any column
-     *
      *  Triggers update of headers and column configuration
      */
     private final UntypedWidgetPropertyListener column_listener = (WidgetProperty<?> property, Object old_value, Object new_value) ->
@@ -80,9 +80,11 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
         for (ColumnProperty column : model_widget.propColumns().getValue())
             new_headers.add(column.name().getValue());
 
+        // If all columns are marked as non-editable, then mark the entire table as non-editable
         Optional<ColumnProperty> anyColumnEditable = model_widget.propColumns().getValue()
                 .stream().filter(columnProperty -> columnProperty.editable().getValue()).findFirst();
         model_widget.propEditable().setValue(anyColumnEditable.isPresent());
+
         headers = new_headers;
         dirty_columns.mark();
         toolkit.scheduleUpdate(this);
@@ -168,22 +170,13 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
         model_widget.propToolbar().addUntypedPropertyListener(styleListener);
         model_widget.propRowSelectionMode().addUntypedPropertyListener(styleListener);
         model_widget.runtimePropSetSelection().addPropertyListener(selectionListener);
+        model_widget.propEditable().addPropertyListener(tableEditableListener);
 
         columnsChanged(model_widget.propColumns(), null, model_widget.propColumns().getValue());
         model_widget.propColumns().addPropertyListener(columnsListener);
 
         model_widget.runtimeValue().addPropertyListener(valueListener);
         model_widget.runtimeCellColors().addPropertyListener(colorsListener);
-
-        model_widget.propEditable().addPropertyListener(new WidgetPropertyListener<Boolean>() {
-            @Override
-            public void propertyChanged(WidgetProperty<Boolean> property, Boolean old_value, Boolean new_value) {
-                if(!new_value){
-                    List<String> options = model_widget.getColumnOptions(0);
-                    System.out.println(options);
-                }
-            }
-        });
     }
 
     @Override
@@ -197,6 +190,7 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
         model_widget.propToolbar().removePropertyListener(styleListener);
         model_widget.propRowSelectionMode().removePropertyListener(styleListener);
         model_widget.runtimePropSetSelection().removePropertyListener(selectionListener);
+        model_widget.propEditable().removePropertyListener(tableEditableListener);
 
         model_widget.propColumns().removePropertyListener(columnsListener);
         columnsChanged(model_widget.propColumns(), model_widget.propColumns().getValue(), null);
@@ -385,5 +379,19 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
             jfx_node.setCellColors(cell_colors);
         if (dirty_set_selection.checkAndClear())
             jfx_node.setSelection(model_widget.runtimePropSetSelection().getValue());
+    }
+
+    /**
+     * Listener for the Enabled property of the table widget. If user chooses to make the table non-editable,
+     * then all columns should be marked as non-editable.
+     * @param property {@link WidgetProperty} for the table
+     * @param oldValue Previous value
+     * @param newValue New value
+     */
+    private void tableEditableChanged(final WidgetProperty<Boolean> property, final Boolean oldValue, final Boolean newValue ){
+        if(!newValue){
+            model_widget.propColumns().getValue().forEach(column ->
+                column.editable().setValue(false));
+        }
     }
 }
