@@ -4,6 +4,9 @@ Formulas
 Several types of formulas are supported.
 A prefix of the form "=xx(..)" is typically used to select the formula.
 
+Note that formulas are not supported in widget actions nor as part of the
+``-resource`` command line argument.
+
 
 Operators
 ---------
