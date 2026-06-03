@@ -127,6 +127,14 @@ A special case is the root node as it has a fixed unique id:
 
 **.../node/44bef5de-e8e6-4014-af37-b8f6c8a939a2**
 
+The root node may also be retrieved using:
+
+**.../root**
+
+or
+
+**.../node/root***
+
 Retrieve multiple nodes
 """""""""""""""""""""""
 Method: GET
@@ -264,6 +272,10 @@ The a list of all the children nodes of the node with id `{uniqueNodeId}`
             "tags": []
         }
     ]
+
+One may retrieve the child nodes of the root node using:
+
+**.../node/root/children**
 
 .. _Get a configuration:
 
