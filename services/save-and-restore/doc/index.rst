@@ -910,15 +910,15 @@ the list is empty, all PVs in the snapshot were restored correctly.
         }
     ]
 
-Restore from snapshot node
-""""""""""""""""""""""""""
+Restore from snapshot or composite snapshot node
+""""""""""""""""""""""""""""""""""""""""""""""""
 
-**.../restore/node?nodeId=<snapshot node id>**
+**.../restore/node?nodeId=<node id>**
 
 Method: POST
 
 This is the same as the endpoint to restore from snapshot items, however it uses snapshot items
-from an existing node rather than providing them explicitly. It returns the same result.
+from an existing snapshot node or composite snapshot rather than providing them explicitly. It returns the same result.
 
 Compare Endpoint
 ----------------
