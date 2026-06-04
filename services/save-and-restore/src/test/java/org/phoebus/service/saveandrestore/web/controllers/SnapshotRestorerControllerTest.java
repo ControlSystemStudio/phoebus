@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
@@ -64,7 +65,7 @@ public class SnapshotRestorerControllerTest {
         item.setConfigPv(configPv);
         snapshotData.setSnapshotItems(List.of(item));
 
-        when(nodeDAO.getNode("uniqueId")).thenReturn(Node.builder().name("name").uniqueId("uniqueId").build());
+        when(nodeDAO.getNode("uniqueId")).thenReturn(Node.builder().name("name").nodeType(NodeType.SNAPSHOT).uniqueId("uniqueId").build());
         when(nodeDAO.getSnapshotData("uniqueId")).thenReturn(snapshotData);
 
         MockHttpServletRequestBuilder request = post("/restore/node?nodeId=uniqueId")
@@ -78,6 +79,39 @@ public class SnapshotRestorerControllerTest {
                 result.getResponse().getContentAsString(),
                 new TypeReference<List<RestoreResult>>() {
                 });
+    }
+
+    @Test
+    public void testRestoreFromCompositeSnapshotNode() throws Exception {
+
+        SnapshotItem item = new SnapshotItem();
+        ConfigPv configPv = new ConfigPv();
+        configPv.setPvName("loc://x");
+        item.setValue(VFloat.of(1.0, Alarm.none(), Time.now(), Display.none()));
+        item.setConfigPv(configPv);
+
+        when(nodeDAO.getNode("uniqueId")).thenReturn(Node.builder().name("name").nodeType(NodeType.COMPOSITE_SNAPSHOT).uniqueId("uniqueId").build());
+        when(nodeDAO.getSnapshotItemsFromCompositeSnapshot("uniqueId")).thenReturn(List.of(item));
+
+        MockHttpServletRequestBuilder request = post("/restore/node?nodeId=uniqueId")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization);
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
+                .andReturn();
+
+        // Make sure response is in the Restore Result json format
+        objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                new TypeReference<List<RestoreResult>>() {
+                });
+    }
+
+    @Test
+    public void testRestoreFromInvalidNodeType() throws Exception {
+        when(nodeDAO.getNode("uniqueId")).thenReturn(Node.builder().name("name").uniqueId("uniqueId").build());
+        MockHttpServletRequestBuilder request = post("/restore/node?nodeId=uniqueId")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization);
+        mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
     @Test

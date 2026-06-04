@@ -1,30 +1,15 @@
 /**
- * Copyright (C) 2018 European Spallation Source ERIC.
- * <p>
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * <p>
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * <p>
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2026 European Spallation Source ERIC.
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,19 +34,40 @@ public class SnapshotRestoreController extends BaseController {
 
     private static final Logger LOG = Logger.getLogger(SnapshotRestoreController.class.getName());
 
+    /**
+     * Restores a snapshot or composite snapshot
+     *
+     * @param snapshotItems List of {@link SnapshotItem}s subject to a restore operation. Callee will need to
+     *                      retrieve this list from a snapshot or composite snapshot.
+     * @return The result of the operation
+     */
     @PostMapping(value = "/restore/items", produces = JSON)
     public List<RestoreResult> restoreFromSnapshotItems(
             @RequestBody List<SnapshotItem> snapshotItems) {
         return snapshotUtil.restore(snapshotItems, connectionTimeout);
     }
 
+    /**
+     * Restores a snapshot or composite snapshot
+     *
+     * @param nodeId Unique id of a snapshot or composite snapshot
+     * @return The result of the operation
+     */
     @PostMapping(value = "/restore/node", produces = JSON)
     public List<RestoreResult> restoreFromSnapshotNode(
-            @RequestParam(value = "nodeId") String nodeId){
+            @RequestParam(value = "nodeId") String nodeId) {
         Node snapshotNode = nodeDAO.getNode(nodeId);
         LOG.log(Level.INFO, "Restore requested for snapshot '" + snapshotNode.getName() + "'");
-        var snapshot = nodeDAO.getSnapshotData(nodeId);
-        return snapshotUtil.restore(snapshot.getSnapshotItems(), connectionTimeout);
+        List<SnapshotItem> snapshotItems;
+        if (snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
+            snapshotItems = nodeDAO.getSnapshotData(nodeId).getSnapshotItems();
+        } else if(snapshotNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+            snapshotItems = nodeDAO.getSnapshotItemsFromCompositeSnapshot(nodeId);
+        }
+        else{
+            throw new IllegalArgumentException("Node " + snapshotNode + " is not a snapshot or composite snapshot");
+        }
+        return snapshotUtil.restore(snapshotItems, connectionTimeout);
     }
 }
 
