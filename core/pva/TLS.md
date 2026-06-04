@@ -28,56 +28,60 @@ certificates for servers (IOCs) and clients (users running CS-Studio
 as well as IOCs reading from other IOCs).
 This is an example recipe for getting started.
 
-1) Build EPICS base and PVXS as described on
+1) For a good overview on building EPICS base and PVXS see
    https://george-mcintyre.github.io/pvxs/spvaqstart.html
+
+   At the time of this writing, the most recent tagged versions
+   can be found in https://github.com/slac-epics/pvxs-tls
+   and https://github.com/slac-epics/pvxs-cms
 
 2) Start `pvacms -v`. It will create several files, including
 
- * `~/.config/pva/1.3/admin.p12`: Certificate for the `admin` user
+   * `~/.config/pva/1.5/admin.p12`: Certificate for the `admin` user
 
 3) For an IOC, request a hybrid server and client certificate.
    Note its "Certificate identifier":
 
    ```
    $ authnstd -v --name ioc --cert-usage ioc
-   Keychain file created   : /home/user/.config/pva/1.3/server.p12
+   Keychain file created   : /home/user/.config/pva/1.5/server.p12
    Certificate identifier  : e53ed409:15273288300286014953
    ```
 
    As `admin`, accept that certificate:
 
    ```
-   $ EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/admin.p12  \
+   $ EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.5/admin.p12  \
      pvxcert --approve e53ed409:15273288300286014953
    Approve ==> CERT:STATUS:e53ed409:15273288300286014953 ==> Completed Successfully
    ```
 
- * `~/.config/pva/1.3/server.p12`: Our server certificate (hybrid, for IOC)
+   * `~/.config/pva/1.5/server.p12`: Our server certificate (hybrid, for IOC)
 
 4) Request a client certificate, note its identifier:
 
    ```
    $ authnstd -v
-   Keychain file created   : /home/user/.config/pva/1.3/client.p12
+   Keychain file created   : /home/user/.config/pva/1.5/client.p12
    Certificate identifier  : e53ed409:11521018863975115478
    ```
 
    Accept that certificate:
 
    ```
-   $ EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/admin.p12  \
+   $ EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.5/admin.p12  \
      pvxcert --approve  e53ed409:11521018863975115478
    Approve ==> CERT:STATUS:e53ed409:11521018863975115478 ==> Completed Successfully
    ```
 
- * `~/.config/pva/1.3/client.p12`: Our client (user) certificate
+   * `~/.config/pva/1.5/client.p12`: Our client (user) certificate
 
 
 You now have a server and a client certificate.
 Example for checking the status:
 
 ```
-$ pvxcert -f ~/.config/pva/1.3/client.p12
+$ pvxcert -f ~/.config/pva/1.5/client.p12
 ...
 Subject        : CN=fred, C=US, O=host.site.org
 ...
@@ -91,7 +95,7 @@ Status         : VALID
 To list certificate details:
 
 ```
-keytool -list -v -keystore ~/.config/pva/1.3/client.p12 -storepass ""
+keytool -list -v -keystore ~/.config/pva/1.5/client.p12 -storepass ""
 ```
 
 Following the `pvacms` and `authnstd` messages, you will notice that secure PVA
@@ -114,7 +118,7 @@ Secure IOC
 Example for running a secure IOC:
 
 ```
-$ EPICS_PVAS_TLS_KEYCHAIN=~/.config/pva/1.3/server.p12  \
+$ EPICS_PVAS_TLS_KEYCHAIN=~/.config/pva/1.5/server.p12  \
   softIocPVX -m user=fred -d pvxs/test/testioc.db
 ```
 
@@ -128,14 +132,14 @@ Secure Java PVA Client
 Example for running Java PVA client command line tool:
 
 ```
-$ export EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/client.p12
+$ export EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.5/client.p12
 $ pvaclient monitor -v 5 fred:aiExample
 ```
 
 Example for running CS-Studio:
 
 ```
-$ export EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.3/client.p12
+$ export EPICS_PVA_TLS_KEYCHAIN=~/.config/pva/1.5/client.p12
 $ phoebus.sh
 ```
 
