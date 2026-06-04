@@ -810,4 +810,23 @@ public class NodeControllerTest {
         mockMvc.perform(request).andExpect(status().isOk());
 
     }
+
+    @Test
+    public void testGetRootNode() throws Exception {
+        when(nodeDAO.getRootNode()).thenReturn(Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).build());
+        MockHttpServletRequestBuilder request = get("/root");
+        MvcResult mvcResult = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        Node node = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Node.class);
+        assertEquals(Node.ROOT_FOLDER_UNIQUE_ID, node.getUniqueId());
+    }
+
+    @Test
+    public void testRootNodeChildNodes() throws Exception {
+        when(nodeDAO.getChildNodes("root")).thenReturn(List.of(Node.builder().uniqueId("foo").build()));
+        MockHttpServletRequestBuilder request = get("/node/root/children");
+        MvcResult mvcResult = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
+        List<Node> nodes = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        });
+        assertEquals(1, nodes.size());
+    }
 }

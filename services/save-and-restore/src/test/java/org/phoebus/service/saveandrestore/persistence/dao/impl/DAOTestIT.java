@@ -719,7 +719,25 @@ public class DAOTestIT {
 
         List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
         assertTrue(nodeDAO.getChildNodes(folder1.getUniqueId()).isEmpty());
+    }
 
+    @Test
+    public void testGetChildNodesFromRoot() {
+        Node rootNode = nodeDAO.getRootNode();
+
+        Node folder1 = Node.builder().name("SomeFolder").build();
+
+        // Create folder1 in the root folder
+        folder1 = nodeDAO.createNode(rootNode.getUniqueId(), folder1);
+
+        List<Node> childNodes = nodeDAO.getChildNodes("root");
+        assertTrue(nodeDAO.getChildNodes(folder1.getUniqueId()).isEmpty());
+    }
+
+    @Test
+    public void testGetRootNode() {
+        Node rootNode = nodeDAO.getNode("root");
+        assertEquals(Node.ROOT_FOLDER_UNIQUE_ID, rootNode.getUniqueId());
     }
 
     @Test

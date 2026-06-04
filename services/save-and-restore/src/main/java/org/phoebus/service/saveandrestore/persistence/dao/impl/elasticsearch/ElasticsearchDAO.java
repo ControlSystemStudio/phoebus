@@ -95,6 +95,9 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public List<Node> getChildNodes(String uniqueNodeId) {
+        if("root".equals(uniqueNodeId)) {
+            uniqueNodeId = ROOT_FOLDER_UNIQUE_ID;
+        }
         Optional<ESTreeNode> elasticsearchNode =
                 elasticsearchTreeRepository.findById(uniqueNodeId);
         if (elasticsearchNode.isEmpty()) {
@@ -111,6 +114,9 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public Node getNode(String uniqueNodeId) {
+        if("root".equals(uniqueNodeId)) {
+            uniqueNodeId = ROOT_FOLDER_UNIQUE_ID;
+        }
         Optional<ESTreeNode> optional =
                 elasticsearchTreeRepository.findById(uniqueNodeId);
         if (optional.isEmpty()) {

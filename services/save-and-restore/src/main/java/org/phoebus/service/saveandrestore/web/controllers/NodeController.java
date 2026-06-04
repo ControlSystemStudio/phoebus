@@ -99,6 +99,9 @@ public class NodeController extends BaseController {
     @SuppressWarnings("unused")
     @GetMapping(value = "/node/{uniqueNodeId}", produces = JSON)
     public Node getNode(@PathVariable final String uniqueNodeId) {
+        if("root".equals(uniqueNodeId)) {
+            return nodeDAO.getRootNode();
+        }
         return nodeDAO.getNode(uniqueNodeId);
     }
 
@@ -158,7 +161,7 @@ public class NodeController extends BaseController {
     public void deleteNodes(@RequestBody List<String> nodeIds) {
         nodeDAO.deleteNodes(nodeIds);
         nodeIds.forEach(id ->
-                webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, id)));
+                webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_REMOVED, id)));
     }
 
     /**
@@ -220,8 +223,17 @@ public class NodeController extends BaseController {
         }
         nodeToUpdate.setUserName(principal.getName());
         Node updatedNode = nodeDAO.updateNode(nodeToUpdate, Boolean.parseBoolean(customTimeForMigration));
-        webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_UPDATED, updatedNode));
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_UPDATED, updatedNode));
         return updatedNode;
+    }
+
+    /**
+     * Endpoint for the sake of convenience, i.e. client need not know the unique id of the root {@link Node}
+     * @return The root {@link Node}
+     */
+    @GetMapping("/root")
+    public Node getRoot() {
+        return nodeDAO.getRootNode();
     }
 
     /**
@@ -235,11 +247,7 @@ public class NodeController extends BaseController {
             return true;
         }
 
-        if (!node.getNodeType().equals(NodeType.SNAPSHOT) &&
-                node.getTags().stream().anyMatch(t -> t.getName().equalsIgnoreCase(Tag.GOLDEN))) {
-            return false;
-        }
-
-        return true;
+        return node.getNodeType().equals(NodeType.SNAPSHOT) ||
+                node.getTags().stream().noneMatch(t -> t.getName().equalsIgnoreCase(Tag.GOLDEN));
     }
 }
