@@ -7,23 +7,10 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.persistence;
 
-import static org.csstudio.trends.databrowser3.Activator.logger;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.time.Duration;
-import java.time.temporal.TemporalAmount;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamWriter;
-
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import org.csstudio.trends.databrowser3.model.AnnotationInfo;
 import org.csstudio.trends.databrowser3.model.ArchiveRescale;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -41,113 +28,129 @@ import org.phoebus.util.time.TimestampFormats;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.time.Duration;
+import java.time.temporal.TemporalAmount;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
 
-/** Load and save {@link Model} as XML file
+import static org.csstudio.trends.databrowser3.Activator.logger;
+
+/**
+ * Load and save {@link Model} as XML file
  *
- *  <p>Attempts to load files going back to very early versions
- *  of the Data Browser
+ * <p>Attempts to load files going back to very early versions
+ * of the Data Browser
  *
- *  @author Kay Kasemir
+ * @author Georg Weiss
  */
 @SuppressWarnings("nls")
-public class XMLPersistence
-{
-    /** Default font settings */
+public class XMLPersistence {
+    /**
+     * Default font settings
+     */
     public static final String DEFAULT_FONT_FAMILY = "Liberation Sans";
-    /** Default font settings */
+    /**
+     * Default font settings
+     */
     public static final double DEFAULT_FONT_SIZE = 10;
 
-    /** XML file tags */
+    /**
+     * XML file tags
+     */
     final public static String TAG_DATABROWSER = "databrowser",
 
-                               TAG_TITLE = "title",
-                               TAG_SAVE_CHANGES = "save_changes",
-                               TAG_GRID = "grid",
-                               TAG_SCROLL = "scroll",
-                               TAG_UPDATE_PERIOD = "update_period",
-                               TAG_SCROLL_STEP = "scroll_step",
-                               TAG_START = "start",
-                               TAG_END = "end",
-                               TAG_ARCHIVE_RESCALE = "archive_rescale",
-                               TAG_FOREGROUND = "foreground",
-                               TAG_BACKGROUND = "background",
-                               TAG_TITLE_FONT = "title_font",
-                               TAG_LABEL_FONT = "label_font",
-                               TAG_SCALE_FONT = "scale_font",
-                               TAG_LEGEND_FONT = "legend_font",
-                               TAG_AXES = "axes",
-                               TAG_ANNOTATIONS = "annotations",
-                               TAG_PVLIST = "pvlist",
+    TAG_TITLE = "title",
+            TAG_SAVE_CHANGES = "save_changes",
+            TAG_GRID = "grid",
+            TAG_SCROLL = "scroll",
+            TAG_UPDATE_PERIOD = "update_period",
+            TAG_SCROLL_STEP = "scroll_step",
+            TAG_START = "start",
+            TAG_END = "end",
+            TAG_ARCHIVE_RESCALE = "archive_rescale",
+            TAG_FOREGROUND = "foreground",
+            TAG_BACKGROUND = "background",
+            TAG_TITLE_FONT = "title_font",
+            TAG_LABEL_FONT = "label_font",
+            TAG_SCALE_FONT = "scale_font",
+            TAG_LEGEND_FONT = "legend_font",
+            TAG_AXES = "axes",
+            TAG_ANNOTATIONS = "annotations",
+            TAG_PVLIST = "pvlist",
 
-                               TAG_SHOW_TOOLBAR = "show_toolbar",
-                               TAG_SHOW_LEGEND = "show_legend",
+    TAG_SHOW_TOOLBAR = "show_toolbar",
+            TAG_SHOW_LEGEND = "show_legend",
 
-                               TAG_COLOR = "color",
-                               TAG_RED = "red",
-                               TAG_GREEN = "green",
-                               TAG_BLUE = "blue",
+    TAG_COLOR = "color",
+            TAG_RED = "red",
+            TAG_GREEN = "green",
+            TAG_BLUE = "blue",
 
-                               TAG_AXIS = "axis",
-                               TAG_VISIBLE = "visible",
-                               TAG_NAME = "name",
-                               TAG_USE_AXIS_NAME = "use_axis_name",
-                               TAG_USE_TRACE_NAMES = "use_trace_names",
-                               TAG_RIGHT = "right",
-                               TAG_MAX = "max",
-                               TAG_MIN = "min",
-                               TAG_AUTO_SCALE = "autoscale",
-                               TAG_LOG_SCALE = "log_scale",
+    TAG_AXIS = "axis",
+            TAG_VISIBLE = "visible",
+            TAG_NAME = "name",
+            TAG_USE_AXIS_NAME = "use_axis_name",
+            TAG_USE_TRACE_NAMES = "use_trace_names",
+            TAG_RIGHT = "right",
+            TAG_MAX = "max",
+            TAG_MIN = "min",
+            TAG_AUTO_SCALE = "autoscale",
+            TAG_LOG_SCALE = "log_scale",
 
-                               TAG_ANNOTATION = "annotation",
-                               TAG_PV = "pv",
-                               TAG_TIME = "time",
-                               TAG_VALUE = "value",
-                               TAG_OFFSET = "offset",
-                               TAG_TEXT = "text",
+    TAG_ANNOTATION = "annotation",
+            TAG_PV = "pv",
+            TAG_TIME = "time",
+            TAG_VALUE = "value",
+            TAG_OFFSET = "offset",
+            TAG_TEXT = "text",
 
-                               TAG_X = "x",
-                               TAG_Y = "y",
+    TAG_X = "x",
+            TAG_Y = "y",
 
-                               TAG_DISPLAYNAME = "display_name",
-                               TAG_TRACE_TYPE = "trace_type",
-                               TAG_LINE_STYLE = "line_style",
-                               TAG_LINEWIDTH = "linewidth",
-                               TAG_POINT_TYPE = "point_type",
-                               TAG_POINT_SIZE = "point_size",
-                               TAG_WAVEFORM_INDEX = "waveform_index",
-                               TAG_SCAN_PERIOD = "period",
-                               TAG_LIVE_SAMPLE_BUFFER_SIZE = "ring_size",
-                               TAG_REQUEST = "request",
-                               TAG_ARCHIVE = "archive",
+    TAG_DISPLAYNAME = "display_name",
+            TAG_TRACE_TYPE = "trace_type",
+            TAG_LINE_STYLE = "line_style",
+            TAG_LINEWIDTH = "linewidth",
+            TAG_POINT_TYPE = "point_type",
+            TAG_POINT_SIZE = "point_size",
+            TAG_WAVEFORM_INDEX = "waveform_index",
+            TAG_SCAN_PERIOD = "period",
+            TAG_LIVE_SAMPLE_BUFFER_SIZE = "ring_size",
+            TAG_REQUEST = "request",
+            TAG_ARCHIVE = "archive",
 
-                               TAG_URL = "url",
+    TAG_URL = "url",
 
-                               TAG_FORMULA = "formula",
-                               TAG_INPUT = "input",
+    TAG_FORMULA = "formula",
+            TAG_INPUT = "input",
 
-                               TAG_KEY = "key";
+    TAG_KEY = "key";
 
     final private static String TAG_OLD_XYGRAPH_SETTINGS = "xyGraphSettings";
 
 
-    /** @param model Model to load
-     *  @param stream XML stream
-     *  @throws Exception on error
+    /**
+     * @param model  Model to load
+     * @param stream XML stream
+     * @throws Exception on error
      */
-    public static void load(final Model model, final InputStream stream) throws Exception
-    {
+    public static void load(final Model model, final InputStream stream) throws Exception {
         final DocumentBuilder docBuilder =
                 DocumentBuilderFactory.newInstance().newDocumentBuilder();
         final Document doc = docBuilder.parse(stream);
         load(model, doc);
     }
 
-    private static void load(final Model model, final Document doc) throws Exception
-    {
+    private static void load(final Model model, final Document doc) throws Exception {
         if (model.getItems().size() > 0)
             throw new RuntimeException("Model was already in use");
 
@@ -164,44 +167,34 @@ public class XMLPersistence
 
         XMLUtil.getChildDouble(root_node, TAG_UPDATE_PERIOD).ifPresent(model::setUpdatePeriod);
 
-        try
-        {
-            model.setScrollStep( Duration.ofSeconds(
+        try {
+            model.setScrollStep(Duration.ofSeconds(
                     XMLUtil.getChildInteger(root_node, TAG_SCROLL_STEP).orElse((int) Preferences.scroll_step.getSeconds())));
-        }
-        catch (Throwable ex)
-        {
+        } catch (Throwable ex) {
             // Ignore
         }
 
         final String start = model.resolveMacros(XMLUtil.getChildString(root_node, TAG_START).orElse(""));
         final String end = model.resolveMacros(XMLUtil.getChildString(root_node, TAG_END).orElse(""));
-        if (start.length() > 0  &&  end.length() > 0)
-        {
+        if (start.length() > 0 && end.length() > 0) {
             final boolean scroll = XMLUtil.getChildBoolean(root_node, TAG_SCROLL).orElse(true);
             final TimeRelativeInterval interval;
-            if (scroll)
-            {   // Relative start time .. now
+            if (scroll) {   // Relative start time .. now
                 final TemporalAmount span = TimeWarp.parseLegacy(start);
                 if (Duration.ZERO.equals(span))
                     interval = TimeRelativeInterval.of(Preferences.time_span, Duration.ZERO);
                 else
                     interval = TimeRelativeInterval.startsAt(span);
-            }
-            else
-            {   // Absolute start ... end
+            } else {   // Absolute start ... end
                 interval = TimeRelativeInterval.of(TimestampFormats.parse(patchLegacyAbsTime(start)), TimestampFormats.parse(patchLegacyAbsTime(end)));
             }
             model.setTimerange(interval);
         }
 
         final String rescale = XMLUtil.getChildString(root_node, TAG_ARCHIVE_RESCALE).orElse(ArchiveRescale.STAGGER.name());
-        try
-        {
+        try {
             model.setArchiveRescale(ArchiveRescale.valueOf(rescale));
-        }
-        catch (Throwable ex)
-        {
+        } catch (Throwable ex) {
             // Ignore
         }
 
@@ -210,28 +203,20 @@ public class XMLPersistence
 
         // Value Axes
         final Element axes = XMLUtil.getChildElement(root_node, TAG_AXES);
-        if (axes != null)
-        {
+        if (axes != null) {
             for (Element item : XMLUtil.getChildElements(axes, TAG_AXIS))
                 model.addAxis(AxisConfig.fromDocument(item));
-        }
-        else
-        {   // Check for legacy <xyGraphSettings> <axisSettingsList>
+        } else {   // Check for legacy <xyGraphSettings> <axisSettingsList>
             final Element list = XMLUtil.getChildElement(root_node, TAG_OLD_XYGRAPH_SETTINGS);
-            if (list != null)
-            {
+            if (list != null) {
                 loadColorFromDocument(list, "plotAreaBackColor").ifPresent(model::setPlotBackground);
 
                 boolean first_axis = true;
-                for (Element item : XMLUtil.getChildElements(list, "axisSettingsList"))
-                {
-                    if (first_axis)
-                    {   // First axis is 'X'
+                for (Element item : XMLUtil.getChildElements(list, "axisSettingsList")) {
+                    if (first_axis) {   // First axis is 'X'
                         XMLUtil.getChildBoolean(item, "showMajorGrid").ifPresent(model::setGridVisible);
                         first_axis = false;
-                    }
-                    else
-                    {   // Read 'Y' axes
+                    } else {   // Read 'Y' axes
                         final String name = XMLUtil.getChildString(item, "title").orElse(null);
                         final AxisConfig axis = new AxisConfig(name);
                         loadColorFromDocument(item, "foregroundColor").ifPresent(axis::setColor);
@@ -241,8 +226,7 @@ public class XMLPersistence
                         XMLUtil.getChildBoolean(item, "autoScale").ifPresent(axis::setAutoScale);
 
                         final Element range = XMLUtil.getChildElement(item, "range");
-                        if (range != null)
-                        {
+                        if (range != null) {
                             final double min = XMLUtil.getChildDouble(range, "lower").orElse(axis.getMin());
                             final double max = XMLUtil.getChildDouble(range, "upper").orElse(axis.getMax());
                             axis.setRange(min, max);
@@ -267,17 +251,12 @@ public class XMLPersistence
 
         // Load Annotations
         Element list = XMLUtil.getChildElement(root_node, TAG_ANNOTATIONS);
-        if (list != null)
-        {
+        if (list != null) {
             final List<AnnotationInfo> annotations = new ArrayList<>();
-            for (Element item : XMLUtil.getChildElements(list, TAG_ANNOTATION))
-            {
-                try
-                {
+            for (Element item : XMLUtil.getChildElements(list, TAG_ANNOTATION)) {
+                try {
                     annotations.add(AnnotationInfo.fromDocument(item));
-                }
-                catch (Throwable ex)
-                {
+                } catch (Throwable ex) {
                     logger.log(Level.INFO, "XML error in Annotation", ex);
                 }
             }
@@ -286,19 +265,15 @@ public class XMLPersistence
 
         // Load PVs/Formulas
         list = XMLUtil.getChildElement(root_node, TAG_PVLIST);
-        if (list != null)
-        {
+        if (list != null) {
             // Iterate over all elements, then check for PV or FORMULA to preserve order.
             // Iterating over all PVs first, then FORMULAs would change their order.
-            for (Element item : XMLUtil.getChildElements(list))
-            {
-                if (item.getNodeName().equals(TAG_PV))
-                {
+            for (Element item : XMLUtil.getChildElements(list)) {
+                if (item.getNodeName().equals(TAG_PV)) {
                     // Load PV item
                     final PVItem model_item = PVItem.fromDocument(model, item);
 
-                    if (model_item.getName().isBlank())
-                    {
+                    if (model_item.getName().isBlank()) {
                         // Items need a PV name.
                         // Patch missing name, don't remove item in case following formulas
                         // use "x5" with this PV's index
@@ -313,26 +288,24 @@ public class XMLPersistence
                     final AxisConfig axis = model_item.getAxis();
 
                     XMLUtil.getChildBoolean(item, TAG_AUTO_SCALE).ifPresent(
-                        auto ->
-                        {
-                            if (auto)
-                                axis.setAutoScale(true);
-                        });
+                            auto ->
+                            {
+                                if (auto)
+                                    axis.setAutoScale(true);
+                            });
 
                     XMLUtil.getChildBoolean(item, TAG_LOG_SCALE).ifPresent(
-                        log ->
-                        {
-                            if (log)
-                                axis.setLogScale(true);
-                        });
+                            log ->
+                            {
+                                if (log)
+                                    axis.setLogScale(true);
+                            });
 
                     final Optional<Double> min = XMLUtil.getChildDouble(item, TAG_MIN);
                     final Optional<Double> max = XMLUtil.getChildDouble(item, TAG_MAX);
-                    if (min.isPresent()  &&  max.isPresent())
+                    if (min.isPresent() && max.isPresent())
                         axis.setRange(min.get(), max.get());
-                }
-                else if (item.getNodeName().equals(TAG_FORMULA))
-                {
+                } else if (item.getNodeName().equals(TAG_FORMULA)) {
                     // Load Formulas
                     model.addItem(FormulaItem.fromDocument(model, item));
                 }
@@ -341,13 +314,11 @@ public class XMLPersistence
 
         // Update items from legacy <xyGraphSettings>
         list = XMLUtil.getChildElement(root_node, TAG_OLD_XYGRAPH_SETTINGS);
-        if (list != null)
-        {
+        if (list != null) {
             XMLUtil.getChildString(list, TAG_TITLE).ifPresent(model::setTitle);
             final Iterator<ModelItem> model_items = model.getItems().iterator();
-            for (Element item : XMLUtil.getChildElements(list, "traceSettingsList"))
-            {
-                if (! model_items.hasNext())
+            for (Element item : XMLUtil.getChildElements(list, "traceSettingsList")) {
+                if (!model_items.hasNext())
                     break;
                 final ModelItem pv = model_items.next();
                 loadColorFromDocument(item, "traceColor").ifPresent(value -> pv.setColor(value));
@@ -357,33 +328,34 @@ public class XMLPersistence
         }
     }
 
-    private static String patchLegacyAbsTime(final String spec)
-    {
+    private static String patchLegacyAbsTime(final String spec) {
         // Older absolute time spec used "yyyy/mm/dd ...",
         // which now must be "yyyy-mm-dd ...",
-        if (spec.length() > 10  && spec.charAt(4)=='/'  &&  spec.charAt(7) =='/')
+        if (spec.length() > 10 && spec.charAt(4) == '/' && spec.charAt(7) == '/')
             return spec.replace('/', '-');
         return spec;
     }
 
-    /** Load RGB color from XML document
-     *  @param node Parent node of the color
-     *  @return {@link Color}
-     *  @throws Exception on error
+    /**
+     * Load RGB color from XML document
+     *
+     * @param node Parent node of the color
+     * @return {@link Color}
+     * @throws Exception on error
      */
-    public static Optional<Color> loadColorFromDocument(final Element node) throws Exception
-    {
+    public static Optional<Color> loadColorFromDocument(final Element node) throws Exception {
         return loadColorFromDocument(node, TAG_COLOR);
     }
 
-    /** Load RGB color from XML document
-     *  @param node Parent node of the color
-     *  @param color_tag Name of tag that contains the color
-     *  @return {@link Color}
-     *  @throws Exception on error
+    /**
+     * Load RGB color from XML document
+     *
+     * @param node      Parent node of the color
+     * @param color_tag Name of tag that contains the color
+     * @return {@link Color}
+     * @throws Exception on error
      */
-    public static Optional<Color> loadColorFromDocument(final Element node, final String color_tag) throws Exception
-    {
+    public static Optional<Color> loadColorFromDocument(final Element node, final String color_tag) throws Exception {
         if (node == null)
             return Optional.of(Color.BLACK);
         final Element color = XMLUtil.getChildElement(node, color_tag);
@@ -395,13 +367,14 @@ public class XMLPersistence
         return Optional.of(Color.rgb(red, green, blue));
     }
 
-    /** Load font from XML document
-     *  @param node Parent node of the color
-     *  @param font_tag Name of tag that contains the font
-     *  @return {@link Font}
+    /**
+     * Load font from XML document
+     *
+     * @param node     Parent node of the color
+     * @param font_tag Name of tag that contains the font
+     * @return {@link Font}
      */
-    public static Optional<Font> loadFontFromDocument(final Element node, final String font_tag)
-    {
+    public static Optional<Font> loadFontFromDocument(final Element node, final String font_tag) {
         final String desc = XMLUtil.getChildString(node, font_tag).orElse("");
         if (desc.isEmpty())
             return Optional.empty();
@@ -413,35 +386,32 @@ public class XMLPersistence
 
         // Legacy format was "Liberation Sans|20|1"
         final String[] items = desc.split("\\|");
-        if (items.length == 3)
-        {
+        if (items.length == 3) {
             family = items[0];
             size = Double.parseDouble(items[1]);
-            switch (items[2])
-            {
-            case "1": // SWT.BOLD
-                weight = FontWeight.BOLD;
-                break;
-            case "2": // SWT.ITALIC
-                posture = FontPosture.ITALIC;
-                break;
-            case "3": // SWT.BOLD | SWT.ITALIC
-                weight = FontWeight.BOLD;
-                posture = FontPosture.ITALIC;
-                break;
+            switch (items[2]) {
+                case "1": // SWT.BOLD
+                    weight = FontWeight.BOLD;
+                    break;
+                case "2": // SWT.ITALIC
+                    posture = FontPosture.ITALIC;
+                    break;
+                case "3": // SWT.BOLD | SWT.ITALIC
+                    weight = FontWeight.BOLD;
+                    posture = FontPosture.ITALIC;
+                    break;
             }
         }
-        return Optional.of(Font.font(family, weight, posture, size ));
+        return Optional.of(Font.font(family, weight, posture, size));
     }
 
-    private static void writeFont(XMLStreamWriter writer, final String tag_name, final Font font) throws Exception
-    {
+    private static void writeFont(XMLStreamWriter writer, final String tag_name, final Font font) throws Exception {
         writer.writeStartElement(tag_name);
         final StringBuilder buf = new StringBuilder();
         buf.append(font.getFamily())
-           .append('|')
-           .append((int)font.getSize())
-           .append('|');
+                .append('|')
+                .append((int) font.getSize())
+                .append('|');
         // Cannot get the style out of the font as FontWeight, FontPosture??
         final String style = font.getStyle().toLowerCase();
         int code = 0;
@@ -454,15 +424,16 @@ public class XMLPersistence
         writer.writeEndElement();
     }
 
-    /** Write XML formatted Model content.
-     *  @param model Model to write
-     *  @param out {@link OutputStream}
-     *  @throws Exception on error
+    /**
+     * Write XML formatted Model content.
+     *
+     * @param model Model to write
+     * @param out   {@link OutputStream}
+     * @throws Exception on error
      */
-    public static void write(final Model model, final OutputStream out) throws Exception
-    {
+    public static void write(final Model model, final OutputStream out) throws Exception {
         final XMLStreamWriter base =
-            XMLOutputFactory.newInstance().createXMLStreamWriter(out, XMLUtil.ENCODING);
+                XMLOutputFactory.newInstance().createXMLStreamWriter(out, XMLUtil.ENCODING);
         final XMLStreamWriter writer = new IndentingXMLStreamWriter(base);
         writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
         writer.writeStartElement(TAG_DATABROWSER);
@@ -471,31 +442,27 @@ public class XMLPersistence
             writer.writeCharacters(model.getTitle().orElse(""));
             writer.writeEndElement();
 
-            if (!model.shouldSaveChanges())
-            {
+            if (!model.shouldSaveChanges()) {
                 writer.writeStartElement(TAG_SAVE_CHANGES);
                 writer.writeCharacters(Boolean.FALSE.toString());
                 writer.writeEndElement();
             }
 
             // Visibility of toolbar and legend
-            if (model.isLegendVisible())
-            {
+            if (model.isLegendVisible()) {
                 writer.writeStartElement(TAG_SHOW_LEGEND);
                 writer.writeCharacters(Boolean.TRUE.toString());
                 writer.writeEndElement();
             }
 
-            if (model.isToolbarVisible())
-            {
+            if (model.isToolbarVisible()) {
                 writer.writeStartElement(TAG_SHOW_TOOLBAR);
                 writer.writeCharacters(Boolean.TRUE.toString());
                 writer.writeEndElement();
             }
 
             // Time axis
-            if (model.isGridVisible())
-            {
+            if (model.isGridVisible()) {
                 writer.writeStartElement(TAG_GRID);
                 writer.writeCharacters(Boolean.TRUE.toString());
                 writer.writeEndElement();
@@ -511,21 +478,18 @@ public class XMLPersistence
 
             final TimeRelativeInterval span = model.getTimerange();
             writer.writeStartElement(TAG_SCROLL);
-            writer.writeCharacters(Boolean.toString(! span.isEndAbsolute()));
+            writer.writeCharacters(Boolean.toString(!span.isEndAbsolute()));
             writer.writeEndElement();
 
             final TimeInterval interval = span.toAbsoluteInterval();
-            if (span.isEndAbsolute())
-            {
+            if (span.isEndAbsolute()) {
                 writer.writeStartElement(TAG_START);
                 writer.writeCharacters(TimestampFormats.MILLI_FORMAT.format(interval.getStart()));
                 writer.writeEndElement();
                 writer.writeStartElement(TAG_END);
                 writer.writeCharacters(TimestampFormats.MILLI_FORMAT.format(interval.getEnd()));
                 writer.writeEndElement();
-            }
-            else
-            {
+            } else {
                 writer.writeStartElement(TAG_START);
                 writer.writeCharacters(TimeWarp.formatAsLegacy(span.getRelativeStart().get()));
                 writer.writeEndElement();
@@ -558,33 +522,46 @@ public class XMLPersistence
             writer.writeEndElement();
 
             // PVs (Formulas)
+            // All PVs must appear before formulas
             writer.writeStartElement(TAG_PVLIST);
-            for (ModelItem item : model.getItems())
-                item.write(writer);
+
+            List<PVItem> pvItems =
+                    model.getItems().stream().filter(i -> i instanceof PVItem).map(PVItem.class::cast).toList();
+            for (PVItem pvItem : pvItems) {
+                pvItem.write(writer);
+            }
+
+            List<FormulaItem> formulaItems =
+                    model.getItems().stream().filter(i -> i instanceof FormulaItem).map(FormulaItem.class::cast).toList();
+            for (FormulaItem formulaItem : formulaItems) {
+                formulaItem.write(writer);
+            }
+
             writer.writeEndElement();
         }
         writer.writeEndElement();
         writer.writeEndDocument();
     }
 
-    /** Write RGB color to XML document
-     *  @param writer Writer
-     *  @param tag_name Name of tag
-     *  @param color Color
-     *  @throws Exception on error
+    /**
+     * Write RGB color to XML document
+     *
+     * @param writer   Writer
+     * @param tag_name Name of tag
+     * @param color    Color
+     * @throws Exception on error
      */
     public static void writeColor(final XMLStreamWriter writer,
-                                  final String tag_name, final Color color) throws Exception
-    {
+                                  final String tag_name, final Color color) throws Exception {
         writer.writeStartElement(tag_name);
         writer.writeStartElement(TAG_RED);
-        writer.writeCharacters(Integer.toString((int) (color.getRed()*255)));
+        writer.writeCharacters(Integer.toString((int) (color.getRed() * 255)));
         writer.writeEndElement();
         writer.writeStartElement(TAG_GREEN);
-        writer.writeCharacters(Integer.toString((int) (color.getGreen()*255)));
+        writer.writeCharacters(Integer.toString((int) (color.getGreen() * 255)));
         writer.writeEndElement();
         writer.writeStartElement(TAG_BLUE);
-        writer.writeCharacters(Integer.toString((int) (color.getBlue()*255)));
+        writer.writeCharacters(Integer.toString((int) (color.getBlue() * 255)));
         writer.writeEndElement();
         writer.writeEndElement();
     }
