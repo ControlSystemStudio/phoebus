@@ -5,3 +5,4 @@ org.csstudio.display.actions.OpenDisplayActionEditor
 org.csstudio.display.actions.OpenFileActionEditor
 org.csstudio.display.actions.OpenWebPageActionEditor
 org.csstudio.display.actions.CloseDisplayActionEditor
+org.csstudio.display.actions.OpenDataBrowserActionEditor

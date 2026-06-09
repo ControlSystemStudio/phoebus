@@ -37,6 +37,7 @@ public interface XMLTags
                                SCRIPT = "script",
                                TARGET = "target",
                                TEXT = "text",
+                               TIME_FRAME = "timeframe",
                                TRIGGER = "trigger",
                                TYPE = "type",
                                URL = "url",

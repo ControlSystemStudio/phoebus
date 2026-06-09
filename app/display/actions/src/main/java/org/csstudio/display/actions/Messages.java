@@ -22,6 +22,7 @@ public class Messages {
     public static String ActionCloseDisplay,
             ActionExecuteCommand,
             ActionExecuteScript,
+            ActionOpenDataBrowser,
             ActionOpenDisplay,
             ActionOpenFile,
             ActionOpenWebPage,

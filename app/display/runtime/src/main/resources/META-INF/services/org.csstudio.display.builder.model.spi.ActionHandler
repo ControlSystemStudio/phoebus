@@ -5,3 +5,4 @@ org.csstudio.display.builder.runtime.app.actionhandlers.ExecuteCommandActionHand
 org.csstudio.display.builder.runtime.app.actionhandlers.OpenFileActionHandler
 org.csstudio.display.builder.runtime.app.actionhandlers.OpenWebPageActionHandler
 org.csstudio.display.builder.runtime.app.actionhandlers.CloseDisplayActionHandler
+org.csstudio.display.builder.runtime.app.actionhandlers.OpenDataBrowserActionHandler
