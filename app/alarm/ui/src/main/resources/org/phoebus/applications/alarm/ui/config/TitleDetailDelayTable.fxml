@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.alarm.ui.config.TitleDetailDelayTableController">
+    <top>
+            <Label fx:id="titleLabel" text="Title Label">
+             <BorderPane.margin>
+                <Insets bottom="8.0" right="8.0" top="8.0" />
+             </BorderPane.margin></Label>
+        </top>
+    <!-- ═══════════════════════  TABLE (center)  ═══════════════════════ -->
+    <center>
+        <TableView fx:id="table" editable="true" tableMenuButtonVisible="false">
+            <placeholder>
+                <Label text="none" />
+            </placeholder>
+            <columns>
+                <TableColumn fx:id="titleColumn" sortable="false" text="%title" />
+                <TableColumn fx:id="detailColumn" sortable="false" text="%detail">
+                    <columns>
+                        <TableColumn fx:id="optionColumn" editable="true" sortable="false" text="%option" />
+                        <TableColumn fx:id="infoColumn" sortable="false" text="%info" />
+
+                    </columns>
+                </TableColumn>
+                <TableColumn fx:id="delayColumn" sortable="false" text="%delay" />
+            </columns>
+             <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+             </columnResizePolicy>
+        </TableView>
+    </center>
+
+    <!-- ═══════════════════════  BUTTONS (right)  ═══════════════════════ -->
+    <right>
+        <fx:include source="TitleDetailToolbar.fxml" fx:id="titleDetailToolbarView"/>
+    </right>
+
+</BorderPane>

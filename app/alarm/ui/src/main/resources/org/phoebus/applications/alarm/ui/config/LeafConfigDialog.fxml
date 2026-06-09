@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.phoebus.applications.alarm.ui.config.*?>
+
+<ScrollPane fx:id="scroll" fitToWidth="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="org.phoebus.applications.alarm.ui.config.LeafConfigDialogController">
+
+    <GridPane fx:id="layout" hgap="5" vgap="5">
+        <padding>
+            <Insets bottom="5" left="5" right="5" top="5" />
+        </padding>
+
+        <columnConstraints>
+            <!-- Column 0: fixed 190 px label column -->
+            <ColumnConstraints maxWidth="190" minWidth="190" prefWidth="190" />
+            <!-- Column 1: grows to fill available width -->
+            <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+
+
+        <Label text="%path" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+        <TextField fx:id="path" editable="false" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" />
+
+        <!-- Row 1 – Description -->
+        <Label fx:id="descriptionLabel" text="%description" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+        <TextField fx:id="description" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+            <tooltip>
+                <Tooltip text="%descriptionTooltip" />
+            </tooltip>
+        </TextField>
+
+        <!-- Row 2 – Behavior checkboxes -->
+        <Label fx:id="behaviorLabel" text="%behavior" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+        <HBox fx:id="behaviorBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="2">
+            <CheckBox fx:id="enabled" text="%enabled">
+                <tooltip>
+                    <Tooltip text="%behaviorTooltip" />
+                </tooltip>
+            </CheckBox>
+            <CheckBox fx:id="latching" text="%latch">
+                <tooltip>
+                    <Tooltip text="%latchTooltip" />
+                </tooltip>
+            </CheckBox>
+            <CheckBox fx:id="annunciating" text="%annunciate">
+                <tooltip>
+                    <Tooltip text="%annunciateTooltip" />
+                </tooltip>
+            </CheckBox>
+        </HBox>
+
+        <!-- Row 3 – Disable until (DateTimePicker + relative ComboBox) -->
+        <Label fx:id="disableUntilLabel" text="%disableUntil" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+
+        <HBox fx:id="untilBox" alignment="CENTER" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
+
+            <DateTimePicker fx:id="enabledDatePicker" prefHeight="25" prefWidth="280">
+                <tooltip>
+                    <Tooltip text="%dateTimePickerTooltip" />
+                </tooltip>
+            </DateTimePicker>
+            <ComboBox fx:id="relativeDate" prefHeight="25" prefWidth="200" HBox.hgrow="ALWAYS">
+                <tooltip>
+                    <Tooltip text="%relativeDateTooltip" />
+                </tooltip>
+            </ComboBox>
+        </HBox>
+
+        <!-- Row 4 – Alarm Delay -->
+        <Label fx:id="delayLabel" text="%alarmDelay" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+
+        <Spinner fx:id="delay" editable="true" prefWidth="80" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+        <!-- Row 5 – Alarm Count -->
+        <Label fx:id="countLabel" text="%alarmCount" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+        <Spinner fx:id="count" editable="true" prefWidth="80" GridPane.columnIndex="1" GridPane.rowIndex="5">
+            <tooltip>
+                <Tooltip text="%alarmCountTooltip" />
+            </tooltip>
+        </Spinner>
+
+        <!-- Row 6 – Enabling Filter -->
+        <Label fx:id="filterLabel" text="%enablingFilter" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+        <TextField fx:id="filter" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6">
+            <tooltip>
+                <Tooltip text="%enablingFilterTooltip" />
+            </tooltip>
+        </TextField>
+
+        <!-- Row 7 - table views for guidance, displays... -->
+        <fx:include fx:id="optionsTablesView" source="OptionsTables.fxml" prefHeight="800" prefWidth="400" GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS"/>
+
+        <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+        </rowConstraints>
+
+    </GridPane>
+</ScrollPane>
