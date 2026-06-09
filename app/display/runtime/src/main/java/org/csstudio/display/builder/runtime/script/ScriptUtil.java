@@ -24,6 +24,9 @@ import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import javafx.application.Platform;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
@@ -532,5 +535,25 @@ public class ScriptUtil
         });
 
         done.get();
+    }
+
+    /**
+     * Puts a {@link String} on the system clipboard.
+     * <p>
+     *     If called from a Jython script, non-matching content types will trigger an exception in the interpreter.
+     *     An {@link IllegalArgumentException} is thrown if provided content string is <code>null</code>. That way
+     *     the script may detect the mistake.
+     * </p>
+     *
+     * @param content By contract: must be a non-null String
+     */
+    @SuppressWarnings("unused")
+    public static void putOnClipboard(String content){
+        if(content == null){
+            throw new IllegalArgumentException("content is null");
+        }
+        ClipboardContent clipboardContent = new ClipboardContent();
+        clipboardContent.putString(content);
+        Platform.runLater(() -> Clipboard.getSystemClipboard().setContent(clipboardContent));
     }
 }
