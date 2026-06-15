@@ -45,10 +45,13 @@ public class FontButton extends Button
                            italic = new CheckBox(Messages.FontBtnItalics);
     private TextField example = new TextField(Messages.FontBtnExample);
 
-    private final PopOver popover;
+    private PopOver popover;
 
     private Font font;
-    private final Consumer<Font> on_font_selected;
+    private Consumer<Font> on_font_selected;
+
+    public FontButton(){
+    }
 
     /** @param initial_font Intiial font
      *  @param on_font_selected Callback for selected font

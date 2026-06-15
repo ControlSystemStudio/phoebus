@@ -13,7 +13,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.csstudio.javafx.rtplot.LineStyle;
@@ -648,41 +647,6 @@ public class TracesTab extends Tab
         col.setEditable(true);
         PropertyPanel.addTooltip(col, Messages.PointSizeTT);
         trace_table.getColumns().add(col);
-
-        // Area Opacity Column ----------
-        col = new TableColumn<>(Messages.AreaOpacity);
-        col.setCellValueFactory(cell ->
-            new SimpleStringProperty(Integer.toString(cell.getValue().getAreaOpacity())));
-        col.setCellFactory(TextFieldTableCell.forTableColumn());
-        col.setOnEditCommit(event ->
-        {
-            final ModelItem item = event.getRowValue();
-            try
-            {
-                new ChangeAreaOpacityCommand(undo, item, Integer.parseInt(event.getNewValue()));
-            }
-            catch (Exception e)
-            {
-                trace_table.refresh();
-            }
-        });
-        col.setEditable(true);
-        PropertyPanel.addTooltip(col, Messages.AreaOpacityTT);
-        trace_table.getColumns().add(col);
-
-        // Area Colour Column
-        TableColumn<ModelItem, ColorPicker> area_color_col = new TableColumn<>(Messages.Color);
-        area_color_col.setCellValueFactory(cell ->
-        {
-            final Color color = cell.getValue().getAreaColor();
-            final ColorPicker picker = PropertyPanel.ColorTableCell.createPicker(color);
-            picker.setOnAction(event ->
-                new ChangeAreaColorCommand(undo, cell.getValue(), picker.getValue()));
-            return new SimpleObjectProperty<>(picker);
-        });
-        area_color_col.setCellFactory(cell -> new PropertyPanel.ColorTableCell<>());
-        PropertyPanel.addTooltip(area_color_col, Messages.AreaColorTT);
-        trace_table.getColumns().add(area_color_col);
 
         // Request Type Column ----------
         final TableColumn<ModelItem, RequestType> req_col = new TableColumn<>(Messages.RequestType);

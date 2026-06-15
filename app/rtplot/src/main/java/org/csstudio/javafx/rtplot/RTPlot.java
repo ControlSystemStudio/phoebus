@@ -297,6 +297,11 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         plot.setBackground(GraphicsUtils.convert(Objects.requireNonNull(color), (int) (255*color.getOpacity())));
     }
 
+    /** Opacity (0 .. 100 %) of 'area' */
+    public void setAreaOpacity(final int opacity)
+    {
+        plot.setAreaOpacity(opacity);
+    }
 
     /** @param color Grid color */
     public void setGridColor(final Color color)
