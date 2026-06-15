@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import javafx.scene.layout.Pane;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -28,7 +29,7 @@ import javafx.scene.transform.Translate;
  *  @author Amanda Carpenter
  */
 @SuppressWarnings("nls")
-public class ProgressBarRepresentation extends RegionBaseRepresentation<ProgressBar, ProgressBarWidget>
+public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, ProgressBarWidget>
 {
     private final DirtyFlag dirty_look = new DirtyFlag();
     private final DirtyFlag dirty_value = new DirtyFlag();
@@ -39,11 +40,13 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
 
     private volatile double percentage = 0.0;
 
+    private ProgressBar bar;
+
     @Override
-    public ProgressBar createJFXNode() throws Exception
+    public Pane createJFXNode() throws Exception
     {
-        final ProgressBar bar = new ProgressBar();
-        return bar;
+        bar = new ProgressBar();
+        return new Pane(bar);
     }
 
     @Override
@@ -172,6 +175,9 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
         toolkit.scheduleUpdate(this);
     }
 
+    protected boolean isFilteringEditModeClicks() {
+        return true;
+    }
 
     @Override
     public void updateChanges()
@@ -187,29 +193,31 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
 
             if (!horizontal)
             {
-                jfx_node.getTransforms().setAll(
+                bar.getTransforms().setAll(
                     new Translate(0, height),
                     new Rotate(-90, 0, 0));
-                jfx_node.setPrefSize(height, width);
+                bar.setPrefSize(height, width);
+                jfx_node.setPrefSize(width, height);
 
                 if (min_val > max_val) 
                 {
-                    jfx_node.getTransforms().setAll(
+                    bar.getTransforms().setAll(
                         new Translate(0, height),
                         new Rotate(-90, 0, 0, 0),
                         new Translate(height, 0),
                         new Rotate(180, 0, 0, 0, Rotate.Y_AXIS));
-                    jfx_node.setPrefSize(height, width);
+                    bar.setPrefSize(height, width);
                 }
             }
             else
             {
-                jfx_node.getTransforms().clear();
+                bar.getTransforms().clear();
+                bar.setPrefSize(width, height);
                 jfx_node.setPrefSize(width, height);
 
                 if (min_val > max_val)
                 {
-                    jfx_node.getTransforms().setAll(
+                    bar.getTransforms().setAll(
                         new Translate(width, 0),
                         new Rotate(180, 0, 0, 0, Rotate.Y_AXIS));
                 }
@@ -259,6 +267,6 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
             jfx_node.setStyle(style.toString());
         }
         if (dirty_value.checkAndClear())
-            jfx_node.setProgress(percentage);
+            bar.setProgress(percentage);
     }
 }
