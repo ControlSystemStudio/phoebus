@@ -121,6 +121,7 @@ public class AlarmServerMain implements ServerModelListener {
             }
         } catch (final Throwable ex) {
             logger.log(Level.SEVERE, "Alarm Server main loop error", ex);
+			System.exit(-1);
         }
 
         logger.info("Done.");
@@ -613,7 +614,7 @@ public class AlarmServerMain implements ServerModelListener {
             help();
             System.out.println();
             ex.printStackTrace();
-            return;
+			System.exit(-1);
         }
 
         logger.info("Alarm Server (PID " + ProcessHandle.current().pid() + ")");

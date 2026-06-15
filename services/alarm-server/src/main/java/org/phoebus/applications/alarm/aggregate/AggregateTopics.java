@@ -72,6 +72,7 @@ public class AggregateTopics
         } catch (IOException ex)
         {
             logger.log(Level.WARNING, "Reading input from stdin failed.", ex);
+			System.exit(-1);
         }
 
         // Exit the program. The shutdown hook will clean up the stream.
