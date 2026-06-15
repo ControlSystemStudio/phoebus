@@ -175,6 +175,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
         toolkit.scheduleUpdate(this);
     }
 
+    @Override
     protected boolean isFilteringEditModeClicks() {
         return true;
     }
