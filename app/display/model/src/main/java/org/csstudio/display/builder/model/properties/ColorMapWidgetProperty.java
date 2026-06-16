@@ -86,7 +86,7 @@ public class ColorMapWidgetProperty extends WidgetProperty<ColorMap>
         {
             try
             {
-                final int legacy_map = Integer.valueOf(XMLUtil.getString(map_xml));
+                final int legacy_map = Integer.parseInt(XMLUtil.getString(map_xml));
                 // Translate legacy <map>2</map>
                 switch (legacy_map)
                 {

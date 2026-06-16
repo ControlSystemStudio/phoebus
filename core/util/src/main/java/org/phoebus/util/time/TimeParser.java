@@ -110,7 +110,7 @@ public class TimeParser {
         Map<ChronoUnit, Integer> timeQuantities = new HashMap<>();
         while (timeQunatityUnitsMatcher.find()) {
             quantity = "".equals(timeQunatityUnitsMatcher.group(1)) ? 1
-                    : Integer.valueOf(timeQunatityUnitsMatcher.group(1));
+                    : Integer.parseInt(timeQunatityUnitsMatcher.group(1));
             unit = timeQunatityUnitsMatcher.group(2).toLowerCase();
             switch (unit) {
             case "ms":

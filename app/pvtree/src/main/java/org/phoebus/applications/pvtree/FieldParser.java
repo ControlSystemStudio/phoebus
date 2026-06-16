@@ -63,8 +63,8 @@ public class FieldParser
                     final String start_txt = field_spec.substring(range_sep-range_width, range_sep);
                     if (start_txt.matches("[0-9]+"))
                     {
-                        final int start = Integer.valueOf(start_txt);
-                        final int end = Integer.valueOf(field_spec.substring(range_sep+1, range_sep+1+range_width));
+                        final int start = Integer.parseInt(start_txt);
+                        final int end = Integer.parseInt(field_spec.substring(range_sep+1, range_sep+1+range_width));
                         final String format = "%0" + range_width + "d";
                         for (int i=start; i<=end; i++)
                             fields.add(base + String.format(format, i));
