@@ -510,9 +510,7 @@ public class WaveformOverlapView extends VBox {
             toolbarHandler = (ToolbarHandler<Instant>) toolbarHandlerField.get(plot);
             toolbar = toolbarHandler.getToolBar();
             configButton = (Button) toolbar.getItems().get(0);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
         // Add scale enable button to toolbar

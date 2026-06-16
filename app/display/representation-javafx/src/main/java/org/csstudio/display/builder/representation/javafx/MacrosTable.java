@@ -118,14 +118,11 @@ public class MacrosTable
             }
         });
 
-        name_col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<MacroItem,String>, ObservableValue<String>>()
-        {
+        name_col.setCellValueFactory(new Callback<>() {
             @Override
-            public ObservableValue<String> call(final CellDataFeatures<MacroItem, String> param)
-            {
+            public ObservableValue<String> call(final CellDataFeatures<MacroItem, String> param) {
                 final String name = param.getValue().getName();
-                if (name.isEmpty())
-                {
+                if (name.isEmpty()) {
                     return new ReadOnlyStringWrapper(Messages.MacrosTable_NameHint);
                 }
                 return new ReadOnlyStringWrapper(name);
@@ -191,11 +188,9 @@ public class MacrosTable
             }
         });
 
-        value_col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<MacroItem,String>, ObservableValue<String>>()
-        {
+        value_col.setCellValueFactory(new Callback<>() {
             @Override
-            public ObservableValue<String> call(final CellDataFeatures<MacroItem, String> param)
-            {
+            public ObservableValue<String> call(final CellDataFeatures<MacroItem, String> param) {
                 final String name = param.getValue().getValue();
                 if (name.isEmpty())
                     return new ReadOnlyStringWrapper(Messages.MacrosTable_ValueHint);

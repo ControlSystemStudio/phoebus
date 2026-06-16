@@ -66,7 +66,7 @@ public class SequenceCommandImpl extends ScanCommandImpl<SequenceCommand>
     @Override
     public String[] getDeviceNames(final MacroContext macros) throws Exception
     {
-        final Set<String> device_names = new HashSet<String>();
+        final Set<String> device_names = new HashSet<>();
         for (ScanCommandImpl<?> command : implementation)
         {
             final String[] names = command.getDeviceNames(macros);

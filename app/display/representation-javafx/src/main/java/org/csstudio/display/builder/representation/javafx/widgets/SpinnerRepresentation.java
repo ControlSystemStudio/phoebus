@@ -263,17 +263,14 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
             setStepIncrement(stepIncrement);
             setMin(min);
             setMax(max);
-            setConverter(new StringConverter<String>()
-            {
+            setConverter(new StringConverter<>() {
                 @Override
-                public String toString(String object)
-                {
+                public String toString(String object) {
                     return object;
                 }
 
                 @Override
-                public String fromString(String text)
-                {
+                public String fromString(String text) {
                     return text;
                 }
             });

@@ -86,7 +86,7 @@ public class ScanCommandFactory
      */
     public static List<ScanCommand> readCommands(Node node) throws Exception
     {
-        final List<ScanCommand> commands = new ArrayList<ScanCommand>();
+        final List<ScanCommand> commands = new ArrayList<>();
         while (node != null)
         {
             if (node.getNodeType() == Node.ELEMENT_NODE)

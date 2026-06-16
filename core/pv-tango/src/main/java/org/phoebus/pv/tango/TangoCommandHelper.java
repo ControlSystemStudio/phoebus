@@ -488,7 +488,7 @@ public class TangoCommandHelper {
      * @return A {@link List}.
      */
     public static <T> List<T> extractList(@SuppressWarnings("unchecked") final T... value) {
-        final List<T> result = new ArrayList<T>();
+        final List<T> result = new ArrayList<>();
         for (T val : value) {
             result.add(val);
         }

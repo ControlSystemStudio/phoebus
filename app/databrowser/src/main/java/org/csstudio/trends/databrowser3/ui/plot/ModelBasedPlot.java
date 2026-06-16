@@ -94,81 +94,70 @@ public class ModelBasedPlot
         value_axis.setName(Messages.Plot_ValueAxisName);
 
         // Forward user changes to plot to model
-        plot.addListener(new RTPlotListener<Instant>()
-        {
+        plot.addListener(new RTPlotListener<>() {
             @Override
-            public void changedXAxis(final Axis<Instant> x_axis)
-            {
+            public void changedXAxis(final Axis<Instant> x_axis) {
                 final AxisRange<Instant> range = x_axis.getValueRange();
                 listener.ifPresent(l -> l.timeAxisChanged(plot.isScrolling(), range.getLow(), range.getHigh()));
             }
 
             @Override
-            public void changedYAxis(final YAxis<Instant> y_axis)
-            {
+            public void changedYAxis(final YAxis<Instant> y_axis) {
                 final int index = plot.getYAxes().indexOf(y_axis);
                 final AxisRange<Double> range = y_axis.getValueRange();
                 listener.ifPresent(l -> l.valueAxisChanged(index, range.getLow(), range.getHigh()));
             }
 
             @Override
-            public void changedAutoScale(final Axis<?> y_axis)
-            {
+            public void changedAutoScale(final Axis<?> y_axis) {
                 final int index = plot.getYAxes().indexOf(y_axis);
                 listener.ifPresent(l -> l.autoScaleChanged(index, y_axis.isAutoscale()));
             }
 
             @Override
-            public void changedGrid(final Axis<?> axis)
-            {
+            public void changedGrid(final Axis<?> axis) {
                 final int index = axis == plot.getXAxis()
-                                ? -1
-                                : plot.getYAxes().indexOf(axis);
+                    ? -1
+                    : plot.getYAxes().indexOf(axis);
                 listener.ifPresent(l -> l.gridChanged(index, axis.isGridVisible()));
             }
 
             @Override
-            public void changedLogarithmic(final Axis<?> axis)
-            {
+            public void changedLogarithmic(final Axis<?> axis) {
                 final int index = plot.getYAxes().indexOf(axis);
-                listener.ifPresent(l -> l.logarithmicChanged(index, ((YAxis<?>)axis).isLogarithmic()));
+                listener.ifPresent(l -> l.logarithmicChanged(index, ((YAxis<?>) axis).isLogarithmic()));
             }
 
             @Override
-            public void changedAnnotations()
-            {
+            public void changedAnnotations() {
                 final List<AnnotationInfo> annotations = new ArrayList<>();
                 final List<Trace<Instant>> traces = new ArrayList<>();
                 for (Trace<Instant> trace : plot.getTraces())
                     traces.add(trace);
-                for (Annotation<Instant> annotation : plot.getAnnotations())
-                {
+                for (Annotation<Instant> annotation : plot.getAnnotations()) {
                     final int item_index = traces.indexOf(annotation.getTrace());
                     annotations.add(new AnnotationInfo(annotation.isInternal(),
-                                                       item_index,
-                                                       annotation.getPosition(), annotation.getValue(),
-                                                       annotation.getOffset(), annotation.getText()));
+                        item_index,
+                        annotation.getPosition(), annotation.getValue(),
+                        annotation.getOffset(), annotation.getText()));
                 }
                 listener.ifPresent(l -> l.changedAnnotations(annotations));
             }
 
             @Override
-            public void changedCursors()
-            {
+            public void changedCursors() {
                 for (Trace<Instant> trace : plot.getTraces())
                     findModelItem(trace).setSelectedSample(trace.getSelectedSample());
                 listener.ifPresent(l -> l.selectedSamplesChanged());
             }
 
             @Override
-            public void changedToolbar(final boolean visible)
-            {
+            public void changedToolbar(final boolean visible) {
                 listener.ifPresent(l -> l.changedToolbar(visible));
             }
 
             @Override
-            public void changedLegend(final boolean visible)
-            {
+            public void changedLegend(final boolean visible) {
                 listener.ifPresent(l -> l.changedLegend(visible));
             }
         });

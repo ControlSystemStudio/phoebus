@@ -97,7 +97,7 @@ public class LoggingConfiguration implements AppInstance {
         TreeTableColumn<NameNode, Level> dropBoxColumn = new TreeTableColumn<>("Logging Level");
         dropBoxColumn.setPrefWidth(100);
         dropBoxColumn.setCellFactory(ComboBoxTreeTableCell.forTreeTableColumn(levels));
-        dropBoxColumn.setCellValueFactory(new Callback<CellDataFeatures<NameNode, Level>, ObservableValue<Level>>() {
+        dropBoxColumn.setCellValueFactory(new Callback<>() {
 
             @Override
             public ObservableValue<Level> call(CellDataFeatures<NameNode, Level> param) {
@@ -105,7 +105,7 @@ public class LoggingConfiguration implements AppInstance {
                 if (logger != null) {
                     Level level = logger.getLevel();
 
-                    return new ObservableValue<Level>() {
+                    return new ObservableValue<>() {
 
                         @Override
                         public void removeListener(InvalidationListener listener) {
@@ -149,31 +149,31 @@ public class LoggingConfiguration implements AppInstance {
             }
         });
 
-        TreeTableColumn<NameNode, Boolean> useParentHandlersColumn = new TreeTableColumn<NameNode, Boolean>(
-                "use ConsoleViewer");
+        TreeTableColumn<NameNode, Boolean> useParentHandlersColumn = new TreeTableColumn<>(
+            "use ConsoleViewer");
         useParentHandlersColumn.setPrefWidth(100);
         useParentHandlersColumn.setCellFactory(CheckBoxTreeTableCell.forTreeTableColumn(useParentHandlersColumn));
         useParentHandlersColumn.setCellValueFactory(
-                new Callback<TreeTableColumn.CellDataFeatures<NameNode, Boolean>, ObservableValue<Boolean>>() {
+            new Callback<>() {
 
-                    @Override
-                    public ObservableValue<Boolean> call(CellDataFeatures<NameNode, Boolean> param) {
-                        SimpleBooleanProperty s = new SimpleBooleanProperty(
-                                param.getValue().getValue().getEnableParentHandler());
-                        s.addListener(new ChangeListener<Boolean>() {
+                @Override
+                public ObservableValue<Boolean> call(CellDataFeatures<NameNode, Boolean> param) {
+                    SimpleBooleanProperty s = new SimpleBooleanProperty(
+                        param.getValue().getValue().getEnableParentHandler());
+                    s.addListener(new ChangeListener<>() {
 
-                            @Override
-                            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
-                                    Boolean newValue) {
-                                param.getValue().getValue().setEnableParentHandler(newValue);
-                                Logger logger = manager.getLogger(param.getValue().getValue().getFullName());
-                                if (logger != null)
-                                    logger.setUseParentHandlers(newValue);
-                            }
-                        });
-                        return s;
-                    }
-                });
+                        @Override
+                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
+                                            Boolean newValue) {
+                            param.getValue().getValue().setEnableParentHandler(newValue);
+                            Logger logger = manager.getLogger(param.getValue().getValue().getFullName());
+                            if (logger != null)
+                                logger.setUseParentHandlers(newValue);
+                        }
+                    });
+                    return s;
+                }
+            });
 
         TreeTableView<NameNode> treeTableView = new TreeTableView<>(root);
         treeTableView.showRootProperty().setValue(Boolean.FALSE);
@@ -275,8 +275,8 @@ public class LoggingConfiguration implements AppInstance {
                         logger.config(() -> {
                             return "adding: " + name + " " + String.join(".", fullName, name);
                         });
-                        TreeItem<NameNode> newNode = new TreeItem<NameNode>(new NameNode(name, fullName,
-                                manager.getLogger(fullName), manager.getLogger(fullName) != null ? true : false));
+                        TreeItem<NameNode> newNode = new TreeItem<>(new NameNode(name, fullName,
+                            manager.getLogger(fullName), manager.getLogger(fullName) != null ? true : false));
                         newNode.setExpanded(true);
                         parent.getChildren().add(newNode);
                         FXCollections.sort(parent.getChildren(), Comparator.comparing(o -> o.getValue().getFullName()));

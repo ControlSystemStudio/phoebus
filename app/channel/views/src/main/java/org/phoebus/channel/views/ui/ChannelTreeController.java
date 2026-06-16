@@ -77,7 +77,7 @@ public class ChannelTreeController extends ChannelFinderController {
         treeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
-                final List<Channel> selectedChannels = new ArrayList<Channel>();
+                final List<Channel> selectedChannels = new ArrayList<>();
                 treeTableView.getSelectionModel().getSelectedItems().stream().forEach(item -> {
                     selectedChannels.addAll(item.getValue().getNodeChannels());
                 });

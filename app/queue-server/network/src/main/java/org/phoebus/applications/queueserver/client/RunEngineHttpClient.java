@@ -72,7 +72,8 @@ public final class RunEngineHttpClient {
 
     // raw JSON (Map) for CLI / REPL
     public Map<String, Object> send(ApiEndpoint api, Object body) throws Exception {
-        return send(api, body, new TypeReference<Map<String, Object>>() {});
+        return send(api, body, new TypeReference<>() {
+        });
     }
 
     public <T> T send(ApiEndpoint api, Object body, Class<T> type) throws Exception {

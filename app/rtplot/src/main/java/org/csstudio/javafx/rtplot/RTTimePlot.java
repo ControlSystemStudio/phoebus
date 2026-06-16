@@ -63,12 +63,10 @@ public class RTTimePlot extends RTPlot<Instant>
             });
 
             // Stop scrolling when x axis modified by user
-            plot.addListener(new RTPlotListener<Instant>()
-            {
+            plot.addListener(new RTPlotListener<>() {
                 @Override
-                public void changedXAxis(final Axis<Instant> x_axis)
-                {
-                    if (! isScrolling())
+                public void changedXAxis(final Axis<Instant> x_axis) {
+                    if (!isScrolling())
                         return;
                     final long now = Instant.now().getEpochSecond();
                     final AxisRange<Instant> value_range = x_axis.getValueRange();
