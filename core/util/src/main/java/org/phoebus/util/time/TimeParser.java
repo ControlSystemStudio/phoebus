@@ -180,7 +180,7 @@ public class TimeParser {
         {
             final double quantity = "".equals(timeQuantityUnitsMatcher.group(1))
                     ? 1.0
-                    : Double.valueOf(timeQuantityUnitsMatcher.group(1));
+                    : Double.parseDouble(timeQuantityUnitsMatcher.group(1));
             final int full = (int) quantity;
             final double fraction = quantity - full;
             final String unit = timeQuantityUnitsMatcher.group(2).toLowerCase();
