@@ -682,7 +682,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         plot_axis.setScaleFont(JFXUtil.convert(model_axis.scaleFont().getValue()));
         plot_axis.setVisible(model_axis.visible().getValue());
         if(plot_axis instanceof YAxisImpl) {
-            ((YAxisImpl)plot_axis).setGridColor(
+            ((YAxisImpl<?>)plot_axis).setGridColor(
                     GraphicsUtils.convert(
                             JFXUtil.convert(
                                     ((YAxisWidgetProperty) model_axis).color().getValue()
