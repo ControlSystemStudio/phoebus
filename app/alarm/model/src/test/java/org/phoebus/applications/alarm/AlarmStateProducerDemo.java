@@ -92,7 +92,7 @@ public class AlarmStateProducerDemo
         @SuppressWarnings("resource")
         Producer<String, BasicState> producer = new KafkaProducer<>(props, key_serializer, value_serializer);
         // Place all keys (alarm tree paths) in the same partition
-        Integer partition = Integer.valueOf(0);
+        Integer partition = 0;
 
         while (true)
         {

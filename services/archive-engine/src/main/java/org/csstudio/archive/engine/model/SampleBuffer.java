@@ -120,7 +120,7 @@ public class SampleBuffer
             if (samples.isFull())
             {   // Note start of overruns, then drop older sample
                 if (start_of_overruns == null)
-                    start_of_overruns = Integer.valueOf(stats.getOverruns());
+                    start_of_overruns = stats.getOverruns();
                 stats.addOverrun();
             }
             else if (start_of_overruns != null)

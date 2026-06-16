@@ -209,7 +209,7 @@ public class DisplayModel extends Widget
         if (this.clean != null && this.clean.booleanValue() == false)
             throw new RuntimeException("Cannot change cleanliness of DisplayModel");
 
-        this.clean = Boolean.valueOf(modelReader.getNumberOfWidgetErrors() == 0);
+        this.clean = modelReader.getNumberOfWidgetErrors() == 0;
     }
 
     /** @return <code>true</code> if this display was loaded without errors,
@@ -235,7 +235,7 @@ public class DisplayModel extends Widget
                 final DisplayModel child_dm = child_dm_prop.get().getValue();
                 if (child_dm != null && child_dm.isClean() == false)
                 {
-                    clean = Boolean.valueOf(false);
+                    clean = Boolean.FALSE;
                     return false;
                 }
             }

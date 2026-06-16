@@ -281,7 +281,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
         try
         {
             final ResultSet res = sel_array_samples.executeQuery();
-            vals.add(Double.valueOf(dbl0));
+            vals.add(dbl0);
             while (res.next())
                 vals.add(res.getDouble(1));
             res.close();

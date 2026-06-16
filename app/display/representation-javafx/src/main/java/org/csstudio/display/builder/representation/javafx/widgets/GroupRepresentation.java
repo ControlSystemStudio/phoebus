@@ -47,7 +47,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
             StrokeLineCap.BUTT,
             10,
             0,
-            List.of(Double.valueOf(11.11), Double.valueOf(7.7), Double.valueOf(3.3), Double.valueOf(7.7))
+            List.of(11.11, 7.7, 3.3, 7.7)
     );
 
     private final DirtyFlag dirty_border = new DirtyFlag();

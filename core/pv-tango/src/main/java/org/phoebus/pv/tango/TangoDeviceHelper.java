@@ -317,7 +317,7 @@ public class TangoDeviceHelper {
             if (timeOut < 1) {
                 timeOut = DEFAULT_TIMEOUT;
             }
-            TIME_OUT_MAP.put(device, Integer.valueOf(timeOut));
+            TIME_OUT_MAP.put(device, timeOut);
             getDeviceProxy(device, false);
         }
     }

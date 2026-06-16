@@ -269,7 +269,7 @@ public class WidgetFontPopOverController implements Initializable {
         sizes.setConverter(new FormatStringConverter<Double>(new DecimalFormat("##0.0#")) {
             @Override
             public Double fromString ( String value ) {
-                return Double.valueOf(((Number) super.fromString(value)).doubleValue());
+                return ((Number) super.fromString(value)).doubleValue();
             }
         });
         sizes.getItems().addAll(DEFAULT_SIZES);
