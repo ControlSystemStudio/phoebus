@@ -254,7 +254,7 @@ public class AlarmLoggingService {
         int threadPoolSize = topicNames.size() * 2; // default to 2 threads per topic
         Scheduler = Executors.newScheduledThreadPool(threadPoolSize);
 
-        final boolean standalone = Boolean.valueOf(properties.getProperty("standalone"));
+        final boolean standalone = Boolean.parseBoolean(properties.getProperty("standalone"));
 
         // If the standalone is true, ignore the Schedulers for AlarmMessageLogger and AlarmCmdLogger
         // otherwise run the Alarm Logger service as is.
