@@ -32,8 +32,8 @@ public class DerbyDataLog extends DataLog
     {
         this.scan_id = scan_id;
         // Initialize sample serial
-        try (RDBDataLogger logger = new DerbyDataLogger()) {
-            last_serial = logger.getLastScanDataSerial(scan_id);
+        try (RDBDataLogger derbyDataLogger = new DerbyDataLogger()) {
+            last_serial = derbyDataLogger.getLastScanDataSerial(scan_id);
         }
     }
 
@@ -51,8 +51,8 @@ public class DerbyDataLog extends DataLog
     public ScanData getScanData() throws Exception
     {
         // Can be called without doLog(), so use separate logger just for this call
-        try (RDBDataLogger logger = new DerbyDataLogger()) {
-            return logger.getScanData(scan_id);
+        try (RDBDataLogger derbyDataLogger = new DerbyDataLogger()) {
+            return derbyDataLogger.getScanData(scan_id);
         }
     }
 
