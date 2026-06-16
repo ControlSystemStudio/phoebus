@@ -101,7 +101,7 @@ public class ResourceParserTest
         assertThat(uri, not(nullValue()));
         assertThat(new File(uri).getCanonicalFile(), equalTo(spacey.getCanonicalFile()));
         assertThat(uri.getScheme(), equalTo("file"));
-        if (OS.indexOf("win") >= 0) {
+        if (OS.contains("win")) {
             assertTrue(uri.toString().matches("file:/[a-zA-Z]:/some/dir%20with%20space/file.abc"));
         } else {
             assertThat(uri.toString(), equalTo("file:/some/dir%20with%20space/file.abc"));

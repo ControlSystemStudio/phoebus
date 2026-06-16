@@ -87,7 +87,7 @@ public class TangoExceptionHelper {
                 // - Or it contains a not user friendly message with "IDL...",
                 // which means expected message is in description
                 message = t.getMessage();
-                if (message.indexOf(IDL) > -1) {
+                if (message.contains(IDL)) {
                     // 2nd case: search in description
                     message = DevFailedUtils.toString((DevFailed) t);
                     int index = message.indexOf(DESC);

@@ -101,7 +101,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPan
             // Original implementation enforced "http://".
             // Now also allow "file://" or other "xxx://",
             // still defaulting to "http://".
-            else if (url.indexOf("://") < 0)
+            else if (!url.contains("://"))
                 url = "http://" + url;
             
             //Try to open page to test if we can open page
