@@ -82,7 +82,7 @@ public class ApplicationService
         for (String ext : app.supportedFileExtentions())
         {
             if (!extensions.containsKey(ext))
-                extensions.put(ext, new ArrayList<AppResourceDescriptor>());
+                extensions.put(ext, new ArrayList<>());
             extensions.get(ext).add(app);
         }
         register(app);

@@ -107,7 +107,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
         java.sql.Timestamp sqlStartTimestamp = TimestampHelper.toSQLTimestamp(start);
         java.sql.Timestamp sqlEndTimestamp = TimestampHelper.toSQLTimestamp(end);
 
-        HashMap<String, String> otherParms = new HashMap<String, String>();
+        HashMap<String, String> otherParms = new HashMap<>();
         otherParms.put("fetchLatestMetadata", "true");  // Include Metadata like EnumLabels in the headers
 
         DataRetrieval dataRetrieval = reader.createDataRetriveal(reader.getDataRetrievalURL());

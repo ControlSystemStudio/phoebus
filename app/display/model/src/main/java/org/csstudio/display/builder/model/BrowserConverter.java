@@ -359,7 +359,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 		if (!over.isEmpty()) {
 			if (showConfirmDialog(null, OVERRIDING_MSG + " \n" + over, "Conflict", YES_NO_OPTION) == YES_OPTION) {
 
-				List<Path> pathList = new ArrayList<Path>();
+				List<Path> pathList = new ArrayList<>();
 				for (File file : over) {
 					pathList.add(file.toPath());
 				}

@@ -35,7 +35,7 @@ public class ArrayPlotDataProvider<XTYPE extends Comparable<XTYPE>> implements P
     /** Construct with internal array */
     public ArrayPlotDataProvider()
     {
-        this(new ArrayList<PlotDataItem<XTYPE>>());
+        this(new ArrayList<>());
     }
 
     /** @param item Item to add to the list

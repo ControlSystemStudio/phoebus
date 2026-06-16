@@ -181,8 +181,8 @@ class EsLogInstance implements AppInstance
         filterBtn.setMnemonicParsing(true);
         filterBtn.setOnAction(this::openFilterDialog);
 
-        final var msgList = new TableView<EventLogMessage>(
-                model.getObservable());
+        final var msgList = new TableView<>(
+            model.getObservable());
         var colDate = new TableColumn<EventLogMessage, String>("Date");
         colDate.setMinWidth(170);
         colDate.setCellValueFactory(new LogValueFactory(EventLogMessage.DATE));

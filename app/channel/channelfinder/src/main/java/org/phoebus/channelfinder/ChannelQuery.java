@@ -79,7 +79,7 @@ public class ChannelQuery {
 	// Guarded by this: will keep track whether a query is already running
 	private boolean running = false;
 
-	private List<ChannelQueryListener> listeners = new CopyOnWriteArrayList<ChannelQueryListener>();
+	private List<ChannelQueryListener> listeners = new CopyOnWriteArrayList<>();
 
 	public static class Builder {
 		private String query = null;

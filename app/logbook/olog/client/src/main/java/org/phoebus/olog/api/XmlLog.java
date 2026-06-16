@@ -41,9 +41,9 @@ public class XmlLog {
     private Date modifiedDate;
 //    private String subject;
     private String description;
-    private Collection<XmlProperty> properties = new ArrayList<XmlProperty>();
-    private Collection<XmlLogbook> logbooks = new ArrayList<XmlLogbook>();
-    private Collection<XmlTag> tags = new ArrayList<XmlTag>();
+    private Collection<XmlProperty> properties = new ArrayList<>();
+    private Collection<XmlLogbook> logbooks = new ArrayList<>();
+    private Collection<XmlTag> tags = new ArrayList<>();
     private XmlAttachments attachments = new XmlAttachments();
 
     /** Creates a new instance of XmlLog */

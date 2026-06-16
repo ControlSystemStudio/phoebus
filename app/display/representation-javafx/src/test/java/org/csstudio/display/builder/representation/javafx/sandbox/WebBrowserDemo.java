@@ -119,7 +119,7 @@ public class WebBrowserDemo extends ApplicationWrapper
         final Button foreButton = new Button();
         final Button stop = new Button();
         final Button refresh  = new Button();
-        final ComboBox<String> addressBar = new ComboBox<String>();
+        final ComboBox<String> addressBar = new ComboBox<>();
         final Button go = new Button();
         Control [] controls = new Control []
                 {backButton, foreButton, stop, refresh, addressBar, go};

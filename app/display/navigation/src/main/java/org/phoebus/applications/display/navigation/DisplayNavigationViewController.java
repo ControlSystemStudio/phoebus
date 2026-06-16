@@ -101,7 +101,7 @@ public class DisplayNavigationViewController {
 
         // update the list view
         allLinks = new ProcessOPIAllLinksTask(rootFile);
-        allLinks.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+        allLinks.setOnSucceeded(new EventHandler<>() {
             @Override
             public void handle(WorkerStateEvent event) {
                 listView.setItems(FXCollections.observableArrayList(allLinks.getValue()));

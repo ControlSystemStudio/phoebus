@@ -68,7 +68,7 @@ public class LogEntryController {
 
         logDescription.setBackground(Background.EMPTY);
 
-        logTags.setCellFactory(listView -> new ListCell<String>() {
+        logTags.setCellFactory(listView -> new ListCell<>() {
             @Override
             public void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -82,7 +82,7 @@ public class LogEntryController {
             }
         });
 
-        LogLogbooks.setCellFactory(listView -> new ListCell<String>() {
+        LogLogbooks.setCellFactory(listView -> new ListCell<>() {
             @Override
             public void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -154,7 +154,7 @@ public class LogEntryController {
             final Image image = new Image(new FileInputStream(imageFile), 150, 0, true, true);
             imageView = new ImageView(image);
             imageView.setFitWidth(150);
-            imageView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            imageView.setOnMouseClicked(new EventHandler<>() {
 
                 @Override
                 public void handle(MouseEvent mouseEvent) {

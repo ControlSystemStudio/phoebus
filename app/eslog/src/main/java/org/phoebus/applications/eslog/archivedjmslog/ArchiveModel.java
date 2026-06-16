@@ -12,7 +12,7 @@ import org.phoebus.util.time.TimeInterval;
 public abstract class ArchiveModel<T extends LogMessage> extends Model
 {
     private final Set<ArchiveModelListener<T>> listeners = Collections
-            .newSetFromMap(new WeakHashMap<ArchiveModelListener<T>, Boolean>());
+            .newSetFromMap(new WeakHashMap<>());
 
     public void addListener(ArchiveModelListener<T> listener)
     {

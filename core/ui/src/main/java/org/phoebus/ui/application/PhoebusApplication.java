@@ -768,7 +768,7 @@ public class PhoebusApplication extends Application {
             final List<MenuItem> addLayoutMenuItemList = new ArrayList<>();
             final List<MenuItem> toolbarAddLayoutMenuItemList = new ArrayList<>();
 
-            final Map<String, File> layoutFiles = new HashMap<String, File>();
+            final Map<String, File> layoutFiles = new HashMap<>();
 
             // Get every file in the default directory.
             final File dir = new File(Locations.user().getAbsolutePath());

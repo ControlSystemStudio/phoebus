@@ -49,7 +49,7 @@ abstract public class ExportJob implements JobRunnable
     final protected String filename;
     final protected Consumer<Exception> error_handler;
     /** Active readers, used to cancel and close them */
-    final private CopyOnWriteArrayList<ArchiveReader> archive_readers = new CopyOnWriteArrayList<ArchiveReader>();
+    final private CopyOnWriteArrayList<ArchiveReader> archive_readers = new CopyOnWriteArrayList<>();
     final protected boolean unixTimeStamp;
 
     /** Thread that polls a progress monitor and cancels active archive readers

@@ -93,7 +93,7 @@ public class Palette
         // Copy the widgets, i.e. the children of each palette_group,
         // to the userData.
         // Actual children are now updated based on search by widget name
-        palette_groups.values().forEach(group -> group.setUserData(new ArrayList<Node>(group.getChildren())));
+        palette_groups.values().forEach(group -> group.setUserData(new ArrayList<>(group.getChildren())));
 
         final TextField searchField = new ClearingTextField();
         searchField.setPromptText(Messages.SearchTextField);
