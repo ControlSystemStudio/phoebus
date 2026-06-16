@@ -21,6 +21,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 
+import javafx.stage.Window;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Widget;
@@ -99,6 +100,8 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Toolbar button for navigation */
     private ButtonBase navigate_backward, navigate_forward;
 
+    private Boolean auto_size_stage = false;
+
     public String getDisplayName() {
         return active_model.getDisplayName();
     }
@@ -129,13 +132,20 @@ public class DisplayRuntimeInstance implements AppInstance
             {
                 boolean standalone = false;
                 if (prefTarget.startsWith("standalone"))
+                {
                     standalone = true;
+                    auto_size_stage = true;
+                }
                 // Open new Stage in which this app will be opened, its DockPane is a new active one
                 final Stage new_stage = new Stage();
                 if (prefTarget.startsWith("window@"))
                     DockStage.configureStage(new_stage, new Geometry(prefTarget.substring(7)), standalone);
                 else if (prefTarget.startsWith("standalone@"))
+                {
                     DockStage.configureStage(new_stage, new Geometry(prefTarget.substring(11)), standalone);
+                    // Do not autosize the stage to the screen size if the user has specified the dimensions
+                    auto_size_stage = false;
+                }
                 else
                     DockStage.configureStage(new_stage, new Geometry(null), standalone);
                 new_stage.show();
@@ -220,10 +230,10 @@ public class DisplayRuntimeInstance implements AppInstance
         navigate_backward = NavigationAction.createBackAction(this, navigation);
         navigate_forward = NavigationAction.createForewardAction(this, navigation);
         return new ToolBar(ToolbarHelper.createSpring(),
-                           zoom_action,
-                           navigate_backward,
-                           navigate_forward
-                           );
+                zoom_action,
+                navigate_backward,
+                navigate_forward
+        );
     }
 
     /** @return <code>true</code> if toolbar is visible */
@@ -355,6 +365,17 @@ public class DisplayRuntimeInstance implements AppInstance
                 final Future<Void> represented = representation.submit(() -> representModel(model));
                 represented.get();
 
+                if (auto_size_stage)
+                {
+                    Window window = dock_item.getDockPane().getScene().getWindow();
+                    double xMargin = (int) (window.getWidth()
+                            - window.getScene().getWidth() + 2);
+                    double yMargin = (int) (window.getHeight()
+                            - window.getScene().getHeight() + 2);
+                    window.setWidth(model.propWidth().getValue() + xMargin);
+                    window.setHeight(model.propHeight().getValue() + yMargin);
+                }
+
                 // Start runtime for the model
                 RuntimeUtil.startRuntime(model);
 
@@ -425,8 +446,8 @@ public class DisplayRuntimeInstance implements AppInstance
     {
         monitor.beginTask(info.toString());
         final DisplayModel model = info.shouldResolve()
-            ? ModelLoader.resolveAndLoadModel(null, info.getPath())
-            : ModelLoader.loadModel(info.getPath());
+                ? ModelLoader.resolveAndLoadModel(null, info.getPath())
+                : ModelLoader.loadModel(info.getPath());
 
         // This code is called
         // 1) When opening a new display
@@ -488,8 +509,8 @@ public class DisplayRuntimeInstance implements AppInstance
         // or the new one has a different path,
         // or different macros _and_ there were original macros.
         if ( old_info == null  ||
-            !old_info.getPath().equals(info.getPath()) ||
-          ( !old_info.getMacros().isEmpty()  &&  !old_info.getMacros().equals(info.getMacros())))
+                !old_info.getPath().equals(info.getPath()) ||
+                ( !old_info.getMacros().isEmpty()  &&  !old_info.getMacros().equals(info.getMacros())))
         {
             display_info = Optional.of(info);
             dock_item.setInput(info.toURI());
