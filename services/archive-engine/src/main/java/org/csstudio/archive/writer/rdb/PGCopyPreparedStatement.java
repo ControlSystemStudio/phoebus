@@ -86,7 +86,7 @@ public class PGCopyPreparedStatement implements PreparedStatement {
                 throw new SQLException("Unable to find column " + columnName
                         + "  in table " + tableName);
             }
-            columnOrderMapping[i + 1] = postgresColumnOrder.intValue() - 1;
+            columnOrderMapping[i + 1] = postgresColumnOrder - 1;
         }
     }
 

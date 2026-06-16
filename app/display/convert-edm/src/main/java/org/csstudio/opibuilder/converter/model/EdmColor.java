@@ -109,16 +109,16 @@ public class EdmColor extends EdmAttribute {
         try {
             String[] color = getValue(2).split(" ");
 
-            red = Integer.valueOf(color[0]).intValue();
-            green = Integer.valueOf(color[1]).intValue();
-            blue = Integer.valueOf(color[2]).intValue();
+            red = Integer.valueOf(color[0]);
+            green = Integer.valueOf(color[1]);
+            blue = Integer.valueOf(color[2]);
 
             if (getValueCount() == 4) {
                 blinking = true;
                 color = getValue(3).split(" ");
-                blinkRed = Integer.valueOf(color[0]).intValue();
-                blinkGreen = Integer.valueOf(color[1]).intValue();
-                blinkBlue = Integer.valueOf(color[2]).intValue();
+                blinkRed = Integer.valueOf(color[0]);
+                blinkGreen = Integer.valueOf(color[1]);
+                blinkBlue = Integer.valueOf(color[2]);
             }
             else {
                 blinking = false;
@@ -172,9 +172,9 @@ public class EdmColor extends EdmAttribute {
 
         try {
             name = null;
-            red = Integer.valueOf(m.group(2)).intValue();
-            green = Integer.valueOf(m.group(3)).intValue();
-            blue = Integer.valueOf(m.group(4)).intValue();
+            red = Integer.valueOf(m.group(2));
+            green = Integer.valueOf(m.group(3));
+            blue = Integer.valueOf(m.group(4));
             blinking = false;
 
             log.config("Parsed RGB color.");

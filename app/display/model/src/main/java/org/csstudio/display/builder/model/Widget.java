@@ -394,7 +394,7 @@ public class Widget {
     public boolean isClean() {
         Boolean safe = clean;
 
-        if (safe != null && !safe.booleanValue())
+        if (safe != null && !safe)
             return false;
 
         java.util.Optional<WidgetProperty<DisplayModel>> child_dm_prop = checkProperty(EmbeddedDisplayWidget.runtimeModel.getName());

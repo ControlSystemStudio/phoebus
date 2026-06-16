@@ -206,7 +206,7 @@ public class DisplayModel extends Widget
         /*
          * setConfiguratorResult() might have already set it to true
          */
-        if (this.clean != null && this.clean.booleanValue() == false)
+        if (this.clean != null && this.clean == false)
             throw new RuntimeException("Cannot change cleanliness of DisplayModel");
 
         this.clean = modelReader.getNumberOfWidgetErrors() == 0;
@@ -223,7 +223,7 @@ public class DisplayModel extends Widget
         if (safe == null)
             return true;
 
-        if (safe.booleanValue() == false)
+        if (safe == false)
             return false;
 
         // Check embedded displays and navigation tabs too

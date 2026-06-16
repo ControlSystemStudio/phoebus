@@ -331,7 +331,7 @@ public class VTypeHelper {
                                            final Instant time) {
         if (value instanceof VDouble) {
             final VDouble number = (VDouble) value;
-            return VDouble.of(number.getValue().doubleValue(), number.getAlarm(), Time.of(time), number.getDisplay());
+            return VDouble.of(number.getValue(), number.getAlarm(), Time.of(time), number.getDisplay());
         }
         if (value instanceof VNumber) {
             final VNumber number = (VNumber) value;

@@ -300,7 +300,7 @@ public class TangoDeviceHelper {
             timeOut = DEFAULT_TIMEOUT;
         } else {
             Integer tmp = TIME_OUT_MAP.get(device);
-            timeOut = tmp == null ? DEFAULT_TIMEOUT : tmp.intValue();
+            timeOut = tmp == null ? DEFAULT_TIMEOUT : tmp;
         }
         return timeOut;
     }

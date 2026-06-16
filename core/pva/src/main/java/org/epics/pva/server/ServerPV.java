@@ -179,7 +179,7 @@ public class ServerPV implements AutoCloseable
             return;
         else if (cid == -1)
             logger.log(Level.FINE, "Client " + tcp + " released " + this + " [CID was " + original_cid + "]");
-        else if (original_cid != null  &&  original_cid.intValue() == cid)
+        else if (original_cid != null  && original_cid == cid)
             logger.log(Level.FINE, "Client " + tcp + " released " + this + " [CID " + cid + "]");
         else
             // Our memory of the cid differs from what the client now uses to release the PV?!?

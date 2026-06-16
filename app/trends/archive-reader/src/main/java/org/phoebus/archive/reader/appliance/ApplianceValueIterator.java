@@ -189,7 +189,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
             if (type == PayloadType.WAVEFORM_DOUBLE) {
                 int i = 0;
                 for (Object d : o) {
-                    val[i++] = ((Double)d).doubleValue();
+                    val[i++] = (Double) d;
                 }
             } else {
                 int i = 0;
@@ -212,7 +212,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
             int[] val = new int[o.size()];
             int i = 0;
             for (Object d : o) {
-                val[i++] = ((Integer)d).intValue();
+                val[i++] = (Integer) d;
             }
 
             if (display==null) display = getDisplay(mainStream.getPayLoadInfo());

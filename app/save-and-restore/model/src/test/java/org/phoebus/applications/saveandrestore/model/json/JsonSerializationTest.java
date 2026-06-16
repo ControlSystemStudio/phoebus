@@ -74,9 +74,9 @@ public class JsonSerializationTest {
 		SnapshotItem item = objectMapper.readValue(json, SnapshotItem.class);
 		VType vType = item.getValue();
 		assertTrue(vType instanceof VDouble);
-		assertEquals(7.7, ((VDouble)vType).getValue().doubleValue(), 0.01);
+		assertEquals(7.7, ((VDouble) vType).getValue(), 0.01);
 		vType = item.getReadbackValue();
-		assertEquals(7.7, ((VDouble)vType).getValue().doubleValue(), 0.01);
+		assertEquals(7.7, ((VDouble) vType).getValue(), 0.01);
 
 		snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a")
 				.build())
