@@ -62,15 +62,9 @@ class DerbyDataLogger extends RDBDataLogger
         // then newInstance is required to re-start.
         Class.forName(DERBY_DRIVER).getDeclaredConstructor().newInstance();
 
-        final DerbyDataLogger database = new DerbyDataLogger();
-        try
-        {
-            if (! database.haveTables())
+        try (DerbyDataLogger database = new DerbyDataLogger()) {
+            if (!database.haveTables())
                 database.createTables();
-        }
-        finally
-        {
-            database.close();
         }
 
         // Start network data server programmatically
@@ -107,21 +101,13 @@ class DerbyDataLogger extends RDBDataLogger
      */
     private boolean haveTables() throws SQLException
     {
-        final Statement statement = connection.createStatement();
-        try
-        {
+        try (Statement statement = connection.createStatement()) {
             statement.executeQuery("SELECT * FROM scans WHERE id=1");
             return true;
-        }
-        catch (SQLException ex)
-        {
+        } catch (SQLException ex) {
             if ("42X05".equals(ex.getSQLState()))
                 return false;
             throw ex;
-        }
-        finally
-        {
-            statement.close();
         }
     }
 
@@ -130,52 +116,38 @@ class DerbyDataLogger extends RDBDataLogger
      */
     private void createTables() throws Exception
     {
-        final Statement statement = connection.createStatement();
-        try
-        {
+        try (Statement statement = connection.createStatement()) {
             logger.info("Creating new database tables");
 
             final BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(getClass().getResourceAsStream("/config/scanlog.dbd")                        )
-                    );
+                new InputStreamReader(getClass().getResourceAsStream("/config/scanlog.dbd"))
+            );
             StringBuilder cmd = new StringBuilder();
 
             String line = reader.readLine();
-            while (line != null)
-            {
+            while (line != null) {
                 line = line.trim();
                 // Skip comments
-                if (! line.startsWith("--"))
-                {
-                    if (line.endsWith(";"))
-                    {    // Found end of command
-                        cmd.append(line.substring(0, line.length()-1));
-                        if (cmd.length() > 0)
-                        {
+                if (!line.startsWith("--")) {
+                    if (line.endsWith(";")) {    // Found end of command
+                        cmd.append(line.substring(0, line.length() - 1));
+                        if (cmd.length() > 0) {
                             final String sql = cmd.toString();
-                            try
-                            {
+                            try {
                                 statement.execute(sql);
-                            }
-                            catch (SQLException ex)
-                            {
+                            } catch (SQLException ex) {
                                 // Ignore RROR 42Y55: 'DROP TABLE' cannot be performed on '...' because it does not exist.
-                                if (! ex.getSQLState().equals("42Y55"))
+                                if (!ex.getSQLState().equals("42Y55"))
                                     logger.log(Level.INFO, "SQL failed: " + sql, ex);
                             }
                         }
                         cmd = new StringBuilder();
-                    }
-                    else
+                    } else
                         cmd.append(line);
                 }
                 line = reader.readLine();
             }
             reader.close();
-        }
-        finally
-        {
-            statement.close();
         }
     }
 

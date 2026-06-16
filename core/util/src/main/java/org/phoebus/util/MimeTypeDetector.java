@@ -29,19 +29,17 @@ public class MimeTypeDetector {
         if (inputStream == null) {
             throw new IOException("InputStream must not be null");
         }
-        try {
-            return new Tika().detect(inputStream, new Metadata());
-        } catch (IOException e) {
-            Logger.getLogger(MimeTypeDetector.class.getName())
-                    .log(Level.WARNING, "Unable to read input stream", e);
-            throw e;
-        } finally {
+        try (inputStream) {
             try {
-                inputStream.close();
+                return new Tika().detect(inputStream, new Metadata());
             } catch (IOException e) {
                 Logger.getLogger(MimeTypeDetector.class.getName())
-                        .log(Level.WARNING, "Failed to close input stream", e);
+                    .log(Level.WARNING, "Unable to read input stream", e);
+                throw e;
             }
+        } catch (IOException e) {
+            Logger.getLogger(MimeTypeDetector.class.getName())
+                .log(Level.WARNING, "Failed to close input stream", e);
         }
     }
 }

@@ -57,52 +57,45 @@ public final class ParserADL {
         final ADLWidget root = new ADLWidget(file.getAbsolutePath(),null,lineNr++);
         FileLine.setFile(file.getAbsolutePath());
         ADLWidget children= root;
-        BufferedReader buffRead = null;
-        try {
+        try (BufferedReader buffRead = new BufferedReader(new FileReader(file))) {
+            try {
 
-            buffRead = new BufferedReader(new FileReader(file));
-            String line;
-            int lineNumber=0;
-            String storeDirtyLine=null;
-            int lastDirtyLine=0;
-            while((line = buffRead.readLine()) != null){
-                lineNumber++;
-                line = line.trim();
-                if(line.length()>0){
-                    if(line.startsWith("#")){
-                        // do nothing comment line
-                    }else if(line.contains("{") && !line.contains("textix=")){ //$NON-NLS-1$
-                        children = new ADLWidget(line,children, lineNr++);
-                    }else if (line.contains("}")&& !line.contains("textix=")){ //$NON-NLS-1$
-                        if (children.getParent() != null)
-                        {
-                            children.getParent().addObject(children);
-                            children = children.getParent();
+                String line;
+                int lineNumber = 0;
+                String storeDirtyLine = null;
+                int lastDirtyLine = 0;
+                while ((line = buffRead.readLine()) != null) {
+                    lineNumber++;
+                    line = line.trim();
+                    if (line.length() > 0) {
+                        if (line.startsWith("#")) {
+                            // do nothing comment line
+                        } else if (line.contains("{") && !line.contains("textix=")) { //$NON-NLS-1$
+                            children = new ADLWidget(line, children, lineNr++);
+                        } else if (line.contains("}") && !line.contains("textix=")) { //$NON-NLS-1$
+                            if (children.getParent() != null) {
+                                children.getParent().addObject(children);
+                                children = children.getParent();
+                            }
+                        } else {
+                            boolean dirtyLine = (line.length() - line.replaceAll("\"", "").length()) % 2 == 1;
+                            if (storeDirtyLine != null && dirtyLine && lineNumber == (lastDirtyLine + 1)) {
+                                line = storeDirtyLine.concat(line);
+                                storeDirtyLine = null;
+                            } else if (dirtyLine) {
+                                storeDirtyLine = line;
+                                lastDirtyLine = lineNumber;
+                                continue;
+                            }
+                            children.addBody(new FileLine(line, lineNumber));
                         }
-                    }else{
-                        boolean dirtyLine = (line.length()-line.replaceAll("\"", "").length())%2==1;
-                        if(storeDirtyLine!=null&&dirtyLine && lineNumber==(lastDirtyLine+1)){
-                            line = storeDirtyLine.concat(line);
-                            storeDirtyLine=null;
-                        }else if(dirtyLine){
-                            storeDirtyLine = line;
-                            lastDirtyLine = lineNumber;
-                            continue;
-                        }
-                        children.addBody(new FileLine(line,lineNumber));
                     }
                 }
+            } catch (final Exception e) {
+                Logger.getLogger(ParserADL.class.getName()).log(Level.WARNING, "ADL Parse error", e);
             }
-        } catch (final Exception e) {
-            Logger.getLogger(ParserADL.class.getName()).log(Level.WARNING, "ADL Parse error", e);
-        } finally{
-            try {
-                if(buffRead!=null){
-                    buffRead.close();
-                }
-            } catch (final IOException e) {
-                Logger.getLogger(ParserADL.class.getName()).log(Level.WARNING, "Error closing reader", e);
-            }
+        } catch (final IOException e) {
+            Logger.getLogger(ParserADL.class.getName()).log(Level.WARNING, "Error closing reader", e);
         }
         return root;
     }

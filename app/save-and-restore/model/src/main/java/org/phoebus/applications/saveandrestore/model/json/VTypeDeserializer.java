@@ -42,15 +42,8 @@ public class VTypeDeserializer extends JsonDeserializer<VType> {
     public VType deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
             throws IOException {
 		String valueAsJson = jsonParser.getCodec().readTree(jsonParser).toString();
-		JsonReader jsonReader = null;
-		try {
-			jsonReader = Json.createReader(new ByteArrayInputStream(valueAsJson.getBytes()));
-			return VTypeToJson.toVType(jsonReader.readObject());
-		} 
-		finally {
-			if(jsonReader != null) {
-				jsonReader.close();
-			}
-		}
+        try (JsonReader jsonReader = Json.createReader(new ByteArrayInputStream(valueAsJson.getBytes()))) {
+            return VTypeToJson.toVType(jsonReader.readObject());
+        }
     }
 }

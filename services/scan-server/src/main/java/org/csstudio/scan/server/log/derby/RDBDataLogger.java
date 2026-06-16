@@ -110,17 +110,11 @@ abstract public class RDBDataLogger implements AutoCloseable
             statement.setString(1, scan_name);
             statement.setTimestamp(2, Timestamp.from(now));
             statement.executeUpdate();
-            final ResultSet result = statement.getGeneratedKeys();
-            try
-            {
-                if (! result.next())
+            try (ResultSet result = statement.getGeneratedKeys()) {
+                if (!result.next())
                     throw new Exception("Missing new scan ID");
                 final long id = result.getLong(1);
                 return new Scan(id, scan_name, now);
-            }
-            finally
-            {
-                result.close();
             }
         }
     }
@@ -203,18 +197,12 @@ abstract public class RDBDataLogger implements AutoCloseable
         {
             statement.setString(1, device_name);
             statement.executeUpdate();
-            final ResultSet result = statement.getGeneratedKeys();
-            try
-            {
-                if (! result.next())
+            try (ResultSet result = statement.getGeneratedKeys()) {
+                if (!result.next())
                     throw new Exception("Missing new device ID");
                 id = result.getInt(1);
                 devices.put(device_name, id);
                 return id;
-            }
-            finally
-            {
-                result.close();
             }
         }
     }
@@ -233,16 +221,10 @@ abstract public class RDBDataLogger implements AutoCloseable
         )
         {
             statement.setString(1, device_name);
-            final ResultSet result = statement.executeQuery();
-            try
-            {
-                if (! result.next())
+            try (ResultSet result = statement.executeQuery()) {
+                if (!result.next())
                     return -1;
                 return result.getInt(1);
-            }
-            finally
-            {
-                result.close();
             }
         }
     }
