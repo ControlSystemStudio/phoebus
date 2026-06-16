@@ -89,9 +89,8 @@ public class EdmColorsList extends EdmEntity {
 
         if (!nonMenuColors.isEmpty()) {
             log.fine("Color definitions exist that are not in menumap. Adding them at the end.");
-            Iterator<EdmColor> iterator = nonMenuColors.iterator();
-            while (iterator.hasNext()) {
-                menuColorsMap.put(menuInd, iterator.next());
+            for (EdmColor nonMenuColor : nonMenuColors) {
+                menuColorsMap.put(menuInd, nonMenuColor);
                 menuInd++;
             }
         }
