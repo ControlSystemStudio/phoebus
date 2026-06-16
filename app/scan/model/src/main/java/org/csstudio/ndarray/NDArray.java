@@ -305,8 +305,7 @@ public class NDArray
         if (data instanceof List)
         {
             final List<?> list = (List<?>)data;
-            for (int i=0; i<list.size(); ++i)
-                index = fillFlatArray(flat, index, list.get(i));
+            for (Object o : list) index = fillFlatArray(flat, index, o);
             return index;
         }
         else if (data.getClass().isArray())

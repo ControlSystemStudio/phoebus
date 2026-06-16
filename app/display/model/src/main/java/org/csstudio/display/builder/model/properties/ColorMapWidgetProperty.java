@@ -65,13 +65,12 @@ public class ColorMapWidgetProperty extends WidgetProperty<ColorMap>
         else
         {
             final int[][] sections = value.getSections();
-            for (int i=0; i<sections.length; ++i)
-            {
+            for (int[] section : sections) {
                 writer.writeEmptyElement("section");
-                writer.writeAttribute(XMLTags.VALUE, Integer.toString(sections[i][0]));
-                writer.writeAttribute(XMLTags.RED, Integer.toString(sections[i][1]));
-                writer.writeAttribute(XMLTags.GREEN, Integer.toString(sections[i][2]));
-                writer.writeAttribute(XMLTags.BLUE, Integer.toString(sections[i][3]));
+                writer.writeAttribute(XMLTags.VALUE, Integer.toString(section[0]));
+                writer.writeAttribute(XMLTags.RED, Integer.toString(section[1]));
+                writer.writeAttribute(XMLTags.GREEN, Integer.toString(section[2]));
+                writer.writeAttribute(XMLTags.BLUE, Integer.toString(section[3]));
             }
         }
     }

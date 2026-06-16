@@ -334,9 +334,9 @@ public class LinearTicks extends Ticks<Double>
     {
         final double log = Math.log10(min_distance);
         final double order_of_magnitude = Math.pow(10, Math.floor(log));
-        for (int i=0; i<NICE_STEPS.length; ++i)
-            if (NICE_STEPS[i] * order_of_magnitude >= min_distance)
-                return NICE_STEPS[i] * order_of_magnitude;
+        for (double niceStep : NICE_STEPS)
+            if (niceStep * order_of_magnitude >= min_distance)
+                return niceStep * order_of_magnitude;
         return min_distance;
     }
 

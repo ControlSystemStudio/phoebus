@@ -122,8 +122,7 @@ public class PVALongArray extends PVAData implements PVAArray, PVAValue
     {
         final long[] copy = value;
         PVASize.encodeSize(copy.length, buffer);
-        for (int i=0; i<copy.length; ++i)
-            buffer.putLong(copy[i]);
+        for (long l : copy) buffer.putLong(l);
     }
 
     @Override

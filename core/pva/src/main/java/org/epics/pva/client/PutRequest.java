@@ -154,8 +154,8 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
                     // Must also set bits for the elements of the structure
                     List<PVAData> elements = struct.get();
                     if(elements != null){
-                        for(int i = 0; i < elements.size(); i++){
-                            changed.set(data.getIndex(elements.get(i)));
+                        for (PVAData element : elements) {
+                            changed.set(data.getIndex(element));
                         }
                     }
                 }

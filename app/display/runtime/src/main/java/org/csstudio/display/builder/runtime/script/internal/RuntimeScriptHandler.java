@@ -179,8 +179,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
         }
         // Subscribe to all PVs.
         // Will later unsubscribe from non-trigger PVs
-        for (int i=0; i<pvs.length; ++i)
-            pvs[i].addListener(this);
+        for (RuntimePV pv : pvs) pv.addListener(this);
 
         // If not awaiting connections,
         // invoke script right away while all PVs are still

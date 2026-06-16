@@ -92,8 +92,8 @@ public class PGCopyPreparedStatement implements PreparedStatement {
 
     @Override
     public void addBatch() throws SQLException {
-        for (int i = 0; i < rowValues.length; i++) {
-            if (rowValues[i] != null) {
+        for (String rowValue : rowValues) {
+            if (rowValue != null) {
                 // If the value contains the delimiter char, the QUOTE char,
                 // the NULL string, a carriage return, or line feed char,
                 // then the whole value is prefixed and suffixed by the QUOTE char,
@@ -101,13 +101,13 @@ public class PGCopyPreparedStatement implements PreparedStatement {
                 // ESCAPE char is preceded by the escape char
                 // ESCAPE defaults to QUOTE which defaults to " double quote
                 // delimiter char defaults to , comma
-                final String[] metaCharacters = {",","\"","NULL","\\n","\\r"};
-                String inputRow = rowValues[i];
-                if(rowValues[i].contains("\""))
-                    inputRow = inputRow.replace("\"","\"\"");
-                for (int j = 0 ; j < metaCharacters.length ; j++){
-                    if(rowValues[i].toLowerCase().
-                            contains(metaCharacters[j].toLowerCase())){
+                final String[] metaCharacters = {",", "\"", "NULL", "\\n", "\\r"};
+                String inputRow = rowValue;
+                if (rowValue.contains("\""))
+                    inputRow = inputRow.replace("\"", "\"\"");
+                for (String metaCharacter : metaCharacters) {
+                    if (rowValue.toLowerCase().
+                        contains(metaCharacter.toLowerCase())) {
                         inputRow = "\"" + inputRow + "\"";
                         break;
                     }
@@ -543,8 +543,8 @@ public class PGCopyPreparedStatement implements PreparedStatement {
     public static String bytesToByteA(byte[] bytes) {
         StringBuilder sb = new StringBuilder(bytes.length * 4);
         int v;
-        for (int j = 0; j < bytes.length; j++) {
-            v = bytes[j] & 0xFF;
+        for (byte aByte : bytes) {
+            v = aByte & 0xFF;
             sb.append("\\");
             String octal = Integer.toString(v, 8);
             int nbHeadingZeroToadd = 3 - octal.length();

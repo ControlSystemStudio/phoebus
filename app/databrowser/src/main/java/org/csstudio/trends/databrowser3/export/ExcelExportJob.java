@@ -313,8 +313,7 @@ public class ExcelExportJob extends ExportJob
             final VType line[] = iter.next();
 
             cell = createTimeCell(row = sheet.createRow(row.getRowNum() + 1), time);
-            for (int i=0; i<line.length; ++i)
-                cell = createValueCells(row, cell.getColumnIndex()+1, line[i]);
+            for (VType vType : line) cell = createValueCells(row, cell.getColumnIndex() + 1, vType);
             ++line_count;
             if ((line_count % PROGRESS_UPDATE_LINES) == 0)
                 monitor.beginTask(MessageFormat.format("Wrote {0} samples", line_count));

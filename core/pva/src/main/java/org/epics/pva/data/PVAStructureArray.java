@@ -185,14 +185,12 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
     {
         final PVAStructure[] copy = elements;
         PVASize.encodeSize(copy.length, buffer);
-        for (int i=0; i<copy.length; ++i)
-        {
-            if (copy[i] == null)
+        for (PVAStructure pvaStructure : copy) {
+            if (pvaStructure == null)
                 PVABool.encodeBoolean(false, buffer);
-            else
-            {
+            else {
                 PVABool.encodeBoolean(true, buffer);
-                copy[i].encode(buffer);
+                pvaStructure.encode(buffer);
             }
         }
     }

@@ -519,14 +519,14 @@ public class WidgetTransfer {
             installSymbolWidgetFromImageFiles(fileNames, selection_tracker, widgets, updates);
 
         } else {
-            for ( int i = 0; i < files.size(); i++ ) {
+            for (File file : files) {
 
-                final String fileName = resolveFile(files.get(i), selection_tracker.getModel());
+                final String fileName = resolveFile(file, selection_tracker.getModel());
                 final String extension = getExtension(fileName).toUpperCase();
 
-                if ( IMAGE_FILE_EXTENSIONS.contains(extension) ) {
+                if (IMAGE_FILE_EXTENSIONS.contains(extension)) {
                     installPictureWidgetFromFile(fileName, selection_tracker, widgets, updates);
-                } else if ( EMBEDDED_FILE_EXTENSIONS.contains(extension) ) {
+                } else if (EMBEDDED_FILE_EXTENSIONS.contains(extension)) {
                     installEmbeddedDisplayWidgetFromFile(fileName, selection_tracker, widgets, updates);
                 }
 
