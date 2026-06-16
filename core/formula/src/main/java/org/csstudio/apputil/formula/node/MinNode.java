@@ -70,7 +70,7 @@ public class MinNode implements Node
     @Override
     public String toString()
     {
-        final StringBuffer b = new StringBuffer("min(");
+        final StringBuilder b = new StringBuilder("min(");
         for (int i = 0; i < args.length; i++)
         {
             if (i>0)

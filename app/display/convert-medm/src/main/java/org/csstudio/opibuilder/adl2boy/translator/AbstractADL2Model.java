@@ -422,7 +422,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
      */
     public String removeParentMacros(String args) {
         String[] argList = args.split(",");
-        StringBuffer strBuff = new StringBuffer();
+        StringBuilder strBuff = new StringBuilder();
         for (String s : argList) {
             String[] argParts = s.split("=");
             if (argParts.length == 1) {

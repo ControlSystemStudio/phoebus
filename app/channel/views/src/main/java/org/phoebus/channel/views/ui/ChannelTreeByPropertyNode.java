@@ -153,7 +153,7 @@ public class ChannelTreeByPropertyNode {
     private String formatVType(VType value )
     {
         Alarm alarm = Alarm.alarmOf(value);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(FormatOptionHandler.format(value, FormatOption.DEFAULT, -1, true));
         if (!alarm.getSeverity().equals(AlarmSeverity.NONE)) 
         {
