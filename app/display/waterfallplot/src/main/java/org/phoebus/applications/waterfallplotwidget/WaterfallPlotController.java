@@ -34,7 +34,7 @@ public class WaterfallPlotController {
 
     private XYChart xyChart;
 
-    private final Pair<Integer, TimespanUnit> DEFAULT_TIMESPAN = new Pair(10, TimespanUnit.MINUTES);
+    private final Pair<Integer, TimespanUnit> DEFAULT_TIMESPAN = new Pair<>(10, TimespanUnit.MINUTES);
     private Pair<Integer, TimespanUnit> timespan = DEFAULT_TIMESPAN;
 
     private DefaultNumericAxis zAxis = new DefaultNumericAxis("Z-Axis");
@@ -631,9 +631,9 @@ public class WaterfallPlotController {
             String stringContainingUnit = timespanString.substring(i).trim().toLowerCase();
 
             if (stringContainingUnit.equals("") || stringContainingUnit.equals("s") || stringContainingUnit.equals("sec") || stringContainingUnit.equals("secs") || stringContainingUnit.equals("second") || stringContainingUnit.equals("seconds")) {
-                return Optional.of(new Pair(parsedNumber, TimespanUnit.SECONDS));
+                return Optional.of(new Pair<>(parsedNumber, TimespanUnit.SECONDS));
             } else if (stringContainingUnit.equals("m") || stringContainingUnit.equals("min") || stringContainingUnit.equals("mins") || stringContainingUnit.equals("minute") || stringContainingUnit.equals("minutes")) {
-                return Optional.of(new Pair(parsedNumber, TimespanUnit.MINUTES));
+                return Optional.of(new Pair<>(parsedNumber, TimespanUnit.MINUTES));
             } else if (stringContainingUnit.equals("h") || stringContainingUnit.equals("hour") || stringContainingUnit.equals("hours")) {
                 return Optional.of(new Pair<>(parsedNumber, TimespanUnit.HOURS));
             } else if (stringContainingUnit.equals("d") || stringContainingUnit.equals("day") || stringContainingUnit.equals("days")) {

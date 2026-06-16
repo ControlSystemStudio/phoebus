@@ -469,12 +469,12 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
-        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
 
     }
 
@@ -523,7 +523,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
     }
 
     @Test
@@ -538,7 +538,7 @@ public class NodeControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
+        verify(webSocketService, times(0)).sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_REMOVED, "b"));
 
     }
 

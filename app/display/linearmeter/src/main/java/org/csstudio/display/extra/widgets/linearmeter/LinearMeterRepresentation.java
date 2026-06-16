@@ -91,11 +91,11 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
     Deque<Pair<PropertyChangeHandler, BaseWidgetPropertyListener>> widgetPropertiesWithWidgetPropertyListeners = new ArrayDeque<>();
     private <T> void addWidgetPropertyListener(WidgetProperty<T> widgetProperty, WidgetPropertyListener<T> widgetPropertyListener) {
         widgetProperty.addPropertyListener(widgetPropertyListener);
-        widgetPropertiesWithWidgetPropertyListeners.push(new Pair(widgetProperty, widgetPropertyListener));
+        widgetPropertiesWithWidgetPropertyListeners.push(new Pair<>(widgetProperty, widgetPropertyListener));
     }
     private <T> void addUntypedWidgetPropertyListener(WidgetProperty<T> widgetProperty, UntypedWidgetPropertyListener widgetPropertyListener) {
         widgetProperty.addUntypedPropertyListener(widgetPropertyListener);
-        widgetPropertiesWithWidgetPropertyListeners.push(new Pair(widgetProperty, widgetPropertyListener));
+        widgetPropertiesWithWidgetPropertyListeners.push(new Pair<>(widgetProperty, widgetPropertyListener));
     }
 
     @Override

@@ -87,6 +87,6 @@ public class FilterController extends BaseController {
     @PreAuthorize("@authorizationHelper.maySaveOrDeleteFilter(#name, #root)")
     public void deleteFilter(@PathVariable final String name, Principal principal) {
         nodeDAO.deleteFilter(name);
-        webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.FILTER_REMOVED, name));
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.FILTER_REMOVED, name));
     }
 }

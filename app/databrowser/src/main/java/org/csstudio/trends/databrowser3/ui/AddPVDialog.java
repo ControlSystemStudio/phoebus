@@ -206,10 +206,10 @@ public class AddPVDialog extends Dialog<Boolean>
                 Tooltip displayNameTextFieldTooltip = new Tooltip(Messages.TraceDisplayNameTT);
                 displayNameTextField.setTooltip(displayNameTextFieldTooltip);
                 gridPane.add(displayNameTextField, 1, row, 2, 1);
-                nameAndDisplayNames.add(new Pair(name, displayNameTextField));
+                nameAndDisplayNames.add(new Pair<>(name, displayNameTextField));
             }
             else {
-                nameAndDisplayNames.add(new Pair(name, name));
+                nameAndDisplayNames.add(new Pair<>(name, name));
             }
 
             if (! formula)
