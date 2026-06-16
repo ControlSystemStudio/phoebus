@@ -52,7 +52,7 @@ public class EventLogMessage extends LogMessage
     {
         final var msg = new EventLogMessage();
         msg.date = Instant.ofEpochMilli(
-                Long.valueOf(hit.fields().get(EventLogMessage.DATE).toJson()
+                Long.parseLong(hit.fields().get(EventLogMessage.DATE).toJson()
                         .asJsonArray().getString(0)));
         for (String name : EventLogMessage.PROPERTY_NAMES)
         {
