@@ -149,7 +149,7 @@ public final class Utilities {
 
     private static final char COMMA = ',';
     // All formats use thread locals, to avoid problems if any of the static methods are invoked concurrently
-    private static final ThreadLocal FORMAT = ThreadLocal.withInitial(() -> {
+    private static final ThreadLocal<ValueFormat> FORMAT = ThreadLocal.withInitial(() -> {
         ValueFormat vf = new SimpleValueFormat(3);
         vf.setNumberFormat(NumberFormats.toStringFormat());
         return vf;

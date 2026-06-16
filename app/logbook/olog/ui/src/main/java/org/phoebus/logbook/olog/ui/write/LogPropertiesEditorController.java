@@ -374,7 +374,7 @@ public class LogPropertiesEditorController {
         @Override
         public void commitEdit(String value) {
             super.commitEdit(value);
-            TreeTableRow row = getTableRow();
+            TreeTableRow<PropertyTreeNode> row = getTableRow();
             PropertyTreeNode parent = (PropertyTreeNode) row.getTreeItem().getParent().getValue();
             String propertyName = parent.getName();
             String attributeName = ((PropertyTreeNode) row.getTreeItem().getValue()).getName();

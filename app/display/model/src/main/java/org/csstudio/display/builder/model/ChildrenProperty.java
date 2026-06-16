@@ -265,7 +265,7 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
                 Collections.rotate(list.subList(java.lang.Math.min(index, current_index), java.lang.Math.max(index, current_index) + 1), index_diff);
             }
         }
-        final List change = Arrays.asList(child);
+        final List<Widget> change = Arrays.asList(child);
         firePropertyChange(change, change, true);
         return index;
     }

@@ -11,7 +11,6 @@ import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.SafeMultiply;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.saveandrestore.util.Threshold;
-import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
 
 import java.util.Optional;
@@ -68,7 +67,7 @@ public class ColumnEntry {
         if (storedValue.get() instanceof VNumber) {
             VNumber vNumber = SafeMultiply.multiply((VNumber) storedValue.get(), ratio);
             boolean isNegative = vNumber.getValue().doubleValue() < 0;
-            Threshold t = new Threshold<>(isNegative ? SafeMultiply.multiply(vNumber.getValue(), -1.0) : vNumber.getValue());
+            Threshold<Number> t = new Threshold<>(isNegative ? SafeMultiply.multiply(vNumber.getValue(), -1.0) : vNumber.getValue());
             this.delta.set(new VTypePair(liveValue.get(), storedValue.get(), Optional.of(t)));
         }
     }
