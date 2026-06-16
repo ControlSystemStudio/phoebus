@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 @XmlRootElement(name = "tags")
 public class XmlTags {
-    private Collection<XmlTag> tags = new ArrayList<XmlTag>();
+    private Collection<XmlTag> tags = new ArrayList<>();
   
     /** Creates a new instance of XmlTags. */
     public XmlTags() {

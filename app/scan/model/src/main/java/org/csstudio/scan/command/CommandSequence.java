@@ -66,7 +66,7 @@ public class CommandSequence
      */
     public CommandSequence(final Collection<ScanCommand> commands)
     {
-        this.commands = new ArrayList<ScanCommand>();
+        this.commands = new ArrayList<>();
         this.commands.addAll(commands);
     }
 

@@ -72,7 +72,7 @@ public class IncludeCommandImpl extends ScanCommandImpl<IncludeCommand>
         macros.pushMacros(command.getMacros());
         try
         {
-            final Set<String> devices = new HashSet<String>();
+            final Set<String> devices = new HashSet<>();
             for (ScanCommandImpl<?> command : scan_impl)
             {
                 for (String device_name : command.getDeviceNames(macros))

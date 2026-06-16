@@ -55,11 +55,11 @@ public class SearchController {
     @GetMapping
     public String info() {
 
-        Map<String, Object> alarmLoggingServiceInfo = new LinkedHashMap<String, Object>();
+        Map<String, Object> alarmLoggingServiceInfo = new LinkedHashMap<>();
         alarmLoggingServiceInfo.put("name", "Alarm logging Service");
         alarmLoggingServiceInfo.put("version", version);
 
-        Map<String, String> elasticInfo = new LinkedHashMap<String, String>();
+        Map<String, String> elasticInfo = new LinkedHashMap<>();
         try {
             ElasticsearchClient client = ElasticClientHelper.getInstance().getClient();
             InfoResponse response = client.info();

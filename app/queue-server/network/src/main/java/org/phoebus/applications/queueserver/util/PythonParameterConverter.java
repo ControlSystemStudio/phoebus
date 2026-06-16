@@ -164,7 +164,8 @@ public class PythonParameterConverter {
 
                 // Check if result contains an error
                 Map<String, Object> resultMap = objectMapper.readValue(resultJson,
-                        new TypeReference<Map<String, Object>>() {});
+                    new TypeReference<>() {
+                    });
 
                 if (resultMap.containsKey("error")) {
                     String errorMsg = "Python type conversion failed: " + resultMap.get("error");

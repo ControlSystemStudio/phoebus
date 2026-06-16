@@ -64,7 +64,7 @@ class PositionalXMLReader
             throw new RuntimeException("Can't create SAX parser / DOM builder.", e);
         }
 
-        final Stack<Element> elementStack = new Stack<Element>();
+        final Stack<Element> elementStack = new Stack<>();
         final StringBuilder textBuffer = new StringBuilder();
         final DefaultHandler handler = new DefaultHandler()
         {

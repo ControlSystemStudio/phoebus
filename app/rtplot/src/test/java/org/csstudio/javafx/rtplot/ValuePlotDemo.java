@@ -162,16 +162,14 @@ public class ValuePlotDemo extends ApplicationWrapper
 
         plot.setMouseMode(MouseMode.PAN);
 
-        plot.addListener(new RTPlotListener<Double>()
-        {
+        plot.addListener(new RTPlotListener<>() {
             @Override
-            public void changedXAxis(Axis<Double> x_axis)
-            {
+            public void changedXAxis(Axis<Double> x_axis) {
                 System.out.println("X Axis changed: " + x_axis);
             }
+
             @Override
-            public void changedYAxis(YAxis<Double> y_axis)
-            {
+            public void changedYAxis(YAxis<Double> y_axis) {
                 System.out.println("Y Axis changed: " + y_axis);
             }
         });

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 public class XmlTag {
     private String name = null;
     private String owner = null;
-    private List<XmlChannel> channels = new ArrayList<XmlChannel>();
+    private List<XmlChannel> channels = new ArrayList<>();
 
     /**
      * Creates a new instance of XmlTag.

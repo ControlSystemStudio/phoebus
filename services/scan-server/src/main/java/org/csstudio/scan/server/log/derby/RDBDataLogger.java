@@ -42,7 +42,7 @@ abstract public class RDBDataLogger implements AutoCloseable
     final protected Connection connection;
 
     /** Device ID cache */
-    final private Map<String, Integer> devices = new HashMap<String, Integer>();
+    final private Map<String, Integer> devices = new HashMap<>();
 
     /** Re-used statement */
     private PreparedStatement insert_sample_statement = null;
@@ -158,7 +158,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     public List<Scan> getScans() throws Exception
     {
-        final List<Scan> scans = new ArrayList<Scan>();
+        final List<Scan> scans = new ArrayList<>();
         try
         (
             final PreparedStatement statement = connection.prepareStatement(
@@ -313,7 +313,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     public ScanData getScanData(final long scan_id) throws Exception
     {
-        final Map<String, List<ScanSample>> device_logs = new HashMap<String, List<ScanSample>>();
+        final Map<String, List<ScanSample>> device_logs = new HashMap<>();
 
         // Could fetch all samples for scan ID, but
         // organizing the retrieval by device in case
@@ -336,7 +336,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     private List<ScanSample> getScanSamples(final long scan_id, final String device_name) throws Exception
     {
-        final List<ScanSample> samples = new ArrayList<ScanSample>();
+        final List<ScanSample> samples = new ArrayList<>();
         try
         (
             final PreparedStatement statement = connection.prepareStatement(
@@ -365,7 +365,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     private String[] getScanDevices(final long scan_id) throws SQLException
     {
-        final List<String> devices = new ArrayList<String>();
+        final List<String> devices = new ArrayList<>();
         try
         (
             final PreparedStatement statement = connection.prepareStatement(

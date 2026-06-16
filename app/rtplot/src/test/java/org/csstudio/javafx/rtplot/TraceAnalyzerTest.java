@@ -29,7 +29,7 @@ public class TraceAnalyzerTest
     {
         final ArrayPlotDataProvider<Instant> data = new ArrayPlotDataProvider<>();
         for (int i=0; i<=10; ++i)
-            data.add(new SimpleDataItem<Instant>(Instant.ofEpochSecond(10*i), 10.0*i-50));
+            data.add(new SimpleDataItem<>(Instant.ofEpochSecond(10 * i), 10.0 * i - 50));
 
         for (int i=0; i<data.size(); ++i)
             System.out.println(data.get(i));

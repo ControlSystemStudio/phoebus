@@ -61,7 +61,7 @@ public class WidgetRuntimeFactory
         final WidgetRuntime<MW> runtime;
         if (runtime_class == null)
             // Use default runtime
-            runtime = new WidgetRuntime<MW>();
+            runtime = new WidgetRuntime<>();
         else
             // Use widget-specific runtime
             runtime = (WidgetRuntime<MW>) runtime_class.get();

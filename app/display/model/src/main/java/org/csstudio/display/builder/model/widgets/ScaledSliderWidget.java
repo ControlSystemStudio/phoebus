@@ -71,16 +71,14 @@ public class ScaledSliderWidget extends WritablePVWidget
 
     /** Display 'scale_font': Font for scale */
     public static final WidgetPropertyDescriptor<WidgetFont> displayScaleFont =
-        new WidgetPropertyDescriptor<WidgetFont>(
-            WidgetPropertyCategory.DISPLAY, "scale_font", Messages.WidgetProperties_Font)
-    {
-        @Override
-        public WidgetProperty<WidgetFont> createProperty(final Widget widget,
-                                                         final WidgetFont font)
-        {
-            return new FontWidgetProperty(this, widget, font);
-        }
-    };
+        new WidgetPropertyDescriptor<>(
+            WidgetPropertyCategory.DISPLAY, "scale_font", Messages.WidgetProperties_Font) {
+            @Override
+            public WidgetProperty<WidgetFont> createProperty(final Widget widget,
+                                                             final WidgetFont font) {
+                return new FontWidgetProperty(this, widget, font);
+            }
+        };
 
     /** 'show_scale' property: Show scale for scaled widget. */
     public static final WidgetPropertyDescriptor<Boolean> propShowScale =

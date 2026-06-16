@@ -109,7 +109,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         searchParameters.addListener((observable, oldValue, newValue) -> query.getEditor().setText(newValue));
 
         agenda = new Agenda();
-        agenda.setEditAppointmentCallback(new Callback<Agenda.Appointment, Void>() {
+        agenda.setEditAppointmentCallback(new Callback<>() {
 
             @Override
             public Void call(Appointment appointment) {
@@ -279,8 +279,8 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     }
 
     private void refresh() {
-        map = new HashMap<Appointment, LogEntry>();
-        map = this.logEntries.stream().collect(Collectors.toMap(new Function<LogEntry, Appointment>() {
+        map = new HashMap<>();
+        map = this.logEntries.stream().collect(Collectors.toMap(new Function<>() {
 
             @Override
             public Appointment apply(LogEntry logentry) {
@@ -288,9 +288,9 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 appointment.withSummary(logentry.getDescription());
                 appointment.withDescription(logentry.getDescription());
                 appointment.withStartLocalDateTime(
-                        LocalDateTime.ofInstant(logentry.getCreatedDate(), ZoneId.systemDefault()));
+                    LocalDateTime.ofInstant(logentry.getCreatedDate(), ZoneId.systemDefault()));
                 appointment.withEndLocalDateTime(
-                        LocalDateTime.ofInstant(logentry.getCreatedDate().plusSeconds(2400), ZoneId.systemDefault()));
+                    LocalDateTime.ofInstant(logentry.getCreatedDate().plusSeconds(2400), ZoneId.systemDefault()));
                 List<String> logbookNames = getLogbookNames();
                 if (logbookNames != null && !logbookNames.isEmpty()) {
                     try {
@@ -306,7 +306,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 }
                 return appointment;
             }
-        }, new Function<LogEntry, LogEntry>() {
+        }, new Function<>() {
 
             @Override
             public LogEntry apply(LogEntry logentry) {

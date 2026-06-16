@@ -26,7 +26,7 @@ public class EdmAttribute {
     private boolean isExistInEDl;
 
     private void initDefaultValues() {
-        values = new Vector<String>();
+        values = new Vector<>();
         required = true;
         initialized = false;
     }
