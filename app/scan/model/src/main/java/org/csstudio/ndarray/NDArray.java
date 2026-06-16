@@ -322,7 +322,7 @@ public class NDArray
         }
         else if (data instanceof Boolean)
         {
-            flat.setByte(index, (Boolean) data ? (byte)1 : 0);
+            flat.setByte(index, Boolean.TRUE.equals(data) ? (byte)1 : 0);
             return index + 1;
         }
         else
