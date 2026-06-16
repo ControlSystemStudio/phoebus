@@ -130,8 +130,8 @@ class DerbyDataLogger extends RDBDataLogger
                 // Skip comments
                 if (!line.startsWith("--")) {
                     if (line.endsWith(";")) {    // Found end of command
-                        cmd.append(line.substring(0, line.length() - 1));
-                        if (cmd.length() > 0) {
+                        cmd.append(line, 0, line.length() - 1);
+                        if (!cmd.isEmpty()) {
                             final String sql = cmd.toString();
                             try {
                                 statement.execute(sql);
