@@ -39,11 +39,9 @@ import java.util.logging.Logger;
  * @since 08.10.2007
  */
 public final class ParserADL {
-
-    /**
-     * Default Constructor.
-     */
-    public ParserADL(){}
+    private ParserADL() {
+        /* This utility class should not be instantiated */
+    }
 
     /**
      * Main method of class ParserADL.<br/>
@@ -56,47 +54,49 @@ public final class ParserADL {
         int lineNr=0;
         final ADLWidget root = new ADLWidget(file.getAbsolutePath(),null,lineNr++);
         FileLine.setFile(file.getAbsolutePath());
-        ADLWidget children= root;
         try (BufferedReader buffRead = new BufferedReader(new FileReader(file))) {
-            try {
-
-                String line;
-                int lineNumber = 0;
-                String storeDirtyLine = null;
-                int lastDirtyLine = 0;
-                while ((line = buffRead.readLine()) != null) {
-                    lineNumber++;
-                    line = line.trim();
-                    if (line.length() > 0) {
-                        if (line.startsWith("#")) {
-                            // do nothing comment line
-                        } else if (line.contains("{") && !line.contains("textix=")) { //$NON-NLS-1$
-                            children = new ADLWidget(line, children, lineNr++);
-                        } else if (line.contains("}") && !line.contains("textix=")) { //$NON-NLS-1$
-                            if (children.getParent() != null) {
-                                children.getParent().addObject(children);
-                                children = children.getParent();
-                            }
-                        } else {
-                            boolean dirtyLine = (line.length() - line.replaceAll("\"", "").length()) % 2 == 1;
-                            if (storeDirtyLine != null && dirtyLine && lineNumber == (lastDirtyLine + 1)) {
-                                line = storeDirtyLine.concat(line);
-                                storeDirtyLine = null;
-                            } else if (dirtyLine) {
-                                storeDirtyLine = line;
-                                lastDirtyLine = lineNumber;
-                                continue;
-                            }
-                            children.addBody(new FileLine(line, lineNumber));
-                        }
-                    }
-                }
-            } catch (final Exception e) {
-                Logger.getLogger(ParserADL.class.getName()).log(Level.WARNING, "ADL Parse error", e);
-            }
+            parseADLFromReader(buffRead, root, lineNr);
         } catch (final IOException e) {
             Logger.getLogger(ParserADL.class.getName()).log(Level.WARNING, "Error closing reader", e);
         }
         return root;
+    }
+
+    private static void parseADLFromReader(BufferedReader buffRead, ADLWidget children, int lineNr) {
+        try {
+            String line;
+            int lineNumber = 0;
+            String storeDirtyLine = null;
+            int lastDirtyLine = 0;
+            while ((line = buffRead.readLine()) != null) {
+                lineNumber++;
+                line = line.trim();
+                if (!line.isEmpty()) {
+                    if (line.startsWith("#")) {
+                        // do nothing comment line
+                    } else if (line.contains("{") && !line.contains("textix=")) { //$NON-NLS-1$
+                        children = new ADLWidget(line, children, lineNr++);
+                    } else if (line.contains("}") && !line.contains("textix=")) { //$NON-NLS-1$
+                        if (children.getParent() != null) {
+                            children.getParent().addObject(children);
+                            children = children.getParent();
+                        }
+                    } else {
+                        boolean dirtyLine = (line.length() - line.replace("\"", "").length()) % 2 == 1;
+                        if (storeDirtyLine != null && dirtyLine && lineNumber == (lastDirtyLine + 1)) {
+                            line = storeDirtyLine.concat(line);
+                            storeDirtyLine = null;
+                        } else if (dirtyLine) {
+                            storeDirtyLine = line;
+                            lastDirtyLine = lineNumber;
+                            continue;
+                        }
+                        children.addBody(new FileLine(line, lineNumber));
+                    }
+                }
+            }
+        } catch (final Exception e) {
+            Logger.getLogger(ParserADL.class.getName()).log(Level.WARNING, "ADL Parse error", e);
+        }
     }
 }
