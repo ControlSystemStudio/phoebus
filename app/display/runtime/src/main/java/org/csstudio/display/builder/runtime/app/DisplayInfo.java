@@ -66,7 +66,13 @@ public class DisplayInfo
             if (host != null && !host.isEmpty())
                 path = "//" + host + uri.getPath();
             else
+            {
+                // On Windows, File.toURI() for UNC paths may produce URIs
+                // with the host embedded in the path (file:////host/share).
+                // In that case getHost() is null but getPath() starts with "//".
+                // Preserve the double-slash so it's treated as a UNC path.
                 path = uri.getPath();
+            }
         }
         else
         {
