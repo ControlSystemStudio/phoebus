@@ -18,7 +18,7 @@ jobs:
     - name: Setup Maven and Java Action
       uses: s4u/setup-maven-action@v1.18.0
       with:
-        java-version: '21'
+        java-version: '25'
         maven-version: '3.9.6'
     - name: Build
       run: mvn --batch-mode install -DskipTests
