@@ -132,7 +132,12 @@ public class DisplayInfo
         {
             String userDataInputFile = model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
             String userDataInputFile_lowerCase = userDataInputFile.toLowerCase(Locale.ROOT);
-            if (   !userDataInputFile_lowerCase.startsWith("/")
+            if (userDataInputFile.startsWith("\\\\")) {
+                // UNC path like \\wsl.localhost\share\... -> //wsl.localhost/share/...
+                // Don't prepend '/' — the double slash IS the leading path indicator for UNC
+                path = userDataInputFile.replace('\\', '/');
+            }
+            else if (   !userDataInputFile_lowerCase.startsWith("/")
                 && !userDataInputFile_lowerCase.startsWith("examples:")
                 && !userDataInputFile_lowerCase.startsWith("file:")
                 && !userDataInputFile_lowerCase.startsWith("http:")
