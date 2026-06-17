@@ -141,9 +141,13 @@ public class ModelResourceUtil
         // then doubled once more to tell regex that we want a '\'
         path = protocol + path.replaceAll("\\\\(?!\\\\)", "/");
 
-        // Restore UNC prefix if Paths.get().normalize() collapsed "//" to "/"
+        // Restore UNC prefix after Paths.get().normalize() and backslash conversion.
+        // On Linux,  "//host/share" normalizes to "/host/share", so need to add "/".
+        // On Windows, "//host/share" normalizes to "\\host\share", so regex converts
+        //   only the second \ (not followed by \), leaving "\/host/share", so need to
+        //   strip leading separators and re-add "//".
         if (isUNC && !path.startsWith("//"))
-            path = "/" + path;
+            path = "//" + path.replaceFirst("^[/\\\\]+", "");
 
         return path;
     }
