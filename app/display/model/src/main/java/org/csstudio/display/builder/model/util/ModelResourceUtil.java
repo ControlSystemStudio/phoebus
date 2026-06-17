@@ -119,11 +119,11 @@ public class ModelResourceUtil
             path = splitPath[1];
         }
 
-        path = path.replaceAll("\\\\(?!\\\\)", "/");
+        // Detect UNC paths BEFORE backslash conversion.
+        // UNC paths start with "//" (Unix-style) or "\\" (Windows-style).
+        final boolean isUNC = path.startsWith("//") || path.startsWith("\\\\");
 
-        // Detect UNC paths (//host/share/...) so we can restore the
-        // leading "//" after Paths.get().normalize() collapses it.
-        final boolean isUNC = path.startsWith("//");
+        path = path.replaceAll("\\\\(?!\\\\)", "/");
 
         // Collapse "something/../" into "something/"
         if(path.contains(":")){
