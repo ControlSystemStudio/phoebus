@@ -1,0 +1,22 @@
+name: PR
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build.yml
+  test:
+    needs: build
+    uses: ./.github/workflows/_test.yml
+  integration-test:
+    needs: build
+    uses: ./.github/workflows/_integration-test.yml

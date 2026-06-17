@@ -1,0 +1,38 @@
+name: Merge to master
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    uses: ./.github/workflows/_build.yml
+    with:
+      os: ${{ matrix.os }}
+      upload-artifacts: true
+  test:
+    uses: ./.github/workflows/_test.yml
+  integration-test:
+    uses: ./.github/workflows/_integration-test.yml
+
+  docker-image:
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [alarm-server, alarm-logger, save-and-restore, scan-server]
+    uses: ./.github/workflows/_docker-image.yml
+    with:
+      image-suffix: service-${{ matrix.service }}
+      context: services/${{ matrix.service }}
+      maven-args: ${{ matrix.service == 'scan-server' && '-Pexecutable-jar --update-snapshots package' || '--update-snapshots package' }}

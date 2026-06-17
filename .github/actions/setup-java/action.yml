@@ -1,0 +1,14 @@
+name: Set up Java
+description: Set up the project's pinned JDK with Maven dependency caching.
+
+runs:
+  using: composite
+  steps:
+    # Java 21 is the single source of truth for the CI JDK. It must match
+    # maven.compiler.source/target in pom.xml (currently 21). See
+    # .github/CI_VERSIONS.md. Bump here when the project moves to a new LTS.
+    - uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '21'
+        cache: maven

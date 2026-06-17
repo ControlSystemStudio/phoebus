@@ -1,0 +1,41 @@
+name: Integration test
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    services:
+      # TODO swap to testcontainers for integration tests
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.11.2
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: "false"
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl -s http://localhost:9200/_cluster/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Java
+      uses: ./.github/actions/setup-java
+    - name: Integration tests (Elasticsearch-backed)
+      run: >
+        mvn --batch-mode install -P it-tests,docker-tests
+        -Dspring.profiles.active=IT
+        -pl services/save-and-restore -am
+    - name: Upload integration test reports
+      uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: integration-test-reports
+        path: services/save-and-restore/target/failsafe-reports/**
+        if-no-files-found: ignore

@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Java
+      uses: ./.github/actions/setup-java
+    - name: Test
+      run: >
+        xvfb-run -a
+        mvn --batch-mode verify -P ui-tests
+      env:
+        MAVEN_OPTS: >-
+          -Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true
+          -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500
+    - name: Upload test reports
+      uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: test-reports
+        path: |
+          **/target/surefire-reports/**
+          **/target/failsafe-reports/**
+        if-no-files-found: ignore
