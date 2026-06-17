@@ -130,7 +130,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         metaCol = new TableColumn<>("Logbook/Tags");
 
         timeOwnerCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
-        timeOwnerCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
+        timeOwnerCol.setCellValueFactory(col -> new SimpleObjectProperty<>(col.getValue()));
         timeOwnerCol.setCellFactory(col -> {
             final GridPane pane = new GridPane();
             final Label timeText = new Label();
@@ -156,7 +156,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         });
 
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 50);
-        descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
+        descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty<>(col.getValue()));
         descriptionCol.setCellFactory(col -> {
             final GridPane pane = new GridPane();
             final Label titleText = new Label();
@@ -219,7 +219,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         });
 
         metaCol.setMaxWidth(1f * Integer.MAX_VALUE * 25);
-        metaCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
+        metaCol.setCellValueFactory(col -> new SimpleObjectProperty<>(col.getValue()));
         metaCol.setCellFactory(col -> {
             final GridPane pane = new GridPane();
             final Label logbooks = new Label();

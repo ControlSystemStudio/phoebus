@@ -60,7 +60,7 @@ import org.epics.vtype.VStringArray;
 class Decoders
 {
     private static final Instant NO_TIME = Instant.ofEpochSecond(0, 0);
-    private static final Integer NO_USERTAG = Integer.valueOf(0);
+    private static final Integer NO_USERTAG = 0;
 
     private static final Display noDisplay = Display.none();
 

@@ -70,7 +70,7 @@ public class MaxNode implements Node
     @Override
     public String toString()
     {
-        final StringBuffer b = new StringBuffer("max(");
+        final StringBuilder b = new StringBuilder("max(");
         for (int i = 0; i < args.length; i++)
         {
             if (i>0)

@@ -144,7 +144,7 @@ public class Threshold<T extends Number> implements Serializable {
                 this.negativeThreshold = null;
             }
             this.function = thresholdDefinition;
-            this.isBooleanFunction = this.function.indexOf("base") > -1 && this.function.indexOf("value") > -1;
+            this.isBooleanFunction = this.function.contains("base") && this.function.contains("value");
         }
     }
 

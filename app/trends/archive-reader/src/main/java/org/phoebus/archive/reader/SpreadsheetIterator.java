@@ -133,12 +133,11 @@ public class SpreadsheetIterator implements Iterator<VType[]>, Closeable
     {
         // Find oldest timestamp
         time = null;
-        for (int i=0; i<raw_data.length; ++i)
-        {
-            if (raw_data[i] == null)
+        for (VType rawDatum : raw_data) {
+            if (rawDatum == null)
                 continue;
-            final Instant sample_time = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(raw_data[i]);
-            if (time == null  ||  sample_time.compareTo(time) < 0)
+            final Instant sample_time = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(rawDatum);
+            if (time == null || sample_time.compareTo(time) < 0)
                 time = sample_time;
         }
         if (time == null)

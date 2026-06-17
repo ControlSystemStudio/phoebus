@@ -226,7 +226,7 @@ public class PVAScalarTest {
         fakeData.stream().map((dArray) -> {
             try {
                 return PVAScalar.doubleArrayScalarBuilder(
-                        dArray.stream().mapToDouble((d) -> d.doubleValue()).toArray())
+                        dArray.stream().mapToDouble((d) -> d).toArray())
                         .name(pvName)
                         .build();
             } catch (PVAScalarValueNameException | PVAScalarDescriptionNameException e) {

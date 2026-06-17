@@ -109,7 +109,7 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
                     .description("First line for log " + i)
                     .createdDate(Instant.now())
                     .inLogbooks(logbooks)
-                    .id(Long.valueOf(i))
+                    .id((long) i)
                     .withTags(tags);
             StringBuilder sb = new StringBuilder();
             for (int j = 0; j < i; j++) {

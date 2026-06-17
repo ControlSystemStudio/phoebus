@@ -486,7 +486,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
         }
         else if (new_value instanceof Double)
         {
-            final double val = ((Double)new_value).doubleValue();
+            final double val = (Double) new_value;
             if (put_listener != null)
                 channel.put(val, put_listener);
             else
@@ -497,7 +497,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
             final Double dbl[] = (Double [])new_value;
             final double val[] = new double[dbl.length];
             for (int i=0; i<val.length; ++i)
-                val[i] = dbl[i].doubleValue();
+                val[i] = dbl[i];
             if (put_listener != null)
                 channel.put(val, put_listener);
             else
@@ -505,7 +505,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
         }
         else if (new_value instanceof Integer)
         {
-            final int val = ((Integer)new_value).intValue();
+            final int val = (Integer) new_value;
             if (put_listener != null)
                 channel.put(val, put_listener);
             else
@@ -516,7 +516,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
             final Integer ival[] = (Integer [])new_value;
             final int val[] = new int[ival.length];
             for (int i=0; i<val.length; ++i)
-                val[i] = ival[i].intValue();
+                val[i] = ival[i];
             if (put_listener != null)
                 channel.put(val, put_listener);
             else
@@ -532,8 +532,8 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
             // Will the number fit into 32 bits?
             // As an unsigned long it may be beyond the largest int,
             // but if it fits into a signed int, write as such
-            if (orig.longValue() == orig.intValue()  ||
-                Integer.toUnsignedLong(orig.intValue()) == orig.longValue())
+            if (orig == orig.intValue()  ||
+                Integer.toUnsignedLong(orig.intValue()) == orig)
             {
                 final int val = orig.intValue();
                 if (put_listener != null)

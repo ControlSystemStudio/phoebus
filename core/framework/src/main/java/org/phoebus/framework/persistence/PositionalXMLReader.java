@@ -91,7 +91,7 @@ class PositionalXMLReader
                             attributes.getValue(i));
                 }
                 el.setUserData(LINE_NUMBER,
-                        Integer.valueOf(this.locator.getLineNumber()), null);
+                    this.locator.getLineNumber(), null);
                 elementStack.push(el);
             }
 

@@ -1192,9 +1192,7 @@ public class StringTable extends BorderPane
         // Add new column
         createTableColumn(column, name);
         // Add empty col. to data
-        for (int r=0; r<data.size(); ++r)
-        {
-            final List<ObservableCellValue> row = data.get(r);
+        for (final List<ObservableCellValue> row : data) {
             if (row == MAGIC_LAST_ROW)
                 break;
             row.add(column, new ObservableCellValue(""));
@@ -1238,9 +1236,7 @@ public class StringTable extends BorderPane
         table.getColumns().add(target, col);
 
         // Move column in data
-        for (int r=0; r<data.size(); ++r)
-        {
-            final List<ObservableCellValue> data_row = data.get(r);
+        for (final List<ObservableCellValue> data_row : data) {
             if (data_row == MAGIC_LAST_ROW)
                 break;
             data_row.add(target, data_row.remove(column));
@@ -1266,9 +1262,7 @@ public class StringTable extends BorderPane
         // Update table columns
         table.getColumns().remove(column);
         // Remove that column from data
-        for (int r=0; r<data.size(); ++r)
-        {
-            final List<ObservableCellValue> row = data.get(r);
+        for (final List<ObservableCellValue> row : data) {
             if (row == MAGIC_LAST_ROW)
                 break;
             if (column < row.size())

@@ -125,7 +125,7 @@ public class ScriptsWidgetProperty extends WidgetProperty<List<ScriptInfo>>
                 tag = xml.getAttribute("checkConnect");
             final boolean check_connections = tag.isEmpty()
                     ? true
-                    : Boolean.valueOf(tag);
+                    : Boolean.parseBoolean(tag);
 
             // Script content embedded in XML?
             Element text_xml = XMLUtil.getChildElement(xml, XMLTags.TEXT);

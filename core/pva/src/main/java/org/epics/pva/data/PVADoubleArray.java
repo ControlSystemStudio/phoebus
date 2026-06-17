@@ -109,8 +109,7 @@ public class PVADoubleArray extends PVAData implements PVAArray, PVAValue
     {
         final double[] copy = value;
         PVASize.encodeSize(copy.length, buffer);
-        for (int i=0; i<copy.length; ++i)
-            buffer.putDouble(copy[i]);
+        for (double v : copy) buffer.putDouble(v);
     }
 
     @Override

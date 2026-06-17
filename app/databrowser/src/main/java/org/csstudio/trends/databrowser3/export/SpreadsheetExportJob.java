@@ -83,8 +83,7 @@ public class SpreadsheetExportJob extends PlainExportJob
             final VType line[] = sheet.next();
             out.print(unixTimeStamp ? time.toEpochMilli() : TimestampFormats.MILLI_FORMAT.format(time));
 
-            for (int i=0; i<line.length; ++i)
-                out.print(Messages.Export_Delimiter + formatter.format(line[i]));
+            for (VType vType : line) out.print(Messages.Export_Delimiter + formatter.format(vType));
             out.println();
             ++line_count;
             if ((line_count % PROGRESS_UPDATE_LINES) == 0)

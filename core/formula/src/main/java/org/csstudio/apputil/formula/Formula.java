@@ -200,7 +200,7 @@ public class Formula implements Node
     private Node parseConstant(final Scanner s) throws Exception
     {
         final String digits = "0123456789.";
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         boolean negative = false;
 
         if (s.isDone())

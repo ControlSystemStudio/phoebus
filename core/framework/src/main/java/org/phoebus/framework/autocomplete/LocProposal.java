@@ -172,7 +172,7 @@ public class LocProposal extends Proposal
         // No type provided?
         if (split.get(1) == null)
             segs.add(MatchSegment.comment("<VType>"));
-        else if (type.toLowerCase().indexOf(split.get(1).toLowerCase()) >= 0)
+        else if (type.toLowerCase().contains(split.get(1).toLowerCase()))
             // Recognize piece of type, accept for full type
             segs.add(MatchSegment.match("<" + type + ">"));
         else

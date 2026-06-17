@@ -666,9 +666,7 @@ public class OlogClient implements LogClient {
 
         public FindLogs(Map<String, String> map) {
             MultivaluedMap<String, String> mMap = new MultivaluedHashMap<>();
-            Iterator<Map.Entry<String, String>> itr = map.entrySet().iterator();
-            while (itr.hasNext()) {
-                Map.Entry<String, String> entry = itr.next();
+            for (Map.Entry<String, String> entry : map.entrySet()) {
                 mMap.put(entry.getKey(), Arrays.asList(entry.getValue().split(",")));
             }
             this.map = mMap;

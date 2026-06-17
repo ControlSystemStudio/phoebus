@@ -420,7 +420,7 @@ public class TreeModelItem
     @Override
     public String toString()
     {
-        final StringBuffer b = new StringBuffer();
+        final StringBuilder b = new StringBuilder();
         b.append(info).append(" '").append(pv_name).append("'");
         if (type == CONSTANT_TYPE)
             b.append(' ').append(CONSTANT_TYPE);

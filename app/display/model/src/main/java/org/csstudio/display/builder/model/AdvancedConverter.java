@@ -320,7 +320,7 @@ public class AdvancedConverter extends Converter {
 					String search = "<exp[^>]*>";
 					Pattern pattern = Pattern.compile(search);
 					Matcher matcher = pattern.matcher(newContains);
-					StringBuffer next = new StringBuffer();
+					StringBuilder next = new StringBuilder();
 					while (matcher.find()) {
 						String hit = matcher.group();
 						if (!hit.contains("&amp;&amp;")) {
@@ -335,7 +335,7 @@ public class AdvancedConverter extends Converter {
 					// convert | to ||
 					Pattern pattern2 = Pattern.compile(search);
 					Matcher matcher2 = pattern2.matcher(newContains);
-					StringBuffer next2 = new StringBuffer();
+					StringBuilder next2 = new StringBuilder();
 					while (matcher2.find()) {
 						String hit = matcher2.group();
 						if (!hit.contains("||")) {

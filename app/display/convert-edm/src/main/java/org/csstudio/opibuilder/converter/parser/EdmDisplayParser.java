@@ -114,8 +114,8 @@ public class EdmDisplayParser extends EdmParser{
             }
 
             boolean nestError = false;
-            for (int c = 0; c < reservedWords.length; c ++) {
-                if (line.contains(reservedWords[c])) {
+            for (String reservedWord : reservedWords) {
+                if (line.contains(reservedWord)) {
                     nestError = true;
                     break;
                 }
@@ -247,16 +247,16 @@ public class EdmDisplayParser extends EdmParser{
         int level = 0;
         int end = 0;
         int endIndex = 0;
-        for (int x = 0; x < all.size(); x++) {
-            if (begins.contains(all.get(x)))
+        for (Integer integer : all) {
+            if (begins.contains(integer))
                 level = level + 1;
-            if (ends.contains(all.get(x))) {
+            if (ends.contains(integer)) {
                 level = level - 1;
                 endIndex = endIndex + 1;
             }
 
             if (level == 0) {
-                end = all.get(x);
+                end = integer;
                 break;
             }
         }

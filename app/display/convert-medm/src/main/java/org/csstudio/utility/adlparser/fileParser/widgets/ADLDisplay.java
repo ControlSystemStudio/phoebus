@@ -184,11 +184,11 @@ public class ADLDisplay extends ADLAbstractWidget {
     public Object[] getChildren() {
         ArrayList<Object> ret = new ArrayList<>();
         if (_hasObject) ret.add( _adlObject);
-        if (_isBackColorDefined) ret.add(new ADLResource(ADLResource.BACKGROUND_COLOR, Integer.valueOf(_bclr)) );
-        if (_isForeColorDefined) ret.add(new ADLResource(ADLResource.FOREGROUND_COLOR, Integer.valueOf(_bclr)) );
-        ret.add(new ADLResource(ADLResource.SNAP_TO_GRID, Boolean.valueOf(_snapToGrid)) );
-        ret.add(new ADLResource(ADLResource.GRID_ON, Boolean.valueOf(_gridOn)));
-        ret.add(new ADLResource(ADLResource.GRID_SPACING, Integer.valueOf(_gridSpacing)));
+        if (_isBackColorDefined) ret.add(new ADLResource(ADLResource.BACKGROUND_COLOR, _bclr) );
+        if (_isForeColorDefined) ret.add(new ADLResource(ADLResource.FOREGROUND_COLOR, _bclr) );
+        ret.add(new ADLResource(ADLResource.SNAP_TO_GRID, _snapToGrid) );
+        ret.add(new ADLResource(ADLResource.GRID_ON, _gridOn));
+        ret.add(new ADLResource(ADLResource.GRID_SPACING, _gridSpacing));
         return ret.toArray();
     }
 

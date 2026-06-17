@@ -195,12 +195,11 @@ public class FormulaItem extends ModelItem
             while (more_input)
             {   // Find oldest time stamp of all the inputs
                 time = null;
-                for (int i = 0; i < values.length; i++)
-                {
-                    if (values[i] == null)
+                for (VType vType : values) {
+                    if (vType == null)
                         continue;
-                    final Instant sample_time = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(values[i]);
-                    if (time == null  ||  sample_time.compareTo(time) < 0)
+                    final Instant sample_time = org.phoebus.core.vtypes.VTypeHelper.getTimestamp(vType);
+                    if (time == null || sample_time.compareTo(time) < 0)
                         time = sample_time;
                 }
                 if (time == null)

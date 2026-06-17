@@ -106,8 +106,7 @@ public class PVABoolArray extends PVAData implements PVAArray, PVAValue
     {
         final boolean[] copy = value;
         PVASize.encodeSize(copy.length, buffer);
-        for (int i=0; i<copy.length; ++i)
-            buffer.put(copy[i] ? (byte)1 : (byte) 0);
+        for (boolean b : copy) buffer.put(b ? (byte) 1 : (byte) 0);
     }
 
     @Override

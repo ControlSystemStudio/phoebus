@@ -110,7 +110,7 @@ public class TimeParser {
         Map<ChronoUnit, Integer> timeQuantities = new HashMap<>();
         while (timeQunatityUnitsMatcher.find()) {
             quantity = "".equals(timeQunatityUnitsMatcher.group(1)) ? 1
-                    : Integer.valueOf(timeQunatityUnitsMatcher.group(1));
+                    : Integer.parseInt(timeQunatityUnitsMatcher.group(1));
             unit = timeQunatityUnitsMatcher.group(2).toLowerCase();
             switch (unit) {
             case "ms":
@@ -180,7 +180,7 @@ public class TimeParser {
         {
             final double quantity = "".equals(timeQuantityUnitsMatcher.group(1))
                     ? 1.0
-                    : Double.valueOf(timeQuantityUnitsMatcher.group(1));
+                    : Double.parseDouble(timeQuantityUnitsMatcher.group(1));
             final int full = (int) quantity;
             final double fraction = quantity - full;
             final String unit = timeQuantityUnitsMatcher.group(2).toLowerCase();

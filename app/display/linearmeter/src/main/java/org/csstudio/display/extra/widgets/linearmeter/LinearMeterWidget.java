@@ -131,7 +131,7 @@ public class LinearMeterWidget extends PVWidget {
             new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "limits_from_pv", Messages.WidgetProperties_LimitsFromPV) {
                 @Override
                 public EnumWidgetProperty<LimitsFromPV> createProperty(final Widget widget, LimitsFromPV default_value) {
-                    EnumWidgetProperty widgetProperty = new EnumWidgetProperty<>(this, widget, LimitsFromPV.LimitsFromPV) {
+                    EnumWidgetProperty<LimitsFromPV> widgetProperty = new EnumWidgetProperty<>(this, widget, LimitsFromPV.LimitsFromPV) {
                         @Override
                         public void setSpecification(final String specification) {
                             // Backwards compatibility to previous version of the Linear Meter, where

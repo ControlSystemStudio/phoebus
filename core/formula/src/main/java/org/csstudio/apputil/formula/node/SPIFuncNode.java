@@ -83,7 +83,7 @@ public class SPIFuncNode implements Node
     @Override
     public String toString()
     {
-        final StringBuffer b = new StringBuffer(function.getName());
+        final StringBuilder b = new StringBuilder(function.getName());
         b.append("(");
         for (int i = 0; i < args.length; i++)
         {

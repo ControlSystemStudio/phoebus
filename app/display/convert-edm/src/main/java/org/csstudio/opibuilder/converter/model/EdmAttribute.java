@@ -119,7 +119,7 @@ public class EdmAttribute {
 
     @Override
     public String toString() {
-        StringBuffer concatenatedValues = new StringBuffer();
+        StringBuilder concatenatedValues = new StringBuilder();
 
         Iterator<String> iterator = values.iterator();
         while (iterator.hasNext()) {

@@ -32,7 +32,7 @@ public class StringOrDouble
     {
         text = text.trim();
         if (text.isEmpty())
-            return Double.valueOf(0);
+            return (double) 0;
         if (text.startsWith("\""))
         {
             if (text.endsWith("\""))

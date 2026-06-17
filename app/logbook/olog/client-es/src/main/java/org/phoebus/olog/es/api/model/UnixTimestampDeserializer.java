@@ -16,7 +16,7 @@ class UnixTimestampDeserializer extends JsonDeserializer<Instant> {
     public Instant deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         String timestamp = jp.getText().trim();
         try {
-            return Instant.ofEpochMilli(Long.valueOf(timestamp));
+            return Instant.ofEpochMilli(Long.parseLong(timestamp));
         } catch (NumberFormatException e) {
             logger.log(Level.WARNING, "Unable to deserialize timestamp: " + timestamp, e);
             return null;

@@ -35,11 +35,11 @@ public class ADLLimits extends WidgetPart {
     public Object[] getChildren() {
         Object[] ret = new Object[6];
         ret[0] = new ADLResource(ADLResource.LOPR_SRC, new String(loprSrc));
-        ret[1] = new ADLResource(ADLResource.LOPR_DEFAULT, Float.valueOf(loprDefault));
+        ret[1] = new ADLResource(ADLResource.LOPR_DEFAULT, loprDefault);
         ret[2] = new ADLResource(ADLResource.HOPR_SRC, new String(hoprSrc));
-        ret[3] = new ADLResource(ADLResource.HOPR_DEFAULT, Float.valueOf(hoprDefault));
+        ret[3] = new ADLResource(ADLResource.HOPR_DEFAULT, hoprDefault);
         ret[4] = new ADLResource(ADLResource.PREC_SRC, new String(precSrc));
-        ret[5] = new ADLResource(ADLResource.PREC_DEFAULT, Float.valueOf(precDefault));
+        ret[5] = new ADLResource(ADLResource.PREC_DEFAULT, (float) precDefault);
 
         return ret;
     }

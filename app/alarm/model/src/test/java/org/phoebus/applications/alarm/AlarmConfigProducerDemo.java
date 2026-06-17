@@ -185,7 +185,7 @@ public class AlarmConfigProducerDemo
     }
 
     // Place all keys (alarm tree paths) in the same partition
-    private static final Integer partition = Integer.valueOf(0);
+    private static final Integer partition = 0;
 
     private void sendItemConfig(final Producer<String, AlarmTreeItem<?>> producer,
             final String topic, final AlarmTreeItem<?> item)

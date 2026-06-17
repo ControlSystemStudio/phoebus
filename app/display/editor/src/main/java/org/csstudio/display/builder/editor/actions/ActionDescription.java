@@ -510,10 +510,10 @@ public abstract class ActionDescription
             final List<Widget> sortedWidgets = widgets.stream()
                                                       .sorted(( w1, w2 ) ->
             {
-                    final int w1x = w1.propX().getValue().intValue();
-                    final int w1w = w1.propWidth().getValue().intValue();
-                    final int w2x = w2.propX().getValue().intValue();
-                    final int w2w = w2.propWidth().getValue().intValue();
+                    final int w1x = w1.propX().getValue();
+                    final int w1w = w1.propWidth().getValue();
+                    final int w2x = w2.propX().getValue();
+                    final int w2w = w2.propWidth().getValue();
 
                     if ( w1x <= w2x && w1x + w1w <= w2x + w2w )
                     {   //  +------+        |   +------+
@@ -624,10 +624,10 @@ public abstract class ActionDescription
             final List<Widget> sortedWidgets = widgets.stream()
                                                       .sorted(( w1, w2 ) ->
             {
-                    final int w1y = w1.propY().getValue().intValue();
-                    final int w1h = w1.propHeight().getValue().intValue();
-                    final int w2y = w2.propY().getValue().intValue();
-                    final int w2h = w2.propHeight().getValue().intValue();
+                    final int w1y = w1.propY().getValue();
+                    final int w1h = w1.propHeight().getValue();
+                    final int w2y = w2.propY().getValue();
+                    final int w2h = w2.propHeight().getValue();
 
                     if ( w1y <= w2y && w1y + w1h <= w2y + w2h )
                     {   //  +----+          |  +----+
@@ -752,10 +752,10 @@ public abstract class ActionDescription
             final List<Widget> sortedWidgets = widgets.stream()
                                                       .sorted(( w1, w2 ) ->
             {
-                    final int w1x = w1.propX().getValue().intValue();
-                    final int w1w = w1.propWidth().getValue().intValue();
-                    final int w2x = w2.propX().getValue().intValue();
-                    final int w2w = w2.propWidth().getValue().intValue();
+                    final int w1x = w1.propX().getValue();
+                    final int w1w = w1.propWidth().getValue();
+                    final int w2x = w2.propX().getValue();
+                    final int w2w = w2.propWidth().getValue();
                     // Description see DIST_HORIZ above
                     if ( w1x <= w2x && w1x + w1w <= w2x + w2w )
                         return -1;
@@ -812,10 +812,10 @@ public abstract class ActionDescription
             final List<Widget> sortedWidgets = widgets.stream()
                                                       .sorted(( w1, w2 ) ->
             {
-                    final int w1y = w1.propY().getValue().intValue();
-                    final int w1h = w1.propHeight().getValue().intValue();
-                    final int w2y = w2.propY().getValue().intValue();
-                    final int w2h = w2.propHeight().getValue().intValue();
+                    final int w1y = w1.propY().getValue();
+                    final int w1h = w1.propHeight().getValue();
+                    final int w2y = w2.propY().getValue();
+                    final int w2h = w2.propHeight().getValue();
                     // Description see DIST_VERT above
                     if ( w1y <= w2y && w1y + w1h <= w2y + w2h )
                         return -1;

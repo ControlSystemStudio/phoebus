@@ -571,8 +571,8 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
             {
                 getDevice(device_status.get()).write(getName());
                 ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal());
-                ScanCommandUtil.write(this, device_active.get(), Double.valueOf(1.0));
-                ScanCommandUtil.write(this, device_progress.get(), Double.valueOf(0.0));
+                ScanCommandUtil.write(this, device_active.get(), 1.0);
+                ScanCommandUtil.write(this, device_progress.get(), 0.0);
                 getDevice(device_finish.get()).write("Starting ...");
                 logger.log(Level.INFO, this + " sets "  + device_active.get() + " = 1.0");
             }
@@ -652,7 +652,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
                     ScanCommandUtil.write(this, device_state.get(), getScanState().ordinal(), true, true, device_state.get(), 0.1, state_pv_update_timeout);
                     logger.log(Level.INFO, this + " sets "  + device_state.get() + " = " + getScanState());
                     getDevice(device_finish.get()).write(TimestampFormats.MILLI_FORMAT.format(Instant.now()));
-                    ScanCommandUtil.write(this, device_progress.get(), Double.valueOf(100.0));
+                    ScanCommandUtil.write(this, device_progress.get(), 100.0);
                     // Update to "anything else running?"
                     final int active = engine.hasPendingScans() ? 1 : 0;
                     ScanCommandUtil.write(this, device_active.get(), active);
@@ -706,7 +706,7 @@ public class ExecutableScan extends LoggedScan implements ScanContext, Callable<
                 final ScanInfo info = getScanInfo();
                 try
                 {
-                    ScanCommandUtil.write(this, device_progress.get(), Double.valueOf(info.getPercentage()));
+                    ScanCommandUtil.write(this, device_progress.get(), (double) info.getPercentage());
                     getDevice(device_finish.get()).write(TimestampFormats.formatCompactDateTime(info.getFinishTime()));
                 }
                 catch (Exception ex)

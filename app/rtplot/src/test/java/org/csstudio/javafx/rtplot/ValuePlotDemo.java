@@ -74,12 +74,12 @@ public class ValuePlotDemo extends ApplicationWrapper
                     for (i=0; i<MAX_SIZE/2; ++i)
                     {
                         final double value = MAX_SIZE/2-i;
-                        data.add(new SimpleDataItem<>(Double.valueOf(i), value));
+                        data.add(new SimpleDataItem<>((double) i, value));
                     }
                     for (/* */; i<MAX_SIZE; ++i)
                     {
                         final double value = i-MAX_SIZE/2;
-                        data.add(new SimpleDataItem<>(Double.valueOf(i), value));
+                        data.add(new SimpleDataItem<>((double) i, value));
                     }
                 }
                 else
@@ -88,7 +88,7 @@ public class ValuePlotDemo extends ApplicationWrapper
                     for (int i=0; i<MAX_SIZE; ++i)
                     {
                         final double value = amp*(Math.sin(2*Math.PI * i / (MAX_SIZE/3)) + Math.random()*0.1);
-                        data.add(new SimpleDataItem<>(Double.valueOf(i), value));
+                        data.add(new SimpleDataItem<>((double) i, value));
                     }
                 }
             }
@@ -109,7 +109,7 @@ public class ValuePlotDemo extends ApplicationWrapper
 
 
         final RTValuePlot plot = new RTValuePlot(true);
-        plot.getXAxis().setValueRange(0.0, Double.valueOf(MAX_SIZE));
+        plot.getXAxis().setValueRange(0.0, (double) MAX_SIZE);
         plot.getXAxis().setGridVisible(true);
         plot.getYAxes().get(0).setGridVisible(true);
 

@@ -422,29 +422,24 @@ public abstract class AbstractADL2Model<WM extends Widget>
      */
     public String removeParentMacros(String args) {
         String[] argList = args.split(",");
-        StringBuffer strBuff = new StringBuffer();
-        for (int ii = 0; ii < argList.length; ii++) {
-            String[] argParts = argList[ii].split("=");
-            if (argParts.length == 1)
-            {
-                if (! argParts[0].isEmpty())
-                {   // Pass X=""
+        StringBuilder strBuff = new StringBuilder();
+        for (String s : argList) {
+            String[] argParts = s.split("=");
+            if (argParts.length == 1) {
+                if (!argParts[0].isEmpty()) {   // Pass X=""
                     if (strBuff.length() != 0)
                         strBuff.append(", ");
                     strBuff.append(argParts[0]).append("=\"\"");
                 }
                 // else: Empty
-            }
-            else if (argParts.length == 2)
-            {
+            } else if (argParts.length == 2) {
                 if (!argParts[1].replaceAll(" ", "").equals(
-                        "$(" + argParts[0].trim() + ")")) {
+                    "$(" + argParts[0].trim() + ")")) {
                     if (strBuff.length() != 0)
                         strBuff.append(", ");
-                    strBuff.append(argList[ii]);
+                    strBuff.append(s);
                 }
-            }
-            else
+            } else
                 logger.log(Level.WARNING, "Erroneous macro setting in " + args);
         }
         String resArgs = strBuff.toString();

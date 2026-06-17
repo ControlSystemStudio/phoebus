@@ -45,7 +45,7 @@ public class EdmMultilineText extends EdmAttribute {
             }
         }
 
-        StringBuffer textBuffer = new StringBuffer();
+        StringBuilder textBuffer = new StringBuilder();
         for (int valueIndex = 0; valueIndex < getValueCount(); valueIndex++) {
 
             textBuffer.append(getValue(valueIndex));

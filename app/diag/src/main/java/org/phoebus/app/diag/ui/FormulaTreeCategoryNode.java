@@ -26,6 +26,6 @@ public class FormulaTreeCategoryNode extends TreeItem<FormulaTreeByCategoryNode>
      */
     public void addChild(FormulaFunction child) {
         FormulaTreeByCategoryNode leafNode = new FormulaTreeByCategoryNode(child.getSignature(), child.getDescription());
-        getChildren().add(new TreeItem(leafNode));
+        getChildren().add(new TreeItem<>(leafNode));
     }
 }

@@ -60,7 +60,7 @@ public class PreviewViewer extends Stage {
         setScene(scene);
     }
     private String getFullHtml(String commonmarkString){
-        StringBuffer stringBuffer = new StringBuffer();
+        StringBuilder stringBuffer = new StringBuilder();
         stringBuffer.append("<html><body><div class='olog'>");
         stringBuffer.append(htmlAware.toHtml(commonmarkString));
         stringBuffer.append("</div></body></html>");
