@@ -33,7 +33,7 @@ The following use cases have been verified:
  
  #### Prerequisites
 
- * A working Phoebus build environment, i.e. JDK 11 and Maven.
+ * A working Phoebus build environment, i.e. JDK 25 and Maven.
  * `jpackage` must be run on the same OS as the target OS, i.e. cross builds are not supported.
  * JDK 14 or newer. 
  * On Windows you also need to install the "WiX" tools, available here: https://wixtoolset.org/.
@@ -51,7 +51,7 @@ The following use cases have been verified:
  5. Determine a version for your application, in the following referred to as `app_version`.
  6. For Window installers determine a menu group in which the application will be placed. If the group does not
  exist, it will be created. 
- 7. Identify the path to the Java 11 SDK. In the following referred to as `<jdk_root>`. See below for additional
+ 7. Identify the path to the Java 25 SDK. In the following referred to as `<jdk_root>`. See below for additional
  information on the selecttion of target Java runtime.
  
  ##### `jpackage` build step 1
@@ -91,10 +91,9 @@ and MacOS at the European Spallation Source.
 
 ### Selection of target Java runtime
 During build (step 1) a target Java runtime is specified. If this option (`--runtime-image`) is omitted, `jpackage` will
-bundle the Java runtime containing the `jpackage` tool, i.e. Java 14+. Tests on Windows shows that the
-target runtime selection may impact the end result, i.e. the Phoebus application installed from the msi file. 
-For instance, while the Java runtime Adopt JDK 11.0.9 can be bundled into a working installation, 
-Adopt JDK 11.0.12 will not work when Phoebus is launched. On MacOS Adopt JDK 11.0.12 works fine.
+bundle the Java runtime containing the `jpackage` tool, i.e. Java 14+. Tests on Windows show that the
+target runtime selection may impact the end result, i.e. the Phoebus application installed from the msi file.
+When preparing installers, validate the exact JDK 25 runtime you plan to bundle on each supported OS.
 
 ### Application signing
 Starting from MacOS 13.2 (possibly from 13.0), installer packages must be signed for a hassle-free installation process.
@@ -111,5 +110,4 @@ Developer Program may request/create such certificates.
 
 
 `
- 
  

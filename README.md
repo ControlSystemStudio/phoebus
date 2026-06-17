@@ -8,7 +8,7 @@ https://control-system-studio.readthedocs.io
 
 
 ## Requirements
- - [JDK21 or later, suggested is OpenJDK](https://adoptium.net/en-GB/temurin/releases?version=21).
+ - [JDK 25 or later, suggested is OpenJDK](https://adoptium.net/en-GB/temurin/releases?version=25).
  - [maven 3.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
@@ -27,7 +27,7 @@ mvn clean verify -f dependencies/pom.xml
 Define the JAVA_HOME environment variable to point to your Java installation directory. 
 Mac OS users should use something like:
 ```
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.0.11+10/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-25/Contents/Home
 ```
 Verify through:
 ```
@@ -73,14 +73,14 @@ Download "Eclipse for Java Developers" from https://www.eclipse.org/downloads/pa
 
 Start Eclipse like this:
 
-    export JAVA_HOME=/path/to/your/jdk-21-or-later
+    export JAVA_HOME=/path/to/your/jdk-25-or-later
     export PATH="$JAVA_HOME/bin:$PATH"
     eclipse/eclipse -consoleLog
 
 Check Eclipse Preferences:
 
- * Java, Installed JREs: JDK 21-or-later should be the default
- * Java, Compiler: JDK Compliance should be "21" or higher
+ * Java, Installed JREs: JDK 25-or-later should be the default
+ * Java, Compiler: JDK Compliance should be "25" or higher
 
 
 ### Use plain Java configuration
@@ -112,7 +112,7 @@ In Help/Eclipse Marketplace, search for Maven Integration for Eclipse Luna or ne
 Use File/Import/Maven/Existing Maven Projects to import the phoebus source code.
 
 There can be a compiler error because the "JRE System Library" in the Package Explorer shows "[J2SE-1.4]".
-Right click on the affected projects (greeting-app, probe), Build Path, Configure Build Path, Libraries, Edit the JRE System Library to use the Workspace default (jdk-21).
+Right click on the affected projects (greeting-app, probe), Build Path, Configure Build Path, Libraries, Edit the JRE System Library to use the Workspace default (jdk-25).
 Restart Eclipse IDE.
 
 Can now start product/src/main/java/org.phoebus.product/Launcher.java.
@@ -126,14 +126,14 @@ To import the project:
 * Select the Phoebus directory
 * Import project from external model: Maven
 * Accept the default options and click Next twice
- * Ensure that the JDK is version 21 or above
+ * Ensure that the JDK is version 25 or above
 * Change the project name to Phoebus and click finish
 
 To run the Phoebus application:
 
 * Run | Edit Configurations...
 * Select + | Application
- * Module: Your JRE 21
+ * Module: Your JRE 25
 * Classpath `-cp`: select `product` from drop-down
 * Main class: `org.phoebus.product.Launcher`
 * Set the name to Phoebus
@@ -145,7 +145,7 @@ To run the Phoebus application:
 
 First download [NetBeans 9](https://netbeans.apache.org/download/nb90/nb90.html),
 then the target platform as described above. After running NetBeans, select
-**Tools** ➜ **Java Platforms** and make sure that a Java 9 or 10 platform is set as
+**Tools** ➜ **Java Platforms** and make sure that a Java 25 platform is set as
 the default one.
 
 To open the Maven project Select the **File** ➜ **Open Project…** and select the
