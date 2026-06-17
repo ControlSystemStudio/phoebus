@@ -121,6 +121,10 @@ public class ModelResourceUtil
 
         path = path.replaceAll("\\\\(?!\\\\)", "/");
 
+        // Detect UNC paths (//host/share/...) so we can restore the
+        // leading "//" after Paths.get().normalize() collapses it.
+        final boolean isUNC = path.startsWith("//");
+
         // Collapse "something/../" into "something/"
         if(path.contains(":")){
             String[] pathsplit = path.split(":");
@@ -135,7 +139,13 @@ public class ModelResourceUtil
         // Pattern: '\(?!\)', i.e. backslash _not_ followed by another one.
         // Each \ is doubled as \\ to get one '\' into the string,
         // then doubled once more to tell regex that we want a '\'
-        return protocol + path.replaceAll("\\\\(?!\\\\)", "/");
+        path = protocol + path.replaceAll("\\\\(?!\\\\)", "/");
+
+        // Restore UNC prefix if Paths.get().normalize() collapsed "//" to "/"
+        if (isUNC && !path.startsWith("//"))
+            path = "/" + path;
+
+        return path;
     }
 
     /** Obtain directory of file. For URL, this is the path up to the last element
