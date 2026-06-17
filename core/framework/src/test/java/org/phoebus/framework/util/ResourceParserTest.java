@@ -122,6 +122,62 @@ public class ResourceParserTest
     }
 
     @Test
+    public void checkUNCPaths() throws Exception
+    {
+        // UNC file URI with host -> getFile preserves host in path
+        final URI unc_uri = new URI("file", "wsl.localhost", "/AlmaLinux-9/home/user/display.bob", null);
+        assertThat(unc_uri.getHost(), equalTo("wsl.localhost"));
+        assertThat(unc_uri.getPath(), equalTo("/AlmaLinux-9/home/user/display.bob"));
+
+        final File unc_file = getFile(unc_uri);
+        assertThat(unc_file, not(nullValue()));
+        // File path must contain both the host and the share path
+        final String unc_path = unc_file.getPath();
+        assertTrue(unc_path.contains("wsl.localhost"), "UNC file path should contain host: " + unc_path);
+        assertTrue(unc_path.contains("AlmaLinux-9"), "UNC file path should contain share: " + unc_path);
+
+        // getURI for a UNC File should produce a URI with proper host
+        final File unc_input = new File("//wsl.localhost/AlmaLinux-9/home/user/display.bob");
+        final URI round_trip = getURI(unc_input);
+        assertThat(round_trip.getScheme(), equalTo("file"));
+        // On Linux, File("//host/...").toURI() may give file:///host/...;
+        // on Windows, it gives file:////host/.... Either way our getURI()
+        // should normalize it so the host is accessible:
+        if (round_trip.getHost() != null)
+        {
+            assertThat(round_trip.getHost(), equalTo("wsl.localhost"));
+            assertThat(round_trip.getPath(), equalTo("/AlmaLinux-9/home/user/display.bob"));
+        }
+        else
+        {
+            // On some platforms, the host ends up in the path as //host/path
+            assertTrue(round_trip.getPath().startsWith("//wsl.localhost/")
+                    || round_trip.getPath().startsWith("/wsl.localhost/"),
+                    "Path should contain host: " + round_trip.getPath());
+        }
+
+        // Round-trip: getFile(getURI(file)) should preserve the host
+        final File round_trip_file = getFile(round_trip);
+        assertThat(round_trip_file, not(nullValue()));
+        assertTrue(round_trip_file.getPath().contains("wsl.localhost"),
+                "Round-trip file path should contain host: " + round_trip_file.getPath());
+
+        // UNC URI with query parameters should not lose host
+        final URI unc_query = new URI("file", "server.example", "/share/path/file.bob", "app=display_runtime");
+        final File unc_query_file = getFile(unc_query);
+        assertThat(unc_query_file, not(nullValue()));
+        assertTrue(unc_query_file.getPath().contains("server.example"),
+                "Query file path should contain host: " + unc_query_file.getPath());
+
+        // UNC URI with no host (path starts with //) should preserve the double slash
+        final URI unc_no_host = URI.create("file:////server/share/path/file.bob");
+        final File unc_no_host_file = getFile(unc_no_host);
+        assertThat(unc_no_host_file, not(nullValue()));
+        assertTrue(unc_no_host_file.getPath().contains("server"),
+                "No-host UNC file path should contain server: " + unc_no_host_file.getPath());
+    }
+
+    @Test
     public void checkWebToURI() throws Exception
     {
         // Web URL
