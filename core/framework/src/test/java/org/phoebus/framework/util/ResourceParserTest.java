@@ -106,6 +106,19 @@ public class ResourceParserTest
         } else {
             assertThat(uri.toString(), equalTo("file:/some/dir%20with%20space/file.abc"));
         }
+
+        // UNC-style file URI must keep host when converted to File
+        final URI unc = createResourceURI("file://wsl.localhost/AlmaLinux-9/home/jwlodek/test.bob");
+        final File unc_file = getFile(unc);
+        assertThat(unc_file, not(nullValue()));
+        assertTrue(unc_file.getPath().toLowerCase().contains("wsl.localhost"));
+        assertTrue(unc_file.getPath().toLowerCase().contains("almalinux-9"));
+
+        // Query parameters do not change underlying file path
+        final URI unc_with_query = createResourceURI("file://wsl.localhost/AlmaLinux-9/home/jwlodek/test.bob?app=display_editor");
+        final File queried = getFile(unc_with_query);
+        assertThat(queried, not(nullValue()));
+        assertThat(queried.getPath(), equalTo(unc_file.getPath()));
     }
 
     @Test

@@ -399,8 +399,12 @@ public class ModelResourceUtil
             }
         }
         // To get a file, strip query information,
-        // because new File("file://xxxx?with_query") will throw exception
-        return ResourceParser.getFile(new URI(resource.getScheme(), null, null, -1, resource.getPath(), null, null));
+        // because new File("file://xxxx?with_query") will throw exception.
+        // Preserve host/userInfo/port so UNC/network paths like
+        // file://wsl.localhost/share/path are handled correctly.
+        return ResourceParser.getFile(new URI(resource.getScheme(), resource.getUserInfo(),
+                                              resource.getHost(), resource.getPort(),
+                                              resource.getPath(), null, null));
     }
 
     /** Open a file, web location, ..

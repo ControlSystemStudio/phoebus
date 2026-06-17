@@ -159,6 +159,14 @@ public class ResourceParser
             return null;
         // URI might be file:/some/path/file.plt?MACRO1=Value1
         // Create file for just the path, not the query params.
+        //
+        // Preserve URI host for UNC/network paths, for example
+        // file://wsl.localhost/AlmaLinux-9/home/user/file.bob.
+        // Using only resource.getPath() would drop the host and create
+        // a wrong local path like /AlmaLinux-9/home/.. on Windows.
+        final String host = resource.getHost();
+        if (host != null && !host.isEmpty())
+            return new File("//" + host + resource.getPath());
         return new File(resource.getPath());
     }
 

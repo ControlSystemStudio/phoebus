@@ -59,7 +59,15 @@ public class DisplayInfo
         // Get basic file or http 'path' from path
         final String path;
         if (uri.getScheme() == null  ||  uri.getScheme().equals("file"))
-            path = uri.getPath();
+        {
+            // Preserve URI host for UNC/network paths, e.g.
+            // file://wsl.localhost/share/path -> //wsl.localhost/share/path
+            final String host = uri.getHost();
+            if (host != null && !host.isEmpty())
+                path = "//" + host + uri.getPath();
+            else
+                path = uri.getPath();
+        }
         else
         {
             final StringBuilder buf = new StringBuilder();
