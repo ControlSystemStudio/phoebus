@@ -1,29 +1,36 @@
 name: ci-audit
 
 on:
+  push:
+    branches: ["master"]
   pull_request:
 
-permissions:
-  contents: read
-  security-events: write
+permissions: {}
 
 jobs:
   zizmor:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
-          python-version: '3.13'
-      - run: pip install zizmor
-      - run: zizmor --format sarif . > zizmor.sarif
-      - uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: zizmor.sarif
-          category: zizmor
+          persist-credentials: false
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
 
   ci-doctor:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
     steps:
-      - uses: actions/checkout@v5
-      - uses: depmedicdev-byte/ci-doctor-action@v1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
+      - uses: depmedicdev-byte/ci-doctor-action@549380d0aded54ccd20d032c28a3a25c732e31f4 # v1
