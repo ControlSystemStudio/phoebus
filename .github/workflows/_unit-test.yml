@@ -14,11 +14,7 @@ jobs:
     - name: Set up Java
       uses: ./.github/actions/setup-java
     - name: Unit test
-      run: >
-        xvfb-run -a
-        mvn --batch-mode --fail-at-end verify
-      env:
-        MAVEN_OPTS: -Djava.awt.headless=true -Dprism.order=sw -Dprism.text=t2k
+      run: mvn --batch-mode --fail-at-end verify
     - name: Upload test reports
       uses: actions/upload-artifact@v7
       if: always()

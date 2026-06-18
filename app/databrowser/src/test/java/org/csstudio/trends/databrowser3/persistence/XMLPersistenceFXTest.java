@@ -36,7 +36,7 @@ import javafx.scene.text.Font;
  * <p>Tests are organized by feature area using nested test classes.
  */
 @DisplayName("XMLPersistence")
-class XMLPersistenceTest {
+class XMLPersistenceFXTest {
 
     // ---------------------------------------------------------------------------
     // Constants

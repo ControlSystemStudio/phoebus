@@ -30,7 +30,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DragNDropUtilTest {
+public class DragNDropUtilFXTest {
 
     private final Node folderTargetNode = Node.builder().uniqueId(UUID.randomUUID().toString()).nodeType(NodeType.FOLDER).build();
     private final Node compositeSnapshotTargetNode = Node.builder().uniqueId(UUID.randomUUID().toString()).nodeType(NodeType.COMPOSITE_SNAPSHOT).build();

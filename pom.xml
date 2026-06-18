@@ -123,6 +123,11 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M7</version>
+        <configuration>
+          <excludes>
+            <exclude>**/*FXTest.java</exclude>
+          </excludes>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -231,6 +236,7 @@
               <reuseForks>false</reuseForks>
               <includes>
                 <include>**/*UI.java</include>
+                <include>**/*FXTest.java</include>
               </includes>
               <!-- TestFX UI tests run headless under a virtual display (xvfb in
                    CI). These properties must be set on the failsafe *fork*;
@@ -263,6 +269,7 @@
               <includes>
                 <include>**/*UI.java</include>
                 <include>**/*IT.java</include>
+                <include>**/*FXTest.java</include>
               </includes>
             </configuration>
           </plugin>
