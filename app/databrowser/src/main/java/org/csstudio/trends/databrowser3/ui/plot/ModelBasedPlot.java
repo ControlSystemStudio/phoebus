@@ -79,7 +79,7 @@ public class ModelBasedPlot
     public ModelBasedPlot(final boolean active)
     {
         plot = new RTTimePlot(active);
-        plot.setOpacity(Preferences.opacity);
+        plot.setAreaOpacity(Preferences.opacity);
         plot.showLegend(false);
 
         final Button time_config_button =
@@ -368,6 +368,7 @@ public class ModelBasedPlot
         // These happen to not cause an immediate redraw, so
         // set even if no change
         trace.setColor(item.getPaintColor());
+        plot.setAreaOpacity(item.getModel().get().getAreaOpacity());
         trace.setType(item.getTraceType());
         trace.setWidth(item.getLineWidth());
         trace.setLineStyle(item.getLineStyle());

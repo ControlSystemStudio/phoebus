@@ -99,6 +99,11 @@ public class Model
     /** Background color */
     private volatile Color background = Color.WHITE;
 
+    /**
+     * Area opacity, common for all plots.
+     */
+    private volatile int areaOpacity = Preferences.opacity;
+
     /** Title font */
     private volatile Font title_font = Font.font("Liberation Sans", FontWeight.BOLD, 20);
 
@@ -426,7 +431,7 @@ public class Model
                 item.fireItemLookChanged(); // Prevents the "Axis" UI-setting (under the "Traces" tab) from sometimes not displaying in the UI when moving axes.
             }
         }
-    };
+    }
 
     /** @return How should plot rescale after archived data arrived? */
     public ArchiveRescale getArchiveRescale()
@@ -1008,5 +1013,17 @@ public class Model
             return null;
         }
         return items.stream().filter(item -> uniqueId.equals(item.getUniqueId())).findAny().orElse(null);
+    }
+
+    public int getAreaOpacity(){
+        return areaOpacity;
+    }
+
+    public void setAreaOpacity(int areaOpacity){
+        this.areaOpacity = areaOpacity;
+        getItems().forEach(item -> {
+            for (ModelListener listener : listeners)
+                listener.changedItemLook(item);
+        });
     }
 }
