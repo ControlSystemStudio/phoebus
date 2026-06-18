@@ -27,7 +27,7 @@ public class LogEntryUtilsTest {
 
         LogEntry testListLog = LogEntryUtils.createLogEntryFromList("someURL", List.of(ologEntry01, ologEntry02, ologEntry03));
 
-        assertEquals("\n[Title01](someURL1)\n\n\n[Title02](someURL2)\n\n\n[Title03](someURL3)\n\n", testListLog.getSource());
+        assertEquals("\n- [Title01](someURL/1)\n- [Title02](someURL/2)\n- [Title03](someURL/3)", testListLog.getSource());
     }
 }
 
