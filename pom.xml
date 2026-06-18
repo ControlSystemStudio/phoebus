@@ -218,9 +218,21 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
+              <reuseForks>false</reuseForks>
               <includes>
                 <include>**/*UI.java</include>
               </includes>
+              <!-- TestFX UI tests run headless under a virtual display (xvfb in
+                   CI). These properties must be set on the failsafe *fork*;
+                   MAVEN_OPTS only reaches the launching Maven JVM, not the test
+                   JVM. java.awt.headless lets headless-guarded tests skip
+                   themselves; the glass robot + software pipeline drive the rest
+                   without an AWT robot. -->
+              <systemPropertyVariables>
+                <java.awt.headless>true</java.awt.headless>
+                <testfx.robot>glass</testfx.robot>
+                <prism.order>sw</prism.order>
+              </systemPropertyVariables>
             </configuration>
           </plugin>
         </plugins>

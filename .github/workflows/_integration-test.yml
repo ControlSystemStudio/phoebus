@@ -30,7 +30,7 @@ jobs:
     - name: Integration tests (Elasticsearch-backed)
       run: >
         mvn --batch-mode install -P it-tests,docker-tests
-        -Dspring.profiles.active=IT
+        -Dskip-executable-jar
         -pl services/save-and-restore -am
     - name: Upload integration test reports
       uses: actions/upload-artifact@v7
