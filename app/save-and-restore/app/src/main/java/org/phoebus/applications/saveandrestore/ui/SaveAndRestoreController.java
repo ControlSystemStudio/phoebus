@@ -227,12 +227,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             new RestoreFromClientMenuItem(this, selectedItemsProperty,
                     () -> {
                         disabledUi.set(true);
-                        RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disabledUi.set(false));
+                        RestoreUtil.restore(RestoreMode.CLIENT_RESTORE, saveAndRestoreService, selectedItemsProperty.getFirst(), () -> disabledUi.set(false));
                     }),
             new RestoreFromServiceMenuItem(this, selectedItemsProperty,
                     () -> {
                         disabledUi.set(true);
-                        RestoreUtil.restore(RestoreMode.SERVICE_RESTORE, saveAndRestoreService, selectedItemsProperty.get(0), () -> disabledUi.set(false));
+                        RestoreUtil.restore(RestoreMode.SERVICE_RESTORE, saveAndRestoreService, selectedItemsProperty.getFirst(), () -> disabledUi.set(false));
                     }),
             new SeparatorMenuItem(),
             new EditCompositeMenuItem(this, selectedItemsProperty, this::editCompositeSnapshot),
@@ -391,7 +391,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             // Check if there is a save tree structure. Also check that the first node id (=tree root)
             // has the same unique id as the actual root node retrieved from the remote service. This check
             // is needed to handle the case when the client connects to a different save-and-restore service.
-            if (savedTreeViewStructure != null && !savedTreeViewStructure.isEmpty() && savedTreeViewStructure.get(0).equals(rootNode.getUniqueId())) {
+            if (savedTreeViewStructure != null && !savedTreeViewStructure.isEmpty() && savedTreeViewStructure.getFirst().equals(rootNode.getUniqueId())) {
                 HashMap<String, List<TreeItem<Node>>> childNodesMap = new HashMap<>();
                 savedTreeViewStructure.forEach(s -> {
                     List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
@@ -417,7 +417,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 // Event handler for expanding nodes
                 treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
                 treeInitializationCountDownLatch.countDown();
-                filtersList.add(0, null);
+                filtersList.addFirst(null);
                 String savedFilterName = getSavedFilterName();
                 if (savedFilterName != null) {
                     Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
@@ -475,7 +475,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * Action when user requests comparison between an opened snapshot and the selected {@link Node}.
      */
     private void compareSnapshot() {
-        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
+        Node node = browserSelectionModel.getSelectedItems().getFirst().getValue();
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         if (tab == null) {
             return;
@@ -518,9 +518,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 saveAndRestoreService.deleteNodes(nodeIds);
                 disabledUi.set(false);
             } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                        MessageFormat.format(Messages.errorDeleteNodeFailed, items.get(0).getValue().getName()),
-                        e);
+                ExceptionDetailsErrorDialog.openError(Messages.deleteFailed, Messages.errorDeleteNodeFailed, e);
                 disabledUi.set(false);
             }
         });
@@ -530,7 +528,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * Opens a new snapshot view tab associated with the selected configuration.
      */
     private void openConfigurationForSnapshot() {
-        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
+        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().getFirst();
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
         tab.newSnapshot(treeItem.getValue());
 
@@ -548,7 +546,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             return (SearchAndFilterTab) searchTabOptional.get();
         } else {
             SearchAndFilterTab searchAndFilterTab = new SearchAndFilterTab(this);
-            tabPane.getTabs().add(0, searchAndFilterTab);
+            tabPane.getTabs().addFirst(searchAndFilterTab);
             tabPane.getSelectionModel().select(searchAndFilterTab);
             return searchAndFilterTab;
         }
@@ -558,7 +556,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * Creates a new folder {@link Node}.
      */
     private void createNewFolder() {
-        TreeItem<Node> parentTreeItem = browserSelectionModel.getSelectedItems().get(0);
+        TreeItem<Node> parentTreeItem = browserSelectionModel.getSelectedItems().getFirst();
         List<String> existingFolderNames =
                 parentTreeItem.getChildren().stream()
                         .filter(item -> item.getValue().getNodeType().equals(NodeType.FOLDER))
@@ -714,11 +712,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * Creates a new configuration in the selected tree node.
      */
     private void createNewConfiguration() {
-        launchTabForNewConfiguration(browserSelectionModel.getSelectedItems().get(0).getValue());
+        launchTabForNewConfiguration(browserSelectionModel.getSelectedItems().getFirst().getValue());
     }
 
     private void createNewCompositeSnapshot() {
-        launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue(),
+        launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().getFirst().getValue(),
                 Collections.emptyList());
     }
 
@@ -735,7 +733,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * the user is shown a suitable error dialog and the name of the node is restored.
      */
     private void renameNode() {
-        TreeItem<Node> node = browserSelectionModel.getSelectedItems().get(0);
+        TreeItem<Node> node = browserSelectionModel.getSelectedItems().getFirst();
         List<String> existingSiblingNodes =
                 node.getParent().getChildren().stream()
                         .filter(item -> item.getValue().getNodeType().equals(node.getValue().getNodeType()))
@@ -957,7 +955,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * Imports configuration or snapshot from CSV.
      */
     private void importFromCSV() {
-        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
+        Node node = browserSelectionModel.getSelectedItems().getFirst().getValue();
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(node.getNodeType().equals(NodeType.FOLDER) ? Messages.importConfigurationLabel : Messages.importSnapshotLabel);
@@ -975,7 +973,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * Exports configuration or snapshot to CSV.
      */
     private void exportToCSV() {
-        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
+        Node node = browserSelectionModel.getSelectedItems().getFirst().getValue();
         try {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(node.getNodeType().equals(NodeType.FOLDER) ? Messages.exportConfigurationLabel : Messages.exportSnapshotLabel);
@@ -1031,7 +1029,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (selectedItems.size() < 2) {
             return true;
         }
-        NodeType nodeType = selectedItems.get(0).getValue().getNodeType();
+        NodeType nodeType = selectedItems.getFirst().getValue().getNodeType();
         for (int i = 1; i < selectedItems.size(); i++) {
             if (!selectedItems.get(i).getValue().getNodeType().equals(nodeType)) {
                 return false;
@@ -1234,11 +1232,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (selectedItemsProperty.stream().anyMatch(n -> n.getNodeType().equals(NodeType.FOLDER))) {
             return false;
         }
-        NodeType nodeTypeOfFirst = selectedItemsProperty.get(0).getNodeType();
+        NodeType nodeTypeOfFirst = selectedItemsProperty.getFirst().getNodeType();
         if (selectedItemsProperty.stream().anyMatch(n -> !n.getNodeType().equals(nodeTypeOfFirst))) {
             return false;
         }
-        TreeItem<Node> parentOfFirst = browserSelectionModel.getSelectedItems().get(0).getParent();
+        TreeItem<Node> parentOfFirst = browserSelectionModel.getSelectedItems().getFirst().getParent();
         return browserSelectionModel.getSelectedItems().stream().filter(t -> !t.getParent().equals(parentOfFirst)).findFirst().isEmpty();
     }
 
@@ -1262,13 +1260,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             return false;
         }
         if (selectedItemsProperty.size() != 1 ||
-                selectedItemsProperty.get(0).getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) ||
-                (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.FOLDER) && !selectedItemsProperty.get(0).getNodeType().equals(NodeType.CONFIGURATION))) {
+                selectedItemsProperty.getFirst().getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) ||
+                (!selectedItemsProperty.getFirst().getNodeType().equals(NodeType.FOLDER) && !selectedItemsProperty.getFirst().getNodeType().equals(NodeType.CONFIGURATION))) {
             return false;
         }
         // Check is made if target node is of supported type for the clipboard content.
         List<Node> selectedNodes = (List<Node>) clipBoardContent;
-        NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
+        NodeType nodeTypeOfFirst = selectedNodes.getFirst().getNodeType();
         NodeType nodeTypeOfTarget = browserSelectionModel.getSelectedItem().getValue().getNodeType();
         if ((nodeTypeOfFirst.equals(NodeType.COMPOSITE_SNAPSHOT) ||
                 nodeTypeOfFirst.equals(NodeType.CONFIGURATION)) && !nodeTypeOfTarget.equals(NodeType.FOLDER)) {
@@ -1309,7 +1307,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (selectedItems.size() == 1) {
             return true;
         }
-        Node parentNodeOfFirst = selectedItems.get(0).getParent().getValue();
+        Node parentNodeOfFirst = selectedItems.getFirst().getParent().getValue();
         for (int i = 1; i < selectedItems.size(); i++) {
             TreeItem<Node> treeItem = selectedItems.get(i);
             if (!treeItem.getParent().getValue().getUniqueId().equals(parentNodeOfFirst.getUniqueId())) {
@@ -1332,7 +1330,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      */
     public boolean compareSnapshotsPossible() {
         if (selectedItemsProperty.size() != 1 ||
-                !selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT)) {
+                !selectedItemsProperty.getFirst().getNodeType().equals(NodeType.SNAPSHOT)) {
             return false;
         }
         Node[] configAndSnapshotNode = getConfigAndSnapshotForActiveSnapshotTab();
@@ -1397,8 +1395,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         selectedItemsProperty.setAll(selectedItems.stream().map(TreeItem::getValue).toList());
 
         tagWithComment.disableProperty().set(userIdentity.isNull().get() ||
-                (!selectedItemsProperty.get(0).getNodeType().equals(NodeType.SNAPSHOT) &&
-                        !selectedItemsProperty.get(0).getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
+                (!selectedItemsProperty.getFirst().getNodeType().equals(NodeType.SNAPSHOT) &&
+                        !selectedItemsProperty.getFirst().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)));
         configureTagContextMenu(tagWithComment);
 
         addOptionalLoggingMenuItem();
@@ -1408,7 +1406,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         deleteNodeMenuItem.disableProperty().set(getUserIdentity().isNull().get() ||
                 selectedItemsProperty.stream().anyMatch(n -> n.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) ||
                 !hasSameParent() ||
-                hasReferences(selectedItemsProperty.get(0)));
+                hasReferences(selectedItemsProperty.getFirst()));
         pasteMenuItem.disableProperty().set(!mayPaste());
     }
 
@@ -1449,7 +1447,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         // If logbook has been configured, add the Create Log menu item
         if (LogbookPreferences.is_supported) {
             SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME,
-                    selectedItemsProperty.size() == 1 ? List.of(selectedItemsProperty.get(0)) : Collections.emptyList());
+                    selectedItemsProperty.size() == 1 ? List.of(selectedItemsProperty.getFirst()) : Collections.emptyList());
             List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
 
             supported.forEach(action -> {
@@ -1548,6 +1546,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private void findReferences() {
         SearchAndFilterTab searchAndFilterTab = openSearchWindow();
-        searchAndFilterTab.getController().findReferencesForSnapshot(treeView.getSelectionModel().getSelectedItems().get(0).getValue().getUniqueId());
+        searchAndFilterTab.getController().findReferencesForSnapshot(treeView.getSelectionModel().getSelectedItems().getFirst().getValue().getUniqueId());
     }
 }

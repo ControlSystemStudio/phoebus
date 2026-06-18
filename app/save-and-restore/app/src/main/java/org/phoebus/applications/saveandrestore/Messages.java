@@ -79,6 +79,7 @@ public class Messages {
     public static String currentReadbackValue;
     public static String currentSetpointValue;
     public static String dateTimePickerTitle;
+    public static String deleteFailed;
     public static String deleteFilter;
     public static String deleteFilterFailed;
 
