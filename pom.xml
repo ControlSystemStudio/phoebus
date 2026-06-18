@@ -206,8 +206,10 @@
         <skipITTests>false</skipITTests>
       </properties>
     </profile>
-    <!-- The ui-tests profile when used will run all user interface tests,
-      these are testfx test where the java file names ending in "UI" -->
+    <!-- The ui-tests profile when used will run ONLY the user interface tests,
+      these are testfx tests where the java file names end in "UI". Surefire
+      (unit tests) is skipped so this profile runs the UI tests in isolation;
+      the unit tests run separately (see .github/workflows/_unit-test.yml). -->
     <profile>
       <id>ui-tests</id>
       <properties>
@@ -215,6 +217,14 @@
       </properties>
       <build>
         <plugins>
+          <!-- Skip surefire (unit tests) at plugin-config level so failsafe
+               still runs; the shared -DskipTests property would skip both. -->
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skipTests>true</skipTests>
+            </configuration>
+          </plugin>
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>

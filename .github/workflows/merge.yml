@@ -18,8 +18,10 @@ jobs:
     with:
       os: ${{ matrix.os }}
       upload-artifacts: true
-  test:
-    uses: ./.github/workflows/_test.yml
+  unit-test:
+    uses: ./.github/workflows/_unit-test.yml
+  ui-test:
+    uses: ./.github/workflows/_ui-test.yml
   integration-test:
     uses: ./.github/workflows/_integration-test.yml
 

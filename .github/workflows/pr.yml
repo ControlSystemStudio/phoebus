@@ -14,9 +14,12 @@ concurrency:
 jobs:
   build:
     uses: ./.github/workflows/_build.yml
-  test:
+  unit-test:
     needs: build
-    uses: ./.github/workflows/_test.yml
+    uses: ./.github/workflows/_unit-test.yml
+  ui-test:
+    needs: build
+    uses: ./.github/workflows/_ui-test.yml
   integration-test:
     needs: build
     uses: ./.github/workflows/_integration-test.yml
