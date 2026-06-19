@@ -5,7 +5,8 @@
 # When deploying, change "TOP"
 # to the absolute installation path
 # TOP="."
-TOP="$( cd "$(dirname "$0")" ; pwd -P )"
+realpath=$(realpath "$0")
+TOP=$(dirname "$realpath")
 
 # Ideally, assert that Java is found
 # export JAVA_HOME=/opt/jdk-9
