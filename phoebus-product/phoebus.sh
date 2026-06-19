@@ -20,7 +20,7 @@ fi
 if [ -d "${TOP}/update" ]
 then
   echo "Installing update..."
-  cd ${TOP}
+  cd "${TOP}"
   rm -rf doc lib
   mv update/* .
   rmdir update
@@ -28,7 +28,7 @@ then
 fi
 
 
-JAR=`echo ${TOP}/product-*.jar`
+JAR=`echo "${TOP}"/product-*.jar`
 
 # To get one instance, use server mode
 OPT="-server 4918"
@@ -41,10 +41,10 @@ firstarg=$1;
 
 if test "${firstarg#*$filter1}" != "$firstarg"; then
   # Run MEDM converter etc. in foreground
-  java -Dfile.encoding=UTF-8 -jar $JAR $OPT "$@"
+  java -Dfile.encoding=UTF-8 -jar "$JAR" $OPT "$@"
 elif test "${firstarg#*$filter2}" != "$firstarg"; then
-    java -Dfile.encoding=UTF-8 -jar $JAR $OPT "$@"
+    java -Dfile.encoding=UTF-8 -jar "$JAR" $OPT "$@"
 else
   # Run UI as separate thread
-  java -Dfile.encoding=UTF-8 -jar $JAR $OPT "$@" &
+  java -Dfile.encoding=UTF-8 -jar "$JAR" $OPT "$@" &
 fi
