@@ -8,23 +8,11 @@ permissions:
 
 jobs:
   ui-test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-    - name: Set up Java
-      uses: ./.github/actions/setup-java
-    - name: Test
-      run: >
-        xvfb-run -a
-        mvn --batch-mode --fail-at-end verify -P ui-tests
-      env:
-        MAVEN_OPTS: >-
-          -Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true
-          -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500
-    - name: Upload test reports
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-      if: always()
-      with:
-        name: ui-test-reports
-        path: '**/target/failsafe-reports/**'
-        if-no-files-found: ignore
+    uses: ./.github/workflows/_test.yml
+    with:
+      name: ui-test
+      run: xvfb-run -a mvn --batch-mode --fail-at-end verify -P ui-tests
+      report-path: '**/target/failsafe-reports/**'
+      maven-opts: >-
+        -Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true
+        -Dprism.order=sw -Dprism.text=t2k -Dtestfx.setup.timeout=2500
