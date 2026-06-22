@@ -1,7 +1,10 @@
 name: Test report
 
 on:
-  workflow_run:
+  # Reports must run with write permissions that PRs from forks cannot grant,
+  # so they are published from a separate workflow_run-triggered workflow. The
+  # job only downloads artifacts and posts reports; it never runs PR code.
+  workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows:
       - PR
       - Merge to master

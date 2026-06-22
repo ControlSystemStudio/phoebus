@@ -25,10 +25,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        persist-credentials: false
     - name: Set up Java
       uses: ./.github/actions/setup-java
     - name: Build with Maven
-      run: mvn --batch-mode ${{ inputs.maven-args }}
+      run: mvn --batch-mode $MAVEN_ARGS
+      env:
+        MAVEN_ARGS: ${{ inputs.maven-args }}
     - name: Login to the registry
       uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee
       with:

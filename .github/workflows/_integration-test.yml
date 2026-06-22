@@ -25,6 +25,8 @@ jobs:
           --health-retries 30
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        persist-credentials: false
     - name: Set up Java
       uses: ./.github/actions/setup-java
     - name: Integration tests (Elasticsearch-backed)
