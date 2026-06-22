@@ -247,7 +247,10 @@
               <systemPropertyVariables>
                 <java.awt.headless>true</java.awt.headless>
                 <testfx.robot>glass</testfx.robot>
+                <testfx.headless>true</testfx.headless>
                 <prism.order>sw</prism.order>
+                <prism.text>t2k</prism.text>
+                <testfx.setup.timeout>2500</testfx.setup.timeout>
               </systemPropertyVariables>
             </configuration>
           </plugin>
