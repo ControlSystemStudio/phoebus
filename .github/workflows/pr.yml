@@ -12,6 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    uses: ./.github/workflows/_lint.yml
   build:
     uses: ./.github/workflows/_build.yml
   unit-test:
