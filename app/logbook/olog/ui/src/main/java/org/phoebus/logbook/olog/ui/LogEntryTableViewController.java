@@ -219,7 +219,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
         MenuItem menuItemCreateLogEntryFromSelection = new MenuItem(Messages.CreateLogEntryFromSelection);
         menuItemCreateLogEntryFromSelection.setOnAction(pl -> {
             LogEntry logEntry = LogEntryUtils.createLogEntryFromList(LogbookUIPreferences.web_client_root_URL, selectedLogEntries);
-            new LogEntryEditorStage(logEntry, null, EditMode.NEW_LOG_ENTRY).show();
+            new LogEntryEditorStage(logEntry, null, EditMode.NEW_LOG_ENTRY_FROM_SELECTION).show();
         });
 
         contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll, menuItemNewLogEntry, menuItemCreateLogEntryFromSelection);
