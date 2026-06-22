@@ -215,14 +215,7 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
         menuItemUpdateLogEntry.acceleratorProperty().setValue(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN));
         menuItemUpdateLogEntry.setOnAction(ae -> new LogEntryEditorStage(selectedLogEntries.get(0), null, EditMode.UPDATE_LOG_ENTRY).show());
 
-        //Milena
-        MenuItem menuItemCreateLogEntryFromSelection = new MenuItem(Messages.CreateLogEntryFromSelection);
-        menuItemCreateLogEntryFromSelection.setOnAction(pl -> {
-            LogEntry logEntry = LogEntryUtils.createLogEntryFromList(LogbookUIPreferences.web_client_root_URL, selectedLogEntries);
-            new LogEntryEditorStage(logEntry, null, EditMode.NEW_LOG_ENTRY_FROM_SELECTION).show();
-        });
-
-        contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll, menuItemNewLogEntry, menuItemCreateLogEntryFromSelection);
+        contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll, menuItemNewLogEntry);
         if (LogbookUIPreferences.log_entry_update_support) {
             contextMenu.getItems().add(menuItemUpdateLogEntry);
         }
@@ -597,6 +590,11 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                     }
                 });
 
+    }
+
+
+    public List<LogEntry> getSelectedLogEntries(){
+        return selectedLogEntries;
     }
 
     /**
