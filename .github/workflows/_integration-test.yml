@@ -24,7 +24,7 @@ jobs:
           --health-timeout 5s
           --health-retries 30
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
     - name: Set up Java
       uses: ./.github/actions/setup-java
     - name: Integration tests (Elasticsearch-backed)
@@ -33,7 +33,7 @@ jobs:
         -Dskip-executable-jar
         -pl services/save-and-restore -am
     - name: Upload integration test reports
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       if: always()
       with:
         name: integration-test-reports
