@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -544,13 +544,20 @@ public class AlarmServerMain implements ServerModelListener {
                     Map.entry(kafka_props_arg, "kafka_properties")
             );
 
+            // Allow more than one `-settings`
+            List<String> setting_files = new ArrayList<>();
+
             while (iter.hasNext()) {
                 final String cmd = iter.next();
                 if (options.contains(cmd)) {
                     if (!iter.hasNext())
                         throw new Exception("Missing argument for " + cmd);
                     final String arg = iter.next();
-                    parsed_args.put(cmd, arg);
+                    // Accumulate -settings
+                    if (settings_arg.equals(cmd))
+                        setting_files.add(arg);
+                    else // other -cmd arg
+                        parsed_args.put(cmd, arg);
                 } else if (flags.contains(cmd))
                     parsed_args.put(cmd, "");
                 else
@@ -564,8 +571,7 @@ public class AlarmServerMain implements ServerModelListener {
             if (parsed_args.containsKey(logging_arg)) {
                 LogManager.getLogManager().readConfiguration(new FileInputStream(parsed_args.get(logging_arg)));
             }
-            if (parsed_args.containsKey(settings_arg)) {
-                final String filename = parsed_args.get(settings_arg);
+            for (String filename : setting_files) {
                 logger.info("Loading settings from " + filename);
                 PropertyPreferenceLoader.load(new FileInputStream(filename));
                 final Preferences userPrefs = Preferences.userRoot().node("org/phoebus/applications/alarm");
