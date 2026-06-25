@@ -9,6 +9,7 @@ package org.phoebus.applications.update;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -19,6 +20,7 @@ import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -165,7 +167,8 @@ abstract public class Update
 
         // Watcher thread that displays file size in monitor
         final CountDownLatch done = new CountDownLatch(1);
-        final Thread download_thread = Thread.currentThread();
+        // Reference to the download stream so the watcher can close it on 'cancel'.
+        final AtomicReference<InputStream> download_stream = new AtomicReference<>();
         final Thread watcher = new Thread(() ->
         {
             try
@@ -182,11 +185,25 @@ abstract public class Update
                     else
                         monitor.updateTaskName(String.format("Downloading %.3f MB", size/1.0e6));
 
-                    // Force the download thread to stop on 'cancel'.
+                    // Force the download to stop on 'cancel'.
                     // 'interrupt()' has no effect, and Files.copy is not
-                    // otherwise instrumented.
+                    // otherwise instrumented, so close the source stream to
+                    // break the in-progress copy out of its blocking read.
                     if (monitor.isCanceled())
-                        download_thread.stop();
+                    {
+                        final InputStream src = download_stream.get();
+                        // Catch locally so a failed close doesn't end the
+                        // watcher; it will retry on the next poll.
+                        if (src != null)
+                            try
+                            {
+                                src.close();
+                            }
+                            catch (IOException ex)
+                            {
+                                logger.log(Level.WARNING, "Cannot close download stream on cancel", ex);
+                            }
+                    }
                 }
                 monitor.updateTaskName(String.format("Download Finished"));
             }
@@ -203,6 +220,7 @@ abstract public class Update
             final InputStream src = getDownloadStream();
         )
         {
+            download_stream.set(src);
             logger.info("Download into " + file);
             Files.copy(src, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return file;
