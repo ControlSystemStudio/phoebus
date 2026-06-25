@@ -165,53 +165,13 @@ abstract public class Update
         final File file = File.createTempFile("phoebus_update", ".zip");
         file.deleteOnExit();
 
-        // Watcher thread that displays file size in monitor
-        final CountDownLatch done = new CountDownLatch(1);
+        // Watcher thread that displays file size in monitor.
         // Reference to the download stream so the watcher can close it on 'cancel'.
+        final CountDownLatch done = new CountDownLatch(1);
         final AtomicReference<InputStream> download_stream = new AtomicReference<>();
-        final Thread watcher = new Thread(() ->
-        {
-            try
-            {
-                while (! done.await(1, TimeUnit.SECONDS))
-                {
-                    final long size = file.length();
-                    final long full = full_size.get();
-                    if (full > 0)
-                    {
-                        int percent = (int) ((size*100) / full);
-                        monitor.updateTaskName(String.format("Downloading %d %% (%.3f/%.3f MB)", percent, size/1.0e6, full/1.0e6));
-                    }
-                    else
-                        monitor.updateTaskName(String.format("Downloading %.3f MB", size/1.0e6));
-
-                    // Force the download to stop on 'cancel'.
-                    // 'interrupt()' has no effect, and Files.copy is not
-                    // otherwise instrumented, so close the source stream to
-                    // break the in-progress copy out of its blocking read.
-                    if (monitor.isCanceled())
-                    {
-                        final InputStream src = download_stream.get();
-                        // Catch locally so a failed close doesn't end the
-                        // watcher; it will retry on the next poll.
-                        if (src != null)
-                            try
-                            {
-                                src.close();
-                            }
-                            catch (IOException ex)
-                            {
-                                logger.log(Level.WARNING, "Cannot close download stream on cancel", ex);
-                            }
-                    }
-                }
-                monitor.updateTaskName(String.format("Download Finished"));
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Download watch thread", ex);
-            }
-        }, "Watch Download");
+        final Thread watcher = new Thread(
+            () -> watchDownload(monitor, file, full_size, done, download_stream),
+            "Watch Download");
         watcher.setDaemon(true);
         watcher.start();
 
@@ -233,6 +193,74 @@ abstract public class Update
         finally
         {
             done.countDown();
+        }
+    }
+
+    /** Watch an in-progress download, reporting size to the monitor and
+     *  aborting on 'cancel'.
+     *
+     *  <p>Runs on the "Watch Download" thread until {@code done} is counted
+     *  down by {@link #download(JobMonitor)}.
+     *
+     *  @param monitor {@link JobMonitor} to update and poll for cancellation
+     *  @param file Partially downloaded file, polled for its current size
+     *  @param full_size Expected total size, or &le; 0 if unknown
+     *  @param done Latch that the download signals once the copy has finished
+     *  @param download_stream Holds the source stream to close on 'cancel'
+     */
+    private void watchDownload(final JobMonitor monitor,
+                               final File file,
+                               final AtomicLong full_size,
+                               final CountDownLatch done,
+                               final AtomicReference<InputStream> download_stream)
+    {
+        try
+        {
+            while (! done.await(1, TimeUnit.SECONDS))
+            {
+                final long size = file.length();
+                final long full = full_size.get();
+                if (full > 0)
+                {
+                    int percent = (int) ((size*100) / full);
+                    monitor.updateTaskName(String.format("Downloading %d %% (%.3f/%.3f MB)", percent, size/1.0e6, full/1.0e6));
+                }
+                else
+                    monitor.updateTaskName(String.format("Downloading %.3f MB", size/1.0e6));
+
+                // Force the download to stop on 'cancel'.
+                // 'interrupt()' has no effect, and Files.copy is not
+                // otherwise instrumented, so close the source stream to
+                // break the in-progress copy out of its blocking read.
+                if (monitor.isCanceled())
+                    closeDownloadStream(download_stream.get());
+            }
+            monitor.updateTaskName(String.format("Download Finished"));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Download watch thread", ex);
+        }
+    }
+
+    /** Close the source stream to abort a cancelled download.
+     *
+     *  <p>A failed close is logged rather than thrown so it doesn't end the
+     *  watcher; it will retry on the next poll.
+     *
+     *  @param src Stream to close, may be <code>null</code>
+     */
+    private void closeDownloadStream(final InputStream src)
+    {
+        if (src == null)
+            return;
+        try
+        {
+            src.close();
+        }
+        catch (IOException ex)
+        {
+            logger.log(Level.WARNING, "Cannot close download stream on cancel", ex);
         }
     }
 
