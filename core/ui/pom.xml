@@ -46,6 +46,13 @@
       <artifactId>javafx-web</artifactId>
       <version>${openjfx.version}</version>
     </dependency>
+    <!-- netscape.javascript for javafx.web; previously provided by the JDK's
+         jdk.jsobject module, which was removed in JDK 26. -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>jdk-jsobject</artifactId>
+      <version>${jsobject.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
