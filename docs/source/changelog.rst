@@ -18,6 +18,7 @@ Date: TBD
 * Scan infor parser performance improvement.
 * PV race condition fix.
 * Highlight overdrawn area of embedded display in edit mode.
+* Web Browser widget: new optional "Resize with Window" property to fill the runtime window.
 
 
 Release 4.6.4 
