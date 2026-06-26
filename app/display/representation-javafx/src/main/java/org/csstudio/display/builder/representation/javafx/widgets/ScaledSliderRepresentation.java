@@ -521,13 +521,13 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             for (Node node : skin.getChildren()) {
                 if (node.getStyleClass().contains("thumb")) {
                     // 7.6 seems to be default padding
-                    node.setStyle("-fx-padding: " + Math.min(20, Math.max(7.6, (size * 0.3))));
+                    node.setStyle("-fx-padding: " + Math.clamp(size * 0.3, 7.6, 20));
                 } else if (node.getStyleClass().contains("track")) {
                     // 3.3 seems to be default padding
-                    node.setStyle("-fx-padding: " + Math.min(13, Math.max(3.3, (size * 0.2))));
+                    node.setStyle("-fx-padding: " + Math.clamp(size * 0.2, 3.3, 13));
                 } else if (node.getStyleClass().contains("axis")) {
                     // 8 seems to be default major tick length
-                    node.setStyle("-fx-tick-length: " + Math.min(20, Math.max(8, (size * 0.1))));
+                    node.setStyle("-fx-tick-length: " + Math.clamp(size * 0.1, 8, 20));
                 }
             }
         }
