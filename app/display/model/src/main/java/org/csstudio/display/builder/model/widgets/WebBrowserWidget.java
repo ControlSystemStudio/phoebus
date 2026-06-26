@@ -69,6 +69,7 @@ public class WebBrowserWidget extends VisibleWidget
         properties.add(url = propWidgetURL.createProperty(this, ""));
         properties.add(show_toolbar = propShowToolbar.createProperty(this, true));
         properties.add(resize_with_window = propResizeWithWindow.createProperty(this, false));
+        resize_with_window.setInformativeTooltip(Messages.InformativeTooltipResizeWithWindow);
     }
 
     /** @return Widget 'url' property */

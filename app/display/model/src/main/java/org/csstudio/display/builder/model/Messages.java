@@ -63,6 +63,7 @@ public class Messages
                          InformativeTooltipHeight,
                          InformativeTooltipName,
                          InformativeTooltipPVName,
+                         InformativeTooltipResizeWithWindow,
                          InformativeTooltipRules,
                          InformativeTooltipScripts,
                          InformativeTooltipTooltip,
