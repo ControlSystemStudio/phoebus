@@ -10,7 +10,9 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.Slider;
+import javafx.scene.control.skin.SliderSkin;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -35,6 +37,7 @@ import org.epics.vtype.VType;
 
 import java.text.DecimalFormat;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
@@ -71,6 +74,8 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
 
     private final Slider slider;
     private final SliderMarkers markers;
+
+    private final AtomicBoolean isHorizontal = new AtomicBoolean(true);
 
     /** Constructor */
     public ScaledSliderRepresentation()
@@ -232,6 +237,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             model_widget.propWidth().setValue(h);
             model_widget.propHeight().setValue(w);
         }
+        isHorizontal.set(horizontal);
         layoutChanged(prop, old, horizontal);
     }
 
@@ -552,6 +558,8 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                 active = false;
             }
         }
+
+        adjustSizes();
         jfx_node.layout();
     }
 
@@ -565,5 +573,33 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             config_popover.hide();
         else
             config_popover.show(slider);
+    }
+
+    /**
+     * Adjusts knob, track and major tick sizes when widget size increases. Making the widget larger is
+     * a workaround for visibility issues when the JavaFX native {@link Slider} is rendered on a
+     * high-resolution monitor.
+     * <p>
+     *     Applied sizes are based on the height (horizontal) or width (vertical), and
+     *     clamped between the default size and an upper ad-hoc determined limit.
+     * </p>
+     */
+    private void adjustSizes(){
+        SliderSkin skin = (SliderSkin) slider.getSkin();
+        if (skin != null) {
+            double size = isHorizontal.get() ? jfx_node.getHeight() : jfx_node.getWidth();
+            for (Node node : skin.getChildren()) {
+                if (node.getStyleClass().contains("thumb")) {
+                    // 7.6 seems to be default padding
+                    node.setStyle("-fx-padding: " + Math.clamp(size * 0.3, 7.6, 20));
+                } else if (node.getStyleClass().contains("track")) {
+                    // 3.3 seems to be default padding
+                    node.setStyle("-fx-padding: " + Math.clamp(size * 0.2, 3.3, 13));
+                } else if (node.getStyleClass().contains("axis")) {
+                    // 8 seems to be default major tick length
+                    node.setStyle("-fx-tick-length: " + Math.clamp(size * 0.1, 8, 20));
+                }
+            }
+        }
     }
 }
