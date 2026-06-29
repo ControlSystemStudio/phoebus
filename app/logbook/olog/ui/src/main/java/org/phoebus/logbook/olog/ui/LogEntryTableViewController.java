@@ -56,6 +56,7 @@ import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.spi.Decoration;
 import org.phoebus.logbook.olog.ui.write.EditMode;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.olog.ui.write.LogEntryUtils;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
@@ -589,6 +590,11 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                     }
                 });
 
+    }
+
+
+    public List<LogEntry> getSelectedLogEntries(){
+        return selectedLogEntries;
     }
 
     /**

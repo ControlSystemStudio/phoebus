@@ -38,10 +38,12 @@ import javafx.scene.layout.Region;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.write.EditMode;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.olog.ui.write.LogEntryUtils;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.javafx.ImageCache;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -185,12 +187,6 @@ public class LogEntryDisplayController {
     }
 
     @FXML
-    public void newLogEntry(){
-        // Show a new editor dialog.
-        new LogEntryEditorStage(new OlogLog(),  null, EditMode.NEW_LOG_ENTRY).show();
-    }
-
-    @FXML
     public void goBack() {
         if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
             logEntryTableViewController.goBackAndGoForwardActions.get().goBack();
@@ -201,6 +197,22 @@ public class LogEntryDisplayController {
     public void goForward() {
         if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
             logEntryTableViewController.goBackAndGoForwardActions.get().goForward();
+        }
+    }
+
+    /**
+     * Creates a new Log Entry.
+     * If 2 or more existing Log Entries in the list are selected,
+     * they get linked into the description of the new Log Entry.
+     * */
+    @FXML
+    public void createNewLogEntry(){
+        List<LogEntry> selectedLogEntries = logEntryTableViewController.getSelectedLogEntries();
+        if (selectedLogEntries.size() > 1){
+            LogEntry logEntry = LogEntryUtils.createLogEntryFromList(LogbookUIPreferences.web_client_root_URL, selectedLogEntries);
+            new LogEntryEditorStage(logEntry,null, EditMode.NEW_LOG_ENTRY_FROM_SELECTION).show();
+        } else {
+            new LogEntryEditorStage(new OlogLog(),  null, EditMode.NEW_LOG_ENTRY).show();
         }
     }
 
