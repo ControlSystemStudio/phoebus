@@ -68,7 +68,7 @@
     <epics.version>7.0.11</epics.version>
     <epics.util.version>1.0.8</epics.util.version>
     <vtype.version>1.0.8</vtype.version>
-    <openjfx.version>21.0.7</openjfx.version>
+    <openjfx.version>25.0.3</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
@@ -89,8 +89,8 @@
     <derby.version>10.16.1.1</derby.version>
     <jython.version>2.7.4b1</jython.version>
     <jgit.version>6.9.0.202403050737-r</jgit.version>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>25</maven.compiler.target>
     <activemq.client.version>5.18.4</activemq.client.version>
     <commons.compress.version>1.26.1</commons.compress.version>
     <spring.framework.version>5.3.22</spring.framework.version>
@@ -100,7 +100,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.2</version>
+        <version>3.14.1</version>
         <configuration>
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
@@ -122,7 +122,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.0.0-M7</version>
+        <version>3.2.5</version>
         <configuration>
           <excludes>
             <exclude>**/*FXTest.java</exclude>
@@ -132,7 +132,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.22.0</version>
+        <version>3.2.5</version>
         <configuration>
           <skipITs>${skipITTests}</skipITs>
         </configuration>
@@ -288,7 +288,7 @@
           <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.0.0-M7</version>
+        <version>3.2.5</version>
             <configuration>
               <systemPropertyVariables>
                 <ignore_local_ipv6>true</ignore_local_ipv6>
