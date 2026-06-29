@@ -106,7 +106,6 @@ public class CredentialsManagementController {
      */
     private final IntegerProperty loggedInCount = new SimpleIntegerProperty(0);
 
-    //private Stage stage;
     private Dialog dialog;
 
     public CredentialsManagementController(List<ServiceAuthenticationProvider> authenticationProviders, SecureStore secureStore) {
@@ -467,10 +466,6 @@ public class CredentialsManagementController {
                 setGraphic(label);
             }
         }
-    }
-
-    public void setStage(Stage stage) {
-        //this.stage = stage;
     }
 
     public void setDialog(Dialog dialog) {
