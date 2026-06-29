@@ -69,10 +69,8 @@
     <epics.util.version>1.0.8</epics.util.version>
     <vtype.version>1.0.8</vtype.version>
     <openjfx.version>21.0.7</openjfx.version>
-    <!-- Supplies netscape.javascript (used by javafx.web's WebView), which lived
-         in the JDK's jdk.jsobject module until that module was removed in JDK 26.
-         Versioned independently of openjfx because the standalone artifact only
-         exists from 25 onwards. -->
+    <!-- netscape.javascript jar for the JDK 26+ profiles; versioned separately
+         from openjfx as it's only published for 25+. -->
     <jsobject.version>26.0.1</jsobject.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.17</batik.version>
