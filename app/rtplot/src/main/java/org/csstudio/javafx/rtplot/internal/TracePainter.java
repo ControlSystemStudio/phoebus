@@ -57,7 +57,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
     final private static int OUTSIDE = 1000;
     private int x_min, x_max, y_min, y_max;
 
-    final private int clipX(final double x)
+    private int clipX(final double x)
     {
         if (x < x_min)
             return x_min;
@@ -66,7 +66,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
         return (int)x;
     }
 
-    final private int clipY(final int y)
+    private int clipY(final int y)
     {
         if (y < y_min)
             return y_min;
@@ -77,11 +77,11 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
 
     /** @param gc GC
      *  @param bounds Clipping bounds within which to paint
-     *  @param opacity Opacity (0 .. 100 %) of 'area'
+     *  @param areaOpacity The opacity (0..100) of the trace area.
      *  @param x_transform Coordinate transform used by the x axis
      *  @param trace Trace, has reference to its value axis
      */
-    final public void paint(final Graphics2D gc, final Rectangle bounds, final int opacity,
+    final public void paint(final Graphics2D gc, final Rectangle bounds, final int areaOpacity,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final Trace<XTYPE> trace)
     {
@@ -104,7 +104,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
         final Stroke old_width = gc.getStroke();
 
         final Color color = GraphicsUtils.convert(trace.getColor());
-        final Color tpcolor = new Color(color.getRed(), color.getGreen(), color.getBlue(), opacity);
+        final Color tpcolor = GraphicsUtils.convert(trace.getColor(), (int)Math.round(2.55 * areaOpacity));
         gc.setColor(color);
 
         // TODO Optimize drawing
@@ -253,7 +253,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
         return scaled;
     }
 
-    private final static Stroke createStroke(final int line_width, final LineStyle line_style)
+    private static Stroke createStroke(final int line_width, final LineStyle line_style)
     {
         switch (line_style)
         {
@@ -281,7 +281,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param line_width
      *  @param line_style
      */
-    final private void drawValueStaircase(final Graphics2D gc,
+    private void drawValueStaircase(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final PlotDataProvider<XTYPE> data,
             final int start, final int end,
@@ -329,7 +329,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param line_width
      *  @param line_style
      */
-    final private void drawValueLines(final Graphics2D gc,
+    private void drawValueLines(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final PlotDataProvider<XTYPE> data, final int line_width, final LineStyle line_style)
     {
@@ -369,7 +369,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param start Start and ..
      *  @param end .. end index of data to plot
      */
-    final private void drawMinMaxArea(final Graphics2D gc,
+    private void drawMinMaxArea(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final PlotDataProvider<XTYPE> data,
             final int start, final int end)
@@ -407,7 +407,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param y_axis Value axis
      *  @param data Data
      */
-    final private void drawMinMaxLines(final Graphics2D gc,
+    private void drawMinMaxLines(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final PlotDataProvider<XTYPE> data, final int line_width)
     {
@@ -449,7 +449,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param end .. end index of data to plot
      *  @param line_width
      */
-    final private void drawStdDevLines(final Graphics2D gc, final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
+    private void drawStdDevLines(final Graphics2D gc, final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final PlotDataProvider<XTYPE> data, final int start, final int end, final int line_width)
     {
         final IntList lower_poly_y = new IntList(INITIAL_ARRAY_SIZE);
@@ -484,7 +484,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param poly_x Points of poly line, will be cleared
      *  @param line_width
      */
-    final private void flushPolyLine(final Graphics2D gc, final IntList poly_x, final IntList poly_y, final int line_width)
+    private void flushPolyLine(final Graphics2D gc, final IntList poly_x, final IntList poly_y, final int line_width)
     {
         final int N = poly_x.size();
         if (N == 1)
@@ -502,7 +502,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param data Data
      *  @param size
      */
-    final private void drawErrorBars(final Graphics2D gc,
+    private void drawErrorBars(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final PlotDataProvider<XTYPE> data, final int size)
     {
@@ -541,7 +541,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param point_type
      *  @param size
      */
-    final private void drawPoints(final Graphics2D gc,
+    private void drawPoints(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final PlotDataProvider<XTYPE> data, PointType point_type, final int size)
     {
@@ -551,7 +551,6 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
         {
             final PlotDataItem<XTYPE> item = data.get(i);
             final double value = item.getValue();
-            final XTYPE loc = item.getPosition();
             if (!Double.isNaN(value))
             {
                 final int x = clipX(Math.round(x_transform.transform(item.getPosition())));
@@ -643,7 +642,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param data Data
      *  @param width Width of each bar
      */
-    final private void drawBars(final Graphics2D gc,
+    private void drawBars(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final PlotDataProvider<XTYPE> data, int width)
     {
@@ -673,7 +672,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param y_axis Value axis
      *  @param data Data
      */
-    final private void drawHistogram(final Graphics2D gc,
+    private void drawHistogram(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
             final PlotDataProvider<XTYPE> data)
     {

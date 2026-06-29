@@ -17,7 +17,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 import org.phoebus.ui.javafx.ClearingTextField;
-import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit5.ApplicationTest;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;

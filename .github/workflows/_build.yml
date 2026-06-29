@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: Runner to build on.
+        type: string
+        default: ubuntu-latest
+      upload-artifacts:
+        description: Upload the product tarball/zip (used by the master build).
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ inputs.os }}
+    steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        persist-credentials: false
+    - name: Set up Java
+      uses: ./.github/actions/setup-java
+    - name: Build
+      run: mvn --batch-mode install -DskipTests
+    - name: Archive build artifacts
+      if: ${{ inputs.upload-artifacts }}
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: Phoebus product ${{ inputs.os }}
+        path: |
+          ${{ github.workspace }}/phoebus-product/target/*.tar.gz
+          ${{ github.workspace }}/phoebus-product/target/*.zip

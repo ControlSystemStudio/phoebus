@@ -74,8 +74,8 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     private volatile Color background = Color.WHITE,
                            grid = Color.DARK_GRAY;
 
-    /** Opacity (0 .. 100 %) of 'area' */
-    private volatile int opacity = 20;
+    /** Opacity (0 .. 100) of 'area' */
+    private volatile int areaOpacity = 20;
 
     public static final String FONT_FAMILY = "Liberation Sans";
 
@@ -109,9 +109,9 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
     private AxisRange<XTYPE> mouse_start_x_range;
 
     /** Initial range of the mouse_y_axis or all Y axes, depending on mouse mode */
-    private List<AxisRange<Double>> mouse_start_y_ranges = new ArrayList<>();
+    private final List<AxisRange<Double>> mouse_start_y_ranges = new ArrayList<>();
     /** Initial autorange setting of the mouse_y_axis or all Y axes, depending on mouse mode */
-    private List<Boolean> pre_pan_auto_scales = new ArrayList<>();
+    private final List<Boolean> pre_pan_auto_scales = new ArrayList<>();
     private int mouse_y_axis = -1;
 
     // Annotation-related info. If mouse_annotation is set, the rest should be set.
@@ -202,12 +202,12 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
             background = color;
     }
 
-    /** Opacity (0 .. 100 %) of 'area' */
+    /** Opacity (0 .. 255) of 'area' */
     // 'setOpacity', as used in original SWT implementation,
     // is already used by JFX Node base class
-    public void setAreaOpacity(final int opacity)
+    public void setAreaOpacity(final int areaOpacity)
     {
-        this.opacity = opacity;
+        this.areaOpacity = areaOpacity;
     }
 
     /** @param color Grid color */
@@ -686,7 +686,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
 
         for (YAxisImpl<XTYPE> y_axis : y_axes)
             for (Trace<XTYPE> trace : y_axis.getTraces())
-                trace_painter.paint(gc, plot_area.getBounds(), opacity, x_transform, y_axis, trace);
+                trace_painter.paint(gc, plot_area.getBounds(), areaOpacity, x_transform, y_axis, trace);
 
         drawPlotMarkers(gc);
         gc.setClip(null);

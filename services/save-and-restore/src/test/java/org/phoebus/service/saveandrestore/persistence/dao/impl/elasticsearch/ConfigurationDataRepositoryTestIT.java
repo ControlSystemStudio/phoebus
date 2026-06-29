@@ -19,25 +19,13 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
-import co.elastic.clients.elasticsearch.indices.ExistsRequest;
-import co.elastic.clients.transport.endpoints.BooleanResponse;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
+import org.phoebus.service.saveandrestore.AbstractElasticsearchIT;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Profile;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -50,19 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Integration test to be executed against a running Elasticsearch 8.x instance.
  * It must be run with application property spring.profiles.active=IT.
  */
-@TestInstance(Lifecycle.PER_CLASS)
-@SpringBootTest
-@ContextConfiguration(classes = ElasticConfig.class)
-@TestPropertySource(locations = "classpath:test_application.properties")
-@Profile("IT")
 @SuppressWarnings("unused")
-public class ConfigurationDataRepositoryTestIT {
-
-    @Autowired
-    private ElasticsearchClient client;
-
-    @Value("${elasticsearch.tree_node.index:test_saveandrestore_configuration}")
-    private String ES_CONFIGURATION_INDEX;
+public class ConfigurationDataRepositoryTestIT extends AbstractElasticsearchIT {
 
     @Autowired
     private ConfigurationDataRepository configurationDataRepository;
@@ -142,18 +119,9 @@ public class ConfigurationDataRepositoryTestIT {
         assertEquals(0, configurationDataRepository.count());
     }
 
-
-    @AfterAll
-    public void dropIndex() {
-        try {
-            BooleanResponse exists = client.indices().exists(ExistsRequest.of(e -> e.index(ES_CONFIGURATION_INDEX)));
-            if (exists.value()) {
-                client.indices().delete(
-                        DeleteIndexRequest.of(
-                                c -> c.index(ES_CONFIGURATION_INDEX)));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    @AfterEach
+    public void cleanUp() {
+        configurationDataRepository.deleteAll();
     }
 }
+
