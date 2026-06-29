@@ -32,14 +32,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -113,7 +106,7 @@ public class CredentialsManagementController {
      */
     private final IntegerProperty loggedInCount = new SimpleIntegerProperty(0);
 
-    private Stage stage;
+    private Dialog dialog;
 
     public CredentialsManagementController(List<ServiceAuthenticationProvider> authenticationProviders, SecureStore secureStore) {
         this.authenticationProviders = authenticationProviders;
@@ -151,10 +144,6 @@ public class CredentialsManagementController {
         configureCellFactory();
 
         updateTable();
-
-        // Don't want focus on the username field for "login to all" as that obscures the prompt.
-        // Let table request focus.
-        Platform.runLater(() -> tableView.requestFocus());
 
     }
 
@@ -221,7 +210,7 @@ public class CredentialsManagementController {
                 login(serviceItem, tableView.getItems().size());
             }
             if (loggedInCount.get() == tableView.getItems().size()) {
-                stage.close();
+                dialog.close();
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to login to all services", e);
@@ -239,7 +228,7 @@ public class CredentialsManagementController {
         if (authenticationResult.equals(AuthenticationStatus.AUTHENTICATED)) {
             loggedInCount.set(loggedInCount.get() + 1);
             if (expectedLoginCount == loggedInCount.get()) {
-                stage.close();
+                dialog.close();
             }
         }
     }
@@ -406,7 +395,9 @@ public class CredentialsManagementController {
                 TextField textField = new TextField();
                 textField.getStyleClass().add("text-field-styling");
                 textField.textProperty().bindBidirectional(serviceItem.username);
-                textField.disableProperty().bind(Bindings.createBooleanBinding(() -> serviceItem.authenticationStatus.get().equals(AuthenticationStatus.AUTHENTICATED),
+                textField.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        serviceItem.authenticationStatus.get().equals(AuthenticationStatus.AUTHENTICATED) ||
+                        serviceItem.authenticationStatus.get().equals(AuthenticationStatus.CACHED),
                         serviceItem.authenticationStatus));
                 textField.setOnKeyPressed(keyEvent -> {
                     if (keyEvent.getCode() == KeyCode.ENTER &&
@@ -477,7 +468,7 @@ public class CredentialsManagementController {
         }
     }
 
-    public void setStage(Stage stage) {
-        this.stage = stage;
+    public void setDialog(Dialog dialog) {
+        this.dialog = dialog;
     }
 }
