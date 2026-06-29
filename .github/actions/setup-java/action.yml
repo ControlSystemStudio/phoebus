@@ -1,0 +1,11 @@
+name: Set up Java
+description: Set up the project's pinned JDK with Maven dependency caching.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287
+      with:
+        distribution: temurin
+        java-version: '21'
+        cache: maven

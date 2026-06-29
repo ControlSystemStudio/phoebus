@@ -38,7 +38,6 @@ import org.springframework.context.annotation.PropertySource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -96,7 +95,6 @@ public class ElasticConfig {
 
 
     private ElasticsearchClient client;
-    private static final AtomicBoolean esInitialized = new AtomicBoolean();
 
     private static final Node ROOT_NODE;
 
@@ -143,11 +141,12 @@ public class ElasticConfig {
                     jacksonJsonpMapper
             );
             client = new ElasticsearchClient(transport);
-            //esInitialized.set(!Boolean.parseBoolean(createIndices));
-            if (esInitialized.compareAndSet(false, true)) {
-                elasticIndexValidation(client);
-                elasticIndexInitialization(client);
-            }
+            // Each ElasticConfig bean (i.e. each Spring context) ensures its own indices and
+            // root node exist. Both helpers are idempotent (they check existence before
+            // creating), so this is safe to run whenever a new client is built — in particular
+            // it lets integration tests with isolated, per-class indices each get their own root.
+            elasticIndexValidation(client);
+            elasticIndexInitialization(client);
         }
         return client;
     }

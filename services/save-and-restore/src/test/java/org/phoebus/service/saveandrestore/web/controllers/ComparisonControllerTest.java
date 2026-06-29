@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class, WebSecurityConfig.class})})
 @TestPropertySource(locations = "classpath:test_application.properties")
-@WebMvcTest(NodeController.class)
+@WebMvcTest(ComparisonController.class)
 public class ComparisonControllerTest {
 
     @Autowired

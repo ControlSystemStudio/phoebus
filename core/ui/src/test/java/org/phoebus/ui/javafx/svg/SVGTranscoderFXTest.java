@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class SVGTranscoderTest {
+public class SVGTranscoderFXTest {
 
     /**
      * Verifies that the SVG file can be loaded and that the created {@link Image} has

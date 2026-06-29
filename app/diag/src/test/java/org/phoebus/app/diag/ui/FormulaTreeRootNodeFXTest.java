@@ -13,7 +13,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FormulaTreeRootNodeTest {
+public class FormulaTreeRootNodeFXTest {
 
     public FormulaFunction createFormula(String name, String description, String category) {
         return new FormulaFunction() {

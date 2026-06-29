@@ -1,0 +1,15 @@
+name: UI test
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  ui-test:
+    uses: ./.github/workflows/_test.yml
+    with:
+      name: ui-test
+      run: xvfb-run -a mvn --batch-mode --fail-at-end verify -P ui-tests
+      report-path: '**/target/failsafe-reports/**'

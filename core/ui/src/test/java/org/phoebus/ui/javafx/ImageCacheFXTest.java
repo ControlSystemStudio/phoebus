@@ -25,7 +25,7 @@ import javafx.stage.Stage;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ImageCacheTest extends Application
+public class ImageCacheFXTest extends Application
 {
     @Override
     public void start(final Stage stage) throws Exception
