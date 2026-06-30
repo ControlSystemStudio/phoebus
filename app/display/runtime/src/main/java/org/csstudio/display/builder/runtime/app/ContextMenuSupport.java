@@ -95,7 +95,7 @@ class ContextMenuSupport {
                     DockPane dockPane = dockItem.getDockPane();
                     if (dockPane.isStandaloneWindow()) {
                         // If in a standalone window, set the active dock pane
-                        // to be the 'main' Phoebus pain instead of the current dock pane
+                        // to be the 'main' Phoebus pane instead of the current dock pane
                         setFocus = () -> {
                             DockPane.setActiveDockPane(DockPane.getMainDockPane());
                             Stage stage = DockPane.getActiveStage();
