@@ -37,3 +37,26 @@ path may not be portable between hosts, in particular not between Windows and Li
 
 File paths may be specified using both forward slash (/) or backslash (\\) as path separator as both will work interchangeably
 between Windows and Linux/Mac.
+
+Web Browser Widget
+==================
+
+The Web Browser widget embeds a web view in a display. In addition to the common properties it provides
+the following widget specific properties:
+
+ - "url" the address that is loaded when the display starts.
+ - "show_toolbar" whether to show a navigation toolbar (back, forward, reload and an address bar) above the
+   page. When turned off, only the page itself is shown.
+ - "resize_with_window", described below.
+
+Resize with Window
+------------------
+
+By default every widget, including the Web Browser, keeps the size it was given in the editor, and the display
+scrolls if the window is smaller than the display. Enabling "resize_with_window" makes the browser instead grow
+and shrink to fill the runtime window or tab. This is useful for displays built around a single Web Browser that
+should fill the screen.
+
+The property only applies when the Web Browser is a top-level widget, that is a direct child of the display
+itself. When the widget is placed inside a Group, a Tab or an embedded display the property has no effect. The
+default is off, so existing displays are unaffected.
