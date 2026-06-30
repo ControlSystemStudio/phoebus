@@ -69,6 +69,9 @@
     <epics.util.version>1.0.8</epics.util.version>
     <vtype.version>1.0.8</vtype.version>
     <openjfx.version>21.0.7</openjfx.version>
+    <!-- netscape.javascript jar for the JDK 26+ profiles; versioned separately
+         from openjfx as it's only published for 25+. -->
+    <jsobject.version>26.0.1</jsobject.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>

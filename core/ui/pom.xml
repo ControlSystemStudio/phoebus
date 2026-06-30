@@ -105,4 +105,22 @@
       </resource>
     </resources>
   </build>
+
+  <profiles>
+    <!-- netscape.javascript (javafx.web/WebView) moved out of the JDK in 26;
+         supply it as a jar only on 26+ (<= 25 have the jdk.jsobject module). -->
+    <profile>
+      <id>jdk-jsobject</id>
+      <activation>
+        <jdk>[26,)</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.openjfx</groupId>
+          <artifactId>jdk-jsobject</artifactId>
+          <version>${jsobject.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>
