@@ -463,6 +463,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * @param targetItem {@link TreeItem<Node>} on which the operation is performed.
      */
     protected void expandTreeNode(TreeItem<Node> targetItem) {
+        // don't do anything is we are already expanded
+        if (targetItem.isExpanded())
+            return;
+
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
         List<TreeItem<Node>> list =
                 childNodes.stream().map(this::createTreeItem).toList();
