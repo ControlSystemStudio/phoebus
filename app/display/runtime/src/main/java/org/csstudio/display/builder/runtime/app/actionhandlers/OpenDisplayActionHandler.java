@@ -122,20 +122,9 @@ public class OpenDisplayActionHandler implements ActionHandler {
                         // Tell toolkit about new model to represent
                         toolkit.representModel(parent, new_model);
 
-                        if (existing_dock_item != null)
-                        {
-                            // Perform window resizing if this is a standalone window
-                            if (existing_dock_item.getDockPane().isStandaloneWindow())
-                            {
-                                Window window = existing_dock_item.getDockPane().getScene().getWindow();
-                                double padding_height = window.getHeight() -
-                                        top_model.propHeight().getValue();
-                                double padding_width = window.getWidth() -
-                                        top_model.propWidth().getValue();
-                                window.setHeight(new_model.propHeight().getValue() + padding_height);
-                                window.setWidth(new_model.propWidth().getValue() + padding_width);
-                            }
-                        }
+                        // Stage will be resized to the new model dimensions if
+                        // the DockPane is a standalone window
+                        resizeStage(existing_dock_item, top_model, new_model);
                     }
                     catch (Throwable ex)
                     {
@@ -164,5 +153,32 @@ public class OpenDisplayActionHandler implements ActionHandler {
             ScriptUtil.showErrorDialog(sourceWidget, message);
         }
 
+    }
+
+    /**
+     * If this stage is in standalone mode then resize the current stage to fit the new DisplayModel.
+     *
+     * @param dockItem DockItemWithInput object to get the current DockPane from
+     * @param oldModel Old DisplayModel that will be replaced. This is used to determine the current
+     *                stage padding
+     * @param newModel New DisplayModel that will be displayed. Size of window will match its
+     *                 dimensions
+     */
+    private static void resizeStage(DockItemWithInput dockItem, DisplayModel oldModel, DisplayModel newModel)
+    {
+        if (dockItem != null)
+        {
+            if (dockItem.getDockPane().isStandaloneWindow())
+            {
+                // Perform window resizing if this is a standalone window
+                Window window = dockItem.getDockPane().getScene().getWindow();
+                double paddingHeight = window.getHeight() -
+                        oldModel.propHeight().getValue();
+                double paddingWidth = window.getWidth() -
+                        oldModel.propWidth().getValue();
+                window.setHeight(newModel.propHeight().getValue() + paddingHeight);
+                window.setWidth(newModel.propWidth().getValue() + paddingWidth);
+            }
+        }
     }
 }

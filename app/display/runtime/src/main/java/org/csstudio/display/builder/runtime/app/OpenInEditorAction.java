@@ -24,16 +24,16 @@ import org.phoebus.ui.javafx.ImageCache;
 public class OpenInEditorAction extends WeakRefWidgetAction
 {
     /** @param editor Editor to use
-     *  @param the_widget Widget
+     *  @param theWidget Widget
      *  @param setFocus set the focus to the dock pane
      */
     public OpenInEditorAction(final AppResourceDescriptor editor,
-                              final Widget the_widget,
+                              final Widget theWidget,
                               Runnable setFocus)
     {
         super(Messages.OpenInEditor,
               ImageCache.getImageView(DisplayModel.class, "/icons/display.png"),
-              the_widget);
+              theWidget);
 
         setOnAction(event ->
         {

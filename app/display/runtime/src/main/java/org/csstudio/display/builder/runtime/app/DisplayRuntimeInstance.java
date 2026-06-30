@@ -128,26 +128,27 @@ public class DisplayRuntimeInstance implements AppInstance
         DockPane dock_pane = null;
         if (prefTarget != null)
         {
-            if (prefTarget.startsWith("window") || prefTarget.startsWith("standalone"))
+            if (isCreateNewStage(prefTarget))
             {
                 boolean standalone = false;
-                if (prefTarget.startsWith("standalone"))
+                if (prefTarget.startsWith(TAG_STANDALONE))
                 {
                     standalone = true;
                     auto_size_stage = true;
                 }
+
                 // Open new Stage in which this app will be opened, its DockPane is a new active one
                 final Stage new_stage = new Stage();
-                if (prefTarget.startsWith("window@"))
-                    DockStage.configureStage(new_stage, new Geometry(prefTarget.substring(7)), standalone);
-                else if (prefTarget.startsWith("standalone@"))
+                int extract_sub_str = prefTarget.indexOf("@");
+                String geometry_str = null;
+                if (extract_sub_str != -1)
                 {
-                    DockStage.configureStage(new_stage, new Geometry(prefTarget.substring(11)), standalone);
-                    // Do not autosize the stage to the screen size if the user has specified the dimensions
+                    geometry_str = prefTarget.substring(extract_sub_str + 1);
+                    // Do not autosize the stage to the screen size if the user has specified the dimensions.
+                    // Will only be used if in standalone mode.
                     auto_size_stage = false;
                 }
-                else
-                    DockStage.configureStage(new_stage, new Geometry(null), standalone);
+                DockStage.configureStage(new_stage, new Geometry(geometry_str), standalone);
                 new_stage.show();
             }
             else
@@ -365,7 +366,7 @@ public class DisplayRuntimeInstance implements AppInstance
                 final Future<Void> represented = representation.submit(() -> representModel(model));
                 represented.get();
 
-                if (auto_size_stage)
+                if (Boolean.TRUE.equals(auto_size_stage))
                 {
                     Window window = dock_item.getDockPane().getScene().getWindow();
                     double xMargin = (int) (window.getWidth()
@@ -603,4 +604,17 @@ public class DisplayRuntimeInstance implements AppInstance
         });
     }
 
+    /**
+     * Detemines whether a new stage needs to be created to display the new model
+     *
+     * @param target A string containing the target option.
+     * @return Boolean returning true if the target option is 'window' or 'standalone'
+     */
+    private boolean isCreateNewStage(String target)
+    {
+        if (target.startsWith("window") || target.startsWith(TAG_STANDALONE))
+            return true;
+        else
+            return false;
+    }
 }

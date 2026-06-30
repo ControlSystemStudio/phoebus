@@ -20,6 +20,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
@@ -161,22 +162,7 @@ public class DockStage
         final BorderPane layout = new BorderPane(pane);
         pane.setDockParent(layout);
 
-        pane.addDockPaneEmptyListener(() -> {
-            if(!stage.getProperties().get(KEY_ID).equals(DockStage.ID_MAIN)){
-                if(layout.getChildren().get(0) instanceof DockPane){
-                    DockPane dockPane = (DockPane)layout.getChildren().get(0);
-                    if(dockPane.getDockItems().size() == 0){
-                        stage.getScene().getWindow().hide();
-                    }
-                }
-                else if(layout.getChildren().get(0) instanceof SplitPane){
-                    SplitPane splitPane = (SplitPane)layout.getChildren().get(0);
-                    if(splitPane.getItems().size() == 0){
-                        stage.getScene().getWindow().hide();
-                    }
-                }
-            }
-        });
+        pane.addDockPaneEmptyListener(() -> hideEmptyDockPane(stage, layout));
 
         final Scene scene = new Scene(layout, geometry.width, geometry.height);
         stage.setScene(scene);
@@ -504,5 +490,29 @@ public class DockStage
 
     public static void deferUntilAllPanesOfStageHaveScenes(Stage stage, Runnable runnable) {
         deferUntilAllPanesOfStageHaveScenes(runnable, getDockPanes(stage));
+    }
+
+    /**
+     * If the dock pane is empty then hide the window
+     *
+     * @param stage Stage to hide if the Pane is empty
+     * @param layout Check if this pane is empty
+     */
+    private static void hideEmptyDockPane(Stage stage, Pane layout)
+    {
+        if(!stage.getProperties().get(KEY_ID).equals(DockStage.ID_MAIN)){
+            if(layout.getChildren().get(0) instanceof DockPane){
+                DockPane dockPane = (DockPane)layout.getChildren().get(0);
+                if(dockPane.getDockItems().size() == 0){
+                    stage.getScene().getWindow().hide();
+                }
+            }
+            else if(layout.getChildren().get(0) instanceof SplitPane){
+                SplitPane splitPane = (SplitPane)layout.getChildren().get(0);
+                if(splitPane.getItems().size() == 0){
+                    stage.getScene().getWindow().hide();
+                }
+            }
+        }
     }
 }
