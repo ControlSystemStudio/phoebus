@@ -37,6 +37,8 @@ public class Messages
                          AddPV_PeriodTT,
                          AppendSearchResults,
                          AppendSearchResultsTT,
+                         AreaOpacity,
+                         AreaOpacityTT,
                          ArchiveFetchDetailFmt,
                          ArchiveFetchJobFmt,
                          ArchiveFetchProgressFmt,

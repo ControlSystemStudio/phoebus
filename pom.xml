@@ -69,6 +69,9 @@
     <epics.util.version>1.0.8</epics.util.version>
     <vtype.version>1.0.8</vtype.version>
     <openjfx.version>21.0.7</openjfx.version>
+    <!-- netscape.javascript jar for the JDK 26+ profiles; versioned separately
+         from openjfx as it's only published for 25+. -->
+    <jsobject.version>26.0.1</jsobject.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
@@ -123,6 +126,11 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M7</version>
+        <configuration>
+          <excludes>
+            <exclude>**/*FXTest.java</exclude>
+          </excludes>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -206,8 +214,10 @@
         <skipITTests>false</skipITTests>
       </properties>
     </profile>
-    <!-- The ui-tests profile when used will run all user interface tests,
-      these are testfx test where the java file names ending in "UI" -->
+    <!-- The ui-tests profile when used will run ONLY the user interface tests,
+      these are testfx tests where the java file names end in "UI". Surefire
+      (unit tests) is skipped so this profile runs the UI tests in isolation;
+      the unit tests run separately (see .github/workflows/_unit-test.yml). -->
     <profile>
       <id>ui-tests</id>
       <properties>
@@ -215,12 +225,36 @@
       </properties>
       <build>
         <plugins>
+          <!-- Skip surefire (unit tests) at plugin-config level so failsafe
+               still runs; the shared -DskipTests property would skip both. -->
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skipTests>true</skipTests>
+            </configuration>
+          </plugin>
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
+              <reuseForks>false</reuseForks>
               <includes>
                 <include>**/*UI.java</include>
+                <include>**/*FXTest.java</include>
               </includes>
+              <!-- TestFX UI tests run headless under a virtual display (xvfb in
+                   CI). These properties must be set on the failsafe *fork*;
+                   MAVEN_OPTS only reaches the launching Maven JVM, not the test
+                   JVM. java.awt.headless lets headless-guarded tests skip
+                   themselves; the glass robot + software pipeline drive the rest
+                   without an AWT robot. -->
+              <systemPropertyVariables>
+                <java.awt.headless>true</java.awt.headless>
+                <testfx.robot>glass</testfx.robot>
+                <testfx.headless>true</testfx.headless>
+                <prism.order>sw</prism.order>
+                <prism.text>t2k</prism.text>
+                <testfx.setup.timeout>2500</testfx.setup.timeout>
+              </systemPropertyVariables>
             </configuration>
           </plugin>
         </plugins>
@@ -241,6 +275,7 @@
               <includes>
                 <include>**/*UI.java</include>
                 <include>**/*IT.java</include>
+                <include>**/*FXTest.java</include>
               </includes>
             </configuration>
           </plugin>

@@ -607,7 +607,7 @@ public class TangoAttributeHelper {
      */
     public static Short toEnumValue(String value, AttributeInfoEx ex) {
         short index = toEnumValue(value, ex, (short) -1);
-        return index > -1 ? Short.valueOf(index) : null;
+        return index > -1 ? index : null;
     }
 
     /**

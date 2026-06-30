@@ -476,8 +476,7 @@ public class ValueUtil
         {
             final ArrayList<String> column = new ArrayList<>();
             columns.add(column);
-            for (int row=0; row<rows.size(); ++row)
-                column.add(rows.get(row).get(col));
+            for (List<String> strings : rows) column.add(strings.get(col));
         }
         return createStringTableFromColumns(headers, columns);
     }

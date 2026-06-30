@@ -384,7 +384,7 @@ public class Widget {
 
         // Only set it if not clean; DisplayModel needs to update it when all the children are loaded
         if (!configurator.isClean())
-            this.clean = Boolean.valueOf(configurator.isClean());
+            this.clean = configurator.isClean();
     }
 
     /**
@@ -394,14 +394,14 @@ public class Widget {
     public boolean isClean() {
         Boolean safe = clean;
 
-        if (safe != null && !safe.booleanValue())
+        if (safe != null && !safe)
             return false;
 
         java.util.Optional<WidgetProperty<DisplayModel>> child_dm_prop = checkProperty(EmbeddedDisplayWidget.runtimeModel.getName());
         if (child_dm_prop.isPresent()) {
             final DisplayModel child_dm = child_dm_prop.get().getValue();
             if (child_dm != null && !child_dm.isClean()) {
-                clean = Boolean.valueOf(false);
+                clean = Boolean.FALSE;
                 return false;
             }
         }

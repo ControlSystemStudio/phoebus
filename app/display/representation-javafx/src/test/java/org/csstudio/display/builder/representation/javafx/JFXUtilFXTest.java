@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class JFXUtilTest
+public class JFXUtilFXTest
 {
 
     @Test

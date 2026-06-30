@@ -439,7 +439,7 @@ public final class FileUtilities {
                     delta = trim(split[deltaIndex]);
                 }
                 if (readOnlyIndex != -1) {
-                    readOnly = Boolean.valueOf(trim(split[readOnlyIndex]));
+                    readOnly = Boolean.parseBoolean(trim(split[readOnlyIndex]));
                 }
                 entries.add(new ConfigurationEntry(name, readback, delta, readOnly));
             }

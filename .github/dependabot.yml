@@ -1,0 +1,11 @@
+version: 2
+updates:
+  # Auto-PR bumps for GitHub Action versions referenced in .github/workflows/*
+  # and in the local composite action (.github/actions/**). The JDK and
+  # Elasticsearch pins are not visible to Dependabot; see .github/CI_VERSIONS.md.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

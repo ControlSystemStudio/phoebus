@@ -67,7 +67,7 @@ public class JCAContext implements ContextMessageListener, ContextExceptionListe
                            version.getMaintenanceVersion() <=9);
         }
         else
-            supported = JCA_Preferences.getInstance().isVarArraySupported().booleanValue();
+            supported = JCA_Preferences.getInstance().isVarArraySupported();
         is_var_array_supported = supported;
     }
 

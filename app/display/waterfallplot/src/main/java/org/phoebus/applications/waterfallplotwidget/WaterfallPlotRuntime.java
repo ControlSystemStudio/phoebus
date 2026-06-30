@@ -88,7 +88,7 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
                     RuntimePV runtimePV = PVFactory.getPV(pvName);
                     super.addPV(runtimePV, false);
                     ConcurrentSkipListMap<Instant, Double> instantToValue = new ConcurrentSkipListMap<>();
-                    scalarPVsData.pvNameToInstantToValue.add(new Pair(pvName, instantToValue));
+                    scalarPVsData.pvNameToInstantToValue.add(new Pair<>(pvName, instantToValue));
                     runtimePV.addListener((pv, vType) -> {
                         if (vType instanceof VNumber vnumber) {
                             instantToValue.put(vnumber.getTime().getTimestamp(), vnumber.getValue().doubleValue());

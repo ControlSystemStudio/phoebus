@@ -1,0 +1,15 @@
+name: Unit test
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-test:
+    uses: ./.github/workflows/_test.yml
+    with:
+      name: unit-test
+      run: mvn --batch-mode --fail-at-end verify
+      report-path: '**/target/surefire-reports/**'

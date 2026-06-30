@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        description: Name used for the uploaded report artifact.
+        type: string
+        required: true
+      run:
+        description: Command that runs the tests.
+        type: string
+        required: true
+      report-path:
+        description: Glob for the test reports to upload.
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      with:
+        persist-credentials: false
+    - name: Set up Java
+      uses: ./.github/actions/setup-java
+    - name: Test
+      run: $TEST_COMMAND
+      env:
+        TEST_COMMAND: ${{ inputs.run }}
+    - name: Upload test reports
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      if: always()
+      with:
+        name: ${{ inputs.name }}-reports
+        path: ${{ inputs.report-path }}
+        if-no-files-found: ignore

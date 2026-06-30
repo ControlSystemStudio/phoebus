@@ -309,7 +309,6 @@ public class LogEntryEditorController {
         templateControls.visibleProperty().setValue(editMode.equals(EditMode.NEW_LOG_ENTRY));
 
         attachmentsPane.managedProperty().bind(attachmentsPane.visibleProperty());
-        attachmentsPane.visibleProperty().setValue(editMode.equals(EditMode.NEW_LOG_ENTRY));
 
         // This could be configured in the fxml, but then these UI components would not be visible
         // in Scene Builder.
@@ -734,13 +733,11 @@ public class LogEntryEditorController {
             ologLog.setLevel(selectedLevelProperty.get());
             ologLog.setLogbooks(getSelectedLogbooks());
             ologLog.setTags(getSelectedTags());
-            if (editMode.equals(EditMode.NEW_LOG_ENTRY)) {
-                ologLog.setAttachments(attachmentsEditorController.getAttachments());
-            }
-            else{
+            ologLog.setAttachments(attachmentsEditorController.getAttachments());
+            ologLog.setProperties(logPropertiesEditorController.getProperties());
+            if (editMode.equals(EditMode.UPDATE_LOG_ENTRY)) {
                 ologLog.setId(logEntry.getId());
             }
-            ologLog.setProperties(logPropertiesEditorController.getProperties());
 
             LogClient logClient =
                     logFactory.getLogClient(new SimpleAuthenticationToken(usernameProperty.get(), passwordProperty.get()));

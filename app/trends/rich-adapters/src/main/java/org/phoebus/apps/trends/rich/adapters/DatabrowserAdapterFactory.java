@@ -54,7 +54,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
         {
             EmailEntry emailEntry = new EmailEntry();
 
-            StringBuffer title = new StringBuffer();
+            StringBuilder title = new StringBuilder();
             title.append("Databrowser Plot");
             databrowserSelection.getPlotTitle().ifPresent(title::append);
             emailEntry.setSubject(title.toString());
@@ -103,7 +103,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
      */
     private String getBody(DatabrowserSelection databrowserSelection)
     {
-        StringBuffer body = new StringBuffer();
+        StringBuilder body = new StringBuilder();
         databrowserSelection.getPlotTitle().ifPresent(body::append);
         body.append("databrowser plot for the following pvs:  " + System.lineSeparator());
         body.append(databrowserSelection.getPlotPVs().stream().collect(Collectors.joining("  " + System.lineSeparator())));

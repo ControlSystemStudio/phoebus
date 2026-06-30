@@ -189,7 +189,7 @@ public class AlarmTreeConfigView extends BorderPane implements AlarmClientListen
             // expand tree item if is matches item name
             if (tree_config_view.getRoot() != null && itemName != null) {
                 for (TreeItem treeItem : tree_config_view.getRoot().getChildren()) {
-                    if (((AlarmTreeItem) treeItem.getValue()).getName().equals(itemName)) {
+                    if (((AlarmTreeItem<?>) treeItem.getValue()).getName().equals(itemName)) {
                         expandAlarms(treeItem);
                         break;
                     }

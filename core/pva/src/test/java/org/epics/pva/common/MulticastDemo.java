@@ -144,7 +144,7 @@ public class MulticastDemo
             else if ("-p".equals(arg))
             {
                 if (i < args.length - 1)
-                    PORT = Integer.valueOf(args[++i].strip());
+                    PORT = Integer.parseInt(args[++i].strip());
                 else
                 {
                     System.out.println("Missing port");

@@ -19,11 +19,8 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.beans.binding.Bindings;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.util.StringConverter;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.EnumDisplay;
@@ -37,7 +34,6 @@ import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
-import org.phoebus.ui.javafx.JFXUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -183,7 +179,7 @@ public class VTypeCellEditor<S, T> extends MultitypeTableCell<S, T> {
                 setTooltip(tooltip);
             }
         }
-        TableRow tableRow = getTableRow();
+        TableRow<S> tableRow = getTableRow();
         // If this is a TableEntry row and read-only it should not be editable.
         if (tableRow != null) {
             if (tableRow.getItem() != null && tableRow.getItem() instanceof TableEntry tableEntry) {

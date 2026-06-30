@@ -35,7 +35,7 @@ public class AppSelectionAdapterFactory implements AdapterFactory {
         {
             EmailEntry emailEntry = new EmailEntry();
 
-            StringBuffer title = new StringBuffer();
+            StringBuilder title = new StringBuilder();
             title.append("Display Screenshot for : " + selectionInfo.getTitle());
             emailEntry.setSubject(title.toString());
             emailEntry.setBody(selectionInfo.getBody());

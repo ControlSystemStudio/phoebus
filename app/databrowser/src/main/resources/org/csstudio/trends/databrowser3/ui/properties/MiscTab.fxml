@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.csstudio.trends.databrowser3.ui.properties.*?>
+
+<!--
+    FXML equivalent of MiscTab.java
+    Controller: org.csstudio.trends.databrowser3.ui.properties.MiscTabController
+
+    Notes:
+      - fx:id attributes map to @FXML-injected fields in the controller.
+      - onAction handlers correspond to the lambda actions defined in the Java constructor.
+      - FontButton is a custom control; it is declared as a custom type import below.
+        Adjust the package path if it differs in your project.
+      - Messages.* string constants must be resolved at runtime via the controller
+        (e.g. using a ResourceBundle set on the FXMLLoader), or substituted with
+        literal strings if you prefer.
+-->
+
+<GridPane fx:id="miscTab" hgap="5" vgap="5" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.trends.databrowser3.ui.properties.MiscTabController">
+
+            <padding>
+                <Insets bottom="5" left="5" right="5" top="5" />
+            </padding>
+
+            <!-- Row 0: Title -->
+            <Label text="%TitleLbl" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+            <TextField fx:id="title" onAction="#onTitleAction" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <tooltip>
+                    <Tooltip text="%TitleTT" />
+                </tooltip>
+            </TextField>
+
+            <!-- Row 0, columns 2-3: Title Font -->
+            <Label text="%TitleFontLbl" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+            <FontButton fx:id="titleFont" GridPane.columnIndex="3" GridPane.rowIndex="0" />
+
+            <!-- Row 1: Update Period -->
+            <Label text="%UpdatePeriodLbl" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+            <TextField fx:id="updatePeriod" onAction="#onUpdatePeriodAction" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+            <!-- Row 1, columns 2-3: Label Font -->
+            <Label text="%LabelFontLbl" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <FontButton fx:id="labelFont" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+
+            <!-- Row 2: Scroll Step -->
+            <Label text="%ScrollStepLbl" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+            <TextField fx:id="scrollStep" onAction="#onScrollStepAction" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+            <!-- Row 2, columns 2-3: Scale Font -->
+            <Label text="%ScaleFontLbl" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+            <FontButton fx:id="scaleFont" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+
+            <!-- Row 3: Foreground Color -->
+            <Label text="%ForegroundColorLbl" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+            <ColorPicker fx:id="foreground" onAction="#onForegroundAction" style="-fx-color-label-visible: false;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+
+            <!-- Row 3, columns 2-3: Legend Font -->
+            <Label text="%LegendFontLbl" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+            <FontButton fx:id="legendFont" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+
+            <!-- Row 4: Background Color -->
+            <Label text="%BackgroundColorLbl" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+            <ColorPicker fx:id="background" onAction="#onBackgroundAction" style="-fx-color-label-visible: false;" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+            <!-- Row 4, columns 2-3: Show Legend -->
+            <Label text="%LegendLbl" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+            <CheckBox fx:id="showLegend" onAction="#onShowLegendAction" GridPane.columnIndex="3" GridPane.rowIndex="4" />
+
+            <Label text="%AreaOpacity" GridPane.rowIndex="5" />
+            <Slider fx:id="opacitySlider" showTickLabels="true" showTickMarks="true" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                <tooltip>
+                    <Tooltip text="%AreaOpacityTT" />
+                </tooltip>
+                <padding>
+                   <Insets top="5.0" />
+                </padding>
+            </Slider>
+
+            <!-- Row 5: Save Changes -->
+            <Label text="%SaveChangesLbl" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+            <CheckBox fx:id="saveChanges" onAction="#onSaveChangesAction" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                <tooltip>
+                    <Tooltip text="%SaveChangesTT" />
+                </tooltip>
+            </CheckBox>
+
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+
+
+</GridPane>

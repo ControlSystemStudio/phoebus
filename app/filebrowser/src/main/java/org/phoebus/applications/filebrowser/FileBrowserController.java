@@ -603,8 +603,8 @@ public class FileBrowserController {
         }
         @Override
         public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-            TreeItem root = treeView.getRoot();
-            List<TreeItem> children = root.getChildren();
+            TreeItem<FileInfo> root = treeView.getRoot();
+            List<TreeItem<FileInfo>> children = root.getChildren();
             for (TreeItem child : children) {
                 if (((FileInfo) child.getValue()).file.equals(fileToHighlight)) {
                     treeView.getSelectionModel().select(child);

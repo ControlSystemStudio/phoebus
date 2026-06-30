@@ -46,7 +46,7 @@ public class DisplayBuilderAdapterFactory implements AdapterFactory {
         {
             EmailEntry emailEntry = new EmailEntry();
 
-            StringBuffer title = new StringBuffer();
+            StringBuilder title = new StringBuilder();
             title.append("Display Screenshot for : " + selectionInfo.getName());
             emailEntry.setSubject(title.toString());
             emailEntry.setBody(getBody(selectionInfo));
@@ -81,7 +81,7 @@ public class DisplayBuilderAdapterFactory implements AdapterFactory {
 
     private String getBody(SelectionInfo selectionInfo)
     {
-        StringBuffer body = new StringBuffer();
+        StringBuilder body = new StringBuilder();
         body.append("Display Screenshot for the resource :" + System.lineSeparator());
         body.append(selectionInfo.toURI());
         body.append(System.lineSeparator());

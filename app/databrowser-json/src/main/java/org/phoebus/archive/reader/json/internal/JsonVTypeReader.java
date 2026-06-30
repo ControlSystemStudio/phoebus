@@ -293,8 +293,7 @@ public final class JsonVTypeReader {
                 // Ensure that we have labels for all indices.
                 int min_value = Integer.MAX_VALUE;
                 int max_value = Integer.MIN_VALUE;
-                for (var i = 0; i < enum_value.size(); ++i) {
-                    final var value = enum_value.get(i);
+                for (final Integer value : enum_value) {
                     min_value = Math.min(min_value, value);
                     max_value = Math.max(max_value, value);
                 }

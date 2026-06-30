@@ -68,6 +68,6 @@ public class VTypeUtil
             if (array.size() > 0)
                 return array.getInt(0);
         }
-        return Double.valueOf(Double.NaN);
+        return Double.NaN;
     }
 }

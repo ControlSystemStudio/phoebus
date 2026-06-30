@@ -149,8 +149,8 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
                 ologLog.setCreatedDate(Instant.now());
                 ologLog.setTitle("A report on the orbit studies");
                 ologLog.setDescription("Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.");
-                ologLog.setTags(new HashSet(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))));
-                ologLog.setLogbooks(new HashSet(Arrays.asList(LogbookImpl.of("Operations", "active"))));
+                ologLog.setTags(new HashSet<>(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))));
+                ologLog.setLogbooks(new HashSet<>(Arrays.asList(LogbookImpl.of("Operations", "active"))));
                 ologLog.setProperties(Arrays.asList(track, experimentProperty));
                 List<Attachment> attachments = new ArrayList<>();
                 OlogAttachment attachment1 = new OlogAttachment("image_1.png");

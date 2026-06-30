@@ -334,14 +334,14 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 		ArrayList<File> folder1 = getInputFile(input);
 		ArrayList<File> folder2 = getOutputFile(output);
 
-		for (int i = 0; i < folder1.size(); i++) {
-			for (int j = 0; j < folder2.size(); j++) {
-				if (folder2.get(j).getName().substring(0, folder2.get(j).getName().length() - 4)
-						.equals(folder1.get(i).getName().substring(0, folder1.get(i).getName().length() - 4))) {
-					over.add(folder2.get(j));
-				}
-			}
-		}
+        for (File value : folder1) {
+            for (File file : folder2) {
+                if (file.getName().substring(0, file.getName().length() - 4)
+                    .equals(value.getName().substring(0, value.getName().length() - 4))) {
+                    over.add(file);
+                }
+            }
+        }
 
 	}
 

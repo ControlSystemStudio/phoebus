@@ -212,6 +212,16 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         content.putString(LogbookUIPreferences.web_client_root_URL + "/" + logEntry.getId());
         Clipboard.getSystemClipboard().setContent(content);
     }
+//Milena
+    public void copyMarkdown() {
+        if (logEntry.getSource() != null){
+            final ClipboardContent content = new ClipboardContent();
+            content.putString(logEntry.getSource());
+            Clipboard.getSystemClipboard().setContent(content);
+        }
+    }
+
+
 
     /**
      * Retrieves attachments from the remote service and copies them to temporary files. Attachments

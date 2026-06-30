@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class SVGHelperTest {
+public class SVGHelperFXTest {
 
     /**
      * Verifies that the SVG file can be loaded and that the created {@link Image} has

@@ -89,7 +89,7 @@ public class SexagesimalFormat
 
     private static double parseDouble(final String text) throws NumberFormatException
     {
-        return Double.valueOf(text.replace('e', 'E'));
+        return Double.parseDouble(text.replace('e', 'E'));
     }
 
     /** Parse sexagesimal text

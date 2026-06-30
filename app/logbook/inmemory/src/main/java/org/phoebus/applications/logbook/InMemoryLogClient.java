@@ -158,12 +158,12 @@ public class InMemoryLogClient implements LogClient {
         Stream<LogEntry> searchStream = logEntries.values().stream();
         if (map.containsKey("start")) {
             searchStream = searchStream.filter(log -> {
-                return log.getCreatedDate().isAfter(Instant.ofEpochSecond(Long.valueOf(map.get("start"))));
+                return log.getCreatedDate().isAfter(Instant.ofEpochSecond(Long.parseLong(map.get("start"))));
             });
         }
         if (map.containsKey("end")) {
             searchStream = searchStream.filter(log -> {
-                return log.getCreatedDate().isBefore(Instant.ofEpochSecond(Long.valueOf(map.get("end"))));
+                return log.getCreatedDate().isBefore(Instant.ofEpochSecond(Long.parseLong(map.get("end"))));
             });
         }
         if (map.containsKey("search")) {

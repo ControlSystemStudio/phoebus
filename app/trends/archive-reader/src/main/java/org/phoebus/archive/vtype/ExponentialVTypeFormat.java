@@ -31,7 +31,7 @@ public class ExponentialVTypeFormat extends DecimalVTypeFormat
     protected NumberFormat initFormat()
     {
         // Is there a better way to get this silly format?
-        final StringBuffer pattern = new StringBuffer(10);
+        final StringBuilder pattern = new StringBuilder(10);
         pattern.append("0.");
         for (int i=0; i<precision; ++i)
             pattern.append('0');

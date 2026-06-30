@@ -122,8 +122,7 @@ public class PVAIntArray extends PVAData implements PVAArray, PVAValue
     {
         final int[] copy = value;
         PVASize.encodeSize(copy.length, buffer);
-        for (int i=0; i<copy.length; ++i)
-            buffer.putInt(copy[i]);
+        for (int j : copy) buffer.putInt(j);
     }
 
     @Override

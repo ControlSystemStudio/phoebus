@@ -9,7 +9,6 @@ package org.csstudio.opibuilder.converter.model;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -89,9 +88,8 @@ public class EdmColorsList extends EdmEntity {
 
         if (!nonMenuColors.isEmpty()) {
             log.fine("Color definitions exist that are not in menumap. Adding them at the end.");
-            Iterator<EdmColor> iterator = nonMenuColors.iterator();
-            while (iterator.hasNext()) {
-                menuColorsMap.put(menuInd, iterator.next());
+            for (EdmColor nonMenuColor : nonMenuColors) {
+                menuColorsMap.put(menuInd, nonMenuColor);
                 menuInd++;
             }
         }

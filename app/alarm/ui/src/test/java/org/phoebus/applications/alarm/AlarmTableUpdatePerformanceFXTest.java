@@ -47,7 +47,7 @@ import static org.hamcrest.Matchers.lessThan;
  * @see <a href="https://github.com/ControlSystemStudio/phoebus/issues/3504">Issue #3504</a>
  */
 @SuppressWarnings("nls")
-class AlarmTableUpdatePerformanceTest
+class AlarmTableUpdatePerformanceFXTest
 {
     private static final int N = 150;  // Large enough to expose O(N^2) but fast to run
 

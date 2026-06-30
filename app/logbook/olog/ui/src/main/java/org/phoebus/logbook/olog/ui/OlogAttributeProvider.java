@@ -18,16 +18,14 @@
 
 package org.phoebus.logbook.olog.ui;
 
+import org.apache.commons.io.FilenameUtils;
 import org.commonmark.ext.gfm.tables.TableBlock;
 import org.commonmark.renderer.html.AttributeProvider;
-
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.phoebus.logbook.Attachment;
-import java.util.List;
-import org.apache.commons.io.FilenameUtils;
 import org.phoebus.olog.es.api.OlogHttpClient;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * An {@link AttributeProvider} used to style elements of a log entry. Other types of
@@ -39,18 +37,19 @@ public class OlogAttributeProvider implements AttributeProvider {
     private boolean preview = false;
     private List<Attachment> attachments;
 
-    public OlogAttributeProvider(String serviceUrl){
+    public OlogAttributeProvider(String serviceUrl) {
         this.serviceUrl = serviceUrl;
     }
 
     /**
      * This is constructor for HTML preview feature
-     * @param serviceUrl Olog service url.
-     * @param preview A boolean flag set true for HTML preview feature parsing.
+     *
+     * @param serviceUrl  Olog service url.
+     * @param preview     A boolean flag set true for HTML preview feature parsing.
      * @param attachments A list of current attachments which can be parsed to
-     * find attachment file path from attachment id.
+     *                    find attachment file path from attachment id.
      */
-    public OlogAttributeProvider(String serviceUrl, boolean preview, List<Attachment> attachments){
+    public OlogAttributeProvider(String serviceUrl, boolean preview, List<Attachment> attachments) {
         this.serviceUrl = serviceUrl;
         this.preview = preview;
         this.attachments = attachments;
@@ -80,12 +79,17 @@ public class OlogAttributeProvider implements AttributeProvider {
                 src = serviceUrl + OlogHttpClient.OLOG_PREFIX + "/" + src;
             }
             // If preview flag is true, the image url 'attachment/attachment_id'
-            // has to be converted to 'file://attachment_path'
+            // has to be converted to 'file://attachment_path' if on disk.
+            // If not on disk (log entry edit case), create a regular URL to retrieve attachment.
             if (src.startsWith("attachment") && this.preview) {
-                String attachmentId = src.substring(11, src.length());
-                for (Attachment attachment: attachments) {
+                String attachmentId = src.substring(11);
+                for (Attachment attachment : attachments) {
                     if (attachment.getId().equals(attachmentId)) {
-                        src = "file://" + FilenameUtils.separatorsToUnix(attachment.getFile().getAbsolutePath());
+                        if (attachment.getFile() != null) {
+                            src = "file://" + FilenameUtils.separatorsToUnix(attachment.getFile().getAbsolutePath());
+                        } else {
+                            src = serviceUrl + OlogHttpClient.OLOG_PREFIX + "/attachment/" + attachmentId;
+                        }
                     }
                 }
             }

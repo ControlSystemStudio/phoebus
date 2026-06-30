@@ -95,7 +95,7 @@ public class EdmFont extends EdmAttribute {
         }
 
         try {
-            size = Double.valueOf(sizeStr).doubleValue();
+            size = Double.valueOf(sizeStr);
         } catch (Exception e) {
             throw new EdmException(EdmException.COLOR_FORMAT_ERROR, "Invalid RGB color format.", e);
         }

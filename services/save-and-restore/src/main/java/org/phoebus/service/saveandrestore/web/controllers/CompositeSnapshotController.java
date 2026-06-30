@@ -94,7 +94,7 @@ public class CompositeSnapshotController extends BaseController {
         }
         compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
         CompositeSnapshot updatedCompositeSnapshot = nodeDAO.updateCompositeSnapshot(compositeSnapshot);
-        webSocketService.sendMessageToClients(new WebSocketMessage(SaveAndRestoreMessageType.NODE_UPDATED, updatedCompositeSnapshot.getCompositeSnapshotNode()));
+        webSocketService.sendMessageToClients(new WebSocketMessage<>(SaveAndRestoreMessageType.NODE_UPDATED, updatedCompositeSnapshot.getCompositeSnapshotNode()));
         return updatedCompositeSnapshot;
     }
 

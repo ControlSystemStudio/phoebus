@@ -38,7 +38,7 @@ public class TimeOffsetPV extends SimulatedStringPV
             if(parameters.size() == 1) {
                 return new TimeOffsetPV(name, parameters.get(0), TimestampFormats.SECONDS_FORMAT, 1.0);
             } else if (parameters.size() == 2) {
-                return new TimeOffsetPV(name, parameters.get(0), TimestampFormats.SECONDS_FORMAT, Double.valueOf(parameters.get(1)));
+                return new TimeOffsetPV(name, parameters.get(0), TimestampFormats.SECONDS_FORMAT, Double.parseDouble(parameters.get(1)));
             } else if (parameters.size() == 3) {
                 DateTimeFormatter formatter;
                 switch (parameters.get(1).toLowerCase()) {
@@ -64,7 +64,7 @@ public class TimeOffsetPV extends SimulatedStringPV
                         formatter = TimestampFormats.SECONDS_FORMAT;
                         break;
                 }
-                return new TimeOffsetPV(name, parameters.get(0), formatter, Double.valueOf(parameters.get(2)));
+                return new TimeOffsetPV(name, parameters.get(0), formatter, Double.parseDouble(parameters.get(2)));
             }
         } else {
             return new TimeOffsetPV(name, "now", TimestampFormats.SECONDS_FORMAT, 1.0);

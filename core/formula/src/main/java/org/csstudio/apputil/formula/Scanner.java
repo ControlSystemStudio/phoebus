@@ -76,7 +76,7 @@ class Scanner
     /** @return Returns the remaining string from the current char on. */
     public String rest() throws Exception
     {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         while (!isDone())
         {
             buf.append(get());

@@ -110,8 +110,7 @@ public class PVAFloatArray extends PVAData implements PVAArray, PVAValue
     {
         final float[] copy = value;
         PVASize.encodeSize(copy.length, buffer);
-        for (int i=0; i<copy.length; ++i)
-            buffer.putFloat(copy[i]);
+        for (float v : copy) buffer.putFloat(v);
     }
 
     @Override

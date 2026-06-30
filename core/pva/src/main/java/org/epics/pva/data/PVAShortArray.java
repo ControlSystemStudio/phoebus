@@ -128,8 +128,7 @@ public class PVAShortArray extends PVAData implements PVAArray, PVAValue
     {
         final short[] copy = value;
         PVASize.encodeSize(copy.length, buffer);
-        for (int i=0; i<copy.length; ++i)
-            buffer.putShort(copy[i]);
+        for (short item : copy) buffer.putShort(item);
     }
 
     @Override

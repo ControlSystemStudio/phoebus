@@ -57,6 +57,10 @@ abstract public class ModelItem
      */
     private volatile Color color = null;
 
+    /** RGB for item's area color
+     */
+    private volatile Color areaColor = null;
+
     /** How to display the trace */
     private volatile TraceType trace_type = Preferences.trace_type;
 

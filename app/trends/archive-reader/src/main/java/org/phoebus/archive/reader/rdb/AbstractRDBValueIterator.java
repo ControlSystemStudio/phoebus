@@ -281,7 +281,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
         try
         {
             final ResultSet res = sel_array_samples.executeQuery();
-            vals.add(Double.valueOf(dbl0));
+            vals.add(dbl0);
             while (res.next())
                 vals.add(res.getDouble(1));
             res.close();
@@ -294,7 +294,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
         final int N = vals.size();
         final double ret[] = new double[N];
         for (int i = 0; i < N; i++)
-            ret[i] = vals.get(i).doubleValue();
+            ret[i] = vals.get(i);
         // Check if it's in fact just a scalar, and a valid one
         if (N == 1  &&  severity != AlarmSeverity.UNDEFINED)
         {   // Found a perfect non-array sample:
