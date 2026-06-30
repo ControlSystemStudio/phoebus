@@ -1,0 +1,10 @@
+<project default="app-uxanalytics-ui">
+    <import file="../../../dependencies/ant_settings.xml"/>
+
+    <target name="app-uxanalytics-ui" depends="compile-app">
+        <jar destfile="${build}/app-uxanalytics-ui-${version}.jar">
+            <fileset dir="${classes}"/>
+            <fileset dir="${resources}"/>
+        </jar>
+    </target>
+</project>
