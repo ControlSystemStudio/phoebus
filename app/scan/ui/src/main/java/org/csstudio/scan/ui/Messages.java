@@ -27,6 +27,8 @@ public class Messages
     public static String scan_remove;
     public static String scan_resume;
     public static String scan_resume_all;
+    public static String scan_schedule;
+    public static String scan_schedule_unqueued;
     public static String scan_simulate;
     public static String scan_submit;
     public static String scan_submit_unqueued;
