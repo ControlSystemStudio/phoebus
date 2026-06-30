@@ -612,9 +612,6 @@ public class DisplayRuntimeInstance implements AppInstance
      */
     private boolean isCreateNewStage(String target)
     {
-        if (target.startsWith("window") || target.startsWith(TAG_STANDALONE))
-            return true;
-        else
-            return false;
+        return target.startsWith("window") || target.startsWith(TAG_STANDALONE);
     }
 }

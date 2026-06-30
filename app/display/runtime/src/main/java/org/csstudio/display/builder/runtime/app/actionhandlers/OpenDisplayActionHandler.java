@@ -166,19 +166,16 @@ public class OpenDisplayActionHandler implements ActionHandler {
      */
     private static void resizeStage(DockItemWithInput dockItem, DisplayModel oldModel, DisplayModel newModel)
     {
-        if (dockItem != null)
+        if (dockItem != null && dockItem.getDockPane().isStandaloneWindow())
         {
-            if (dockItem.getDockPane().isStandaloneWindow())
-            {
-                // Perform window resizing if this is a standalone window
-                Window window = dockItem.getDockPane().getScene().getWindow();
-                double paddingHeight = window.getHeight() -
-                        oldModel.propHeight().getValue();
-                double paddingWidth = window.getWidth() -
-                        oldModel.propWidth().getValue();
-                window.setHeight(newModel.propHeight().getValue() + paddingHeight);
-                window.setWidth(newModel.propWidth().getValue() + paddingWidth);
-            }
+            // Perform window resizing if this is a standalone window
+            Window window = dockItem.getDockPane().getScene().getWindow();
+            double paddingHeight = window.getHeight() -
+                    oldModel.propHeight().getValue();
+            double paddingWidth = window.getWidth() -
+                    oldModel.propWidth().getValue();
+            window.setHeight(newModel.propHeight().getValue() + paddingHeight);
+            window.setWidth(newModel.propWidth().getValue() + paddingWidth);
         }
     }
 }
