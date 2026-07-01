@@ -24,6 +24,7 @@ public class Messages
     public static String disableAlarmFailed;
     public static String disableAlarms;
     public static String disabled;
+    public static String disableMenu;
     public static String disabledUntil;
     public static String displays;
     public static String enableAlarmFailed;

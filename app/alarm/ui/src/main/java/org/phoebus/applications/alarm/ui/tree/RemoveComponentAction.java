@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.tree;
 import java.util.List;
 
 import javafx.application.Platform;
+import javafx.scene.control.*;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.Messages;
@@ -19,11 +20,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TreeView;
 
 /** Action that deletes item from the alarm tree configuration
  *  @author Kay Kasemir

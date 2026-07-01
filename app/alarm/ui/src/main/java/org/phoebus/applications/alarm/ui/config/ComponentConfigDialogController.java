@@ -153,6 +153,7 @@ public class ComponentConfigDialogController extends ConfigDialogController {
         }
     }
 
+/// ////////// REMOVE////////////////
     /**
      * Updates a component to disable a hierarchy of PVs with an enable date.
      *
@@ -191,6 +192,7 @@ public class ComponentConfigDialogController extends ConfigDialogController {
         });
     }
 
+    /////////////////// CAUTION!! MOVED THIS TO DisablesAction.java!! (the Set-Version, not the List-Version) ///////////////////////////
     /**
      * Recursively counts alarm tree items in a subtree to find total number, number of disabled, and
      * number of disabled with enable date.
