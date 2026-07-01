@@ -4,6 +4,7 @@
 
 package org.csstudio.display.builder.runtime.app.actionhandlers;
 
+import javafx.stage.Window;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelLoader;
@@ -12,11 +13,15 @@ import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
+import org.csstudio.display.builder.runtime.app.DisplayInfo;
+import org.csstudio.display.builder.runtime.app.DisplayRuntimeApplication;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
 import org.csstudio.display.builder.model.spi.ActionHandler;
 import org.csstudio.display.actions.OpenDisplayAction;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroOrSystemProvider;
+import org.phoebus.ui.docking.DockItemWithInput;
+import org.phoebus.ui.docking.DockStage;
 
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -88,6 +93,7 @@ public class OpenDisplayActionHandler implements ActionHandler {
             }
             else if (openDisplayActionInfo.getTarget().equals(OpenDisplayAction.Target.STANDALONE))
             {
+                new_model.setStandalone(true);
                 toolkit.submit(() ->
                 {
                     final ToolkitRepresentation<Object, Object> new_toolkit =
@@ -107,10 +113,18 @@ public class OpenDisplayActionHandler implements ActionHandler {
                 {
                     try
                     {
+                        final DockItemWithInput existing_dock_item = DockStage.getDockItemWithInput(
+                                DisplayRuntimeApplication.NAME,
+                                DisplayInfo.forModel(top_model).toURI());
+
                         // Close old representation
                         final Object parent = toolkit.disposeRepresentation(top_model);
                         // Tell toolkit about new model to represent
                         toolkit.representModel(parent, new_model);
+
+                        // Stage will be resized to the new model dimensions if
+                        // the DockPane is a standalone window
+                        resizeStage(existing_dock_item, top_model, new_model);
                     }
                     catch (Throwable ex)
                     {
@@ -139,5 +153,29 @@ public class OpenDisplayActionHandler implements ActionHandler {
             ScriptUtil.showErrorDialog(sourceWidget, message);
         }
 
+    }
+
+    /**
+     * If this stage is in standalone mode then resize the current stage to fit the new DisplayModel.
+     *
+     * @param dockItem DockItemWithInput object to get the current DockPane from
+     * @param oldModel Old DisplayModel that will be replaced. This is used to determine the current
+     *                stage padding
+     * @param newModel New DisplayModel that will be displayed. Size of window will match its
+     *                 dimensions
+     */
+    private static void resizeStage(DockItemWithInput dockItem, DisplayModel oldModel, DisplayModel newModel)
+    {
+        if (dockItem != null && dockItem.getDockPane().isStandaloneWindow())
+        {
+            // Perform window resizing if this is a standalone window
+            Window window = dockItem.getDockPane().getScene().getWindow();
+            double paddingHeight = window.getHeight() -
+                    oldModel.propHeight().getValue();
+            double paddingWidth = window.getWidth() -
+                    oldModel.propWidth().getValue();
+            window.setHeight(newModel.propHeight().getValue() + paddingHeight);
+            window.setWidth(newModel.propWidth().getValue() + paddingWidth);
+        }
     }
 }

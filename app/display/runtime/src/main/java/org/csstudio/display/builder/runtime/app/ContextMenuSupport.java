@@ -18,6 +18,8 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
+
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -91,7 +93,25 @@ class ContextMenuSupport {
                     DisplayRuntimeInstance displayRuntimeInstance = DisplayRuntimeInstance.ofDisplayModel(displayModel);
                     DockItem dockItem = displayRuntimeInstance.getDockItem();
                     DockPane dockPane = dockItem.getDockPane();
-                    setFocus = () -> DockPane.setActiveDockPane(dockPane);
+                    if (dockPane.isStandaloneWindow()) {
+                        // If in a standalone window, set the active dock pane
+                        // to be the 'main' Phoebus pane instead of the current dock pane
+                        setFocus = () -> {
+                            DockPane.setActiveDockPane(DockPane.getMainDockPane());
+                            Stage stage = DockPane.getActiveStage();
+                            if (stage != null) {
+                                stage.requestFocus();
+                            }
+                        };
+                    } else {
+                        setFocus = () -> {
+                            DockPane.setActiveDockPane(dockPane);
+                            Stage stage = DockPane.getActiveStage();
+                            if (stage != null) {
+                                stage.requestFocus();
+                            }
+                        };
+                    }
                 }
 
                 fillMenu(setFocus, widget);
@@ -243,12 +263,14 @@ class ContextMenuSupport {
 
         items.add(new SeparatorMenuItem());
 
-        items.add(new DisplayToolbarAction(instance));
+        // Do not add the show/hide toolbar context menu item in a standalone window
+        if (!instance.getDockItem().getDockPane().isStandaloneWindow())
+            items.add(new DisplayToolbarAction(instance));
 
         // If the editor is available, add "Open in Editor"
         final AppResourceDescriptor editor = ApplicationService.findApplication("display_editor");
         if (editor != null && AuthorizationService.hasAuthorization("edit_display"))
-            items.add(new OpenInEditorAction(editor, widget));
+            items.add(new OpenInEditorAction(editor, widget, setFocus));
 
         items.add(new SeparatorMenuItem());
 
