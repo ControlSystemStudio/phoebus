@@ -35,6 +35,7 @@ public class Messages
     public static String headerConfirmDisable;
     public static String headerConfirmDisableWithEnableDate;
     public static String headerConfirmEnable;
+    public static String indefinitely;
     public static String moveItemFailed;
     public static String partlyDisabled;
     public static String promptTitle;
@@ -43,6 +44,7 @@ public class Messages
     public static String renameItemFailed;
     public static String timer;
     public static String unacknowledgeFailed;
+    public static String withEnableDate;
 
     static
     {

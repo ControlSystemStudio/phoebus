@@ -34,7 +34,8 @@ public class DisableAction extends Menu {
         setText(Messages.disableMenu);
         setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/disabled.png"));
         MenuItem disable = new DisableComponentAction(node, model, items);
-        MenuItem disableUntil = new MenuItem(Messages.disabledUntil);
+        disable.setText(Messages.indefinitely);
+        MenuItem disableUntil = new MenuItem(Messages.withEnableDate);
         disableUntil.setDisable(true);
         Set<AlarmClientLeaf> totalLeafItems = new HashSet<>();
         Set<AlarmClientLeaf> leafItemsWithEnableDate = new HashSet<>();
