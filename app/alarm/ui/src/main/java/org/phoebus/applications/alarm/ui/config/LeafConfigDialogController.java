@@ -9,28 +9,22 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
+
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.SecondsParser;
-
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
-import java.time.LocalDateTime;
 import java.util.function.UnaryOperator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  * FXML controller for LeafConfigDialog.fxml. Intended for configuration
@@ -61,6 +55,23 @@ public class LeafConfigDialogController extends ConfigDialogController {
     @FXML
     private TextField filter;
 
+    @FXML
+    protected CheckBox enabled;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private StackPane guidancePlaceholder;
+    @SuppressWarnings("unused")
+    @FXML
+    private StackPane displaysPlaceholder;
+    @SuppressWarnings("unused")
+    @FXML
+    private StackPane commandsPlaceholder;
+    @SuppressWarnings("unused")
+    @FXML
+    private StackPane actionsPlaceholder;
+
+
     private final SimpleStringProperty descriptionProperty = new SimpleStringProperty("");
     private final SimpleBooleanProperty latchingProperty = new SimpleBooleanProperty();
     private final SimpleBooleanProperty annunciatingProperty = new SimpleBooleanProperty();
@@ -68,6 +79,9 @@ public class LeafConfigDialogController extends ConfigDialogController {
 
     private SpinnerValueFactory<Integer> countValueFactory;
     private SpinnerValueFactory<Integer> delayValueFactory;
+
+    protected final SimpleBooleanProperty itemEnabledProperty = new SimpleBooleanProperty();
+
 
     public LeafConfigDialogController(AlarmClient alarmClient, AlarmTreeItem<?> alarmTreeItem) {
         super(alarmClient, alarmTreeItem);
@@ -84,8 +98,12 @@ public class LeafConfigDialogController extends ConfigDialogController {
         annunciating.selectedProperty().bindBidirectional(annunciatingProperty);
         filter.textProperty().bindBidirectional(enablingFilterProperty);
 
-        relativeDate.disableProperty().bind(itemEnabledProperty.not());
-        enabledDatePicker.disableProperty().bind(itemEnabledProperty.not());
+
+
+                enabled.setOnAction(e -> {
+            itemEnabledProperty.setValue(enabled.isSelected());
+        });
+
 
         AlarmClientLeaf leaf = (AlarmClientLeaf) alarmTreeItem;
 
@@ -117,7 +135,6 @@ public class LeafConfigDialogController extends ConfigDialogController {
 
         descriptionProperty.set(leaf.getDescription());
         enablingFilterProperty.set(leaf.getFilter());
-        enableDateProperty.set(leaf.getEnabledDate());
 
         // Behavior checkboxes
         itemEnabledProperty.setValue(leaf.isEnabled());
@@ -125,9 +142,9 @@ public class LeafConfigDialogController extends ConfigDialogController {
         latchingProperty.setValue(leaf.isLatching());
         annunciatingProperty.setValue(leaf.isAnnunciating());
 
+
         BooleanBinding binding = Bindings.createBooleanBinding(() ->
-                        itemEnabledProperty.not().get() || relativeDateProperty.isNotNull().get() || enableDateProperty.isNotNull().get(),
-                itemEnabledProperty, relativeDateProperty, enableDateProperty);
+                        itemEnabledProperty.not().get(), itemEnabledProperty);
 
         latching.disableProperty().bind(binding);
         annunciating.disableProperty().bind(binding);
@@ -162,21 +179,9 @@ public class LeafConfigDialogController extends ConfigDialogController {
 
         final AlarmClientLeaf pv = new AlarmClientLeaf(null, alarmTreeItem.getName());
 
-        LocalDateTime enableDate;
-        try {
-            enableDate = determineEnableDate();
-        } catch (Exception e) {
-            Logger.getLogger(LeafConfigDialogController.class.getName())
-                    .log(Level.WARNING, "Invalid enable date specified", e);
-            return;
-        }
-        if (enableDate != null) {
-            pv.setEnabledDate(enableDate);
-        } else {
-            pv.setEnabled(itemEnabledProperty.get());
-        }
 
         pv.setDescription(descriptionProperty.get());
+        pv.setEnabled(itemEnabledProperty.get());
         pv.setLatching(latchingProperty.get());
         pv.setAnnunciating(annunciatingProperty.get());
         pv.setDelay(delayValueFactory.getValue());
