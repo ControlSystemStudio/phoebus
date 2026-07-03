@@ -148,7 +148,6 @@ public class BrowserTreeCell extends TreeCell<Node> {
             setText(null);
             setGraphic(null);
             setTooltip(null);
-            getStyleClass().remove("filter-match");
             return;
         }
         // Use custom layout as this makes it easier to set opacity
