@@ -185,12 +185,6 @@ public class LogEntryDisplayController {
     }
 
     @FXML
-    public void newLogEntry(){
-        // Show a new editor dialog.
-        new LogEntryEditorStage(new OlogLog(),  null, EditMode.NEW_LOG_ENTRY).show();
-    }
-
-    @FXML
     public void goBack() {
         if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
             logEntryTableViewController.goBackAndGoForwardActions.get().goBack();
@@ -202,6 +196,16 @@ public class LogEntryDisplayController {
         if (logEntryTableViewController.goBackAndGoForwardActions.isPresent()) {
             logEntryTableViewController.goBackAndGoForwardActions.get().goForward();
         }
+    }
+
+    /**
+     * Creates a new Log Entry.
+     * If 2 or more existing Log Entries in the list are selected,
+     * they get linked into the description of the new Log Entry.
+     * */
+    @FXML
+    public void createNewLogEntry(){
+        new LogEntryEditorStage(new OlogLog(), null, EditMode.NEW_LOG_ENTRY).show();
     }
 
     /**
