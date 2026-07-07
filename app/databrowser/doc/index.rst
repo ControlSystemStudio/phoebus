@@ -154,6 +154,25 @@ behavior, you already activated it, so you need to use "Save As" from the File m
 the ``*.plt`` file with the un-checked "Save Changes" option.
 
 
+Context Menu
+^^^^^^^^^^^^
+
+One or more traces in the trace tab of the property panel can be selected using *Shift* + click or *Control* + click.
+
+By right click, the context menu opens.
+
+.. image:: images/databrowser_contextmenu.png
+    :width: 40%
+
+
+Among other funcionality, multiple selected items can be edited in a dialog by clicking **Edit Selected Items**.
+
+.. image:: images/databrowser_context_menu_dialog.png
+        :width: 50%
+
+
+
+
 Runtime Properties Dialog
 -------------------------
 
