@@ -157,7 +157,7 @@ the ``*.plt`` file with the un-checked "Save Changes" option.
 Context Menu
 ^^^^^^^^^^^^
 
-One or more traces in the trace tab of the property panel can be selected using *Shift* + click or *Control* + click.
+One or more traces in the trace tab of the property panel can be selected using *Shift* + click or *Control* (Windows)/ *Command* (Mac) + click.
 
 By right click, the context menu opens.
 
