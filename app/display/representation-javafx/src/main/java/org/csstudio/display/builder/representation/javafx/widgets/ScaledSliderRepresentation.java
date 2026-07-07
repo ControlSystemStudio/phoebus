@@ -10,7 +10,9 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.Slider;
+import javafx.scene.control.skin.SliderSkin;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -35,6 +37,7 @@ import org.epics.vtype.VType;
 
 import java.text.DecimalFormat;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
@@ -71,6 +74,18 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
 
     private final Slider slider;
     private final SliderMarkers markers;
+
+    private final AtomicBoolean isHorizontal = new AtomicBoolean(true);
+
+    private static final double THUMB_PADDING_DEFAULT = 7.6;
+    private static final double THUMB_PADDING_MAX = 20.0;
+    private static final double THUMB_SCALING_FACTOR = 0.3;
+    private static final double TRACK_PADDING_DEFAULT = 3.3;
+    private static final double TRACK_PADDING_MAX = 13.0;
+    private static final double TRACK_SCALING_FACTOR = 0.2;
+    private static final double MAJOR_TICK_LENGTH_DEFAULT = 8.0;
+    private static final double MAJOR_TICK_LENGTH_MAX = 20.0;
+    private static final double MAJOR_TICK_LENGTH_SCALING_FACTOR = 0.1;
 
     /** Constructor */
     public ScaledSliderRepresentation()
@@ -232,6 +247,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             model_widget.propWidth().setValue(h);
             model_widget.propHeight().setValue(w);
         }
+        isHorizontal.set(horizontal);
         layoutChanged(prop, old, horizontal);
     }
 
@@ -552,6 +568,8 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                 active = false;
             }
         }
+
+        adjustSizes();
         jfx_node.layout();
     }
 
@@ -565,5 +583,37 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             config_popover.hide();
         else
             config_popover.show(slider);
+    }
+
+    /**
+     * Adjusts knob, track and major tick sizes when widget size increases. Making the widget larger is
+     * a workaround for visibility issues when the JavaFX native {@link Slider} is rendered on a
+     * high-resolution monitor.
+     * <p>
+     *     Applied sizes are based on the height (horizontal) or width (vertical), and
+     *     clamped between the default size and an upper ad-hoc determined limit.
+     * </p>
+     */
+    private void adjustSizes(){
+        SliderSkin skin = (SliderSkin) slider.getSkin();
+        if (skin == null) {
+            return;
+        }
+        double size = isHorizontal.get() ? jfx_node.getHeight() : jfx_node.getWidth();
+        for (Node node : skin.getChildren()) {
+            if (node.getStyleClass().contains("thumb")) {
+                node.setStyle("-fx-padding: " + Math.clamp(size * THUMB_SCALING_FACTOR,
+                        THUMB_PADDING_DEFAULT,
+                        THUMB_PADDING_MAX));
+            } else if (node.getStyleClass().contains("track")) {
+                node.setStyle("-fx-padding: " + Math.clamp(size * TRACK_SCALING_FACTOR,
+                        TRACK_PADDING_DEFAULT,
+                        TRACK_PADDING_MAX));
+            } else if (node.getStyleClass().contains("axis")) {
+                node.setStyle("-fx-tick-length: " + Math.clamp(size * MAJOR_TICK_LENGTH_SCALING_FACTOR,
+                        MAJOR_TICK_LENGTH_DEFAULT,
+                        MAJOR_TICK_LENGTH_MAX));
+            }
+        }
     }
 }
