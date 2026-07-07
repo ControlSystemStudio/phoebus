@@ -21,14 +21,14 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
+<BorderPane xmlns="http://javafx.com/javafx/21.0.7" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
     <center>
         <SplitPane fx:id="splitPane" dividerPositions="0.3">
             <StackPane minWidth="350.0">
                 <VBox fx:id="progressIndicator" alignment="CENTER" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                     <ProgressIndicator maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
                 </VBox>
-                <VBox fx:id="treeViewPane">
+                <VBox fx:id="treeTableViewPane">
                     <HBox HBox.hgrow="ALWAYS">
                         <Label text="%filter">
                             <HBox.margin>
@@ -70,7 +70,7 @@
                     </HBox>
                     <TreeTableView fx:id="treeTableView" onContextMenuRequested="#configureContextMenu" prefHeight="347.0" prefWidth="195.0" tableMenuButtonVisible="true" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TreeTableColumn fx:id="nameColumn" prefWidth="200.0" text="%treeTableColumnName">
+                            <TreeTableColumn fx:id="nameColumn" prefWidth="200.0" text="%treeTableColumnName" reorderable="false">
                                 <styleClass>
                                     <String fx:value="snapshot-table-left-aligned" />
                                 </styleClass>

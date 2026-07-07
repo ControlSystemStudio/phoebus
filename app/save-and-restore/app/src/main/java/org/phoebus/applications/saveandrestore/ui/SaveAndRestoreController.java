@@ -248,7 +248,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         currentFilterProperty.addListener((obs, o, n) -> applyFilter(n));
 
         treeTableView.setEditable(true);
-
         treeTableView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
         treeTableView.setOnMouseClicked(me -> {
@@ -262,6 +261,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         });
 
         treeTableView.setShowRoot(true);
+
 
         nameColumn.setCellFactory(node -> new NodeTreeTableCell(this));
         nameColumn.setCellValueFactory(n -> new ReadOnlyObjectWrapper<>(n.getValue().getValue()));
