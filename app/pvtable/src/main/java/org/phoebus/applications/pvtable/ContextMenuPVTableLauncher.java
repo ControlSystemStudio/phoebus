@@ -46,6 +46,12 @@ public class ContextMenuPVTableLauncher implements ContextMenuEntry
     }
 
     @Override
+    public boolean isOpenAction()
+    {
+        return true;
+    }
+
+    @Override
     public void call(final Selection selection) throws Exception
     {
         final PVTableInstance instance = ApplicationService.createInstance(PVTableApplication.NAME);

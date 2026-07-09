@@ -67,6 +67,14 @@ public interface ContextMenuEntry {
     }
 
     /**
+     * Return whether action opens a new display or not
+     */
+    public default boolean isOpenAction()
+    {
+        return false;
+    }
+
+    /**
      * Invoke the context menu
      *
      * @param selection The selection to be used to execute this action

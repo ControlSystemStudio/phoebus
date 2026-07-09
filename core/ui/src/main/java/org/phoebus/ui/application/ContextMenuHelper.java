@@ -59,7 +59,8 @@ public class ContextMenuHelper
                 item.setGraphic(new ImageView(icon));
             item.setOnAction(e ->
             {
-                setFocus.run();
+                if (entry.isOpenAction())
+                    setFocus.run();
                 try
                 {
                     List<Object> selection = new ArrayList<>();

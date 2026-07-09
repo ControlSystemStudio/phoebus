@@ -54,4 +54,9 @@ public class ContextMenuPVAlarmHistory implements ContextMenuEntry {
     public Image getIcon() {
         return AlarmLogTableApp.icon;
     }
+
+    @Override
+    public boolean isOpenAction() {
+        return true;
+    }
 }

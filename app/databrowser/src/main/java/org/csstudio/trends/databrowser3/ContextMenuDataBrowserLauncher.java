@@ -52,6 +52,12 @@ public class ContextMenuDataBrowserLauncher implements ContextMenuEntry
         return supportedType;
     }
 
+    @Override
+    public boolean isOpenAction()
+    {
+        return true;
+    }
+
     private volatile Duration time_span = Preferences.time_span;
 
     @Override
