@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import javafx.scene.layout.Pane;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -32,13 +33,14 @@ import javafx.scene.transform.Translate;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWidget>
+public class LabelRepresentation extends RegionBaseRepresentation<Pane, LabelWidget>
 {
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final DirtyFlag dirty_content = new DirtyFlag();
     private final UntypedWidgetPropertyListener contentChangedListener = this::contentChanged;
     private final UntypedWidgetPropertyListener styleChangedListener = this::styleChanged;
     private volatile Pos pos;
+    private Label label;
 
     /** Was there ever any transformation applied to the jfx_node?
      *
@@ -49,11 +51,11 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
     private boolean was_ever_transformed = false;
 
     @Override
-    public Label createJFXNode() throws Exception
+    public Pane createJFXNode() throws Exception
     {
-        final Label label = new Label();
+        label = new Label();
         label.getStyleClass().add("text_update");
-        return label;
+        return new Pane(label);
     }
 
     @Override
@@ -119,7 +121,7 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
         if (dirty_content.checkAndClear())
         {
             final String text = model_widget.propText().getValue();
-            jfx_node.setText(text);
+            label.setText(text);
             if (model_widget.propAutoSize().getValue())
             {
                 final Dimension2D size = TextUtils.computeTextSize(JFXUtil.convert(model_widget.propFont().getValue()), text);
@@ -140,14 +142,16 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
                 jfx_node.setPrefSize(width, height);
                 jfx_node.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
                 jfx_node.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
+                label.setPrefSize(width, height);
                 if (was_ever_transformed)
-                    jfx_node.getTransforms().clear();
+                    label.getTransforms().clear();
                 break;
             case NINETY:
-                jfx_node.setPrefSize(height, width);
+                jfx_node.setPrefSize(width, height);
                 jfx_node.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
                 jfx_node.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-                jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()),
+                label.setPrefSize(height, width);
+                label.getTransforms().setAll(new Rotate(-rotation.getAngle()),
                                                 new Translate(-height, 0));
                 was_ever_transformed = true;
                 break;
@@ -155,33 +159,35 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
                 jfx_node.setPrefSize(width, height);
                 jfx_node.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
                 jfx_node.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-                jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()),
+                label.setPrefSize(width, height);
+                label.getTransforms().setAll(new Rotate(-rotation.getAngle()),
                                                 new Translate(-width, -height));
                 was_ever_transformed = true;
                                break;
             case MINUS_NINETY:
-                jfx_node.setPrefSize(height, width);
+                jfx_node.setPrefSize(width, height);
                 jfx_node.setMinSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
                 jfx_node.setMaxSize(Control.USE_PREF_SIZE, Control.USE_PREF_SIZE);
-                jfx_node.getTransforms().setAll(new Rotate(-rotation.getAngle()),
+                label.setPrefSize(height, width);
+                label.getTransforms().setAll(new Rotate(-rotation.getAngle()),
                                                 new Translate(0, -width));
                 was_ever_transformed = true;
                 break;
             }
-            jfx_node.setAlignment(pos);
-            jfx_node.setTextAlignment(TextAlignment.values()[model_widget.propHorizontalAlignment().getValue().ordinal()]);
-            jfx_node.setWrapText(model_widget.propWrapWords().getValue());
+            label.setAlignment(pos);
+            label.setTextAlignment(TextAlignment.values()[model_widget.propHorizontalAlignment().getValue().ordinal()]);
+            label.setWrapText(model_widget.propWrapWords().getValue());
 
             Color color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
-            jfx_node.setTextFill(color);
+            label.setTextFill(color);
             if (model_widget.propTransparent().getValue())
-                jfx_node.setBackground(null); // No fill
+                label.setBackground(null); // No fill
             else
             {   // Fill background
                 color = JFXUtil.convert(model_widget.propBackgroundColor().getValue());
-                jfx_node.setBackground(new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY)));
+                label.setBackground(new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY)));
             }
-            jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
         }
     }
 }
