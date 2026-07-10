@@ -34,4 +34,16 @@ public interface AuthenticationScope{
      */
     String getDisplayName();
 
+    public static AuthenticationScope SAVE_AND_RESTORE = new AuthenticationScope() {
+        @Override
+        public String getScope() {
+            return "save-and-restore";
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "";
+        }
+    };
+
 }

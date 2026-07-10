@@ -100,11 +100,6 @@
     -fx-padding: 0 4 2 0;
 }
 
-.filter-match {
-  -fx-background-color: rgb(242, 242, 242);
-}
-
-
 .tree-cell:selected{
     -fx-background-color: rgb(0, 150, 201);
 }
@@ -126,4 +121,18 @@
 
 .combo-box > .list-cell:disabled{
     -fx-opacity: 1.0;
+}
+
+.tree-table-cell.drag-border {
+    -fx-border-color: #008000ff;
+    -fx-border-width: 1 1 1 1;
+    -fx-border-insets: 1 1 1 1;
+    -fx-border-radius: 5;
+}
+
+.tree-table-cell.default-border {
+    -fx-border-color: transparent, #eeeeeeff;
+    -fx-border-width: 1 1 1 1, 0 1 0 0;
+    -fx-border-radius: 5, 0;
+    -fx-border-insets: 1 1 1 1, 0 0 0 0;
 }
