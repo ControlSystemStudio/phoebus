@@ -19,6 +19,7 @@
 
 package org.phoebus.applications.saveandrestore.authentication;
 
+import org.phoebus.applications.saveandrestore.model.authentication.SaveAndRestoreAuthenticationScope;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;

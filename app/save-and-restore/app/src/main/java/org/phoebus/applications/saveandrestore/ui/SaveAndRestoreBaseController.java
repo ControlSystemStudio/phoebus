@@ -20,7 +20,7 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.property.SimpleStringProperty;
-import org.phoebus.applications.saveandrestore.authentication.SaveAndRestoreAuthenticationScope;
+import org.phoebus.applications.saveandrestore.model.authentication.SaveAndRestoreAuthenticationScope;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
