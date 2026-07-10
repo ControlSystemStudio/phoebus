@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fx:id="scroll" fitToWidth="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.alarm.ui.config.ConfigDialogController">
+
+    <GridPane fx:id="layout" hgap="5" vgap="5">
+        <padding>
+            <Insets bottom="5" left="5" right="5" top="5" />
+        </padding>
+
+        <columnConstraints>
+            <!-- Column 0: fixed 190 px label column -->
+            <ColumnConstraints maxWidth="190" minWidth="190" prefWidth="190" />
+            <!-- Column 1: grows to fill available width -->
+            <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+
+        <!-- ═══════════════════════════════════════════
+             Row 0 – Path  (read-only)
+             ═══════════════════════════════════════════ -->
+        <Label text="%path" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+        <TextField fx:id="path" editable="false" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" />
+
+        <!-- Row 3 - table views for guidance, displays... -->
+        <fx:include fx:id="optionsTablesView" source="OptionsTables.fxml" prefHeight="800" prefWidth="400" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS"/>
+
+        <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+        </rowConstraints>
+
+    </GridPane>
+</ScrollPane>

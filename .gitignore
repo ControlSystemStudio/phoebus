@@ -132,3 +132,6 @@ docs/source/_ext/**/*.pyc
 # Ignore pip installation metadata
 docs/phoebus_docs.egg-info/
 *.pyc
+# pixi environments
+.pixi/*
+!.pixi/config.toml

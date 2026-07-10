@@ -108,6 +108,7 @@ public class DateTimePicker extends DatePicker {
 		return format;
 	}
 
+    // removed "private" here
 	private void setFormat(String format) {
 		this.format.set(format);
 		alignColumnCountWithFormat();

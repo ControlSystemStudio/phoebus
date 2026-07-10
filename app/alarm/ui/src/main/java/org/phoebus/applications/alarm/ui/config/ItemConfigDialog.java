@@ -44,16 +44,21 @@ public class ItemConfigDialog extends Dialog<Boolean> {
                 fxmlLoader.setLocation(this.getClass().getResource("LeafConfigDialog.fxml"));
             }
             else{
-                fxmlLoader.setLocation(this.getClass().getResource("ComponentConfigDialog.fxml"));
+                // renames component config dialog fxml to config dialig
+                fxmlLoader.setLocation(this.getClass().getResource("ConfigDialog.fxml"));
             }
             fxmlLoader.setControllerFactory(clazz -> {
                 try {
                     if(clazz.isAssignableFrom(LeafConfigDialogController.class)) {
                         return clazz.getConstructor(AlarmClient.class, AlarmTreeItem.class).newInstance(model, item);
                     }
-                    if(clazz.isAssignableFrom(ComponentConfigDialogController.class)) {
+                    // GEORG is that ok?
+                    if(clazz.isAssignableFrom(ConfigDialogController.class)) {
                         return clazz.getConstructor(AlarmClient.class, AlarmTreeItem.class).newInstance(model, item);
                     }
+//                    if(clazz.isAssignableFrom(ComponentConfigDialogController.class)) {
+//                        return clazz.getConstructor(AlarmClient.class, AlarmTreeItem.class).newInstance(model, item);
+//                    }
                     else if(clazz.isAssignableFrom(TitleDetailTableController.class)) {
                         return new TitleDetailTableController();
                     }
