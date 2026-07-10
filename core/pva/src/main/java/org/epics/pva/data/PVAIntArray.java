@@ -111,6 +111,8 @@ public class PVAIntArray extends PVAData implements PVAArray, PVAValue
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
+        if (size < 0  ||  size*Integer.BYTES > buffer.remaining())
+            throw new Exception("Array size " + size + " with only " + buffer.remaining() + " bytes in buffer");
         final int[] new_value = new int[size];
         for (int i=0; i<size; ++i)
             new_value[i] = buffer.getInt();

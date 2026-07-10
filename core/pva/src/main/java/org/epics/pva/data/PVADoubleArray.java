@@ -98,6 +98,8 @@ public class PVADoubleArray extends PVAData implements PVAArray, PVAValue
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
+        if (size < 0  ||  size*Double.BYTES > buffer.remaining())
+            throw new Exception("Array size " + size + " with only " + buffer.remaining() + " bytes in buffer");
         final double[] new_value = new double[size];
         for (int i=0; i<size; ++i)
             new_value[i] = buffer.getDouble();

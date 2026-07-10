@@ -89,6 +89,9 @@ public class PVAStringArray extends PVAData implements PVAArray, PVAValue
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
+        // Each array element needs to contain at least a byte for the string size
+        if (size < 0  ||  size > buffer.remaining())
+            throw new Exception("Array size " + size + " with only " + buffer.remaining() + " bytes in buffer");
         String[] new_value = value;
         if (new_value == null  ||  new_value.length != size)
             new_value = new String[size];

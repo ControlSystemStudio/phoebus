@@ -128,6 +128,9 @@ public class PVAAnyArray extends PVADataWithID implements PVAArray{
     public void decode(PVATypeRegistry types, ByteBuffer buffer) throws Exception {
 
         final int count = PVASize.decodeSize(buffer);
+        // Each array element needs at least the 'non_null' byte
+        if (count < 0  ||  count > buffer.remaining())
+            throw new Exception("Array size " + count + " with only " + buffer.remaining() + " bytes in buffer");
         // Try to re-use elements
         PVAny[] new_elements = elements;
         if (new_elements == null  ||  new_elements.length != count)

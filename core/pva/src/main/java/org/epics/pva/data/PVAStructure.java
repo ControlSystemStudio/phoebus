@@ -55,6 +55,10 @@ public class PVAStructure extends PVADataWithID
         // number of elements
         final int size = PVASize.decodeSize(buffer);
 
+        // Each element needs name (at least byte for length) and value (at least byte)
+        if (size < 0  ||  size*2 > buffer.remaining())
+            throw new Exception("Structure with " + size + " elements but only " + buffer.remaining() + " bytes in buffer");
+
         // (name, FieldDesc)[]
         final List<PVAData> values = new ArrayList<>(size);
         for (int i=0; i<size; ++i)

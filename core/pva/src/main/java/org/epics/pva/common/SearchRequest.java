@@ -173,15 +173,23 @@ public class SearchRequest
         boolean tcp = search.tls = false;
         int count = Byte.toUnsignedInt(buffer.get());
         String unknown_protocol = "<none>";
-        for (int i=0; i<count; ++i)
+        try
         {
-            final String protocol = PVAString.decodeString(buffer);
-            if ("tls".equals(protocol))
-                search.tls = true;
-            else if ("tcp".equals(protocol))
-                tcp = true;
-            else
-                unknown_protocol = protocol;
+            for (int i=0; i<count; ++i)
+            {
+                final String protocol = PVAString.decodeString(buffer);
+                if ("tls".equals(protocol))
+                    search.tls = true;
+                else if ("tcp".equals(protocol))
+                    tcp = true;
+                else
+                    unknown_protocol = protocol;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "PVA Client " + from + " sent search #" + search.seq + " with invalid protocol", ex);
+            return null;
         }
 
         // Loop over searched channels
@@ -200,18 +208,26 @@ public class SearchRequest
                 return null;
             }
             search.channels = new ArrayList<>(count);
-            for (int i=0; i<count; ++i)
+            try
             {
-                final int cid = buffer.getInt();
-                final String name = PVAString.decodeString(buffer);
-                logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " for " + name + " [cid " + cid + "]"
-                                            + ", reply addr " + orig_response_addr
-                                            + (orig_response_addr.equals(search.client) ? "" : ", using " + search.client)
-                                            + (search.tls               ? " (TLS)" : "")
-                                            + (search.unicast           ? " (unicast)" : "")
-                                            + (search.reply_required    ? " (reply required)" : "")
-                                            + (search.reply_to_src_port ? (origin == null ?  " (reply to source port)"  : " (reply to source port ignored because of origin tag)") : ""));
-                search.channels.add(new Channel(cid, name));
+                for (int i=0; i<count; ++i)
+                {
+                    final int cid = buffer.getInt();
+                    final String name = PVAString.decodeString(buffer);
+                    logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " for " + name + " [cid " + cid + "]"
+                            + ", reply addr " + orig_response_addr
+                            + (orig_response_addr.equals(search.client) ? "" : ", using " + search.client)
+                            + (search.tls               ? " (TLS)" : "")
+                            + (search.unicast           ? " (unicast)" : "")
+                            + (search.reply_required    ? " (reply required)" : "")
+                            + (search.reply_to_src_port ? (origin == null ? " (reply to source port)" : " (reply to source port ignored because of origin tag)") : ""));
+                    search.channels.add(new Channel(cid, name));
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "PVA Client " + from + " sent damaged search #" + search.seq, ex);
+                return null;
             }
         }
 

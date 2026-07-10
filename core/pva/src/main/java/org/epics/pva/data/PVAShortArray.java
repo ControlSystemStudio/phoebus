@@ -111,6 +111,8 @@ public class PVAShortArray extends PVAData implements PVAArray, PVAValue
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
+        if (size < 0  ||  size*Short.BYTES > buffer.remaining())
+            throw new Exception("Array size " + size + " with only " + buffer.remaining() + " bytes in buffer");
         // Try to re-use existing array
         final short[] new_value = new short[size];
         // Considered using
