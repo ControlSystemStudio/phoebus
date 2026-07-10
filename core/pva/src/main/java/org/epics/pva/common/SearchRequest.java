@@ -188,7 +188,7 @@ public class SearchRequest
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, "PVA Client " + from + " sent search #" + search.seq + " with invalid protocol", ex);
+            logger.log(Level.WARNING, ex, () -> "PVA Client " + from + " sent search #" + search.seq + " with invalid protocol");
             return null;
         }
 
@@ -226,7 +226,7 @@ public class SearchRequest
             }
             catch (Exception ex)
             {
-                logger.log(Level.WARNING, "PVA Client " + from + " sent damaged search #" + search.seq, ex);
+                logger.log(Level.WARNING, ex, () -> "PVA Client " + from + " sent damaged search #" + search.seq);
                 return null;
             }
         }
