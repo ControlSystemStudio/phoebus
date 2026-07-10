@@ -55,7 +55,7 @@
         <!-- Row 3 – Alarm Delay -->
         <Label fx:id="delayLabel" text="%alarmDelay" GridPane.columnIndex="0" GridPane.rowIndex="3" />
 
-        <Spinner fx:id="delay" editable="true" prefWidth="80" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+        <Spinner fx:id="delay" editable="true" prefWidth="80" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
         <!-- Row 4 – Alarm Count -->
         <Label fx:id="countLabel" text="%alarmCount" GridPane.columnIndex="0" GridPane.rowIndex="4" />
