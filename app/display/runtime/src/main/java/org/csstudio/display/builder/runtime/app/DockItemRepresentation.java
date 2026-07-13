@@ -59,9 +59,6 @@ public class DockItemRepresentation extends JFXRepresentation
         // Open new Stage
         final Stage new_stage = new Stage();
 
-        // Configure for docking, i.e. with DockPane
-        DockStage.configureStage(new_stage, new Geometry(null), model.isStandalone());
-
         // Use location and size from model for the window
         double x = model.propX().getValue();
         double y = model.propY().getValue();
@@ -78,8 +75,6 @@ public class DockItemRepresentation extends JFXRepresentation
                 y = window.getY();
             }
         }
-        new_stage.setX(x);
-        new_stage.setY(y);
 
         // Size needs to account for the border and toolbar.
         // Using fixed numbers, exact size of border and toolbar unknown
@@ -89,12 +84,15 @@ public class DockItemRepresentation extends JFXRepresentation
         // Don't need to include space for toolbar in standalone
         if (model.isStandalone())
         {
-            width_margin = 5;
-            height_margin = 40;
+            width_margin = 2;
+            height_margin = 4;
         }
-        new_stage.setWidth(model.propWidth().getValue() + width_margin);
-        new_stage.setHeight(model.propHeight().getValue() + height_margin);
 
+        // Configure for docking, i.e. with DockPane
+        String geometry_string = (model.propWidth().getValue() + width_margin)
+                + "x"+(model.propHeight().getValue() + height_margin)
+                + "+" +((int) x) + "+" +((int) y);
+        DockStage.configureStage(new_stage, new Geometry(geometry_string), model.isStandalone());
         new_stage.show();
 
         // New DockPane is now the 'active' one,
