@@ -597,7 +597,9 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
      * </p>
      */
     private void adjustSizes(){
-        if(slider.getSkin() == null){
+
+        Skin<?> skin = slider.getSkin();
+        if(skin == null){
             return;
         }
 
@@ -605,8 +607,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                 jfx_node.getHeight() :
                 jfx_node.getWidth();
 
-        SliderSkin skin = (SliderSkin) slider.getSkin();
-        for (Node node : skin.getChildren()) {
+        for (Node node : ((SliderSkin) skin).getChildren()) {
             if (node.getStyleClass().contains("thumb")) {
                 node.setStyle("-fx-padding: " + Math.clamp(size * THUMB_SCALING_FACTOR,
                         THUMB_PADDING_DEFAULT, THUMB_PADDING_MAX));
