@@ -43,6 +43,7 @@ public class Messages
     public static String removeComponentFailed;
     public static String renameItemFailed;
     public static String timer;
+    public static String timers;
     public static String unacknowledgeFailed;
     public static String withEnableDate;
 

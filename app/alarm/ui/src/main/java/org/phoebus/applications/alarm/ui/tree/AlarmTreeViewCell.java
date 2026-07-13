@@ -26,9 +26,7 @@ import org.phoebus.applications.alarm.ui.Messages;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /** TreeCell for AlarmTreeItem
  *  @author Kay Kasemir
@@ -127,22 +125,27 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             else
             {
                 final AlarmClientNode node = (AlarmClientNode) item;
-
                 Optional<Pair<LeavesDisabledStatus, Boolean>> maybeLeavesDisabledStatusBooleanPair = leavesDisabledStatus(node);
                 if (maybeLeavesDisabledStatusBooleanPair.isPresent() && !maybeLeavesDisabledStatusBooleanPair.get().getKey().equals(LeavesDisabledStatus.AllEnabled)) {
                     Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatusBooleanPair = maybeLeavesDisabledStatusBooleanPair.get();
 
                     if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled)) {
                         if (leavesDisabledStatusBooleanPair.getValue()) {
-                            disabledTimerIndicator.setText("(" + Messages.disabled + "; " + Messages.timer + ")");
-                        }
-                        else {
+                            Set<AlarmClientLeaf> withEnableDate = new HashSet<>();
+                            boolean test = DisableAction.checkEnableDates(node.getChildren(), new HashSet<>(), withEnableDate);
+                            if (test){
+                                disabledTimerIndicator.setText("(" + Messages.disabled + "; " + Messages.timer + ": " + withEnableDate.iterator().next().getEnabledDate() + ")");
+                            } else {
+                                disabledTimerIndicator.setText("(" + Messages.disabled + "; " + Messages.timers + ")");
+                            }
+
+                        } else {
                             disabledTimerIndicator.setText("(" + Messages.disabled + ")");
                         }
                     }
                     else if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.SomeEnabledSomeDisabled)) {
                         if (leavesDisabledStatusBooleanPair.getValue()) {
-                            disabledTimerIndicator.setText("(" + Messages.partlyDisabled + "; " + Messages.timer + ")");
+                            disabledTimerIndicator.setText("(" + Messages.partlyDisabled + "; " + Messages.timers + ")");
                         }
                         else {
                             disabledTimerIndicator.setText("(" + Messages.partlyDisabled + ")");
