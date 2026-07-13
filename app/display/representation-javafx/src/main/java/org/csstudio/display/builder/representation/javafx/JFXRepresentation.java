@@ -225,9 +225,12 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         model_root = new ScrollPane(scroll_body);
         model_root.setId(MODEL_ROOT_ID);
 
-        final InvalidationListener resized = prop -> handleViewportChanges();
-        model_root.widthProperty().addListener(resized);
-        model_root.heightProperty().addListener(resized);
+        // Update background of parent when it changes or, for example,
+        // becomes not null
+        final InvalidationListener background = prop -> {
+            updateBackground();
+        };
+        model_root.parentProperty().addListener(background);
 
         // Middle Button (Wheel press) drag panning started
         final EventHandler<MouseEvent> onMousePressedHandler = evt ->
@@ -647,48 +650,6 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         throw new IllegalStateException("Not implemented");
     }
 
-    /** Handle changes in on-screen size of this representation */
-    private void handleViewportChanges()
-    {
-        final int view_width = (int) model_root.getWidth();
-        final int view_height = (int) model_root.getHeight();
-
-        final int model_width, model_height;
-        final DisplayModel copy = model;
-        if (copy == null)
-            model_width = model_height = 0;
-        else
-        {
-            model_width = copy.propWidth().getValue();
-            model_height = copy.propHeight().getValue();
-        }
-
-        // If on-screen viewport is larger than model,
-        // grow the scroll_body so that the complete area is
-        // filled with the background color
-        // and - in edit mode - the grid.
-        // If the viewport is smaller, use the model's size
-        // to get appropriate scrollbars.
-        final int show_x = view_width >= model_width
-                         ? view_width-SCROLLBAR_ADJUST
-                         : model_width;
-        final int show_y = view_height >= model_height
-                         ? view_height-SCROLLBAR_ADJUST
-                         : model_height;
-
-        // Does not consider zooming.
-        // If the widget_pane is zoomed 'out', e.g. 50%,
-        // the widget_pane will only be half as large
-        // as we specify here in pixels
-        // -> Ignore. If user zooms out a lot, there'll be an
-        //    area a gray area at the right and bottom of the display.
-        //    But user tends to zoom out to see the complete set of widgets,
-        //    so there is very little gray area.
-        //        widget_parent.setMinWidth(show_x / zoom);
-        //        widget_parent.setMinHeight(show_y / zoom);
-        widget_pane.setMinSize(show_x, show_y);
-    }
-
     /** Update lines that indicate model's size in edit mode */
     private void updateModelSizeIndicators()
     {
@@ -992,7 +953,17 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         final WritableImage wimage = new WritableImage(gridStepX, gridStepY);
         SwingFXUtils.toFXImage(image, wimage);
         final ImagePattern pattern = new ImagePattern(wimage, 0, 0, gridStepX, gridStepY, false);
-        widget_pane.setBackground(new Background(new BackgroundFill(pattern, CornerRadii.EMPTY, Insets.EMPTY)));
+        Background bg = new Background(new BackgroundFill(pattern, CornerRadii.EMPTY, Insets.EMPTY));
+        
+        // Set the background of the parent BorderPane 
+        if (model_root.getParent() instanceof Pane)
+            ((Pane) model_root.getParent()).setBackground(bg);
+        // Now make the scroll pane transparent to see the parent background
+        model_root.setStyle("-fx-background: transparent; -fx-background-color: transparent; ");
+        // Also set background of content to workaround JFX bugs (https://bugs.openjdk.org/browse/JDK-8118303
+        // and https://bugs.openjdk.org/browse/JDK-8095008) where text is rendered badly inside a transparent 
+        // ScrollPane.
+        widget_pane.setBackground(bg);
     }
 
     // Future for controlling the audio player
