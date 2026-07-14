@@ -133,11 +133,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         timeOwnerCol.setCellValueFactory(col -> new SimpleObjectProperty<>(col.getValue()));
         timeOwnerCol.setCellFactory(col -> {
             final GridPane pane = new GridPane();
-
-//            pane.setOnMousePressed(event -> {
-//                System.out.println("Button: " + event.getButton());
-//            });
-
             final Label timeText = new Label();
             timeText.setStyle("-fx-font-weight: bold");
             final Label ownerText = new Label();
