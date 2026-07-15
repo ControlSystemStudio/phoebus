@@ -2,7 +2,7 @@
  * Copyright (C) 2025 European Spallation Source ERIC.
  */
 
-package org.phoebus.applications.saveandrestore.authentication;
+package org.phoebus.applications.saveandrestore.model.authentication;
 
 import org.phoebus.security.tokens.AuthenticationScope;
 
