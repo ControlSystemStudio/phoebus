@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -95,7 +96,10 @@ public class Viewer3dPane extends VBox
             {
                 if (current_resource.startsWith("file:"))
                 {
-                    final File file = new File(URI.create(current_resource));
+                    final URI uri = URI.create(current_resource);
+                    File file = ResourceParser.getFile(uri);
+                    if (file == null)
+                        file = new File(uri.getPath());
                     fileChooser.setInitialDirectory(file.getParentFile());
                     fileChooser.setInitialFileName(file.getName());
                 }
