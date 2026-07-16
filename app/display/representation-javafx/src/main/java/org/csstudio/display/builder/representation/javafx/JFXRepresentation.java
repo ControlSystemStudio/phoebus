@@ -895,6 +895,9 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     /** Update background, using background color and grid information from model */
     private void updateBackground()
     {
+        if (model == null)
+            return;
+
         final WidgetColor background = model.propBackgroundColor().getValue();
 
         // Setting the "-fx-background:" of the root node propagates
