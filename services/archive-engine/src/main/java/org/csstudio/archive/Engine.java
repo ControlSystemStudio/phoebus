@@ -390,7 +390,7 @@ public class Engine
             catch (Exception ex)
             {
                 logger.log(Level.SEVERE, "Cannot start", ex);
-                run = false;
+				System.exit(-1);
             }
             httpd.shutdown();
         }
