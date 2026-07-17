@@ -203,6 +203,12 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                         </cellValueFactory>
                     </TooltipTableColumn>
 
+                    <TooltipTableColumn fx:id="pvDescriptionColumn" labelText="%description" minWidth="100.0" prefWidth="200.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnDescription">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="pvDescription" />
+                        </cellValueFactory>
+                    </TooltipTableColumn>
+
                     <TooltipTableColumn fx:id="timeColumn" labelText="%tableColumnTime" minWidth="100.0" prefWidth="150.0" tooltip="%toolTipTableColumnTimestamp">
                         <cellValueFactory>
                             <PropertyValueFactory property="timestamp" />

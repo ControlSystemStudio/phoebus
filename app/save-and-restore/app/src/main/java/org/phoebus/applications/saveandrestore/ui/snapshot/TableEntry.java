@@ -69,6 +69,10 @@ public class TableEntry {
     private final StringProperty storedStatus = new SimpleStringProperty(this, "storedStatus", PVAAlarm.AlarmStatus.UNDEFINED.name());
     private final ObjectProperty<AlarmSeverity> liveSeverity = new SimpleObjectProperty<>(this, "liveSeverity", null);
     private final ObjectProperty<AlarmSeverity> storedSeverity = new SimpleObjectProperty<>(this, "storedSeverity", null);
+
+    //HIER
+    private final SimpleStringProperty pvDescriptionProperty = new SimpleStringProperty(this, "description");
+
     /**
      * Snapshot value set either when user takes snapshot, or when snapshot data is loaded from remote service. Note that this
      * can be modified if user chooses to use a multiplier before triggering a restore operation, or if the value is
@@ -287,6 +291,9 @@ public class TableEntry {
         return storedSeverity;
     }
 
+    @SuppressWarnings("unused")
+    public SimpleStringProperty pvDescriptionProperty(){return pvDescriptionProperty;}
+
     /**
      * @param index the index of the compared value (starts with 1)
      * @return the property providing the compared value for the given index
@@ -419,10 +426,13 @@ public class TableEntry {
             liveStatus.set(((VNumber) val).getAlarm().getStatus().name());
             liveSeverity.set(((VNumber) val).getAlarm().getSeverity());
             timestamp.set(((VNumber) val).getTime().getTimestamp());
+            pvDescriptionProperty.set((((VNumber)val).getDisplay().getDescription()));
         } else if (val instanceof VNumberArray) {
             liveStatus.set(((VNumberArray) val).getAlarm().getStatus().name());
             liveSeverity.set(((VNumberArray) val).getAlarm().getSeverity());
             timestamp.set(((VNumberArray) val).getTime().getTimestamp());
+            pvDescriptionProperty.set((((VNumberArray)val).getDisplay().getDescription()));
+
         } else if (val instanceof VEnum) {
             liveStatus.set(((VEnum) val).getAlarm().getStatus().name());
             liveSeverity.set(((VEnum) val).getAlarm().getSeverity());
@@ -435,6 +445,7 @@ public class TableEntry {
             liveSeverity.set(AlarmSeverity.UNDEFINED);
             liveStatus.set("---");
             timestamp.set(null);
+
         } else {
             liveSeverity.set(null);
             liveStatus.set("---");
