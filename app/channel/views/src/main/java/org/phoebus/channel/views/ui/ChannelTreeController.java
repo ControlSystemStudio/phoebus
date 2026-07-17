@@ -12,7 +12,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.scene.control.Label;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
 import org.phoebus.framework.adapter.AdapterService;
@@ -25,15 +27,6 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.TreeTableView;
 import javafx.scene.image.ImageView;
 
 /**
@@ -59,7 +52,7 @@ public class ChannelTreeController extends ChannelFinderController {
     Label count;
 
     @FXML
-    TreeTableColumn<ChannelTreeByPropertyNode, String> node;
+    TreeTableColumn<ChannelTreeByPropertyNode, ChannelTreeByPropertyNode> node;
     @FXML
     TreeTableColumn<ChannelTreeByPropertyNode, String> value;
 
@@ -70,8 +63,33 @@ public class ChannelTreeController extends ChannelFinderController {
     @FXML
     public void initialize() {
         dispose();
+    // what should the value be
+        node.setCellValueFactory(cellValue -> new ReadOnlyObjectWrapper<>(cellValue.getValue().getValue()));
 
-        node.setCellValueFactory(cellValue -> new ReadOnlyStringWrapper(cellValue.getValue().getValue().getDisplayName()));
+        // how should the value be displayed
+        node.setCellFactory(column -> new TreeTableCell<>() {
+            @Override
+            public void updateItem(ChannelTreeByPropertyNode node, boolean isEmpty) {
+                super.updateItem(node, isEmpty);
+                if (isEmpty || node == null) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    if (node.getPropertyName() != null) {
+                        HBox hBox = new HBox();
+                        Label propertyLabel = new Label(node.getPropertyName() + " ");
+                        propertyLabel.setStyle("-fx-font-weight: bold;");
+                        hBox.getChildren().addAll(propertyLabel, new Label(node.getDisplayName()));
+                        setGraphic(hBox);
+                        setText(null);
+                    } else {
+                        setText(node.getDisplayName());
+                        setGraphic(null);
+                    }
+                }
+            }
+        });
+
         value.setCellValueFactory(cellValue -> new ReadOnlyStringWrapper(cellValue.getValue().getValue().getDisplayValue()));
 
         treeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -141,10 +159,12 @@ public class ChannelTreeController extends ChannelFinderController {
     public void configure() {
         if (model != null) {
             List<String> allProperties = ChannelUtil.getPropertyNames(model.getRoot().getNodeChannels()).stream().sorted().collect(Collectors.toList());
+
             OrderedSelectionDialog dialog = new OrderedSelectionDialog(allProperties, orderedProperties);
             Optional<List<String>> result = dialog.showAndWait();
             result.ifPresent(r -> {
                 setOrderedProperties(r);
+
             });
         }
     }
@@ -244,5 +264,4 @@ public class ChannelTreeController extends ChannelFinderController {
             return children;
         }
     }
-
 }

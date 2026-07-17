@@ -56,6 +56,7 @@ public class ChannelTreeByPropertyNode {
     public ChannelTreeByPropertyNode(ChannelTreeByPropertyModel model, ChannelTreeByPropertyNode parentNode, String displayName) {
         this.model = model;
         this.parentNode = parentNode;
+        this.displayName = displayName;
 
         // Calculate depth
         if (parentNode == null) {
@@ -64,7 +65,6 @@ public class ChannelTreeByPropertyNode {
             depth = parentNode.depth + 1;
         }
 
-        this.displayName = displayName;
 
         // Construct the Channel list
         if (parentNode == null) {
@@ -90,6 +90,7 @@ public class ChannelTreeByPropertyNode {
                     }
                 }
             }
+
         } else {
             // Filter the channels that match the property name
             nodeChannels = new ArrayList<Channel>();
@@ -115,6 +116,7 @@ public class ChannelTreeByPropertyNode {
         } else {
             childrenNames = null;
         }
+
     }
 
     /**
