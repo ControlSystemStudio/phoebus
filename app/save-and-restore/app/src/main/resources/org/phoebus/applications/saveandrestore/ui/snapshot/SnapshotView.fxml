@@ -43,6 +43,11 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                             <Tooltip text="%toolTipShowLiveReadback" />
                         </tooltip>
                     </ToggleButton>
+                    <Button fx:id="configureVisibilityButton" onAction="#openConfigDialog" mnemonicParsing="false">
+                        <tooltip>
+                            <Tooltip text="%toolTipConfigureVisibility" />
+                        </tooltip>
+                    </Button>
                     <Pane HBox.hgrow="ALWAYS" />
                     <ToggleButton fx:id="showDeltaPercentageButton" mnemonicParsing="false">
                         <tooltip>
@@ -189,21 +194,21 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                         </cellValueFactory>
                     </TableColumn>
 
-                    <TableColumn fx:id="selectedColumn" maxWidth="30" minWidth="30" prefWidth="30" resizable="false" sortable="false" visible="false">
+                    <TableColumn fx:id="selectedColumn" text="selected" maxWidth="30" minWidth="30" prefWidth="30" resizable="false" sortable="false" visible="false">
                         <cellValueFactory>
                             <PropertyValueFactory property="selected" />
                         </cellValueFactory>
                     </TableColumn>
 
-                    <TooltipTableColumn fx:id="idColumn" labelText="#" maxWidth="-1.0" prefWidth="-1.0" resizable="false" styleClass="id-column" tooltip="%toolTipTableColumIndex" />
+                    <TooltipTableColumn fx:id="idColumn" text="#" maxWidth="-1.0" prefWidth="-1.0" resizable="false" styleClass="id-column" tooltip="%toolTipTableColumIndex" />
 
-                    <TooltipTableColumn fx:id="pvNameColumn" labelText="%tableColumnPVName" minWidth="100.0" prefWidth="200.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnPVName">
+                    <TooltipTableColumn fx:id="pvNameColumn" text="%tableColumnPVName" minWidth="100.0" prefWidth="200.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnPVName">
                         <cellValueFactory>
                             <PropertyValueFactory property="pvName" />
                         </cellValueFactory>
                     </TooltipTableColumn>
 
-                    <TooltipTableColumn fx:id="timeColumn" labelText="%tableColumnTime" minWidth="100.0" prefWidth="150.0" tooltip="%toolTipTableColumnTimestamp">
+                    <TooltipTableColumn fx:id="timeColumn" text="%tableColumnTime" minWidth="100.0" prefWidth="150.0" tooltip="%toolTipTableColumnTimestamp">
                         <cellValueFactory>
                             <PropertyValueFactory property="timestamp" />
                         </cellValueFactory>
@@ -213,16 +218,16 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                      </styleClass>
                     </TooltipTableColumn>
 
-                    <DividerTableColumn fx:id="firstDividerColumn" maxWidth="-1.0" visible="false" />
+                    <DividerTableColumn text="first divider" fx:id="firstDividerColumn" maxWidth="-1.0" visible="false" />
 
                     <TableColumn fx:id="statusColumn" minWidth="140.0" prefWidth="200.0" sortable="false" styleClass="snapshot-table-centered" text="%tableColumnAlarmStatus">
                         <columns>
-                            <TooltipTableColumn labelText="%tableColumnStored" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnStoredAlarmStatus">
+                            <TooltipTableColumn text="%tableColumnStored" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnStoredAlarmStatus">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="storedStatus" />
                                 </cellValueFactory>
                             </TooltipTableColumn>
-                            <TooltipTableColumn labelText="%tableColumnLive" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmStatus">
+                            <TooltipTableColumn text="%tableColumnLive" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmStatus">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="liveStatus" />
                                 </cellValueFactory>
@@ -237,7 +242,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                                     <PropertyValueFactory property="storedSeverity" />
                                 </cellValueFactory>
                             </TooltipTableColumn>
-                            <TooltipTableColumn fx:id="liveSeverityColumn" labelText="%tableColumnLive" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmSeverity">
+                            <TooltipTableColumn fx:id="liveSeverityColumn" text="%tableColumnLive" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmSeverity">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="liveSeverity" />
                                 </cellValueFactory>
@@ -247,7 +252,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 
                     <TableColumn fx:id="valueColumn" minWidth="300.0" prefWidth="500.0" sortable="false" styleClass="snapshot-table-centered" text="%tableColumnStoredSetpoint">
                         <columns>
-                            <TooltipTableColumn fx:id="storedValueColumn" labelText="%tableColumnSetpoint" minWidth="150.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointPVValue">
+                            <TooltipTableColumn fx:id="storedValueColumn" text="%tableColumnSetpoint" minWidth="150.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointPVValue">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="snapshotVal" />
                                 </cellValueFactory>
@@ -256,7 +261,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                         </columns>
                     </TableColumn>
 
-                    <TooltipTableColumn fx:id="liveValueColumn" editable="false" labelText="%tableColumnLiveSetpoint" minWidth="150.0" prefWidth="200.0" sortable="false" styleClass="snapshot-table-left-aligned" tooltip="%currentPVValue">
+                    <TooltipTableColumn fx:id="liveValueColumn" editable="false" text="%tableColumnLiveSetpoint" minWidth="150.0" prefWidth="200.0" sortable="false" styleClass="snapshot-table-left-aligned" tooltip="%currentPVValue">
                         <cellValueFactory>
                             <PropertyValueFactory property="liveValue" />
                         </cellValueFactory>
@@ -269,18 +274,18 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                                     <PropertyValueFactory property="actionResultReadback" />
                                 </cellValueFactory>
                             </TableColumn>
-                            <TooltipTableColumn labelText="%tableColumnPVName" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnReadbackPVName">
+                            <TooltipTableColumn text="%tableColumnPVName" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnReadbackPVName">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="readbackName" />
                                 </cellValueFactory>
                             </TooltipTableColumn>
-                            <TooltipTableColumn fx:id="storedReadbackColumn" labelText="%tableColumnStored" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointReadbackPVValue">
+                            <TooltipTableColumn fx:id="storedReadbackColumn" text="%tableColumnStored" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointReadbackPVValue">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="storedReadback" />
                                 </cellValueFactory>
                             </TooltipTableColumn>
                             <TableColumn fx:id="deltaReadbackColumn" editable="false" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" text="%tableColumnDeltaSetpointValue" />
-                            <TooltipTableColumn fx:id="liveReadbackColumn" labelText="%tableColumnLive" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%currentReadbackValue">
+                            <TooltipTableColumn fx:id="liveReadbackColumn" text="%tableColumnLive" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%currentReadbackValue">
                                 <cellValueFactory>
                                     <PropertyValueFactory property="liveReadback" />
                                 </cellValueFactory>

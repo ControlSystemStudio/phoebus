@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="160.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.ui.dialog.ConfigColumnDialogController">
+    <top>
+        <Label style="-fx-font-weight: bold;" text="%ColumnVisibility">
+         <BorderPane.margin>
+            <Insets left="10.0" />
+         </BorderPane.margin></Label>
+    </top>
+    <center>
+        <VBox fx:id="columns" />
+    </center>
+</BorderPane>

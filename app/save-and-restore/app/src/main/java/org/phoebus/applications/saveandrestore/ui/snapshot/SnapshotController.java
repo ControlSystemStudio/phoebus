@@ -16,29 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -94,23 +72,18 @@ import org.phoebus.saveandrestore.util.Threshold;
 import org.phoebus.saveandrestore.util.Utilities;
 import org.phoebus.saveandrestore.util.VNoData;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.dialog.ConfigColumnDialog;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.ColumnConfigHandler;
 import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.time.DateTimePane;
 import org.phoebus.util.time.TimestampFormats;
-
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.ServiceLoader;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -125,7 +98,7 @@ import java.util.stream.Collectors;
  * the view associated with restore actions.
  */
 public class SnapshotController extends SaveAndRestoreBaseController
-        implements SaveAndRestoreWebSocketMessageHandler {
+        implements SaveAndRestoreWebSocketMessageHandler, ColumnConfigHandler {
 
 
     @SuppressWarnings("unused")
@@ -178,6 +151,9 @@ public class SnapshotController extends SaveAndRestoreBaseController
 
     @FXML
     protected ToggleButton showLiveReadbackButton;
+
+    @FXML
+    protected Button configureVisibilityButton;
 
     @SuppressWarnings("unused")
     @FXML
@@ -366,6 +342,14 @@ public class SnapshotController extends SaveAndRestoreBaseController
      */
     protected final List<TableEntry> tableEntryItems = new ArrayList<>();
 
+    private final BooleanProperty severityColumnVisibleProperty = new SimpleBooleanProperty(true);
+
+    private final BooleanProperty statusColumnVisibleProperty = new SimpleBooleanProperty(true);
+
+    private final BooleanProperty timeColumnVisibleProperty = new SimpleBooleanProperty(true);
+
+
+
     public SnapshotController(SnapshotTab snapshotTab) {
         snapshotTab.textProperty().bind(tabTitleProperty);
         snapshotTab.idProperty().bind(tabIdProperty);
@@ -377,7 +361,6 @@ public class SnapshotController extends SaveAndRestoreBaseController
     @FXML
     public void initialize() {
 
-        // Locate registered SaveAndRestoreEventReceivers
         eventReceivers = ServiceLoader.load(SaveAndRestoreEventReceiver.class);
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
@@ -466,6 +449,8 @@ public class SnapshotController extends SaveAndRestoreBaseController
                     showReadbacks.set(n);
                     actionResultReadbackColumn.visibleProperty().setValue(actionResultReadbackColumn.getGraphic() != null && showReadbacks.get());
                 });
+
+        configureVisibilityButton.setGraphic(new ImageView((new Image(getClass().getResourceAsStream("/icons/configure.png")))));
 
         ImageView showHideDeltaPercentageButtonImageView = new ImageView(new Image(getClass().getResourceAsStream("/icons/show_hide_delta_percentage.png")));
         showHideDeltaPercentageButtonImageView.setFitWidth(16);
@@ -663,10 +648,18 @@ public class SnapshotController extends SaveAndRestoreBaseController
         liveSeverityColumn.setCellFactory(a -> new AlarmSeverityCell());
         storedSeverityColumn.setCellFactory(a -> new AlarmSeverityCell());
 
-        timeColumn.visibleProperty().bind(compareViewEnabled.not());
         firstDividerColumn.visibleProperty().bind(compareViewEnabled);
-        statusColumn.visibleProperty().bind(compareViewEnabled.not());
-        severityColumn.visibleProperty().bind(compareViewEnabled.not());
+
+        severityColumn.visibleProperty().bind(Bindings.createBooleanBinding(() -> severityColumnVisibleProperty.get() && compareViewEnabled.not().get(),
+                severityColumnVisibleProperty, compareViewEnabled));
+
+        statusColumn.visibleProperty().bind(Bindings.createBooleanBinding(() -> statusColumnVisibleProperty.get() && compareViewEnabled.not().get(),
+                statusColumnVisibleProperty, compareViewEnabled));
+
+        timeColumn.visibleProperty().bind(Bindings.createBooleanBinding(() -> timeColumnVisibleProperty.get() && compareViewEnabled.not().get(),
+                timeColumnVisibleProperty, compareViewEnabled));
+
+
         valueColumn.visibleProperty().bind(compareViewEnabled.not());
 
         compareViewEnabled.addListener((ob, o, n) -> snapshotTableView.layout());
@@ -1575,6 +1568,8 @@ public class SnapshotController extends SaveAndRestoreBaseController
     }
 
 
+
+
     private static class SelectionCell extends CheckBoxTableCell<TableEntry, Boolean> {
 
         @Override
@@ -1651,6 +1646,41 @@ public class SnapshotController extends SaveAndRestoreBaseController
                 }
             }
 
+        }
+    }
+
+
+    @FXML
+    public void openConfigDialog() {
+        ConfigColumnDialog dialog = new ConfigColumnDialog(this);
+        dialog.showAndWait();
+    }
+
+
+    @Override
+    public Collection<TableColumn> getConfigurableColumns() {
+        return snapshotTableView.getColumns().stream().filter(
+                    i ->
+                            (
+                                    i.getId().equals("timeColumn") ||
+                                    i.getId().equals("statusColumn") ||
+                                    i.getId().equals("severityColumn")
+                            )
+            ).collect(Collectors.toList());
+    }
+
+    @Override
+    public void setVisibility(TableColumn tabCol, boolean visible) {
+        switch(tabCol.getId()){
+            case "timeColumn":
+                timeColumnVisibleProperty.set(visible);
+                break;
+            case "statusColumn":
+                statusColumnVisibleProperty.set(visible);
+                break;
+            case "severityColumn":
+                severityColumnVisibleProperty.set(visible);
+                break;
         }
     }
 }

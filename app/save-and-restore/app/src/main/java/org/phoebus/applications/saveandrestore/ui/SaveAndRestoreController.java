@@ -223,6 +223,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     public void initialize(URL url, ResourceBundle resourceBundle) {
         // Tree items are first compared on type, then on name (case-insensitive).
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
+        //System.out.println("treenodecomparator: " + treeNodeComparator);
+        //autoFilterCheckbox.setStyle("-fx-background-color: #0324fc");
 
         treeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeTableViewPane.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
@@ -341,6 +343,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         pasteMenuItem.setOnAction(ae -> pasteFromClipboard());
 
         contextMenu.getItems().addAll(menuItems);
+        //System.out.println("menu items: " + menuItems);
         treeTableView.setContextMenu(contextMenu);
 
         splitPane.disableProperty().bind(serviceConnected.not());

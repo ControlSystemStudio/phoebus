@@ -42,6 +42,8 @@ public class Messages {
     public static String compositeSnapshotConsistencyCheckFailed;
     public static String comparisonDialogLunchError;
     public static String comparisonDialogTitle;
+    public static String configure;
+    public static String configureColumnVisibility;
     public static String contextMenuAddTag;
     @Deprecated
     public static String contextMenuAddTagWithComment;

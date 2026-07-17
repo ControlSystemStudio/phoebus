@@ -26,6 +26,7 @@ public class Messages
     public static String Apply;
     /**Available */
     public static String Available;
+    public static String ColumnConfiguration;
     /**Clear */
     public static String Clear;
     /**Clear_Tooltip */
