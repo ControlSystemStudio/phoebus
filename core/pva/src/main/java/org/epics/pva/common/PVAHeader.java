@@ -213,6 +213,17 @@ public class PVAHeader
 
         // Application messages are followed by this number of data bytes
         final int payload = buffer.getInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE);
+        // Java implementation for now does not handle large 'unsigned' sizes,
+        // limited to the positive range of a signed int.
+        // Could use `Integer.toUnsignedLong(payload)`, but JDK API
+        // like buffer buffer.remaining() or buffer.get(10) is using int,
+        // so us updating to long would be of limited use
+        if (payload < 0)
+            throw new Exception("Payload size " + payload +
+                                " exceeds max signed integer " + Integer.toHexString(Integer.MAX_VALUE));
+        // Could check against a PVA variant of EPICS_CA_MAX_ARRAY_BYTES,
+        // but PVA design specifically aims to use all available memory
+        // without self-enforced limitations (confirmed in 2026-07-10 EPICS code telecon)
 
         // Total message size: Header followed by data
         return PVAHeader.HEADER_SIZE + payload;

@@ -18,7 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class BitSetTest
 {
     @Test
-    public void testBitSet()
+    public void testBitSet() throws Exception
     {
         final ByteBuffer buffer = ByteBuffer.allocate(100);
         BitSet bits = new BitSet();

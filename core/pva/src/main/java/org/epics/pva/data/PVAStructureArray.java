@@ -158,6 +158,11 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int count = PVASize.decodeSize(buffer);
+
+        // Each element needs at least the 'non null' info byte
+        if (count < 0  ||  count > buffer.remaining())
+            throw new Exception("Structure element count " + count + " with only " + buffer.remaining() + " bytes in buffer");
+
         // Try to re-use elements
         PVAStructure[] new_elements = elements;
         if (new_elements == null  ||  new_elements.length != count)
