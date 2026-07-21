@@ -143,6 +143,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 label.getStyleClass().add("led_label");
                 label.setFont(text_font);
                 label.setTextFill(text_color);
+                setTextFillColorStyle(label, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
                 label.setManaged(false);
             }
             else
@@ -436,12 +437,21 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                         {   // Colors of text and LED are very close in brightness.
                             // Make text visible by forcing black resp. white
                             if (brightness > Brightness.BRIGHT_THRESHOLD)
+                            {
                                 save_labels[i].setTextFill(Color.BLACK);
+                                setTextFillColorStyle(save_labels[i], "#000000");
+                            }
                             else
+                            {
                                 save_labels[i].setTextFill(Color.WHITE);
+                                setTextFillColorStyle(save_labels[i], "#FFFFFF");
+                            }
                         }
-                        else
+                        else 
+                        {
                             save_labels[i].setTextFill(text_color);
+                            setTextFillColorStyle(save_labels[i], JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
+                        }
                         save_labels[i].layout();
                     }
                 }

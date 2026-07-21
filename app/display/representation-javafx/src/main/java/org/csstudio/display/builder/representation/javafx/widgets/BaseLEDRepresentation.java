@@ -229,6 +229,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         {
             final Color color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
             label.setTextFill(color);
+            setTextFillColorStyle(label, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
             label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
             led.setStyle("-fx-stroke: " + JFXUtil.webRgbOrHex(model_widget.propLineColor().getValue()));
@@ -279,12 +280,21 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
                 {   // Colors of text and LED are very close in brightness.
                     // Make text visible by forcing black resp. white
                     if (brightness > Brightness.BRIGHT_THRESHOLD)
+                    {
                         label.setTextFill(Color.BLACK);
+                        setTextFillColorStyle(label, "#000000");
+                    }
                     else
+                    {
                         label.setTextFill(Color.WHITE);
+                        setTextFillColorStyle(label, "#FFFFFF");
+                    }
                 }
                 else
+                {
                     label.setTextFill(text_color);
+                    setTextFillColorStyle(label, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
+                }
             }
         }
         jfx_node.layout();

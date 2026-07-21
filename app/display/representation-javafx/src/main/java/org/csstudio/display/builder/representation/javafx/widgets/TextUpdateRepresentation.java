@@ -255,6 +255,7 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
                 final Label label = (Label) jfx_node;
                 Color color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
                 label.setTextFill(color);
+                setTextFillColorStyle(label, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
                 label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
                 label.setAlignment(pos);
                 label.setWrapText(model_widget.propWrapWords().getValue());

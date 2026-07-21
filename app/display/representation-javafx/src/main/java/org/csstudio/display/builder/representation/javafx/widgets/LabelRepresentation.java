@@ -180,6 +180,7 @@ public class LabelRepresentation extends RegionBaseRepresentation<Pane, LabelWid
 
             Color color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
             label.setTextFill(color);
+            setTextFillColorStyle(label, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
             if (model_widget.propTransparent().getValue())
                 label.setBackground(null); // No fill
             else

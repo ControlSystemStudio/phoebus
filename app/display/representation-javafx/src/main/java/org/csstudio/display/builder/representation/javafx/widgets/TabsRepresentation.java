@@ -295,6 +295,7 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
                 final Label label = (Label) tab.getGraphic();
                 label.setFont(tab_font);
                 label.setTextFill(Color.BLACK);
+                setTextFillColorStyle(label, "#000000");
 
                 // Set colors
                 tab.setStyle(style);

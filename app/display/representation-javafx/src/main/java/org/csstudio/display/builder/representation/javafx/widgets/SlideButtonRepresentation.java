@@ -23,7 +23,6 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.SlideButtonWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
-import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -94,6 +93,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
             label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
             label.setText(labelContent);
             label.setTextFill(foreground);
+            setTextFillColorStyle(label, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
 
             // Don't disable the widget, because that would also remove the context menu etc.
             // Just apply a style that matches the disabled look.

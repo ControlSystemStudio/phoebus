@@ -215,6 +215,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                     label.setPadding(TITLE_PADDING);
                     label.setPrefSize(width + ( ( !firstUpdate && hasChildren ) ? insets[2] : 0 ), inset);
                     label.setTextFill(foreground_color);
+                    setTextFillColorStyle(label, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
                     label.setBackground(new Background(new BackgroundFill(line_color, CornerRadii.EMPTY, Insets.EMPTY)));
                     break;
                 }
@@ -233,6 +234,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                     label.setPadding(TITLE_PADDING);
                     label.setPrefSize(Label.USE_COMPUTED_SIZE, Label.USE_COMPUTED_SIZE);
                     label.setTextFill(foreground_color);
+                    setTextFillColorStyle(label, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
                     label.setBackground(new Background(new BackgroundFill(background_color, CornerRadii.EMPTY, Insets.EMPTY)));
                     break;
                 }

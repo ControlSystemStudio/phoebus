@@ -434,6 +434,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         indexLabel.setAlignment(Pos.CENTER);
         indexLabel.setFont(Font.font(indexLabel.getFont().getFamily(), FontWeight.BOLD, 16));
         indexLabel.setTextFill(Color.WHITE);
+        setTextFillColorStyle(indexLabel, "#FFFFFF");
         indexLabel.setVisible(model_widget.propShowIndex().getValue());
         indexLabel.textProperty().bind(Bindings.convert(imageIndexProperty()));
 

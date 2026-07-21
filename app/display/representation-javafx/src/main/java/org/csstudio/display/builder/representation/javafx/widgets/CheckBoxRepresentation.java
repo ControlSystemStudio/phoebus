@@ -19,7 +19,6 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
-import org.phoebus.ui.javafx.Styles;
 import org.phoebus.ui.javafx.TextUtils;
 
 import javafx.application.Platform;
@@ -223,6 +222,7 @@ public class CheckBoxRepresentation extends RegionBaseRepresentation<CheckBox, C
             jfx_node.setText(label);
             jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
             jfx_node.setTextFill(JFXUtil.convert(model_widget.propForegroundColor().getValue()));
+            setTextFillColorStyle(jfx_node, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
 
             // Don't disable the widget, because that would also remove the
             // context menu etc.

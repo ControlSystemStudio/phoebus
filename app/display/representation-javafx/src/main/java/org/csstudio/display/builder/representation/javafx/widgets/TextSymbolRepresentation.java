@@ -223,6 +223,7 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
         );
         symbol.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
         symbol.setTextFill(JFXUtil.convert(model_widget.propForegroundColor().getValue()));
+        setTextFillColorStyle(symbol, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
         symbol.setText("\u263A");
         symbol.setManaged(false);
 

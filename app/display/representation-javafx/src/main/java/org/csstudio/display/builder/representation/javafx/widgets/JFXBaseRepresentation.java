@@ -22,7 +22,6 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.WidgetRepresentation;
@@ -34,8 +33,6 @@ import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.ui.dnd.DataFormats;
 import org.phoebus.ui.javafx.Styles;
 
 /** Base class for all JavaFX widget representations
@@ -377,5 +374,20 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                 }   
             }
         }
+    }
+
+    /**
+     * Set the text fill using inline CSS
+     * TODO Remove this method after moving to JFX25!!
+     *  It is Required in JFX21 to workaround bug https://bugs.openjdk.org/browse/JDK-8336097
+     *  meaning we cannot set the colour using setters after making the parent pane 
+     *  transparent. 
+     *  See Phoebus Github issue https://github.com/ControlSystemStudio/phoebus/issues/3891
+     *  
+     * @param node JFX node
+     * @param color Colour as hex string
+     */
+    public static void setTextFillColorStyle(Node node, String color){
+        node.setStyle("-fx-text-fill: "+ color);
     }
 }

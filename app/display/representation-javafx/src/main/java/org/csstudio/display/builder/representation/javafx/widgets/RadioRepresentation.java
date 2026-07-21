@@ -24,7 +24,6 @@ import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
-import org.phoebus.ui.javafx.Styles;
 import org.phoebus.ui.vtype.FormatOption;
 import org.phoebus.ui.vtype.FormatOptionHandler;
 
@@ -304,6 +303,7 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
             {
                 final RadioButton rb = (RadioButton) rb_node;
                 rb.setTextFill(fg);
+                setTextFillColorStyle(rb, JFXUtil.webHex(model_widget.propForegroundColor().getValue()));
                 rb.setFont(font);
             }
         }
