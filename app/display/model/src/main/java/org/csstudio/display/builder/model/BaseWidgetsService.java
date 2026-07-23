@@ -34,6 +34,7 @@ import org.csstudio.display.builder.model.widgets.PictureWidget;
 import org.csstudio.display.builder.model.widgets.PolygonWidget;
 import org.csstudio.display.builder.model.widgets.PolylineWidget;
 import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
+import org.csstudio.display.builder.model.widgets.PVASecurityWidget;
 import org.csstudio.display.builder.model.widgets.RadioWidget;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
@@ -90,6 +91,7 @@ public class BaseWidgetsService implements WidgetsService
             PolygonWidget.WIDGET_DESCRIPTOR,
             PolylineWidget.WIDGET_DESCRIPTOR,
             ProgressBarWidget.WIDGET_DESCRIPTOR,
+            PVASecurityWidget.WIDGET_DESCRIPTOR,
             RadioWidget.WIDGET_DESCRIPTOR,
             RectangleWidget.WIDGET_DESCRIPTOR,
             ScaledSliderWidget.WIDGET_DESCRIPTOR,
