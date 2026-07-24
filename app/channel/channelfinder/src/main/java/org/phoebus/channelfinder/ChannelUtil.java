@@ -15,7 +15,7 @@ import java.util.TreeSet;
 
 /**
  * @author shroffk
- * 
+ *
  */
 public class ChannelUtil {
 
@@ -28,7 +28,7 @@ public class ChannelUtil {
 
     /**
      * Return a list of tag names associated with this channel
-     * 
+     *
      * @param channel
      *            - channel to be processed
      * @return Collection of names of tags
@@ -43,7 +43,7 @@ public class ChannelUtil {
 
     /**
      * Return a union of tag names associated with channels
-     * 
+     *
      * @param channels
      *            - list of channels
      * @return a set of all unique tag names associated with atleast one or more
@@ -59,7 +59,7 @@ public class ChannelUtil {
 
     /**
      * Return a list of property names associated with this channel
-     * 
+     *
      * @param channel
      *            - channel to be processed
      * @return Collection of names of properties
@@ -75,7 +75,7 @@ public class ChannelUtil {
 
     /**
      * Return a union of property names associated with channels
-     * 
+     *
      * @param channels
      *            - list of channels
      * @return a set of all unique property names associated with atleast one or
@@ -100,7 +100,7 @@ public class ChannelUtil {
 
     /**
      * Returns all the channel Names in the given Collection of channels
-     * 
+     *
      * @param channels
      *            - list of channels
      * @return a set of all the unique names associated with the each channel in
@@ -118,7 +118,7 @@ public class ChannelUtil {
      * Given a Collection of channels returns a new collection of channels
      * containing only those channels which have all the properties in the
      * <code>propNames</code>
-     * 
+     *
      * @param channels
      *            - the input list of channels
      * @param propNames
@@ -140,7 +140,7 @@ public class ChannelUtil {
      * Given a Collection of channels returns a new collection of channels
      * containing only those channels which have all the tags in the
      * <code>tagNames</code>
-     * 
+     *
      * @param channels
      *            - the input list of channels
      * @param tagNames
@@ -162,7 +162,7 @@ public class ChannelUtil {
      * Given a Collection of channels returns a new collection of channels
      * containing only those channels which have all the tags in the
      * <code>tagNames</code>
-     * 
+     *
      * @param channels
      *            - the input list of channels
      * @param propNames
@@ -187,7 +187,7 @@ public class ChannelUtil {
     /**
      * Returns a list of {@link Channel} built from the list of
      * {@link Channel.Builder}s
-     * 
+     *
      * @param channelBuilders
      *            - list of Channel.Builder to be built.
      * @return Collection of {@link Channel} built from the channelBuilders
@@ -203,7 +203,7 @@ public class ChannelUtil {
     /**
      * Returns a list of {@link Channel} built from the list of
      * {@link Channel.Builder}s
-     * 
+     *
      * @param channelBuilders
      *            - list of Channel.Builder to be built.
      * @return Collection of {@link Channel} built from the channelBuilders

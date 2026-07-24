@@ -103,7 +103,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPan
             // still defaulting to "http://".
             else if (!url.contains("://"))
                 url = "http://" + url;
-            
+
             //Try to open page to test if we can open page
             try {
                 InputStream openURL = ModelResourceUtil.openURL(url, 0);
@@ -117,7 +117,7 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPan
                 errorMessage.append("<a href=" + url + " target=\"_blank\">"+url+"</a><BR>");
                 errorMessage.append("<u>"+Messages.WebPageErrorMessage+" :</u> " + e.getMessage() + "<BR>");
                 errorMessage.append("<u>"+Messages.WebPageErrorDetails+" :</u> " + e.toString());
-                webEngine.loadContent(errorMessage.toString()); 
+                webEngine.loadContent(errorMessage.toString());
             }
         }
 

@@ -32,7 +32,7 @@ def stepImages():
         data_rgb2.extend(new_row[0::3] + new_row[1::3] + new_row[2::3])
     data = new_data
     data_rgb3 = data[0::3] + data[1::3] + data[2::3]
-    
+
     return (createSimpleImage(1, data, (3, width, height)),
     		createSimpleImage(2, data_rgb2, (width, 3, height)),
     		createSimpleImage(3, data_rgb3, (width, height, 3)),
@@ -63,4 +63,3 @@ while True:
     for num, image in enumerate(stepImages()):
         server.update(names[num], image)
     sleep(1)
-

@@ -108,7 +108,7 @@ public class PropertyPreferenceWriter
            .append("<br/>\n");
         if (bNotFound) out.append("</div>");
     }
-    
+
     private static Map<String, String> getAllPropertyKeys()
     {
         Map<String, String> allKeysWithPackages = new HashMap<>();
@@ -161,7 +161,7 @@ public class PropertyPreferenceWriter
 
         return allKeysWithPackages;
 	}
-    
+
     private static String[] getAllJarFromManifest(String jarPath) {
     	String[] jars = new String[0];
         File jarFile = new File(jarPath);
@@ -188,10 +188,10 @@ public class PropertyPreferenceWriter
         } catch (IOException ex) {
             logger.log(Level.WARNING, "Error when reading the jar : " + jarPath, ex);
         }
-        
+
         return jars;
     }
-    
+
     private static void parsePropertiesWithPackage(InputStream inputStream, String fileName, Map<String, String> allKeysWithPackages) {
         Properties props = new Properties();
         String packageName = null;

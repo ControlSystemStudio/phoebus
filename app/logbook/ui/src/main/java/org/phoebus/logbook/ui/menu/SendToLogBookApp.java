@@ -31,7 +31,7 @@ public class SendToLogBookApp implements AppDescriptor
     {
         return DISPLAY_NAME;
     }
-    
+
     @Override
     public String getName()
     {

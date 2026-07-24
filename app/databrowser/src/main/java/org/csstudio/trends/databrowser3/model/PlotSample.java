@@ -74,7 +74,7 @@ public class PlotSample implements PlotDataItem<Instant>
             else if (value instanceof VEnum) {
                 this.info = (((VEnum) value).getValue() + " " + this.info).trim();
             }
-                
+
         }
         else
             this.info = info;

@@ -51,7 +51,7 @@ public class ContextMenuService {
      * the {@link AdapterService} for all additionally supported types via adapters.
      * The {@link ContextMenuService} returns a list of context menu actions
      * supported for the current selection.
-     * 
+     *
      * @return A list of {@link ContextMenuEntry}'s supported for the current
      *         selection
      */

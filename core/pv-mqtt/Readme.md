@@ -10,7 +10,7 @@ Example Broker Setup and first steps
 ------------------------------------
 
 This example uses Eclipse Mosquitto on Linux.
-See https://mqtt.org for links to several other MQTT brokers and clients. 
+See https://mqtt.org for links to several other MQTT brokers and clients.
 
 Download: Get source release `mosquitto-....tar.gz` from https://mosquitto.org/download
 
@@ -25,7 +25,7 @@ export LD_LIBRARY_PATH=`pwd`/lib
 # Optionally, add the following to a `bin` folder that's on your $PATH
 # src/mosquitto, client/mosquitto_sub, client/mosquitto_pub
 ```
-     
+
 Run broker:
 
 ```
@@ -104,4 +104,3 @@ instruct the PV to parse the text in other ways.
 | `<VLong>`        | Parse as long integer                                                        |
 | `<VDoubleArray>` | Parse as array of comma-separated floating point numbers                     |
 | `<VStringArray>` | Parse text as array of comma-separated strings                               |
-

@@ -55,17 +55,17 @@ class Animation(Runnable):
     def __init__(self):
         self.angle = 0.0
         self.running = True
-    
+
     def isRunning(self):
         return self.running
-        
+
     def run(self):
         self.angle += 5.0
         camera.setRotate(self.angle)
         if self.angle > 360.0:
             scene.setCamera(None)
             self.running = False
-    
+
 animation = Animation()
 while animation.isRunning():
     Platform.runLater(animation)
@@ -167,12 +167,12 @@ filename = "/tmp/demo.shp"
 d = 40
 with open(filename, 'w') as f:
     f.write("background(150, 150, 200, 1)\n")
-    
+
     for x in range(nx):
         for y in range(ny):
             for z in range(nz):
                 f.write("sphere(%d, %d, %d, 10, 200, 200, 0, 1)\n" % (x*d, y*d, z*d))
-    
+
     f.write("box(0, 0, 0, %d, %d, %d, 255, 0, 255, 0.2)\n" % ((nx-1)*d, (ny-1)*d, (nz-1)*d))
 
 viewer.setPropertyValue("file", "")

@@ -17,7 +17,7 @@
       <fileset dir="src/test/resources"/>
     </jar>
   </target>
-	
+
   <target name="test-util" depends="core-util">
     <junit printsummary="withOutAndErr" haltonfailure="yes">
       <classpath>
@@ -31,5 +31,5 @@
       </batchtest>
     </junit>
   </target>
-	
+
 </project>

@@ -26,7 +26,7 @@ public class TimeDuration {
      * Create a Duration
      * @param sec seconds
      * @param nanoSec nanoseconds
-     * @return duration 
+     * @return duration
      */
     public static Duration createDuration(long sec, int nanoSec) {
         return Duration.ofSeconds(sec).plusNanos(nanoSec);

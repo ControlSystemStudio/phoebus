@@ -28,8 +28,8 @@ public class LocProposal extends Proposal
     private final String[] initial_values;
 
     /**
-     * Constructor 
-     * @param name , name 
+     * Constructor
+     * @param name , name
      * @param type , type
      * @param initial_values , initial value
      */

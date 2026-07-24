@@ -28,8 +28,8 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import org.epics.vtype.json.VTypeToJson;
 
 /**
- * Custom JSON serializer for VTypes.	
- * @author georgweiss 
+ * Custom JSON serializer for VTypes.
+ * @author georgweiss
  * Created 30 Nov 2018
  */
 public class VTypeSerializer extends JsonSerializer<VType> {

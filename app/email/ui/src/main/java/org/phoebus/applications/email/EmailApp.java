@@ -78,12 +78,12 @@ public class EmailApp implements AppResourceDescriptor {
     public AppInstance create()
     {
         try {
-            
+
             final FXMLLoader loader = new FXMLLoader();
             loader.setLocation(EmailApp.class.getResource("ui/EmailDialog.fxml"));
             Parent root = loader.load();
             final EmailDialogController controller = loader.getController();
-            
+
             Scene scene = new Scene(root, 600, 800);
 
             Stage stage = new Stage();

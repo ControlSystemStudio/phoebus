@@ -38,7 +38,7 @@ public class Activator
     @Preference(name="parallel_rendering") public static boolean parallel_rendering;
 
     /** Thread pool for scrolling, throttling updates
-     * 
+     *
      *  <p>One per CPU core allows that many plots to run updateImageBuffer in parallel.
      */
     public static final ScheduledExecutorService thread_pool

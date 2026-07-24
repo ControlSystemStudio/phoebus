@@ -68,7 +68,7 @@ If the following "First steps" generate errors of the type
 or
 
     ERROR ..TimeoutException: Timed out waiting for a node assignment
-    
+
 then define the host name in  `config/server.properties`.
 For tests, you can use localhost:
 
@@ -115,14 +115,14 @@ but simply meant to learn about Kafka or to test connectivity.
 
     # Create new topic
     kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --create --replication-factor 1 --partitions 1 --topic test
-    
+
     # Topic info
     kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --list
     kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --describe
     kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --describe --topic test
     kafka/bin/kafka-configs.sh --bootstrap-server localhost:9092 --entity-type topics --describe
-    
-    # Produce messages for topic (no key) 
+
+    # Produce messages for topic (no key)
     kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
     Message 1
     Message 2
@@ -569,4 +569,3 @@ When functional, the file `kafka/logs/log-cleaner.log` shows periodic compaction
 		Start size: 0.1 MB (414 messages)
 		End size: 0.1 MB (380 messages)
 		8.9% size reduction (8.2% fewer messages)
-

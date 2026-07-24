@@ -737,8 +737,8 @@
 60008; Statut: Référencement en cours
 60009; Statut: Position atteinte
 600010; Statut: Demande de mouvement absolu....
-60011; Statut: Demande de mouvement relative.... 
-60012; Statut: Arrêt du variateur 
-60013; Statut: Positionnement automatique activé 
+60011; Statut: Demande de mouvement relative....
+60012; Statut: Arrêt du variateur
+60013; Statut: Positionnement automatique activé
 
 ******** Fin fichier ************

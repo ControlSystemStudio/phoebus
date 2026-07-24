@@ -40,7 +40,7 @@ Example authorization configuration file::
         alarm_ack = .*
 
         # Specific users may configure alarms, including both "jane" and "janet"
-        #alarm_config = fred, jane.*, egon, 
+        #alarm_config = fred, jane.*, egon,
 
         # Anybody can configure alarms
         alarm_config = .*

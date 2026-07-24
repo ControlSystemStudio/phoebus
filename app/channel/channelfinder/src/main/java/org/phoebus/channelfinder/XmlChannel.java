@@ -15,13 +15,13 @@ import com.fasterxml.jackson.annotation.*;
  * @author Kunal Shroff {@literal <shroffk@bnl.gov>}, Ralph Lange {@literal <ralph.lange@gmx.de>}
  */
 
-@JsonRootName("channel") 
+@JsonRootName("channel")
 public class XmlChannel {
     private String name;
     private String owner;
     private List<XmlProperty> properties = new ArrayList<XmlProperty>();
     private List<XmlTag> tags = new ArrayList<XmlTag>();
-  
+
     /** Creates a new instance of XmlChannel */
     public XmlChannel() {
     }
@@ -47,7 +47,7 @@ public class XmlChannel {
     }
 
     /**
-     * 
+     *
      * @param name - channel name
      * @param owner - channel owner
      * @param properties - list of channel properties
@@ -109,7 +109,7 @@ public class XmlChannel {
     public void setProperties(List<XmlProperty> properties) {
         this.properties = properties;
     }
-    
+
     /**
      * Adds an XmlProperty to the channel.
      *
@@ -137,7 +137,7 @@ public class XmlChannel {
     public void addXmlTag(XmlTag tag) {
         this.tags.add(tag);
     }
-    
+
     /**
      * Creates a compact string representation for the log.
      *

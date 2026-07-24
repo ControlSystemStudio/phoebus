@@ -3,16 +3,16 @@
 <xs:import namespace="http://www.w3.org/2001/XInclude" schemaLocation="http://www.w3.org/2001/xinclude.xsd"/>
 
 <!-- Archive Engine Configuration: Which channels to sample and how
-     
+
      An archive config file can link to this schema:
      <engineconfig
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="archive_config.xsd">
-         
+
      Or run standalone validation  (use double'-', can't show that in XML comment):
           xmllint -schema archive_config.xsd example_config.xml
   -->
-  
+
     <!-- <engineconfig> has one or more <group>s -->
     <xs:element name="engineconfig">
         <xs:complexType>
@@ -21,7 +21,7 @@
            </xs:choice>
      </xs:complexType>
     </xs:element>
-        
+
     <!-- <group> has a name followed by <channel>s -->
     <xs:element name="group">
         <xs:complexType>
@@ -35,7 +35,7 @@
     <!-- <channel> has a name and sample settings -->
     <xs:element name="channel">
         <xs:complexType>
-            <xs:all>    
+            <xs:all>
                 <xs:element minOccurs="1" maxOccurs="1" ref="name" />
                 <xs:element minOccurs="0" maxOccurs="1" ref="period" />
                 <xs:element minOccurs="0" maxOccurs="1" ref="scan" />
@@ -47,7 +47,7 @@
 
     <!-- Channel name -->
     <xs:element name="name" type="xs:string" />
-    
+
     <!-- Period in seconds (600, 0.5) or HH:MM:SS format (00:10:00) -->
     <xs:simpleType name="period_value">
         <xs:restriction base="xs:string">
@@ -55,18 +55,18 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <!-- 'scan' period or estimated time between 'monitor' updates -->    
+    <!-- 'scan' period or estimated time between 'monitor' updates -->
     <xs:element name="period" type="period_value" />
-    
+
     <!-- Sample mode: scan or monitor. 'scan' channel at given period .. or -->
     <xs:element name="scan">  <xs:complexType></xs:complexType> </xs:element>
 
     <!-- .. 'monitor' updates from channel (period should provide estimate) -->
     <xs:element name="monitor" substitutionGroup="scan"/>
-    
+
     <!-- Mark channel as enabling its group -->
     <xs:element name="enable">  <xs:complexType></xs:complexType> </xs:element>
-    
+
     <!-- Client-side change threshold (use if IOC cannot set ADEL) -->
-    <xs:element name="delta" type="xs:double" />    
+    <xs:element name="delta" type="xs:double" />
 </xs:schema>

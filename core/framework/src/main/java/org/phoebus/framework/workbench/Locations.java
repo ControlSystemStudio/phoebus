@@ -43,7 +43,7 @@ public class Locations
         //First force logging level to CONFIG and memorize user level
         Level userLoggingLevel = logger.getLevel();
         logger.setLevel(Level.CONFIG);
-        
+
         // Check for location of installation,
         // i.e. the directory that should contain the lib/
         // and doc/ folders.
@@ -83,10 +83,10 @@ public class Locations
         //First force logging level to CONFIG and memorize user level
         Level userLoggingLevel = logger.getLevel();
         logger.setLevel(Level.CONFIG);
-        
+
         String folder_name_preference = System.getProperty(FOLDER_NAME_PREFERENCE);
         String foundFrom = "$("+ FOLDER_NAME_PREFERENCE +") system property";
-        if (folder_name_preference == null) 
+        if (folder_name_preference == null)
         {
             //Test preference folder_name_preference before
             folder_name_preference = WorkbenchPreferences.phoebus_folder_name;
@@ -96,9 +96,9 @@ public class Locations
                 folder_name_preference = ".phoebus";
             }
         }
-        
+
         logger.log(Level.CONFIG, "folder_name_preference is set to {0} found from {1}", new Object[] {folder_name_preference , foundFrom});
-        
+
         String userHome = System.getProperty(PHOEBUS_USER);
         foundFrom = "$("+ PHOEBUS_USER +") system property";
         if (userHome == null)
@@ -114,13 +114,13 @@ public class Locations
                 userHome = System.getProperty("user.home");
             }
         }
-        
+
         logger.log(Level.CONFIG, "user home is set to {0} found from {1}", new Object[] {userHome , foundFrom});
-       
+
         String phoebus_user = new File(userHome, folder_name_preference).getAbsolutePath();
         logger.log(Level.CONFIG, "phoebus_user folder is set to " + phoebus_user);
         System.setProperty(PHOEBUS_USER, phoebus_user);
-        
+
         //Put back user logging level
         logger.setLevel(userLoggingLevel);
     }

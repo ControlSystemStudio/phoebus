@@ -16,9 +16,9 @@ import fr.soleil.tango.clientapi.util.TypeConversionUtil;
 
 
 /**
- * 
+ *
  * This class provide useful static methods to insert and extract result from Command
- * 
+ *
  *  @author katy.saintin@cea.fr
  */
 public class TangoCommandHelper {
@@ -30,7 +30,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns an <code>int</code> that represents the type of data a command can have as argument.
-     * 
+     *
      * @param deviceName The device name.
      * @param commandName The command name.
      * @return An <code>int</code>.
@@ -49,7 +49,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns an <code>int</code> that represents the type of data a command can have as argument.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @return An <code>int</code>.
@@ -63,7 +63,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns an <code>int</code> that represents the type of data a command can have as argument.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @param defaultValue The default value to return if something went wrong.
@@ -81,7 +81,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns an <code>int</code> that represents the type of data a command can return.
-     * 
+     *
      * @param deviceName The device name.
      * @param commandName The command name.
      * @return An <code>int</code>.
@@ -100,7 +100,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns an <code>int</code> that represents the type of data a command can return.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @return An <code>int</code>.
@@ -114,7 +114,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns an <code>int</code> that represents the type of data a command can return.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @param defaultValue The default value to return if something went wrong.
@@ -132,7 +132,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns the {@link CommandInfo} of a command.
-     * 
+     *
      * @param deviceName The device name.
      * @param commandName The command name.
      * @return A {@link CommandInfo}.
@@ -143,7 +143,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns the {@link CommandInfo} of a command.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @return A {@link CommandInfo}.
@@ -167,7 +167,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns whether a command exists
-     * 
+     *
      * @param deviceName The device name
      * @param commandName The command name
      * @return Whether the command exists
@@ -190,7 +190,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns whether a command exists.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @return Whether the command exists.
@@ -213,7 +213,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns the command list of a given device.
-     * 
+     *
      * @param deviceName The device name.
      * @param lowerCase Whether to force all returned values as lower case.
      * @return A {@link String} array.
@@ -237,7 +237,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns the command list of a given device.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param lowerCase Whether to force all returned values as lower case.
      * @return A {@link String} array.
@@ -247,7 +247,7 @@ public class TangoCommandHelper {
         if (proxy != null) {
             try {
                 commandList = getCommandListWithError(proxy, lowerCase);
-            } 
+            }
             catch (DevFailed e) {
                 String errorMessage = CANNOT_READ_COMMAND_LIST_QUERY_ON + " " + proxy.get_name();
                 System.err.println(errorMessage + " " + TangoExceptionHelper.getErrorMessage(e));
@@ -258,7 +258,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns the command list of a given device, throwing {@link DevFailed} in case of communication problems.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param lowerCase Whether to force all returned values as lower case.
      * @return A {@link String} array.
@@ -282,7 +282,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns the command list of a given device.
-     * 
+     *
      * @param deviceName The device name.
      * @return A {@link String} array.
      */
@@ -292,7 +292,7 @@ public class TangoCommandHelper {
 
     /**
      * Returns the command list of a given device.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @return A {@link String} array.
      */
@@ -302,7 +302,7 @@ public class TangoCommandHelper {
 
     /**
      * Executes a command and returns its result.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @param arg The argument to give to the command.
@@ -317,7 +317,7 @@ public class TangoCommandHelper {
 
     /**
      * Executes a command and returns its result.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @param expectedResultClass The expected result class.
@@ -333,7 +333,7 @@ public class TangoCommandHelper {
 
     /**
      * Executes a command and returns its result.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @param commandInType The command input type, that can be obtained through <code>getCommandInType</code> methods.
@@ -356,7 +356,7 @@ public class TangoCommandHelper {
 
     /**
      * Executes a command and returns its result.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @param commandInType The command input type, that can be obtained through <code>getCommandInType</code> methods.
@@ -380,7 +380,7 @@ public class TangoCommandHelper {
 
     /**
      * Executes a command and returns its result.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} connected to the device.
      * @param commandName The command name.
      * @param commandInData The {@link DeviceData} to use in order to set command argument. If <code>null</code>, a new
@@ -427,14 +427,14 @@ public class TangoCommandHelper {
         }
         return result;
     }
-    
+
     public static String getTangoTypeForType(int type) {
         return TangoConst.Tango_CmdArgTypeName[type];
     }
 
     /**
      * Returns whether a command in/out type represents a scalar value.
-     * 
+     *
      * @param commandInOutType The command in/out type.
      * @return A <code>boolean</code>.
      * @see #getCommandInType(DeviceProxy, String)
@@ -450,7 +450,7 @@ public class TangoCommandHelper {
 
     /**
      * Extracts a {@link List} from a command value.
-     * 
+     *
      * @param type The type of data that should be contained in the list.
      * @param value The command value.
      * @return A {@link List}.
@@ -483,7 +483,7 @@ public class TangoCommandHelper {
 
     /**
      * Converts an array to a list.
-     * 
+     *
      * @param value The array.
      * @return A {@link List}.
      */

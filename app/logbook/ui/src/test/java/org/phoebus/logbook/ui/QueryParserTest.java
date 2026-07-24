@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test the parsing of the logbook query URI syntax
- * 
+ *
  * @author Kunal Shroff
  *
  */

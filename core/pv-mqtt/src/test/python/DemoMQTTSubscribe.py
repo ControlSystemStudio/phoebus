@@ -9,7 +9,7 @@ will_message = "DemoMQTT has disconnected."
 
 def on_client_connect(client, userdata, flags, rc):
     print "Connected with result code " + str(rc)
-    
+
     client.subscribe(topic)
 
 def on_message_recieved(client, userdata, message):
@@ -25,4 +25,3 @@ client.will_set(topic, will_message, 0, True)
 client.connect("localhost", 1883, 30)
 
 client.loop_forever()
-

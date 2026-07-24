@@ -22,7 +22,7 @@ public class AlarmLogTableMenuEntry implements MenuEntry {
     public String getMenuPath() {
         return "Alarm";
     }
-    
+
     @Override
     public Image getIcon() {
         return AlarmLogTableApp.icon;

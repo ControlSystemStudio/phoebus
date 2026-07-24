@@ -31,7 +31,7 @@ import javafx.scene.image.ImageView;
 
 /**
  * Controller for the Tree view of Channels based on a set of selected properties
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -141,7 +141,7 @@ public class ChannelTreeController extends ChannelFinderController {
     }
 
     /**
-     * Dispose the existing model, recreate a new one and 
+     * Dispose the existing model, recreate a new one and
      */
     @FXML
     private void reconstructTree() {

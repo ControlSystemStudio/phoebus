@@ -216,7 +216,7 @@ public class AlarmLogTableController {
 
         valueCol.setCellValueFactory(
                 alarmMessage -> {
-                    String value = alarmMessage.getValue().getValue(); 
+                    String value = alarmMessage.getValue().getValue();
                     return new SimpleStringProperty(value);
                 });
         tableView.getColumns().add(valueCol);

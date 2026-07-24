@@ -126,7 +126,7 @@ public class ExecuteScriptAction extends ActionInfoBase {
                 actionId.equalsIgnoreCase(EXECUTE_PYTHONSCRIPT) ||
                 actionId.equalsIgnoreCase(EXECUTE_JAVASCRIPT);
     }
-    
+
     public ScriptInfo getScriptInfo() {
         return scriptInfo;
     }

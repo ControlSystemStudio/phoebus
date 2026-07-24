@@ -38,7 +38,7 @@ public class AlarmConfigTool
     public void exportModel(String filename, String server, String config, String kafka_properties_file) throws Exception
     {
         final XmlModelWriter xmlWriter;
-        
+
         // Write to stdout or to file.
         if (filename.equals("stdout"))
             xmlWriter = new XmlModelWriter(System.out);

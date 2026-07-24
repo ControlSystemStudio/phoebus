@@ -22,7 +22,7 @@ public class PropertiesTab extends Tab
     {
         formatTab();
     }
-    
+
     private void formatTab()
     {
         setClosable(false);

@@ -92,7 +92,7 @@ which can convert a list of files, including complete directories::
     -output /path/to/folder      - Folder into which converted files are written
     -force                       - Overwrite existing files instead of stopping
     -depth count                 - Convert just the listed files (1), or also referenced files (2), or more levels down
-    
+
 The batch converter can also recursively convert referenced files like
 embedded displays or related displays.
 Refer to the complete ``-help`` output for details.
@@ -119,7 +119,7 @@ To enable the auto-converter, define a folder where the converted files will be 
 as well as related settings::
 
     org.csstudio.display.converter.edm/auto_converter_dir=/path/to/AUTOCONVERTED_FILES
-    org.csstudio.display.converter.edm/auto_converter_strip=/some/prefix/to/strip    
+    org.csstudio.display.converter.edm/auto_converter_strip=/some/prefix/to/strip
     org.csstudio.display.converter.edm/edm_paths_config=/path/to/my_edm_search_paths.txt
 
 With the auto-converter folder defined, each time the display builder
@@ -143,7 +143,7 @@ Use these example settings::
     org.csstudio.display.converter.edm/auto_converter_dir=$(user.home)/AUTOCONVERTED_FILES
     org.csstudio.display.converter.edm/auto_converter_strip=$(user.home)/AUTOCONVERTED_FILES
     org.csstudio.display.converter.edm/edm_paths_config=https://my.site.org/opi/edm/paths.txt
-    
+
 where the file ``paths.txt`` on the server should include just one line::
 
     https://my.site.org/opi/edm/
@@ -151,7 +151,7 @@ where the file ``paths.txt`` on the server should include just one line::
 To bootstrap access to the EDM displays from your display builder screens,
 use an action button labeled "EDM Displays"
 with an action to open ``$(user.home)/AUTOCONVERTED_FILES/general/start.bob``.
-When you first click that button, 
+When you first click that button,
 ``$(user.home)/AUTOCONVERTED_FILES/general/start.bob`` does not exist,
 and we attempt to auto-convert it from an EDM display:
 

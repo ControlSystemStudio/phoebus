@@ -12,11 +12,11 @@
         <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-display-linearmeter-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
-	
+
 </project>

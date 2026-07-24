@@ -18,7 +18,7 @@ def createImage(value):
     value = value % 0xFFFF
     print("Image for %d" % value)
     img = np.ones((height, width), dtype=np.uint16) * value
-    
+
     # Image value at odd  x or y: 0
     # Image value at even x or y: x/2 + y/2 * 50
     pixel = 0
@@ -50,4 +50,3 @@ while True:
         driver.updatePVs()
         print("Updated image")
         next = time.time() + period
-

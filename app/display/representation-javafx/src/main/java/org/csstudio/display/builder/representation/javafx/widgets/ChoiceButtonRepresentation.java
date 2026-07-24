@@ -181,12 +181,12 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
             {
                 active = false;
             }
-        } 
-        else if (!enabled && newval == null) 
+        }
+        else if (!enabled && newval == null)
         {
             // If the choice button is not enabled (no write allowed)
             // we still have to ensure the 'oldval' stays selected
-            // as otherwise clicking on the same value will set an 
+            // as otherwise clicking on the same value will set an
             // unselected look on the ChoiceButton.
         	toggle.selectToggle(oldval);
         }

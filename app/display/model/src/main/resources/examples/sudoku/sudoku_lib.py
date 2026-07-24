@@ -7,7 +7,7 @@ class SudokuSolver:
             for col in range(9):
                 value = board[row][col]
                 self.solveCell(row, col, value)
-       
+
     def solveCell(self, row, col, val):
         if self.board[row][col] != 0 or val == 0: return
         self.board[row][col] = val
@@ -39,7 +39,7 @@ class SudokuSolver:
                    not self.isSolvableBlock(x-x%3, x%3*3):
                     return self.board
         return self.board
-    
+
     def isSolvableRow(self,row):
         numFoundOf = [0] * 9
         lastFoundAt = [(-1,-1)] * 9
@@ -57,7 +57,7 @@ class SudokuSolver:
                 return False
         self.scanUnit(numFoundOf, lastFoundAt)
         return True
-    
+
     def isSolvableBlock(self, rowStart, colStart):
         numFoundOf = [0] * 9
         lastFoundAt = [(-1,-1)] * 9
@@ -67,7 +67,7 @@ class SudokuSolver:
                     return False
         self.scanUnit(numFoundOf, lastFoundAt)
         return True
-    
+
     def isSolvableCell(self, row, col, numFoundOf, lastFoundAt):
         currPoss = self.poss[row*9+col]
         numPoss = len(currPoss)
@@ -99,11 +99,11 @@ class SudokuSolver:
 if __name__ == "__main__":
     # Standalone demo code
     print("Sudoku Demo")
-    
+
     board = [ [0,2,0, 0,0,4, 3,0,0],
               [9,0,0, 0,2,0, 0,0,8],
               [0,0,0, 6,0,9, 0,5,0],
-              
+
               [0,0,0, 0,0,0, 0,0,1],
               [0,7,2, 5,0,3, 6,8,0],
               [6,0,0, 0,0,0, 0,0,0],
@@ -112,7 +112,7 @@ if __name__ == "__main__":
               [1,0,0, 0,9,0, 0,0,3],
               [0,0,9, 8,0,0, 0,6,0] ]
     solver = SudokuSolver(board)
-    
+
     def printBoard(solver):
         for x in range(9):
             print("  %d %d %d  %d %d %d  %d %d %d" % (solver.board[x][0],solver.board[x][1],solver.board[x][2],
@@ -125,29 +125,29 @@ if __name__ == "__main__":
     printBoard(solver)
 
     board = solver.solve()
-    
+
     print("solved:")
     printBoard(solver)
-    
+
     unsolvable = [ [5,2,0, 0,0,4, 3,0,0],
                    [9,0,0, 0,2,0, 0,0,8],
                    [0,0,0, 6,0,9, 0,5,0],
-                 
+
                    [0,0,0, 0,0,0, 0,0,1],
                    [0,7,2, 5,0,3, 6,8,0],
                    [6,0,0, 0,0,0, 0,0,0],
-     
+
                    [0,8,0, 2,0,5, 0,0,0],
                    [1,0,0, 0,9,0, 0,0,3],
                    [0,0,9, 8,0,0, 0,6,0] ]
-    
+
     solver = SudokuSolver(unsolvable)
 
     print("unsolvable:")
     printBoard(solver)
 
     board = solver.solve()
-    
+
     print("unsolved:")
     printBoard(solver)
-    
+

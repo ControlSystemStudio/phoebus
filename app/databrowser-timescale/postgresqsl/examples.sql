@@ -15,7 +15,7 @@ SELECT s.smpl_time, s.nanosecs, channel.name, severity.name, status.name, s.num_
 
 -- Optimized readout example
 SELECT smpl_time AS bucket, NULL AS min, NULL AS max, NULL AS avg, str_val, 1 AS N
-  FROM sample                                                                                      
+  FROM sample
   WHERE channel_id = 4
     AND smpl_time BETWEEN '2019-05-30' AND '2019-06-02'
     AND str_val is not null
@@ -54,4 +54,3 @@ SELECT bucket, severity.name AS severity, status.name AS STATUS, min, max, avg, 
 SELECT * FROM channel WHERE name LIKE '...';
 -- Get optimized data for that channel ID:
 SELECT * FROM auto_optimize(33, '2021-01-01', '2021-06-02', 1000);
-

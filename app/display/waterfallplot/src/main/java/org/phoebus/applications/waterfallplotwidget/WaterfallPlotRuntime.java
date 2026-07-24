@@ -262,7 +262,7 @@ public class WaterfallPlotRuntime extends WidgetRuntime<WaterfallPlotWidget> {
         };
 
         ArchiveFetchJobListener archiveFetchJobListener = new ArchiveFetchJobListener() {
-            
+
             @Override
             public void fetchCompleted(ArchiveFetchJob archiveFetchJob) {
                 synchronized (lock) {

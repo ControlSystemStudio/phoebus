@@ -154,7 +154,7 @@ The ``MySQL.dbd`` used to install the archive tables adds a few demo samples
 for ``sim://sine(0, 10, 50, 0.1)`` around 2004-01-10 13:01, so you can simply
 add that channel to a Data Browser and find data at that time.
 
-For PostgreSQL, change the URLs to 
+For PostgreSQL, change the URLs to
 ``jdbc:postgresql://my.host.site.org:5432/archive``
 
 In case of connection problems, you may want to start with ``my.host.site.org``

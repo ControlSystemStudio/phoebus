@@ -27,7 +27,7 @@ class ChannelTreeByPropertyModel {
 
     List<Channel> allChannels;
     List<String> properties;
-    
+
     // PVs represented by this three
     List<PV> nodePVs;
     Map<String, VType> nodePVValues;

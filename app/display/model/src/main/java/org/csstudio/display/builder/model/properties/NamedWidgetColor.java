@@ -44,4 +44,3 @@ public class NamedWidgetColor extends org.phoebus.ui.color.NamedWidgetColor
                 "Use org.phoebus.ui.color.NamedWidgetColor.");
     }
 }
-

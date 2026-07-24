@@ -363,7 +363,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
      * We do not want to disable widgets if they cannot be written to as this
      * removes the context menu. Instead we replicate the disabled look from Java FX
      * and set the cursor to the 'NO_WRITE' cursor to indicate this.
-     * 
+     *
      * @param enabled  boolean as to whether widget interaction is allowed
      * @param children list of children nodes under the parent widget
      */
@@ -374,7 +374,7 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
                 for (Node node : children)
                 {
                     Styles.update(node, Styles.NOT_ENABLED, !enabled);
-                }   
+                }
             }
         }
     }

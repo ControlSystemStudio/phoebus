@@ -35,7 +35,7 @@ public class LogEntryTableApp implements AppResourceDescriptor {
     public String getDisplayName() {
         return DISPLAY_NAME;
     }
-    
+
     @Override
     public String getName() {
         return NAME;

@@ -1,10 +1,10 @@
 Alarm Logging Service
 =====================
 
-The alarm logging service records all alarm messages to create an archive of all 
+The alarm logging service records all alarm messages to create an archive of all
 alarm state changes and the associated actions.
 
-This historical data can be used to:  
+This historical data can be used to:
 
 1. Discover alarm patterns and trends
 2. Generate Statistical reports on alarms
@@ -21,15 +21,15 @@ The alarm logging service creates kafka streams which can be configured to monit
 
 Examples:
 
-* **Configuration changes** 
+* **Configuration changes**
 
- e.g. when new alarm nodes or pvs are added or removed or existing ones are enabled/disabled 
+ e.g. when new alarm nodes or pvs are added or removed or existing ones are enabled/disabled
 
-* **State changes** 
+* **State changes**
 
  e.g. alarm state changes from OK to MAJOR
 
-* **Commands** 
+* **Commands**
 
  e.g. a user actions to *Acknowledge* an alarm
 

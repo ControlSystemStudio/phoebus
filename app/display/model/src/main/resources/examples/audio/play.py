@@ -21,6 +21,5 @@ if play:
         widget.setPropertyValue("text", "Cancelling")
         audio.cancel(True)
 # else: Called with play=0, so don't do anything
-    
-print("Script done")
 
+print("Script done")

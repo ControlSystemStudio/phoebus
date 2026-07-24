@@ -58,7 +58,7 @@ public class LogPropertiesDemo extends ApplicationWrapper {
         loader.load();
         final LogPropertiesController controller = loader.getController();
         Node tree = loader.getRoot();
-        
+
         CheckBox checkBox = new CheckBox();
         BooleanProperty editable = new SimpleBooleanProperty();
         checkBox.selectedProperty().bindBidirectional(editable);

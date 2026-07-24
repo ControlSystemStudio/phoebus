@@ -56,14 +56,14 @@ public class WriteDemo
                 pv.update(written);
 
                 double value = ((PVADouble)written.get(1)).get();
-                
+
                 // Demo of issuing a status message
                 // The request ID should point to the
                 // client request to which this message applies.
                 // In this demo, we simply use '1'
-                tcp.submit(new MessageRequest(1, PVAStatus.Type.OK, 
+                tcp.submit(new MessageRequest(1, PVAStatus.Type.OK,
                                               "Received " + name + " = " + value));
-            	
+
                 if (value < 0)
                     done.countDown();
             };

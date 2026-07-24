@@ -23,12 +23,12 @@ import org.epics.pva.data.PVAStructure;
 
 /**
  * Normative control type
- * 
+ *
  * A control_t is a structure that describes a range, given by the interval
  * (limitLow,limitHigh), within which it is expected some control software or
  * hardware shall bind the control PV to which this Normative Type instance’s
  * value field refers as well as a minimum step change of the control PV.
- * 
+ *
  * control_t :=
  * <ul>
  * <li>structure
@@ -38,7 +38,7 @@ import org.epics.pva.data.PVAStructure;
  * <li>double minStep
  * </ul>
  * </ul>
- * 
+ *
  */
 public class PVAControl extends PVAStructure {
     private static final String CONTROL_NAME_STRING = "control";
@@ -46,7 +46,7 @@ public class PVAControl extends PVAStructure {
 
     /**
      * Setting all parameters
-     * 
+     *
      * @param limitLow The control low limit for the value field.
      * @param limitHigh The control high limit for the value field.
      * @param minStep The minimum step change for the value field.
@@ -59,7 +59,7 @@ public class PVAControl extends PVAStructure {
 
     /**
      * Setting all parameters
-     * 
+     *
      * @param limitLow The control low limit for the value field.
      * @param limitHigh The control high limit for the value field.
      * @param minStep The minimum step change for the value field.
@@ -73,7 +73,7 @@ public class PVAControl extends PVAStructure {
 
     /**
      * Conversion from structure to PVAControl
-     * 
+     *
      * @param structure Potential "control_t" structure
      * @return PVAControl or <code>null</code>
      */
@@ -89,7 +89,7 @@ public class PVAControl extends PVAStructure {
 
     /**
      * Get Control from a PVAStructure
-     * 
+     *
      * @param structure Structure containing Control
      * @return PVAControl or <code>null</code>
      */

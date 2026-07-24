@@ -205,7 +205,7 @@ public class PhoebusApplication extends Application {
      * Menu to add a layout to the current layout
      */
     private final Menu add_layout = new Menu(Messages.AddLayout, ImageCache.getImageView(ImageCache.class, "/icons/add_layout.png"));
-    
+
     /**
      * List of memento names
      *
@@ -1320,11 +1320,11 @@ public class PhoebusApplication extends Application {
                     memfile = new File(layoutFileName);
                 }
             }
-            
+
             if(memfile == null) {// if still null get default one
                 memfile = XMLMementoTree.getDefaultFile();
             }
-            
+
             if (memfile.canRead()) {
                 logger.log(Level.INFO, "Loading state from " + memfile);
                 memTree = loadMemento(memfile);

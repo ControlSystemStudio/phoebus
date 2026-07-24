@@ -26,10 +26,10 @@ public class XmlAttachment {
 
     @XmlTransient
     protected String contentType;
-    
+
     @XmlTransient
     protected Boolean thumbnail;
-    
+
     @XmlTransient
     protected Long fileSize;
 
@@ -62,7 +62,7 @@ public class XmlAttachment {
     public void setFileName(String fileName) {
     	this.fileName = fileName;
     }
-    
+
         /**
      * @return the fileSize
      */
@@ -92,7 +92,7 @@ public class XmlAttachment {
     public void setContentType(String contentType) {
 	this.contentType = contentType;
     }
-    
+
         /**
      * @return the thumbnail name
      */

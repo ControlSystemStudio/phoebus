@@ -36,4 +36,3 @@ services:
 volumes:
   saveandrestore-es-data:
     driver: local
-

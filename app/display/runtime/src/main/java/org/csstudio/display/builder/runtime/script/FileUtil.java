@@ -37,7 +37,7 @@ public class FileUtil {
     {
         return loadXMLFile(filePath, null);
     }
-    
+
     /**Load the root element of an XML file. The element is a JDOM Element.
      * @param filePath path of the file. It can be an absolute path or a relative path to
      * the OPI that contains the specified widget. If it is an absolute path, it can be either<br>
@@ -159,9 +159,9 @@ public class FileUtil {
             return null;
         return selected.getPath();
     }
-    
+
     /**Open a file select and open the dialog box at the dialogPath repository.
-     * 
+     *
      * @param dialogPath Path where the dialog will be opened
      * @return the full file path. Or null if it is cancelled.
      */

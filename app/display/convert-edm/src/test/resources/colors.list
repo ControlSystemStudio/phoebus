@@ -130,7 +130,7 @@ static 160 "blinking blue"    {  0 0 65535     0 0 0 } #
 static 164 "blinking yellow"  { 65535 65535 0  56026 56026 56026 } #
 
 
-alarm  { 
+alarm  {
   disconnected : "Disconn/Invalid"
   invalid      : "Disconn/Invalid"
   minor        : "Monitor: MINOR"
@@ -166,7 +166,7 @@ rule 84 "Green-Red" {
 }
 
 # Next 2 for Clickable/ON
-rule 85 "FE-ON 1-bit" { 
+rule 85 "FE-ON 1-bit" {
  >=-0.5 && <0.5	 : "FE title"
  >=0.5  && <=1.5 : "Monitor: NORMAL"
 }
@@ -367,7 +367,7 @@ rule 153 "Normal-if-3" {
  default : "Wid-alt/Anno-sec"
 }
 
-# Next 6 for Ring RF 
+# Next 6 for Ring RF
 rule 154 "RingRF Remote" {
  >=-0.5 && <0.5	 : "Monitor: MAJOR"
  >=0.5  && <=1.5 : "Monitor: NORMAL"
@@ -439,7 +439,7 @@ rule 168 "TGT_Alarm" {
  >=2.5 && <=3.5  : "Monitor: MAJOR"
 }
 
-menumap { 
+menumap {
  "black"
  "white"
  "Disconn/Invalid"
@@ -554,24 +554,24 @@ menumap {
  "Green-Red"
  "FE-ON 1-bit"
  "FE-ON-Not 1-bit"
- "FE-X-X-ON" 
- "FE-Vlv" 
- "FE-Vlv-R" 
+ "FE-X-X-ON"
+ "FE-Vlv"
+ "FE-Vlv-R"
  "SNS-Vlv-1"
  "SNS-Vlv-2"
  "Gray-Green"
  "Gray-Red-Green"
  "Seq-3 (RYG)"
  "Seq-4 (RYGB)"
- "Seq-5 (ROYGB)" 
+ "Seq-5 (ROYGB)"
  "Seq-6 (ROYGBV)"
  "Lights-0"
- "Lights-1" 
+ "Lights-1"
  "Lights-2"
  "Green-LED"
- "Yellow-LED" 
- "Red-LED" 
- "Not-Green-LED" 
+ "Yellow-LED"
+ "Red-LED"
+ "Not-Green-LED"
  "Not-Yellow-LED"
  "Not-Red-LED"
  "blinking red"
@@ -608,4 +608,3 @@ menumap {
  "ac-sts"
  "TGT_Alarm"
 }
-

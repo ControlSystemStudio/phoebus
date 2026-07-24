@@ -24,7 +24,7 @@ Core Modules
 core-framework:
    Fundamentals that many applications use, for example preferences, persistence,
    jobs, macros, localization, autocompletion.
-   
+
    Defines the ``AppDescriptor`` and ``AppResourceDescriptor`` Java Service Provider Interfaces (SPI)
    which are used to locate applications.
    Each application feature identifies itself by implementing an application description
@@ -32,7 +32,7 @@ core-framework:
    the application is, which types of resources (e.g. data files) it might accept,
    and most importantly how to start one or more instances
    of the application.
-   
+
    To create an ``AppInstance``, i.e. an application instance, the framework invokes
    the ``create()`` method of the application descriptor.
    This will typically result in a new application instance, i.e. a new tab in the UI.
@@ -44,28 +44,28 @@ core-framework:
    On startup, each window and tab is restored,
    the applications are restarted, and each application
    can restore its specific state from the memento.
- 
+
    The ``JobManager`` API allows submitting jobs based on a ``JobRunnable``
    that supports progress reporting and cancellation.
- 
+
 core-pv:
    API for access to life data from Process Variables.
-   
+
 core-logbook:
-   API for accessing a logbook, with SPI for site-specific implementations. 
+   API for accessing a logbook, with SPI for site-specific implementations.
 
 core-email:
-   API for creating emails. 
+   API for creating emails.
 
 core-security:
-   API for authorization and secure storage. 
+   API for authorization and secure storage.
 
 core-ui:
    The ``docking`` package supports a window environment similar to a web browser.
    Each window can have multiple tabs.
    Users can move tabs between existing windows,
    or detach them into newly created windows.
-   
+
    The top-level Java FX ``Node`` for each application's
    UI scene graph is basically a ``Tab``,
    wrapped in a Phoebus ``DockItem`` that tracks the
@@ -76,7 +76,7 @@ core-ui:
 
    The ``selection`` package allows publishing and monitoring a selection of
    for example PVs.
-   
+
    The ``undo`` package simplifies the implementation of undo/redo
    functionality.
 

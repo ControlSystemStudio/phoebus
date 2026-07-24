@@ -12,7 +12,7 @@ Architecture diagram
 Settings configuration
 ----------------------
 
-Example of settings.ini 
+Example of settings.ini
 
 **Alarm Server**
 

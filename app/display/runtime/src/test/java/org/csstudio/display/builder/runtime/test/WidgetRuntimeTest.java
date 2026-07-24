@@ -39,40 +39,40 @@ public class WidgetRuntimeTest {
            double readValue = PVUtil.getDouble(pv);
            //Test in standard way
            assertThat(readValue, equalTo(initValue));
-           
+
            //Test with WidgetRuntime (write Action)
            ActionButtonWidget widget = new ActionButtonWidget();
            widget.setPropertyValue(CommonWidgetProperties.propPVName.getName(), pv_name);
            //Add write action
            //Write new value
            double newValue = 20;
-           
+
            List<ActionInfo> actionList = new ArrayList<ActionInfo>();
            ActionInfo writeAction = new WritePVAction("Write value", pv_name, String.valueOf(newValue));
            actionList.add(writeAction);
            ActionInfos actInfos = new ActionInfos(actionList, true);
            widget.setPropertyValue(CommonWidgetProperties.propActions.getName(), actInfos);
-           
+
            //Create Widget Runtime
            WidgetRuntime<ActionButtonWidget> ofWidget = new WidgetRuntime<ActionButtonWidget>();
            ofWidget.initialize(widget);
            ofWidget.addPV(pv, true);
            ofWidget.start();
-         
+
            ofWidget.writePV(pv_name, newValue);
-           
+
            //Test the new value
            readValue = PVUtil.getDouble(pv);
            //Test if the new value is ok
            assertThat(readValue, equalTo(newValue));
-           
+
            //Generate a stacktrace to fix in LocalPVFactory
            ofWidget.stop();
-           
+
        } catch (Exception e) {
            e.printStackTrace();
            fail(e);
        }
     }
-    
+
 }

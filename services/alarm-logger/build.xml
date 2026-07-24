@@ -53,10 +53,10 @@
         <include name="dependencies/**/t-digest-*.jar"/>
       	<include name="dependencies/**/tomcat-*.jar"/>
       	<include name="dependencies/**/validation-api-2*.jar"/>
-  	  	
+
       	<include name="core/**/core-framework-*.jar"/>
       	<include name="core/**/core-util-*.jar"/>
-      	
+
       	<include name="app/**/app-alarm-model*.jar"/>
       </fileset>
     </copy>
@@ -75,7 +75,7 @@
 
     <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
 
-	<!-- ZIP of service, with classpath for lib/* and main class -->  	
+	<!-- ZIP of service, with classpath for lib/* and main class -->
     <jar destfile="${build}/service-alarm-logger-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>

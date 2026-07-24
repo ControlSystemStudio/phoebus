@@ -25,7 +25,7 @@ public class EqualIntervalAverage implements SampleAlgorithm {
     @Override
     public LinkedHashMap<Instant, double[]> applySampling(Map<Instant, double[]> arrayData,
                                                           int maxSampleCount) {
-       
+
         // Handle edge cases: empty data or invalid sample count
         if (arrayData.isEmpty() || maxSampleCount <= 0) {
             return new LinkedHashMap<>();

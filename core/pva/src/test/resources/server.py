@@ -25,5 +25,3 @@ while True:
     server.update(pv)
     sleep(1)
     x = x + 1
-
-

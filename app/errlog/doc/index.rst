@@ -13,7 +13,7 @@ To the end user, it is thus not always obvious how to locate the application mes
 
 The "Error Log" shows messages written to the standard output, the error output
 or the console logger in one predictable place.
-It captures messages from the time it is started until it is closed. 
+It captures messages from the time it is started until it is closed.
 
 The typical process to check for error message is thus:
 

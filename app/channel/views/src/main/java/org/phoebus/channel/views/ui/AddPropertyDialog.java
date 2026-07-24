@@ -15,7 +15,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
 /**
  * A dialog for adding a property to a list of channels
- * 
+ *
  * @author Kunal Shroff
  *
  */

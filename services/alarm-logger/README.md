@@ -4,8 +4,8 @@ The alarm logging service (aka alarm-logger) records all alarm messages to creat
 This is an elasticsearch back end.
 
 ## Dependencies ##
-1. Elasticsearch version 8.x OS specific release can be found here:  
-https://www.elastic.co/downloads/past-releases#elasticsearch  
+1. Elasticsearch version 8.x OS specific release can be found here:
+https://www.elastic.co/downloads/past-releases#elasticsearch
 The CI/CD pipeline is setup to test with elastic release 8.2.3
 
 ### Start elasticsearch
@@ -20,7 +20,7 @@ elasticsearch defaults to port 9200, however if elasticsearch is configured to u
 
 #### Build the alarm server
 
-``` 
+```
 mvn clean install
 ```
 or
@@ -36,11 +36,11 @@ ant clean dist
 ```
 java -jar target/alarm-logger-<version>.jar -topics MY,ALARM,CONFIGS
 ```
-The argument for the ```-topics``` switch is the comma separated list of alarm configurations you wish to be 
-logged. An alarm configuration is the value specified 
+The argument for the ```-topics``` switch is the comma separated list of alarm configurations you wish to be
+logged. An alarm configuration is the value specified
 for the ```-config``` switch when starting an alarm server instance. See the README.md file in the alarm-server module.
 
-2. Using spring boot  
+2. Using spring boot
 
 ```
 mvn spring-boot:run
@@ -56,7 +56,7 @@ It may be useful to troubleshoot the system independently from production alarm 
 
 #### Configuration
 
-The alarm logger can be configured via command line switches when running the jar, see option `-help` for details, 
+The alarm logger can be configured via command line switches when running the jar, see option `-help` for details,
 or via properties documented in [here](https://github.com/ControlSystemStudio/phoebus/blob/master/services/alarm-logger/src/main/resources/alarm_logger.properties)
 
 #### Check Service Status
@@ -93,7 +93,7 @@ curl -X GET 'localhost:8080/search/alarm?pv=*'
 
 ## Data Management
 
-The  most common aspects for effectively configuring the alarm logger are: 
+The  most common aspects for effectively configuring the alarm logger are:
 
 ### Creating an elasticsearch index
 
@@ -116,7 +116,7 @@ While finer grained (weekly or even daily) indexing is possible, it will likely 
 ### Cleanup
 
 Obsolete data should be periodically removed, this can be achieved by deleting the indices from elastic which contain
-stale data. 
+stale data.
 
 One or more indices can be deleted with the following command:
 
@@ -126,25 +126,25 @@ curl -X DELETE 'localhost:9200/accelerator_alarms_state_2019-02-*'
 
 ## Release
 
-**Prepare the release**  
-`mvn release:prepare`  
+**Prepare the release**
+`mvn release:prepare`
 In this step will ensure there are no uncommitted changes, ensure the versions number are correct, tag the scm, etc.
 A full list of checks is documented [here](https://maven.apache.org/maven-release/maven-release-plugin/examples/prepare-release.html).
 
-**Perform the release**  
-`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`  
+**Perform the release**
+`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`
 Checkout the release tag, build, sign and push the build binaries to sonatype. The `docs` profile is needed in order
 to create required javadocs jars.
 
 # Docker
 
-The latest version of the service is available as a Docker image (ghcr.io/controlsystemstudio/phoebus/service-alarm-logger:master). 
+The latest version of the service is available as a Docker image (ghcr.io/controlsystemstudio/phoebus/service-alarm-logger:master).
 Pushes to the master branch into this directory will trigger a new build of the image.
 
 Docker compose file is provided. It requires the following environment variable to be set:
 
 ```KAFKA_HOST_IP_ADDRESS=1.2.3.4```
-```ELASTIC_HOST_IP_ADDRESS=1.2.3.4```  
+```ELASTIC_HOST_IP_ADDRESS=1.2.3.4```
 ```ALARM_TOPICS```: comma-separated list of alarm topics subscribed to by the service
 
 This may be preferable compared to setting environment variables on command line, e.g.

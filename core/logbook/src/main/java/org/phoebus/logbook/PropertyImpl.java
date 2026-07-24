@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * A default implementation of {@link Property}
- * 
+ *
  * @author Kunal Shroff
  *
  */

@@ -186,7 +186,7 @@ also be changed using the runtime properties dialog. To launch the dialog, click
 from the underlying plot file. Consequently such changes are **not** persisted when the plot file is saved. To make
 sure plot properties are saved one must perform the changes in the property panel.
 
-Live Data Sampling 
+Live Data Sampling
 ^^^^^^^^^^^^^^^^^^
 
 By default, traces will use a ``Scan Period`` of 0 seconds, which means
@@ -200,7 +200,7 @@ of live data in memory. Older samples are dropped.
 To keep a longer time span of live data in memory, you can increase the ``Buffer Size``,
 which obviously results in using more memory. Alternatively, you can set the ``Scan Period``
 to for example 5 seconds. This will ignore the update rate of the channel and simply take
-a sample every 5 seconds, allowing a buffer of 5000 samples to hold almost 7 hours of data.  
+a sample every 5 seconds, allowing a buffer of 5000 samples to hold almost 7 hours of data.
 
 Optimized vs. Raw Archive Data Request
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -264,7 +264,7 @@ This reflects our assumption that the signal has not significantly changed
 until we receive a new sample.
 
  .. image:: images/stair.png
- .. image:: images/direct.png 
+ .. image:: images/direct.png
 
 The alternate "Area (direct)" and "Single Line (direct)" Trace Types,
 shown to the right,
@@ -290,7 +290,7 @@ Time Range
 Source Options
     By default, the export will fetch raw data from the archive,
     not the optimized, reduced min/max/average data that is displayed in the plot.
-    
+
     You can modify the time range of the export to differ from the range of the plot,
     and also select to export either the exact data that is displayed in the
     plot, or request optimized data with a different number of "bins" from
@@ -298,10 +298,10 @@ Source Options
 
     ``Plot``: The exact samples currently displayed in the plot
     will be exported.
-    
+
     ``Raw Archived Data``: The exported data will contain data that
     is requested from the archive without modifications.
-    
+
     ``Optimized Archived Data``: To reduce the number of exported
     samples, optimized data is requested from the archive. You specify
     the number of desired samples, and the export will then request
@@ -310,37 +310,37 @@ Source Options
     start..end time range is split into 800 "bins". The the minimum,
     maximum and average value of the raw samples within each bin is then
     exported.
-    
+
     ``Linear Interpolation``: As an alternative way to reduce the
     number of exported samples, the exported samples are computed via
     linear interpolation from the raw data. You specify the interpolation
     interval in hours, minutes and seconds, for example 00:10:00 to
     obtain one sample every 10 minutes.
 
-    
+
 Format Options
     The format of the exported file defaults to a spreadsheet
     suitable for import into most spreadsheet programs. You can modify
     these settings:
-  
+
     ``Tabular``: Instead of a table that lists the samples for all
     channels, you can export the samples for each channel separately.
-    
+
     ``.. with error columns``: The min...max range of optimized data
     is by default exported as "error" columns, suitable for an error-bar
     display.
-    
+
     ``.. with Severity/Status``: The Severity and Status of each
     sample is by default exported, but you can omit it if not needed.
- 
+
     ``Default format``: The number of decimal digits will be
     obtained from the data source.
-  
+
     ``Decimal format``: You specify the number of decimal digits.
-   
+
     ``Exponential notation``: Use exponential notation, where you
     again specify the number of decimal digits.
-   
+
 
 Excel Spreadsheets
 ^^^^^^^^^^^^^^^^^^
@@ -352,16 +352,16 @@ Excel.
 
 Assume you chose a filename of "test.dat" on your Desktop,
 follow these steps for import into Excel:
- 
+
  * In Excel, use File/Open to open the file "test.dat".
    You might have to select ``Files of type: All Files (*.*)`` in the file
    "Open" dialog to do this.
  * A "Text Import Wizard" should appear, and the default
    settings should already be set to
-   
+
    * "Delimited - Characters such as ... tabs ..."
    * "Delimiters: Tab"
-   
+
  * Even though the time stamp column contains the full date and time,
    Excel will only display time down to minutes,
    omitting the seconds or microseconds.
@@ -395,7 +395,7 @@ As long as the exported data file has a ".csv" suffix,
 OpenOffice.org/LibreOffice should open the file with an "import"
 dialog similar to MS Excel, where you select "tab" delimited columns
 as explained above.
-        
+
 File names ending in ".dat", ".txt" etc. might only open in the
 OpenOffice.org/LibreOffice Writer (word processor), so you have to use
 the correct file suffix.
@@ -463,7 +463,7 @@ This can be convenient when regularly exporting data for several channels.
 To see available options, run phoebus like this::
 
     phoebus -main org.phoebus.archive.Export -help
-    
+
     Usage: -main org.phoebus.archive.Export [options]
 
     Export archived data into files

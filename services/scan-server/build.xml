@@ -12,7 +12,7 @@
         <pathelement path="../../app/scan/model/${build}/app-scan-model-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <!-- Assemble lib/ -->
     <copy todir="${build}/lib" flatten="true">
       <fileset dir="../..">
@@ -30,14 +30,14 @@
         <include name="dependencies/**/org.eclipse.paho.client.mqttv*.jar"/>
         <include name="dependencies/**/epics-jackie*.jar"/>
         <include name="dependencies/**/commons-lang*.jar"/>
-      	
+
       	<include name="core/**/core-framework-*.jar"/>
       	<include name="core/**/core-formula-*.jar"/>
       	<include name="core/**/core-pv-*.jar"/>
       	<include name="core/**/core-pva-*.jar"/>
       	<include name="core/**/core-util-*.jar"/>
       	<include name="core/**/core-vtype-*.jar"/>
-      	
+
         <include name="app/**/app-scan-model*.jar"/>
       </fileset>
     </copy>
@@ -56,7 +56,7 @@
 
     <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
 
-	<!-- ZIP of service, with classpath for lib/* and main class -->  	
+	<!-- ZIP of service, with classpath for lib/* and main class -->
     <jar destfile="${build}/service-scan-server-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>

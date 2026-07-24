@@ -17,7 +17,7 @@ PV writes are only attempted after a successful logbook entry.
 If the logbook entry fails, PVs are restored to their original value.
 
 .. figure:: images/pace1.png
-   
+
     PACE
 
 
@@ -64,10 +64,10 @@ by control system personell, but end users may also create them.
 A PACE file uses an XML format with the following basic structure::
 
     <paceconfig>
-      <title> Your Title goes here  </title> 
+      <title> Your Title goes here  </title>
       <columns/>
       <instances/>
-    </paceconfig> 
+    </paceconfig>
 
 The columns section describes the columns of the PACE table.
 Each column has a name, optional access mode, and a macroized PV pattern::

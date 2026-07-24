@@ -27,7 +27,7 @@ if args.config:
 print("Annunciator started with server value: {}".format(server))
 print("Annunciator started with config value: {}".format(config))
 
-# Kafka spreads messages across groups so group.id should be unique so that every 
+# Kafka spreads messages across groups so group.id should be unique so that every
 # alarm listener gets all of the messages.
 c = Consumer({
     'bootstrap.servers': '{}'.format(server),
@@ -60,17 +60,17 @@ class annunciatorThread(threading.Thread):
         while (run):
             queueLock.acquire()
             size = annunciationQueue.qsize()
-            
+
             if size > threshold:
                 self.handleNAnnunciations()
-            
+
             else:
                 while not annunciationQueue.empty():
                     annunciation = annunciationQueue.get()
                     self.handleAnnunciation(annunciation)
-            
+
             queueLock.release()
-            
+
             annunciateCondition.acquire()
             annunciateCondition.wait()
 
@@ -86,25 +86,25 @@ class annunciatorThread(threading.Thread):
                  flurry+=1
         ex = "echo \"There are {} new messages.\" | festival --tts".format(flurry)
         subprocess.call(ex, shell=True)
-    
+
     # Annunciates message
     def handleAnnunciation(self, annunciation):
         toSay = annunciation[2]
         ex = "echo \"{}\" | festival --tts".format(toSay)
         subprocess.call(ex, shell=True)
 
-# Add a message to the queue.                         
+# Add a message to the queue.
 def enqueueMessage(message):
     threading._start_new_thread(annunciationProducer, (message,))
 
 # Add the message to the queue in another thread. Notify all waiting consumer threads.
 def annunciationProducer(message):
     annunciation = parseMessage(message)
-    
+
     queueLock.acquire()
     annunciationQueue.put(annunciation)
     queueLock.release()
-    
+
     annunciateCondition.acquire()
     annunciateCondition.notify_all()
     annunciateCondition.release()
@@ -112,7 +112,7 @@ def annunciationProducer(message):
 # Parse the message and create the annunciation tuple (priority, standout, toSay)
 def parseMessage(message):
     parsed_json = json.loads(message.value().decode('utf-8'))
-    
+
     severity = parsed_json['severity']
     priority = getMessagePriority(severity)
     standout = parsed_json['standout']
@@ -122,7 +122,7 @@ def parseMessage(message):
 
 severities = ["UNDEFINED", "INVALID", "MAJOR", "MINOR", "UNDEFINED_ACK", "INVALID_ACK", "MAJOR_ACK" , "MINOR_ACK", "OK"]
 # Determine the priority of the message based on the alarm severity.
-def getMessagePriority(severity):   
+def getMessagePriority(severity):
     try:
         priority = severities.index(severity)
     except ValueError:
@@ -136,15 +136,15 @@ print("Started the annunciator.")
 print("Beginning to poll for messages.")
 while True:
     msg = c.poll()
-    
+
     if msg is None:
         continue
-    
+
     if msg.error():
         if msg.error().code() == KafkaError._PARTITION_EOF:
             continue
         else:
             print(msg.error())
-    
+
     enqueueMessage(msg)
-    
+

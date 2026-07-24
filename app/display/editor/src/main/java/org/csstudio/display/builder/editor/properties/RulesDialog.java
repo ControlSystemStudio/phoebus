@@ -423,7 +423,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         final PropInfo pi = new PropInfo(rule.attached_widget, rule.prop_id.get());
         return getPropShortString(pi);
     }
-    
+
     /** turn this property into the short string form used in the combo box **/
     private String getPropShortString(PropInfo pi) {
         // Property _value_ can be long, ex. points of a polyline

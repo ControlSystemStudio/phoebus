@@ -200,16 +200,16 @@ public class TangoPVUtil {
                         DevState state = (DevState) result;
                         Alarm alarmState = alarm;
                         AlarmStatus status = AlarmStatus.DEVICE;
-                        
+
                         switch (state.value()) {
-                            case DevState._ALARM : 
-                            case DevState._DISABLE : 
+                            case DevState._ALARM :
+                            case DevState._DISABLE :
                                alarmState= Alarm.of(AlarmSeverity.MINOR, status, state.toString());
                                break;
-                            case DevState._FAULT : 
+                            case DevState._FAULT :
                                 alarmState= Alarm.of(AlarmSeverity.MAJOR, status, state.toString());
                                 break;
-                            case DevState._UNKNOWN : 
+                            case DevState._UNKNOWN :
                                 alarmState= Alarm.of(AlarmSeverity.MAJOR, AlarmStatus.UNDEFINED, state.toString());
                                 break;
                         }
@@ -316,7 +316,7 @@ public class TangoPVUtil {
                     }
                 }
             }
-            
+
             if(!minValue.isNaN() && !maxValue.isNaN()) {
                 displayRange = Range.of(minValue, maxValue);
                 controlRange = Range.of(minValue, maxValue);
@@ -325,7 +325,7 @@ public class TangoPVUtil {
                 displayRange = Range.undefined();
                 controlRange = Range.undefined();
             }
-            
+
             //Set alarm Range Range
             Double minAlarm = Double.NaN;
             Double maxAlarm = Double.NaN;
@@ -352,14 +352,14 @@ public class TangoPVUtil {
                     }
                 }
             }
-            
+
             if(!minAlarm.isNaN() && !maxAlarm.isNaN()) {
                 alarmRange = Range.of(minAlarm, maxAlarm);
             }
             else {
                 alarmRange = Range.undefined();
             }
-            
+
             //Set warning Range
             Double minWarning = Double.NaN;
             Double maxWarning = Double.NaN;
@@ -386,14 +386,14 @@ public class TangoPVUtil {
                     }
                 }
             }
-            
+
             if(!minWarning.isNaN() && !maxWarning.isNaN()) {
                 warningRange = Range.of(minWarning, maxWarning);
             }
             else {
                 warningRange = Range.undefined();
             }
-            
+
             if(format != null && format.trim().startsWith("%") && format.contains(".")) {
                 //remplace last f or e or d
                 String formatString = format.trim().replaceFirst("%", "");
@@ -402,7 +402,7 @@ public class TangoPVUtil {
                 formatString = formatString.replace("f", "");
                 formatString = formatString.replace("d", "");
                 int nbDigit = 0;
-                
+
                 try {
                     int indexOf = formatString.indexOf(".");
                     String nbDigitString = formatString.substring(indexOf+1);
@@ -423,7 +423,7 @@ public class TangoPVUtil {
                     numberFormat = new DecimalFormat(sb.toString());
                 }
             }
-            
+
             display = Display.of(displayRange, alarmRange, warningRange, controlRange, unit, numberFormat, description);
 
         }
@@ -431,7 +431,7 @@ public class TangoPVUtil {
         if(display == null) {
             display = Display.none();
         }
-        
+
         return display;
     }
 
@@ -453,7 +453,7 @@ public class TangoPVUtil {
     private static boolean isLong64(String fieldName) {
         return fieldName != null && fieldName.contains(TangoConstHelper.LONG_NAME + "64");
     }
-    
+
     protected static EnumDisplay getAttributeQualityEnumDisplay(AttributeInfo info) {
         EnumDisplay enumDisplay = null;
         if(info != null) {
@@ -466,7 +466,7 @@ public class TangoPVUtil {
         }
         return enumDisplay;
     }
-    
+
     protected static EnumDisplay getDevStateEnumDisplay(String device) {
        EnumDisplay enumDisplay = null;
        if(device != null) {

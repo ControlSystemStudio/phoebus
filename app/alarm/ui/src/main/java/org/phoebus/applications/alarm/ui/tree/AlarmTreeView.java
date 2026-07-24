@@ -532,7 +532,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         }
 
         // Remember selection
-        final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems = 
+        final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems =
                 FXCollections.observableArrayList(tree_view.getSelectionModel().getSelectedItems());
 
         // How to update alarm tree cells when data changed?

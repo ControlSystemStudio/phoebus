@@ -13,7 +13,7 @@
 -- Assume you are connected as the 'postgres' super user:
 --
 --   sudo su postgres
---   psql -U postgres -h localhost 
+--   psql -U postgres -h localhost
 
 -- Suggested database name is 'tsarch'.
 -- The original plain RDB archive setup suggested an 'archive' database.
@@ -117,9 +117,9 @@ CREATE TABLE channel
    grp_id BIGINT NULL,
    smpl_mode_id INT NULL,
    smpl_val DOUBLE PRECISION NULL,
-   smpl_per DOUBLE PRECISION NULL, 
+   smpl_per DOUBLE PRECISION NULL,
    retent_id INT NULL,
-   retent_val DOUBLE PRECISION NULL   
+   retent_val DOUBLE PRECISION NULL
 );
 
 -- Speed up lookup of channel_id by name
@@ -142,7 +142,7 @@ SELECT * FROM channel;
 DROP TABLE IF EXISTS severity;
 DROP SEQUENCE IF EXISTS severity_sevid;
 
-CREATE SEQUENCE severity_sevid; 
+CREATE SEQUENCE severity_sevid;
 
 CREATE TABLE severity
 (
@@ -287,7 +287,7 @@ CREATE TABLE sample
 -- ******************************************** --
 -- Turn plain table into TimescaleDB hypertable --
 -- ******************************************** --
--- 
+--
 -- At this time, the 'tsarch' table structure is fully compatible with
 -- a plain RDB 'archive' setup. Now the 'sample' table is instrumented
 -- for use with TimescaleDB.
@@ -322,7 +322,7 @@ SELECT * from timescaledb_information.dimensions;
 -- Should create monthly, not weekly chunks to reduce number of chunks
 SELECT set_chunk_time_interval('sample', INTERVAL '1 month');
 
--- This creates two indices: 
+-- This creates two indices:
 --    "sample_channel_id_smpl_time_idx" btree (channel_id, smpl_time DESC)
 --    "sample_smpl_time_idx" btree (smpl_time DESC)
 --
@@ -330,7 +330,7 @@ SELECT set_chunk_time_interval('sample', INTERVAL '1 month');
 -- for example:
 -- CREATE INDEX sample_id ON sample (channel_id);
 -- CREATE INDEX sample_id_time ON sample (channel_id, smpl_time, nanosecs);
-  
+
 -- TODO What about nanosecs? Include in index?
 
 \d+ sample
@@ -369,11 +369,11 @@ DROP USER IF EXISTS tsarch;
 CREATE USER tsarch WITH PASSWORD '$tsarch';
 
 GRANT SELECT, INSERT, UPDATE, DELETE
-  ON smpl_eng, smpl_mode, chan_grp, channel, severity, status, sample, num_metadata, enum_metadata  
+  ON smpl_eng, smpl_mode, chan_grp, channel, severity, status, sample, num_metadata, enum_metadata
   TO tsarch;
 
 GRANT USAGE ON SEQUENCE
-  channel_chid 
+  channel_chid
   TO tsarch;
 
 
@@ -480,9 +480,9 @@ BEGIN
     IF FOUND THEN
         p_start := initial;
     END IF;
-    
+
     -- Determine how many raw samples there are
-    SELECT COUNT(*) INTO count FROM sample WHERE channel_id=p_channel_id AND smpl_time BETWEEN p_start AND p_end;    
+    SELECT COUNT(*) INTO count FROM sample WHERE channel_id=p_channel_id AND smpl_time BETWEEN p_start AND p_end;
 
     -- Fewer samples than requested, or the buckets are small?
     IF NOT FOUND  OR  count <= p_bucket_count  OR  bucket_size < make_interval(secs=>10) THEN
@@ -493,7 +493,7 @@ BEGIN
                      FROM sample s
                      WHERE s.channel_id=p_channel_id
                        AND s.smpl_time BETWEEN p_start AND p_end
-                     ORDER BY bucket;            
+                     ORDER BY bucket;
     ELSE
         RAISE NOTICE 'Adjusted range % .. %, % buckets sized %, % samples found -> returning optimized data', p_start, p_end, p_bucket_count, bucket_size, count;
         RETURN QUERY -- Select non-float samples "as is" with NULL for min/max
@@ -529,5 +529,4 @@ $$;
 -- Get optimized data for that channel ID:
 -- SELECT * FROM auto_optimize(33, '2021-01-01', '2021-06-02', 1000);
 
-   
 

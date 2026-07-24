@@ -46,7 +46,7 @@ public class HelpViewer extends Stage {
         String helpContentUrl = url + "/help/" + helpContent;
 
         WebView webView = new WebView();
-        
+
         setOnShown(windowEvent -> webView.getEngine().load(helpContentUrl));
         setTitle("Olog Markup Quick Reference");
         setWidth(1000);

@@ -109,9 +109,9 @@ public final class ReRunningPlanController implements Initializable {
         try {
             QueueGetPayload p = svc.queueGetTyped();
             return p.runningItem();                // may be null
-        } catch (Exception ex) { 
+        } catch (Exception ex) {
             logger.log(Level.FINE, "Failed to fetch running item: " + ex.getMessage());
-            return null; 
+            return null;
         }
     }
 
@@ -188,8 +188,8 @@ public final class ReRunningPlanController implements Initializable {
 
     @FXML
     private void updateEnvironment() {
-        try { 
-            svc.environmentUpdate(Map.of()); 
+        try {
+            svc.environmentUpdate(Map.of());
             logger.log(Level.FINE, "Environment update requested");
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Failed to update environment", ex);

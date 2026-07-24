@@ -15,7 +15,7 @@
         <pathelement path="../../databrowser/${build}/app-databrowser-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-display-runtime-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
@@ -38,7 +38,7 @@
       <formatter type="plain" usefile="false"/>
     </junit>
   </target>
-	
+
   <target name="demo" depends="app-display-runtime" description="Run the demo">
     <java classname="org.csstudio.display.builder.runtime.test.RuntimeDemoJavaFX" fork="true">
       <classpath>
@@ -53,5 +53,5 @@
       </classpath>
     </java>
   </target>
-	
+
 </project>

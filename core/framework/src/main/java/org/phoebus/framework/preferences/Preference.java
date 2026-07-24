@@ -13,15 +13,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /** Annotation that marks a member variable as a preference
- * 
+ *
  *  <p>Used with {@link AnnotatedPreferences}.
- *  
+ *
  *  <p>Static fields of a class with this annotation
  *  will be set from preference keys.
  *  The package name of the class is used as the preference path.
  *  The name of the field is used as the preference key,
  *  unless a different 'name' parameter is set on the annotation.
- *  
+ *
  *  <p>Supported types:
  *  <ul>
  *  <li>int
@@ -33,9 +33,9 @@ import java.lang.annotation.Target;
  *  <li>int[]    - Parses comma-separated int values from preference string
  *  <li>String[] - Parses comma-separated text values from preference string
  *  </ul>
- *  
+ *
  *  <p>Fields set from preferences may be 'public' as well as 'private'.
- *  
+ *
  *  @author Kay Kasemir
  */
 @Retention(RetentionPolicy.RUNTIME)

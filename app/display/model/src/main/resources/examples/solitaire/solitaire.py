@@ -5,7 +5,7 @@
    Scripts run in a background thread,
    so they may perform computations,
    and at the same time they can access the display model.
-   
+
    @author Kay Kasemir
 """
 
@@ -75,7 +75,7 @@ def check(r, c, dr, dc):
 def solve():
     if isDone():
         return True
-   
+
     for r in range(size):
         for c in range(size):
             if board[r][c] != 'o':
@@ -139,7 +139,7 @@ def createPieces():
     info.setPropertyValue("width", size * SIZE)
     info.setPropertyValue("text", "Solving...")
     display.runtimeChildren().addChild(info)
-   
+
 createPieces()
 start = time()
 if not solve():
@@ -157,7 +157,7 @@ def move(r, c, dr, dc):
     pieces[r][c].setPropertyValue("background_color", mark)
     pieces[r+dr][c+dc].setPropertyValue("background_color", mark)
     sleep(0.5)
-    
+
     # Restore colors
     pieces[r][c].setPropertyValue("background_color", col)
     pieces[r+dr][c+dc].setPropertyValue("background_color", col)
@@ -168,12 +168,12 @@ def move(r, c, dr, dc):
     pieces[r+2*dr][c+2*dc].setPropertyValue("transparent", False)
     sleep(0.2)
 
-while True:    
+while True:
     # Replay moves of the solution
     for m in solution:
         move(*m)
     sleep(2.0)
-    
+
     # Restore board
     for r in range(size):
         for c in range(size):

@@ -13,11 +13,11 @@
         <pathelement path="../../rtplot/${build}/app-rtplot-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-scan-ui-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
-	
+
 </project>

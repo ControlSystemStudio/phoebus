@@ -9,7 +9,7 @@
   <property name="resources" value="src/main/resources"/>
   <property name="build" value="target"/>
   <property name="classes" value="target/classes"/>
-  
+
   <!-- 'dependencies' is this directory -->
   <dirname property="dependencies" file="${ant.file.settings}"/>
 
@@ -33,7 +33,7 @@
 
   <!-- Include debug info? true or off -->
   <property name="debug" value="true"/>
-  
+
   <!--  Targets for use in subdirectories
         Properties like ${build} are NOT
         relative to ${dependencies} but
@@ -50,7 +50,7 @@
     <mkdir dir="${classes}"/>
     <javac srcdir="${src}" destdir="${classes}" debug="${debug}" classpathref="app-classpath"/>
   </target>
-	
+
   <target name="jfxarch" description="Determine JavaFX architecture">
     <!-- Check if target platform is for linux, plain mac, mac-aarch64, win -->
     <fileset dir="${dependencies}/phoebus-target/target/lib" id="jfxfiles">
@@ -59,9 +59,9 @@
       <include name="javafx-base-*-mac-aarch64.jar"/>
       <include name="javafx-base-*-win.jar"/>
     </fileset>
-    
+
     <echo message="JFX 'base' File: ${toString:jfxfiles}"/>
-    
+
     <condition property="jfxarch" value="linux">
       <contains string="${toString:jfxfiles}" substring="-linux.jar"/>
     </condition>

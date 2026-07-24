@@ -63,5 +63,3 @@ value of a PV as the URL of a web browser widget, you can set the output express
 If you want to skip the boolean expression, simply set boolean expression to ``true``.
 
 .. image:: images/ExpressionAsValue.png
-
-

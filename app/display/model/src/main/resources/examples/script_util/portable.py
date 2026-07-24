@@ -11,7 +11,7 @@
 #
 # The PVUtil also offers a very similar API,
 # only the package name differs.
-# 
+#
 #   from org.csstudio.opibuilder.scriptUtil import PVUtil
 #
 # needs to change into
@@ -32,7 +32,7 @@ display_builder = 'getVersion' in dir(widget)
 if display_builder:
     from org.csstudio.display.builder.runtime.script import PVUtil, ScriptUtil
     ScriptUtil.getLogger().info("Executing in display builder")
-    
+
     # For the display builder, might further check if running in RCP or Phoebus
     phoebus = 'PHOEBUS' in dir(ScriptUtil)
     if phoebus:
@@ -47,4 +47,3 @@ else:
 # This API is now the same:
 val = PVUtil.getDouble(pvs[0])
 widget.setPropertyValue("text", "Value is %.3f" % val)
-

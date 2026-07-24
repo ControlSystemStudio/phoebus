@@ -27,7 +27,7 @@ public class ChannelTreeApp implements AppResourceDescriptor {
     public void start() {
         client = ChannelFinderService.getInstance().getClient();
     }
-    
+
     @Override
     public String getName() {
         return NAME;
@@ -59,7 +59,7 @@ public class ChannelTreeApp implements AppResourceDescriptor {
         channelTree.setResource(resource);
         return channelTree;
     }
-    
+
     /**
      * Get the default {@link ChannelFinderClient} initialized during the creation of this application descriptor
      * @return {@link ChannelFinderClient} default client

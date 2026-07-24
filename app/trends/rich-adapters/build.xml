@@ -12,11 +12,11 @@
         <pathelement path="../../email/ui/${build}/app-email-ui-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-trends-rich-adapters-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
-	
+
 </project>

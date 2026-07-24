@@ -35,7 +35,7 @@ public class LogEntryTableMenuEntry implements MenuEntry
     {
         return "Utility";
     }
-    
+
     @Override
     public Image getIcon()
     {

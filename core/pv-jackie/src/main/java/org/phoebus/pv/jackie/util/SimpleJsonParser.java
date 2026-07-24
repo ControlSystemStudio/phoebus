@@ -26,24 +26,24 @@ import java.util.PrimitiveIterator;
  * performance, so code that wants to parse large or complex JSON documents
  * should use a different JSON parser.
  * </p>
- * 
+ *
  * <p>
  * This parser has specifically been written in order to minimize the
  * dependencies needed for parsing JSON document. It only uses the Java SE
  * API and the Apache Commons Lang 3 library.
  * </p>
- * 
+ *
  * <p>
  * This parser is able to parse any document that complies with the JSON
  * (ECMA-404) standard. Compared to many other parsers, this parser is very
  * strict about compliance and will typically refuse any input that is not
  * strictly compliant.
  * </p>
- * 
+ *
  * <p>
  * This parser converts JSON objects to Java objects using the following rules:
  * </p>
- * 
+ *
  * <ul>
  * <li>A JSON object is converted to a {@link Map Map&lt;String, Object&gt;}.
  * The order of the members is preserved in the map. The parser does not allow
@@ -64,7 +64,7 @@ public class SimpleJsonParser {
     /**
      * Parses the specified string into a Java object. Please refer to the
      * {@linkplain SimpleJsonParser class description} for details.
-     * 
+     *
      * @param json_string
      *            string that represents a valid JSON document.
      * @return object that is the result of converting the string from JSON

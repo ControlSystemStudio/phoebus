@@ -12,8 +12,8 @@
   </properties>
 
   <profiles>
-    <!-- Overriding the default release profile to run the pre release script 
-      with makes the required modification to .classpath and other manually maintained 
+    <!-- Overriding the default release profile to run the pre release script
+      with makes the required modification to .classpath and other manually maintained
       files -->
     <profile>
       <id>release</id>
@@ -60,7 +60,7 @@
   </profiles>
 
   <dependencies>
-    <!-- For testing. mockito-all contains hamcrest packages, resulting in 
+    <!-- For testing. mockito-all contains hamcrest packages, resulting in
       conflicts. This combination of junit, mockito, hamcrest seems to work -->
     <dependency>
       <groupId>org.phoebus</groupId>
@@ -506,7 +506,7 @@
     </dependency>
 
     <!--JUL bindings for sfl4j-->
-    <dependency> 
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
       <version>1.7.28</version>
@@ -557,7 +557,7 @@
       <artifactId>epics-jackie-client</artifactId>
       <version>3.1.0</version>
     </dependency>
-    
+
     <!-- bouncycastle library used in PVA to decode and check OCSP confirmation of certificates
          bcpkix depends on bcutil, which depends on bcprov
      -->
@@ -576,7 +576,7 @@
       <artifactId>bcprov-jdk18on</artifactId>
       <version>1.84</version>
     </dependency>
-    
+
     <!-- Lib to read/write MS Office (Excel, ..) files, fetching only POI itself -->
     <dependency>
       <groupId>org.apache.poi</groupId>
@@ -616,7 +616,7 @@
       <artifactId>tika-core</artifactId>
       <version>3.2.0</version>
     </dependency>
-    
+
     <!-- ChartFX library for the Waterfall Plot widget -->
     <dependency>
       <groupId>io.fair-acc</groupId>

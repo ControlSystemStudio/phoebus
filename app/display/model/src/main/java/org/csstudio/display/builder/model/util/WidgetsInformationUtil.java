@@ -1,10 +1,10 @@
 /*******************************************************************************
  * Copyright (c) 2023 by CEA .
- * 
- * The full license specifying the redistribution, modification, usage and other rights 
+ *
+ * The full license specifying the redistribution, modification, usage and other rights
  * and obligations is included with  the distribution of this project in the file "license.txt"
  * THIS SOFTWARE IS PROVIDED AS-IS WITHOUT WARRANTY OF ANY KIND, NOT EVEN
- * 
+ *
  * THE IMPLIED WARRANTY OF MERCHANTABILITY. THE AUTHOR OF THIS SOFTWARE
  * ASSUMES NO RESPONSIBILITY FOR ANY CONSEQUENCE RESULTING FROM THE USE,
  * MODIFICATION,OR REDISTRIBUTION OF THIS SOFTWARE.
@@ -39,7 +39,7 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 
 /**
  * This class generate the property list of all the existing widget in Phoebus
- * 
+ *
  * @author ksaintin
  *
  */
@@ -54,7 +54,7 @@ public class WidgetsInformationUtil {
 	private static final Map<String, Map<String, Map<String, Object>>> WIDGET_MAP = new HashMap<>();
 
 	private static Set<Class<? extends Widget>> getWidgetImplementations(String packageName) {
-		
+
 		Set<Class<? extends Widget>> widgetSet = new HashSet<>();
 		if (packageName == null) {
 			Set<WidgetDescriptor> widgetDescriptions = WidgetFactory.getInstance().getWidgetDescriptions();
@@ -79,7 +79,7 @@ public class WidgetsInformationUtil {
 
 	/**
 	 * Return property information in a map
-	 * 
+	 *
 	 * @param prop
 	 * @return Map<information, value>
 	 */
@@ -331,7 +331,7 @@ public class WidgetsInformationUtil {
 
 	/**
 	 * Generate a rst document for all the widget and all the associated properties
-	 * 
+	 *
 	 * @param args the generated rst file
 	 */
 	public static void main(String[] args) {

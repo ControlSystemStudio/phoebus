@@ -21,7 +21,7 @@ import org.phoebus.framework.preferences.Preference;
 
 /**
  * Pull updates from the gitlab package registry.
- * 
+ *
  * <p>
  * The timestamp of the available update is determined from the timestamp of the
  * commit that triggered the pipeline. The version information in the package
@@ -31,7 +31,7 @@ import org.phoebus.framework.preferences.Preference;
  * To initialize the package version, use
  * <code>echo org.phoebus.applications.update/current_version=$CI_COMMIT_TIMESTAMP >> phoebus-product/settings.ini</code>
  * in the build pipeline, then package <code>settings.ini</code>.
- * 
+ *
  * @author Michael Ritzert
  *
  */
@@ -42,7 +42,7 @@ public class GitlabUpdate extends Update implements UpdateProvider
 
     /**
      * The path to the "V4 API".
-     * 
+     *
      * Typically https://HOST/api/v4
      */
     @Preference
@@ -52,7 +52,7 @@ public class GitlabUpdate extends Update implements UpdateProvider
     public static int gitlab_project_id;
     /**
      * The package name used in the registry.
-     * 
+     *
      * Defaults to "phoebus-$(arch)".
      */
     @Preference
@@ -103,9 +103,9 @@ public class GitlabUpdate extends Update implements UpdateProvider
 
     /**
      * Identify the latest commit for the package we want.
-     * 
+     *
      * Fills in latest_commit, file_size, and file_name.
-     * 
+     *
      * @throws Exception
      */
     private void getLatestCommit() throws Exception
@@ -140,9 +140,9 @@ public class GitlabUpdate extends Update implements UpdateProvider
 
     /**
      * Find the latest package with the configured name.
-     * 
+     *
      * Fills in latest_version and latest_id.
-     * 
+     *
      * @throws Exception
      */
     private void getLatestPackage() throws Exception
@@ -166,7 +166,7 @@ public class GitlabUpdate extends Update implements UpdateProvider
 
     /**
      * Get the timestamp of the given commit.
-     * 
+     *
      * @param commit_id
      *            The full SHA hash of the commit.
      * @return The timestamp of the commit.
@@ -200,7 +200,7 @@ public class GitlabUpdate extends Update implements UpdateProvider
 
     /**
      * Execute a GET call to the gitlab API.
-     * 
+     *
      * @param endpoint
      *            The URL to access. The part up to /v4/ is automatically
      *            prepended.

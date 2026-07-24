@@ -105,4 +105,3 @@ record(calc, "$(user):tank")
     field(INPC, "-100")
     field(CALC, "A?C:B")
 }
-

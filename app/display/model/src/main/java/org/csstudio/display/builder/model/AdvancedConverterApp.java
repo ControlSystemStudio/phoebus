@@ -25,4 +25,3 @@ public class AdvancedConverterApp implements AppDescriptor
 		return null;
 	}
 }
-

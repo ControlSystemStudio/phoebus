@@ -31,7 +31,7 @@ public class HTMLWriter
     /** Helper for marking every other table line */
     private boolean odd_table_line = true;
 
-    /** 
+    /**
      *  Constructor return HTML Writer with start of HTML page.
      *  @param resp Response for which to create the writer
      *  @param title HTML title

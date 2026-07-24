@@ -551,7 +551,7 @@ $(trace_0_y_pv_value)</tooltip>
     <text>Not automatically imported.
 Is read as an XYPlot widget, when it should be turned into a Data Browser widget,
 but editor cannot know about the runtime type of the PV.
-If BOY XYGraph widgets were consistently configured to only 'concatenate' samples for scalar PVs, or set the buffer size to 0 for array PVs, that could be used to auto-update into an XYPlot or Data Browser widget. 
+If BOY XYGraph widgets were consistently configured to only 'concatenate' samples for scalar PVs, or set the buffer size to 0 for array PVs, that could be used to auto-update into an XYPlot or Data Browser widget.
 </text>
     <tooltip></tooltip>
     <transparent>true</transparent>

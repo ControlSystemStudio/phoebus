@@ -14,4 +14,3 @@ else
     # Use IDE build output
     java -cp $LIB:target/classes org.epics.pva.server.ServerDemo "$@"
 fi
-

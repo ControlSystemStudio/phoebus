@@ -20,7 +20,7 @@ import javax.xml.bind.annotation.XmlElement;
 @XmlRootElement(name = "logs")
 public class XmlLogs {
     private Collection<XmlLog> logs = new ArrayList<XmlLog>();
-  
+
     /** Creates a new instance of XmlLogs. */
     public XmlLogs() {
     }

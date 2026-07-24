@@ -217,7 +217,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
             }
             logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
             toolkit.fireWrite(model_widget, value);
-    
+
             // Wrote value. Expected is either
             // a) PV receives that value, PV updates to
             //    submitted value or maybe a 'clamped' value
@@ -642,4 +642,3 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         updateChanges();
     }
 }
-

@@ -3,4 +3,3 @@ record(bi, "doit")
   field(PINI, "YES")
   field(INP,  "0")
 }
-

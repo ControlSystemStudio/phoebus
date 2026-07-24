@@ -45,18 +45,18 @@ SELECT * FROM pg_user;
 
 -- The following would have to be executed _after_ creating the tables:
 GRANT SELECT, INSERT, UPDATE, DELETE
-  ON smpl_eng, retent, smpl_mode, chan_grp, channel, status, severity, sample, array_val, num_metadata, enum_metadata 
+  ON smpl_eng, retent, smpl_mode, chan_grp, channel, status, severity, sample, array_val, num_metadata, enum_metadata
   TO archive;
 
 GRANT SELECT
-  ON smpl_eng, retent, smpl_mode, chan_grp, channel, status, severity, sample, array_val, num_metadata, enum_metadata 
+  ON smpl_eng, retent, smpl_mode, chan_grp, channel, status, severity, sample, array_val, num_metadata, enum_metadata
   TO report;
 
 -- Might have to check with \d which sequences were
 -- created by Postgres to handle the SERIAL columns:
 GRANT USAGE ON SEQUENCE
   chan_grp_grpid_seq, channel_chid, retent_retentid_seq,
-  severity_sevid, smpl_eng_engid_seq, status_statid 
+  severity_sevid, smpl_eng_engid_seq, status_statid
   TO archive;
 */
 
@@ -147,7 +147,7 @@ CREATE TABLE  channel
    grp_id BIGINT NULL,
    smpl_mode_id BIGINT NULL,
    smpl_val double precision NULL,
-   smpl_per double precision NULL, 
+   smpl_per double precision NULL,
    retent_id BIGINT NULL,
    retent_val DOUBLE precision NULL
 );
@@ -166,7 +166,7 @@ SELECT * FROM channel;
 
 ------------------------
 -- Severity mapping of severity ID to string
-CREATE SEQUENCE severity_sevid; 
+CREATE SEQUENCE severity_sevid;
 
 DROP TABLE IF EXISTS severity;
 CREATE TABLE severity
@@ -208,7 +208,7 @@ CREATE TABLE sample
    str_val VARCHAR(120) NULL,
    datatype CHAR(1) NULL DEFAULT ' ',
    array_val BYTEA  NULL,
-   
+
    -- Note that these foreign keys are good for data consistency,
    -- but bad for performance.
    -- Writing to the table will be almost twice as fast without
@@ -281,7 +281,7 @@ CREATE TABLE enum_metadata
 ------------------------
 -- Dump all values for all channels
 SELECT channel.name, smpl_time, severity.name, status.name, float_val
-   FROM channel, severity, status, sample 
+   FROM channel, severity, status, sample
    WHERE channel.channel_id = sample.channel_id AND
          severity.severity_id = sample.severity_id AND
          status.status_id = sample.status_id
@@ -298,4 +298,4 @@ SELECT channel.name AS channel,
    ON sample.status_id = status.status_id
    ORDER BY smpl_time
    LIMIT 50;
-   
+

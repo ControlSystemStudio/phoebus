@@ -27,11 +27,11 @@ import org.epics.pva.data.PVAStructure;
 
 /**
  * Normative Display type
- * 
+ *
  * A display_t is a structure that describes some typical attributes of a
  * numerical value that are of interest when displaying the value on a computer
  * screen or similar medium.
- * 
+ *
  * <p>
  * display_t :=
  * <ul>
@@ -61,31 +61,31 @@ public class PVADisplay extends PVAStructure {
      * in the precision field.
      */
     public enum Form {
-        /** 
+        /**
          * Default Formatting
          */
         DEFAULT,
-        /** 
+        /**
          * String Format
          */
         STRING,
-        /** 
+        /**
          * Binary Format
          */
         BINARY,
-        /** 
+        /**
          * Decimal Format
          */
         DECIMAL,
-        /** 
+        /**
          * Hex Format
          */
         HEX,
-        /** 
+        /**
          * Exponential Format
          */
         EXPONENTIAL,
-        /** 
+        /**
          * Engineering Format
          */
         ENGINEERING
@@ -100,7 +100,7 @@ public class PVADisplay extends PVAStructure {
 
     /**
      * Construct a display_t normative type PVAStructure
-     * 
+     *
      * @param limitLow    The lower bound of range within which the value must be
      *                    set, to be presented to a user.
      * @param limitHigh   The upper bound of range within which the value must be
@@ -127,7 +127,7 @@ public class PVADisplay extends PVAStructure {
 
     /**
      * Construct a display_t normative type PVAStructure
-     * 
+     *
      * @param limitLow    The lower bound of range within which the value must be
      *                    set, to be presented to a user.
      * @param limitHigh   The upper bound of range within which the value must be
@@ -154,7 +154,7 @@ public class PVADisplay extends PVAStructure {
 
     /**
      * Conversion from structure to PVADisplay
-     * 
+     *
      * @param structure Potential "display_t" structure
      * @return PVADisplay or <code>null</code>
      */
@@ -174,7 +174,7 @@ public class PVADisplay extends PVAStructure {
 
     /**
      * Get Display from a PVAStructure
-     * 
+     *
      * @param structure Structure containing Display
      * @return PVADisplay or <code>null</code>
      */

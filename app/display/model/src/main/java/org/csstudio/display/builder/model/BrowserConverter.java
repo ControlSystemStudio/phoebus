@@ -100,7 +100,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 	}
 
 	/**
-	 * 
+	 *
 	 * This method create the HIM
 	 */
 	public void createHIM() {
@@ -238,7 +238,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 	}
 
 	/**
-	 * 
+	 *
 	 * This method open the input file or folder selection
 	 */
 	private void selectInput() throws IOException {
@@ -255,7 +255,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 	}
 
 	/**
-	 * 
+	 *
 	 * This method open the output folder selection
 	 */
 	private void selectOutput() throws IOException {
@@ -273,7 +273,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 
 	/**
 	 * return every opi files in the input folder
-	 * 
+	 *
 	 * @param input
 	 * @return inputFolderList
 	 */
@@ -298,7 +298,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 
 	/**
 	 * return an ArrayList with every bob files in the output folder
-	 * 
+	 *
 	 * @param output
 	 * @return outputFolderList
 	 */
@@ -322,12 +322,12 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 
 	/**
 	 * This method seek for similar files in the input and output folder
-	 * 
+	 *
 	 * @param input
 	 * @param output
 	 * @throws IOException
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	public void override(File input, File output) throws IOException {
 		// research all same files in the input and output
@@ -349,10 +349,10 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 	 * This method delete bob files in the output folder who already exist in the
 	 * input folder and are present in the output folder then convert the input
 	 * folder
-	 * 
+	 *
 	 * @throws IOException
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	public void convert() throws IOException {
 		// delete all duplicate file to the output
@@ -383,10 +383,10 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 
 	/**
 	 * This method display messages during the conversion
-	 * 
+	 *
 	 * @param msgDisplay
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	private void displayProgress(String msgDisplay) {
 
@@ -425,7 +425,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 
 	/**
 	 * Thread conversion
-	 * 
+	 *
 	 * This method execute the conversion and update the message displayed
 	 */
 	private void conversion() {
@@ -481,7 +481,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 
 	/**
 	 * this method fill the progress bar
-	 * 
+	 *
 	 * @param val(advancement
 	 *            value)
 	 */
@@ -501,7 +501,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 
 	/**
 	 * display error
-	 * 
+	 *
 	 * @param msgError
 	 */
 	private void displayError(String msgError) {
@@ -552,7 +552,7 @@ public class BrowserConverter extends JFrame implements IConverterListener {
 	/*
 	 * public static void main(String[] args){ try { new BrowserConvertor(); } catch
 	 * (IOException e) { throw new RuntimeException(e); }
-	 * 
+	 *
 	 * }
 	 */
 

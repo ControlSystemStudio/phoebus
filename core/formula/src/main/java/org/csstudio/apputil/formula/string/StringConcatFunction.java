@@ -63,12 +63,12 @@ public class StringConcatFunction implements FormulaFunction {
 
     /**
      * Returns true is the value is a StringArray or can be converted to a StringArray
-     * @param value 
+     * @param value
      * @return boolean true if value can be used as a string array
      */
     private boolean isStringArray(VType value)
     {
-        return value instanceof VStringArray 
+        return value instanceof VStringArray
             || value instanceof VNumberArray;
     }
 

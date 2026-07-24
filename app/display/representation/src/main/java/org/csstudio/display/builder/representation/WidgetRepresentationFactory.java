@@ -28,4 +28,3 @@ public interface WidgetRepresentationFactory<TWP, TW>
      */
 	public WidgetRepresentation<TWP, TW, Widget> create() throws Exception;
 }
-

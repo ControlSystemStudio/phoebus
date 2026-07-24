@@ -449,4 +449,3 @@ In total, we now have the following:
 The example can be extended by creating one certificate per IOC and one per client,
 and by adding one or more intermediate CA levels instead of directly
 signing IOC and client certificates with the "root" CA.
-

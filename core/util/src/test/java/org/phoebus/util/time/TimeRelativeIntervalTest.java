@@ -132,7 +132,7 @@ public class TimeRelativeIntervalTest {
      * The {@link TimeRelativeInterval} is defined with both the start and the
      * end as relative definition. The below tests create an interval which
      * represents a single month.
-     * 
+     *
      */
     @Test
     public void relativeIntervalinDays1() {

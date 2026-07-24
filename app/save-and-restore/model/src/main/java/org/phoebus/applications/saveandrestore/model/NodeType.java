@@ -1,4 +1,4 @@
-/** 
+/**
  * Copyright (C) 2018 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or

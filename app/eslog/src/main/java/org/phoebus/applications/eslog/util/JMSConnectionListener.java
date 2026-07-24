@@ -18,7 +18,7 @@ public interface JMSConnectionListener
 
     /**
      * Invoked when the connection to the JMS server is re-connected (resumed)
-     * 
+     *
      * @param server
      *            Name of the JMS server to which we are connected.
      */

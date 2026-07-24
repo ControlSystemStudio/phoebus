@@ -53,7 +53,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
                                 SEARCH_ID = "searchField",
                                 SELECTED_ID = "selectedItems",
                                 LISTVIEW_STYLE = "-fx-control-inner-background-alt: white";
-    
+
     private final Function<String, Boolean> addSelected, removeSelected;
 
     private final ObservableList<String> available;
@@ -78,7 +78,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         availableItems = new ListView<>(filteredAvailableItems);
 
         setTitle(title);
-        
+
         final ButtonType apply = new ButtonType(Messages.Apply, ButtonBar.ButtonData.OK_DONE);
 
         getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, apply);
@@ -103,7 +103,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         availableItems.setStyle(LISTVIEW_STYLE);
         selectedItems.setId(SELECTED_ID);
         availableItems.setId(AVAILABLE_ID);
-        
+
         final Button add = new Button(Messages.Add, ImageCache.getImageView(ImageCache.class, ADD_ICON));
         add.setTooltip(new Tooltip(Messages.Add_Tooltip));
         add.setOnAction(event -> addSelectedItems());
@@ -123,22 +123,22 @@ public class ListSelectionDialog extends Dialog<Boolean>
         add.setMinWidth(buttonWidth);
         remove.setMinWidth(buttonWidth);
         clear.setMinWidth(buttonWidth);
-        
+
         add.setId(ADD_ID);
         remove.setId(REMOVE_ID);
         clear.setId(CLEAR_ID);
-        
+
         // Note: For the following, trying to initialize right away resulted in buttons that remained
         // disabled or would not re-enable.
         // Only runLater(..) seems to fully function...
         // Enable buttons as appropriate
-        Platform.runLater( () -> 
+        Platform.runLater( () ->
         {
            add.disableProperty().bind(Bindings.isEmpty(availableItems.getSelectionModel().getSelectedItems()));
            remove.disableProperty().bind(Bindings.isEmpty(selectedItems.getSelectionModel().getSelectedItems()));
            clear.disableProperty().bind(Bindings.isEmpty(selectedItems.getItems()));
         });
-        
+
         // Double click to add..
         availableItems.setOnMouseClicked(event ->
         {
@@ -173,13 +173,13 @@ public class ListSelectionDialog extends Dialog<Boolean>
             else
                 Platform.runLater(() -> availableLabel.setText(Messages.Available));
         });
-        
+
         final Label selectedLabel = new Label(Messages.Selected);
         selectedLabel.setFont(labelFont);
         VBox.setVgrow(selectedItems, Priority.ALWAYS);
         final VBox selectedBox = new VBox(spacing, selectedLabel, selectedItems);
 
-        selectedItems.getSelectionModel().getSelectedItems().addListener((ListChangeListener<? super String>) c -> 
+        selectedItems.getSelectionModel().getSelectedItems().addListener((ListChangeListener<? super String>) c ->
         {
             int selectedNum = selectedItems.getSelectionModel().getSelectedItems().size();
             if (selectedNum > 0)
@@ -194,10 +194,10 @@ public class ListSelectionDialog extends Dialog<Boolean>
         HBox.setMargin(availableBox, new Insets(5,  0, 10, 10));
         HBox.setMargin(buttonsBox,   new Insets(5,  0, 10,  0));
         HBox.setMargin(selectedBox,  new Insets(5, 10, 10,  0));
-        
+
         final HBox selectionBox = new HBox(spacing, availableBox, buttonsBox, selectedBox);
         selectionBox.setAlignment(Pos.CENTER);
-        
+
         final ClearingTextField searchField = new ClearingTextField();
         searchField.setId(SEARCH_ID);
         searchField.setTooltip(new Tooltip(Messages.SearchAvailableItems));
@@ -207,17 +207,17 @@ public class ListSelectionDialog extends Dialog<Boolean>
             String filter = searchField.getText();
             filteredAvailableItems.setPredicate(buildSearchFilterPredicate(filter));
         });
-        
+
         final Label searchLabel = new Label(Messages.Search);
         searchLabel.setFont(labelFont);
         final HBox searchBox = new HBox(spacing, searchLabel, searchField);
         searchBox.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(searchField, Priority.ALWAYS);
-        
+
         final VBox content = new VBox(spacing, searchBox, selectionBox);
         VBox.setVgrow(selectionBox, Priority.ALWAYS);
         VBox.setMargin(searchBox, new Insets(10, 10, 0, 10));
-        
+
         return content;
     }
 
@@ -228,7 +228,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         Pattern pattern = Pattern.compile(Pattern.quote(filter), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
         return item -> pattern.matcher(item).find();
     }
-    
+
     private void addSelectedItems()
     {
         // Can't modify list we're iterating over, so make a copy to iterate over.

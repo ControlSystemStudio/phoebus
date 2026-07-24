@@ -1,4 +1,4 @@
-EPICS_PVA_DEBUG=100  softIocPVA -d demo.db 
+EPICS_PVA_DEBUG=100  softIocPVA -d demo.db
 
 Hexdump [Monitor request] size = 15
 01 00 00 00  01 00 00 00  08 FD 01 00  80 00 00     .... .... .... ...

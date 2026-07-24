@@ -19,13 +19,13 @@ public class DataCell extends TableCell<DataRow, String>
 {
     /** Cell value and timestamp seperator for the tooltip. */
     private static final String SEP = " / ";
-    
+
     /** Column index for this cell. */
     private final int col_idx;
-    
+
     /** This cell's tooltip. */
     private final Tooltip tooltip;
-    
+
     /**
      * Constructor. Takes the column index that the cell belongs to.
      * @param col_idx
@@ -33,15 +33,15 @@ public class DataCell extends TableCell<DataRow, String>
     public DataCell(final int col_idx)
     {
         this.col_idx = col_idx;
-        
+
         tooltip = new Tooltip();
         tooltip.setShowDelay(Duration.millis(250));
         tooltip.setShowDuration(Duration.seconds(30));
     }
-    
+
     @Override
     public void updateItem(String item, boolean empty)
-    {        
+    {
         DataRow row = getTableRow().getItem();
         if (empty)
         {

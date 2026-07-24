@@ -9,5 +9,5 @@ and once the alarm PV recovers, the alarm clears.
 
 For details on the original design based on JMS and an RDB, see
 https://accelconf.web.cern.ch/icalepcs2009/papers/tua001.pdf
- 
-For details on setting up Kafka, see app/alarm/Readme.md 
+
+For details on setting up Kafka, see app/alarm/Readme.md

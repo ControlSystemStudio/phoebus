@@ -20,24 +20,24 @@ $ java -Dderby.system.home=/tmp/scan_log_db  \
 ij version 10.16
 ij> CONNECT 'jdbc:derby:scan';
 ij> SELECT * FROM scans;
-ID |NAME    |CREATED                      
+ID |NAME    |CREATED
 ---------------------------------------
 1  |Example |2025-10-31 11:22:55.760598
 
 ij> SELECT * FROM devices;
-ID  |NAME                                                                                                
+ID  |NAME
 ---------------
-1   |loc://x(0)                                                                                          
+1   |loc://x(0)
 
 ij> SELECT * FROM scans;
-ID  |NAME         |CREATED                      
+ID  |NAME         |CREATED
 ---------------------------------------------
-1   |Example      |2025-10-31 11:22:55.760598   
+1   |Example      |2025-10-31 11:22:55.760598
 
 ij> SELECT * from samples;
-SCAN_ID|DEVICE_ID |SERIAL  |TIMESTAMP                  |VALUE          
+SCAN_ID|DEVICE_ID |SERIAL  |TIMESTAMP                  |VALUE
 -------------------------------------------------------------
-1      |1         |0       |2025-10-31 11:22:55.82952  |1.0            
+1      |1         |0       |2025-10-31 11:22:55.82952  |1.0
 ```
 
 Joining the tables together as is tradition with RDBs:
@@ -49,7 +49,7 @@ ij> SELECT c.name, s.serial, s.timestamp, d.name, s.value
     JOIN devices d ON d.ID = s.DEVICE_ID
     ORDER BY c.name, s.serial;
 
-NAME     |SERIAL    |TIMESTAMP                    |NAME          |VALUE          
+NAME     |SERIAL    |TIMESTAMP                    |NAME          |VALUE
 -----------------------------------------------------------------------
-Example  |0         |2025-10-31 11:22:55.82952    |loc://x(0)    |1.0            
+Example  |0         |2025-10-31 11:22:55.82952    |loc://x(0)    |1.0
 ```

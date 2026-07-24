@@ -24,35 +24,35 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 /** Tab demo
- * 
+ *
  *  Goal:
  *  Bunch of widgets, including a Tab pane,
  *  inside a scrollable and zoomable view.
- *  
+ *
  *  Basic idea:
  *  ScrollPane[ Group[ widgets .. including TabPane ] ]
- * 
+ *
  *  ScrollPane - Obviously needed for scrolling
  *  Group - Holds all the widgets and supports zooming
- *  
- *  Problem: 
+ *
+ *  Problem:
  *  ScrollPane shows scroll bars based on the original size of the widgets,
  *  not based on the actual size.
  *  https://pixelduke.wordpress.com/2012/09/16/zooming-inside-a-scrollpane
  *  explains how to solve that by adding another nested Group:
- * 
+ *
  *  ScrollPane[ Group[ Group[ widgets .. including TabPane ] ] ]
- * 
+ *
  *  ScrollPane - Obviously needed for scrolling
  *  outer Group - Automatically gets the layout bounds of the zoomed
  *                widgets in the inner group, so ScrollPane
  *                can correctly configure the scroll bars
  *  inner Group - Holds all the widgets and supports zooming
- *  
+ *
  *  .. but now a TabPane will fail to properly draw itself
  *  unless it's somehow forced to refresh, for example by toggling
  *  the 'side' property.
- *  
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")

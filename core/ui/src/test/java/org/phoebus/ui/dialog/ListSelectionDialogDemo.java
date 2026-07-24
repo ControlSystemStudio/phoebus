@@ -33,14 +33,14 @@ public class ListSelectionDialogDemo extends ApplicationWrapper
     {
         available = FXCollections.observableArrayList();
         selected  = FXCollections.observableArrayList();
-        
+
         for (int i = 0; i < 50; i++)
             available.add("item " + i);
-        
+
         StackPane root = new StackPane();
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        
+
         ListSelectionDialog dialog = new ListSelectionDialog(root, "TEST", this::available, this::selected, this::addSelected, this::removeSelected);
         dialog.showAndWait();
     }
@@ -49,19 +49,19 @@ public class ListSelectionDialogDemo extends ApplicationWrapper
     {
         return available;
     }
-    
+
     public ObservableList<String> selected()
     {
         return selected;
     }
-    
+
     public Boolean addSelected(String item)
     {
         Boolean result = selected.add(item);
         FXCollections.sort(selected);
         return result;
     }
-    
+
     public Boolean removeSelected(String item)
     {
         return selected.remove(item);

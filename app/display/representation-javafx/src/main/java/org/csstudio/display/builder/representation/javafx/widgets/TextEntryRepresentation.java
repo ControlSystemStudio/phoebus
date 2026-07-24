@@ -245,12 +245,12 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         if (enabled) {
             // Strip 'units' etc. from text
             final String text = jfx_node.getText();
-    
+
             final Object value = FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), text,
                                                            model_widget.propFormat().getValue());
             logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
             toolkit.fireWrite(model_widget, value);
-    
+
             // Wrote value. Expected is either
             // a) PV receives that value, PV updates to
             //    submitted value or maybe a 'clamped' value
@@ -429,7 +429,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                 String alignment = model_widget.propHorizontalAlignment().getValue().toString().toLowerCase();
                 PseudoClass alignmentClass = PseudoClass.getPseudoClass(alignment);
                 jfx_node.pseudoClassStateChanged(alignmentClass, true);
-                
+
                 if (jfx_node.getScene() != null && !enabled) {
                     // Need to get the TextArea 'content' node to set the cursor
                     // for the whole widget otherwise it will only show on the borders.

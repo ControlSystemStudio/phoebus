@@ -58,7 +58,7 @@
     -fx-background-radius: 0;
 }
 
-.palette_category > .title 
+.palette_category > .title
 {
     -fx-font-weight: bold;
     -fx-font-size: 10px;
@@ -103,7 +103,7 @@
 
 .array_property_name
 {
-    -fx-background-color: lemonchiffon; 
+    -fx-background-color: lemonchiffon;
     -fx-padding: 2 5 2 5;
     -fx-background-radius: 0;
 }
@@ -111,7 +111,7 @@
 .array_property_filler
 {
     -fx-font-size: 1px;
-    -fx-background-color: lemonchiffon; 
+    -fx-background-color: lemonchiffon;
     -fx-padding: 0 0 0 0;
     -fx-background-radius: 0;
 }

@@ -102,7 +102,7 @@ public class StripchartWidget extends VisibleWidget
 
     @Override
     public Version getVersion()
-    {   
+    {
         return new Version(2, 1, 0);
     }
 
@@ -360,13 +360,13 @@ public class StripchartWidget extends VisibleWidget
 
                 if (! handleLegacyTraces(model_reader, strip, xml, pv_macro))
                     return false;
-		    
+
 		// If legend was turned off, clear the trace names since they would
                 // otherwise show on the Y axes
                 if (! strip.propLegend().getValue())
                     for (TraceWidgetProperty trace : strip.propTraces().getValue())
                         trace.traceName().setValue("");
-                
+
             }
             // Stripchart V2.1.0
             if ((xml_version.getMinor() < 1 && xml_version.getMajor() == 2) || xml_version.getMajor() < 2)
@@ -375,7 +375,7 @@ public class StripchartWidget extends VisibleWidget
                 final String timeRange = XMLUtil.getChildString(xml, "time_range").orElse("1 minute");
                 strip.propStart().setValue(timeRange);
             }
-            
+
             return true;
         }
 

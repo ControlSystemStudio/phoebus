@@ -229,7 +229,7 @@ public class AdvancedConverter extends Converter {
 	/**
 	 * This method manage the different state of the conversion process and update
 	 * the JDialog display
-	 * 
+	 *
 	 * @param type
 	 * @param value
 	 */
@@ -437,7 +437,7 @@ public class AdvancedConverter extends Converter {
 		// Copy and move scripts and pictures in the generated output folder
 		System.out.println("populate output tree structure");
 		populateTreeStructure(outputFolderFile, outputFolderFile, opiRootFolder);
-	
+
 		// Pre processing modifications
 		// Replace import in embedded scripts and scripts file
 		System.out.println("pre processing modifications");

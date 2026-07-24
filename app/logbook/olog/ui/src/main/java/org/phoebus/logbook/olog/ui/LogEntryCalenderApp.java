@@ -36,7 +36,7 @@ public class LogEntryCalenderApp implements AppResourceDescriptor {
     public String getDisplayName() {
         return DISPLAYNAME;
     }
-    
+
     @Override
     public String getName() {
         return NAME;

@@ -90,7 +90,7 @@ public class LinearMeterScale extends NumericAxis
         super.paint(gc);
 
         computeTicks(gc);
-        
+
         gc.setColor(foreground);
 
         //Draw axis

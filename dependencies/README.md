@@ -32,7 +32,7 @@ including for example a JSON and a MySQL client library.
    external dependencies are available.
  * The target platform is in a format that allows using
    different build tools
-   
+
 Our current way of defining and creating the target platform
 is Maven-centric, but with slight adjustments and
 conventions over a Maven-only approach to meet all goals.

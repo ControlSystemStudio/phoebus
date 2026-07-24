@@ -22,4 +22,3 @@ public class WidgetColorService extends org.phoebus.ui.color.WidgetColorService
     // All public static methods (getColor, getColors, resolve, loadColors)
     // are inherited from org.phoebus.ui.color.WidgetColorService.
 }
-

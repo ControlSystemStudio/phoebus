@@ -24,7 +24,7 @@ public class DisplayNavigationViewApp implements AppResourceDescriptor {
     {
         logger.info("Loading " + DISPLAYNAME);
     }
-    
+
     @Override
     public String getName()
     {

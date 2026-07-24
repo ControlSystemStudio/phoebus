@@ -75,6 +75,3 @@ record(ao, "$(user):heat_V")
     field(DOL, "$(user):PID MS")
     field(OMSL,"closed_loop")
 }
-
-
-

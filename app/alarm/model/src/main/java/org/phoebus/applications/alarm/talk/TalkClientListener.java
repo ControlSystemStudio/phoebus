@@ -10,7 +10,7 @@ package org.phoebus.applications.alarm.talk;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /**
- * Interface for talk client listener. 
+ * Interface for talk client listener.
  * @author Evan Smith
  */
 public interface TalkClientListener

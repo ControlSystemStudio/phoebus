@@ -52,4 +52,3 @@ public class Edm_cfcf6c8a_dbeb_11d2_8a97_00104b8742df extends EdmWidget {
 
 
 }
-

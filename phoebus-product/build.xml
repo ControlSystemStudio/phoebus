@@ -15,7 +15,7 @@
 
   <target name="product" depends="copy-doc" description="Assemble product">
     <mkdir dir="${classes}"/>
-  
+
     <!-- Assemble lib/ -->
     <copy todir="${build}/lib" flatten="true">
       <!-- Copy all application dependencies -->
@@ -30,7 +30,7 @@
         <exclude name="app/alarm/examples/**/*.jar"/>
       </fileset>
     </copy>
-  	
+
     <!-- Create settings_template.ini -->
     <exec executable="python3" failonerror="true">
         <arg line="create_settings_template.py -c -v ${build}/lib" />

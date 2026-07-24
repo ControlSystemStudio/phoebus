@@ -39,10 +39,10 @@ public class ListSelectionPopOverDemo extends ApplicationWrapper
     {
         available = FXCollections.observableArrayList();
         selected  = FXCollections.observableArrayList();
-        
+
         for (int i = 0; i < 50; i++)
             available.add("item " + i);
-        
+
         StackPane root = new StackPane();
 
         ListSelectionPopOver listSelectionPopOver = ListSelectionPopOver.create(

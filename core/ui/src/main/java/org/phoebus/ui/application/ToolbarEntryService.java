@@ -63,6 +63,6 @@ public class ToolbarEntryService {
      */
     public List<ToolbarEntry> listToolbarEntries(){
         return toolbarEntries;
-    } 
-    
+    }
+
 }

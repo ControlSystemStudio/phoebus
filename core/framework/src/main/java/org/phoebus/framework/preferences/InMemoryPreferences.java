@@ -20,14 +20,14 @@ class InMemoryPreferences extends AbstractPreferences
 {
     /** Preferences for both "user" and "system" */
     private static final InMemoryPreferences prefs = new InMemoryPreferences(null, "");
-    
+
     /** Settings for this node in the preferences hierarchy */
     private Map<String, String> cache = new HashMap<>();
 
     // Javadoc for all ..Spi calls includes
     // "This method is invoked with the lock on this node held."
     // so no need for ConcurrentHashMap or our own locking
-    
+
     /** @return User preferences */
     public static Preferences getUserRoot()
     {
@@ -39,12 +39,12 @@ class InMemoryPreferences extends AbstractPreferences
     {
         return prefs;
     }
-    
+
     InMemoryPreferences(final InMemoryPreferences parent, final String name)
     {
         super(parent, name);
     }
-    
+
     /** @inheritDoc */
     @Override
     protected void putSpi(String key, String value)
@@ -63,7 +63,7 @@ class InMemoryPreferences extends AbstractPreferences
     @Override
     protected void removeSpi(String key)
     {
-        cache.remove(key);        
+        cache.remove(key);
     }
 
     /** @inheritDoc */
@@ -78,7 +78,7 @@ class InMemoryPreferences extends AbstractPreferences
     @Override
     protected String[] keysSpi() throws BackingStoreException
     {
-        return cache.keySet().toArray(new String[cache.size()]);        
+        return cache.keySet().toArray(new String[cache.size()]);
     }
 
     /** @inheritDoc */

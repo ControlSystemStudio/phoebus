@@ -27,7 +27,7 @@ public interface AdapterFactory {
      * The function to adapt an object adaptableObject to type adapterType
      * @param <T> , the type to convert
      * @param adaptableObject , the object to adapt
-     * @param adapterType , the target type 
+     * @param adapterType , the target type
      * @return the adapted object
      */
     public <T> Optional<T> adapt(Object adaptableObject, Class<T> adapterType);

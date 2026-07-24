@@ -119,7 +119,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
 
         double min_val = 0;
         double max_val = 0;
-        
+
         // Inverted if low limit and higher than high limit
         if (model_widget.propMaximum().getValue() > model_widget.propMinimum().getValue())
         {
@@ -131,7 +131,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
             max_val = model_widget.propMinimum().getValue();
             min_val = model_widget.propMaximum().getValue();
         }
-        
+
         if (limits_from_pv)
         {
             // Try display range from PV
@@ -163,7 +163,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
         }
         else
             percentage = (value - min_val) / (max_val - min_val);
-        
+
             // Limit to 0.0 .. 1.0
         if (percentage < 0.0  ||  !Double.isFinite(percentage))
             this.percentage = 0.0;
@@ -200,7 +200,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Pane, Pr
                 bar.setPrefSize(height, width);
                 jfx_node.setPrefSize(width, height);
 
-                if (min_val > max_val) 
+                if (min_val > max_val)
                 {
                     bar.getTransforms().setAll(
                         new Translate(0, height),

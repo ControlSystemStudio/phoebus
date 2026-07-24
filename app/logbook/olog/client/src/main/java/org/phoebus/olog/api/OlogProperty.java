@@ -15,7 +15,7 @@ import java.util.Set;
 import org.phoebus.logbook.Property;
 
 /**
- * 
+ *
  * @author berryman
  */
 public class OlogProperty implements Property {
@@ -35,7 +35,7 @@ public class OlogProperty implements Property {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public String getName() {
@@ -43,7 +43,7 @@ public class OlogProperty implements Property {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Map<String, String> getAttributes() {
@@ -51,7 +51,7 @@ public class OlogProperty implements Property {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Collection<String> getAttributeValues() {
@@ -59,7 +59,7 @@ public class OlogProperty implements Property {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param attribute
 	 * @return
 	 */
@@ -68,7 +68,7 @@ public class OlogProperty implements Property {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param attribute
 	 * @return
 	 */
@@ -77,7 +77,7 @@ public class OlogProperty implements Property {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public Set<Entry<String, String>> getEntrySet() {
@@ -86,7 +86,7 @@ public class OlogProperty implements Property {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -101,7 +101,7 @@ public class OlogProperty implements Property {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override

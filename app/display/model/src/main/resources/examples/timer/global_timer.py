@@ -9,14 +9,14 @@ def startSound():
     if not 'audio' in globals()  or  audio is None:
         print("Play Sound")
         audio = ScriptUtil.playAudio(widget, "timer.mp3")
-    
+
 def stopSound():
     global audio
     if 'audio' in globals()  and  audio is not None:
         print("End Sound")
         audio.cancel(True)
         audio = None
- 
+
 fraction = secs/max_time
 widget.setPropertyValue("total_angle", 360.0*fraction)
 
@@ -35,4 +35,3 @@ if sound and play:
 else:
     stopSound()
 widget.setPropertyValue("background_color", color)
-

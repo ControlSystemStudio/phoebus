@@ -16,4 +16,3 @@ if colormap is None:
     ScriptUtil.getLogger().warning("Unknown color map " + mapname)
 else:
     widget.setPropertyValue("color_map", colormap)
-

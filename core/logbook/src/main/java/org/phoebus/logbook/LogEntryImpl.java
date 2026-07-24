@@ -76,7 +76,7 @@ public class LogEntryImpl implements LogEntry {
 
     /**
      * Get a Collection of all the Tags associated with this log.
-     * 
+     *
      * @return
      */
     public Collection<Tag> getTags() {
@@ -85,7 +85,7 @@ public class LogEntryImpl implements LogEntry {
 
     /**
      * Get a set of Names of all the tags associated with this log.
-     * 
+     *
      * @return Set of all tag Names
      */
     public Collection<String> getTagNames() {
@@ -95,7 +95,7 @@ public class LogEntryImpl implements LogEntry {
     /**
      * Returns a Tag with the name tagName if it exists on this log else returns
      * null.
-     * 
+     *
      * @param tagName
      * @return {@link Tag} with name tagName else null if no such tag attached
      *         to this log
@@ -106,7 +106,7 @@ public class LogEntryImpl implements LogEntry {
 
     /**
      * Get all the logbooks associated with this log.
-     * 
+     *
      * @return a Collection of all {@link Logbook}
      */
     public Collection<Logbook> getLogbooks() {
@@ -115,7 +115,7 @@ public class LogEntryImpl implements LogEntry {
 
     /**
      * Get a set of all the logbook names.
-     * 
+     *
      * @return
      */
     public Collection<String> getLogbookNames() {
@@ -124,7 +124,7 @@ public class LogEntryImpl implements LogEntry {
 
     /**
      * Get all the attachments associated with this log.
-     * 
+     *
      * @return
      */
     public Collection<Attachment> getAttachments() {
@@ -133,7 +133,7 @@ public class LogEntryImpl implements LogEntry {
 
     /**
      * Get all the {@link Property}s associated with this log.
-     * 
+     *
      * @return
      */
     public Collection<Property> getProperties() {
@@ -142,7 +142,7 @@ public class LogEntryImpl implements LogEntry {
 
     /**
      * Get a set of names for all the properties associated with this log.
-     * 
+     *
      * @return a set of all property names.
      */
     public Collection<String> getPropertyNames() {
@@ -152,7 +152,7 @@ public class LogEntryImpl implements LogEntry {
     /**
      * return the {@link Property} with name propertyName if it exists
      * on this log else return null.
-     * 
+     *
      * @param propertyName
      * @return {@link Property} with name propertyName else null if no such
      *         property exists on this log.
@@ -168,7 +168,7 @@ public class LogEntryImpl implements LogEntry {
 
     /**
      * A Builder for creating an instance of {@link LogEntryImpl}
-     * 
+     *
      * @author Kunal Shroff
      *
      */
@@ -243,7 +243,7 @@ public class LogEntryImpl implements LogEntry {
             this.createdDate = createdDate;
             return this;
         }
-        
+
         public LogEntryBuilder modifiedDate(Instant modifiedDate) {
             this.modifiedDate = modifiedDate;
             return this;
@@ -288,7 +288,7 @@ public class LogEntryImpl implements LogEntry {
             attachments.add(attachment);
             return this;
         }
-        
+
         public LogEntryBuilder setAttach(Set<Attachment> attachments) {
             this.attachments = attachments;
             return this;

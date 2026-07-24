@@ -10,11 +10,11 @@
         <pathelement path="../model/${build}/app-alarm-ui-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-alarm-audio-annunciator-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
-	
+
 </project>

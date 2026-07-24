@@ -24,7 +24,7 @@ Run the service like so:
 
 Where [options] may override default values for Elasticsearch host (localhost) and port (9200):
 
--Delasticsearch.network.host=[host]  
+-Delasticsearch.network.host=[host]
 -Delasticsearch.http.port=[port]
 
 or you can use a `.properties file`
@@ -62,7 +62,7 @@ The latest version of the service is available as a Docker image (ghcr.io/contro
 
 Docker compose files are provided. These depend on the environment variables as described below.
 
-1. ```docker-compose.yml```. Use this to launch both Elasticsearch and the service. The environment variable ```HOST_IP_ADDRESS``` 
+1. ```docker-compose.yml```. Use this to launch both Elasticsearch and the service. The environment variable ```HOST_IP_ADDRESS```
     should be set to the host's external IP address (i.e. **not** 127.0.0.1 or localhost).
 2. ```docker-compose-save-and-restore.yml```. Use this to launch save-and-restore service only. The environment variable ```HOST_IP_ADDRESS```
    should be set to the host's external IP address (i.e. **not** 127.0.0.1 or localhost), while the environment variable ```ELASTIC_HOST``` should
@@ -71,10 +71,10 @@ Docker compose files are provided. These depend on the environment variables as 
 
 Docker supports environment variables to be set in a file (default ```.env``` in current directory) like so:
 
-```HOST_IP_ADDRESS=1.2.3.4```  
-```ELASTIC_HOST=1.2.3.4```  
-.  
-.  
+```HOST_IP_ADDRESS=1.2.3.4```
+```ELASTIC_HOST=1.2.3.4```
+.
+.
 .
 
 This may be preferable compared to setting environment variables on command line, e.g.

@@ -15,7 +15,7 @@
         <pathelement path="../representation/${build}/app-display-representation-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-display-representation-javafx-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
@@ -37,7 +37,7 @@
       <formatter type="plain" usefile="false"/>
     </junit>
   </target>
-	
+
   <target name="demo" depends="app-display-representation-javafx" description="Run the demo">
     <java classname="org.csstudio.display.builder.representation.test.RepresentationDemoJavaFX" fork="true">
       <classpath>
@@ -49,5 +49,5 @@
       </classpath>
     </java>
   </target>
-	
+
 </project>

@@ -16,9 +16,9 @@ import java.util.Set;
  * A Channel object represents channel finder channel.<br>
  * Each channel has a unique name and an owner and may have zero or more
  * properties/tags associated with it.
- * 
+ *
  * @author shroffk
- * 
+ *
  */
 public class Channel {
 
@@ -30,9 +30,9 @@ public class Channel {
 
 	/**
 	 * Builder class to aid in a construction of a channel.
-	 * 
+	 *
 	 * @author shroffk
-	 * 
+	 *
 	 */
 	public static class Builder {
 		// required
@@ -44,7 +44,7 @@ public class Channel {
 
 		/**
 		 * Create a channel builder initialized to a copy of the channel
-		 * 
+		 *
 		 * @param channel
 		 *            - the channel to be copied
 		 * @return channel {@link Builder} with all the attributes copied from
@@ -66,7 +66,7 @@ public class Channel {
 
 		/**
 		 * Create a channel builder for a channel with the given name
-		 * 
+		 *
 		 * @param name
 		 *            - name of the channel you are creating
 		 * @return channel {@link Builder} with the channel name set to name
@@ -79,7 +79,7 @@ public class Channel {
 
 		/**
 		 * Set owner for the channel to be created
-		 * 
+		 *
 		 * @param owner
 		 *            - string owner id
 		 * @return channel {@link Builder} with owner set to owner
@@ -91,7 +91,7 @@ public class Channel {
 
 		/**
 		 * Add tag to the channel to be created
-		 * 
+		 *
 		 * @param tag
 		 *            - tag to be added
 		 * @return channel {@link Builder} with tag
@@ -103,7 +103,7 @@ public class Channel {
 
 		/**
 		 * Add the Collection of tags to the channel to be created
-		 * 
+		 *
 		 * @param tags
 		 *            - list of tags to be added
 		 * @return channel {@link Builder} with tags
@@ -117,7 +117,7 @@ public class Channel {
 
 		/**
 		 * Add property to the channel to be created
-		 * 
+		 *
 		 * @param property
 		 *            - property to be added
 		 * @return channel {@link Builder} with property
@@ -129,7 +129,7 @@ public class Channel {
 
 		/**
 		 * Add the Collection of properties to the channel to be created
-		 * 
+		 *
 		 * @param properties
 		 *            - list of properties to be added
 		 * @return channel {@link Builder} with properties
@@ -143,7 +143,7 @@ public class Channel {
 
 		/**
 		 * build a {@link XmlChannel} object using this builder.
-		 * 
+		 *
 		 * @return a {@link XmlChannel}
 		 */
 		public XmlChannel toXml() {
@@ -159,7 +159,7 @@ public class Channel {
 
 		/**
 		 * build a {@link Channel} object using this builder.
-		 * 
+		 *
 		 * @return a {@link Channel}
 		 */
 		public Channel build() {
@@ -200,7 +200,7 @@ public class Channel {
 
 	/**
 	 * Returns the Name of the channel.
-	 * 
+	 *
 	 * @return channel name.
 	 */
 	public String getName() {
@@ -209,7 +209,7 @@ public class Channel {
 
 	/**
 	 * Returns the owner of this channel.
-	 * 
+	 *
 	 * @return owner name.
 	 */
 	public String getOwner() {
@@ -218,7 +218,7 @@ public class Channel {
 
 	/**
 	 * Returns a list of {@link Tag}s associated with this channel.
-	 * 
+	 *
 	 * @return a list of {@link Tag} or null is no properties are present.
 	 */
 	public Collection<Tag> getTags() {
@@ -228,7 +228,7 @@ public class Channel {
 	/**
 	 * Returns the tag with name = tagName is present on this channel else
 	 * returns null
-	 * 
+	 *
 	 * @param tagName - tag name
 	 * @return {@link Tag} with name=tagName else null is tag with same name not
 	 *         present
@@ -244,10 +244,10 @@ public class Channel {
 	public Collection<String> getTagNames(){
 		return tags.keySet();
 	}
-	
+
 	/**
 	 * Returns a list of all the {@link Property}s associated with this channel.
-	 * 
+	 *
 	 * @return A list of {@link Property} or null if no properties present.
 	 */
 	public Collection<Property> getProperties() {
@@ -257,7 +257,7 @@ public class Channel {
 	/**
 	 * Returns the {@link Property} with the name = propertyName if present on
 	 * this channel else null if no property with given name found.
-	 * 
+	 *
 	 * @param propertyName
 	 *            - name of the property
 	 * @return A {@link Property} or null if property with name=propertyName not
@@ -274,7 +274,7 @@ public class Channel {
 	public Collection<String> getPropertyNames(){
 		return properties.keySet();
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

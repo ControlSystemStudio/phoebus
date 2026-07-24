@@ -83,7 +83,7 @@ public class VTypeFormatter
             catch (ArrayIndexOutOfBoundsException e) {
                 index = -1;
             }
-            
+
             if(enumDisplay!= null && strValue == null) {
                 List<String> choices = enumDisplay.getChoices();
                 if(choices != null && index > -1 && index < choices.size()) {
@@ -99,7 +99,7 @@ public class VTypeFormatter
             //TODO Manage ONAM ZNAM for CA
             return String.valueOf(((VBoolean)value).getValue());
         }
-                
+
         if (value instanceof VString)
             return ((VString) value).getValue();
         if (value instanceof VByteArray && Settings.treat_byte_array_as_string)

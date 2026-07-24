@@ -33,4 +33,3 @@ public class ElogEntry {
     return this.attributes.get( key );
   }
 }
-

@@ -23,9 +23,9 @@ Channel Table
 
 Displays the results of a channelfinder query as a table
 
-The query can be based on the channel name or based on a group of tag and properties associated with the channel 
+The query can be based on the channel name or based on a group of tag and properties associated with the channel
 
-Wildcard character like "*", "?" can be used in the queries  
+Wildcard character like "*", "?" can be used in the queries
 
 
 
@@ -38,5 +38,3 @@ It groups the channels returned by a query based on the value of the properties 
 
 Based on the order of the selected properties, all channels with a same property value are grouped under the same node.
 In the image above we see the channels ordered by the value of the properties ``hostName`` and then ``iocName``
-
-

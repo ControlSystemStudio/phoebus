@@ -13,7 +13,7 @@
         <pathelement path="../actions/${build}/app-display-actions-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-display-convert-edm-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>

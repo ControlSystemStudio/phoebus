@@ -72,7 +72,7 @@
     <ant target="clean" dir="services/alarm-server"/>
     <ant target="clean" dir="services/alarm-logger"/>
     <ant target="clean" dir="services/archive-engine"/>
-      
+
     <!-- If above list is complete, each project should have deleted its output.
          Just in case, another way to delete all target dirs
          _except_ dependencies
@@ -166,7 +166,7 @@
     <ant target="service-alarm-logger" dir="services/alarm-logger"/>
     <ant target="service-archive-engine" dir="services/archive-engine"/>
   </target>
-	
+
   <target name="dist" depends="services" description="Pack for distribution">
     <ant target="dist" dir="phoebus-product"/>
     <ant target="dist" dir="services/scan-server"/>

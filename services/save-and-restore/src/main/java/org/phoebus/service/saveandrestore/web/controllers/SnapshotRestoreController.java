@@ -70,4 +70,3 @@ public class SnapshotRestoreController extends BaseController {
         return snapshotUtil.restore(snapshotItems, connectionTimeout);
     }
 }
-

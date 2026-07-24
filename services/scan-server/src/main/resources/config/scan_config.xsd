@@ -7,7 +7,7 @@
      <scan_config
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xsi:noNamespaceSchemaLocation="scan_config.xsd">
-	 
+
 	 Or run standalone validation  (use double'-', can't show that in XML comment):
 	  xmllint -schema scan_config.xsd scan_config.xml
   -->

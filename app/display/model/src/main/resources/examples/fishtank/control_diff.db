@@ -33,4 +33,3 @@ record(calc, "$(user):PID")
     field(INPF, "$(user):error_diff MS")
     field(CALC, "A*B+C*D+E*F")
 }
-

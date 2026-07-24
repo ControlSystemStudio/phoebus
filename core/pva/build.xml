@@ -14,7 +14,7 @@
             </classpath>
     	</javadoc>
     </target>
-	
+
     <target name="core-pva" depends="javadoc">
         <mkdir dir="${classes}"/>
         <javac destdir="${classes}" debug="${debug}">
@@ -96,7 +96,7 @@
             <src path="${test}/"/>
             <include name="**/SpamDemo.java"/>
         </javac>
-        
+
         <java classname="org.epics.pva.client.SpamDemo">
             <arg value="${pipeline}"/>
             <classpath>
@@ -105,7 +105,7 @@
             </classpath>
         </java>
     </target>
-    
+
     <target name="pipeline" unless="pipeline">
         <input addProperty="pipeline" message="Pipeline size:"/>
     </target>

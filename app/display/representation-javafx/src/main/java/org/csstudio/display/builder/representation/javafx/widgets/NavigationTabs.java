@@ -292,7 +292,7 @@ public class NavigationTabs extends BorderPane
                         tmpWidgetColor = tab_selected_colors.get(i);
                         tmpColor = JFXUtil.convert(tmpWidgetColor);
                     }
-                }		
+                }
             } else {
                 // Set color to global "deselected" color value
                 tmpColor = deselected;

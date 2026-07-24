@@ -35,7 +35,7 @@ public class ValidatingTextFieldTableCell<S, T> extends TextFieldTableCell<S, T>
             });
         }
     }
-    
+
     // utility method to simplify usage in column
     public static <S> Callback<TableColumn<S, String>, TableCell<S, String>> forTableColumn() {
         return forTableColumn(new javafx.util.converter.DefaultStringConverter());

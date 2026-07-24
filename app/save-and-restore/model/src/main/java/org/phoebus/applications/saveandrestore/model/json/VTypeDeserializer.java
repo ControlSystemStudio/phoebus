@@ -37,8 +37,8 @@ import org.epics.vtype.json.VTypeToJson;
  * Created 30 Nov 2018
  */
 public class VTypeDeserializer extends JsonDeserializer<VType> {
-	
-	@Override 
+
+	@Override
     public VType deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
             throws IOException {
 		String valueAsJson = jsonParser.getCodec().readTree(jsonParser).toString();
@@ -46,7 +46,7 @@ public class VTypeDeserializer extends JsonDeserializer<VType> {
 		try {
 			jsonReader = Json.createReader(new ByteArrayInputStream(valueAsJson.getBytes()));
 			return VTypeToJson.toVType(jsonReader.readObject());
-		} 
+		}
 		finally {
 			if(jsonReader != null) {
 				jsonReader.close();

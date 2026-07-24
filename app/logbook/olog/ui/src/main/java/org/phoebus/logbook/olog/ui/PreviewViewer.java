@@ -38,7 +38,7 @@ public class PreviewViewer extends Stage {
 
     private WebEngine webEngine;
     private HtmlAwareController htmlAware;
-    
+
     public PreviewViewer(String entryDescription, List<Attachment> attachments) {
         initModality(Modality.WINDOW_MODAL);
         String url = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient().getServiceUrl();
@@ -67,5 +67,5 @@ public class PreviewViewer extends Stage {
 
         return stringBuffer.toString();
     }
-   
+
 }

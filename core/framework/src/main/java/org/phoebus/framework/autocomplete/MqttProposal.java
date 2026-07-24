@@ -25,7 +25,7 @@ public class MqttProposal extends Proposal
     /**
      * Constructor
      * @param path mqtt path
-     * @param type type 
+     * @param type type
      */
     public MqttProposal(final String path, final String type)
     {

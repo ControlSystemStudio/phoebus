@@ -7,7 +7,7 @@ $(function()
         $('#runtime').text("");
 
         var commands = $('#scan').val();
-        
+
         $.ajax(
         {
             type: 'POST',

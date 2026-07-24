@@ -27,7 +27,7 @@ public class AdvancedConverterTest {
 			assertTrue(opiFile.toLowerCase().endsWith(AdvancedConverter.OPI_EXTENSION));
 		}
 	}
-	
+
 	@Test
 	public void listScriptFilesTest() {
 		String tmpOpiFolder = "src/test/resources/opiFiles";
@@ -40,7 +40,7 @@ public class AdvancedConverterTest {
 			assertTrue(AdvancedConverter.getInstance().isScriptFile(scriptFile));
 		}
 	}
-	
+
 
 	@Test
 	public void generateRecursiveArgumentsTest() {

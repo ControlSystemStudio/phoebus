@@ -9,17 +9,17 @@ From the command-line, invoke ``phoebus.sh -help``, which will look
 similar to this, but check your copy of CS-Studio/Phoebus
 for the complete list::
 
-      _______           _______  _______  ______            _______ 
+      _______           _______  _______  ______            _______
      (  ____ )|\     /|(  ___  )(  ____ \(  ___ \ |\     /|(  ____ \
      | (    )|| )   ( || (   ) || (    \/| (   ) )| )   ( || (    \/
-     | (____)|| (___) || |   | || (__    | (__/ / | |   | || (_____ 
+     | (____)|| (___) || |   | || (__    | (__/ / | |   | || (_____
      |  _____)|  ___  || |   | ||  __)   |  __ (  | |   | |(_____  )
      | (      | (   ) || |   | || (      | (  \ \ | |   | |      ) |
      | )      | )   ( || (___) || (____/\| )___) )| (___) |/\____) |
      |/       |/     \|(_______)(_______/|/ \___/ (_______)\_______)
-     
+
      Command-line arguments:
-     
+
         -help                                   -  This text
         -splash                                 -  Show splash screen
         -nosplash                               -  Suppress the splash screen
@@ -74,12 +74,12 @@ be interpreted by the Linux shell, best enclose all resources in quotes.
 
 Open probe with a PV name::
 
-    phoebus.sh -resource "pv://?sim://sine&app=probe"              
+    phoebus.sh -resource "pv://?sim://sine&app=probe"
 
 
 Open PV Table with some PVs::
 
-    phoebus.sh -resource "pv://?MyPV&AnotherPV&YetAnotherPV&app=pv_table"              
+    phoebus.sh -resource "pv://?MyPV&AnotherPV&YetAnotherPV&app=pv_table"
 
 Note that all these examples use the internal name of the application feature,
 for example "pv_table", and not the name that is displayed the user interface,
@@ -112,7 +112,7 @@ For this scenario, invoke ``phoebus.sh`` with the ``-server`` option, using
 a TCP port that you reserve for this use on that computer, for example::
 
    phoebus.sh -server 4918
-   
+
 The first time you start phoebus this way, it will actually open the main window.
 Follow-up invocations, for example::
 

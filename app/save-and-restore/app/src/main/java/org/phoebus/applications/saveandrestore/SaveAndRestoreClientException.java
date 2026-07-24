@@ -20,9 +20,9 @@ package org.phoebus.applications.saveandrestore;
 
 
 public class SaveAndRestoreClientException extends RuntimeException {
-	
+
 	private static final long serialVersionUID = 8943628755162213248L;
-	
+
 	public SaveAndRestoreClientException(String message) {
 		super(message);
 	}

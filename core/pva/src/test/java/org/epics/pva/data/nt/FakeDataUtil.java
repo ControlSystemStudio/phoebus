@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class FakeDataUtil {
-    
+
     /**
      * Generates a sequence of arrays of numbers up to groupSize * nOfArrayGroups
-     * 
+     *
      * @param groupSize Size of each group
      * @param multiplier To provide a float value
      * @param nOfArrayGroups How many groups to make

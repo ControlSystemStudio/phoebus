@@ -1,6 +1,6 @@
 <project default="service-archive-engine">
   <import file="../../dependencies/ant_settings.xml"/>
-	
+
   <target name="service-archive-engine">
     <mkdir dir="${classes}"/>
     <javac srcdir="${src}" destdir="${classes}" classpathref="app-classpath" debug="${debug}"/>
@@ -29,7 +29,7 @@
         <include name="dependencies/**/epics-jackie*.jar"/>
         <include name="dependencies/**/commons-lang*.jar"/>
   		<include name="dependencies/**/postgresql-*.jar"/>
-      	
+
       	<include name="core/**/core-framework-*.jar"/>
       	<include name="core/**/core-formula-*.jar"/>
       	<include name="core/**/core-pv-*.jar"/>
@@ -38,7 +38,7 @@
       	<include name="core/**/core-vtype-*.jar"/>
       </fileset>
     </copy>
-  	
+
     <!-- Create classpath for lib/*jar -->
     <manifestclasspath property="manifest-classpath"
                        jarfile="${build}/service-archive-engine-${version}.jar">
@@ -53,7 +53,7 @@
 
     <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
 
-	<!-- ZIP of service, with classpath for lib/* and main class -->  	
+	<!-- ZIP of service, with classpath for lib/* and main class -->
     <jar destfile="${build}/service-archive-engine-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
@@ -71,5 +71,5 @@
       <zipfileset dir="." includes="archive-engine.sh" fullpath="archive-engine-${version}/archive-engine.sh" filemode="755"/>
     </zip>
   </target>
-	
+
 </project>

@@ -7,7 +7,7 @@ package org.phoebus.channelfinder;
 
 
 public interface ChannelQueryListener {
-	
+
 	public void queryExecuted(ChannelQuery.Result result);
 
 }

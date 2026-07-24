@@ -22,11 +22,11 @@ public class AnnotatedPreferencesTest
 {
 	// Basic examples for reading int, String, double, File, ...,
 	// using same name for the variable and the preference tag.
-	
+
 	// Will be set from 'example_int=42' in preference file
 	@Preference
 	public static int example_int;
-	
+
 	@Preference
 	public static String example_string;
 
@@ -35,7 +35,7 @@ public class AnnotatedPreferencesTest
 
 	@Preference
 	public static boolean example_bool;
-	
+
 	@Preference
 	public static int[] example_rgb;
 
@@ -52,28 +52,28 @@ public class AnnotatedPreferencesTest
 	// Not annotated, not set from preferences
 	public static int not_set_from_preferences = -1;
 
-	
+
 	// Example for more complex preference that's first read as a string
 	// (or other basic supported type) and then parsed.
 	// Keeping the 'raw' value private
-	
+
 	@Preference(name="example_first_last")
 	private static String first_last_spec;
-	
+
 	public static String[] example_first_last;
-	
-	
+
+
 	enum ExampleEnum { RED, GREEN, BLUE }
-	
+
 	@Preference
 	public static ExampleEnum example_enum;
-		
+
 	static
 	{
 		AnnotatedPreferences.initialize(AnnotatedPreferencesTest.class, "/anno_prefs_test.properties");
 	}
-	
-	
+
+
 	@Test
 	public void testAnnotatedPreference()
 	{
@@ -85,10 +85,10 @@ public class AnnotatedPreferencesTest
 		assertArrayEquals(new String[] { "One", "Two", "Three" }, example_strings);
 		assertEquals(new File("/tmp/example.dat"), example_file);
 		assertEquals("Value of foo", example_foo);
-		
+
 		// Not reading 13 from preference file
 		assertEquals(-1, not_set_from_preferences);
-	
+
 		// Reading 'raw' value
 		assertEquals("Fred Jason, Miller", first_last_spec);
 		example_first_last = first_last_spec.split("\\s*,\\s*");

@@ -7,5 +7,5 @@
       <fileset dir="${resources}"/>
     </jar>
   </target>
-	
+
 </project>

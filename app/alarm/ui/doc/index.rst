@@ -22,7 +22,7 @@ A user acknowledges the alarm (2) and starts to address the underlying issue.
 Eventually, the reason for the alarm is removed, the severity of the PV recovers to `OK`,
 and the alarm system returns to an overall `OK` state (3).
 
-It is also possible that the underlying issue is short lived, and the 
+It is also possible that the underlying issue is short lived, and the
 PV recovers to `OK` on its own.
 The alarm system latches the alarm, so users can see that there was an
 alarm (4). When the user acknowledges the alarm, the system returns
@@ -110,7 +110,7 @@ The UI includes the following applications:
    description, alarm time etc.
 
    The context menu of selected alarms offers links to guidance messages and
-   related displays.  
+   related displays.
 
    Alarms can be acknowledged, which moves them to a separate table of acknowledged
    alarms.
@@ -134,7 +134,7 @@ They can also be opened from the command line as follows::
 Alarm Configuration Options
 ---------------------------
 
-Alarm configurations are imported into the Alarm Server in an XML 
+Alarm configurations are imported into the Alarm Server in an XML
 format, the schema for which may be found `here <https://github.com/ControlSystemStudio/phoebus/app/alarm/examples/alarm_configuration.xsd>`_.
 
 Behavior - PV entries
@@ -285,7 +285,7 @@ system display that shows the actual alarm PV and the surrounding subsystem.
    and the display tool is recognized by the file extension,
    i.e. `*.bob` for the display runtime, or `*.html` to open a web page.
    When passing macros, a complete URL is required.
-   
+
 
 Examples::
 
@@ -335,7 +335,7 @@ The PV needs to hold a string, for example
 or
 `ca://NameOfPV.VAL$`
 for Channel Access where the PV refers to a string record::
-    
+
     # Example for "Info PV"
     # used with automated action set to "infopv:NameOfPV"
     #
@@ -355,8 +355,8 @@ With Channel Access, since the text usually exceeds 40 characters, use ``infopv:
 Invokes command with list of space-separated arguments.
 The special argument "*" will be replaced with a list of alarm PVs and their alarm severity.
 The command is executed in the ``command_directory`` provided in the alarm preferences.
- 
- 
+
+
 ``sevrpv:SomePV``:
 Names a PV that will be updated with the severity of the alarm,
 i.e. a value from 0 to 9 to represent the acknowledged or active
@@ -364,12 +364,12 @@ alarm state.
 The delay is ignored for ``sevrpv:`` actions.
 
 Suggested PV template::
- 
+
     # Example for "Severity PV"
     # used with automated action set to "sevrpv:NameOfPV"
     #
     # softIoc -s -m N=NameOfPV -d sevrpv.db
-    
+
     record(mbbi, "$(N)")
     {
         field(ZRVL, 0)
@@ -401,7 +401,7 @@ Suggested PV template::
         field(INP,  "0")
         field(PINI, "YES")
     }
- 
+
 Inclusions
 ^^^^^^^^^^
 The Phoebus alarm server supports Xinclude, allowing for the breakup of hierarchies into multiple files.
@@ -508,4 +508,3 @@ or leaves, and a leaf itself (training:COUNTER), as their functionalities vary
 
 **NOTE:** Any changes performed in the editor will be overwritten when the associated alarm configuration XML file is
 imported again.
-

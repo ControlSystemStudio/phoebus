@@ -6,7 +6,7 @@ A set of modules containing shared services, descriptions of service provider in
 
 ### launcher
 
-**core-launcher:** Provides the launcher for starting cs-studio/phoebus. 
+**core-launcher:** Provides the launcher for starting cs-studio/phoebus.
 ### framework
 
 **core-framework:** contains many useful services for building applications.

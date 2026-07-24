@@ -52,7 +52,7 @@ public class OptionsTablesController {
     }
 
     /**
-     * 
+     *
      * @return The guidance data managed by the user in the {@link javafx.scene.control.TableView}
      */
     public List<TitleDetail> getGuidance(){

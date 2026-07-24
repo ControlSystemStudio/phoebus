@@ -733,11 +733,11 @@ public class TracesTab extends Tab
                 items.add(new EditMultipleItemsAction(trace_table, model, undo, selection));
 
             items.add(new SeparatorMenuItem());
-            
-            
+
+
             items.add(new ShowHideAllAction(model, undo, true));
             items.add(new ShowHideAllAction(model, undo, false));
-            
+
             items.add(new SeparatorMenuItem());
 
             // Add PV-based entries

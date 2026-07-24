@@ -391,7 +391,7 @@ access PVs that have already been created.</text>
         <script file="EmbeddedPy">
           <text><![CDATA[from org.csstudio.display.builder.runtime.script import ScriptUtil
 
-selected = ScriptUtil.showSelectionDialog(widget, 
+selected = ScriptUtil.showSelectionDialog(widget,
             "Pick one\nof the following\noptions\ndepending on\nyour preferred choice\nof fruit",
             [ "Apple", "Banana", "Cucumber" ])
 

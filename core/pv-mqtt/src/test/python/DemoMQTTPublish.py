@@ -30,5 +30,4 @@ for i in range(10):
     thread = threading.Thread(target=publishRandomNumbers)
     thread.setName("thread" + str(i))
     thread.start()
-    
 

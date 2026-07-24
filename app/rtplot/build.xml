@@ -10,7 +10,7 @@
         <path refid="app-classpath"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-rtplot-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
@@ -29,5 +29,5 @@
       <formatter type="plain" usefile="false"/>
     </junit>
   </target>
-	
+
 </project>

@@ -194,7 +194,7 @@ public class LinearTicks extends Ticks<Double>
         double distance = selectNiceStep(min_distance);
         if (distance == 0.0)
             throw new Error("Broken tickmark computation");
-        
+
         // Update num_fmt based on distance between major tick labels.
         // For example, an axis with range 0 .. 10 would ordinarily use precision 0
         // and axis markers like 0, 2, 4, 6, 8, 10.

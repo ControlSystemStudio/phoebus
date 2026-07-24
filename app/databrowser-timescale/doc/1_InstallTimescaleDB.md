@@ -16,7 +16,7 @@ Remove previous installation
     sudo yum remove postgresql12
     sudo yum remove postgresql12-libs
     sudo yum remove timescaledb-tools
-    
+
 Register RPM repo
 
 ```
@@ -41,7 +41,7 @@ sudo yum update -y
 Install
 
     sudo yum install -y timescaledb-2-postgresql-14
-    
+
 As a result, `/usr/pgsql-14` has binaries, `/var/lib/pgsql/14` has config and data.
 Initialize the empty data dirrectory:
 
@@ -92,13 +92,13 @@ Allow Remote Access
     listen_addresses = '*'
 
 
-    vi /var/lib/pgsql/14/data/pg_hba.conf 
+    vi /var/lib/pgsql/14/data/pg_hba.conf
 
     # Add these lines to end
     # 'md5' means request password. 'trust' would allow connection without pw
     host    all             all              0.0.0.0/0              md5
     host    all             all              ::/0                   md5
-    
+
     # Alternatively, only allow access for specific users
     host    all             report,tsarch    0.0.0.0/0              md5
     host    all             report,tsarch    ::/0                   md5

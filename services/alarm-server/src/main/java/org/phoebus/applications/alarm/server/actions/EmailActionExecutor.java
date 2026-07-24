@@ -54,7 +54,7 @@ public class EmailActionExecutor
             }
     }
 
-    /** Create title for email, also used by Info PV 
+    /** Create title for email, also used by Info PV
      *  @param item Item for which to create title
      *  @return Title
      */
@@ -81,7 +81,7 @@ public class EmailActionExecutor
         return buf.toString();
     }
 
-    /** Create info body for email, also used by Info PV 
+    /** Create info body for email, also used by Info PV
      *  @param item Item for which to create info
      *  @return Info text
      */

@@ -123,7 +123,7 @@ public class XmlProperty {
 
     /**
      * set the channels associated with this property
-     * 
+     *
      * @param channels - channels to be set to the property
      */
     @JsonProperty("channels")

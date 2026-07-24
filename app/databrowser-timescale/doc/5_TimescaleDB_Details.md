@@ -41,7 +41,7 @@ Version Info
 
 Postgres and the TimescaleDB extension versions,
 which were 14.2 and 2.6.0 for the initial archive implementation:
- 
+
     SELECT version() AS PSQL,
            extversion AS Timescale
     FROM pg_extension WHERE extname = 'timescaledb';
@@ -75,13 +75,13 @@ The basic options are
 The best configuration is likely site-specific.
 At this time we cannot offer much guidance beyond pointing to
 https://docs.timescale.com/timescaledb/latest/how-to-guides/hypertables/best-practices:
- 
+
  * "Time interval should be chosen such that recent chunk fits into memory."
  * "TimescaleDB does  _not_  benefit from a very large number of space partitions."
  * "In most cases, it is advised for users not to use space partitions."
  * "We recommend tying the number of space partitions to the number of disks and/or data nodes."
  * "With a RAID setup, no spatial partitioning is required on a single node."
- 
+
 
 Configure and Change Partitioning
 ---------------------------------
@@ -117,27 +117,27 @@ you can update partitions by creating a new schema, copying data over, then rena
     SELECT * FROM create_hypertable('update.sample', 'smpl_time', 'channel_id', 1);
     SELECT set_chunk_time_interval('update.sample', INTERVAL '1 month');
     SELECT * from timescaledb_information.dimensions;
-   
+
     -- Import old data into new table, do this for example month by month:
-    \timing on    
+    \timing on
     INSERT INTO update.sample
       SELECT smpl_time, nanosecs, channel_id, severity_id, status_id, num_val, float_val, str_val
       FROM public.sample WHERE smpl_time >= '2019-01-01' AND smpl_time < '2019-02-01';
     -- With original example data, 1 month required about 15 minutes and 15 GB.
- 
+
 To swap the old/new table format, move them between schemata like this:
 
     -- Move old table out of 'public'
     CREATE SCHEMA old;
     ALTER TABLE public.sample SET SCHEMA old;
- 
+
     -- Move updated table into 'public' and allow report account to read from it
     ALTER TABLE update.sample SET SCHEMA public;
     DROP SCHEMA update;
     GRANT SELECT ON sample TO report;
-    
+
     -- Import more data, now that the 'public' table is the updated one
-    \timing on    
+    \timing on
     INSERT INTO sample
       SELECT smpl_time, nanosecs, channel_id, severity_id, status_id, num_val, float_val, str_val
       FROM old.sample WHERE smpl_time >= '2019-07-01' AND smpl_time < '2019-08-01';
@@ -147,14 +147,14 @@ To swap the old/new table format, move them between schemata like this:
     -- When no longer needed, the old data can be removed
     DROP TABLE old.sample;
     DROP SCHEMA old;
-    
-    
+
+
 Overall Statistics, Chunk Information
 -------------------------------------
 
 Channel count:
 
-    SELECT count(*) from channel; 
+    SELECT count(*) from channel;
 
 How many samples are there?
 
@@ -166,12 +166,12 @@ How many samples are there?
     ANALYZE sample;
     -- and this is then instantaneous
     SELECT * FROM approximate_row_count('sample');
- 
+
 Overall `sample` size:
 
     # https://en.wikipedia.org/wiki/Gigabyte definition
     SELECT hypertable_size('sample') / 1e9 AS GigaByte;
-    
+
     # Close to result of
     #   du -hc /var/lib/pgsql/14/data/base
     SELECT hypertable_size('sample') / (1024.0^3) AS GigaByte;
@@ -192,21 +192,21 @@ List all chunks:
 
     # Note 'Child tables:'
     \d+ sample
-    
+
     # Just list the chunks:
     SELECT show_chunks('sample');
 
 Details for each chunk:
 
     SELECT * FROM timescaledb_information.chunks ORDER BY range_end;
-    
+
     SELECT hypertable_name, chunk_schema, chunk_name, range_start, range_end, is_compressed
     FROM timescaledb_information.chunks ORDER BY range_end;
 
 Display chunk details for one year:
-    
+
     SELECT * FROM timescaledb_information.chunks WHERE range_start >= '2021-01-01' AND range_end <= '2022-01-01' ORDER BY range_end;
-    
+
 Example result: In a setup with 2 chunks by `channel_id`,
 you might find that 2 chunks hold data for the same time range.
 Displaying the detail for those 2 chunks will show that they have the same `smpl_time` constraint but adjacent `channel_id` ranges:
@@ -225,14 +225,14 @@ Displaying the detail for those 2 chunks will show that they have the same `smpl
 Chunk size:
 
     SELECT * FROM chunks_detailed_size('sample');
-    
+
     SELECT min(total_bytes)/1e6 AS Min_MB, max(total_bytes)/1e6 AS Max_MB, avg(total_bytes)/1e6 AS Avg_MB FROM chunks_detailed_size('sample');
-    
+
     SELECT c.chunk_schema || '.' || c.chunk_name AS Chunk, s.total_bytes/(1000^3) AS Gigabytes, c.range_start, c.range_end
     FROM timescaledb_information.chunks c
     JOIN chunks_detailed_size('sample') s ON s.chunk_schema = c.chunk_schema AND s.chunk_name = c.chunk_name
     ORDER BY c.range_end;
-    
+
 
 Size of chunks for one year
 
@@ -257,7 +257,7 @@ and re-orders data by `channel_id` to streamline access to samples for one chann
 
 Manually compress older chunks
 ------------------------------
-    
+
 Enable compression:
 
     ALTER TABLE sample SET (
@@ -270,20 +270,20 @@ Determine which chunks to compress:
     SELECT hypertable_name, chunk_schema, chunk_name, range_start, range_end, is_compressed
     FROM timescaledb_information.chunks ORDER BY range_end;
 
-    SELECT show_chunks('sample');    
+    SELECT show_chunks('sample');
     SELECT show_chunks('sample', older_than => DATE '2021-02-01');
-    
+
     -- Compressing takes a few minutes per chunk
-    \timing on    
+    \timing on
     SELECT compress_chunk('_timescaledb_internal._hyper_2_20_chunk', if_not_compressed=>TRUE);
     SELECT compress_chunk('_timescaledb_internal._hyper_2_21_chunk', if_not_compressed=>TRUE);
-    
+
     -- Identify chunks within a time range ...
     SELECT show_chunks('sample', newer_than => DATE '2020-12-01', older_than => DATE '2021-02-02');
     -- .. and compress them
-    SELECT compress_chunk(i, if_not_compressed=>TRUE) 
+    SELECT compress_chunk(i, if_not_compressed=>TRUE)
     FROM show_chunks('sample', newer_than => DATE '2020-12-01', older_than => DATE '2021-02-02') i;
-    
+
 Compression info:
 
     SELECT * FROM hypertable_compression_stats('sample');
@@ -294,12 +294,12 @@ Compression info:
            after_compression_total_bytes * 100.0 / before_compression_total_bytes AS percent
       FROM chunk_compression_stats('sample')
       ORDER BY chunk_name;
-      
+
     SELECT min(percent), max(percent), avg(percent)
     FROM ( SELECT after_compression_total_bytes * 100 / before_compression_total_bytes AS percent
            FROM chunk_compression_stats('sample') ) AS data;
-      
-      
+
+
 Manually decompress chunks
 --------------------------
 
@@ -316,9 +316,9 @@ Or manually decompress one or many chunks:
 
 Automatically compress older chunks
 -----------------------------------
-    
+
     SELECT add_compression_policy('sample', INTERVAL '7 days');
-    
+
     SELECT remove_compression_policy('sample');
 
     SELECT * FROM timescaledb_information.compression_settings;
@@ -423,7 +423,7 @@ would basically look like this:
     psql -d tsarch -c "\COPY (SELECT * FROM channel) TO channel.csv DELIMITER ',' CSV"
     psql -d tsarch -c "\COPY (SELECT * FROM sample WHERE channel_id=2 AND smpl_time >= '2021-01-01' AND smpl_time < '2021-02-01') TO ch2_2021_01.csv DELIMITER ',' CSV"
     psql ...channel_id=2 .. TO ch2_2021_01.csv ...
-    
+
 
 Long-Term Data Maintenance
 --------------------------

@@ -30,9 +30,9 @@ public class TangoPVFactory implements PVFactory {
             actual_name = PVPool.TypedName.format(TangoPVFactory.TYPE, name);
         }
         TangoPV tangopv = tango_pvs.get(actual_name);
-        
+
         //Check TANGO HOST
-        
+
         if (tangopv == null) {
             synchronized (tango_pvs) {
                 tangopv = new TangoPV(actual_name, base_name);
@@ -42,7 +42,7 @@ public class TangoPVFactory implements PVFactory {
 
         return tangopv;
     }
-    
+
     @Override
     public String getCoreName(String name) {
         String actual_name = name;

@@ -99,7 +99,7 @@ function formatDate(d)
      " " + formatNumber(d.getHours()) + ":" + formatNumber(d.getMinutes()) + ":" + formatNumber(d.getSeconds());
 }
 
-// Invoke GET /scans, display result in table 
+// Invoke GET /scans, display result in table
 $(function()
 {
     $.ajax(
@@ -112,16 +112,16 @@ $(function()
             $(xml).find('scan').each(function()
             {
                 var scan = $(this);
-             
+
                 var row = $('<tr/>');
-             
+
                 var id = scan.find('id').text();
-                
+
                 var links = "<a href='scan/" + id + "'>" + id + "</a>";
                 links += " <a href='scan/" + id + "/commands'>(cmds)</a>";
                 links += "<a href='scan/" + id + "/data'>(data)</a>";
                                 row.append( $('<td/>').append(links));
-             
+
                 var item = scan.find('name').text();
                 row.append( $('<td/>').append(item));
 
@@ -160,7 +160,7 @@ $(function()
                 {
                     item += "<button onclick='deleteScan(" + id + ")'>Delete</button>";
                 }
-                
+
                 row.append( $('<td/>').append(item));
 
                 var performed = scan.find('performed_work_units').text();

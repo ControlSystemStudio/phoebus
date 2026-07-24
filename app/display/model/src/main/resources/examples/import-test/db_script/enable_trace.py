@@ -17,6 +17,3 @@ traces = model.getItems()
 # On first call, model may not have any traces, yet
 if traces.size() > index:
 	traces.get(index).setVisible(enable > 0)
-
-
-

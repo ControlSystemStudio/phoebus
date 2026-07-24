@@ -86,7 +86,7 @@ public class FileBrowserController {
         for (Consumer<File> listener : root_change_listeners)
             listener.accept(newRoot);
     }
-    
+
 
     private ExpandedCountChangeListener expandedCountChangeListener;
 

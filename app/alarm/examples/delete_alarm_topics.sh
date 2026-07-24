@@ -28,4 +28,3 @@ for topic in "$1" "${1}Command" "${1}Talk"
 do
     kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --delete --topic $topic
 done
-

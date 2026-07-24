@@ -74,7 +74,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         DataBrowserRepresentation.openFullDataBrowser(model, model_widget.getMacrosOrProperties(), model_widget.propToolbar().getValue());
     private final WidgetPropertyListener<Instant> refresh_plot_listener = (p, o, n) -> controller.refresh();
 
-    
+
     @Override
     protected Pane createJFXNode() throws Exception
     {
@@ -293,7 +293,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         TimeRelativeInterval range;
 
         if (abs_end != null){
-            if (abs_start != null){ 
+            if (abs_start != null){
                 range = TimeRelativeInterval.of(abs_start, abs_end);
             }
             else
@@ -301,8 +301,8 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
                 range = TimeRelativeInterval.of(abs_end.minus(rel_start), abs_end);
             }
         }
-        else{ 
-            if (abs_start != null){ 
+        else{
+            if (abs_start != null){
                 range = TimeRelativeInterval.of(abs_start, abs_start.plus(rel_end));
             }
             else
@@ -311,7 +311,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
             }
         }
         model.setTimerange(range);
-        
+
 
         final boolean show_legend = model_widget.propLegend().getValue();
         model.setLegendVisible(show_legend);

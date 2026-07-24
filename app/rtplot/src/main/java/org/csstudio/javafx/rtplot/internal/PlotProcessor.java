@@ -386,7 +386,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         });
     }
 
-    /** 
+    /**
      *  @param trace Trace to which a annotation should be added
      *  @param text Text for the annotation
      */

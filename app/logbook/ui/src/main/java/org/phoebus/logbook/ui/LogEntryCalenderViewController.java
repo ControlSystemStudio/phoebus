@@ -93,7 +93,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     public LogEntryCalenderViewController(LogClient logClient){
         setClient(logClient);
     }
-    
+
     @FXML
     public void initialize() {
 
