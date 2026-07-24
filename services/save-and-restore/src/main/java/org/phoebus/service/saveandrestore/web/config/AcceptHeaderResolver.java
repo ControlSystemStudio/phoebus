@@ -40,4 +40,3 @@ public class AcceptHeaderResolver extends AcceptHeaderLocaleResolver {
                 : Locale.lookup(Locale.LanguageRange.parse(headerLang), LOCALES);
     }
 }
-

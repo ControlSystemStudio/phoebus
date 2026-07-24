@@ -2,7 +2,7 @@ Display Builder
 ===============
 
 The Display Builder development started in the Eclipse-based version of CS-Studio
-as an update of CS-Studio 'BOY', i.e. the `org.csstudio.opibuilder.*` code in 
+as an update of CS-Studio 'BOY', i.e. the `org.csstudio.opibuilder.*` code in
 https://github.com/ControlSystemStudio/cs-studio
 
 It aims for similar functionality and "look",
@@ -76,9 +76,9 @@ The base `WidgetRuntime` handles the following:
  * If widget has `pv_name` and `pv_value` properties, a primary PV is created for
    the `pv_name`. The `pv_value` is updated with each `VType` received from that PV.
    Representation then needs to reflect the current `pv_value`.
-   
+
  * Widget can 'write' to the primary PV.
-    
+
  * Each script in the "scripts" property is parsed, its PVs are created,
    and the script is triggered when any of its input PVs change.
    The script can then update widget properties.
@@ -153,7 +153,7 @@ It is decoupled, because in edit mode there would in fact not be any runtime.
 The representation sends an event via
 `ToolkitRepresentation.fireWrite(Widget widget, Object value)`.
 In runtime mode, the `WidgetRuntime` subscribes to these events
-and writes to the PV. 
+and writes to the PV.
 
 ### SPI
 The model, representation and (optional) runtime of a widget
@@ -269,7 +269,7 @@ This simplifies the behavior of macros, since discussions with the implementor o
 no good reason to duplicate the more complicated previous behavior.
 As a technical detail, the BOY *.opi XML format treated `"include_parent_macros"`,
 the option to inherit parent macros, just like the name of an ordinary macro.
-This macro name is now ignored. 
+This macro name is now ignored.
 
 Properties that support macros are based on `MacroizedWidgetProperty`.
 They distinguish between the original value specification,
@@ -292,7 +292,7 @@ font specifications like "height 12" were in points.
 For SWT as used in the legacy  CS-Studio displays, the on-screen size of fonts depends
 on the resolution and size of the display.
 For existing *.opi files, the desired font sizes are therefore unknown unless one can measure
-them on the OS and hardware where the display was originally executed. 
+them on the OS and hardware where the display was originally executed.
 
 Using JavaFX, fonts so far appear to be mapped 1 pixel per 1 "point" on Linux, Windows and Mac OS X.
 To verify, execute `org.csstudio.display.builder.representation.javafx.JFXFontCalibration`.
@@ -408,7 +408,7 @@ __-> JavaFX tends to be faster than SWT, especially on some Linux__
 
 `RepresentationDemoJavaFX` vs. `RepresentationDemoJavaFXinSWT`
 
-Windows: 
+Windows:
 Updates appear the same,  UpdateThrottle waiting for UI is "0 ms",
 but JavaFX in SWT FXCanvas uses about twice the CPU.
 `javafx.embed.swt.FXCanvas.paintControl` shows up in profile.
@@ -474,4 +474,3 @@ JFX WritableImage has very limited API.
 
 Best option seems to use AWT to draw buffered image in background thread,
 then show that in JFX Canvas.
-

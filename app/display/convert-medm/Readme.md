@@ -24,5 +24,3 @@ For example, a rectangle and label which surround a set of widgets will not be r
 a `Group` that contains them.
 A pair of `oval` widgets which are (almost) on top of each other with conditional visibility,
 graphically representing an LED, will not be replaced with an `LED` widget.
-
-

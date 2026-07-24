@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 public class LogEntryTable implements AppInstance {
     final static Logger log = Logger.getLogger(LogEntryTable.class.getName());
     private static final String LOG_TABLE_QUERY = "log_table_query";
-    
+
     private final LogEntryTableApp app;
     private LogEntryTableViewController controller;
 

@@ -48,13 +48,13 @@ public class TitlePart extends PlotPart
         final Font orig_font = gc.getFont();
         gc.setFont(font);
         super.paint(gc);
-        
+
         final Color old_fg = gc.getColor();
         gc.setColor(GraphicsUtils.convert(getColor()));
 
         final Rectangle bounds = getBounds();
         final Rectangle metrics = GraphicsUtils.measureText(gc, text);
-        
+
         final int tx = bounds.x + (bounds.width - metrics.width) / 2;
         final int ty = bounds.y + metrics.y + (bounds.height - metrics.height) / 2;
         gc.drawString(text, tx, ty);

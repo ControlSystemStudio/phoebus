@@ -170,7 +170,7 @@ public class PVTable extends VBox
             }
         }
     }
-    
+
     private static class DescriptionTableCell extends TableCell<TableItemProxy, String>
     {
         @Override
@@ -193,7 +193,7 @@ public class PVTable extends VBox
     private static class PVNameTableCell extends TextFieldTableCell<TableItemProxy, String>
     {
         private TextInputControl textField;
-        
+
         public PVNameTableCell()
         {
             super(new DefaultStringConverter());
@@ -227,7 +227,7 @@ public class PVTable extends VBox
             PVAutocompleteMenu.INSTANCE.attachField(textField);
             showCurrentValue();
         }
-      
+
 
         private void showCurrentValue()
         {
@@ -506,8 +506,8 @@ public class PVTable extends VBox
             else
                 sorted.setComparator(SORT_NEW_ITEM_LAST.thenComparing(column_comparator));
         };
-        
-      
+
+
 
         // The InvalidationListener is called when sort order is set up, down or null.
         // Iffy: A ChangeListener was only called when sort order is set up or null,

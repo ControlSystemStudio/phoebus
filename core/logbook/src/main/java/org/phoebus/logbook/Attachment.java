@@ -21,7 +21,7 @@ public interface Attachment {
      * @param id A unique id for the {@link Attachment}
      */
     default void setId(String id){}
-    
+
     String getName();
 
     File getFile();

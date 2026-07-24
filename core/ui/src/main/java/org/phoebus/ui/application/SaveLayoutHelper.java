@@ -157,9 +157,9 @@ public class SaveLayoutHelper
     private static boolean saveState(List<Stage> stagesToSave, final String layout)
     {
         final String memento_filename = layout + ".memento";
-        //By default save in user location folder 
+        //By default save in user location folder
         File tmpMementoFile = new File(Locations.user(), memento_filename);
-      
+
         //Save in layout_dir as absolute path if save_in_layout_dir is enable
         boolean save_in_layout_dir = Preferences.save_layout_in_layout_dir;
         if(save_in_layout_dir) {
@@ -172,9 +172,9 @@ public class SaveLayoutHelper
                 }
             }
         }
-     
+
         final File memento_file = tmpMementoFile;
-        
+
         // File.exists() is blocking in nature.
         // To combat this the phoebus application maintains a list of *.memento files that are in the default directory.
         // Check if the file name is in the list, and confirm a file overwrite with the user.
@@ -193,7 +193,7 @@ public class SaveLayoutHelper
             boolean menuVisible = PhoebusApplication.INSTANCE.isMenuVisible();
             boolean toolbarVisible = PhoebusApplication.INSTANCE.isToolbarVisible();
             boolean statusBarVisible = PhoebusApplication.INSTANCE.isStatusbarVisible();
-            
+
             MementoHelper.saveState(stagesToSave, memento_file, null, null,menuVisible, toolbarVisible, statusBarVisible);
             // After the layout has been saved,
             // update menu to include the newly saved layout

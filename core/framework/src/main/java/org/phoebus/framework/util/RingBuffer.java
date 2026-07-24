@@ -159,9 +159,9 @@ public class RingBuffer<T>
         return result;
     }
 
-  
+
     /**
-     * convert to array 
+     * convert to array
      * @param array ring butter
      * @return Array with content of ring buffer
      */

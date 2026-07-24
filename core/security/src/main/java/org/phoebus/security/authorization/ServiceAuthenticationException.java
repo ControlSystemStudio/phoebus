@@ -14,5 +14,3 @@ public class ServiceAuthenticationException extends RuntimeException{
         super(message);
     }
 }
-
-

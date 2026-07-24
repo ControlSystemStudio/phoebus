@@ -49,4 +49,3 @@ public class Edm_activePngClass extends EdmWidget {
 
 
 }
-

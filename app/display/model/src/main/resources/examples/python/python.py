@@ -27,7 +27,7 @@ try:
     # Fetch Py4Y port used by display from command line
     port = int(sys.argv[1])
     f.write("Invoked with port %d\n" % port)
-   
+
     from py4j.java_gateway import JavaGateway, GatewayParameters, CallbackServerParameters
     # Connect python side to Java,
     # start python callback server with a dynamic port
@@ -42,7 +42,7 @@ try:
     # GatewayServer instance
     addr = gateway.java_gateway_server.getCallbackClient().getAddress()
     gateway.java_gateway_server.resetCallbackClient(addr, python_port)
-    
+
     # Fetch proxy objects that allow interaction with display
     map = gateway.getMap()
     for var in map:
@@ -52,10 +52,10 @@ try:
     pvs = map["pvs"]
     PVUtil = map["PVUtil"]
     ScriptUtil = map["ScriptUtil"]
-    
+
     f.write("widget = %s\n" % str(widget))
     f.write("pvs = %s\n" % str(pvs))
-    
+
     # From now on it looks just like the jython example:
     # --------------------------------------------------
     trigger = PVUtil.getInt(pvs[0])
@@ -68,8 +68,8 @@ try:
         widget.setPropertyValue("text", info)
     # --------------------------------------------------
 	# except when done using the gateway, it needs to be shut down
-	# to tell the display that we're done    
-    gateway.shutdown(True) 
+	# to tell the display that we're done
+    gateway.shutdown(True)
 except:
     f.write(format_exc())
 

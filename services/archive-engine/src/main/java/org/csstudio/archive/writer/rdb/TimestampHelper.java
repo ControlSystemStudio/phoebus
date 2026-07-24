@@ -65,7 +65,7 @@ public class TimestampHelper
         }
         return Instant.ofEpochSecond(seconds,  nanoseconds);
     }
-    
+
     /** Zone ID is something like "America/New_York".
      *  Within that zone, time might change between
      *  EDT (daylight saving) and EST (standard),

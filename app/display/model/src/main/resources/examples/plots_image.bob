@@ -80,7 +80,7 @@
 Represents value range without
 emphasising any subsection.
 Differences in computer monitors or
-color vision deficiency have only minor 
+color vision deficiency have only minor
 impacts on overall perception. </text>
     <y>421</y>
     <width>271</width>
@@ -291,7 +291,7 @@ the value range.</text>
   </widget>
   <widget type="label" version="2.0.0">
     <text>The pixel data is an array that starts with the top-left pixel, followed by the pixels of the top row, then the second row and so on.
-    
+
 For PVAccess, a PV that serves an NTNDArray will provide not only the pixel data but also the width, height, signed/unsigned information and color mode.
 
 For Channel Access, the waveform PV only provides pixels. The data width, height, signedness and color mode need to be configured via properties of the image widget.

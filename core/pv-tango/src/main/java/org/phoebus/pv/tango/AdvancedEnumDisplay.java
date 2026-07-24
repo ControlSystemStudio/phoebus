@@ -10,12 +10,12 @@ public class AdvancedEnumDisplay extends EnumDisplay implements DisplayProvider 
 
     private EnumDisplay source ;
     private Display display ;
-    
+
     private AdvancedEnumDisplay(Display display,EnumDisplay source) {
         this.source = source;
         this.display = display;
     }
-    
+
     @Override
     public List<String> getChoices() {
         return source != null ? source.getChoices() : null;
@@ -25,11 +25,11 @@ public class AdvancedEnumDisplay extends EnumDisplay implements DisplayProvider 
     public Display getDisplay() {
         return display;
     }
-    
-    
+
+
     /**
      * New EnumDisplay with the given choices.
-     * 
+     *
      * @param choices the enum choices
      * @return the new display
      */
@@ -38,6 +38,6 @@ public class AdvancedEnumDisplay extends EnumDisplay implements DisplayProvider 
         return new AdvancedEnumDisplay(display,enumDisp);
     }
 
-   
+
 
 }

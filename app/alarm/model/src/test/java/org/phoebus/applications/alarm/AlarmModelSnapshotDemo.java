@@ -26,7 +26,7 @@ public class AlarmModelSnapshotDemo
         // Get alarm configuration
         final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT, AlarmDemoSettings.KAFKA_PROPERTIES_FILE);
         client.start();
-        
+
         System.out.println("Wait 10 secs for connection, then for stable configuration, i.e. no changes for 4 seconds...");
         final long start = System.currentTimeMillis();
 

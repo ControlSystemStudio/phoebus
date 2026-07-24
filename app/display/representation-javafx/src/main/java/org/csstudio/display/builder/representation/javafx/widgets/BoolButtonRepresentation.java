@@ -350,7 +350,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         value_label = state_labels[on_state];
 
         computeBackground();
-        
+
         pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
                 model_widget.propVerticalAlignment().getValue());
 
@@ -408,7 +408,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         {
             enabled = model_widget.propEnabled().getValue()  &&
                                     model_widget.runtimePropPVWritable().getValue();
-            setDisabledLook(enabled, jfx_node.getChildren());        
+            setDisabledLook(enabled, jfx_node.getChildren());
         }
         if (update_value)
         {

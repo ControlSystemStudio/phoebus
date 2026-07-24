@@ -15,7 +15,7 @@ import org.phoebus.logbook.Property;
 
 /**
  * Property object that can be represented as XML/JSON in payload data.
- * 
+ *
  * @author Eric Berryman taken from Ralph Lange {@literal <Ralph.Lange@helmholtz-berlin.de>}
  */
 @XmlRootElement(name = "property")
@@ -29,14 +29,14 @@ public class XmlProperty {
 
     /**
      * Creates a new instance of XmlProperty.
-     * 
+     *
      */
     public XmlProperty() {
     }
 
     /**
      * Creates a new instance of XmlProperty.
-     * 
+     *
      * @param name
      */
     public XmlProperty(String name) {
@@ -59,7 +59,7 @@ public class XmlProperty {
 
     /**
      * Getter for property id.
-     * 
+     *
      * @return property id
      */
     @XmlAttribute
@@ -69,7 +69,7 @@ public class XmlProperty {
 
     /**
      * Setter for property id.
-     * 
+     *
      * @param id property id
      */
     public void setId(int id) {
@@ -78,7 +78,7 @@ public class XmlProperty {
 
     /**
      * Getter for property id.
-     * 
+     *
      * @return property id
      */
     @XmlAttribute
@@ -88,8 +88,8 @@ public class XmlProperty {
 
     /**
      * Setter for grouping number
-     * 
-     * @param groupingNum 
+     *
+     * @param groupingNum
      */
     public void setGroupingNum(int groupingNum) {
         this.groupingNum = groupingNum;
@@ -97,7 +97,7 @@ public class XmlProperty {
 
     /**
      * Getter for property name.
-     * 
+     *
      * @return property name
      */
     @XmlAttribute
@@ -107,7 +107,7 @@ public class XmlProperty {
 
     /**
      * Setter for property name.
-     * 
+     *
      * @param name
      *            property name
      */
@@ -132,7 +132,7 @@ public class XmlProperty {
 
     /**
      * Getter for property's XmlLogs.
-     * 
+     *
      * @return XmlChannels object
      */
     @XmlElement(name = "logs")
@@ -142,7 +142,7 @@ public class XmlProperty {
 
     /**
      * Setter for property's XmlLogs.
-     * 
+     *
      * @param logs
      *            XmlLogs object
      */
@@ -152,7 +152,7 @@ public class XmlProperty {
 
     /**
      * Creates a compact string representation for the log.
-     * 
+     *
      * @param data
      *            the XmlProperty to log
      * @return string representation for log

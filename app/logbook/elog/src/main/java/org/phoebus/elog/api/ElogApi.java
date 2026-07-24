@@ -233,7 +233,7 @@ public class ElogApi {
    * Searches the logbook and returns the message ids.
    *
    * @param search_term
-   * 
+   *
    */
   public ElogSearchResult search( Map<String, String> search_term, Integer from, Integer size ) throws LogbookException {
 
@@ -247,7 +247,7 @@ public class ElogApi {
             params.put( "reverse", "0" );
         } else if("down".equalsIgnoreCase(sortDirection)) {
             params.put( "reverse", "1" );
-        } 
+        }
         search_term.remove("sort");
     } else {
         params.put( "reverse", "1" );
@@ -288,7 +288,7 @@ public class ElogApi {
       org.w3c.dom.Document doc = new DomSerializer( new CleanerProperties()).createDOM(tagNode);
       XPath xpath = XPathFactory.newInstance().newXPath();
       NodeList msgIds = (NodeList) xpath.evaluate( "(//tr/td[@class=\"list1\" or @class=\"list2\"][1])/a/@href", doc, XPathConstants.NODESET );
-      
+
       // Extract the number of all entries
       String expression = "//b[contains(., 'Entries')]";
       String result = (String) xpath.evaluate(expression, doc, XPathConstants.STRING);
@@ -299,7 +299,7 @@ public class ElogApi {
               totalCount = Integer.parseInt(matcher.group(1));
           }
       }
-      
+
       for( int i = 0; i < msgIds.getLength(); i++ ) {
         String msgIdStr = msgIds.item(i).getNodeValue();
         entries.add( read( Long.valueOf( msgIdStr.substring( msgIdStr.lastIndexOf('/') + 1 ) )));
@@ -556,4 +556,3 @@ public class ElogApi {
 
 
 }
-

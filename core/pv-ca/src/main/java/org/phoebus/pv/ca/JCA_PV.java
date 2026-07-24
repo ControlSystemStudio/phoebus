@@ -527,7 +527,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
             final Long orig = (Long) new_value;
             // ChannelAccess doesn't support long.
             // If value is small, write as int
-            // 
+            //
             // Channel Access doesn't support unsigned, either.
             // Will the number fit into 32 bits?
             // As an unsigned long it may be beyond the largest int,

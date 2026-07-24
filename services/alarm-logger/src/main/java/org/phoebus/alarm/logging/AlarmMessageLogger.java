@@ -57,7 +57,7 @@ public class AlarmMessageLogger implements Runnable {
      * Create a alarm logger for the alarm messages (both state and configuration)
      * for a given alarm server topic.
      * This runnable will create the kafka streams for the given alarm messages which match the format 'topic'
-     * 
+     *
      * @param topic - the alarm topic in kafka
      */
     public AlarmMessageLogger(String topic) {
@@ -314,7 +314,7 @@ public class AlarmMessageLogger implements Runnable {
 
                     @Override
                     public KeyValue<String, AlarmConfigMessage> transform(String key, AlarmMessage value) {
-                        
+
                         key = key.replace("\\", "");
                         if(value != null) {
                             AlarmConfigMessage newValue = value.getAlarmConfigMessage();
@@ -328,9 +328,9 @@ public class AlarmMessageLogger implements Runnable {
 
                     @Override
                     public void close() {
-                        
+
                     }
-                    
+
                 };
             }
         });

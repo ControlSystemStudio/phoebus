@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * A utility class with object mapper for the various alarm messages
- * 
+ *
  * @author Kunal Shroff
  *
  */

@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 parser = argparse.ArgumentParser(
 		     description='Check if .classpath entries exist. If not, suggest alternate version')
 args = parser.parse_args()
-     
+
 
 xml = ET.parse(".classpath")
 root = xml.getroot()
@@ -33,5 +33,3 @@ for entry in root.iter('classpathentry'):
                 print("%-60s  ----->  use %s" % (jar, update))
             else:
                 print("%-60s is missing, no replacement found" % jar)
-
-

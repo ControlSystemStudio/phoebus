@@ -56,7 +56,7 @@ public class MoveTreeItemAction extends MenuItem
     			path = result.get();
     			if (AlarmTreeHelper.validateNewPath(path, node.getRoot().getValue()))
     			    break;
-    			
+
     			// Show error dialog and retry
     			ExceptionDetailsErrorDialog.openError("Invalid Path",
     			    "Invalid path. Please try again.",

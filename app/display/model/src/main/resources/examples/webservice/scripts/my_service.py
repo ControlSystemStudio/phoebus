@@ -29,7 +29,7 @@ def read_html():
 
 def create_table(html):
     pattern = re.compile(".*<td>(.+)</td>.*<a.*>(.+)</a>.*")
-    
+
     table = []
     for line in html.split("\n"):
         match = pattern.match(line)

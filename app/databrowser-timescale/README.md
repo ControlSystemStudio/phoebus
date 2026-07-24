@@ -25,7 +25,7 @@ Instead of storing all samples into one RDB table like this:
 <img src="doc/one_table.png" width="90%">
 
 TimescaleDB allows storing the data in "chunks", for example creating
-one chunk per month: 
+one chunk per month:
 <img src="doc/monthly.png" width="90%">
 
 Chunks may additionally split the data by channel IDs:

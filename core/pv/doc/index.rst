@@ -63,7 +63,7 @@ The provided simulated process variables are:
     * sinewave(period_seconds, wavelength, size, update_seconds)
     * strings(update_seconds)
     * const(value)
-    
+
 Examples::
 
     sim://sine
@@ -160,4 +160,3 @@ Examples ::
 
     tga://device/attribute
     tgc://device/command
-

@@ -26,7 +26,7 @@ public class VariableNode implements Node
 
     /**
      * Create Variable with given name.
-     * @param name , the name of the variable 
+     * @param name , the name of the variable
      */
     public VariableNode(final String name)
     {
@@ -69,7 +69,7 @@ public class VariableNode implements Node
         setValue(VDouble.of(value, Alarm.none(), Time.now(), Display.none()));
     }
 
-    /**  
+    /**
      * @param value , new value of variable see @VType
      */
     public void setValue(final VType value)

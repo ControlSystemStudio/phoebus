@@ -126,5 +126,3 @@ public class TextEntryWidget extends ADLAbstractWidget implements ITextWidget {
     }
 
 }
-
-

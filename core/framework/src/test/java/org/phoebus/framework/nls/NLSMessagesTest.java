@@ -100,7 +100,7 @@ public class NLSMessagesTest
         System.out.println("Message missing from all localizations: " + MissingMessage);
         assertThat(MissingMessage, equalTo("<MissingMessage>"));
     }
-    
+
     /** Check if all the messages file are synchronized with the default one */
     @Test
     public void testUpdateMessages() {
@@ -133,7 +133,7 @@ public class NLSMessagesTest
     public static void restoreLocale() {
         Locale.setDefault(original);
     }
-    
+
     @Test
     public void showAccentsInFile() {
         URL resource = NLSMessagesTest.class.getResource(MESSAGE + ".properties");
@@ -147,7 +147,7 @@ public class NLSMessagesTest
             File parentFile = new File(parentFolder);
             String suffix = "_fr.properties";
             List<File> fileList = listMessagesFiles(parentFile, suffix);
-           
+
             for (File file : fileList) {
                 List<String> replaceUnicodeInFile = replaceUnicodeInFile(file.getAbsolutePath());
                 if(replaceUnicodeInFile != null && !replaceUnicodeInFile.isEmpty()) {
@@ -163,12 +163,12 @@ public class NLSMessagesTest
         }
         //assertThat("All resources are synchronize ", differences.isEmpty());
     }
-   
-    
+
+
     /**
      * Use for unit test only
      * Check if all the existing messages_{LOCALE}.properties are synchronized on default messages.propertiesresource in the project
-     * 
+     *
      * @return the list of difference between the default resources , null or empty if it is synchronized
      */
     public static List<String> checkAllMessageFilesDifferences(){
@@ -183,7 +183,7 @@ public class NLSMessagesTest
             System.out.println("parentFolder=" + parentFolder);
             File parentFile = new File(parentFolder);
             List<File> fileList = listMessagesFiles(parentFile);
-           
+
             for (File file : fileList) {
                 List<String> diff = NLSMessagesTest.checkMessageFilesDifferences(file.getAbsolutePath());
                 if (diff != null && !diff.isEmpty()) {
@@ -203,11 +203,11 @@ public class NLSMessagesTest
         }
         return differences;
     }
-    
+
     /**
      * Use for unit test only
      * Check if the existing messages_{LOCALE}.properties are synchronized on default messages.propertiesresource
-     * 
+     *
      * @param clazz Class relative to which message resources are located
      * @return the list of difference between the default ressources , null or empty if it is synchronized
      */
@@ -286,16 +286,16 @@ public class NLSMessagesTest
         }
         return differences;
     }
-    
+
     private static List<File> listMessagesFiles(File folder) {
         String suffix = MESSAGE + ".properties";
         return listMessagesFiles(folder, suffix);
     }
-    
+
     private static List<File> listMessagesFiles(File folder, String suffix) {
         List<File> fileList = new ArrayList<>();
         //Ignore target folder from build
-        if(folder != null && folder.isDirectory() 
+        if(folder != null && folder.isDirectory()
                 && !folder.getAbsolutePath().contains("\\target\\")
                 && !folder.getAbsolutePath().contains("\\test\\")) {
             File[] listFiles = folder.listFiles();
@@ -311,11 +311,11 @@ public class NLSMessagesTest
         }
         return fileList;
     }
-     
-    
+
+
     /**
      * To get Locale from a countryCode
-     * 
+     *
      * @param countryCode (fr , en ..."
      * @return Locale
      */
@@ -332,7 +332,7 @@ public class NLSMessagesTest
         }
         return localFound;
     }
-    
+
     /**
      * Check to accents contains in a file and show the string replacement to apply
      * @param file path
@@ -371,11 +371,11 @@ public class NLSMessagesTest
         catch (Exception e) {
         // TODO: handle exception
         }
-        
+
         //If no change return empty list
         return newLines;
     }
-    
-    
+
+
 
 }

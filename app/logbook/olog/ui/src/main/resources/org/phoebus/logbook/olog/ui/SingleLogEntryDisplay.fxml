@@ -46,7 +46,7 @@
                      <GridPane.margin>
                         <Insets top="3.0" />
                      </GridPane.margin>
-                           
+
                         </HBox>
                         <Label fx:id="logOwner" text="Owner" GridPane.rowIndex="1">
                             <padding>

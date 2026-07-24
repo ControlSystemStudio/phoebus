@@ -31,7 +31,7 @@ The ``phoebus.install`` location is used for branding and site-specific settings
    At startup, Phoebus load preferences from this file if it is found
    in the install location.
    This allows packing site-specific settings into your product.
-   
+
 ``site_splash.png``:
    This image will replace the default splash screen background
    with a site-specific version.
@@ -39,4 +39,4 @@ The ``phoebus.install`` location is used for branding and site-specific settings
 
 ``site_logo.png``:
    This 64x64 sized image will replace the default window logo.
-   
+

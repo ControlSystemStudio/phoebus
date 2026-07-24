@@ -35,12 +35,12 @@ public class SnapshotDataWrapperDataItemTest {
 		SnapshotItem item = SnapshotItem.builder()
 				.configPv(ConfigPv.builder().pvName("pvname").build())
 				.build();
-		
+
 		assertNotNull(item.toString());
-		
+
 		item.setValue(VType.toVType(1));
 		assertNotNull(item.toString());
-	
+
 		item.setReadbackValue(VType.toVType(1.1));
 		assertNotNull(item.toString());
 		assertFalse(item.toString().contains("READ FAILED"));

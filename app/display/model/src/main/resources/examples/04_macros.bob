@@ -68,11 +68,11 @@ by opening the display with appropriate macro values.</text>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_4</name>
-    <text>Macros can be defined at 
+    <text>Macros can be defined at
 
  1) In Preferences
  2) In the 'Embedded Display' widget that embeds other displays
- 3) In the properties of each display 
+ 3) In the properties of each display
  4) In each 'Group' widget
  5) On each 'Action' that opens a display
 

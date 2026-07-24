@@ -41,6 +41,3 @@ public class WidgetColor extends org.phoebus.ui.color.WidgetColor
                 "Use org.phoebus.ui.color.WidgetColor.");
     }
 }
-
-
-

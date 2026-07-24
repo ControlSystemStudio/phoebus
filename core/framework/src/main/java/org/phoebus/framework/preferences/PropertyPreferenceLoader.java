@@ -58,7 +58,7 @@ public class PropertyPreferenceLoader
             if (value.contains("$(user.home)"))
                 value = value.replace("$(user.home)", System.getProperty("user.home").toString().replace("\\", "/").replace(" ", "%20"));
 
-            
+
             final Preferences prefs = Preferences.userRoot().node(pack);
             prefs.put(name, value);
             // System.out.println(pack + "/" + name + "=" + value);

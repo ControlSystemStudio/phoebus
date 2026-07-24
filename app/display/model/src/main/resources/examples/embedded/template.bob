@@ -51,7 +51,7 @@
       <text>This is
 the group
 '$(groupname)'
-with 
+with
 PV $(pv_name)</text>
       <y>23</y>
       <width>130</width>

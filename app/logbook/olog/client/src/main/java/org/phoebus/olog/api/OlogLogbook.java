@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.phoebus.olog.api;
 
@@ -7,7 +7,7 @@ import org.phoebus.logbook.Logbook;
 
 /**
  * @author Eric Berryman taken from shroffk
- * 
+ *
  */
 public class OlogLogbook implements Logbook{
     private final String name;
@@ -31,7 +31,7 @@ public class OlogLogbook implements Logbook{
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -44,7 +44,7 @@ public class OlogLogbook implements Logbook{
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override

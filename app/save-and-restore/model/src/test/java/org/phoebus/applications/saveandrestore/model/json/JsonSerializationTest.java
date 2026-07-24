@@ -67,7 +67,7 @@ public class JsonSerializationTest {
 				.value(vDouble)
 				.readbackValue(vDouble)
 				.build();
-		
+
 		// Should not throw any exceptions...
 		String json = objectMapper.writeValueAsString(snapshotItem);
 		// Try to deserialize...
@@ -90,13 +90,13 @@ public class JsonSerializationTest {
 		VDoubleArray vDoubleArray = (VDoubleArray)vType;
 		assertEquals(1.1, vDoubleArray.getData().getDouble(0), 0.01);
 		assertEquals("a", item.getConfigPv().getPvName());
-		
+
 		item.getReadbackValue();
 		assertTrue(vType instanceof VDoubleArray);
 		vDoubleArray = (VDoubleArray)vType;
 		assertEquals(1.1, vDoubleArray.getData().getDouble(0), 0.01);
 		assertEquals("a", item.getConfigPv().getPvName());
-		
+
 	}
 
 	@Test

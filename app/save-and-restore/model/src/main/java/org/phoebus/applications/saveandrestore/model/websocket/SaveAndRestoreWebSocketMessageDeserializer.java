@@ -59,4 +59,3 @@ public class SaveAndRestoreWebSocketMessageDeserializer extends StdDeserializer<
     }
 
 }
-

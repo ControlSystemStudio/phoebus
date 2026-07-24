@@ -200,4 +200,3 @@ public class RelatedDisplay extends ADLAbstractWidget implements IWidgetWithColo
         return ret.toArray();
     }
 }
-

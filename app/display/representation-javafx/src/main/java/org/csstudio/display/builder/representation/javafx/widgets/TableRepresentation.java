@@ -371,7 +371,7 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
             }
         }
         if (dirty_data.checkAndClear())         // Show data with current coloring
-        { 
+        {
             jfx_node.setData(data);
             jfx_node.setCellColors(cell_colors);
         }

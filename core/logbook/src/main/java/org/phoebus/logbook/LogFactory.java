@@ -3,7 +3,7 @@ package org.phoebus.logbook;
 /**
  * An interface for registering log factories, each factory returns and instance
  * of a client implementing {@link LogClient}
- * 
+ *
  * @author Kunal Shroff
  *
  */

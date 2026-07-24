@@ -74,4 +74,3 @@ def createImage(uniqueId, data, sizes, typecode=None):
 
 if __name__ == "__main__":
     image = createImage(0, [1,2,3], (3,), BYTE)
-

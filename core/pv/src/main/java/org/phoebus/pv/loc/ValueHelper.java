@@ -124,7 +124,7 @@ public class ValueHelper
                 // Advance to comma at end of string
                 while (pos < text.length()) {
                     char currentChar = text.charAt(pos);
-                    
+
                     if (currentChar == ',') {
                         break;
                     }

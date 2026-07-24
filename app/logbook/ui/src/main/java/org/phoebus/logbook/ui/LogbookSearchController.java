@@ -15,7 +15,7 @@ import javafx.application.Platform;
  * controller takes care of performing the query off the ui thread using
  * {@link Job}s and then invokes the setLogs method on the UI thread after
  * the query has been completed.
- * 
+ *
  * @author Kunal Shroff
  *
  */

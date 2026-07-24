@@ -76,7 +76,7 @@ public class ServletHelper
     }
 
     /** Sanitize XML text
-     * 
+     *
      *  <p>XMLStreamWriter.writeCharacters handles '<', '>', ampersand and potentially double-quotes.
      *  It will not, however, escape 'control' characters like character 7.
      *  One could escape them as "ampersand hashmark 7 semicolon",
@@ -84,13 +84,13 @@ public class ServletHelper
      *  https://en.wikipedia.org/wiki/Valid_characters_in_XML
      *  https://stackoverflow.com/questions/404107/why-are-control-characters-illegal-in-xml-1-0
      *  https://learn.microsoft.com/en-us/previous-versions/troubleshoot/msxml/error-when-xml-contains-low-order-ascii
-     *  
+     *
      *  <p>For example, when viewing the XML in Safari,
      *  that client will un-escape back into character 7
      *  and then complain "invalid XML char value 7".
-     *  
+     *
      *  <p>This sanitizer will replace such control characters with underscores and log a warning.
-     *  
+     *
      *  @param text Text like "demo\0x7"
      *  @return Text like "demo_"
      */

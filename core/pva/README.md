@@ -1,7 +1,7 @@
 PVA Client and Server
 =====================
 
-PV Access client and server for Java, based on the 
+PV Access client and server for Java, based on the
 [PV Access Protocol Description](https://github.com/epics-base/pvAccessCPP/wiki/protocol),
 consulting the
 [Reference Implementation](https://github.com/epics-base/epicsCoreJava)
@@ -58,7 +58,7 @@ Key configuration parameters:
 
 `EPICS_PVA_ADDR_LIST`: Space-separated list of host names or IP addresses. Each may be followed by ":port", otherwise defaulting to `EPICS_PVA_BROADCAST_PORT`.  When empty, local subnet is used.
 
-`EPICS_PVA_AUTO_ADDR_LIST`: 'YES' (default) or 'NO'. 
+`EPICS_PVA_AUTO_ADDR_LIST`: 'YES' (default) or 'NO'.
 
 `EPICS_PVA_NAME_SERVERS`: Space-separated list of TCP name servers, provided as IP address followed by optional ":port". Client will connect to each address and send name searches before using the `EPICS_PVA_ADDR_LIST` for UDP searches.
 Set `EPICS_PVA_ADDR_LIST` to empty and `EPICS_PVA_AUTO_ADDR_LIST=NO` to use only the TCP name servers and avoid all UDP traffic. This is a client-side option. Server will always allow search messages via its TCP port.
@@ -91,12 +91,12 @@ To enable access to the first PVA server on a Linux host and list resulting sett
     # Depending on Linux release, similar to this..
     sudo firewall-cmd --add-port=5075/tcp
     sudo firewall-cmd --add-port=5076/udp
-    
+
     # .. or this
     sudo firewall-cmd --direct --add-rule ipv4 filter IN_public_allow 0 -m udp -p udp --dport 5076 -j ACCEPT
     sudo firewall-cmd --direct --add-rule ipv4 filter IN_public_allow 0 -m tcp -p tcp --dport 5075 -j ACCEPT
     sudo firewall-cmd --direct --get-rules ipv4 filter IN_public_allow
-    
+
 Use `--remove-rule` to revert, add `--permanent` to persist the setting over firewall restarts.
 
 When running more than one PVA server on a host, these use an unpredictable TCP port,
@@ -115,9 +115,9 @@ for details.
 Command-line Example
 --------------------
 
-Start the example database: 
+Start the example database:
 
-    softIocPVA -m N='' -d src/test/resources/demo.db 
+    softIocPVA -m N='' -d src/test/resources/demo.db
 
 Then access it via
 
@@ -142,8 +142,8 @@ starts a tool that periodically lists received search requests.
 
 `pvaclient beacons` or invoking the phoebus command line with `-main org.epics.pva.client.PVAClientMain beacons`
 starts a tool that lists received beacons.
- 
-    
+
+
 API Documentation
 -----------------
 
@@ -160,7 +160,7 @@ PVA Client:
  * Maintains pool of PVs
  * Registers new PVs with ChannelSearch, which supports UDP and TCP searches,
    i.e. search via broadcast/multicast/unicase or via a name server
- * ChannelSearch: Linear backup of 1, 2, 3, .. seconds between repeated 
+ * ChannelSearch: Linear backup of 1, 2, 3, .. seconds between repeated
    searches, setting to searching once every 30 seconds after about 7 minutes
  * Clients monitor beacons. If the search has settled to once every 30 seconds,
    any new beacon restarts the linear backup to facilitate faster reconnect.
@@ -185,7 +185,7 @@ PVA Client:
  * Close client
  * Info/get/monitor/put command line tool
  * IPv6 support
- 
+
 PVA Server:
 
  * Maintains pool of PVs
@@ -197,7 +197,7 @@ PVA Server:
  * Support 'monitor'
  * Support RPC
  * IPv6 support
-   
+
 TODO:
 
  * Testing

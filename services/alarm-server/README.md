@@ -53,8 +53,8 @@ some useful startup arguments include
 Docker compose files are provided to cover two use cases:
 
 1. ```docker-compose-alarm-server-only-import.yml``` will run the alarm server for the
-    purpose of importing a configuration. 
-2. ```docker-compose-alarm-server-only.yml``` will run the alarm server. 
+    purpose of importing a configuration.
+2. ```docker-compose-alarm-server-only.yml``` will run the alarm server.
 
 The docker compose files do **not** launch 3rd party services needed by the alarm service. User is advocated to
 consult https://github.com/ControlSystemStudio/phoebus/blob/master/services/README.md for information on how

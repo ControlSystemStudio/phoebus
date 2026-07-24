@@ -27,7 +27,7 @@ pvdb = {
 class MyDriver(Driver):
     def __init__(self):
         super(MyDriver, self).__init__()
-        
+
         self.setParam('Table',
                       [ 'A', 'B', 'C',
                         'a', 'b', 'c',
@@ -59,4 +59,4 @@ while True:
                      )
         driver.updatePVs()
         update = time.time() + 5
-    
+

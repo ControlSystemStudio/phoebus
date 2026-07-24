@@ -31,7 +31,7 @@ import org.phoebus.util.indexname.IndexNameHelper;
 
 /**
  * A Runnable which consumes the alarm command messages and records them to an
- * elastic index. 
+ * elastic index.
  *
  * @author Kunal Shroff
  *
@@ -44,7 +44,7 @@ public class AlarmCmdLogger implements Runnable {
     private final String topic;
     private final Serde<AlarmCommandMessage> alarmCommandMessageSerde;
 
-    
+
     private IndexNameHelper indexNameHelper;
 
     private volatile boolean shouldReconnect = true;
@@ -53,7 +53,7 @@ public class AlarmCmdLogger implements Runnable {
     private Thread shutdownHook = null;
 
     /**
-     * Create a alarm command message logger for the given topic. 
+     * Create a alarm command message logger for the given topic.
      * This runnable will create the kafka streams for the given alarm messages which match the format 'topicCommand'
      * @param topic the alarm topic
      * @throws Exception - parsing the alarm command messages
@@ -181,9 +181,9 @@ public class AlarmCmdLogger implements Runnable {
 
                     @Override
                     public void close() {
-                        
+
                     }
-                    
+
                 };
             }
         });

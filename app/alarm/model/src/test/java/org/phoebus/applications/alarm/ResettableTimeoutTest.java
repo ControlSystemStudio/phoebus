@@ -61,7 +61,7 @@ public class ResettableTimeoutTest
         assertThat(timer.awaitTimeout(6), equalTo(true));
         timer.shutdown();
     }
-    
+
     @Test
     public void testChangingTimeout()
     {
@@ -70,7 +70,7 @@ public class ResettableTimeoutTest
         assertThat(timer.awaitTimeout(8), equalTo(true));
         timer.shutdown();
 
-        
+
         timer = new ResettableTimeout(4);
         System.out.println("Now resetting after just 1 second to a 1 second timeout...");
         assertThat(timer.awaitTimeout(1), equalTo(false));

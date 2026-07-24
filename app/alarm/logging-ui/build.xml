@@ -11,12 +11,12 @@
         <pathelement path="../ui/${build}/app-alarm-ui-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-alarm-logging-ui-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
       <fileset dir="${src}" includes="**/*.fxml"/>
     </jar>
   </target>
-	
+
 </project>

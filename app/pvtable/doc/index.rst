@@ -10,7 +10,7 @@ The configuration (PV names, saved value, saved date) can be saved and later re-
 see details on the file format described below.
 
 .. figure:: images/pv_table.png
-   
+
     PV Table
 
 
@@ -115,9 +115,3 @@ Advantages of the autosave ".sav" file format:
  * It can be used by the IOC to load/save settings.
  * PVTable allows easy comparison of last settings written by IOC against current values.
  * Best for use together with on-demand save/restore on the IOC.
-
-
-
-
-
-

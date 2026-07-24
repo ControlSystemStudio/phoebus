@@ -36,4 +36,3 @@ public class Messages {
         NLS.initializeMessages(org.phoebus.applications.waterfallplotwidget.Messages.class);
     }
 }
-

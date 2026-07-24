@@ -63,7 +63,7 @@ public abstract class NumericAxis extends AxisPart<Double>
             final double fixed = Log10.log10(getValue(center));
             final double new_low_exp  = fixed - (fixed - Log10.log10(getValueRange().getLow())) * factor;
             final double new_high_exp = fixed + (Log10.log10(getValueRange().getHigh()) - fixed) * factor;
-            
+
             double new_low = Log10.pow10(new_low_exp);
             double new_high = Log10.pow10(new_high_exp);
 

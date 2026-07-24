@@ -31,7 +31,7 @@
         <include name="dependencies/**/javax.mail*.jar"/>
         <include name="dependencies/**/epics-jackie*.jar"/>
         <include name="dependencies/**/commons-lang*.jar"/>
-      	
+
       	<include name="core/**/core-framework-*.jar"/>
       	<include name="core/**/core-formula-*.jar"/>
       	<include name="core/**/core-pv-*.jar"/>
@@ -58,7 +58,7 @@
 
     <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
 
-	<!-- ZIP of service, with classpath for lib/* and main class -->  	
+	<!-- ZIP of service, with classpath for lib/* and main class -->
     <jar destfile="${build}/service-alarm-server-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>

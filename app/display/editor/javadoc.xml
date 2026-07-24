@@ -16,7 +16,7 @@
 <project name="api" default="all">
   <!-- Output directory -->
   <property name="out" value="doc/html/generated"/>
-  
+
   <path id="classpath">
     <fileset dir="../../..">
       <!-- Brute-force way to resolve all missing references:

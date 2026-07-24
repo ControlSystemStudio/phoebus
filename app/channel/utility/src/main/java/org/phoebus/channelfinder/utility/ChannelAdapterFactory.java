@@ -10,7 +10,7 @@ import org.phoebus.framework.adapter.AdapterFactory;
 
 /**
  * A factory which adapts {@link Channel}s to {@link ProcessVariable}s
- * 
+ *
  * @author Kunal Shroff
  */
 public class ChannelAdapterFactory implements AdapterFactory {

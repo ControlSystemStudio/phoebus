@@ -19,9 +19,9 @@ public class CompareNatural
 {
     /** Singleton */
 	public static final Comparator<String> INSTANCE = (a, b) -> compareTo(a, b);
-	
+
 	/**
-	 * Compare two string 
+	 * Compare two string
 	 * @param s1 string 1
 	 * @param s2 string 2
 	 * @return result of comparison

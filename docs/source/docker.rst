@@ -18,4 +18,3 @@ From another shell(make sure to leave the previous shell open)::
 You may also pull the following image from docker hub if you don't want to build the image yourself::
 
    sudo docker pull lgomezwhl/phoebus-ci:latest
-

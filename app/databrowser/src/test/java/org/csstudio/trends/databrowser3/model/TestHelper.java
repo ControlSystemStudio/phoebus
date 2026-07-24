@@ -70,5 +70,3 @@ public class TestHelper
                           Display.none());
     }
 }
-
-

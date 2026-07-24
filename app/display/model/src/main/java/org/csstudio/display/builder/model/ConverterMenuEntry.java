@@ -10,7 +10,7 @@ import javafx.scene.image.Image;
 @SuppressWarnings("nls")
 public class ConverterMenuEntry implements MenuEntry {
 
-	
+
 	@Override
 	public Void call() throws Exception {
 		ApplicationService.createInstance(AdvancedConverterApp.NAME);
@@ -28,13 +28,13 @@ public class ConverterMenuEntry implements MenuEntry {
 		// TODO Auto-generated method stub
 		return AdvancedConverterApp.DisplayName;
 	}
-	
+
     public Image getIcon()
     {
     	 return ImageCache.getImage(AdvancedConverterApp.class, "/icons/arrow_refresh.png");
     }
 
-    
-   
+
+
 
 }

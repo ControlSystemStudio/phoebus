@@ -45,7 +45,7 @@ public class Convert_relatedDisplayClass extends ConverterBase<ActionButtonWidge
             convertColor(t.getBgColor(), widget.propBackgroundColor());
         convertColor(t.getFgColor(), widget.propForegroundColor());
         convertFont(t.getFont(), widget.propFont());
-        
+
         if (widget.propTransparent().getValue())
         {   // EDM used the fore & back colors for the button, not the menu,
             // which was always black-on-gray.

@@ -74,7 +74,7 @@ public class TangoExceptionHelper {
 
     /**
      * Extracts the error message of a {@link Throwable}
-     * 
+     *
      * @param t The {@link Throwable}
      * @return A {@link String}: the error message.
      */

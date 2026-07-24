@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SuppressWarnings("unused")
 @RestController
 public class AppMetaDataController extends BaseController {
-	
+
 	@Value("${app.name}")
 	private String appName;
 

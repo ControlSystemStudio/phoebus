@@ -1,5 +1,5 @@
 # This script is attached to a display
-# and triggered by a PV like 
+# and triggered by a PV like
 #     loc://initial_trigger$(DID)(1)
 # to execute once when the display is loaded.
 

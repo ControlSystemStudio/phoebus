@@ -57,12 +57,12 @@ Complete build steps of manual and product::
 
     # Fetch dependencies
     ( cd phoebus/dependencies; mvn clean install )
-    
+
     # Build the product, which bundles help from
     # ../phoebus-doc/build/html
     # as phoebus-product/target/doc
     ( cd phoebus; ant clean dist )
-    
+
     # Could now run the product
     ( cd phoebus/phoebus-product; sh phoebus.sh )
 

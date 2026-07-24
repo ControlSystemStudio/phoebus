@@ -8,7 +8,7 @@ package org.phoebus.channelfinder;
 /**
  * A Property object represents a channel finder property which consists of the
  * unique name, an owner and a value.
- * 
+ *
  * @author shroffk
  */
 public class Property {
@@ -25,7 +25,7 @@ public class Property {
 
 		/**
 		 * Builder class to aid in a construction of a {@link Property}.
-		 * 
+		 *
 		 * @param name - property name
 		 * @return property builder
 		 */
@@ -38,7 +38,7 @@ public class Property {
 		/**
 		 * Returns a {@link Property.Builder} to create a property with given.
 		 * <code>name</code> and <code>value</code>
-		 * 
+		 *
 		 * @param name - property name
 		 * @param value - property value
 		 * @return {@link Property.Builder} for a property with name and value
@@ -50,10 +50,10 @@ public class Property {
 			return propertyBuilder;
 		}
 
-		
+
 		/**
 		 * Returns a {@link Property.Builder} to for a property which is a copy of <code>property</code>.
-		 * 
+		 *
 		 * @param property - the property to be copied
 		 * @return {@link Property.Builder} with attributes initialized to the same as <code>property</code>
 		 */
@@ -67,7 +67,7 @@ public class Property {
 
 		/**
 		 * Set the owner for the property to be built.
-		 * 
+		 *
 		 * @param owner - owner id
 		 * @return property {@link Builder} with owner set to <code>owner</code>
 		 */
@@ -78,7 +78,7 @@ public class Property {
 
 		/**
 		 * Set the value for the property to be built.
-		 * 
+		 *
 		 * @param value - property value
 		 * @return property {@link Builder} with value set to <code>value</code>
 		 */
@@ -89,7 +89,7 @@ public class Property {
 
 		/**
 		 * Build a {@link XmlProperty} object using this builder.
-		 * 
+		 *
 		 * @return {@link XmlProperty} xmlProperty object
 		 */
 		public XmlProperty toXml() {
@@ -122,7 +122,7 @@ public class Property {
 
 	/**
 	 * returns the property name.
-	 * 
+	 *
 	 * @return - the property name
 	 */
 	public String getName() {
@@ -156,7 +156,7 @@ public class Property {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override

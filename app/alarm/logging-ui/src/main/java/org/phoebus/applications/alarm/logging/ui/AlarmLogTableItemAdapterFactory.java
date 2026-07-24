@@ -10,7 +10,7 @@ import java.util.Optional;
 
 /**
  * A factory which adapts {@link AlarmLogTableItem}s to {@link TimeStampedProcessVariable} and {@link ProcessVariable}s
- * 
+ *
  * @author Kunal Shroff
  */
 public class AlarmLogTableItemAdapterFactory implements AdapterFactory {

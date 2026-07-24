@@ -14,7 +14,7 @@ import org.phoebus.channelfinder.ChannelFinderClientImpl.CFCBuilder;
 /**
  * A lookup service to request clients to various directory services which
  * implement the {@link ChannelFinderClient} and are registered via java SPI
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -25,7 +25,7 @@ public class ChannelFinderService {
     private Map<String, ChannelFinderClient> channelFinderClients;
 
     private static final String DEFAULT = "default";
-    
+
     private ChannelFinderService() {
         channelFinderClients = new HashMap<String, ChannelFinderClient>();
     }

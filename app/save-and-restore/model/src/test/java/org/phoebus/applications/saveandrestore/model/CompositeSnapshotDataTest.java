@@ -25,6 +25,6 @@ public class CompositeSnapshotDataTest {
 
     @Test
     public void testClone(){
-        
+
     }
 }

@@ -27,4 +27,3 @@ ExecStop=/opt/kafka/bin/kafka-server-stop.sh
 
 [Install]
 WantedBy=multi-user.target
-

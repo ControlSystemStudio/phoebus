@@ -8,7 +8,7 @@ package org.phoebus.channelfinder;
 /**
  * A Tag object represents a channel finder tag which consists of the
  * unique name and an owner.
- * 
+ *
  * @author shroffk
  *
  */
@@ -18,9 +18,9 @@ public class Tag {
 
 	/**
 	 * Builder class to aid in a construction of a {@link Tag}.
-	 * 
+	 *
 	 * @author shroffk
-	 * 
+	 *
 	 */
 	public static class Builder {
 		// Required
@@ -31,7 +31,7 @@ public class Tag {
 		/**
 		 * Returns a {@link Builder} to build a {@link Tag} which is a copy of
 		 * the given <code>tag</code>.
-		 * 
+		 *
 		 * @param tag
 		 *            - the tag to be copied
 		 * @return tag {@link Builder} with attributes initialized to the same
@@ -47,7 +47,7 @@ public class Tag {
 		/**
 		 * Returns a tag {@link Builder} to build a {@link Tag} with the name
 		 * <code>name</code>
-		 * 
+		 *
 		 * @param name
 		 *            - tag name
 		 * @return tag {@link Builder} with name <code>name</code>
@@ -61,7 +61,7 @@ public class Tag {
 		/**
 		 * Returns a tag {@link Builder} to build a {@link Tag} with the name
 		 * <code>name</code> and owner <code>owner</code>
-		 * 
+		 *
 		 * @param name
 		 *            - the tag name
 		 * @param owner
@@ -78,7 +78,7 @@ public class Tag {
 
 		/**
 		 * Set the owner for the tag to be built.
-		 * 
+		 *
 		 * @param owner - owner id
 		 * @return tag {@link Builder} with owner set to <code>owner</code>
 		 */

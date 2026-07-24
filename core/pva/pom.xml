@@ -39,7 +39,7 @@
       <artifactId>bcprov-jdk18on</artifactId>
       <version>1.84</version>
     </dependency>
-    
+
   </dependencies>
 
   <build>

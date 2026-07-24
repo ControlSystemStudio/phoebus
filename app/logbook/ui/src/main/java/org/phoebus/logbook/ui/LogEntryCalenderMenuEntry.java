@@ -36,7 +36,7 @@ public class LogEntryCalenderMenuEntry implements MenuEntry
     {
         return "Utility";
     }
-    
+
     @Override
     public Image getIcon()
     {

@@ -15,12 +15,12 @@ import org.epics.pva.data.PVAStructure;
 
 /**
  * Normative timestamp type
- * 
+ *
  * structure
  *   long secondsPastEpoch
  *   int nanoseconds
  *   int userTag
- * 
+ *
  * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -64,7 +64,7 @@ public class PVATimeStamp extends PVAStructure
              new PVAInt(NANOSECONDS, false, time.getNano()));
     }
 
-    /** 
+    /**
      * Constructor with PVAData
      * @param secs secondsPastEpoch
      *  @param nanos nanoseconds
@@ -109,9 +109,9 @@ public class PVATimeStamp extends PVAStructure
             return Instant.ofEpochSecond(secs.get(), nano.get());
     }
 
-    /** 
+    /**
      * Conversion from structure to PVATimeStamp
-     * 
+     *
      * @param structure Potential "time_t" structure
      *  @return PVATimeStamp or <code>null</code>
      */
@@ -129,7 +129,7 @@ public class PVATimeStamp extends PVAStructure
 
     /**
      * Get TimeStamp from a PVAStructure
-     * 
+     *
      * @param structure Structure containing TimeStamp
      * @return PVATimeStamp or <code>null</code>
      */

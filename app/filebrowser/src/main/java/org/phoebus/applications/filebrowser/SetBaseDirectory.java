@@ -25,4 +25,3 @@ public class SetBaseDirectory extends MenuItem
         setOnAction(event -> setter.accept(directory));
     }
 }
-

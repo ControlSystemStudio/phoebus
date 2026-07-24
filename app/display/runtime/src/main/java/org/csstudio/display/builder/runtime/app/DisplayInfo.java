@@ -252,7 +252,7 @@ public class DisplayInfo
             } catch (Exception ex) {
                 logger.log(Level.SEVERE, "Internal error in MacroHandler.replace '" + macroValue + "'", ex);
             }
-            
+
             buf.append(name)
                .append('=')
                .append(encode(macroValue));

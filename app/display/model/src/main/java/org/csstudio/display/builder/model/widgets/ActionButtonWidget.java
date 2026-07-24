@@ -310,13 +310,13 @@ public class ActionButtonWidget extends PVWidget
     {
         return transparent;
     }
-    
+
     /** @return 'horizontal_alignment' property */
     public WidgetProperty<HorizontalAlignment> propHorizontalAlignment()
     {
         return horizontal_alignment;
     }
-    
+
     /** @return 'vertical_alignment' property */
     public WidgetProperty<VerticalAlignment> propVerticalAlignment()
     {

@@ -31,7 +31,7 @@ p.flush()
 
 sleep(3)
 
-# Demo the ability of the annunciator to receive a message ignoring severity. 
+# Demo the ability of the annunciator to receive a message ignoring severity.
 p.poll(0)
 p.produce(topic, coolaid.encode('utf-8'), key.encode('utf-8'), callback=delivery_report)
 p.flush()

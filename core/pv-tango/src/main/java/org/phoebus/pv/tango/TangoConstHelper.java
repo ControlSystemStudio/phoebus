@@ -7,7 +7,7 @@ import fr.esrf.Tango.AttrQuality;
 import fr.esrf.Tango.DevState;
 import fr.esrf.TangoDs.TangoConst;
 
-/** 
+/**
 *  Tango constants helper
 *
 *  @author katy.saintin@cea.fr
@@ -36,34 +36,34 @@ public class TangoConstHelper {
     public static final String ENUM_NAME = "ENUM";
     public static final String ENCODED_NAME = "ENCODED";
     public static final String ARRAY_NAME = "ARRAY";
-    
+
     private final static String[] NUMERICAL_LABEL = new String[] { DOUBLE_NAME, LONG_NAME, SHORT_NAME, INT_NAME, FLOAT_NAME, CHAR_NAME,ENUM_NAME,
             ENCODED_NAME };
 
     public static final String STATE_NAME = "STATE";
     public static final String STATUS_NAME = "STATUS";
     private final static String[] STRING_LABEL = new String[] { "STRING", STATE_NAME, STATUS_NAME};
-    
+
     private static final int NB_QUALITY = 5;
     public static final String[] ATTR_QUALITY_LABEL = new String[NB_QUALITY];
-    
+
     private static final int NB_STATE = 14;
     public static final String[] STATE_LABEL = new String[NB_STATE];
-  
+
     static {
         for (int i = 0; i < NB_QUALITY; i++) {
             ATTR_QUALITY_LABEL[i] = AttrQuality.from_int(i).toString();
         }
-        
+
         for (int i = 0; i < NB_STATE; i++) {
             STATE_LABEL[i] = DevState.from_int(i).toString();
         }
     }
-    
+
 
     /**
      * Return simple type according a TangoConst_DEV_* type. *
-     * 
+     *
      * @param TangoConst_DEV type
      * @return the type that can be SCALAR_TYPE, ARRAY_TYPE or UNKNOW_TYPE
      * @see TangoConst class in TangORB
@@ -98,7 +98,7 @@ public class TangoConstHelper {
         }
         return type;
     }
-    
+
     public static String getTangoFieldName(int tangoType) {
         String fieldName = null;
         Field[] fieldList = TangoConst.class.getFields();
@@ -254,7 +254,6 @@ public class TangoConstHelper {
         }
         return type;
     }
-    
-  
-}
 
+
+}

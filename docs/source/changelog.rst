@@ -20,7 +20,7 @@ Date: TBD
 * Highlight overdrawn area of embedded display in edit mode.
 
 
-Release 4.6.4 
+Release 4.6.4
 -------------------------------------------
 Date: Nov 16, 2020
 

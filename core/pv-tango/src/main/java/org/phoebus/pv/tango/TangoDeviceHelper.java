@@ -42,7 +42,7 @@ public class TangoDeviceHelper {
     private static final String[] EMPTY = new String[0];
     private static Database database = null;
     private static Boolean nodatabase = null;
-    
+
     private static final Object DATABASE_LOCK = new Object();
     private static final List<String> BAD_DEVICES = new ArrayList<>();
     protected static final int DEFAULT_TIMEOUT = 3000;
@@ -56,7 +56,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the device class for given device.
-     * 
+     *
      * @param deviceName The device name.
      * @return A {@link String}. May be <code>null</code>.
      */
@@ -81,7 +81,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the known exported devices of given class according to given {@link Database}.
-     * 
+     *
      * @param className The class name.
      * @param db The {@link Database}.
      * @return A {@link String} array, never <code>null</code>.
@@ -108,7 +108,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the known exported devices of given class.
-     * 
+     *
      * @param className The class name.
      * @return A {@link String} array, never <code>null</code>.
      */
@@ -118,7 +118,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns all known devices (exported or not) of given class according to given {@link Database}.
-     * 
+     *
      * @param className The class name.
      * @param db The {@link Database}.
      * @return A {@link String} array, never <code>null</code>.
@@ -157,7 +157,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns all known devices (exported or not) of given class.
-     * 
+     *
      * @param className The class name.
      * @return A {@link String} array, never <code>null</code>.
      */
@@ -167,7 +167,7 @@ public class TangoDeviceHelper {
 
     /**
      * Recovers the full name of given device.
-     * 
+     *
      * @param deviceName The device name or alias.
      * @return A {@link String}. May be <code>null</code>.
      * @throws DevFailed If a problem occurred.
@@ -192,7 +192,7 @@ public class TangoDeviceHelper {
 
     /**
      * Recovers the status of given device.
-     * 
+     *
      * @param deviceName The device name.
      * @return A {@link String}. Never <code>null</code>.
      */
@@ -217,7 +217,7 @@ public class TangoDeviceHelper {
 
     /**
      * Recovers the state of given device.
-     * 
+     *
      * @param deviceName The device name.
      * @return A {@link String}. Never <code>null</code>.
      */
@@ -236,7 +236,7 @@ public class TangoDeviceHelper {
 
     /**
      * Recovers the state for given device, throwing encountered {@link DevFailed} if any.
-     * 
+     *
      * @param deviceName The device name.
      * @return A {@link String}. Never <code>null</code>.
      * @throws DevFailed If a problem occurred.
@@ -260,7 +260,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the known {@link Database}.
-     * 
+     *
      * @return A {@link Database}. May be <code>null</code>.
      */
     public static Database getDatabase() {
@@ -289,7 +289,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the known timeout, expressed in milliseconds, for given device.
-     * 
+     *
      * @param device The device name.
      * @return An <code>int</code>.
      */
@@ -307,7 +307,7 @@ public class TangoDeviceHelper {
 
     /**
      * Sets the timeout, expressed in milliseconds, for given device.
-     * 
+     *
      * @param device The device name.
      * @param timeOut The timeout to set. If <code>timeOut &lt; 1</code>, then default timeout (i.e. 3s) is applied.
      */
@@ -324,7 +324,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the {@link DeadDeviceCheck} for given device.
-     * 
+     *
      * @param device The device name.
      * @return A {@link DeadDeviceCheck}. Never <code>null</code>.
      */
@@ -342,7 +342,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the {@link DeviceProxy} for given device, managing known timeout.
-     * 
+     *
      * @param device The device name.
      * @return A {@link DeviceProxy}.
      * @throws DevFailed If a problem occurred.
@@ -392,7 +392,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the {@link DeviceProxy} for given device, potentially testing whether it is running.
-     * 
+     *
      * @param key The device name.
      * @param testIfRunning Whether to do the tests for running device.
      * @return A {@link DeviceProxy}. May be <code>null</code>.
@@ -421,7 +421,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the {@link DeviceProxy} for given device, testing whether it is running.
-     * 
+     *
      * @param key The device name.
      * @return A {@link DeviceProxy}. May be <code>null</code>.
      */
@@ -431,7 +431,7 @@ public class TangoDeviceHelper {
 
     /**
      * Consider given device as running (i.e. not dead).
-     * 
+     *
      * @param key The device name.
      */
     protected static void setBackToGood(String key) {
@@ -446,7 +446,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns whether given device is dead (i.e. not running).
-     * 
+     *
      * @param key The device name.
      * @return A <code>boolean</code>.
      */
@@ -463,7 +463,7 @@ public class TangoDeviceHelper {
 
     /**
      * Recovers the full name of given device.
-     * 
+     *
      * @param deviceAliasOrName The device name or alias.
      * @return A {@link String}. <code>null</code> if <code>deviceAliasOrName</code> is <code>null</code>.
      */
@@ -482,7 +482,7 @@ public class TangoDeviceHelper {
 
     /**
      * Recovers the device name for given entity (attribute or command).
-     * 
+     *
      * @param fullEntityName The entity full name.
      * @return A {@link String}. May be <code>null</code>.
      */
@@ -505,7 +505,7 @@ public class TangoDeviceHelper {
 
     /**
      * Recovers the entity (attribute or command) name for given entity full name.
-     * 
+     *
      * @param fullEntityName The entity full name.
      * @return A {@link String}. May be <code>null</code>.
      */
@@ -528,7 +528,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns whether given device exists.
-     * 
+     *
      * @param deviceName The device name.
      * @return A <code>boolean</code>.
      */
@@ -553,10 +553,10 @@ public class TangoDeviceHelper {
         }
         return exists;
     }
-    
+
     /**
      * Returns the known {@link Database}.
-     * 
+     *
      * @return A {@link Database}. May be <code>null</code>.
      */
     public static boolean isNoDataBase() {
@@ -570,7 +570,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns whether given device is running.
-     * 
+     *
      * @param deviceName The device name.
      * @return A <code>boolean</code>.
      */
@@ -639,7 +639,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the error message that indicates given device is down.
-     * 
+     *
      * @param device The device name.
      * @return A {@link String}.
      */
@@ -652,7 +652,7 @@ public class TangoDeviceHelper {
      * <p>
      * This method is useful in case of network connection problems.
      * </p>
-     * 
+     *
      * @param deviceNameToLowerCase The device name, already lower cased.
      * @param errorMessage The error message.
      * @param error The error.
@@ -687,7 +687,7 @@ public class TangoDeviceHelper {
 
     /**
      * Traces an error message in logs.
-     * 
+     *
      * @param error The error.
      * @param errorMessage The error message.
      */
@@ -703,7 +703,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns the type (scalar, array or unknown) of given device propeperty.
-     * 
+     *
      * @param deviceName The device name.
      * @param propertyName The property name.
      * @return An <code>int</code>. Can be any of these:
@@ -729,7 +729,7 @@ public class TangoDeviceHelper {
 
     /**
      * Returns whether given device has given property.
-     * 
+     *
      * @param deviceName The device name.
      * @param propertyName The property name.
      * @return A <code>boolean</code>.
@@ -740,7 +740,7 @@ public class TangoDeviceHelper {
 
     /**
      * Recovers the case sensitive property name for given device.
-     * 
+     *
      * @param deviceName The device name.
      * @param propertyName The property name (case insensitive).
      * @param nullIfNonExisting Whether to return <code>null</code> if such property doesn't exist.
@@ -772,7 +772,7 @@ public class TangoDeviceHelper {
 
     /**
      * Recovers given device property.
-     * 
+     *
      * @param deviceName The device name.
      * @param propertyName The property name.
      * @return A {@link DbDatum}.
@@ -803,7 +803,7 @@ public class TangoDeviceHelper {
      * It stores the last device check date (the last time there was an attempt to access to the device) and the value
      * by which to multiply the timeout to obtain the delay before next allowed check.
      * </p>
-     * 
+     *
      * @author GIRARDOT
      */
     protected static class DeadDeviceCheck {
@@ -816,7 +816,7 @@ public class TangoDeviceHelper {
 
         /**
          * Updates the last checked date, increasing the multiply value by one.
-         * 
+         *
          * @param date The last checked date.
          */
         public void updateLastCheckedDate(long date) {
@@ -826,7 +826,7 @@ public class TangoDeviceHelper {
 
         /**
          * Returns the last checked date (the date at which the last access attempt happened).
-         * 
+         *
          * @return A <code>long</code>.
          */
         public long getLastCheckedDate() {
@@ -836,7 +836,7 @@ public class TangoDeviceHelper {
         /**
          * Returns the value by which to multiply device timeout in order to obtain the time to wait before next allowed
          * device check.
-         * 
+         *
          * @return An <code>int</code>.
          */
         public int getTimeOutMultiplier() {

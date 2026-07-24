@@ -32,7 +32,7 @@ public class TextUtils
     {
         // com.sun.javafx.scene.control.skin.Utils contains related code,
         // but is private
-        
+
         // Unclear if order of setting text, font, spacing matters;
         // copied from skin.Utils
         helper.setText(text);

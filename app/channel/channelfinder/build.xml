@@ -9,11 +9,11 @@
         <path refid="app-classpath"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-channel-channelfinder-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
-	
+
 </project>

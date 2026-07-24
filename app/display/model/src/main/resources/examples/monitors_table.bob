@@ -533,5 +533,5 @@ table.setSelection([ 0, 0, 1, 2 ])]]></text>
     <x>1012</x>
     <y>811</y>
     <tooltip>$(actions)</tooltip>
-  </widget>  
+  </widget>
 </display>

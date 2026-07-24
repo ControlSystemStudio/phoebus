@@ -30,4 +30,3 @@ public class LogEntryUtilsTest {
         assertEquals("\n- [Title01](someURL/1)\n- [Title02](someURL/2)\n- [Title03](someURL/3)", testListLog.getSource());
     }
 }
-

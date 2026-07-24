@@ -13,7 +13,7 @@ The PV Tree has two modes:
 "Run" |run|:
   In this mode it will always display the current value
   of each item in the tree.
- 
+
 "Freeze on Alarm" |pause|:
   In this mode, updates pause as soon as the
   root item of the PV Tree goes into alarm.

@@ -20,4 +20,3 @@ The default configuration sends log messages to the console, i.e. the terminal w
 the product was started.
 On Windows, there might not be a terminal, and on other systems, a launcher script might redirect the console output.
 The "Error Log" application allows viewing log messages in the product GUI.
-

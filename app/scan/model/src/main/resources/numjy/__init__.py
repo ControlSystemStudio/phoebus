@@ -2,11 +2,11 @@
 NumJy - NumPy-inspired array support for Jython
 -----------------------------------------------
 
-See also 
+See also
   help(ndarray)
-  
+
 In jython, 'import numjy as np' should setup NumJy,
-while loading the full numpy if executed under CPython. 
+while loading the full numpy if executed under CPython.
 """
 
 version_info = (0, 1)
@@ -29,7 +29,7 @@ else:
             from org.eclipse.core.runtime import Platform
             from org.eclipse.core.runtime import FileLocator
             from org.eclipse.core.runtime import Path
-            
+
             bundle = Platform.getBundle("org.epics.util")
             url = FileLocator.find(bundle, Path("bin"), None)
             if url:
@@ -38,7 +38,7 @@ else:
             else:
                 # In an exported product, the classes are at the root
                 sys.path.append(FileLocator.getBundleFile(bundle).getPath())
-            
+
             bundle = Platform.getBundle("org.csstudio.ndarray")
             url = FileLocator.find(bundle, Path("bin"), None)
             if url:
@@ -55,6 +55,5 @@ else:
             else:
                 # Add other method of locating ndarray binaries?
                 raise Exception("NumJy library binaries not configured")
-    
-    from ndarray import *
 
+    from ndarray import *

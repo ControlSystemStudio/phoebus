@@ -59,10 +59,10 @@ class ndarray_iter:
     """
     def __init__(self, iter):
         self.iter = iter
-        
+
     def __iter__(self):
         return self
-    
+
     def next(self):
         if self.iter.hasNext():
             return self.iter.nextDouble()
@@ -71,75 +71,75 @@ class ndarray_iter:
 
 class ndarray:
     """N-Dimensional array
-    
+
     Example:
     array([ 0, 1, 2, 3 ])
     array([ [ 0, 1 ], [ 2, 3 ], [ 4, 5 ] ])
     """
     def __init__(self, nda):
         self.nda = nda
-        
+
     def getBase(self):
         """Base array, None if this array has no base"""
         if self.nda.getBase() is None:
             return
         return ndarray(self.nda.getBase())
-    
+
     base = property(getBase)
-    
+
     def getShape(self):
         """Shape of the array, one element per dimension"""
         return tuple(self.nda.getShape().getSizes())
-    
+
     shape = property(getShape)
-    
+
     def getType(self):
         """Get Data type of array elements"""
         return self.nda.getType()
-    
+
     dtype = property(getType)
-    
+
     def getRank(self):
         """Get number of dimensions"""
         return self.nda.getRank()
-    
+
     ndim = property(getRank)
-    
+
     def getStrides(self):
         """Get strides
            Note that these are array index strides,
            not raw byte buffer strides as in NumPy
         """
         return tuple(self.nda.getStrides().getStrides())
-    
+
     strides = property(getStrides)
 
     def copy(self):
         """Create a copy of this array"""
         return ndarray(self.nda.clone())
-    
+
     def reshape(self, *shape):
         """reshape(shape):
            Create array view with new shape
-    
+
            Example:
            arange(6).reshape(3, 2)
            results in array([ [ 0, 1 ], [ 2, 3 ], [ 4, 5 ] ])
         """
         return ndarray(NDMatrix.reshape(self.nda, __toNDShape__(shape)))
-    
+
     def transpose(self):
         """Compute transposed array, i.e. swap 'rows' and 'columns'"""
         return ndarray(NDMatrix.transpose(self.nda))
-    
+
     T = property(transpose)
-    
+
     def __len__(self):
         """Returns number of elements for the first dimension"""
         if len(self.shape) > 0:
             return self.shape[0]
         return 0
-    
+
     def __getSlice__(self, indices):
         """@param indices: Indices that may address a slice
            @return: NDArray for slice, or None if indices don't refer to slice
@@ -147,7 +147,7 @@ class ndarray:
         # Turn single argument into tuple to allow following iteration code
         if not isinstance(indices, tuple):
             indices = ( indices, )
-        
+
         given = len(indices)
         dim = self.nda.getRank()
 
@@ -181,24 +181,24 @@ class ndarray:
             starts.append(start)
             stops.append(stop)
             steps.append(step)
-        
+
         if any_slice:
             return self.nda.getSlice(starts, stops, steps)
         # There was a plain index for every dimension, no slice at all
         return None
-        
+
     def __getitem__(self, indices):
         """Get element of array, or fetch sub-array
-        
+
         Example:
         a = array([ [ 0, 1 ], [ 2, 3 ], [ 4, 5 ] ])
         a[1, 1] # Result is 3
         a[1] # Result is second row of the 3x2 array
-        
+
         May also provide slice:
         a = arange(10)
         a[1:6:2] # Result is [ 1, 3, 5 ]
-        
+
         Differing from numpy, this returns all values as float,
         so if they are later used for indexing, int() needs to be used.
         """
@@ -227,7 +227,7 @@ class ndarray:
 
     def __setitem__(self, indices, value):
         """Set element of array
-        
+
         Example:
         a = zeros(3)
         a[1] = 1
@@ -245,13 +245,13 @@ class ndarray:
 
     def __iter__(self):
         return ndarray_iter(self.nda.getIterator())
-    
+
     def __neg__(self):
         """Return array where sign of each element has been reversed"""
         result = self.nda.clone()
         NDMath.negative(result)
         return ndarray(result)
-    
+
     def __add__(self, value):
         """Add scalar to all elements, or add other array element-by-element"""
         if isinstance(value, ndarray):
@@ -260,11 +260,11 @@ class ndarray:
             result = self.nda.clone()
             NDMath.increment(result, value)
             return ndarray(result)
-    
+
     def __radd__(self, value):
         """Add scalar to all elements, or add other array element-by-element"""
         return self.__add__(value)
-    
+
     def __iadd__(self, value):
         """Add scalar to all elements, or add other array element-by-element"""
         if isinstance(value, ndarray):
@@ -272,7 +272,7 @@ class ndarray:
         else:
             NDMath.increment(self.nda, value)
         return self
-    
+
     def __sub__(self, value):
         """Subtract scalar from all elements, or sub. other array element-by-element"""
         if isinstance(value, ndarray):
@@ -281,7 +281,7 @@ class ndarray:
             result = self.nda.clone()
             NDMath.increment(result, -value)
             return ndarray(result)
-    
+
     def __rsub__(self, value):
         """Subtract scalar from all elements, or sub. other array element-by-element"""
         result = self.nda.clone()
@@ -292,7 +292,7 @@ class ndarray:
     def __isub__(self, value):
         """Subtract scalar from all elements, or sub. other array element-by-element"""
         return self.__iadd__(-value)
-    
+
     def __mul__(self, value):
         """Multiply by scalar or by other array elements"""
         if not isinstance(value, ndarray):
@@ -310,7 +310,7 @@ class ndarray:
         else:
             NDMath.scale(self.nda, value)
         return self
-    
+
     def __div__(self, value):
         """Divide by scalar or by other array elements"""
         if not isinstance(value, ndarray):
@@ -330,7 +330,7 @@ class ndarray:
         else:
             NDMath.divide_elements(self.nda, value)
         return self
-    
+
     def __pow__(self, value):
         """Raise array elements to power specified by value"""
         if not isinstance(value, ndarray):
@@ -342,13 +342,13 @@ class ndarray:
         if not isinstance(value, ndarray):
             value = array([ value ])
         return ndarray(NDMath.power(value.nda, self.nda))
-    
+
     def __eq__(self, value):
         """Element-wise comparison"""
         if not isinstance(value, ndarray):
             value = array([ value ])
         return ndarray(NDCompare.equal_to(self.nda, value.nda))
-    
+
     def __ne__(self, value):
         """Element-wise comparison"""
         if not isinstance(value, ndarray):
@@ -382,7 +382,7 @@ class ndarray:
     def __abs__(self):
         """Element-wise absolute values"""
         return ndarray(NDMath.abs(self.nda))
-    
+
     def any(self):
         """Determine if any element is True (not zero)"""
         return NDCompare.any(self.nda)
@@ -390,7 +390,7 @@ class ndarray:
     def all(self):
         """Determine if all elements are True (not zero)"""
         return NDCompare.all(self.nda)
-    
+
     def sum(self):
         """Returns sum over all array elements"""
         return NDMath.sum(self.nda)
@@ -406,26 +406,26 @@ class ndarray:
     def nonzero(self):
         """Return the indices of the elements that are non-zero.
            Returns a tuple of arrays, one for each dimension of a, containing the indices of the non-zero elements in that dimension.
-           
+
            Compared to numpy, it does not return a tuple of arrays but a matrix,
            but either one allows addressing as [dimension, i] to get the index of the i'th non-zero element
         """
         return ndarray(NDCompare.nonzero(self.nda))
-    
+
     def __str__(self):
         return self.nda.toString()
-    
+
     def __repr__(self):
         if self.dtype == float:
             return "array(" + self.nda.toString() + ")"
         return "array(" + self.nda.toString() + ", dtype=" + str(self.dtype) + ")"
-    
+
 
 def zeros(shape, dtype=float):
     """zeros(shape, dtype=float)
-    
+
     Create array of zeros, example:
-    
+
     zeros( (2, 3) )
     """
     return ndarray(NDMatrix.zeros(dtype, __toNDShape__(shape)))
@@ -433,9 +433,9 @@ def zeros(shape, dtype=float):
 
 def ones(shape, dtype=float):
     """ones(shape, dtype=float)
-    
+
     Create array of ones, example:
-    
+
     ones( (2, 3) )
     """
     return ndarray(NDMatrix.ones(dtype, __toNDShape__(shape)))
@@ -443,7 +443,7 @@ def ones(shape, dtype=float):
 
 def array(arg, dtype=None):
     """Create N-dimensional array from data
-    
+
        Example:
           array([1, 2, 3])
           array([ [1, 2], [3, 4]])
@@ -458,12 +458,12 @@ def array(arg, dtype=None):
 
 def arange(start, stop=None, step=1, dtype=None):
     """arange([start,] stop[, step=1])
-    
+
     Return evenly spaced values within a given interval.
-    
+
     Values are generated within the half-open interval ``[start, stop)``
     (in value words, the interval including `start` but excluding `stop`).
-    
+
     Parameters
     ----------
     start : number, optional
@@ -475,9 +475,9 @@ def arange(start, stop=None, step=1, dtype=None):
         Spacing between values.  For any output `out`, this is the distance
         between two adjacent values, ``out[i+1] - out[i]``.  The default
         step size is 1.  If `step` is specified, `start` must also be given.
-        
+
     Examples:
-    
+
     arange(5)
     arange(1, 5, 0.5)
     """
@@ -489,11 +489,11 @@ def arange(start, stop=None, step=1, dtype=None):
         return ndarray(NDMatrix.arange(start, stop, step))
     else:
         return ndarray(NDMatrix.arange(start, stop, step, dtype))
-    
+
 
 def linspace(start, stop, num=50, dtype=float):
     """linspace(start, stop, num=50, dtype=float)
-    
+
     Return evenly spaced values from start to stop, including stop.
     Example:
     linspace(2, 10, 5)
@@ -547,7 +547,7 @@ def copy(a):
 def reshape(a, shape):
     """reshape(array, shape):
     Create array view with new shape
-    
+
     Example:
     reshape(arange(6), (3, 2))
     results in array([ [ 0, 1 ], [ 2, 3 ], [ 4, 5 ] ])

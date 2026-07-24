@@ -476,7 +476,7 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
                     y0 = image.getYOffset() + height;
                     y1 = image.getYOffset();
                 }
-                
+
                 // Update model because otherwise we'll revert back to its range
                 changing_axis_range = true;
                 model_widget.propXAxis().minimum().setValue(x0);

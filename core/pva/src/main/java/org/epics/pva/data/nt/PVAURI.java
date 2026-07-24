@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
  * NTURI is the EPICS V4 Normative Type that describes a Uniform Resource Identifier (URI) bib:uri.
  * </p>
  * NTURI  :=
- * 
+ *
  * structure
- * 
+ *
  * <ul>
  * <li>string scheme</li>
  * <li>string authority   : opt</li>

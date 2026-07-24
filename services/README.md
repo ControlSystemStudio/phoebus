@@ -6,7 +6,7 @@ Modules in this directory include CS Studio/Phoebus middleware services:
 * Alarm Logger
 * Alarm Service
 * Archive Engine
-* Save-and-Restore 
+* Save-and-Restore
 
 Additional middleware services are maintained in other repositories:
 * Phoebus Logbook Service (Olog): https://github.com/Olog/phoebus-olog
@@ -20,7 +20,7 @@ Phoebus services depend:
 
 * Elasticsearch
   * Used by Save-and-Restore, Alarm Logger, Channel Finder and Olog
-* MongoDB 
+* MongoDB
   * Used by Olog (see https://github.com/Olog/phoebus-olog)
 * Kafka + Zookeeper
   * Used by Alarm Server and Alarm Logger
@@ -43,7 +43,7 @@ MONGO_HOST_IP_ADDRESS=<host IP address>
 Where
 * ```<host IP address>```: the IP address where docker is launched.
 * ```<path-to>/Accelerator.xml```: absolute path to the ```Accelerator.xml``` alarm config file.
-* ```<path-to>/settings.properties```: absolute path to the ```settings.properties``` file. 
+* ```<path-to>/settings.properties```: absolute path to the ```settings.properties``` file.
 
 The ```settings.properties``` file is needed to define the default EPICS protocol like so:
 ```org.phoebus.pv/default=pva```

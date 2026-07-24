@@ -286,13 +286,13 @@ public class BoolButtonWidget extends WritablePVWidget
     {
         return foreground;
     }
-    
+
     /** @return 'horizontal_alignment' property */
     public WidgetProperty<HorizontalAlignment> propHorizontalAlignment()
     {
         return horizontal_alignment;
     }
-    
+
     /** @return 'vertical_alignment' property */
     public WidgetProperty<VerticalAlignment> propVerticalAlignment()
     {

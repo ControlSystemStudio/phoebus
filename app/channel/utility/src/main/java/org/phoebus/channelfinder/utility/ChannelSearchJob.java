@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * Background job for searching channels from the channelfinder directory
  * service
- * 
+ *
  * @author Kunal Shroff, Kay Kasemir
  */
 public class ChannelSearchJob extends JobRunnableWithCancel {

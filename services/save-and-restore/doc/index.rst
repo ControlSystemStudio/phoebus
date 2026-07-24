@@ -1109,5 +1109,3 @@ If Elasticsearch is not running on localhost:9200, then add Java VM arguments li
 ``-Delasticsearch.network.host=<hostname>``
 
 ``-Delasticsearch.http.port=<port>``
-
-

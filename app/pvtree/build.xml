@@ -1,6 +1,6 @@
 <project default="app-pvtree">
   <import file="../../dependencies/ant_settings.xml"/>
-  
+
   <target name="app-pvtree">
     <mkdir dir="${classes}"/>
     <javac destdir="${classes}" debug="${debug}">
@@ -10,7 +10,7 @@
         <path refid="app-classpath"/>
       </classpath>
     </javac>
- 
+
   	<jar destfile="${build}/app-pvtree-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>

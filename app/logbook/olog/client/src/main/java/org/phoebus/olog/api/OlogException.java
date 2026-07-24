@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.phoebus.olog.api;
 
@@ -17,12 +17,12 @@ import javax.swing.text.html.parser.ParserDelegator;
 public class OlogException extends RuntimeException {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 6279865221993808192L;
 
 	private int status;
-	
+
 	public OlogException() {
 		super();
 	}

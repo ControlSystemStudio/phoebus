@@ -17,7 +17,7 @@ public class EditAndControlQueueController implements Initializable {
     @FXML private AnchorPane runningPlanContainer;
     @FXML private AnchorPane planQueueContainer;
     @FXML private AnchorPane planHistoryContainer;
-    
+
     private static final Logger logger = Logger.getLogger(EditAndControlQueueController.class.getPackageName());
 
     @Override

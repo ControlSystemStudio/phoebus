@@ -21,7 +21,7 @@ import org.csstudio.display.builder.model.persist.ModelWriter;
 
 /**
  * 'Main' for converting *.opi or older *.bob files into the current format
- * 
+ *
  * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -35,7 +35,7 @@ public class Converter {
 	 *             on error
 	 */
 	/**
-	 * 
+	 *
 	 * @return all opi files contained in a given folder
 	 */
 	public static final String OUTPUT_ARG = "-output";
@@ -50,7 +50,7 @@ public class Converter {
 	public static final String PHOEBUS = "phoebus_";
 
 	/**
-	 * 
+	 *
 	 * @param folder
 	 * @return all opi files contained in a given folder
 	 */
@@ -62,7 +62,7 @@ public class Converter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return all bob files contained in a given folder
 	 */
 	public List<String> listBobFiles(String folder) {
@@ -72,7 +72,7 @@ public class Converter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return all script files contained in a given folder
 	 */
 	public List<String> listScriptFiles(String folder) {
@@ -86,7 +86,7 @@ public class Converter {
 
 	/**
 	 * Return true if it is a script
-	 * 
+	 *
 	 * @param fileName
 	 * @return true if the file is a script file
 	 */
@@ -101,7 +101,7 @@ public class Converter {
 
 	/**
 	 * Return true if it is a opi file
-	 * 
+	 *
 	 * @param fileName
 	 * @return true if the file is a opi file
 	 */
@@ -113,7 +113,7 @@ public class Converter {
 
 	/**
 	 * Return true if it is a bob file
-	 * 
+	 *
 	 * @param fileName
 	 * @return true if the file is a bob file
 	 */
@@ -124,7 +124,7 @@ public class Converter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param fileName
 	 * @param extensionsList
 	 * @return true if the file is matched with the given extensions
@@ -143,7 +143,7 @@ public class Converter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return all files contained in a given folder and match with given extension
 	 */
 	public List<String> listFiles(String folder, List<String> searchExtension) {
@@ -170,7 +170,7 @@ public class Converter {
 	private void convert(final File infile, final File outfile) throws Exception {
 		traceProgression(infile, outfile); // displaying current file and it output location
 		try (FileOutputStream outStream = new FileOutputStream(outfile);
-			 ModelWriter writer = new ModelWriter(outStream);) 
+			 ModelWriter writer = new ModelWriter(outStream);)
 			{
 				final ModelReader reader = new ModelReader(new FileInputStream(infile));
 				DisplayModel model = reader.readModel();
@@ -182,7 +182,7 @@ public class Converter {
 
 	/**
 	 * displaying 2 files
-	 * 
+	 *
 	 * @param infile
 	 * @param outfile
 	 */

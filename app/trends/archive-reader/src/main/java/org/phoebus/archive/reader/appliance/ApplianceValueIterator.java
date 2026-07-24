@@ -307,7 +307,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
     }
 
     /**
-     * Extract the labels from the given payloadinfo when processing Enum Values. 
+     * Extract the labels from the given payloadinfo when processing Enum Values.
      * EnumLabels list empty if payloadinfo from request without "fetchLatestMetadata" set to true
      *
      * @param info the info to extract the labels

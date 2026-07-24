@@ -33,7 +33,7 @@ public class AnnunciatorTableDemo extends ApplicationWrapper
         stage.setTitle("Alarm Annunciator Table Demo");
         stage.show();
         client.start();
-        
+
         stage.setOnCloseRequest(event -> table.shutdown());
     }
 

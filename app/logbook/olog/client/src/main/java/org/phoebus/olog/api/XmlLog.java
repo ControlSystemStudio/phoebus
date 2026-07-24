@@ -92,7 +92,7 @@ public class XmlLog {
     public XmlLog(LogEntry log) {
         id = log.getId();
         version = log.getVersion();
-        
+
         owner = log.getOwner();
         source = "";
         level = log.getLevel();
@@ -278,7 +278,7 @@ public class XmlLog {
     public void setMD5Entry(String md5entry) {
         this.md5Entry = md5entry;
     }
-    
+
     /**
      * Getter for Table id.
      *
@@ -296,7 +296,7 @@ public class XmlLog {
     public void setTableId(Long tableId) {
         this.tableId = tableId;
     }
-    
+
     /**
      * Getter for log's XmlProperties.
      *
@@ -421,10 +421,10 @@ public class XmlLog {
     public static String toLog(XmlLog data) {
         XmlLogbooks xl = new XmlLogbooks();
         xl.setLogbooks(data.logbooks);
-        
+
         XmlTags xt = new XmlTags();
         xt.setTags(data.tags);
-        
+
         return data.getId() + "-v." + data.getVersion() + " : " + /*data.getSubject() +*/ "(" + data.getOwner() + "):["
                 + XmlLogbooks.toLog(xl)
                 + XmlTags.toLog(xt)

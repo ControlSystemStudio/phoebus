@@ -126,7 +126,7 @@ if PVUtil.getLong(pvs[0]) > 5:
         ScriptUtil.openDisplay(widget, "ScriptsAndReloads.opi", "REPLACE", None)
     else:
         ScriptUtil.executeEclipseCommand("org.eclipse.ui.file.refresh")
-    
+
 ]]></scriptText>
         <pv trig="true">$(pv_name)</pv>
       </path>

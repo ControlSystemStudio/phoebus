@@ -20,7 +20,7 @@ import org.apache.activemq.transport.TransportListener;
  * <b>Logging:</b> ActiveMQ uses org.apache.commons.logging, defaulting to its
  * Jdk14Logger. The rest of CSS uses Log4J, but since Log4J potentially gets
  * configured to send log messages to JMS, we would create a circular dependency
- * 
+ *
  * <pre>
  * JMS -> logs to Log4J -> sends messages to JMS
  * </pre>
@@ -30,7 +30,7 @@ import org.apache.activemq.transport.TransportListener;
  * <p>
  * One way to avoid them is to set these VM arguments, either on the
  * command-line or in the *.product file:
- * 
+ *
  * <pre>
  *  -Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog
  *  -Dorg.apache.commons.logging.simplelog.defaultlog=fatal
@@ -42,7 +42,7 @@ public class JMSConnectionFactory
 {
     /**
      * Connect to JMS
-     * 
+     *
      * @param url
      *            URL of server. Details can differ for ActiveMQ or other
      *            implementations.
@@ -58,7 +58,7 @@ public class JMSConnectionFactory
 
     /**
      * Connect to JMS
-     * 
+     *
      * @param url
      *            URL of server. Details can differ for ActiveMQ or other
      *            implementations.

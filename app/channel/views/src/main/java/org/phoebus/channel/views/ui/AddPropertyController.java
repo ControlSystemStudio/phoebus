@@ -60,7 +60,7 @@ public class AddPropertyController {
         });
         availableProperties.setItems(available);
         availableProperties.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        
+
         selectedPropertyText.textProperty().bindBidirectional(selectedProperty);
         selectedPropertyValueText.textProperty().bindBidirectional(selectedPropertyValue);
         selectedPropertyOwnerText.textProperty().bindBidirectional(selectedPropertyOwner);

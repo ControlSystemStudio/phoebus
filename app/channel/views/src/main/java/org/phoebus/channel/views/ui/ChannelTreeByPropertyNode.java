@@ -155,7 +155,7 @@ public class ChannelTreeByPropertyNode {
         Alarm alarm = Alarm.alarmOf(value);
         StringBuilder sb = new StringBuilder();
         sb.append(FormatOptionHandler.format(value, FormatOption.DEFAULT, -1, true));
-        if (!alarm.getSeverity().equals(AlarmSeverity.NONE)) 
+        if (!alarm.getSeverity().equals(AlarmSeverity.NONE))
         {
             sb.append(alarm.getSeverity().toString());
         }
@@ -185,7 +185,7 @@ public class ChannelTreeByPropertyNode {
 
     /**
      * True if the node represents a sub-query and not a single channel.
-     * 
+     *
      * @return
      */
     public boolean isSubQuery() {

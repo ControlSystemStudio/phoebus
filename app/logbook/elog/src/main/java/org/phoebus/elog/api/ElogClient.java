@@ -724,4 +724,3 @@ public class ElogClient implements LogClient {
     }
 
 }
-

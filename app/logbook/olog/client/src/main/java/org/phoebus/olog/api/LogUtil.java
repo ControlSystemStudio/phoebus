@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.phoebus.olog.api;
 
@@ -12,7 +12,7 @@ import org.phoebus.logbook.LogEntry;
 
 /**
  * @author Eric Beryman taken from shroffk
- * 
+ *
  */
 public class LogUtil {
 

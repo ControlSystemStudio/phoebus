@@ -2,7 +2,7 @@ package org.phoebus.logbook;
 
 /**
  * A default implementation for {@link Tag}
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -30,7 +30,7 @@ public class TagImpl implements Tag {
 
     /**
      * Create a new instance of TagImpl with tagName name
-     * 
+     *
      * @param name - tag name
      * @return {@link Tag} with provided name
      */
@@ -40,7 +40,7 @@ public class TagImpl implements Tag {
 
     /**
      * Create a new instance of the TagImpl with tagName name and tagState state
-     * 
+     *
      * @param name - tag name
      * @param state - tag state
      * @return {@link Tag} with given name and state

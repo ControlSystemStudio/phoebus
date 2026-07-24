@@ -46,7 +46,7 @@ public class EditCell<S, T> extends TableCell<S, T> {
                 commitEdit(this.converter.fromString(this.textField.getText()));
             }
         });
-        
+
         this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
                 textField.setText(converter.toString(getItem()));

@@ -107,7 +107,7 @@ for details on how to do this. In general, users should use the Embed Image butt
 .. image:: images/EmbedImage.png
 
 External image resources may be edited manually, e.g.:
-``![alt-text](https://foo.com/bar.jpg)``. 
+``![alt-text](https://foo.com/bar.jpg)``.
 File URLs are not supported.
 
 Links
@@ -156,7 +156,7 @@ The search field
 
 .. image:: images/searchfield.png
 
-In the search field the user may specify criteria when searching for log entries. These criteria are based on 
+In the search field the user may specify criteria when searching for log entries. These criteria are based on
 the elements of a log entry as follows:
 
 - ``desc`` or ``description``: The body text, whereby any markup characters are ignored. The search is case insensitive.
@@ -164,7 +164,7 @@ the elements of a log entry as follows:
 - ``title``: The title of the log entry. The search is case insensitive.
 
 - ``level``: The value of the Level field.
-  
+
 - ``logbooks``: A comma separated list of logbook names. Log entries contained in either of the listed logbooks will match.
 
 - ``tag``: A comma separated list of tag names. Log entries tagged with either of the listed tags will match.

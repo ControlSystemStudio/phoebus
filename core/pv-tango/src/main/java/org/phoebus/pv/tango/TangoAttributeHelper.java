@@ -14,9 +14,9 @@ import fr.esrf.TangoApi.QualityUtilities;
 import fr.esrf.TangoDs.TangoConst;
 
 /**
- * 
+ *
  * This class provide useful static methods to insert or extract data from DeviceAttribute
- * 
+ *
  *  @author katy.saintin@cea.fr
  */
 
@@ -30,7 +30,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether an attribute name represents a state or a status
-     * 
+     *
      * @param attributeName The attribute name (device name not included)
      * @return A <code>boolean</code> value
      */
@@ -40,7 +40,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether an attribute name represents a state or a status
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The attribute name (device name not included)
      * @return A <code>boolean</code> value
@@ -60,7 +60,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether an attribute represents a state
-     * 
+     *
      * @param info The attribute info
      * @return A <code>boolean</code> value
      */
@@ -76,7 +76,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether an attribute represents a state and is scalar
-     * 
+     *
      * @param info The attribute info
      * @return A <code>boolean</code> value
      */
@@ -92,7 +92,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns an attribute's type
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return An <code>int</code>
@@ -103,7 +103,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns an attribute's type, based on its {@link AttributeInfo}
-     * 
+     *
      * @param info The {@link AttributeInfo}
      * @return An <code>int</code>
      */
@@ -117,7 +117,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns an attribute's format
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return An <code>int</code>
@@ -128,7 +128,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns an attribute's format, based on its {@link AttributeInfo}
-     * 
+     *
      * @param info The {@link AttributeInfo}
      * @return An <code>int</code>
      */
@@ -142,7 +142,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns an attribute's label
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return A {@link String}
@@ -153,7 +153,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns an attribute's label, based on its {@link AttributeInfo}
-     * 
+     *
      * @param info The {@link AttributeInfo}
      * @return A {@link String}
      */
@@ -167,7 +167,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether an attribute is read only
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return A <code>boolean</code>
@@ -178,7 +178,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether an attribute is read only, based on its {@link AttributeInfo}
-     * 
+     *
      * @param info The {@link AttributeInfo}
      * @return A <code>boolean</code>
      */
@@ -192,7 +192,7 @@ public class TangoAttributeHelper {
 
     /**
      * Reads an {@link AttributeInfoEx} for a given attribute and returns whether the attribute has unsigned values.
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return A <code>boolean</code>
@@ -204,7 +204,7 @@ public class TangoAttributeHelper {
 
     /**
      * Reads an {@link AttributeInfoEx} for a given attribute and returns whether the attribute has unsigned values.
-     * 
+     *
      * @param device The {@link DeviceProxy} connected to the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return A <code>boolean</code>
@@ -216,7 +216,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether an attribute has unsigned values, based on its {@link AttributeInfo}
-     * 
+     *
      * @param info The {@link AttributeInfo}
      * @return A <code>boolean</code>
      */
@@ -242,7 +242,7 @@ public class TangoAttributeHelper {
 
     /**
      * Sets an {@link AttributeInfo} in a given device
-     * 
+     *
      * @param attributeInfo The {@link AttributeInfo} to set
      * @param deviceName The device name
      */
@@ -266,7 +266,7 @@ public class TangoAttributeHelper {
 
     /**
      * Reads an {@link AttributeInfo} for a given attribute and returns it
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return An {@link AttributeInfo}
@@ -291,7 +291,7 @@ public class TangoAttributeHelper {
 
     /**
      * Reads an {@link AttributeInfoEx} for a given attribute and returns it
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return An {@link AttributeInfoEx}
@@ -303,7 +303,7 @@ public class TangoAttributeHelper {
 
     /**
      * Reads an {@link AttributeInfoEx} for a given attribute and returns it
-     * 
+     *
      * @param device The {@link DeviceProxy} connected to the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return An {@link AttributeInfoEx}
@@ -324,7 +324,7 @@ public class TangoAttributeHelper {
 
     /**
      * Sets an {@link AttributeInfoEx} in a given device
-     * 
+     *
      * @param attributeInfoEx The {@link AttributeInfoEx} to set
      * @param deviceName The device name
      * @throws DevFailed In case of error when trying to write {@link AttributeInfoEx}
@@ -343,7 +343,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether a given attribute is currently running
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return A <code>boolean</code>
@@ -354,7 +354,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether a given attribute is currently running
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @param testForDeviceRunning Whether to first test if device is running
@@ -366,7 +366,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether a given attribute is currently running
-     * 
+     *
      * @param proxy The {@link DeviceProxy} of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return A <code>boolean</code>
@@ -407,7 +407,7 @@ public class TangoAttributeHelper {
 
     /**
      * Returns whether a {@link String} is contained in A {@link String} array, ignoring case.
-     * 
+     *
      * @param name The {@link String}.
      * @param nameList The {@link String} array.
      * @return A <code>boolean</code>.
@@ -427,7 +427,7 @@ public class TangoAttributeHelper {
 
     /**
      * Tries to obtain an {@link AttributeInfo} for an attribute and checks whether that info is not null.
-     * 
+     *
      * @param proxy The {@link DeviceProxy} that knows the attributes. Must not be <code>null</code>.
      * @param attributeName The attribute name.
      * @return A <code>boolean</code>.
@@ -444,7 +444,7 @@ public class TangoAttributeHelper {
 
     /**
      * Reads an attribute quality and returns it as an <code>int</code>
-     * 
+     *
      * @param attribute The {@link DeviceAttribute} associated with the expected attribute
      * @return An <code>int</code>
      * @throws DevFailed If a problem occurred while trying to access the corresponding attribute
@@ -462,7 +462,7 @@ public class TangoAttributeHelper {
 
     /**
      * Reads an attribute quality and returns it as a {@link String}
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return A {@link String}
@@ -481,7 +481,7 @@ public class TangoAttributeHelper {
 
     /**
      * Reads an attribute quality and returns it as an <code>int</code>
-     * 
+     *
      * @param deviceName The name of the device that contains the concerned attribute
      * @param attributeName The name of the attribute
      * @return an <code>int</code>
@@ -503,7 +503,7 @@ public class TangoAttributeHelper {
 
     /**
      * Reads an attribute quality and returns it as a {@link String}
-     * 
+     *
      * @param attribute The {@link DeviceAttribute} associated with the expected attribute
      * @return A {@link String}
      * @throws DevFailed If a problem occurred while trying to access the corresponding attribute
@@ -521,7 +521,7 @@ public class TangoAttributeHelper {
 
     /**
      * Creates a {@link DeviceAttribute} for a given attribute complete name
-     * 
+     *
      * @param attributeCompleteName The attribute complete name
      * @return A {@link DeviceAttribute}
      * @throws DevFailed If a problem occurred while trying to access the corresponding attribute
@@ -540,7 +540,7 @@ public class TangoAttributeHelper {
 
     /**
      * Creates a {@link DeviceAttribute} for a given device name attribute name
-     * 
+     *
      * @param deviceName The device name
      * @param attributeName The attribute name
      * @return A {@link DeviceAttribute}
@@ -552,7 +552,7 @@ public class TangoAttributeHelper {
 
     /**
      * Creates a {@link DeviceAttribute} for a given {@link DeviceProxy} attribute name
-     * 
+     *
      * @param device The {@link DeviceProxy}
      * @param attributeName The attribute name
      * @return A {@link DeviceAttribute}
@@ -571,7 +571,7 @@ public class TangoAttributeHelper {
 
     /**
      * Converts a {@link String} value into a <code>short</code> value, based on an enum attribute's possible values.
-     * 
+     *
      * @param value The {@link String} value.
      * @param ex The {@link AttributeInfoEx} that knows the possible values.
      * @param defaultValue The default value to return if the conversion could not be done.
@@ -600,7 +600,7 @@ public class TangoAttributeHelper {
 
     /**
      * Converts a {@link String} value into a {@link Short} value, based on an enum attribute's possible values.
-     * 
+     *
      * @param value The {@link String} value.
      * @param ex The {@link AttributeInfoEx} that knows the possible values.
      * @return A {@link Short} value, that can be written in the attribute.
@@ -612,7 +612,7 @@ public class TangoAttributeHelper {
 
     /**
      * Converts a {@link Short} value into a {@link String} value, based on an enum attribute's possible values.
-     * 
+     *
      * @param value The {@link Short} value.
      * @param ex The {@link AttributeInfoEx} that knows the possible values.
      * @return A {@link String} value: the enum matching label.

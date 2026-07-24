@@ -10,7 +10,7 @@
         <path refid="app-classpath"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-display-model-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>

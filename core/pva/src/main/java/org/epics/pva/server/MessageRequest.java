@@ -20,7 +20,7 @@ public class MessageRequest implements RequestEncoder
 	private final int request_id;
 	private final PVAStatus.Type type;
 	private final String message;
-	
+
 	/** @param request_id ID of client request to which this message applies
 	 *  @param type Message type
 	 *  @param message Message text
@@ -31,7 +31,7 @@ public class MessageRequest implements RequestEncoder
 		this.type = type;
 		this.message = message;
 	}
-	
+
 	@Override
 	public void encodeRequest(byte version, ByteBuffer buffer) throws Exception
 	{

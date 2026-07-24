@@ -79,7 +79,7 @@ Documentation Components
 
    The files in this repository, i.e. the files in `phoebus/doc/source`, starting with `index.rst`,
    form the basis of the documentation tree, meant to provide the top-level documentation.
-   
+
    For details on the `*.rst` file format, refer to the
    ReStructured Text reference, see http://www.sphinx-doc.org/en/stable/rest.html
 
@@ -90,9 +90,9 @@ Documentation Components
    This allows Phoebus source code to contribute to the documentation.
    For example, application modules will be added
    to the "Applications" section of the top-level documentation.
-   
+
    Additionally, the folders are also checked for `doc/images/` folders.
-   Resources used by the `index.rst` files should be places in this folder to 
+   Resources used by the `index.rst` files should be places in this folder to
    ensure they are available to sphinx to generate the documentation.
 
 3) Preference Descriptions
@@ -100,31 +100,31 @@ Documentation Components
    The content of all `../phoebus/**preferences.properties` files
    is added to a "Preferences Listing" appendix of the documentation,
    with a generated listing of preference packages.
-   
+
    The preference file should start with a `# Package ...` header
    to allow listing it in the table of contents.
-   
+
    Example:
-   
+
    ```
    # --------------------------------
    # Package the.phoebus.package.name
    # --------------------------------
-   
+
    # Description of some setting
    the_setting = default_value
    ```
-   
+
 4) Plain HTML
 
    The content of all `../phoebus/**/doc/html` folders is copied into the
    generated html output directory tree.
-   
+
    This allows including existing HTML content "as is".
    An `index.rst` file in the corresponding phoebus module may then refer
    to it via `raw` link directives.
    See `../phoebus/app/display/editor/doc` for an example.
-   
+
    The inclusion of plain HTML content is meant to allow adding for example
    Java Doc that is auto-generated, where it would be impractical to rewrite
    the information as `*.rst`.
@@ -132,10 +132,10 @@ Documentation Components
    `*.rst` files are rendered as HTML, in which case `raw` directives can
    then link them to the documentation.
    When the `*.rst` files are rendered via LaTeX or PDF, plain HTML content is ignored.
-   
+
    Whenever possible, documentation should thus use the `*.rst` file format
    and be included via the first two options.
-   
+
 
 For technical details on how the document components are assembled,
 check `createAppIndex()` and `createPreferenceAppendix()` in `source/conf.py`.

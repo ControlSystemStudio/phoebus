@@ -7,7 +7,7 @@
     <!-- Delete the javadoc -->
     <ant antfile="javadoc.xml" target="clean"/>
   </target>
-	
+
   <target name="app-display-editor">
   	<!-- Build Script API Javadoc
   	     Actually needs to be build _before_
@@ -29,7 +29,7 @@
         <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-display-editor-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
@@ -50,7 +50,7 @@
       <formatter type="plain" usefile="false"/>
     </junit>
   </target>
-	
+
   <target name="demo" depends="app-display-editor" description="Run the demo">
     <java classname="org.csstudio.display.builder.editor.EditorDemo" fork="true">
       <classpath>
@@ -63,5 +63,5 @@
       </classpath>
     </java>
   </target>
-	
+
 </project>

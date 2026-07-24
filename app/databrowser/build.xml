@@ -12,7 +12,7 @@
         <pathelement path="../rtplot/${build}/app-rtplot-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-databrowser-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>

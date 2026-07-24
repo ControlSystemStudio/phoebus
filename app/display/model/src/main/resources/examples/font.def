@@ -55,4 +55,3 @@ Oddball = Comic Sans MS-regular-40
 // Operating system selectors are: "windows", "linux", "macosx"
 Oddball(linux) = PakTypeNaqsh-regular-40
 Oddball(macosx) = Herculanum-regular-40
-

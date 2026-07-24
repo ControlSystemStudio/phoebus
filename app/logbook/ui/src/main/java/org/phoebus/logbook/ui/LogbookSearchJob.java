@@ -13,7 +13,7 @@ import org.phoebus.logbook.LogEntry;
 
 /**
  * Background job for searching log entries
- * 
+ *
  * @author Kunal Shroff, Kay Kasemir
  */
 public class LogbookSearchJob extends JobRunnableWithCancel {

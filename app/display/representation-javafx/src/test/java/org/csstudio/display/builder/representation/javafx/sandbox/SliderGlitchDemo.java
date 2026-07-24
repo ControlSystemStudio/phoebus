@@ -22,13 +22,13 @@ import javafx.stage.Stage;
 
 /**
  * Bug demonstration for JFX rendering of slider and rectangles.
- * 
+ *
  * A bug occurs when the slider's value is NaN. If one of the rectangles
  * are dragged from the corner to adjust size, with the cursor at the corner when
  * the border crosses the slider, the rectangle disappears. The dashed rectangle
  * freezes the program, necessitating a forced shutdown. The solid one merely
  * reappears once its border has cleared the slider.
- * 
+ *
  * @author Amanda Carpenter
  */
 public class SliderGlitchDemo extends ApplicationWrapper
@@ -62,7 +62,7 @@ public class SliderGlitchDemo extends ApplicationWrapper
         final Label label = new Label("Drag the bottom right corner of each rectangle across the slider. When the slider value is NaN,\n"
                 + "the dashed rectangle freezes the program; the solid-bordered one disappears and reappears.\n"
                 + "When it is finite, the rectangles behave as expected.");
-        
+
         Button button = new Button("Toggle NaN/finite value.");
         button.setOnAction(e->
         {

@@ -83,7 +83,7 @@ public class ServerClientTest {
             // Details vary with network setup,
             // but forcing use of IPv4 localhost is quite likely to "work"
             PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "127.0.0.1";
-            PVASettings.EPICS_PVA_ADDR_LIST = "127.0.0.1";    
+            PVASettings.EPICS_PVA_ADDR_LIST = "127.0.0.1";
         }
         try {
             return new PVAServer();
@@ -127,7 +127,7 @@ public class ServerClientTest {
      * generated fake data to the PVAccess type.
      * Second go over every waveform type, converting each array of the
      * generated fake data to the PVAccess type.
-     * 
+     *
      * @return input data
      */
     public static Collection<Object[]> data() {
@@ -279,7 +279,7 @@ public class ServerClientTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    
+
         for (S input : inputData) { // TODO Sometimes receiving the setup of the pv as an event and sometimes not.
             assert testPV != null;
             S newValue = testPV.get(PVAScalar.VALUE_NAME_STRING);

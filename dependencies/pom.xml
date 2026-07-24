@@ -15,7 +15,7 @@
   <profiles>
     <profile>
       <id>packageTarget</id>
-      <!-- Package the phoebus product with dependencies, run scripts, and 
+      <!-- Package the phoebus product with dependencies, run scripts, and
         sources -->
       <build>
         <plugins>

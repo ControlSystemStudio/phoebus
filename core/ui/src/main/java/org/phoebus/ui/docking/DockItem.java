@@ -701,7 +701,7 @@ public class DockItem extends Tab
                 // of other parts and overall application
                 logger.log(Level.SEVERE, this + " failed to shut down cleanly, forcing to close", ex);
             }
-        
+
         prepared_do_close = true;
         return true;
     }

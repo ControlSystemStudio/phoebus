@@ -2,10 +2,10 @@
 
    Script is compiled once, but
    invoked each time user enters a move.
-   
+
    Widget's user data tracks
    the T3 board across invocations.
-   
+
    @author Kay Kasemir
 """
 
@@ -46,7 +46,7 @@ else:
         # Perform user's move
         t3.board[pos] = 'x'
         showBoard(t3)
-        
+
         # Compute computer's move
         test = T3(t3.board)
         pos = test.makeMove('o')
@@ -54,7 +54,7 @@ else:
             showInfo("I set " + str(pos))
             t3.board[pos] = 'o'
             showBoard(t3)
-        
+
         winner = t3.determineWinner()
         if winner == 'x':
             showInfo("You're the Weener!!")

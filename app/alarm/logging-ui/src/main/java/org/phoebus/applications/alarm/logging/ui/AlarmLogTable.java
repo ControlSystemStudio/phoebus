@@ -65,7 +65,7 @@ public class AlarmLogTable implements AppInstance {
     public AppDescriptor getAppDescriptor() {
         return app;
     }
-    
+
 
     public void setPVResource(URI resource) {
         String query = resource.getQuery();
@@ -77,7 +77,7 @@ public class AlarmLogTable implements AppInstance {
         controller.setSearchString(parsedQuery);
         controller.setIsNodeTable(false);
     }
-    
+
     public void setNodeResource(URI resource) {
         String query = resource.getQuery();
         // TODO URI parsing might be improved.

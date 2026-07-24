@@ -117,7 +117,7 @@ public class DockStage
     {
         return configureStage(stage, new Geometry(null), tabs);
     }
-    
+
     /** Helper to configure a Stage for docking
     *
     *  <p>Adds a Scene with a BorderPane layout and a DockPane in the center

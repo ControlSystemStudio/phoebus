@@ -1,7 +1,7 @@
 """Conway's Game of Life
 
    Text-based demo of the game logic
-   
+
    @author Kay Kasemir
 """
 
@@ -10,11 +10,11 @@ class GameOfLife(object):
         self.piece = ( '.', 'X' )
         self.width = width
         self.height = height
-        
+
         # Note:  [ [ 0 ] * self.width ] * self.height
         # would result in all 'rows' referencing the same
         # array instance
-        self.map = [ [ 0 ] * self.width for r in range(self.height) ]        
+        self.map = [ [ 0 ] * self.width for r in range(self.height) ]
 
         # Toggle
         self.map[2][10] = 1
@@ -52,7 +52,7 @@ class GameOfLife(object):
                 else:
                     self.next[row][col] = 0
         self.map = self.next
-        
+
 
     def __repr__(self):
         return "\n".join(

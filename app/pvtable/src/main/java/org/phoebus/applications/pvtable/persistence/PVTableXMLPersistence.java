@@ -192,4 +192,3 @@ public class PVTableXMLPersistence extends PVTablePersistence
         XMLUtil.writeDocument(doc, stream);
     }
 }
-

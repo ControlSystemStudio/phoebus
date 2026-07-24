@@ -118,10 +118,9 @@ def createImage(uniqueId, data, sizes, typecode=None, offsets=repeat(0), binning
     #setAttribute(image, attribute)
     setImage(image, data, typecode)
     setDimensions(image, sizes, offsets, binnings, reverses)
-    
+
     return image
 
 if __name__ == "__main__":
     image = createImage(0, [1,2,3], (3,), BYTE)
     setColorMode(image, 0)
-

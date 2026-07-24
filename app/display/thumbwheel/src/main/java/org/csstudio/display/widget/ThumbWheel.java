@@ -493,7 +493,7 @@ public class ThumbWheel extends GridPane {
         Button button;
 
         if ( pool.isEmpty() ) {
-            
+
             button = new Button();
 
             button.setOnAction(buttonPressedHandler);
@@ -668,7 +668,7 @@ public class ThumbWheel extends GridPane {
 
             builder.append('.');
             extremaBuilder.append('.');
-            
+
             for ( int i = 0; i < dDigits; i++ ) {
                 builder.append('0');
                 extremaBuilder.append('9');

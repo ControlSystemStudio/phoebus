@@ -2,7 +2,7 @@ package org.phoebus.logbook;
 
 /**
  * A default implementation of {@link Logbook}
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -33,7 +33,7 @@ public class LogbookImpl implements Logbook {
 
     /**
      * Create a new instance of the default implementation of the {@link Logbook} interface with the given name
-     * 
+     *
      * @param name - logbook name
      * @return {@link Logbook} with the given name
      */

@@ -90,7 +90,7 @@ public class Perspective extends SplitPane
     private WaveformView waveform = null;
     private SmoothView smooth = null;
     private WaveformOverlapView overlap = null;
-    
+
     private final Controller controller;
     private final TabPane left_tabs = new TabPane(),
                           bottom_tabs = new TabPane();

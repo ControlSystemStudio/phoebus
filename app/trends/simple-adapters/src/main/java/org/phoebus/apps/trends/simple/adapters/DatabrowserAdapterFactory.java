@@ -18,7 +18,7 @@ import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 
 /**
  * A factory which adapts {@link DatabrowserSelection}s to {@link EmailEntry}s
- * 
+ *
  * @author Kunal Shroff
  *
  */

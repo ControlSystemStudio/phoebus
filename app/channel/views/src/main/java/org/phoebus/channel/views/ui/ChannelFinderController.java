@@ -16,7 +16,7 @@ import javafx.application.Platform;
  * controller takes care of performing the query off the UI thread using
  * {@link Job}s and then invokes the setChannels method on the UI thread after
  * the query has been completed.
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -46,7 +46,7 @@ public abstract class ChannelFinderController {
     }
 
     /**
-     * Set a new list of channels. This method is called after the successful execution of a channelfinder query. 
+     * Set a new list of channels. This method is called after the successful execution of a channelfinder query.
      * @param channels - the new list of channels
      */
     public abstract void setChannels(Collection<Channel> channels);

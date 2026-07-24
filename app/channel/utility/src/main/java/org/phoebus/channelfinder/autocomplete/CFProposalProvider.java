@@ -18,7 +18,7 @@ import org.phoebus.framework.spi.PVProposalProvider;
 
 /**
  * A basic implementation for supporting autocomplete via channelfinder
- * 
+ *
  * @author Kunal Shroff
  *
  */

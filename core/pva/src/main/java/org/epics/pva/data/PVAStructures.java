@@ -27,7 +27,7 @@ public class PVAStructures
     public static Instant getTime(final PVAStructure structure)
     {
         PVATimeStamp timeStamp = PVATimeStamp.fromStructure(structure);
-        if (timeStamp != null) 
+        if (timeStamp != null)
         {
             return timeStamp.instant();
         }

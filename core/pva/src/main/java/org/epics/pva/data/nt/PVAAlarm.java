@@ -24,10 +24,10 @@ import org.epics.pva.data.PVAStructure;
 
 /**
  * Normative alarm type
- * 
+ *
  * An alarm_t describes a diagnostic of the value of a control system process
  * variable.
- * 
+ *
  * <ul>
  * <li>structure
  * <ul>
@@ -36,7 +36,7 @@ import org.epics.pva.data.PVAStructure;
  * <li>string message
  * </ul>
  * </ul>
- * 
+ *
  */
 public class PVAAlarm extends PVAStructure {
     public static final String ALARM_NAME_STRING = "alarm";
@@ -120,7 +120,7 @@ public class PVAAlarm extends PVAStructure {
 
     /**
      * Setting only the message, status and severity are set to 0.
-     * 
+     *
      * @param message String message
      */
     public PVAAlarm(String message) {
@@ -129,7 +129,7 @@ public class PVAAlarm extends PVAStructure {
 
     /**
      * Set all parameters in constructor
-     * 
+     *
      * @param severity severity of alarm
      * @param status   what status is in alarm
      * @param message  a message string
@@ -142,7 +142,7 @@ public class PVAAlarm extends PVAStructure {
 
     /**
      * Set all parameters in constructor
-     * 
+     *
      * @param severity defined as an int (not an enum_t), but MUST be
      *                 functionally interpreted as the enumeration
      *                 {@link AlarmSeverity}
@@ -163,7 +163,7 @@ public class PVAAlarm extends PVAStructure {
 
     /**
      * Set the value of the alarm
-     * 
+     *
      * @param severity severity of alarm
      * @param status   what status is in alarm
      * @param message  a message string
@@ -176,7 +176,7 @@ public class PVAAlarm extends PVAStructure {
 
     /**
      * Returns the enum representing the severity
-     * 
+     *
      * @return alarm severity
      */
     public AlarmSeverity alarmSeverity() {
@@ -190,7 +190,7 @@ public class PVAAlarm extends PVAStructure {
 
     /**
      * Conversion from structure to PVAAlarm
-     * 
+     *
      * @param structure Potential "alarm_t" structure
      * @return PVAAlarm or <code>null</code>
      */
@@ -206,7 +206,7 @@ public class PVAAlarm extends PVAStructure {
 
     /**
      * Get Alarm from a PVAStructure
-     * 
+     *
      * @param structure Structure containing alarm
      * @return PVAAlarm or <code>null</code>
      */

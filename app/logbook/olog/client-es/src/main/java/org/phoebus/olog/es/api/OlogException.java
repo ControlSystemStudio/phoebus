@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.phoebus.olog.es.api;
 
@@ -11,7 +11,7 @@ package org.phoebus.olog.es.api;
 public class OlogException extends RuntimeException {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 6279865221993808192L;
 

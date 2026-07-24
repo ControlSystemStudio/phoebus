@@ -73,14 +73,14 @@ public final class ReEnvironmentControlsController implements Initializable {
         alert.setTitle("Destroy Environment");
         alert.setHeaderText("Are you sure you want to destroy the environment?");
         alert.setContentText("This action cannot be undone and will permanently destroy the current environment.");
-        
+
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                try { 
-                    svc.environmentDestroy(); 
+                try {
+                    svc.environmentDestroy();
                     logger.log(Level.FINE, "Environment destroyed successfully");
-                } catch (Exception ex) { 
-                    logger.log(Level.WARNING, "environmentDestroy: " + ex); 
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "environmentDestroy: " + ex);
                 }
             }
         });

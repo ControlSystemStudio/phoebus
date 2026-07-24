@@ -58,7 +58,7 @@ public class ChannelTableApp implements AppResourceDescriptor {
         channelTable.setResource(resource);
         return channelTable;
     }
-    
+
     /**
      * Get the default {@link ChannelFinderClient} initialized during the creation of this application descriptor
      * @return {@link ChannelFinderClient} default client

@@ -56,11 +56,11 @@ while(True):
 	if quality > 100:
 		quality = (value['Dingus']['Quality'][1] + quality) / 2
 	value['Dingus']['Quality'][2] = round(quality,1)
-	
+
 	quality += value['Dingus']['Quality'][0]*15
 	quality /= 16
 	value['Dingus']['Quality'][0] = round(quality, 1)
-	
+
 	tablePV['value'] = value
 
 	tableStrPV['value'] = str(tablePV)

@@ -26,7 +26,7 @@ public class AudioDemo extends ApplicationWrapper
     // MediaPlayer will stop, presumably because of GC,
     // unless we hold on to it via e.g. a static reference
     static MediaPlayer player;
-    
+
     public static void main(final String[] args)
     {
         launch(AudioDemo.class, args);

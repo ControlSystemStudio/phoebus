@@ -6,5 +6,3 @@ services:
     command: >
       /bin/bash -c "
       java -jar /alarmlogger/service-alarm-logger-*.jar -bootstrap.servers ${KAFKA_HOST_IP_ADDRESS}:9092 -es_host ${ELASTIC_HOST_IP_ADDRESS} -topics ${ALARM_TOPICS} -noshell"
-
-

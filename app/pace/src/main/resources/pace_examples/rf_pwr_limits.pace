@@ -44,7 +44,7 @@
      <name_pv>${S}_HPRF:Cav${N}:DutyLmtAdmName</name_pv>
      <date_pv>${S}_HPRF:Cav${N}:DutyLmtAdmTSStr</date_pv>
      <comment_pv>${S}_HPRF:Cav${N}:DutyLmtAdmTxt</comment_pv>
-   </column>  
+   </column>
    <column>
      <name>DutyLmtAdmTxt</name>
      <access>rw</access>

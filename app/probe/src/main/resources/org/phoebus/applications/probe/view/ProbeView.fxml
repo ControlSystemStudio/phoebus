@@ -24,19 +24,19 @@
 
 	<HBox prefHeight="33.0" prefWidth="578.0" spacing="5" GridPane.columnIndex="1">
 	  <children>
-	    <TextField fx:id="txtPVName" promptText="%PromptTxt" onAction="#search" HBox.hgrow="ALWAYS" /> 
+	    <TextField fx:id="txtPVName" promptText="%PromptTxt" onAction="#search" HBox.hgrow="ALWAYS" />
 	    <Button mnemonicParsing="false" onAction="#search" text="%Search" />
 	  </children>
 	</HBox>
 
     <Separator  GridPane.rowIndex="1" GridPane.columnSpan="2" />
-  
+
     <Label text="%Value" GridPane.rowIndex="2" />
     <Label text="%Format" GridPane.rowIndex="3" />
     <Label text="%Alarm" GridPane.rowIndex="4" />
     <Label text="%TimeStamp" GridPane.rowIndex="5" />
     <Label text="%Metadata" minWidth="100" GridPane.rowIndex="6" GridPane.valignment="TOP" />
-    
+
     <TextField fx:id="txtValue" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
     <HBox spacing="10" alignment="bottom_right" GridPane.columnIndex="1" GridPane.rowIndex="3">
         <ComboBox fx:id="format" HBox.hgrow="ALWAYS" minWidth="40" maxWidth="Infinity" />

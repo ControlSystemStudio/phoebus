@@ -23,12 +23,12 @@ public class Demo3dViewer extends ApplicationWrapper
     public void start(Stage primaryStage) throws Exception
     {
         Viewer3dPane viewerPane = new Viewer3dPane(null, null);
-        
+
         Scene scene = new Scene(viewerPane, 1000, 1000);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    
+
     public static void main(String[] args)
     {
         launch(Demo3dViewer.class, args);

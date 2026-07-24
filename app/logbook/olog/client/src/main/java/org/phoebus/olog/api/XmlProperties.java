@@ -20,7 +20,7 @@ import javax.xml.bind.annotation.XmlElement;
 @XmlRootElement(name = "properties")
 public class XmlProperties {
     private Collection<XmlProperty> properties = new ArrayList<XmlProperty>();
-  
+
     /** Creates a new instance of XmlProperties. */
     public XmlProperties() {
     }

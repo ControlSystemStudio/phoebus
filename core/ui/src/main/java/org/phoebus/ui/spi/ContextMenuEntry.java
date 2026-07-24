@@ -87,7 +87,7 @@ public interface ContextMenuEntry {
 
     /**
      * Invoke the context menu, with a calling Node
-     * 
+     *
      * @param parent the parent Node
      * @throws Exception on error
      */
@@ -98,7 +98,7 @@ public interface ContextMenuEntry {
 
     /**
      * Invoke the context menu, with a selection and a calling Node
-     * 
+     *
      * @param parent the parent Node
      * @param selection The selection to be used to execute this action
      * @throws Exception on error

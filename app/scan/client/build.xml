@@ -11,11 +11,11 @@
         <pathelement path="../model/${build}/app-scan-model-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-scan-client-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
-	
+
 </project>

@@ -160,7 +160,7 @@ public class DockPane extends TabPane
      * @return The 'main' Phoebus dock pane
      */
     public static DockPane getMainDockPane() {
-        for (Stage stage : DockStage.getDockStages()) 
+        for (Stage stage : DockStage.getDockStages())
         {
             if (stage.getProperties().get(DockStage.KEY_ID).equals(DockStage.ID_MAIN)) {
                 for (DockPane check : DockStage.getDockPanes(stage))
@@ -231,7 +231,7 @@ public class DockPane extends TabPane
 
     /** Is this dock pane 'fixed' ? */
     private boolean fixed = false;
-    
+
     /** Is this a standalone window with no tabs/toolbar etc */
     private boolean standalone = false;
 
@@ -308,7 +308,7 @@ public class DockPane extends TabPane
     {
         this.standalone = standalone;
     }
-    
+
     public boolean isStandaloneWindow()
     {
         return standalone;

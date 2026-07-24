@@ -5,7 +5,7 @@
    but that's partially the point:
    Scripts run in a background thread,
    so they may perform computations.
-   
+
    @author Kay Kasemir
 """
 
@@ -40,7 +40,7 @@ class T3:
           (self.board[2] == self.board[4] == self.board[6]):
             return self.board[4]
         return None
-    
+
     def determineMaxScore(self):
         winner = self.determineWinner()
         if winner == 'x':
@@ -62,7 +62,7 @@ class T3:
                     best_score = score
                     best_pos = pos
             return ( best_score, best_pos )
-        
+
     def determineMinScore(self):
         winner = self.determineWinner()
         if winner == 'x':
@@ -91,14 +91,14 @@ class T3:
         else:
             ( best_score, best_pos ) = self.determineMinScore()
         return best_pos
-        
+
     def __str__(self):
         return ("|".join(self.board[0:3]) + "  0|1|2\n" +
                 "-+-+-  -+-+-\n" +
-                "|".join(self.board[3:6]) + "  3|4|5\n" + 
+                "|".join(self.board[3:6]) + "  3|4|5\n" +
                 "-+-+-  -+-+-\n" +
                 "|".join(self.board[6:9]) + "  6|7|8")
-        
+
 
 def twoPlayerSuggestion():
     t3 = T3()

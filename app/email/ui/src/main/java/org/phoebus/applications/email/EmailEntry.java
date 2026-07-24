@@ -8,7 +8,7 @@ import javafx.scene.image.Image;
 
 /**
  * An instance of the email entry.
- * 
+ *
  * @author Kunal Shroff
  */
 public class EmailEntry {

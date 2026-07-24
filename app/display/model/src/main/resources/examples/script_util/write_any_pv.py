@@ -21,4 +21,3 @@ try:
     PVUtil.writePV(pv_name, value, 5000)
 except:
     ScriptUtil.showErrorDialog(widget, "Error writing %g to %s" % (value, pv_name))
-

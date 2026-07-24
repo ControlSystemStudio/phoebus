@@ -4,4 +4,3 @@ FROM eclipse-temurin:21-jre
 COPY target/service-scan-server-*.jar /scanserver/service-scan-server-*.jar
 
 CMD ["java", "-jar", "/scanserver/service-scan-server-*.jar"]
-

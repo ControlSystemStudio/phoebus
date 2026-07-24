@@ -14,37 +14,37 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /** Helper for setting fields of an annotated 'preference' class
- *  
+ *
  *  @author Kay Kasemir
  */
 public class AnnotatedPreferences
 {
 
 	/** Initialize static fields of a class from preferences.
-	 * 
+	 *
 	 *  <p>Fields to be set from preferences need to be marked
 	 *  as @{@link Preference}
-	 *  
+	 *
 	 *  @param clazz Class to be initialized, also sets the package name for preference keys
 	 *  @param preferences_properties_filename Preference properties file, loaded as resource of the `clazz`
-	 *  
+	 *
 	 *  @return {@link PreferencesReader} in case caller wants to directly read some items for special handling
 	 */
 	public static PreferencesReader initialize(final Class<?> clazz, final String preferences_properties_filename)
 	{
 		return initialize(clazz, clazz, preferences_properties_filename);
-	}	
-	
-	
+	}
+
+
 	/** Initialize static fields of a class from preferences.
-	 * 
+	 *
 	 *  <p>Fields to be set from preferences need to be marked
 	 *  as @{@link Preference}
-	 *  
+	 *
 	 *  @param package_class Class used to determine package name for preference keys and to read the default settings
 	 *  @param preference_clazz Class to be initialized
 	 *  @param preferences_properties_filename Preference properties file, loaded as resource of the `package_class`
-	 *  
+	 *
 	 *  @return {@link PreferencesReader} in case caller wants to directly read some items for special handling
 	 */
 	public static PreferencesReader initialize(final Class<?> package_class, final Class<?> preference_clazz,final String preferences_properties_filename)
@@ -59,7 +59,7 @@ public class AnnotatedPreferences
 				final Preference anno = field.getAnnotation(Preference.class);
 				if (anno == null)
 					continue;
-				
+
 				// Non-default preference name? Otherwise default to field name
 				final String pref_name = anno.name().isBlank()
 						               ? field.getName()
@@ -69,7 +69,7 @@ public class AnnotatedPreferences
 			    final boolean make_accessible = (field.getModifiers() & Modifier.PUBLIC) == 0;
 			    if (make_accessible)
 		        	field.setAccessible(true);
-			    
+
 			    // Assign preference to the various field types
 				try
 				{
@@ -140,7 +140,7 @@ public class AnnotatedPreferences
 				    	   ex);
 			}
 		}
-		
+
 		return prefs;
 	}
 

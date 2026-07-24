@@ -11,7 +11,7 @@
         <pathelement path="../model/${build}/app-display-model-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-display-representation-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
@@ -31,5 +31,5 @@
       <formatter type="plain" usefile="false"/>
     </junit>
   </target>
-	
+
 </project>

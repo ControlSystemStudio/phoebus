@@ -11,7 +11,7 @@ file, matters in a few different ways.
 
 2. When using the keyboard to navigate between widgets in an running display,
    the "TAB" key will navigate to the next widget in this order.
-   
+
 3. The editor "Widget Tree" that can sometimes be
    useful to locate widgets will list them in this order.
 
@@ -23,7 +23,7 @@ There are several options to change the widget order:
 * Use the context menu or editor toolbar to move selected widgets "backwards" or "forward",
   which moves them one level in the order, or "back" respectively "front" to move them to the
   start or end of the order.
-  
+
 * Use the "Widget Tree" to drag/drop widgets witin the order
 
 * Select either the display background or a group widget, then invoke the "Sort Widgets" option

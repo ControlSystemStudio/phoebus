@@ -170,7 +170,7 @@ public class XMLUtil
      * @param doc xml document
      * @param name of element
      * @param value of element
-     * @return Element 
+     * @return Element
      */
     public static Element createTextElement(final Document doc, final String name, final String value)
     {

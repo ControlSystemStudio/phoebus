@@ -167,7 +167,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             button.setOnAction(event -> confirm(() -> handleActions(actions.getActions())));
             result = button;
             if (actions.getActions().size() == 1) {
-                // If the ActionButton only has a single action and that is to 
+                // If the ActionButton only has a single action and that is to
                 // write to a PV then is_writePV should be true.
                 // This means that if the PV is non-writable then the
                 // ActionButton will be disabled.
@@ -392,12 +392,12 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             style = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1); -fx-mark-color: transparent; -fx-background-color: transparent;";
         else
             style = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
-        
+
         final String fg_css = JFXUtil.webHex(model_widget.propForegroundColor().getValue());
         // Most labels use -fx-text-fill
         style += " -fx-text-fill: " + fg_css + ";";
         // Modena sets .menu-button .label to -fx-text-fill: -fx-text-base-color, so patch -fx-text-base-color as well
-        style += " -fx-text-base-color: " + fg_css + ";";        
+        style += " -fx-text-base-color: " + fg_css + ";";
     }
 
     @Override

@@ -1,5 +1,5 @@
-# Run as 
-#     softIocPVA -d example.db 
+# Run as
+#     softIocPVA -d example.db
 
 record(calc, "counter01")
 {

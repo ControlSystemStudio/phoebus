@@ -452,7 +452,7 @@ public class RDBArchiveWriter implements ArchiveWriter
                 if (Double.isNaN(additional.getDouble(i)))
                     insert_array_sample.setDouble(4, 0.0);
                 else
-                    insert_array_sample.setDouble(4, additional.getDouble(i));             
+                    insert_array_sample.setDouble(4, additional.getDouble(i));
                 // Batch
                 insert_array_sample.addBatch();
                 ++batched_double_array_inserts;

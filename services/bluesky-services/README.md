@@ -10,7 +10,7 @@ This directory contains Docker configurations for running Bluesky Queue Server a
 ## Services
 
 - **queue-server**: Bluesky Queue Server (RE Manager) - manages the execution queue
-- **http-server**: Bluesky HTTP Server - provides REST API interface for the Java client  
+- **http-server**: Bluesky HTTP Server - provides REST API interface for the Java client
 - **redis**: Redis database for queue persistence
 
 ## Quick Start
@@ -23,7 +23,7 @@ docker-compose up -d queue-server http-server
 
 ### Option 2: Use Container Redis (recommended)
 ```bash
-cd services/bluesky-services  
+cd services/bluesky-services
 docker-compose --profile container-redis up -d
 ```
 
@@ -53,7 +53,7 @@ docker-compose --profile container-redis up -d
 ## Accessing Services
 
 - **HTTP Server API**: http://localhost:60610
-- **Queue Server ZMQ**: tcp://localhost:60615  
+- **Queue Server ZMQ**: tcp://localhost:60615
 - **Redis**: localhost:6380 (when using container Redis)
 
 ## API Authentication
@@ -64,7 +64,7 @@ The HTTP server uses API key `a` by default. Test the connection:
 # Test status endpoint
 curl "http://localhost:60610/api/status?api_key=a"
 
-# Test plans endpoint  
+# Test plans endpoint
 curl "http://localhost:60610/api/plans/allowed?api_key=a"
 ```
 

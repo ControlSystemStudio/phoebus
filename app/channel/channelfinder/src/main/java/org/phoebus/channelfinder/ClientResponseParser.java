@@ -11,7 +11,7 @@ import javax.swing.text.html.HTMLEditorKit.ParserCallback;
 
 /**
  * @author shroffk
- * 
+ *
  *         Parses the HTML pay load containing the details about the error TODO
  *         improve the parsing
  */

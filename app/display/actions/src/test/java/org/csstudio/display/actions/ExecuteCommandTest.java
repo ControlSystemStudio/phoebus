@@ -21,11 +21,11 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test Execute Script actions
- * 
+ *
  * @author Becky Auger-Williams
  */
 public class ExecuteCommandTest {
-    
+
     private static final String TMP_OUTFILE = "/tmp/outfile.bob";
 
     @Test
@@ -55,7 +55,7 @@ public class ExecuteCommandTest {
             fail("Exception thrown" + e.getLocalizedMessage());
         }
         // Test clean up
-        File tmpfile = new File(TMP_OUTFILE); 
+        File tmpfile = new File(TMP_OUTFILE);
         tmpfile.delete();
     }
 }

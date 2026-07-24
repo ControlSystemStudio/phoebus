@@ -4,7 +4,7 @@
   <scripts>
     <script file="EmbeddedPy">
       <text><![CDATA[# This script is attached to a display
-# and triggered by a PV like 
+# and triggered by a PV like
 #     loc://initial_trigger$(DID)(1)
 # to execute once when the display is loaded.
 
@@ -29,7 +29,7 @@ for i in range(2000):
     w.setPropertyValue("pv_name", "sim://noise(-5,5,0.1)")
 
     display.runtimeChildren().addChild(w)
-    
+
 ]]></text>
       <pv_name>loc://initial_trigger$(DID)(1)</pv_name>
     </script>

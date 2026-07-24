@@ -48,7 +48,7 @@ public class SnapshotItem {
 	@JsonSerialize(using = VTypeSerializer.class)
 	@JsonDeserialize(using = VTypeDeserializer.class)
 	private VType value;
-	
+
 	/**
 	 * The actual read-back PV data, including alarms and time stamps.
 	 */

@@ -300,7 +300,7 @@ def createDocListing(rst_file, header, roots):
         out.write("""
 .. toctree::
    :maxdepth: 1
-   
+
 """)
         for root in roots:
             for (dirpath, dirnames, filenames) in walk(root):

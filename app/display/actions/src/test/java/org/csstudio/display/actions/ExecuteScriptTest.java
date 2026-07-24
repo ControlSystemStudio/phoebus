@@ -21,11 +21,11 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test Execute Script actions
- * 
+ *
  * @author Becky Auger-Williams
  */
 public class ExecuteScriptTest {
-    
+
     private static final String TMP_OUTFILE = "/tmp/outfile.bob";
 
     @Test
@@ -55,10 +55,10 @@ public class ExecuteScriptTest {
             fail("Exception thrown" + e.getLocalizedMessage());
         }
         // Test clean up
-        File tmpfile = new File(TMP_OUTFILE); 
+        File tmpfile = new File(TMP_OUTFILE);
         tmpfile.delete();
     }
-    
+
     @Test
     public void execute_embedded_pythonscript() {
         String xml = "<display typeId=\"org.csstudio.opibuilder.Display\" version=\"1.0.0\">"
@@ -78,7 +78,7 @@ public class ExecuteScriptTest {
             assertTrue(model.isClean());
 
             writer.writeModel(model);
-            
+
             // Check the model gets written correctly
             String file_content = Files.readString(Path.of(TMP_OUTFILE)).strip();
             assertTrue(file_content.contains("<text><![CDATA[from org.csstudio.opibuilder.scriptUtil import PVUtil\n"
@@ -88,7 +88,7 @@ public class ExecuteScriptTest {
             fail("Exception thrown" + e.getLocalizedMessage());
         }
         // Test clean up
-        File tmpfile = new File(TMP_OUTFILE); 
+        File tmpfile = new File(TMP_OUTFILE);
         tmpfile.delete();
     }
 }

@@ -14,7 +14,7 @@ Slow running and latency behavior
 
 | Increase the Java Heap Size allocation. It works for any Java Application (Eclipse, CS-Studio ...)
 | Edit launching scripts phoebus.sh or phoebus.bat
-| and configure JVM options Xms and Xmx (Java Heap Minimum Size  and Java Heap Maximum Size) 
+| and configure JVM options Xms and Xmx (Java Heap Minimum Size  and Java Heap Maximum Size)
 
 .. code-block:: shell
 
@@ -100,15 +100,15 @@ Start alarm services without the console
 **procedure**
 
 | The services can also be started without any prompt.
-| Start the service with *-noshell* argument 
+| Start the service with *-noshell* argument
 
 .. code-block:: systemd
-  
+
   #Phoebus alarm server
   ExecStart=/opt/alarm-phoebus-server/current/alarm-server.sh -settings ${SERVER}/settings.ini -config ${CONFIG} -noshell
 
 .. code-block:: systemd
-  
+
   #Phoebus alarm logger
   ExecStart=/opt/alarm-logger/current/alarm-logger.sh -properties ./application.properties -noshell
 
@@ -126,6 +126,5 @@ Phoebus Alarm Server does not find any PV.
 | The path to the settings.ini can be given by the --settings argument
 
 .. code-block:: systemd
-  
-  ExecStart=/opt/alarm-phoebus-server/current/alarm-server.sh -settings ${SERVER}/settings.ini -config ${CONFIG} -noshell
 
+  ExecStart=/opt/alarm-phoebus-server/current/alarm-server.sh -settings ${SERVER}/settings.ini -config ${CONFIG} -noshell

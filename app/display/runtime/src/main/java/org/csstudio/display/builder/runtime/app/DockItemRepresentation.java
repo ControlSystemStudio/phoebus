@@ -101,7 +101,7 @@ public class DockItemRepresentation extends JFXRepresentation
         // model will be opened in it.
         return representModelInNewDockItem(model);
     }
-    
+
     @Override
     public ToolkitRepresentation<Parent, Node> openStandaloneWindow(final DisplayModel model,
                                                                     final Consumer<DisplayModel> close_handler)

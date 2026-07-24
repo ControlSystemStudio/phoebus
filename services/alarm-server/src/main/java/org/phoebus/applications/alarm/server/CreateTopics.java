@@ -47,7 +47,7 @@ public class CreateTopics
      *  @param compact If the topics to be created should be compacted.
      *  @param topics Topics to discover and create if missing.
      */
-    public static void discoverAndCreateTopics (final String kafka_servers, final boolean compact, 
+    public static void discoverAndCreateTopics (final String kafka_servers, final boolean compact,
                                                 final List<String> topics, final String kafka_properties_file)
     {
         // Connect to Kafka server.

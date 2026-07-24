@@ -18,7 +18,7 @@
 # DENY statements are checked first and matching PVs are blocked,
 # even if an ALLOW statement would follow.
 
-# Ignore searches for PVs named 'Ignore:...' 
+# Ignore searches for PVs named 'Ignore:...'
 Ignore:.*   DENY
 
 # Ignore searches for PVs from a certain beam line

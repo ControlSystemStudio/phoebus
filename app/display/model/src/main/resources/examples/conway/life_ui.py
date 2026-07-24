@@ -3,11 +3,11 @@
    Creates widget for each cell of the game.
    Displays updates from running game,
    allows changing the cells.
-   
+
    pvs[0] - dummy PV that once triggers the script.
             Script remains running!!
    pvs[1] - 0/1 PV to pause/run
-   
+
    @author Kay Kasemir
 """
 from org.csstudio.display.builder.runtime.script import ScriptUtil, PVUtil
@@ -89,4 +89,4 @@ try:
 except KeyboardInterrupt:
     # Ignore, assume display was closed
     pass
-    
+

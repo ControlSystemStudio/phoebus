@@ -259,7 +259,7 @@ public class ScanServerImpl implements ScanServer
             final int to_remove = scan_engine.getScanCount() - limit;
             for (int i=0; i<to_remove; ++i)
             {
-                // Find a completed scan, remove from engine 
+                // Find a completed scan, remove from engine
                 final Scan removed = scan_engine.removeOldestCompletedScan();
                 if (removed == null)
                     break;

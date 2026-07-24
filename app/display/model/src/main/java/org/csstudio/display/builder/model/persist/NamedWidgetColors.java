@@ -22,4 +22,3 @@ public class NamedWidgetColors extends org.phoebus.ui.color.NamedWidgetColors
     // All public static constants (TEXT, ALARM_MAJOR, BACKGROUND, …) and
     // public methods are inherited from org.phoebus.ui.color.NamedWidgetColors.
 }
-

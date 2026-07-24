@@ -21,7 +21,7 @@ elif pid_out > 0:
     color = WidgetColor(255, 255, 50) # YELLOW
 elif pid_out < 0:
     text = "Cooling down ..."
-    color = WidgetColor(200, 200, 255) # LIGHT_BLUE 
+    color = WidgetColor(200, 200, 255) # LIGHT_BLUE
 else:
     text = "Temperature is just right"
     color = WidgetColor(0, 255, 0) # GREEN

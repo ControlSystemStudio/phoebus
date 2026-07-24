@@ -11,11 +11,11 @@
         <pathelement path="../trends/archive-reader/${build}/app-trends-archive-reader-${version}.jar"/>
       </classpath>
     </javac>
-  	
+
     <jar destfile="${build}/app-databrowser-timescale-${version}.jar">
       <fileset dir="${classes}"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>
-	
+
 </project>

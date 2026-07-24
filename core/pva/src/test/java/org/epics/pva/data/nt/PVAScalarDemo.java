@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
  *    softIocPVA -m N='' -d demo.db
  */
 public class PVAScalarDemo {
-    
+
     /**
      * Tests if the ioc provides the expected formatting of PVATimeStamp,
      * PVAAlarm, PVADisplay, PVAEnum, PVAControl and PVAScalar

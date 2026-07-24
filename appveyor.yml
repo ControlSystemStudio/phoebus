@@ -13,7 +13,6 @@ install:
   - ps: Start-Process 'jdk-9+181_windows-x64_bin.exe' -ArgumentList '/s INSTALL_SILENT=1' -Wait
   - cmd: echo JDK installtion finished
 
-# build 
+# build
 build_script:
   - mvn clean install
-
