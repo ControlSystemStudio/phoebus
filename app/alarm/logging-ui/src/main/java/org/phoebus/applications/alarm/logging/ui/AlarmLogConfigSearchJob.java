@@ -80,8 +80,8 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
 
                 List<AlarmLogTableItem> result = objectMapper
                         .readValue(response.body(),
-                                new TypeReference<List<AlarmLogTableItem>>() {
-                                });
+                            new TypeReference<>() {
+                            });
                 if (result.size() >= 1) {
                     alarmMessageHandler.accept(result.get(0));
                 } else {

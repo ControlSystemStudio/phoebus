@@ -41,7 +41,7 @@ public class ChannelTableDemo extends ApplicationWrapper {
 
         final ObjectMapper mapper = new ObjectMapper();
         try {
-            List<XmlChannel> xmlChannels = mapper.readValue(this.getClass().getClassLoader().getResource("testChannels.json"), new TypeReference<List<XmlChannel>>() {
+            List<XmlChannel> xmlChannels = mapper.readValue(this.getClass().getClassLoader().getResource("testChannels.json"), new TypeReference<>() {
             });
             for (XmlChannel xmlchannel : xmlChannels) {
                 channels.add(new Channel(xmlchannel));

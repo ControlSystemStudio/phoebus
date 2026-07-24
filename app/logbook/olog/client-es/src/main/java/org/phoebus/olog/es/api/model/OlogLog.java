@@ -236,7 +236,7 @@ public class OlogLog implements LogEntry {
 
     @Override
     public Collection<Property> getProperties() {
-        return properties == null ? new ArrayList<Property>() : properties;
+        return properties == null ? new ArrayList<>() : properties;
     }
 
     @Override
@@ -258,7 +258,7 @@ public class OlogLog implements LogEntry {
 
     @Override
     public Collection<Logbook> getLogbooks() {
-        return logbooks == null ? new ArrayList<Logbook>() : logbooks;
+        return logbooks == null ? new ArrayList<>() : logbooks;
     }
 
     /**
@@ -277,7 +277,7 @@ public class OlogLog implements LogEntry {
      */
     @Override
     public Collection<Tag> getTags() {
-        return tags == null ? new ArrayList<Tag>() : tags;
+        return tags == null ? new ArrayList<>() : tags;
     }
 
     /**
@@ -291,7 +291,7 @@ public class OlogLog implements LogEntry {
 
     @Override
     public Collection<Attachment> getAttachments() {
-        return attachments == null ? new ArrayList<Attachment>() : attachments;
+        return attachments == null ? new ArrayList<>() : attachments;
     }
 
     /**

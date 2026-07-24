@@ -31,7 +31,7 @@ public class OlogProperty implements Property {
 			this.attributes = Collections.unmodifiableMap(xmlProperty
 					.getAttributes());
 		else
-			this.attributes = new HashMap<String, String>();
+			this.attributes = new HashMap<>();
 	}
 
 	/**

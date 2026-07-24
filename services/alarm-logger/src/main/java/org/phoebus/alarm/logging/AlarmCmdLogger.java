@@ -62,7 +62,7 @@ public class AlarmCmdLogger implements Runnable {
         super();
         this.topic = topic;
 
-        MessageParser<AlarmCommandMessage> messageParser = new MessageParser<AlarmCommandMessage>(AlarmCommandMessage.class);
+        MessageParser<AlarmCommandMessage> messageParser = new MessageParser<>(AlarmCommandMessage.class);
         alarmCommandMessageSerde = Serdes.serdeFrom(messageParser, messageParser);
 
         // Read reconnect delay from system property, default to 30 seconds
@@ -160,12 +160,13 @@ public class AlarmCmdLogger implements Runnable {
                     }
                 }));
 
-        KStream<String, AlarmCommandMessage> timeStampedAlarms = alarms.transform(new TransformerSupplier<String, AlarmCommandMessage, KeyValue<String,AlarmCommandMessage>>() {
+        KStream<String, AlarmCommandMessage> timeStampedAlarms = alarms.transform(new TransformerSupplier<>() {
 
             @Override
             public Transformer<String, AlarmCommandMessage, KeyValue<String, AlarmCommandMessage>> get() {
-                return new Transformer<String, AlarmCommandMessage, KeyValue<String, AlarmCommandMessage>>() {
+                return new Transformer<>() {
                     private ProcessorContext context;
+
                     @Override
                     public void init(ProcessorContext context) {
                         this.context = context;
@@ -176,14 +177,14 @@ public class AlarmCmdLogger implements Runnable {
                         key = key.replace("\\", "");
                         value.setConfig(key);
                         value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
-                        return new KeyValue<String, AlarmCommandMessage>(key, value);
+                        return new KeyValue<>(key, value);
                     }
 
                     @Override
                     public void close() {
-                        
+
                     }
-                    
+
                 };
             }
         });

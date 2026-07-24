@@ -46,7 +46,7 @@ public class FieldParser
                 throw new Exception("Missing end of field list in '" + rec_config + "'");
             // Get fields for that type
             final String[] field_configs = rec_config.substring(i1+1, i2).split("\\s*,\\s*");
-            final ArrayList<String> fields = new ArrayList<String>();
+            final ArrayList<String> fields = new ArrayList<>();
             for (String field : field_configs)
             {
                 final String field_spec = field.trim();

@@ -72,7 +72,7 @@ public class ChannelTreeByPropertyNode {
             nodeChannels = model.allChannels;
         } else if (getPropertyName() == null) {
             // leaf node, channels that match the name
-            nodeChannels = new ArrayList<Channel>();
+            nodeChannels = new ArrayList<>();
             for (Channel channel : parentNode.nodeChannels) {
                 if (this.displayName.equals(channel.getName())) {
                     nodeChannels.add(channel);
@@ -93,7 +93,7 @@ public class ChannelTreeByPropertyNode {
 
         } else {
             // Filter the channels that match the property name
-            nodeChannels = new ArrayList<Channel>();
+            nodeChannels = new ArrayList<>();
             for (Channel channel : parentNode.nodeChannels) {
                 if (this.displayName.equals(channel.getProperty(getPropertyName()).getValue())) {
                     nodeChannels.add(channel);
@@ -103,12 +103,12 @@ public class ChannelTreeByPropertyNode {
 
         if (depth < model.properties.size()) {
             // Children will be property values
-            childrenNames = new ArrayList<String>(ChannelUtil.getPropValues(nodeChannels, model.properties.get(depth)));
+            childrenNames = new ArrayList<>(ChannelUtil.getPropValues(nodeChannels, model.properties.get(depth)));
             Collections.sort(childrenNames);
         } else if (depth == model.properties.size()) {
             // Children will be channels
             if (model.isShowChannelNames()) {
-                childrenNames = new ArrayList<String>(ChannelUtil.getChannelNames(nodeChannels));
+                childrenNames = new ArrayList<>(ChannelUtil.getChannelNames(nodeChannels));
                 Collections.sort(childrenNames);
             } else {
                 childrenNames = null;
@@ -223,7 +223,7 @@ public class ChannelTreeByPropertyNode {
     }
 
     public Map<String, String> getPropertiesAndValues() {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         includePropertyAndValue(map);
         return map;
     }

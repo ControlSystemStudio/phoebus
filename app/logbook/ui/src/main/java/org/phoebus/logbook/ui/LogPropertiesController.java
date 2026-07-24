@@ -61,7 +61,7 @@ public class LogPropertiesController {
 
             @Override
             public TreeTableCell<PropertyTreeNode, String> call(TreeTableColumn<PropertyTreeNode, String> param) {
-                return new TreeTableCell<PropertyTreeNode, String> () {
+                return new TreeTableCell<>() {
 
                     private TextField textField;
 
@@ -85,7 +85,7 @@ public class LogPropertiesController {
                     }
 
                     @Override
-                    public void updateItem(String item, boolean empty){
+                    public void updateItem(String item, boolean empty) {
                         super.updateItem(item, empty);
                         if (empty) {
                             setGraphic(null);
@@ -110,6 +110,7 @@ public class LogPropertiesController {
                             }
                         });
                     }
+
                     private String getString() {
                         return getItem() == null ? "" : getItem().toString();
                     }

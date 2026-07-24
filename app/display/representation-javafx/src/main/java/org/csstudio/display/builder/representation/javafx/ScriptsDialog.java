@@ -384,7 +384,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         // Create table with editable script 'file' column
         scripts_name_col = new TableColumn<>(Messages.ScriptsDialog_ColScript);
-        scripts_name_col.setCellValueFactory(new PropertyValueFactory<ScriptItem, String>("file"));
+        scripts_name_col.setCellValueFactory(new PropertyValueFactory<>("file"));
         scripts_name_col.setCellFactory(list -> EditCell.createStringEditCell());
 
         scripts_name_col.setOnEditCommit(event ->
@@ -497,7 +497,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         // Create table with editable 'name' column
         pvs_name_col = new TableColumn<>(Messages.ScriptsDialog_ColPV);
         pvs_name_col.setSortable(false);
-        pvs_name_col.setCellValueFactory(new PropertyValueFactory<PVTableItem, String>("name"));
+        pvs_name_col.setCellValueFactory(new PropertyValueFactory<>("name"));
         pvs_name_col.setCellFactory((col) -> new AutoCompletedTableCell(btn_pv_add));
         pvs_name_col.setOnEditCommit(event ->
         {
@@ -508,7 +508,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
 
         pvs_trigger_col = new TableColumn<>(Messages.ScriptsDialog_ColTrigger);
         pvs_trigger_col.setSortable(false);
-        pvs_trigger_col.setCellValueFactory(new PropertyValueFactory<PVTableItem, Boolean>("trigger"));
+        pvs_trigger_col.setCellValueFactory(new PropertyValueFactory<>("trigger"));
         pvs_trigger_col.setCellFactory(CheckBoxTableCell.<PVTableItem>forTableColumn(pvs_trigger_col));
         pvs_trigger_col.setResizable(false);
         pvs_trigger_col.setMaxWidth(70);

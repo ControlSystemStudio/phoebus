@@ -38,18 +38,18 @@ public class AddPropertyController {
 
     @FXML
     public void initialize() {
-        availableProperties.setCellFactory(new Callback<ListView<Property>, ListCell<Property>>(){
+        availableProperties.setCellFactory(new Callback<>() {
 
             @Override
             public ListCell<Property> call(ListView<Property> p) {
 
-                ListCell<Property> cell = new ListCell<Property>(){
+                ListCell<Property> cell = new ListCell<>() {
 
                     @Override
                     protected void updateItem(Property property, boolean bln) {
                         super.updateItem(property, bln);
                         if (property != null) {
-                            setText(property.getName() + " ("+property.getOwner()+")");
+                            setText(property.getName() + " (" + property.getOwner() + ")");
                         }
                     }
 

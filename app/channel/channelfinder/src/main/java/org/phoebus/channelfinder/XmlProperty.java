@@ -19,7 +19,7 @@ public class XmlProperty {
     private String name = null;
     private String owner = null;
     private String value = null;
-    private List<XmlChannel> channels = new ArrayList<XmlChannel>();
+    private List<XmlChannel> channels = new ArrayList<>();
 
     /**
      * Creates a new instance of XmlProperty.

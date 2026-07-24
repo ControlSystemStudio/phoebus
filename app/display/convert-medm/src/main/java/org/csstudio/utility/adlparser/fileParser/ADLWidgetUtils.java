@@ -51,7 +51,7 @@ public class ADLWidgetUtils {
     }
 
     public static Object[] adlWidgetArray2ObjectArray( ArrayList<ADLWidget> inWidget ){
-        ArrayList<Object> objectList = new ArrayList<Object>();
+        ArrayList<Object> objectList = new ArrayList<>();
         System.out.println("number of widgets in the ADLFile " + inWidget.size());
         for ( ADLWidget adlWidget : inWidget){
             try {

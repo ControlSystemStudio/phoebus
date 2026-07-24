@@ -62,7 +62,7 @@ public class PythonScriptSupport extends BaseScriptSupport
             removeScheduleMarker(script);
             try
             {
-                Map<String, Object> map = new HashMap<String, Object>();
+                Map<String, Object> map = new HashMap<>();
                 map.put("widget", widget);
                 map.put("pvs", pvs);
                 //put script-related utilities into map

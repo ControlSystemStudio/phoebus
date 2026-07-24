@@ -269,7 +269,7 @@ public class DockItem extends Tab
         });
 
         close = new MenuItem(Messages.DockClose, new ImageView(DockPane.close_icon));
-        ArrayList<DockItem> arrayList = new ArrayList<DockItem>();
+        ArrayList<DockItem> arrayList = new ArrayList<>();
         arrayList.add(this);
         close.setOnAction(event -> close(arrayList));
 

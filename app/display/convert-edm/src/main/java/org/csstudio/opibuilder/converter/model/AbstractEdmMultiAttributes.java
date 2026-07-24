@@ -22,7 +22,7 @@ public abstract class AbstractEdmMultiAttributes<T extends EdmAttribute> extends
     private static Logger log = Logger.getLogger("org.csstudio.opibuilder.converter.parser.EdmColor");
 
 
-    private LinkedHashMap<String, T> edmAttrMap = new LinkedHashMap<String, T>();
+    private LinkedHashMap<String, T> edmAttrMap = new LinkedHashMap<>();
 
     /**
      * Constructor which parses EdmColor from general EdmAttribute value.

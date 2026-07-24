@@ -45,7 +45,7 @@ public class RemoveCommands extends UndoableAction
         //
         // Similarly, removed items are remembered in reverse
         // so that the undo can simply undo each removed item.
-        removals = new ArrayList<RemovalInfo>();
+        removals = new ArrayList<>();
         try
         {
             final int N = to_remove.size();

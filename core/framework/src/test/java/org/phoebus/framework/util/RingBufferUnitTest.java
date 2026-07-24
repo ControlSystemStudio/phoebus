@@ -22,7 +22,7 @@ public class RingBufferUnitTest
     @Test
     public void testRingBuffer() throws Exception
     {
-        final RingBuffer<Integer> ring = new RingBuffer<Integer>(5);
+        final RingBuffer<Integer> ring = new RingBuffer<>(5);
         assertTrue(ring.isEmpty());
         assertFalse(ring.isFull());
 

@@ -103,11 +103,9 @@ public class PointsTable
 
         // Create table with editable columns for type Double (supported as Number)
         final TableColumn<Point, Number> x_col = new TableColumn<>(Messages.PointsTable_X);
-        x_col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Point,Number>, ObservableValue<Number>>()
-        {
+        x_col.setCellValueFactory(new Callback<>() {
             @Override
-            public ObservableValue<Number> call(CellDataFeatures<Point, Number> param)
-            {
+            public ObservableValue<Number> call(CellDataFeatures<Point, Number> param) {
                 return new SimpleDoubleProperty(param.getValue().getX());
             }
         });
@@ -119,11 +117,9 @@ public class PointsTable
         });
 
         final TableColumn<Point, Number> y_col = new TableColumn<>(Messages.PointsTable_Y);
-        y_col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Point,Number>, ObservableValue<Number>>()
-        {
+        y_col.setCellValueFactory(new Callback<>() {
             @Override
-            public ObservableValue<Number> call(CellDataFeatures<Point, Number> param)
-            {
+            public ObservableValue<Number> call(CellDataFeatures<Point, Number> param) {
                 return new SimpleDoubleProperty(param.getValue().getY());
             }
         });

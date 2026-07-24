@@ -311,7 +311,7 @@ public class WidgetInfoDialog extends Dialog<Boolean> {
                 area.setText(area.getText() + pv.getName() + "\n");
         });
 
-        EventHandler<ActionEvent> copying = new EventHandler<ActionEvent>() {
+        EventHandler<ActionEvent> copying = new EventHandler<>() {
             public void handle(ActionEvent e) {
                 final Clipboard clipboard = Clipboard.getSystemClipboard();
                 final ClipboardContent content = new ClipboardContent();
@@ -319,7 +319,7 @@ public class WidgetInfoDialog extends Dialog<Boolean> {
                 clipboard.setContent(content);
             }
         };
-        EventHandler<ActionEvent> cancel = new EventHandler<ActionEvent>() {
+        EventHandler<ActionEvent> cancel = new EventHandler<>() {
             public void handle(ActionEvent e) {
                 stage.close();
             }
@@ -428,13 +428,13 @@ public class WidgetInfoDialog extends Dialog<Boolean> {
     private Tab createPVs(final Collection<NameStateValue> pvs) {
         // Use text field to allow users to copy the name, value to clipboard
         final TableColumn<NameStateValue, String> name = new TableColumn<>(Messages.WidgetInfoDialog_Name);
-        name.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("name"));
+        name.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         final TableColumn<NameStateValue, String> state = new TableColumn<>(Messages.WidgetInfoDialog_State);
-        state.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("state"));
+        state.setCellValueFactory(new PropertyValueFactory<>("state"));
 
         final TableColumn<NameStateValue, String> path = new TableColumn<>(Messages.WidgetInfoDialog_Path);
-        path.setCellValueFactory(new PropertyValueFactory<NameStateValue, String>("path"));
+        path.setCellValueFactory(new PropertyValueFactory<>("path"));
 
         final TableColumn<NameStateValue, String> value = new TableColumn<>(Messages.WidgetInfoDialog_Value);
         value.setCellFactory(col -> new AlarmColoredCell());
