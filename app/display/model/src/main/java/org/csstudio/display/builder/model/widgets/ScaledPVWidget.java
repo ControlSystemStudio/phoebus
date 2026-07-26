@@ -22,10 +22,10 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
-import org.phoebus.ui.color.NamedWidgetColors;
-import org.phoebus.ui.color.WidgetColorService;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
+import org.phoebus.ui.color.NamedWidgetColors;
 import org.phoebus.ui.color.WidgetColor;
+import org.phoebus.ui.color.WidgetColorService;
 import org.phoebus.ui.vtype.ScaleFormat;
 
 /** Base class for PV widgets that display a numeric value on a scale
@@ -46,7 +46,7 @@ import org.phoebus.ui.vtype.ScaleFormat;
  *        overrides the manual LOLO/LO/HI/HIHI levels.  New property;
  *        old Phoebus silently ignores the XML element.</li>
  *    <li>Manual {@code minimum} / {@code maximum} range.</li>
- *    <li>A {@code show_limits} toggle for alarm-limit visual markers.</li>
+    *    <li>A {@code show_alarm_limits} toggle for alarm-limit visual markers.</li>
  *    <li>Manual LOLO / LO / HI / HIHI thresholds (NaN = inactive).</li>
  *    <li>Configurable minor/major alarm colours defaulting to the named
  *        {@code ALARM_MINOR} / {@code ALARM_MAJOR} palette entries.</li>
@@ -124,6 +124,36 @@ public abstract class ScaledPVWidget extends PVWidget
     public static final WidgetPropertyDescriptor<WidgetColor> propMajorAlarmColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "major_alarm_color",
                                    Messages.WidgetProperties_MajorAlarmColor);
+
+    /** 'scale_visible' — show the numeric scale (tick marks and labels) */
+    public static final WidgetPropertyDescriptor<Boolean> propScaleVisible =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scale_visible",
+                                     Messages.WidgetProperties_ScaleVisible);
+
+    /** 'show_minor_ticks' — show minor tick marks on the scale */
+    public static final WidgetPropertyDescriptor<Boolean> propShowMinorTicks =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_minor_ticks",
+                                     Messages.WidgetProperties_ShowMinorTicks);
+
+    /** 'opposite_scale_visible' — show a second scale on the opposite side */
+    public static final WidgetPropertyDescriptor<Boolean> propOppositeScaleVisible =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "opposite_scale_visible",
+                                     Messages.WidgetProperties_OppositeScaleVisible);
+
+    /** 'perpendicular_tick_labels' — draw scale labels perpendicular to the axis */
+    public static final WidgetPropertyDescriptor<Boolean> propPerpendicularTickLabels =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "perpendicular_tick_labels",
+                                     Messages.WidgetProperties_PerpendicularTickLabels);
+
+    /** 'show_scale_labels' — show tick label text on the scale (ticks are always drawn) */
+    public static final WidgetPropertyDescriptor<Boolean> propShowScaleLabels =
+        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_scale_labels",
+                                     Messages.WidgetProperties_ShowScaleLabels);
+
+    /** 'border_width' — width in pixels of the border drawn around the widget (0..5) */
+    public static final WidgetPropertyDescriptor<Integer> propBorderWidth =
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "border_width",
+                                     Messages.WidgetProperties_BorderWidth, 0, 5);
 
     // ---- Instance fields ------------------------------------------------
 

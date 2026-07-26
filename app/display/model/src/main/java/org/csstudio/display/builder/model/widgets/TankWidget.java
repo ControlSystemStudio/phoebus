@@ -7,9 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newColorPropertyDescriptor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newIntegerPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFillColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
@@ -74,36 +72,9 @@ public class TankWidget extends ScaledPVWidget
         }
     };
 
-    /** 'tank_border_width' — width in pixels of the border drawn around the
-     *  tank body; 0 (default) means no border, preserving the original look.
-     */
-    public static final WidgetPropertyDescriptor<Integer> propTankBorderWidth =
-        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tank_border_width",
-                                     Messages.WidgetProperties_BorderWidth, 0, 5);
-
     /** 'empty_color' */
     public static final WidgetPropertyDescriptor<WidgetColor> propEmptyColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "empty_color", Messages.WidgetProperties_EmptyColor);
-    /** 'scale_visible' */
-    public static final WidgetPropertyDescriptor<Boolean>   propScaleVisible =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scale_visible", Messages.WidgetProperties_ScaleVisible);
-
-    /** 'show_minor_ticks' */
-    public static final WidgetPropertyDescriptor<Boolean>   propShowMinorTicks =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_minor_ticks", Messages.WidgetProperties_ShowMinorTicks);
-
-    /** 'perpendicular_tick_labels' &mdash; draw scale labels perpendicular
-     *  to the axis direction (horizontal text beside vertical scale)
-     */
-    public static final WidgetPropertyDescriptor<Boolean>   propPerpendicularTickLabels =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "perpendicular_tick_labels", Messages.WidgetProperties_PerpendicularTickLabels);
-
-    /** 'opposite_scale_visible' &mdash; show a second scale on the opposite
-     *  side of the tank (right for vertical, bottom for horizontal).
-     *  Inspired by CS-Studio BOY which could show markers on both sides.
-     */
-    public static final WidgetPropertyDescriptor<Boolean>   propOppositeScaleVisible =
-        newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "opposite_scale_visible", Messages.WidgetProperties_OppositeScaleVisible);
 
     /** Widget configurator to read legacy *.opi files*/
     private static class CustomConfigurator extends WidgetConfigurator
@@ -168,6 +139,7 @@ public class TankWidget extends ScaledPVWidget
     private volatile WidgetProperty<WidgetColor> empty_color;
     private volatile WidgetProperty<Boolean> scale_visible;
     private volatile WidgetProperty<Boolean> show_minor_ticks;
+    private volatile WidgetProperty<Boolean> show_scale_labels;
     private volatile WidgetProperty<Boolean> perpendicular_tick_labels;
     private volatile WidgetProperty<Boolean> opposite_scale_visible;
     private volatile WidgetProperty<Boolean> log_scale;
@@ -193,10 +165,11 @@ public class TankWidget extends ScaledPVWidget
         properties.add(scale_visible = propScaleVisible.createProperty(this, true));
         properties.add(opposite_scale_visible = propOppositeScaleVisible.createProperty(this, false));
         properties.add(show_minor_ticks = propShowMinorTicks.createProperty(this, true));
+        properties.add(show_scale_labels = propShowScaleLabels.createProperty(this, true));
         properties.add(perpendicular_tick_labels = propPerpendicularTickLabels.createProperty(this, false));
         properties.add(log_scale = propLogscale.createProperty(this, false));
         properties.add(horizontal = propHorizontal.createProperty(this, false));
-        properties.add(border_width_prop = propTankBorderWidth.createProperty(this, 0));
+        properties.add(border_width_prop = propBorderWidth.createProperty(this, 0));
     }
 
     @Override
@@ -248,6 +221,12 @@ public class TankWidget extends ScaledPVWidget
     public WidgetProperty<Boolean> propShowMinorTicks()
     {
         return show_minor_ticks;
+    }
+
+    /** @return 'show_scale_labels' property */
+    public WidgetProperty<Boolean> propShowScaleLabels()
+    {
+        return show_scale_labels;
     }
 
     /** @return 'perpendicular_tick_labels' property */
