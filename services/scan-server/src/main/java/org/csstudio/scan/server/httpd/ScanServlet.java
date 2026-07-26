@@ -12,7 +12,7 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -88,7 +88,8 @@ public class ScanServlet extends HttpServlet
         {
             // Timeout or deadline?
             long timeout_secs = 0;
-            LocalDateTime deadline = null;
+            Instant deadline = null;
+            Instant scheduled = null;
             String text = request.getParameter("timeout");
             if (text != null)
                 try
@@ -107,7 +108,7 @@ public class ScanServlet extends HttpServlet
             {
                 try
                 {
-                    deadline = LocalDateTime.from(TimestampFormats.SECONDS_FORMAT.parse(text));
+                    deadline = Instant.from(TimestampFormats.SECONDS_FORMAT.parse(text));
                 }
                 catch (Exception ex)
                 {
@@ -118,6 +119,21 @@ public class ScanServlet extends HttpServlet
                     throw new Exception("Cannot specify both timeout and deadline");
             }
 
+            // Execute pre/post commands unless "?pre_post=false"
+
+            text = request.getParameter("scheduled");
+            if (text != null  && !"0000-00-00 00:00:00".equals(text))
+            {
+                try
+                {
+                    scheduled = Instant.from(TimestampFormats.SECONDS_FORMAT.parse(text));
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Invalid scheduled time '" + text + "'");
+                }
+            }
+
             // Read scan commands
             final String scan_commands = IOUtils.toString(request.getInputStream());
 
@@ -125,7 +141,15 @@ public class ScanServlet extends HttpServlet
             if (logger.isLoggable(Level.FINE))
                 logger.log(Level.FINE, "Scan '" + scan_name + "':\n" + scan_commands);
 
-            final long scan_id = scan_server.submitScan(scan_name, scan_commands, queue, pre_post, timeout_secs, deadline);
+            final long scan_id = scan_server.submitScan(
+                    scan_name,
+                    scan_commands,
+                    queue,
+                    pre_post,
+                    timeout_secs,
+                    deadline,
+                    scheduled
+            );
 
             // Return scan ID
             out.print("<id>");

@@ -65,7 +65,7 @@ public class ScanInfoModel
      *  @throws Exception on error creating the initial instance
      *  @see #release()
      */
-    public static ScanInfoModel getInstance() throws Exception
+    public static ScanInfoModel getInstance()
     {
         synchronized (ScanInfoModel.class)
         {
@@ -124,7 +124,7 @@ public class ScanInfoModel
     }
 
     /** Start model, i.e. connect to server, poll, ... */
-    private void start() throws Exception
+    private void start()
     {
         final long poll_period = Preferences.poll_period;
         poller = new Thread(new Runnable()

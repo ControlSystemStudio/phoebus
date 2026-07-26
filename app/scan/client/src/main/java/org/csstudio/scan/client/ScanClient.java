@@ -43,6 +43,7 @@ import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.util.IOUtils;
 import org.csstudio.scan.util.PathUtil;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.util.time.TimestampFormats;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -402,12 +403,26 @@ public class ScanClient
      *  @param name Name of the new scan
      *  @param xml_commands XML commands of the scan to submit
      *  @param queue Submit to queue or for immediate execution?
+     *  @param scheduled Time at which to run the scan
      *  @return Scan ID
      *  @throws Exception on error
      */
-    public long submitScan(final String name, final String xml_commands, final boolean queue) throws Exception
+    public long submitScan(
+            final String name,
+            final String xml_commands,
+            final boolean queue,
+            Instant scheduled
+    ) throws Exception
     {
-        final HttpURLConnection connection = connect("/scan/" + name, queue ? "" : "queue=false", long_timeout);
+        List<String> query = new ArrayList<>();
+        if (!queue) {
+            query.add("queue=false");
+        }
+        if (scheduled != null) {
+            query.add("scheduled=" + TimestampFormats.SECONDS_FORMAT.format(scheduled));
+        }
+
+        final HttpURLConnection connection = connect("/scan/" + name, String.join("&", query), long_timeout);
         connection.setReadTimeout(0);
         try
         {
@@ -425,6 +440,10 @@ public class ScanClient
         {
             connection.disconnect();
         }
+    }
+
+    public long submitScan(final String name, final String xml_commands, final boolean queue) throws Exception {
+        return submitScan(name, xml_commands, queue, null);
     }
 
     /** Submit a scan for simulation
