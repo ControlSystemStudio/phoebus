@@ -62,14 +62,10 @@ public class AuthenticationController extends BaseController {
             authentication = authenticationManager.authenticate(authentication);
         } catch (AuthenticationException e) {
             Logger.getLogger(AuthenticationController.class.getName()).log(Level.WARNING, "Unable to authenticate user " + loginCredentials.username(), e);
-            return new ResponseEntity<>(
-                    null,
-                    HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-        return new ResponseEntity<>(
-                new UserData(loginCredentials.username(), roles),
-                HttpStatus.OK);
+        return ResponseEntity.ok(new UserData(loginCredentials.username(), roles));
     }
 }
