@@ -19,7 +19,8 @@ import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
-import javax.websocket.DeploymentException;
+import jakarta.websocket.DeploymentException;
+
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.ArrayList;
@@ -151,7 +152,7 @@ public class WebSocketClientService {
                 try {
                     synchronized (WebSocketClientService.this) {
                         if (attemptReconnect.get()) {
-                            stompSession = stompClient.connect(connectUrl, sessionHandler).get();
+                            stompSession = stompClient.connectAsync(connectUrl, sessionHandler).get();
                             stompSession.subscribe(this.subscriptionEndpoint, new StompFrameHandler() {
                                 @Override
                                 public Type getPayloadType(StompHeaders headers) {
@@ -268,7 +269,7 @@ public class WebSocketClientService {
         WebSocketClient webSocketClient = new StandardWebSocketClient();
         WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
         try {
-            StompSession stompSession = stompClient.connect(webSocketConnectUrl, new StompSessionHandlerAdapter() {
+            StompSession stompSession = stompClient.connectAsync(webSocketConnectUrl, new StompSessionHandlerAdapter() {
                 @Override
                 public Type getPayloadType(StompHeaders headers) {
                     return super.getPayloadType(headers);
