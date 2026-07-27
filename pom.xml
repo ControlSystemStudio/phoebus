@@ -97,7 +97,7 @@
     <activemq.client.version>5.18.4</activemq.client.version>
     <commons.compress.version>1.26.1</commons.compress.version>
     <spring.framework.version>5.3.22</spring.framework.version>
-    <spring.boot.version>2.7.18</spring.boot.version>
+    <spring.boot.version>4.0.5</spring.boot.version>
   </properties>
   <build>
     <plugins>
