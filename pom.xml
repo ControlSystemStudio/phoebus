@@ -251,6 +251,9 @@
                 <java.awt.headless>true</java.awt.headless>
                 <testfx.robot>glass</testfx.robot>
                 <testfx.headless>true</testfx.headless>
+                <glass.platform>Monocle</glass.platform>
+                <monocle.platform>Headless</monocle.platform>
+                <headless.geometry>1920x1080-32</headless.geometry>
                 <prism.order>sw</prism.order>
                 <prism.text>t2k</prism.text>
                 <testfx.setup.timeout>2500</testfx.setup.timeout>
