@@ -459,13 +459,32 @@ Context Menu
 
 In the Alarm Tree and the Alarm Table views user may right click on an alarm item to launch a context menu:
 
-.. image:: images/context_menu.png
+.. image:: images/context_menu_new.png
     :width: 20%
 
 The top item ("Guidance" in the screenshot) will launch a dialog showing the guidance text for the alarm item.
 
-With the Disable Alarms menu item (Alarm Tree only) user may disable an alarm item, or all alarms in the sub-tree of a
-node. The alarm(s) will stay disabled until explicitly enabled by the user. See also notes below for
+.. image:: images/context_menu_disable.png
+    :width: 35%
+
+With the Disable... menu item (Alarm Tree only) user may disable an alarm item, or all alarms in the sub-tree of a
+node.
+When choosing to disable the alarm(s) *indefinitely* in the sub-context menu, the alarm(s) will stay disabled until
+explicitly enabled by the user.
+
+Alarm(s) can also be disabled for a certain time choosing *with enable date*.
+
+.. image:: images/dialog_enable_date.png
+    :width: 40%
+
+Users can specify an either absolute or relative date or time the alarm(s) should be disabled. After that, the alarm(s)
+will be enabled again automatically.
+
+**NOTE**: A structural component, along with all the items in its sub-tree, can **only** be disabled with an enable date
+if either all of the items have the same enable date or none at all.
+If this is not the case, the *with enable date* option in the sub context menu will be disabled.
+
+See also notes below for
 more information on how disabled alarms are handled upon import of the alarm configuration XML file.
 
 Configuration Editor
@@ -479,8 +498,13 @@ editor dialog:
 
 In this view user may update all settings defined in the alarm configuration XML file:
 
-.. image:: images/configuration_editor.png
-    :width: 50%
+**NOTE:** There are different configuration files for a structural component (path), containing several components
+or leaves, and a leaf itself (training:COUNTER), as their functionalities vary
+
+
+.. image:: images/configuration_editor_dialogs.png
+    :width: 85%
+
 
 **NOTE:** Any changes performed in the editor will be overwritten when the associated alarm configuration XML file is
 imported again.

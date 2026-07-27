@@ -2,8 +2,12 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventDispatcher;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -105,6 +109,19 @@ public class LogEntryTable implements AppInstance {
             DockItem tab = new DockItem(this, loader.getRoot());
             tab.addClosedNotification(()-> controller.shutdown());
             DockPane.getActiveDockPane().addTab(tab);
+
+            Node node = loader.getRoot();
+            EventDispatcher original = node.getScene().getEventDispatcher();
+            node.getScene().setEventDispatcher((event, tail) -> {
+                if (event instanceof MouseEvent me && me.getEventType() == MouseEvent.MOUSE_PRESSED) {
+                    if(me.getButton() == MouseButton.FORWARD){
+                        goBackAndGoForwardActions.goForward();
+                    } else if (me.getButton() == MouseButton.BACK){
+                        goBackAndGoForwardActions.goBack();
+                    }
+                }
+                return original.dispatchEvent(event, tail);
+            });
         } catch (IOException e) {
             log.log(Level.WARNING, "Cannot load UI", e);
         }

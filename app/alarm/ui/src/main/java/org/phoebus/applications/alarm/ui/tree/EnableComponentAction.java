@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.ui.tree;
 
 import javafx.scene.Node;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -30,12 +31,12 @@ class EnableComponentAction extends MenuItem {
      * @param items Items to enable
      */
     public EnableComponentAction(final Node node, final AlarmClient model, final List<AlarmTreeItem<?>> items) {
+
         if (doEnable()) {
             setText(Messages.enableAlarms);
             setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/enabled.png"));
         } else {
             setText(Messages.disableAlarms);
-            setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/disabled.png"));
         }
 
         setOnAction(event -> ComponentActionHelper.updateEnablement(node, model, items, doEnable()));

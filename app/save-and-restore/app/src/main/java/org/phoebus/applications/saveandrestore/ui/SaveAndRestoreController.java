@@ -1,19 +1,5 @@
 /**
- * Copyright (C) 2019 European Spallation Source ERIC.
- * <p>
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * <p>
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * <p>
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2026 European Spallation Source ERIC.
  */
 
 package org.phoebus.applications.saveandrestore.ui;
@@ -23,37 +9,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.MultipleSelectionModel;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -122,17 +86,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.ServiceLoader;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -147,7 +101,19 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         implements Initializable, SaveAndRestoreWebSocketMessageHandler {
 
     @FXML
-    protected TreeView<Node> treeView;
+    protected TreeTableView<Node> treeTableView;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private TreeTableColumn<Node, Node> nameColumn;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private TreeTableColumn<Node, Node> lastModifiedColumn;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private TreeTableColumn<Node, Node> userColumn;
 
     @FXML
     protected TabPane tabPane;
@@ -173,7 +139,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     @SuppressWarnings("unused")
     @FXML
-    private VBox treeViewPane;
+    private VBox treeTableViewPane;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
@@ -258,10 +224,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         // Tree items are first compared on type, then on name (case-insensitive).
         treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
-        treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        treeViewPane.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
+        treeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        treeTableViewPane.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
-        browserSelectionModel = treeView.getSelectionModel();
+        browserSelectionModel = treeTableView.getSelectionModel();
 
         autoFilterCheckbox.selectedProperty().bindBidirectional(autoFilterActive);
 
@@ -281,9 +247,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         filtersComboBox.valueProperty().bindBidirectional(currentFilterProperty);
         currentFilterProperty.addListener((obs, o, n) -> applyFilter(n));
 
-        treeView.setEditable(true);
+        treeTableView.setEditable(true);
+        treeTableView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
-        treeView.setOnMouseClicked(me -> {
+        treeTableView.setOnMouseClicked(me -> {
             TreeItem<Node> item = browserSelectionModel.getSelectedItem();
             if (item == null) {
                 return;
@@ -293,9 +260,19 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             }
         });
 
-        treeView.setShowRoot(true);
-        treeView.setCellFactory(p -> new BrowserTreeCell(this));
-        treeViewPane.disableProperty().bind(disabledUi);
+        treeTableView.setShowRoot(true);
+
+
+        nameColumn.setCellFactory(node -> new NodeTreeTableCell(this));
+        nameColumn.setCellValueFactory(n -> new ReadOnlyObjectWrapper<>(n.getValue().getValue()));
+
+        lastModifiedColumn.setCellFactory(d -> new NodeLastUpdatedTreeTableCell(this));
+        lastModifiedColumn.setCellValueFactory(n -> new ReadOnlyObjectWrapper<>(n.getValue().getValue()));
+
+        userColumn.setCellFactory(d -> new NodeUserTreeTableCell(this));
+        userColumn.setCellValueFactory(n -> new ReadOnlyObjectWrapper<>(n.getValue().getValue()));
+
+        treeTableViewPane.disableProperty().bind(disabledUi);
         progressIndicator.visibleProperty().bind(disabledUi);
 
         filtersComboBox.setCellFactory(new Callback<>() {
@@ -351,7 +328,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         userIdentity.addListener((a, b, c) -> {
             String name = c == null ? "Root folder" :
                     "Root folder (" + userIdentity.get() + ")";
-            treeView.getRoot().setValue(Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).name(name).build());
+            treeTableView.getRoot().setValue(Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).name(name).build());
         });
 
         MenuItem addTagMenuItem = TagWidget.AddTagMenuItem();
@@ -364,10 +341,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         pasteMenuItem.setOnAction(ae -> pasteFromClipboard());
 
         contextMenu.getItems().addAll(menuItems);
-        treeView.setContextMenu(contextMenu);
+        treeTableView.setContextMenu(contextMenu);
 
         splitPane.disableProperty().bind(serviceConnected.not());
-        treeView.visibleProperty().bind(serviceConnected);
+        treeTableView.visibleProperty().bind(serviceConnected);
         errorPane.visibleProperty().bind(serviceConnected.not());
 
         saveAndRestoreService.addSaveAndRestoreWebSocketMessageHandler(this);
@@ -378,7 +355,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     /**
-     * Pulls initial data from the service in order to configure the UI and render the {@link TreeView}.
+     * Pulls initial data from the service in order to configure the UI and render the {@link TreeTableView}.
      * {@link org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient}.
      */
     public void loadInitialData() {
@@ -386,14 +363,14 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         JobManager.schedule("Load save-and-restore tree data", monitor -> {
             Node rootNode = saveAndRestoreService.getRootNode();
             TreeItem<Node> rootItem = createTreeItem(rootNode);
-            List<String> savedTreeViewStructure = getSavedTreeStructure();
+            List<String> savedTreeTableViewStructure = getSavedTreeStructure();
 
             // Check if there is a save tree structure. Also check that the first node id (=tree root)
             // has the same unique id as the actual root node retrieved from the remote service. This check
             // is needed to handle the case when the client connects to a different save-and-restore service.
-            if (savedTreeViewStructure != null && !savedTreeViewStructure.isEmpty() && savedTreeViewStructure.getFirst().equals(rootNode.getUniqueId())) {
+            if (savedTreeTableViewStructure != null && !savedTreeTableViewStructure.isEmpty() && savedTreeTableViewStructure.getFirst().equals(rootNode.getUniqueId())) {
                 HashMap<String, List<TreeItem<Node>>> childNodesMap = new HashMap<>();
-                savedTreeViewStructure.forEach(s -> {
+                savedTreeTableViewStructure.forEach(s -> {
                     List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
                     if (childNodes != null) { // This may be the case if the tree structure was modified externally
                         List<TreeItem<Node>> childItems = childNodes.stream().map(this::createTreeItem).sorted(treeNodeComparator).collect(Collectors.toList());
@@ -412,10 +389,10 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             filtersList.addAll(saveAndRestoreService.getAllFilters());
 
             Platform.runLater(() -> {
-                treeView.setRoot(rootItem);
-                expandNodes(treeView.getRoot());
+                treeTableView.setRoot(rootItem);
+                expandNodes(treeTableView.getRoot());
                 // Event handler for expanding nodes
-                treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
+                treeTableView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
                 treeInitializationCountDownLatch.countDown();
                 filtersList.addFirst(null);
                 String savedFilterName = getSavedFilterName();
@@ -791,7 +768,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private void nodeChanged(Node node) {
         // Find the node that has changed
-        TreeItem<Node> nodeSubjectToUpdate = recursiveSearch(node.getUniqueId(), treeView.getRoot());
+        TreeItem<Node> nodeSubjectToUpdate = recursiveSearch(node.getUniqueId(), treeTableView.getRoot());
         if (nodeSubjectToUpdate == null) {
             return;
         }
@@ -805,7 +782,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     /**
      * Handles callback in order to update the tree view when a {@link Node} has been added, e.g. when
-     * a snapshot is saved. The purpose is to update the {@link TreeView} accordingly to reflect the change.
+     * a snapshot is saved. The purpose is to update the {@link TreeTableView} accordingly to reflect the change.
      *
      * @param nodeId Unique id of the added {@link Node}
      */
@@ -814,7 +791,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         try {
             Node parentNode = saveAndRestoreService.getParentNode(nodeId);
             // Find the parent to which the new node is to be added
-            TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeView.getRoot());
+            TreeItem<Node> parentTreeItem = recursiveSearch(parentNode.getUniqueId(), treeTableView.getRoot());
             TreeItem<Node> newTreeItem = createTreeItem(newNode);
             Platform.runLater(() -> {
                 parentTreeItem.getChildren().add(newTreeItem);
@@ -827,12 +804,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     /**
      * Handles callback in order to update the tree view when a {@link Node} has been deleted.
-     * The purpose is to update the {@link TreeView} accordingly to reflect the change.
+     * The purpose is to update the {@link TreeTableView} accordingly to reflect the change.
      *
      * @param nodeId Unique id of the deleted {@link Node}
      */
     private void nodeRemoved(String nodeId) {
-        TreeItem<Node> treeItemToRemove = recursiveSearch(nodeId, treeView.getRoot());
+        TreeItem<Node> treeItemToRemove = recursiveSearch(nodeId, treeTableView.getRoot());
         if (treeItemToRemove != null) {
             Platform.runLater(() -> treeItemToRemove.getParent().getChildren().remove(treeItemToRemove));
         }
@@ -858,7 +835,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     }
 
     public void locateNode(Stack<Node> nodeStack) {
-        TreeItem<Node> parentTreeItem = treeView.getRoot();
+        TreeItem<Node> parentTreeItem = treeTableView.getRoot();
 
         while (!nodeStack.isEmpty()) {
             Node currentNode = nodeStack.pop();
@@ -871,7 +848,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         browserSelectionModel.clearSelection();
         browserSelectionModel.select(parentTreeItem);
-        treeView.scrollTo(browserSelectionModel.getSelectedIndex());
+        treeTableView.scrollTo(browserSelectionModel.getSelectedIndex());
     }
 
     /**
@@ -899,7 +876,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     /**
      * Expands all nodes recursively starting from the specified node. Note that this
-     * method operates only on the items already present in the {@link TreeView}, i.e.
+     * method operates only on the items already present in the {@link TreeTableView}, i.e.
      * no data is retrieved from the service.
      *
      * @param parentNode {@link TreeItem<Node>} from which to start the operation.
@@ -925,12 +902,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * Self-explanatory
      */
     public void saveLocalState() {
-        // If root item is null, then there is no data in the TreeView
-        if (treeView.getRoot() == null) {
+        // If root item is null, then there is no data in the TreeTableView
+        if (treeTableView.getRoot() == null) {
             return;
         }
         List<String> expandedNodes = new ArrayList<>();
-        findExpandedNodes(expandedNodes, treeView.getRoot());
+        findExpandedNodes(expandedNodes, treeTableView.getRoot());
         try {
             PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
             if (filtersComboBox.getSelectionModel().getSelectedItem() != null) {
@@ -1114,7 +1091,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             return true;
         }
 
-        TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
+        TreeItem<Node> selectedItem = treeTableView.getSelectionModel().getSelectedItem();
         if (selectedItem == null) {
             return searchResultNodes.contains(node);
         } else {
@@ -1125,13 +1102,13 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     /**
      * Applies a {@link Filter} selected by user. The service will be queries for {@link Node}s matching
-     * the {@link Filter}, then the {@link TreeView} is updated based on the search result.
+     * the {@link Filter}, then the {@link TreeTableView} is updated based on the search result.
      *
      * @param filter {@link Filter} selected by user or through business logic. If <code>null</code>, then the
      *               <code>no filter</code> {@link Filter} is applied.
      */
     private void applyFilter(Filter filter) {
-        treeView.getSelectionModel().clearSelection();
+        treeTableView.getSelectionModel().clearSelection();
         if (filter == null) {
             return;
         }
@@ -1146,7 +1123,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
             try {
                 SearchResult searchResult = saveAndRestoreService.search(map);
                 searchResultNodes.setAll(searchResult.getNodes());
-                Platform.runLater(() -> treeView.refresh());
+                Platform.runLater(() -> treeTableView.refresh());
             } catch (Exception e) {
                 LOG.log(Level.SEVERE, "Failed to perform search when applying filter", e);
             }
@@ -1155,7 +1132,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private void clearFilter() {
         searchResultNodes.clear();
-        treeView.refresh();
+        treeTableView.refresh();
     }
 
     /**
@@ -1337,7 +1314,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (configAndSnapshotNode == null) {
             return false;
         }
-        TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
+        TreeItem<Node> selectedItem = treeTableView.getSelectionModel().getSelectedItem();
         TreeItem<Node> parentItem = selectedItem.getParent();
         return configAndSnapshotNode[1].getUniqueId() != null &&
                 parentItem.getValue().getUniqueId().equals(configAndSnapshotNode[0].getUniqueId()) &&
@@ -1366,7 +1343,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                     Alert alert = new Alert(AlertType.ERROR);
                     alert.setTitle(Messages.openResourceFailedTitle);
                     alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, nodeId));
-                    DialogHelper.positionDialog(alert, treeView, -200, -200);
+                    DialogHelper.positionDialog(alert, treeTableView, -200, -200);
                     alert.show();
                 });
                 return;
@@ -1386,11 +1363,22 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
      * all {@link org.phoebus.applications.saveandrestore.ui.contextmenu.SaveAndRestoreMenuItem}s listen
      * to changes to this property, they will update themselves based on the user selection.
      *
+     * <p>
+     *     In case nothing is selected in the {@link TreeTableView}, the context menu is suppressed. This should
+     *     occur only with a freshly started save&restore app that user has not interacted with.
+     * </p>
+     *
      * @param e A {@link ContextMenuEvent}
      */
     @SuppressWarnings("unused")
     @FXML
     public void configureContextMenu(ContextMenuEvent e) {
+
+        if(treeTableView.getSelectionModel().getSelectedItems().isEmpty()){
+            contextMenu.hide();
+            return;
+        }
+
         ObservableList<? extends TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         selectedItemsProperty.setAll(selectedItems.stream().map(TreeItem::getValue).toList());
 
@@ -1546,6 +1534,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
     private void findReferences() {
         SearchAndFilterTab searchAndFilterTab = openSearchWindow();
-        searchAndFilterTab.getController().findReferencesForSnapshot(treeView.getSelectionModel().getSelectedItems().getFirst().getValue().getUniqueId());
+        searchAndFilterTab.getController().findReferencesForSnapshot(treeTableView.getSelectionModel().getSelectedItems().getFirst().getValue().getUniqueId());
     }
 }

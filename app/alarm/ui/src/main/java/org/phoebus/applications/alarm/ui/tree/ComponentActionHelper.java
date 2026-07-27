@@ -78,6 +78,7 @@ public class ComponentActionHelper {
         });
     }
 
+
     /**
      * @param item Node where to start recursing for PVs that would be affected
      * @param pvs  Array to update with PVs that would be affected
@@ -87,7 +88,7 @@ public class ComponentActionHelper {
             final AlarmClientLeaf pv = (AlarmClientLeaf) item;
             // If pv has different enablement, and wasn't already added
             // because selection contains its parent as well as the PV itself...
-            if (pv.isEnabled() != enable && !pvs.contains(pv)) {
+            if ((pv.isEnabled() != enable || pv.getEnabledDate() != null) && !pvs.contains(pv)) {
                 pvs.add(pv);
             }
         } else {

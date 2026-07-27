@@ -60,6 +60,12 @@ public class ProbeDisplayContextMenuEntry implements ContextMenuEntry
     }
 
     @Override
+    public boolean isOpenAction()
+    {
+        return true;
+    }
+
+    @Override
     public void call(final Selection selection) throws Exception
     {
         final List<ProcessVariable> pvs = selection.getSelections();

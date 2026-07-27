@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
@@ -33,9 +35,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
 
 /** Creates JavaFX item for model widget
@@ -295,12 +294,15 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
             {   // Set the font of the 'graphic' that's used to represent the tab
                 final Label label = (Label) tab.getGraphic();
                 label.setFont(tab_font);
+                label.setTextFill(Color.BLACK);
 
                 // Set colors
                 tab.setStyle(style);
 
                 final Pane content  = (Pane) tab.getContent();
                 content.setBackground(background);
+                content.setBorder(new Border(new BorderStroke(Color.WHITE,
+                        BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
             }
 
             final Integer width = model_widget.propWidth().getValue();

@@ -28,6 +28,7 @@ public class Messages
             CloseRequestHeader,
             CloseRequestButtonContinue,
             CloseRequestButtonDiscard,
+            CreateLogEntryFromSelection,
             DownloadSelected,
             DownloadingAttachments,
             EditLogEntry,

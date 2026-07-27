@@ -22,14 +22,18 @@ import javafx.application.Platform;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.authentication.SaveAndRestoreAuthenticationScope;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogbookPreferences;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -59,7 +63,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         SaveSnapshotActionInfo saveSnapshotActionInfo = new SaveSnapshotActionInfo();
         saveSnapshotActionInfo.setSnapshotUniqueId(node.getUniqueId());
         saveSnapshotActionInfo.setSnapshotCreatedDate(node.getCreated());
-        saveSnapshotActionInfo.setActionPerformedBy(System.getProperty("user.name"));
+        saveSnapshotActionInfo.setActionPerformedBy(getUser());
         saveSnapshotActionInfo.setComment(node.getDescription());
         saveSnapshotActionInfo.setSnapshotName(node.getName());
         SelectionService.getInstance().setSelection("SaveAndRestoreLogging", List.of(saveSnapshotActionInfo));
@@ -84,12 +88,25 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         RestoreSnapshotActionInfo restoreSnapshotActionInfo = new RestoreSnapshotActionInfo();
         restoreSnapshotActionInfo.setSnapshotUniqueId(node.getUniqueId());
         restoreSnapshotActionInfo.setSnapshotCreatedDate(node.getCreated());
-        restoreSnapshotActionInfo.setActionPerformedBy(System.getProperty("user.name"));
+        restoreSnapshotActionInfo.setActionPerformedBy(getUser());
         restoreSnapshotActionInfo.setComment(node.getDescription());
         restoreSnapshotActionInfo.setGolden(node.hasTag(Tag.GOLDEN));
         restoreSnapshotActionInfo.setSnapshotName(node.getName());
         restoreSnapshotActionInfo.setFailedPVs(failedPVs.stream().map(restoreResult -> restoreResult.getSnapshotItem().getConfigPv().getPvName()).toList());
         SelectionService.getInstance().setSelection("SaveAndRestoreLogging", List.of(restoreSnapshotActionInfo));
         Platform.runLater(() -> ApplicationService.createInstance("logbook"));
+    }
+
+    private String getUser(){
+        try {
+            SecureStore store = new SecureStore();
+            ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(new SaveAndRestoreAuthenticationScope());
+            if (scopedAuthenticationToken != null) {
+                return scopedAuthenticationToken.getUsername();
+            }
+        } catch (Exception e){
+            logger.log(Level.WARNING, "Unable to get Authentication Token.", e);
+        }
+        return "<Not Available>";
     }
 }

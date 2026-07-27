@@ -37,6 +37,9 @@ public class OpenDisplayActionController extends ActionControllerBase {
     private RadioButton newWindowRadioButton;
     @SuppressWarnings("unused")
     @FXML
+    private RadioButton newStandaloneRadioButton;
+    @SuppressWarnings("unused")
+    @FXML
     private TextField displayPath;
     @SuppressWarnings("unused")
     @FXML
@@ -79,16 +82,10 @@ public class OpenDisplayActionController extends ActionControllerBase {
         replaceRadioButton.setUserData(OpenDisplayAction.Target.REPLACE);
         newTabRadioButton.setUserData(OpenDisplayAction.Target.TAB);
         newWindowRadioButton.setUserData(OpenDisplayAction.Target.WINDOW);
+        newStandaloneRadioButton.setUserData(OpenDisplayAction.Target.STANDALONE);
 
         ToggleGroup toggleGroup = new ToggleGroup();
-        toggleGroup.getToggles().addAll(replaceRadioButton, newTabRadioButton, newWindowRadioButton);
-
-        /*
-         * Standalone is a deprecated name for Window
-         */
-        if (target == OpenDisplayAction.Target.STANDALONE) {
-            target = OpenDisplayAction.Target.WINDOW;
-        }
+        toggleGroup.getToggles().addAll(replaceRadioButton, newTabRadioButton, newWindowRadioButton, newStandaloneRadioButton);
 
         toggleGroup.selectToggle(toggleGroup.getToggles().stream()
                 .filter(t -> t.getUserData().equals(target)).findFirst().get());

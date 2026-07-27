@@ -152,7 +152,7 @@ public class AlarmConfigLoggingService {
             ex.printStackTrace();
 	    System.out.println("\n>>>> Please check available arguments of alarm-config-logger as follows:");
 	    help();
-            return;
+			System.exit(-1);
         }
 
         logger.info("Alarm Logging Service (PID " + ProcessHandle.current().pid() + ")");

@@ -302,10 +302,16 @@ public class ArchiveFetchJob implements JobRunnable
                 final String info = MessageFormat.format(Messages.ArchiveFetchProgressFmt,
                                                          currentMessage, seconds);
                 monitor.updateTaskName(info);
-                if (monitor.isCanceled()
-                        || (Preferences.archive_read_timeout_ms > 0
-                            && System.currentTimeMillis() - sourceStartTime > Preferences.archive_read_timeout_ms))
+                if (monitor.isCanceled())
                     worker.cancel();
+                else if (Preferences.archive_read_timeout_ms > 0
+                            && System.currentTimeMillis() - sourceStartTime > Preferences.archive_read_timeout_ms)
+                {
+                    if (! worker.cancelled)
+                        logger.log(Level.WARNING,
+                                   () -> this + " cancelled because of " + Preferences.archive_read_timeout_ms + " ms timeout");
+                    worker.cancel();
+                }
             }
         }
         finally

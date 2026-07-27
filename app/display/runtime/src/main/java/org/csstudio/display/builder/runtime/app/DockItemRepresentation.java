@@ -20,6 +20,7 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.docking.Geometry;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -59,7 +60,7 @@ public class DockItemRepresentation extends JFXRepresentation
         final Stage new_stage = new Stage();
 
         // Configure for docking, i.e. with DockPane
-        DockStage.configureStage(new_stage);
+        DockStage.configureStage(new_stage, new Geometry(null), model.isStandalone());
 
         // Use location and size from model for the window
         double x = model.propX().getValue();
@@ -83,14 +84,29 @@ public class DockItemRepresentation extends JFXRepresentation
         // Size needs to account for the border and toolbar.
         // Using fixed numbers, exact size of border and toolbar unknown
         // at this time in the code
-        new_stage.setWidth(model.propWidth().getValue() + 18);
-        new_stage.setHeight(model.propHeight().getValue() + 105);
+        int width_margin = 18;
+        int height_margin = 105;
+        // Don't need to include space for toolbar in standalone
+        if (model.isStandalone())
+        {
+            width_margin = 5;
+            height_margin = 40;
+        }
+        new_stage.setWidth(model.propWidth().getValue() + width_margin);
+        new_stage.setHeight(model.propHeight().getValue() + height_margin);
 
         new_stage.show();
 
         // New DockPane is now the 'active' one,
         // model will be opened in it.
         return representModelInNewDockItem(model);
+    }
+    
+    @Override
+    public ToolkitRepresentation<Parent, Node> openStandaloneWindow(final DisplayModel model,
+                                                                    final Consumer<DisplayModel> close_handler)
+    {
+        return openNewWindow(model, close_handler);
     }
 
     @Override

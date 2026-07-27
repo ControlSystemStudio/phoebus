@@ -1173,20 +1173,17 @@ public class PhoebusApplication extends Application {
                 if (end < 0)
                     end = query.length();
                 final String target = query.substring(i + 7, end);
-                if (!target.startsWith("window")) {
+                if (!target.startsWith("window") && !target.startsWith("standalone"))
                     // Should the new panel open in a specific, named pane?
-                    final DockPane existing = DockStage.getDockPaneByName(target);
-                    if (existing != null)
-                        DockPane.setActiveDockPane(existing);
-                    else {
-                        // Open new Stage with pane for that name
-                        final Stage new_stage = new Stage();
-                        DockStage.configureStage(new_stage);
-                        new_stage.show();
-                        DockPane.getActiveDockPane().setName(target);
-                    }
-                }
+                    configureNamedPane(target);
             }
+        }
+
+        // If current active pane is a standalone then switch the
+        // active pane to be the main dock pane so that applications
+        // etc open there and not in place of the standalone
+        if (DockPane.getActiveDockPane().isStandaloneWindow()) {
+            DockPane.setActiveDockPane(DockPane.getMainDockPane());
         }
 
         logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
@@ -1894,5 +1891,26 @@ public class PhoebusApplication extends Application {
                 Platform.runLater(() -> stages.forEach(stage -> DockStage.closeItems(stage)));
             }
         });
+    }
+
+    /**
+     * Attempt to open the new panel in a specific, named pane based on
+     * the target parameter provided. If a pane my that name cannot
+     * be found then create a new stage and open panel there.
+     *
+     * @param target String containing the target panel name
+     */
+    private static void configureNamedPane(String target)
+    {
+        final DockPane existing = DockStage.getDockPaneByName(target);
+        if (existing != null)
+            DockPane.setActiveDockPane(existing);
+        else {
+            // Open new Stage with pane for that name
+            final Stage newStage = new Stage();
+            DockStage.configureStage(newStage);
+            newStage.show();
+            DockPane.getActiveDockPane().setName(target);
+        }
     }
 }

@@ -139,6 +139,23 @@ to show or hide details is persisted between restarts of the application.
 
 .. image:: images/ContextMenuLogEntryTable.png
 
+Navigation
+^^^^^^^^^^
+
+When the user chooses to view log entries by selecting them in the result table, a history of log entries
+will be created.
+Similar to Back and Forward behavior in a browser, the navigation buttons can be used to switch in between previously
+viewed log entries.
+The same can be achieved using the **forward/back** buttons (if available) of a mouse.
+
+.. image:: images/backforward.png
+
+
+The search field
+^^^^^^^^^^^^^^^^
+
+.. image:: images/searchfield.png
+
 In the search field the user may specify criteria when searching for log entries. These criteria are based on 
 the elements of a log entry as follows:
 

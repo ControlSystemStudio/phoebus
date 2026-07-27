@@ -39,7 +39,7 @@ import javafx.geometry.Point2D;
 public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<XTYPE>
 {
     /** 'X' marks the spot, and this is it's radius. */
-    final private static int X_RADIUS = 4;
+    final private static int X_RADIUS = 6;
 
     private static final Stroke DASH = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[] { 3f, 3f }, 1.0f);
 

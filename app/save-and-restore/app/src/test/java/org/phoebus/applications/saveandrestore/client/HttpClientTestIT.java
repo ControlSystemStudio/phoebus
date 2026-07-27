@@ -11,7 +11,7 @@ import org.epics.vtype.VInt;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.phoebus.applications.saveandrestore.authentication.SaveAndRestoreAuthenticationScope;
+import org.phoebus.applications.saveandrestore.model.authentication.SaveAndRestoreAuthenticationScope;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -30,12 +30,10 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.security.PhoebusSecurity;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.store.SecureStoreTarget;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-import java.net.ConnectException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

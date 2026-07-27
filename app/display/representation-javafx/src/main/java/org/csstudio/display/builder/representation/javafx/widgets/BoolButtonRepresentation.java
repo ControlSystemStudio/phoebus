@@ -37,6 +37,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
@@ -117,8 +118,16 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
             else
             {
                 final boolean inverted = model_widget.propMode().getValue() == Mode.PUSH_INVERTED;
-                button.setOnMousePressed(event -> handlePress(! inverted));
-                button.setOnMouseReleased(event -> handlePress(inverted));
+                button.setOnMousePressed(event ->
+                {
+                    if (event.getButton() == MouseButton.PRIMARY)
+                        handlePress(! inverted);
+                });
+                button.setOnMouseReleased(event ->
+                {
+                    if (event.getButton() == MouseButton.PRIMARY)
+                        handlePress(inverted);
+                });
             }
         }
 

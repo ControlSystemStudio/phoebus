@@ -56,6 +56,7 @@ import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.spi.Decoration;
 import org.phoebus.logbook.olog.ui.write.EditMode;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.olog.ui.write.LogEntryUtils;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
@@ -207,7 +208,14 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
 
         MenuItem menuItemNewLogEntry = new MenuItem(Messages.NewLogEntry);
         menuItemNewLogEntry.acceleratorProperty().setValue(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
-        menuItemNewLogEntry.setOnAction(ae -> new LogEntryEditorStage(new OlogLog(), null, EditMode.NEW_LOG_ENTRY).showAndWait());
+        menuItemNewLogEntry.setOnAction(ae  -> {
+            if (selectedLogEntries.size() > 1){
+                LogEntry logEntry = LogEntryUtils.createLogEntryFromList(LogbookUIPreferences.web_client_root_URL, selectedLogEntries);
+                new LogEntryEditorStage(logEntry,null, EditMode.NEW_LOG_ENTRY_FROM_SELECTION).show();
+            } else {
+                new LogEntryEditorStage(new OlogLog(),  null, EditMode.NEW_LOG_ENTRY).show();
+            }
+        });
 
         MenuItem menuItemUpdateLogEntry = new MenuItem(Messages.UpdateLogEntry);
         menuItemUpdateLogEntry.visibleProperty().bind(Bindings.createBooleanBinding(() -> selectedLogEntries.size() == 1, selectedLogEntries));
@@ -589,6 +597,11 @@ public class LogEntryTableViewController extends LogbookSearchController impleme
                     }
                 });
 
+    }
+
+
+    public List<LogEntry> getSelectedLogEntries(){
+        return selectedLogEntries;
     }
 
     /**

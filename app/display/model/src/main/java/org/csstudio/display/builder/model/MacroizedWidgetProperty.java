@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -157,13 +157,13 @@ abstract public class MacroizedWidgetProperty<T> extends WidgetProperty<T>
                 expanded = specification;
             }
 
-            // Warn if expanded text still contains macros.
+            // Log if expanded text still contains macros.
             // .. unless specification contained escaped macros,
             // which have been un-escaped.
             // Note that this ignores remaining macros as soon
             // as there is just one escaped macro, as in "$(MISSING_AND_IGNORED) \\$(ESCAPED)"
             if (MacroHandler.containsMacros(expanded)  &&  ! specification.contains("\\$"))
-                logger.log(Level.WARNING, widget + " '" + getName() + "' is not fully resolved: '" + expanded + "'");
+                logger.log(Level.INFO, widget + " '" + getName() + "' is not fully resolved: '" + expanded + "'");
 
             try
             {

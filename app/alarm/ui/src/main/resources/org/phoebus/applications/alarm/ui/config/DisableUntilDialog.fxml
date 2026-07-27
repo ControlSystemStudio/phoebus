@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.phoebus.applications.alarm.ui.config.*?>
+
+<GridPane hgap="5.0" vgap="5.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.alarm.ui.config.DisableUntilDialogController">
+        <Label text="%absoluteDateLabel" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+        <DateTimePicker fx:id="enabledDatePicker" GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <tooltip>
+                <Tooltip text="%dateTimePickerTooltip" />
+            </tooltip>
+        </DateTimePicker>
+        <Label text="%relativeDateLabel" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+        <ComboBox fx:id="relativeDate" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
+            <tooltip>
+                <Tooltip text="%relativeDateTooltip" />
+            </tooltip>
+        </ComboBox>
+        <Label fx:id="invalidDate" prefWidth="280" text="%promptTitle" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2" />
+    <GridPane.margin>
+        <Insets top="10.0" />
+    </GridPane.margin>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+
+</GridPane>

@@ -15,10 +15,10 @@ Credentials Manager application. See also below.
 Nodes and node types
 --------------------
 
-Save-and-restore data managed by the service is arranged in a tree structure and hence presented in the client UI using
-a tree view UI component. In the following objects in the tree are referred to as "nodes".
+Save-and-restore data managed by the service is arranged in a tree table structure and hence presented in the client UI using
+a tree table view UI component. In the following objects in the tree are referred to as "nodes".
 
-The root of the tree structure is a folder that may only contain folder nodes. Folders may contain sub-folders, configurations and composite snapshots.
+The root of the tree table structure is a folder that may only contain folder nodes. Folders may contain sub-folders, configurations and composite snapshots.
 The child nodes of a configuration are snapshots associated with that configuration.
 
 Additionally a composite snapshot node may reference an arbitrary number of snapshot or composite snapshot nodes.
@@ -38,10 +38,12 @@ There are thus four node types managed in the application:
 *NOTE*: If a folder or configuration node is deleted, all child nodes are unconditionally and recursively deleted. The user
 is prompted to confirm delete actions as they are irreversible.
 
-Below screen shot shows the tree structure and a configuration editor.
+Below screen shot shows the tree table structure and a configuration editor.
 
 .. image:: images/screenshot1.png
    :width: 80%
+
+The + icon to the left of the table headers launches a menu from which user can choose to hide or show columns.
 
 Annotations on nodes
 --------------------

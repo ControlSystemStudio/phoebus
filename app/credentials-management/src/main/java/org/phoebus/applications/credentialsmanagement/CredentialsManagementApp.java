@@ -31,7 +31,7 @@ import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
 
 /**
- * Simple app that launches an UI offering logout capabilities for scopes/applications that use and maintain
+ * Simple app that launches a UI offering logout capabilities for scopes/applications that use and maintain
  * credentials, e.g.logbook. This is not in any way associated with the APIs controlling Phoebus internal
  * authorizations for the various apps. The credentials in the case of the Credentials Management app are
  * typically associated with credentials used to authenticate against external services.
@@ -64,7 +64,7 @@ public class CredentialsManagementApp implements AppDescriptor {
                         .collect(Collectors.toList());
         try {
             SecureStore secureStore = new SecureStore();
-            new CredentialsManagementStage(authenticationProviders, secureStore).show();
+            new CredentialsManagementDialog(authenticationProviders, secureStore).showAndWait();
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(Messages.SecureStoreErrorTitle, Messages.SecureStoreErrorBody, e);
         }

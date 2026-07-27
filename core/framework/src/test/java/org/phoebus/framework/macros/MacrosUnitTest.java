@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -42,11 +42,25 @@ public class MacrosUnitTest
     @Test
     public void testCheck()
     {
+        // Clearly not a macro
         assertThat(MacroHandler.containsMacros("Plain Text"), equalTo(false));
+
+        // Clearly a macro
         assertThat(MacroHandler.containsMacros("${S}"), equalTo(true));
         assertThat(MacroHandler.containsMacros("This is $(S)"), equalTo(true));
         assertThat(MacroHandler.containsMacros("$(MACRO)"), equalTo(true));
+
+        // Two macro levels
         assertThat(MacroHandler.containsMacros("$(${MACRO})"), equalTo(true));
+
+        // Not a macro
+        assertThat(MacroHandler.containsMacros("StringPV.VAL$"), equalTo(false));
+        assertThat(MacroHandler.containsMacros("StringPV.$"), equalTo(false));
+
+        // Debatable:
+        // Would a first macro expansion pass turn '\\$(S)' into '$(S)',
+        // which then _is_ a macro that's expanded in a second pass?
+        // We simply check for '$(' and take that as a macro
         assertThat(MacroHandler.containsMacros("Escaped \\$(S)"), equalTo(true));
         assertThat(MacroHandler.containsMacros("Escaped \\$(S) Used $(S)"), equalTo(true));
     }

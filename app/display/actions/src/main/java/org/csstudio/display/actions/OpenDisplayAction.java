@@ -63,10 +63,7 @@ public class OpenDisplayAction extends ActionInfoBase {
 
         /**
          * Open standalone window
-         *
-         * @deprecated Was only used in RCP version.
          */
-        @Deprecated
         STANDALONE(Messages.Target_Standalone);
 
         private final String name;
@@ -219,8 +216,6 @@ public class OpenDisplayAction extends ActionInfoBase {
 
         // Add variant for all the available Target types: Replace, new Tab, ...
         for (OpenDisplayAction.Target target : OpenDisplayAction.Target.values()) {
-            if (target == OpenDisplayAction.Target.STANDALONE || target == this.target)
-                continue;
             // Mention non-default targets in the description
             MenuItem additionalItem = createMenuItem(widget, description + " (" + target + ")");
             OpenDisplayAction openDisplayAction = new OpenDisplayAction(description, file, macros, target);
@@ -237,7 +232,8 @@ public class OpenDisplayAction extends ActionInfoBase {
             case 0 -> Target.REPLACE;
             // 7 - NEW_WINDOW
             // 8 - NEW_SHELL
-            case 7, 8 -> Target.WINDOW;
+            case 7 -> Target.WINDOW;
+            case 8 -> Target.STANDALONE;
             // 1 - NEW_TAB
             // 2 - NEW_TAB_LEFT
             // 3 - NEW_TAB_RIGHT

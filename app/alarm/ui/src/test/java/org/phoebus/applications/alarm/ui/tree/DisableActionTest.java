@@ -2,7 +2,7 @@
  * Copyright (C) 2025 European Spallation Source ERIC.
  */
 
-package org.phoebus.applications.alarm.ui.config;
+package org.phoebus.applications.alarm.ui.tree;
 
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -13,11 +13,13 @@ import org.phoebus.applications.alarm.model.EnabledState;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ComponentConfigDialogControllerTest {
+public class DisableActionTest {
 
     @Test
     public void testFindAffectedPvs_5() {
@@ -33,14 +35,12 @@ public class ComponentConfigDialogControllerTest {
         child3.setEnabled(new EnabledState(LocalDateTime.now()));
         child3.addToParent(parent2);
 
-        List<AlarmClientLeaf> total = new ArrayList<>();
-        List<AlarmClientLeaf> disabled = new ArrayList<>();
-        List<AlarmClientLeaf> withEnableDate = new ArrayList<>();
+        Set<AlarmClientLeaf> total = new HashSet<>();
+        Set<AlarmClientLeaf> withEnableDate = new HashSet<>();
 
-        ComponentConfigDialogController.findAffectedPVs(parent1, total, disabled, withEnableDate);
+        DisableAction.findAffectedPVs(parent1, total, withEnableDate);
 
         assertEquals(3, total.size());
-        assertEquals(2, disabled.size());
         assertEquals(1, withEnableDate.size());
     }
 }

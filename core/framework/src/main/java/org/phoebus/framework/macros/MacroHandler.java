@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,7 +27,12 @@ public class MacroHandler
      */
     public static boolean containsMacros(final String input)
     {
-        return input != null  &&  input.indexOf('$') >= 0;
+        // A complete check for unresolved macros, including multi-level macros,
+        // requires a MacroValueProvider.
+        // This, however, could be called from an editor where no macros are available.
+        // Implementation thus limited to a simple check for potential macros
+        return input != null  &&
+               (input.indexOf("$(") >= 0  ||  input.indexOf("${") >= 0);
     }
 
     /** Replace macros in input

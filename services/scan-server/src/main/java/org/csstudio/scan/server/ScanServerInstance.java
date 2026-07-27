@@ -246,7 +246,7 @@ public class ScanServerInstance
             help();
             System.out.println();
             ex.printStackTrace();
-            return;
+			System.exit(-1);
         }
 
         logger.info("Scan Server (PID " + ProcessHandle.current().pid() + ")");
@@ -283,6 +283,7 @@ public class ScanServerInstance
         catch (Exception ex)
         {
             logger.log(Level.SEVERE, "Cannot start", ex);
+			System.exit(-1);
         }
         httpd.shutdown();
 
