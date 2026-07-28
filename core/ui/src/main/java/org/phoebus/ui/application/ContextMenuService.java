@@ -55,12 +55,13 @@ public class ContextMenuService {
      * @return A list of {@link ContextMenuEntry}'s supported for the current
      *         selection
      */
+
     public List<ContextMenuEntry> listSupportedContextMenuEntries() {
         // List of types of the current selection
         List<Class> selectionTypes = SelectionService.getInstance().getSelection().getSelections().stream().map(s -> {
             return s.getClass();
         }).collect(Collectors.toList());
-
+        System.out.println("selection types: " + selectionTypes);
         // Take into account the types the selected objects can be converted into
         List<Class> allAdaptableSelectionType = new ArrayList<>();
         selectionTypes.forEach(s -> {
