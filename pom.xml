@@ -74,6 +74,7 @@
     <jsobject.version>26.0.1</jsobject.version>
     <jackson.version>2.21.2</jackson.version>
     <jackson.annotations.version>2.22</jackson.annotations.version>
+    <jackson.dataformat.version>2.19.1</jackson.dataformat.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
     <postgresql.driver.version>42.6.2</postgresql.driver.version>
@@ -109,6 +110,7 @@
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
           <fork>true</fork>
+          <parameters>true</parameters>
           <compilerArgs>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
