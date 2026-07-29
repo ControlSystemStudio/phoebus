@@ -18,13 +18,11 @@
 
 package org.phoebus.applications.saveandrestore.model.json;
 
-import java.io.IOException;
-
 import org.epics.vtype.VType;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 import org.epics.vtype.json.VTypeToJson;
 
 /**
@@ -32,10 +30,14 @@ import org.epics.vtype.json.VTypeToJson;
  * @author georgweiss 
  * Created 30 Nov 2018
  */
-public class VTypeSerializer extends JsonSerializer<VType> {
+public class VTypeSerializer extends StdSerializer<VType> {
+
+	public VTypeSerializer() {
+		super(VType.class);
+	}
 
 	@Override
-	public void serialize(VType vType, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+	public void serialize(VType vType, JsonGenerator gen, SerializationContext serializers) {
 		String s = VTypeToJson.toJson(vType).toString();
 		gen.writeRawValue(s);
 	}

@@ -4,9 +4,10 @@
 
 package org.phoebus.applications.saveandrestore.model.websocket;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
@@ -23,7 +24,7 @@ public class SaveAndRestoreWebSocketMessageDeserializerTest {
     public SaveAndRestoreWebSocketMessageDeserializerTest(){
         SimpleModule module = new SimpleModule();
         module.addDeserializer(WebSocketMessage.class, new SaveAndRestoreWebSocketMessageDeserializer(WebSocketMessage.class));
-        mapper.registerModule(module);
+        mapper = JsonMapper.builder().addModule(module).build();
     }
 
     @Test
