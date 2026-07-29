@@ -5,7 +5,7 @@ import static org.phoebus.applications.alarm.messages.AlarmMessageUtil.objectMap
 
 import java.util.logging.Level;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 /** Alarm detail */
 public class AlarmDetail {
@@ -62,7 +62,7 @@ public class AlarmDetail {
     public String toString() {
         try {
             return objectMapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.log(Level.WARNING, "failed to parse the alarm detail message ", e);
         }
         return "";
