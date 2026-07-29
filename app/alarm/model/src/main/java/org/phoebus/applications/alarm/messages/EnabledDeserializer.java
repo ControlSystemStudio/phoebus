@@ -5,12 +5,10 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
-import tools.jackson.core.ObjectCodec;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
 
 import java.time.format.DateTimeFormatter;
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.time.LocalDateTime;
@@ -39,9 +37,8 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
     }
 
     @Override
-    public EnabledState deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JacksonException {
-        ObjectCodec oc = jp.getCodec();
-        JsonNode jn = oc.readTree(jp);
+    public EnabledState deserialize(JsonParser jp, DeserializationContext ctxt) throws JacksonException {
+        JsonNode jn = ctxt.readTree(jp);
 
         // use pattern matching to determine whether boolean or datetime string
         if (jn != null) {
