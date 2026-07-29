@@ -1,9 +1,8 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -550,10 +549,6 @@ public class AlarmLogTableController {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    static {
-        objectMapper.registerModule(new JavaTimeModule());
-    }
-
     @FXML
     public void createContextMenu() {
         final ContextMenu contextMenu = new ContextMenu();
@@ -593,7 +588,7 @@ public class AlarmLogTableController {
                                 Object jsonObject = objectMapper.readValue(result.getConfig_msg(), Object.class);
                                 sb.append("config_msg: ").append(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject)).append(newLine);
                                 alarmInfo.setContentText(sb.toString());
-                            } catch (JsonProcessingException e) {
+                            } catch (JacksonException e) {
                                 alarmInfo.setContentText(Messages.ConfigurationInfoNotFound);
                             }
                         }
