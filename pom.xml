@@ -75,6 +75,7 @@
     <jackson.version>2.21.2</jackson.version>
     <jackson.annotations.version>2.22</jackson.annotations.version>
     <jackson.dataformat.version>2.19.1</jackson.dataformat.version>
+    <tools.jackson.version>3.1.4</tools.jackson.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
     <postgresql.driver.version>42.6.2</postgresql.driver.version>
@@ -99,7 +100,7 @@
     <activemq.client.version>5.18.4</activemq.client.version>
     <commons.compress.version>1.26.1</commons.compress.version>
     <spring.framework.version>5.3.22</spring.framework.version>
-    <spring.boot.version>4.0.5</spring.boot.version>
+    <spring.boot.version>4.1.0</spring.boot.version>
   </properties>
   <build>
     <plugins>
