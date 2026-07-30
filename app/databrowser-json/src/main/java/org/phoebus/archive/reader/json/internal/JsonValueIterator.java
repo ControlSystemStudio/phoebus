@@ -94,7 +94,7 @@ public class JsonValueIterator implements ValueIterator {
             throw new StreamReadException(
                     parser,
                     "Expected START_ARRAY but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         // We try to read the first sample. If that sample is malformed, the
         // exception is raised before an iterator is even returned. If it is
@@ -197,7 +197,7 @@ public class JsonValueIterator implements ValueIterator {
                 throw new StreamReadException(
                         parser,
                         "Expected end-of-stream but found " + next_token + ".",
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             return false;
         }

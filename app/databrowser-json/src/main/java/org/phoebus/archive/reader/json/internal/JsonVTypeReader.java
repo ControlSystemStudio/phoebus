@@ -93,12 +93,12 @@ public final class JsonVTypeReader {
     public static VType readValue(
             final JsonParser parser, boolean honor_zero_precision)
             throws IOException {
-        JsonToken token = parser.getCurrentToken();
+        JsonToken token = parser.currentToken();
         if (token != JsonToken.START_OBJECT) {
             throw new StreamReadException(
                     parser,
                     "Expected START_OBJECT but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         Display display = null;
         List<Double> double_value = null;
@@ -124,13 +124,13 @@ public final class JsonVTypeReader {
                 break;
             }
             if (field_name == null) {
-                if (token != JsonToken.FIELD_NAME) {
+                if (token != JsonToken.PROPERTY_NAME) {
                     throw new StreamReadException(
                             parser,
-                            "Expected FIELD_NAME but got " + token,
-                            parser.getTokenLocation());
+                            "Expected PROPERTY_NAME but got " + token,
+                            parser.currentTokenLocation());
                 }
-                field_name = parser.getCurrentName();
+                field_name = parser.currentName();
                 continue;
             }
             switch (field_name) {
@@ -143,7 +143,7 @@ public final class JsonVTypeReader {
                         throw new StreamReadException(
                                 parser,
                                 "Field \"" + field_name + "\" occurs twice.",
-                                parser.getTokenLocation());
+                                parser.currentTokenLocation());
                     }
                     Object metaData = readMetaData(
                             parser, honor_zero_precision);
@@ -194,7 +194,7 @@ public final class JsonVTypeReader {
                         default -> throw new StreamReadException(
                                 parser,
                                 "Unknown type \"" + type_name + "\".",
-                                parser.getTokenLocation());
+                                parser.currentTokenLocation());
                     };
                 }
                 case"value" -> {
@@ -202,14 +202,14 @@ public final class JsonVTypeReader {
                         throw new StreamReadException(
                                 parser,
                                 "Field \"" + field_name + "\" occurs twice.",
-                                parser.getTokenLocation());
+                                parser.currentTokenLocation());
                     }
                     if (type == null) {
                         throw new StreamReadException(
                                 parser,
                                 "\"value\" field must be specified after "
                                         + "\"type\" field.",
-                                parser.getTokenLocation());
+                                parser.currentTokenLocation());
                     }
                     found_value = true;
                     switch (type) {
@@ -230,7 +230,7 @@ public final class JsonVTypeReader {
                 default -> throw new StreamReadException(
                         parser,
                         "Found unknown field \"" + field_name + "\".",
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             field_name = null;
         }
@@ -243,7 +243,7 @@ public final class JsonVTypeReader {
             throw new StreamReadException(
                     parser,
                     "Mandatory field is missing in object.",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         if (type != ValueType.ENUM && enum_display != null) {
             throw new StreamReadException(
@@ -251,7 +251,7 @@ public final class JsonVTypeReader {
                     "Value of type \""
                             + type.name
                             + "\" does not accept enum meta-data.",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         if (type != ValueType.MIN_MAX_DOUBLE && (
                 minimum != null || maximum != null)) {
@@ -260,7 +260,7 @@ public final class JsonVTypeReader {
                     "Invalid field specified for value of type\""
                             + type.name
                             + "\".",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         if ((type == ValueType.ENUM || type == ValueType.STRING)
                 && display != null) {
@@ -269,7 +269,7 @@ public final class JsonVTypeReader {
                     "Value of type \""
                             + type.name
                             + "\" does not accept numeric meta-data.",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         final var alarm = Alarm.of(severity, AlarmStatus.NONE, status);
         final var time = Time.of(timestamp);
@@ -380,7 +380,7 @@ public final class JsonVTypeReader {
                     throw new StreamReadException(
                             parser,
                             "Mandatory field is missing in object.",
-                            parser.getTokenLocation());
+                            parser.currentTokenLocation());
                 }
                 if (double_value.size() == 1) {
                     return VStatistics.of(
@@ -417,7 +417,7 @@ public final class JsonVTypeReader {
         throw new StreamReadException(
                 parser,
                 "Invalid value type \"" + type + "\".",
-                parser.getTokenLocation());
+                parser.currentTokenLocation());
     }
 
     private static Instant bigIntegerToTimestamp(final BigInteger big_int) {
@@ -437,7 +437,7 @@ public final class JsonVTypeReader {
             throw new StreamReadException(
                     parser,
                     "Field \"" + field_name + "\" occurs twice.",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
     }
 
@@ -450,7 +450,7 @@ public final class JsonVTypeReader {
                     parser,
                     "Expected VALUE_TRUE or VALUE_FALSE but got "
                             + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         return parser.getBooleanValue();
     }
@@ -459,12 +459,12 @@ public final class JsonVTypeReader {
             final JsonParser parser) throws IOException {
 
         final List<Double> values = new ArrayList<>();
-        var token = parser.getCurrentToken();
+        var token = parser.currentToken();
         if (token != JsonToken.START_ARRAY) {
             throw new StreamReadException(
                     parser,
                     "Expected START_ARRAY but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         while (true) {
             token = parser.nextToken();
@@ -490,7 +490,7 @@ public final class JsonVTypeReader {
                         "Expected VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT, or "
                                 + "VALUE_STRING but got "
                                 + token,
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             return stringToSpecialDouble(parser.getText(),
                     parser);
@@ -507,7 +507,7 @@ public final class JsonVTypeReader {
                     parser,
                     "Expected VALUE_NUMBER_INT but got "
                             + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         return bigIntegerToTimestamp(parser.getBigIntegerValue());
     }
@@ -515,12 +515,12 @@ public final class JsonVTypeReader {
     private static List<Integer> readIntArray(final JsonParser parser)
             throws IOException {
         final List<Integer> values = new ArrayList<>();
-        var token = parser.getCurrentToken();
+        var token = parser.currentToken();
         if (token != JsonToken.START_ARRAY) {
             throw new StreamReadException(
                     parser,
                     "Expected START_ARRAY but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         while (true) {
             token = parser.nextToken();
@@ -537,13 +537,13 @@ public final class JsonVTypeReader {
 
     private static int readIntValue(final JsonParser parser)
             throws IOException {
-        final var token = parser.getCurrentToken();
+        final var token = parser.currentToken();
         if (token != JsonToken.VALUE_NUMBER_INT) {
             throw new StreamReadException(
                     parser,
                     "Expected VALUE_NUMBER_INT but got "
                             + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         return parser.getIntValue();
     }
@@ -551,12 +551,12 @@ public final class JsonVTypeReader {
     private static List<Long> readLongArray(final JsonParser parser)
             throws IOException {
         final List<Long> values = new ArrayList<>();
-        var token = parser.getCurrentToken();
+        var token = parser.currentToken();
         if (token != JsonToken.START_ARRAY) {
             throw new StreamReadException(
                     parser,
                     "Expected START_ARRAY but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         while (true) {
             token = parser.nextToken();
@@ -573,13 +573,13 @@ public final class JsonVTypeReader {
 
     private static long readLongValue(final JsonParser parser)
             throws IOException {
-        final var token = parser.getCurrentToken();
+        final var token = parser.currentToken();
         if (token != JsonToken.VALUE_NUMBER_INT) {
             throw new StreamReadException(
                     parser,
                     "Expected VALUE_NUMBER_INT but got "
                             + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         return parser.getLongValue();
     }
@@ -605,7 +605,7 @@ public final class JsonVTypeReader {
     private static Object readMetaData(
             final JsonParser parser, boolean honor_zero_precision)
             throws IOException {
-        JsonToken token = parser.getCurrentToken();
+        JsonToken token = parser.currentToken();
         if (token == null) {
             throw new IOException("Unexpected end of stream.");
         }
@@ -613,7 +613,7 @@ public final class JsonVTypeReader {
             throw new StreamReadException(
                     parser,
                     "Expected START_OBJECT but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         Double alarm_high = null;
         Double alarm_low = null;
@@ -635,13 +635,13 @@ public final class JsonVTypeReader {
                 break;
             }
             if (field_name == null) {
-                if (token != JsonToken.FIELD_NAME) {
+                if (token != JsonToken.PROPERTY_NAME) {
                     throw new StreamReadException(
                             parser,
-                            "Expected FIELD_NAME but got " + token,
-                            parser.getTokenLocation());
+                            "Expected PROPERTY_NAME but got " + token,
+                            parser.currentTokenLocation());
                 }
-                field_name = parser.getCurrentName();
+                field_name = parser.currentName();
                 continue;
             }
             switch (field_name) {
@@ -688,7 +688,7 @@ public final class JsonVTypeReader {
                 default -> throw new StreamReadException(
                         parser,
                         "Found unknown field \"" + field_name + "\".",
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             field_name = null;
         }
@@ -696,7 +696,7 @@ public final class JsonVTypeReader {
             throw new StreamReadException(
                     parser,
                     "Mandatory field is missing in object.",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
 
         }
         if (type.equalsIgnoreCase("enum")) {
@@ -704,7 +704,7 @@ public final class JsonVTypeReader {
                 throw new StreamReadException(
                         parser,
                         "Mandatory field is missing in object.",
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             if (alarm_high != null
                     || alarm_low != null
@@ -717,7 +717,7 @@ public final class JsonVTypeReader {
                 throw new StreamReadException(
                         parser,
                         "Invalid field specified for enum meta-data.",
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             return EnumDisplay.of(states);
         } else if (type.equalsIgnoreCase("numeric")) {
@@ -732,13 +732,13 @@ public final class JsonVTypeReader {
                 throw new StreamReadException(
                         parser,
                         "Mandatory field is missing in object.",
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             if (states != null) {
                 throw new StreamReadException(
                         parser,
                         "Invalid field specified for numeric meta-data.",
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             final NumberFormat format;
             if (precision > 0 || (precision == 0 && honor_zero_precision)) {
@@ -757,18 +757,18 @@ public final class JsonVTypeReader {
             throw new StreamReadException(
                     parser,
                     "Invalid meta-data type \"" + type + "\".",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
     }
 
     private static AlarmSeverity readSeverity(final JsonParser parser)
             throws IOException {
-        var token = parser.getCurrentToken();
+        var token = parser.currentToken();
         if (token != JsonToken.START_OBJECT) {
             throw new StreamReadException(
                     parser,
                     "Expected START_OBJECT but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         String field_name = null;
         Boolean has_value = null;
@@ -782,13 +782,13 @@ public final class JsonVTypeReader {
                 break;
             }
             if (field_name == null) {
-                if (token != JsonToken.FIELD_NAME) {
+                if (token != JsonToken.PROPERTY_NAME) {
                     throw new StreamReadException(
                             parser,
-                            "Expected FIELD_NAME but got " + token,
-                            parser.getTokenLocation());
+                            "Expected PROPERTY_NAME but got " + token,
+                            parser.currentTokenLocation());
                 }
-                field_name = parser.getCurrentName();
+                field_name = parser.currentName();
             } else {
                 if (field_name.equals("level")) {
                     duplicateFieldIfNotNull(parser, field_name, level_string);
@@ -803,7 +803,7 @@ public final class JsonVTypeReader {
                     throw new StreamReadException(
                             parser,
                             "Found unknown field \"" + field_name + "\".",
-                            parser.getTokenLocation());
+                            parser.currentTokenLocation());
                 }
                 field_name = null;
             }
@@ -812,7 +812,7 @@ public final class JsonVTypeReader {
             throw new StreamReadException(
                     parser,
                     "Mandatory field is missing in object.",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         return switch(level_string.toUpperCase(Locale.ROOT)) {
             case "OK" -> AlarmSeverity.NONE;
@@ -822,19 +822,19 @@ public final class JsonVTypeReader {
             default -> throw new StreamReadException(
                     parser,
                     "Unknown severity \"" + level_string + "\".",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         };
     }
 
     private static List<String> readStringArray(final JsonParser parser)
             throws IOException {
         final var elements = new LinkedList<String>();
-        JsonToken token = parser.getCurrentToken();
+        JsonToken token = parser.currentToken();
         if (token != JsonToken.START_ARRAY) {
             throw new StreamReadException(
                     parser,
                     "Expected START_ARRAY but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         while (true) {
             token = parser.nextToken();
@@ -850,7 +850,7 @@ public final class JsonVTypeReader {
                 throw new StreamReadException(
                         parser,
                         "Expected VALUE_STRING but got " + token,
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
         }
         return elements;
@@ -863,7 +863,7 @@ public final class JsonVTypeReader {
             throw new StreamReadException(
                     parser,
                     "Expected VALUE_STRING but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         return parser.getText();
     }
@@ -881,7 +881,7 @@ public final class JsonVTypeReader {
                             + value
                             + "\" does not qualify as a special double "
                             + "number.",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         };
     }
 
