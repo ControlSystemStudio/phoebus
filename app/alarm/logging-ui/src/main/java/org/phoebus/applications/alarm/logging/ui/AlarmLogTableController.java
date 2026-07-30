@@ -1,6 +1,6 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import javafx.animation.KeyFrame;
@@ -589,7 +589,7 @@ public class AlarmLogTableController {
                                 Object jsonObject = objectMapper.readValue(result.getConfig_msg(), Object.class);
                                 sb.append("config_msg: ").append(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject)).append(newLine);
                                 alarmInfo.setContentText(sb.toString());
-                            } catch (JsonProcessingException e) {
+                            } catch (JacksonException e) {
                                 alarmInfo.setContentText(Messages.ConfigurationInfoNotFound);
                             }
                         }

@@ -4,7 +4,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
@@ -914,7 +914,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME,
                         objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
             }
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             LOG.log(Level.WARNING, "Failed to persist tree state");
         }
     }

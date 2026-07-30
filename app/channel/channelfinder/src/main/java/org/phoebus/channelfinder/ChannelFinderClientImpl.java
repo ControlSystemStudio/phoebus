@@ -5,7 +5,7 @@
  */
 package org.phoebus.channelfinder;
 
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -1203,7 +1203,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 if (httpResponse.statusCode() != 200) {
                     throw new ChannelFinderException(httpResponse.statusCode(), httpResponse.body());
                 }
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 log.log(Level.WARNING, "Failed to update tag ", e);
             } catch (IOException | InterruptedException e) {
                 throw new ChannelFinderException(e.getMessage());
@@ -1275,7 +1275,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 if (httpResponse.statusCode() != 200) {
                     throw new ChannelFinderException(httpResponse.statusCode(), httpResponse.body());
                 }
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 log.log(Level.WARNING, "Failed to update property ", e);
             } catch (IOException | InterruptedException e) {
                 throw new ChannelFinderException(e.getMessage());

@@ -3,7 +3,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchVersionInfo;
 import co.elastic.clients.elasticsearch.core.InfoResponse;
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +72,7 @@ public class InfoController extends BaseController {
 
          try {
             return objectMapper.writeValueAsString(saveRestoreServiceInfo);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.log(Level.WARNING, "Failed to create Save and Restore service info resource.", e);
             return "Failed to gather Save and Restore service info";
         }

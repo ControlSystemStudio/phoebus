@@ -8,9 +8,9 @@
 
 package org.phoebus.archive.reader.json.internal;
 
-import tools.jackson.core.JsonParseException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
+import tools.jackson.core.exc.StreamReadException;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.reader.json.JsonArchiveReader;
@@ -91,7 +91,7 @@ public class JsonValueIterator implements ValueIterator {
         }
         if (token != JsonToken.START_ARRAY) {
             // The server response is malformed, so we cannot continue.
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected START_ARRAY but got " + token,
                     parser.getTokenLocation());
@@ -194,7 +194,7 @@ public class JsonValueIterator implements ValueIterator {
             // There should be no data after the end of the array.
             final var next_token = parser.nextToken();
             if (next_token != null) {
-                throw new JsonParseException(
+                throw new StreamReadException(
                         parser,
                         "Expected end-of-stream but found " + next_token + ".",
                         parser.getTokenLocation());

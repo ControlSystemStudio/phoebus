@@ -1,6 +1,6 @@
 package org.phoebus.logbook.olog.ui;
 
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.module.SimpleModule;
@@ -221,7 +221,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
                 }
                 search();
             }
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.log(Level.WARNING, "Unable to deserialize message \"" + message + "\"");
         }
     }

@@ -8,9 +8,9 @@
 
 package org.phoebus.archive.reader.json.internal;
 
-import tools.jackson.core.JsonParseException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
+import tools.jackson.core.exc.StreamReadException;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -56,7 +56,7 @@ public final class JsonArchiveInfoReader {
             throw new IOException("Unexpected end of stream.");
         }
         if (token != JsonToken.START_ARRAY) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected START_ARRAY but got " + token,
                     parser.getTokenLocation());
@@ -79,9 +79,9 @@ public final class JsonArchiveInfoReader {
             final JsonParser parser,
             final String field_name,
             final Object field_value)
-            throws JsonParseException {
+            throws StreamReadException {
         if (field_value != null) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Field \"" + field_name + "\" occurs twice.",
                     parser.getTokenLocation());
@@ -92,7 +92,7 @@ public final class JsonArchiveInfoReader {
             throws IOException {
         JsonToken token = parser.getCurrentToken();
         if (token != JsonToken.START_OBJECT) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected START_OBJECT but got " + token,
                     parser.getTokenLocation());
@@ -114,7 +114,7 @@ public final class JsonArchiveInfoReader {
                     field_name = parser.getCurrentName();
                     continue;
                 } else {
-                    throw new JsonParseException(
+                    throw new StreamReadException(
                             parser,
                             "Expected FIELD_NAME but got " + token,
                             parser.getTokenLocation());
@@ -134,7 +134,7 @@ public final class JsonArchiveInfoReader {
                     duplicateFieldIfNotNull(parser, field_name, archive_name);
                     archive_name = readStringValue(parser);
                 }
-                default -> throw new JsonParseException(
+                default -> throw new StreamReadException(
                         parser,
                         "Found unknown field \"" + field_name + "\".",
                         parser.getTokenLocation());
@@ -144,7 +144,7 @@ public final class JsonArchiveInfoReader {
         if (archive_description == null
                 || archive_key == null
                 || archive_name == null) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Mandatory field is missing in object.",
                     parser.getTokenLocation());
@@ -156,7 +156,7 @@ public final class JsonArchiveInfoReader {
             throws IOException {
         final var token = parser.getCurrentToken();
         if (token != JsonToken.VALUE_NUMBER_INT) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected VALUE_NUMBER_INT but got "
                             + token,
@@ -169,7 +169,7 @@ public final class JsonArchiveInfoReader {
             throws IOException {
         final var token = parser.currentToken();
         if (token != JsonToken.VALUE_STRING) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected VALUE_STRING but got " + token,
                     parser.getTokenLocation());

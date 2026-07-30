@@ -9,9 +9,9 @@
 package org.phoebus.archive.reader.json;
 
 import tools.jackson.core.JsonFactory;
-import tools.jackson.core.JsonParseException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
+import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.json.JsonReadFeature;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
@@ -180,7 +180,7 @@ public class JsonArchiveReader implements ArchiveReader {
                 throw new IOException("Unexpected end of stream.");
             }
             if (token != JsonToken.START_ARRAY) {
-                throw new JsonParseException(
+                throw new StreamReadException(
                         parser,
                         "Expected START_ARRAY but got " + token,
                         parser.getTokenLocation());
@@ -198,7 +198,7 @@ public class JsonArchiveReader implements ArchiveReader {
                     String channel_name = parser.getText();
                     channel_names.add(channel_name);
                 } else {
-                    throw new JsonParseException(
+                    throw new StreamReadException(
                             parser,
                             "Expected VALUE_STRING but got " + token,
                             parser.getTokenLocation());

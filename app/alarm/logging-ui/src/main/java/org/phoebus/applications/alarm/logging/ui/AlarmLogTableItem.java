@@ -3,10 +3,10 @@ package org.phoebus.applications.alarm.logging.ui;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import tools.jackson.core.JsonParser;
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -158,7 +158,7 @@ public class AlarmLogTableItem {
         }
 
         @Override
-        public Instant deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        public Instant deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
             return Instant.parse(p.getText());
         }
     }

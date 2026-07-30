@@ -5,7 +5,7 @@
 package org.phoebus.applications.saveandrestore.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -667,7 +667,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         HttpResponse<String> response = getCall(relativeUrl);
         try {
             return OBJECT_MAPPER.readValue(response.body(), clazz);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
@@ -676,7 +676,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         HttpResponse<String> response = getCall(relativeUrl);
         try {
             return OBJECT_MAPPER.readValue(response.body(), typeReference);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

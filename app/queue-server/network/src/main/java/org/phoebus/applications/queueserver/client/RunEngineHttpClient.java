@@ -1,7 +1,7 @@
 package org.phoebus.applications.queueserver.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -81,7 +81,7 @@ public final class RunEngineHttpClient {
         {
             try {
                 return (type == Void.class) ? null : mapper.readValue(rsp.body(), type);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -102,7 +102,7 @@ public final class RunEngineHttpClient {
         return executeWithRetry(req, api, rsp -> {
             try {
                 return mapper.readValue(rsp.body(), type);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -160,7 +160,7 @@ public final class RunEngineHttpClient {
                     String msg = String.valueOf(map.getOrDefault("msg", "(no msg)"));
                     throw new RequestFailedException(api, msg);
                 }
-            } catch (JsonProcessingException ignore) {
+            } catch (JacksonException ignore) {
                 /* response isn't a generic object, that's fine (e.g. plain "OK") */
             }
         } else if (rsp.statusCode() < 500) {

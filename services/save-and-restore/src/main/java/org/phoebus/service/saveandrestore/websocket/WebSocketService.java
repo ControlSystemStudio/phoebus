@@ -18,7 +18,7 @@
 
 package org.phoebus.service.saveandrestore.websocket;
 
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -60,7 +60,7 @@ public class WebSocketService {
         try {
             String message = objectMapper.writeValueAsString(webSocketMessage);
             simpMessagingTemplate.convertAndSend(context + "/web-socket/messages", message);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.log(Level.WARNING, "Failed to write web socket message to json string", e);
         }
     }

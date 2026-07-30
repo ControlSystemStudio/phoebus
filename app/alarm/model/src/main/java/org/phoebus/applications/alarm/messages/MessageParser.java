@@ -42,7 +42,7 @@ public class MessageParser<T> implements Serializer<T>, Deserializer<T> {
     @Override
     public byte[] serialize(String topic, T message) {
         if (message == null)
-            return null;s
+            return null;
 
         try {
             return objectMapper.writeValueAsBytes(message);
