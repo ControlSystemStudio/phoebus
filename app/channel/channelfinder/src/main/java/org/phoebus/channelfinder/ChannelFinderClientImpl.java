@@ -10,6 +10,7 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import org.phoebus.util.http.QueryParamsHelper;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -752,7 +753,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     private class FindByChannelName implements Callable<Channel> {
 
         private final String channelName;
-        private final ObjectMapper mapper = new ObjectMapper();
+        private final ObjectMapper mapper = JsonMapper.builder().enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY).build();
 
         FindByChannelName(String channelName) {
             super();
@@ -761,9 +762,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         @Override
         public Channel call() {
-            mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
             try {
-
                 HttpRequest httpRequest = HttpRequest.newBuilder()
                         .uri(URI.create(org.phoebus.channelfinder.Preferences.serviceURL + "/" + resourceChannels + "/" +
                                 URLEncoder.encode(channelName, StandardCharsets.UTF_8)))

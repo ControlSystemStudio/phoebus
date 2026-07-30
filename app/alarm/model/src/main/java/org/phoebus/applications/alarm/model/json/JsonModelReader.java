@@ -52,7 +52,7 @@ public class JsonModelReader
     {
         try
         (
-            final JsonParser jp = JsonModelWriter.mapper.getFactory().createParser(json_text);
+            final JsonParser jp = JsonModelWriter.mapper.tokenStreamFactory().createParser(json_text);
         )
         {
             return JsonModelWriter.mapper.readTree(jp);

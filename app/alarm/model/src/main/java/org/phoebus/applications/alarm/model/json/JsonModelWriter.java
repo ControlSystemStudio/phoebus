@@ -22,6 +22,7 @@ import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Write alarm model as JSON
  *  @author Kay Kasemir
@@ -38,7 +39,7 @@ public class JsonModelWriter
     // which is faster anyway and allows JSON code to be
     // limited to this package
     /** Common mapper */
-    public static final ObjectMapper mapper = new ObjectMapper();
+    public static final ObjectMapper mapper = JsonMapper.builder().build();
 
     /** @param state {@link BasicState} or {@link ClientState}
      *  @param maintenance_mode true if in maintenance mode
@@ -51,7 +52,7 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             jg.writeStartObject();
@@ -68,7 +69,7 @@ public class JsonModelWriter
                 jg.writeStringProperty(JsonTags.MESSAGE, as.message);
                 jg.writeStringProperty(JsonTags.VALUE, as.value);
                 {
-                    jg.writeStartObjectProperty(JsonTags.TIME);
+                    jg.writeObjectPropertyStart(JsonTags.TIME);
                     jg.writeNumberProperty(JsonTags.SECONDS, as.time.getEpochSecond());
                     jg.writeNumberProperty(JsonTags.NANO, as.time.getNano());
                     jg.writeEndObject();
@@ -112,7 +113,7 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             jg.writeStartObject();
@@ -162,7 +163,7 @@ public class JsonModelWriter
         if (infos.isEmpty())
             return;
 
-        jg.writeStartArrayProperty(name);
+        jg.writeArrayPropertyStart(name);
         for (TitleDetail info : infos)
         {
             jg.writeStartObject();
@@ -178,7 +179,7 @@ public class JsonModelWriter
         if (infos.isEmpty())
             return;
 
-        jg.writeStartArrayProperty(name);
+        jg.writeArrayPropertyStart(name);
         {
             for (TitleDetailDelay info : infos)
             {
@@ -204,7 +205,7 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             jg.writeStartObject();
@@ -257,7 +258,7 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             jg.writeStartObject();
@@ -278,7 +279,7 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             final String user = IdentificationHelper.getUser();
