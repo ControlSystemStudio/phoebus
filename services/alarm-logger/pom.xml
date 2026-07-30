@@ -7,7 +7,6 @@
   </parent>
   <properties>
     <java.version>21</java.version>
-    <elasticsearch.version>8.2.0</elasticsearch.version>
   </properties>
   <artifactId>service-alarm-logger</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>

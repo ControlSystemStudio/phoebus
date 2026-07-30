@@ -82,7 +82,7 @@
     <jetty.version>9.4.30.v20200611</jetty.version>
     <apache.commons.math.version>3.6.1</apache.commons.math.version>
     <junit.version>5.8.2</junit.version>
-    <elasticsearch.version>8.2.0</elasticsearch.version>
+    <elasticsearch.version>9.4.4</elasticsearch.version>
     <kafka.version>3.9.1</kafka.version>
     <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
