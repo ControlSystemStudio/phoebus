@@ -2,6 +2,7 @@ package org.phoebus.applications.queueserver.util;
 
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -27,8 +28,9 @@ public final class ConnectionManager {
     private static final Logger logger = Logger.getLogger(ConnectionManager.class.getPackageName());
 
     private final RunEngineService svc = new RunEngineService();
-    private final ObjectMapper mapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper mapper = JsonMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     private ScheduledFuture<?> pollTask;
     private ScheduledFuture<?> reconnectTask;

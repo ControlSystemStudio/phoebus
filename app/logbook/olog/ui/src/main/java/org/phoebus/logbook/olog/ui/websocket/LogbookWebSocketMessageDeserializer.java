@@ -31,7 +31,7 @@ public class LogbookWebSocketMessageDeserializer extends StdDeserializer<WebSock
     @Override
     public WebSocketMessage<?> deserialize(JsonParser jsonParser, DeserializationContext context) {
         try {
-            JsonNode rootNode = jsonParser.getCodec().readTree(jsonParser);
+            JsonNode rootNode = context.readTree(jsonParser);
             LogbookMessageType logbookMessageType = LogbookMessageType.valueOf(rootNode.get("messageType").asText());
             JsonNode payload = rootNode.get("payload");
             switch (logbookMessageType) {

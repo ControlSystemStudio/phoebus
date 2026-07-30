@@ -23,6 +23,7 @@ import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,14 +41,14 @@ public class OlogQueryManager {
     private Comparator<OlogQuery> ologQueryComparator
             = Comparator.comparing(OlogQuery::getLastUsed).reversed();
     private ObjectMapper objectMapper =
-            new ObjectMapper();
+            JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .build();
     private File ologQueriesFile;
 
     private int queryListSize = 15;
 
     private OlogQueryManager(File file) {
         ologQueriesFile = file;
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         initialize();
     }
 
@@ -71,13 +72,8 @@ public class OlogQueryManager {
             queryListSize = size;
         }
         if (ologQueriesFile.exists()) {
-            try {
-                ologQueries = objectMapper.readValue(ologQueriesFile, new TypeReference<>() {
-                });
-            } catch (IOException e) {
-                //e.g. empty file
-                ologQueries = new ArrayList<>();
-            }
+            ologQueries = objectMapper.readValue(ologQueriesFile, new TypeReference<>() {
+            });
         } else {
             ologQueries = new ArrayList<>();
             OlogQuery defaultQuery = new OlogQuery(LogbookUIPreferences.default_logbook_query);
@@ -142,11 +138,6 @@ public class OlogQueryManager {
     }
 
     public void save() {
-        try {
-            objectMapper.writeValue(ologQueriesFile, ologQueries);
-        } catch (IOException e) {
-            Logger.getLogger(OlogQueryManager.class.getName())
-                    .log(Level.WARNING, "Failed to save Olog queries file", e);
-        }
+        objectMapper.writeValue(ologQueriesFile, ologQueries);
     }
 }

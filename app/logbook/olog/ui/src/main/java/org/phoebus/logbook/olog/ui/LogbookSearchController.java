@@ -3,6 +3,7 @@ package org.phoebus.logbook.olog.ui;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -49,7 +50,7 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     protected LogClient client;
     protected final SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
     private final Logger logger = Logger.getLogger(LogbookSearchController.class.getName());
     protected final SimpleBooleanProperty webSocketConnected = new SimpleBooleanProperty();
     private static final int SEARCH_JOB_INTERVAL = 30; // 30 seconds
@@ -75,7 +76,9 @@ public abstract class LogbookSearchController implements WebSocketMessageHandler
     public void initialize() {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(WebSocketMessage.class, new LogbookWebSocketMessageDeserializer(WebSocketMessage.class));
-        objectMapper.registerModule(module);
+        objectMapper = JsonMapper.builder()
+                .addModule(module)
+                .build();
         webSocketConnectUrl = Preferences.olog_url.trim().toLowerCase().startsWith("https://") ?
                 Preferences.olog_url.trim().replace("https", "wss") :
                 Preferences.olog_url.trim().replace("http", "ws");

@@ -457,12 +457,7 @@ public final class RePlanHistoryController implements Initializable {
             
     private static final class PlanHistorySaver {
 
-        private static final ObjectMapper JSON =
-                (ObjectMapper) new ObjectMapper()
-                        .writerWithDefaultPrettyPrinter()
-                        .withDefaultPrettyPrinter()
-                        .getFactory()
-                        .getCodec();
+        private static final ObjectMapper JSON = new ObjectMapper();
 
         private static final DateTimeFormatter TS =
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")

@@ -36,7 +36,7 @@ public class SaveAndRestoreWebSocketMessageDeserializer extends StdDeserializer<
     @Override
     public WebSocketMessage<?> deserialize(JsonParser jsonParser, DeserializationContext context) {
         try {
-            JsonNode rootNode = jsonParser.getCodec().readTree(jsonParser);
+            JsonNode rootNode = context.readTree(jsonParser);
             SaveAndRestoreMessageType saveAndRestoreMessageType = SaveAndRestoreMessageType.valueOf(rootNode.get("messageType").asText());
             JsonNode payload = rootNode.get("payload");
             switch (saveAndRestoreMessageType) {

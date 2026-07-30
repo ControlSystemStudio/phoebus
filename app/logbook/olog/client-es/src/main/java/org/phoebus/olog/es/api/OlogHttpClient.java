@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.phoebus.applications.logbook.authentication.OlogAuthenticationScope;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
@@ -81,9 +82,10 @@ public class OlogHttpClient implements LogClient {
     static {
         System.getProperties().setProperty("jdk.internal.httpclient.disableHostnameVerification",
                 Boolean.toString(Preferences.permissive_hostname_verifier));
-        OBJECT_MAPPER = new ObjectMapper();
-        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        OBJECT_MAPPER = JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                .build();
     }
 
     public static class Builder {
