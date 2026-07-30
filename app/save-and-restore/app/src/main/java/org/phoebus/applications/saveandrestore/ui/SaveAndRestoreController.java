@@ -410,13 +410,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (savedTreeState == null) {
             return null;
         }
-        try {
-            return objectMapper.readValue(savedTreeState, new TypeReference<>() {
-            });
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, "Unable to parse saved tree state", e);
-            return null;
-        }
+        return objectMapper.readValue(savedTreeState, new TypeReference<>() {
+        });
     }
 
     private String getSavedFilterName() {
@@ -424,12 +419,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (savedFilterName == null) {
             return null;
         }
-        try {
-            return objectMapper.readValue(savedFilterName, String.class);
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, "Unable to parse saved filter name", e);
-            return null;
-        }
+        return objectMapper.readValue(savedFilterName, String.class);
     }
 
     /**

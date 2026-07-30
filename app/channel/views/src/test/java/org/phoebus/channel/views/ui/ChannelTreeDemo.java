@@ -11,6 +11,7 @@ import org.phoebus.channelfinder.XmlChannel;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,15 +40,14 @@ public class ChannelTreeDemo extends ApplicationWrapper {
     private List<Channel> testChannels() throws IOException {
         List<Channel> channels = new ArrayList<>();
 
-
         final ObjectMapper mapper = new ObjectMapper();
-        try {
-            List<XmlChannel> xmlChannels = mapper.readValue(this.getClass().getClassLoader().getResource("testChannels.json"), new TypeReference<List<XmlChannel>>() {
+        try (InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("testChannels.json")) {
+            List<XmlChannel> xmlChannels = mapper.readValue(inputStream, new TypeReference<List<XmlChannel>>() {
             });
             for (XmlChannel xmlchannel : xmlChannels) {
                 channels.add(new Channel(xmlchannel));
             }
-        } catch (IOException ex) {
+        } catch (IOException ignored) {
 
         }
         return channels;

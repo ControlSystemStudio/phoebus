@@ -6,6 +6,7 @@ package org.phoebus.logbook.olog.ui.websocket;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
 import org.junit.jupiter.api.Test;
 import org.phoebus.core.websocket.common.WebSocketMessage;
@@ -14,12 +15,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class LogbookWebSocketMessageDeserializerTest {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
 
     public LogbookWebSocketMessageDeserializerTest() {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(WebSocketMessage.class, new LogbookWebSocketMessageDeserializer(WebSocketMessage.class));
-        objectMapper.registerModule(module);
+        objectMapper = JsonMapper.builder().addModule(module).build();
     }
 
     @Test

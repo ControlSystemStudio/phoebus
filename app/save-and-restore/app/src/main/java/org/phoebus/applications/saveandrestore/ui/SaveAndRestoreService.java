@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.client.Preferences;
@@ -83,7 +84,7 @@ public class SaveAndRestoreService implements WebSocketMessageHandler {
     private final WebSocketClientService webSocketClientService;
     private final List<SaveAndRestoreWebSocketMessageHandler> saveAndRestoreWebSocketMessageHandlers =
             Collections.synchronizedList(new ArrayList<>());
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     private SaveAndRestoreService() {
         saveAndRestoreClient = new SaveAndRestoreClientImpl();
@@ -96,7 +97,7 @@ public class SaveAndRestoreService implements WebSocketMessageHandler {
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         SimpleModule simpleModule = new SimpleModule();
         simpleModule.addDeserializer(WebSocketMessage.class, new SaveAndRestoreWebSocketMessageDeserializer(WebSocketMessage.class));
-        objectMapper.registerModule(simpleModule);
+        objectMapper = JsonMapper.builder().addModule(simpleModule).build();
     }
 
     public static SaveAndRestoreService getInstance() {

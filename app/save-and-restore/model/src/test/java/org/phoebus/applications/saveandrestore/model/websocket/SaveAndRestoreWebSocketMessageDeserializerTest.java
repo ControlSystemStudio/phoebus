@@ -6,6 +6,7 @@ package org.phoebus.applications.saveandrestore.model.websocket;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -14,16 +15,17 @@ import org.phoebus.core.websocket.common.WebSocketMessage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SaveAndRestoreWebSocketMessageDeserializerTest {
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
     public SaveAndRestoreWebSocketMessageDeserializerTest(){
         SimpleModule module = new SimpleModule();
         module.addDeserializer(WebSocketMessage.class, new SaveAndRestoreWebSocketMessageDeserializer(WebSocketMessage.class));
-        mapper.registerModule(module);
+        mapper = JsonMapper.builder()
+                .addModule(module)
+                .build();
     }
 
     @Test
