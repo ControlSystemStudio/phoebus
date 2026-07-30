@@ -75,6 +75,16 @@
       <artifactId>org.eclipse.jgit.ssh.apache</artifactId>
       <version>${jgit.version}</version>
     </dependency>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${tools.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${tools.jackson.version}</version>
+    </dependency>
     <!--JUL bindings for sfl4j-->
     <dependency> 
       <groupId>org.slf4j</groupId>

@@ -72,7 +72,8 @@
     <!-- netscape.javascript jar for the JDK 26+ profiles; versioned separately
          from openjfx as it's only published for 25+. -->
     <jsobject.version>26.0.1</jsobject.version>
-    <jackson.version>2.12.3</jackson.version>
+    <jackson.annotations.version>2.22</jackson.annotations.version>
+    <tools.jackson.version>3.2.1</tools.jackson.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
     <postgresql.driver.version>42.6.2</postgresql.driver.version>
