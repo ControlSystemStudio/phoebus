@@ -2,12 +2,12 @@ package org.phoebus.applications.alarm.messages;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.core.ObjectCodec;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonProcessingException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.core.ObjectCodec;
+import tools.jackson.databind.JsonNode;
 
 import java.time.format.DateTimeFormatter;
 import java.io.IOException;

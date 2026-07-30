@@ -19,11 +19,11 @@
 
 package org.phoebus.logbook.olog.ui;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.JsonSerializer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializerProvider;
+import tools.jackson.databind.module.SimpleModule;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -104,16 +104,16 @@ public class ArchivedLogEntriesManager {
                 if (destinationFile != null) {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
                             .withZone(ZoneId.systemDefault());
-                    JavaTimeModule javaTimeModule = new JavaTimeModule();
+                    SimpleModule instantModule = new SimpleModule();
                     // Since this write to file that someone will read, format time accordingly...
-                    javaTimeModule.addSerializer(Instant.class, new JsonSerializer<>() {
+                    instantModule.addSerializer(Instant.class, new JsonSerializer<>() {
                         @Override
                         public void serialize(Instant value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
                             gen.writeString(formatter.format(value));
                         }
                     });
 
-                    ObjectMapper objectMapper = new ObjectMapper().registerModule(javaTimeModule);
+                    ObjectMapper objectMapper = new ObjectMapper().registerModule(instantModule);
                     BufferedOutputStream writer = null;
                     try {
                         writer = new BufferedOutputStream(new FileOutputStream(destinationFile));

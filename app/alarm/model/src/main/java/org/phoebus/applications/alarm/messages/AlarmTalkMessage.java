@@ -7,7 +7,7 @@ import java.util.logging.Level;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JsonProcessingException;
 
 /** Talk message */
 @JsonInclude(Include.NON_NULL)

@@ -16,7 +16,7 @@ import org.phoebus.applications.alarm.model.EnabledState;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JsonProcessingException;
 
 /**
  * A message which describes both state and configuration events

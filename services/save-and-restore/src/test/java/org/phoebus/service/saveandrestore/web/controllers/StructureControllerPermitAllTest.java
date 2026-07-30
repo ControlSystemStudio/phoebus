@@ -19,7 +19,7 @@
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.Node;

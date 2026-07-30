@@ -5,7 +5,7 @@ import static org.phoebus.applications.alarm.messages.AlarmMessageUtil.objectMap
 
 import java.util.logging.Level;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JsonProcessingException;
 
 /** Alarm detail */
 public class AlarmDetail {

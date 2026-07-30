@@ -3,8 +3,9 @@ package org.phoebus.alarm.logging.rest;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchVersionInfo;
 import co.elastic.clients.elasticsearch.core.InfoResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -43,7 +44,7 @@ public class SearchController {
 
     static final Logger logger = Logger.getLogger(SearchController.class.getName());
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     @Value("${version:1.0.0}")
     private String version;
@@ -76,7 +77,7 @@ public class SearchController {
         alarmLoggingServiceInfo.put("elastic", elasticInfo);
         try {
             return objectMapper.writeValueAsString(alarmLoggingServiceInfo);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             AlarmLoggingService.logger.log(Level.WARNING, "Failed to create Alarm Logging service info resource.", e);
             return "Failed to gather Alarm Logging service info";
         }

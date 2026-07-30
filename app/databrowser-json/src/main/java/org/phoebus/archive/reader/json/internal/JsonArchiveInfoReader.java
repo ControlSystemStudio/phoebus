@@ -8,9 +8,9 @@
 
 package org.phoebus.archive.reader.json.internal;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import tools.jackson.core.JsonParseException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 
 import java.io.IOException;
 import java.util.LinkedList;

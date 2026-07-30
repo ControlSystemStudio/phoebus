@@ -26,9 +26,9 @@ import javax.json.JsonReader;
 
 import org.epics.vtype.VType;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonDeserializer;
 import org.epics.vtype.json.VTypeToJson;
 
 /**

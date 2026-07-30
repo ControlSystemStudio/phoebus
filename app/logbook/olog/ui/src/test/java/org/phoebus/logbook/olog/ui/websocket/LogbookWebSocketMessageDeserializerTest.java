@@ -4,9 +4,9 @@
 
 package org.phoebus.logbook.olog.ui.websocket;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.module.SimpleModule;
 import org.junit.jupiter.api.Test;
 import org.phoebus.core.websocket.common.WebSocketMessage;
 

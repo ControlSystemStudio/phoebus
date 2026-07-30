@@ -3,13 +3,12 @@ package org.phoebus.alarm.logging.rest;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.deser.std.StdDeserializer;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -161,25 +160,30 @@ public class AlarmLogMessage {
         this.enabled = enabled;
     }
 
-    public static class AlarmInstantDeserializer extends JsonDeserializer<Instant> {
+    public static class AlarmInstantDeserializer extends StdDeserializer<Instant> {
 
         private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of("UTC"));
 
         public AlarmInstantDeserializer() {
+            super(Instant.class);
         }
 
         @Override
-        public Instant deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        public Instant deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
             return Instant.from(formatter.parse(p.getText()));
         }
     }
 
-    public static class EnabledFieldDeserializer extends JsonDeserializer<Boolean> {
+    public static class EnabledFieldDeserializer extends StdDeserializer<Boolean> {
 
         private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
+        public EnabledFieldDeserializer() {
+            super(Boolean.class);
+        }
+
         @Override
-        public Boolean deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        public Boolean deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
             String text = p.getText();
             try {
                 return Boolean.parseBoolean(text);

@@ -3,9 +3,9 @@ import java.io.IOException;
 
 import org.phoebus.applications.alarm.model.EnabledState;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializerProvider;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
  * Serializer used for writing varied date string/boolean enabled values
@@ -27,10 +27,10 @@ public class EnabledSerializer extends StdSerializer<EnabledState> {
 
         jgen.writeStartObject();
         if (enabled_state.enabled_date != null) {
-            jgen.writeStringField("enabled", enabled_state.getDateString());
+            jgen.writeStringProperty("enabled", enabled_state.getDateString());
         }
         else {
-            jgen.writeBooleanField("enabled", enabled_state.enabled);
+            jgen.writeBooleanProperty("enabled", enabled_state.enabled);
         }
         jgen.writeEndObject();
     }

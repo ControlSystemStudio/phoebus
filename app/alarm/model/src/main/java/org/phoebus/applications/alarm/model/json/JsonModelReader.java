@@ -29,8 +29,8 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.JsonNode;
 
 /** Read alarm model from JSON
  *  @author Kay Kasemir

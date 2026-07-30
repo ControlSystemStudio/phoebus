@@ -8,11 +8,11 @@
 
 package org.phoebus.archive.reader.json;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
+import tools.jackson.core.JsonFactory;
+import tools.jackson.core.JsonParseException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.json.JsonReadFeature;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;

@@ -13,8 +13,7 @@ import co.elastic.clients.elasticsearch.indices.PutIndexTemplateResponse;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -123,7 +122,6 @@ public class ElasticClientHelper {
             }
             restClient = restClientBuilder.build();
 
-            mapper.registerModule(new JavaTimeModule());
             transport = new RestClientTransport(
                     restClient,
                     new JacksonJsonpMapper(mapper)

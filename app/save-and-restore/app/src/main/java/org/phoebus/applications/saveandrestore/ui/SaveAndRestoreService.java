@@ -18,9 +18,9 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.module.SimpleModule;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.client.Preferences;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;

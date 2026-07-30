@@ -5,9 +5,9 @@ import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonDeserializer;
 
 class UnixTimestampDeserializer extends JsonDeserializer<Instant> {
     Logger logger = Logger.getLogger(UnixTimestampDeserializer.class.getName());

@@ -18,9 +18,9 @@
 
 package org.phoebus.logbook.olog.ui.query;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 

@@ -7,8 +7,8 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.phoebus.applications.alarm.model.EnabledState;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 /** XML Message parser */
 public class MessageParser<T> implements Serializer<T>, Deserializer<T> {

@@ -4,8 +4,8 @@ package org.phoebus.applications.alarm;
 import java.io.IOException;
 import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.messages.EnabledDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 public class EnabledDeserializerTest {
     public static void DeserializerTest() throws IOException {

@@ -4,20 +4,19 @@
 package org.phoebus.olog.es.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonParser.Feature;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonParser.Feature;
+import tools.jackson.core.Version;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonDeserializer;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonSerializer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializerProvider;
+import tools.jackson.databind.module.SimpleAbstractTypeResolver;
+import tools.jackson.databind.module.SimpleModule;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
@@ -36,8 +35,8 @@ import java.util.logging.Logger;
  */
 public class OlogObjectMappers {
 
-    public static ObjectMapper logEntryDeserializer = new ObjectMapper().registerModule(new JavaTimeModule());
-    public static ObjectMapper logEntrySerializer = new ObjectMapper().registerModule(new JavaTimeModule());
+    public static ObjectMapper logEntryDeserializer = new ObjectMapper();
+    public static ObjectMapper logEntrySerializer = new ObjectMapper();
 
     static SimpleModule module = new SimpleModule("CustomModel", Version.unknownVersion());
     static SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
@@ -75,14 +74,14 @@ public class OlogObjectMappers {
         public void serialize(Property value, JsonGenerator gen, SerializerProvider serializers)
                 throws IOException {
             gen.writeStartObject();
-            gen.writeStringField("name", value.getName());
-            gen.writeArrayFieldStart("attributes");
+            gen.writeStringProperty("name", value.getName());
+            gen.writeArrayPropertyStart("attributes");
 
             value.getAttributes().entrySet().stream().forEach(entry -> {
                         try {
                             gen.writeStartObject();
-                            gen.writeStringField("name", entry.getKey());
-                            gen.writeStringField("value", entry.getValue() == null ? "" : entry.getValue());
+                            gen.writeStringProperty("name", entry.getKey());
+                            gen.writeStringProperty("value", entry.getValue() == null ? "" : entry.getValue());
                             gen.writeEndObject();
                         } catch (IOException e) {
                             Logger.getLogger(OlogObjectMappers.class.getName()).log(Level.WARNING, "Failed to serialize property", e);

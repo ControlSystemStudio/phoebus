@@ -1,8 +1,8 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
 import javafx.collections.ObservableMap;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.framework.jobs.Job;

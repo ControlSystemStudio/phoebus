@@ -18,7 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.model.json;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.epics.util.array.CollectionNumbers;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;

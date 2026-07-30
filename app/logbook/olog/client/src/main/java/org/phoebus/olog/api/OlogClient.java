@@ -1,8 +1,8 @@
 package org.phoebus.olog.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;

@@ -1,10 +1,10 @@
 package org.phoebus.alarm.logging.messages;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ser.FilterProvider;
+import tools.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import tools.jackson.databind.ser.impl.SimpleFilterProvider;
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 
