@@ -78,7 +78,7 @@
     <postgresql.driver.version>42.6.2</postgresql.driver.version>
     <!-- When connections to older MySQL server fail because of CLIENT_PLUGIN_AUTH, downgrade to 5.1.45 -->
     <mysql.version>8.4.0</mysql.version>
-    <jetty.version>9.4.30.v20200611</jetty.version>
+    <jetty.version>11.0.26</jetty.version>
     <apache.commons.math.version>3.6.1</apache.commons.math.version>
     <junit.version>5.8.2</junit.version>
     <elasticsearch.version>8.2.0</elasticsearch.version>

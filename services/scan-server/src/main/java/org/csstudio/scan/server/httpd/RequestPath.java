@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.csstudio.scan.server.httpd;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /** Helper for analyzing the request path
  *  @author Kay Kasemir
