@@ -4,7 +4,7 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.core.JsonParser;
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.core.ObjectCodec;
 import tools.jackson.databind.JsonNode;
@@ -39,7 +39,7 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
     }
 
     @Override
-    public EnabledState deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public EnabledState deserialize(JsonParser jp, DeserializationContext ctxt) throws JacksonException {
         ObjectCodec oc = jp.getCodec();
         JsonNode jn = oc.readTree(jp);
 

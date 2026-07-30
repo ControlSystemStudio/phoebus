@@ -7,7 +7,7 @@ import java.util.logging.Level;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import tools.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 /** Talk message */
 @JsonInclude(Include.NON_NULL)
@@ -56,7 +56,7 @@ public class AlarmTalkMessage {
     public String toString() {
         try {
             return objectMapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.log(Level.WARNING, "failed to parse the alarm talk message ", e);
         }
         return "";
