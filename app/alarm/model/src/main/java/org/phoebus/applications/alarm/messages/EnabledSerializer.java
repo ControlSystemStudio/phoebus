@@ -1,10 +1,9 @@
 package org.phoebus.applications.alarm.messages;
-import java.io.IOException;
-
 import org.phoebus.applications.alarm.model.EnabledState;
 
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializerProvider;
+import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
@@ -22,8 +21,8 @@ public class EnabledSerializer extends StdSerializer<EnabledState> {
 
     @Override
     public void serialize(
-        EnabledState enabled_state, JsonGenerator jgen, SerializerProvider provider)
-      throws IOException {
+        EnabledState enabled_state, JsonGenerator jgen, SerializationContext provider)
+      throws JacksonException {
 
         jgen.writeStartObject();
         if (enabled_state.enabled_date != null) {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
 import org.phoebus.applications.alarm.model.EnabledState;
 
@@ -22,21 +23,23 @@ import java.util.List;
 public class AlarmMessageUtil implements Serializable{
 
     // Object mapper for the alarm state messages
-   @JsonIgnore
-    static final ObjectMapper objectStateMapper = new ObjectMapper();
-    static {
-        objectStateMapper.addMixIn(AlarmMessageUtil.class, AlarmStateJsonMessage.class);
-    }
+    @JsonIgnore
+    static final ObjectMapper objectStateMapper = JsonMapper.builder()
+            .addMixIn(AlarmMessageUtil.class, AlarmStateJsonMessage.class)
+            .build();
 
     // Object mapper for the alarm config messages
     @JsonIgnore
-    static final ObjectMapper objectConfigMapper = new ObjectMapper();
-    static {
-        SimpleModule simple_module = new SimpleModule();
-        simple_module.addSerializer(new EnabledSerializer());
+    static final ObjectMapper objectConfigMapper = createConfigMapper();
 
-        objectConfigMapper.registerModule(simple_module);
-        objectConfigMapper.addMixIn(AlarmMessageUtil.class, AlarmConfigJsonMessage.class);
+    private static ObjectMapper createConfigMapper() {
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.addSerializer(new EnabledSerializer());
+
+        return JsonMapper.builder()
+                .addModule(simpleModule)
+                .addMixIn(AlarmMessageUtil.class, AlarmConfigJsonMessage.class)
+                .build();
     }
 
     // Object mapper for all other alarm messages

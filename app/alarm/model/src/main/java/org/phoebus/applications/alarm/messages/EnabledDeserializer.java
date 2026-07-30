@@ -6,7 +6,6 @@ import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationContext;
-import tools.jackson.core.ObjectCodec;
 import tools.jackson.databind.JsonNode;
 
 import java.time.format.DateTimeFormatter;
@@ -30,18 +29,12 @@ public class EnabledDeserializer extends StdDeserializer<EnabledState> {
 
     /** Constructor */
     public EnabledDeserializer() {
-        this(null);
-    }
-
-    /** @param t Initial state */
-    public EnabledDeserializer(Class<EnabledState> t) {
-        super(t);
+        super(EnabledState.class);
     }
 
     @Override
     public EnabledState deserialize(JsonParser jp, DeserializationContext ctxt) throws JacksonException {
-        ObjectCodec oc = jp.getCodec();
-        JsonNode jn = oc.readTree(jp);
+        JsonNode jn = ctxt.readTree(jp);
 
         // use pattern matching to determine whether boolean or datetime string
         if (jn != null) {
