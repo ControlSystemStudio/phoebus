@@ -8,10 +8,11 @@ import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -127,18 +128,18 @@ public class ElasticConfig {
                 clientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
             }
             RestClient httpClient = clientBuilder.build();
-            JacksonJsonpMapper jacksonJsonpMapper = new JacksonJsonpMapper();
             SimpleModule module = new SimpleModule();
             module.addSerializer(VType.class, new VTypeSerializer());
             module.addDeserializer(VType.class, new VTypeDeserializer());
-
-            jacksonJsonpMapper.objectMapper().registerModule(module);
-
+            JsonMapper jsonMapper = JsonMapper.builder()
+                    .addModule(module)
+                    .build();
+            Jackson3JsonpMapper jackson3JsonpMapper = new Jackson3JsonpMapper(jsonMapper);
 
             // Create the Java API Client with the same low level client
             ElasticsearchTransport transport = new RestClientTransport(
                     httpClient,
-                    jacksonJsonpMapper
+                    jackson3JsonpMapper
             );
             client = new ElasticsearchClient(transport);
             // Each ElasticConfig bean (i.e. each Spring context) ensures its own indices and

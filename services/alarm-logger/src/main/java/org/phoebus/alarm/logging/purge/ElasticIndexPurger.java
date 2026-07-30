@@ -83,7 +83,7 @@ public class ElasticIndexPurger {
     public void purgeElasticIndices() {
         try {
             IndicesResponse indicesResponse = elasticsearchClient.cat().indices();
-            List<IndicesRecord> indicesRecords = indicesResponse.valueBody();
+            List<IndicesRecord> indicesRecords = indicesResponse.indices();
             Instant toInstant = Instant.now().minus(retentionPeriod, ChronoUnit.DAYS);
             for (IndicesRecord indicesRecord : indicesRecords) {
                 // Elasticsearch may contain indices other than alarm indices...

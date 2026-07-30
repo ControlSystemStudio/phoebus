@@ -11,7 +11,6 @@ import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.json.JsonData;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -233,15 +232,16 @@ public class AlarmLogSearchUtil {
             //Effectively final
             Instant finalFromInstant = fromInstant;
             Instant finalToInstant = toInstant;
+
             boolQuery.must(
                     Query.of(q -> q
                             .range(RangeQuery.of(r -> r
+                                    .longNumber(n -> n
                                             .field("message_time")
-                                            .gte(JsonData.of(finalFromInstant.toEpochMilli()))
-                                            .lte(JsonData.of(finalToInstant.toEpochMilli()))
-                                            .format("epoch_millis")
+                                            .gte(finalFromInstant.toEpochMilli())
+                                            .lte(finalToInstant.toEpochMilli())
                                     )
-                            )
+                            ))
                     )
             );
 

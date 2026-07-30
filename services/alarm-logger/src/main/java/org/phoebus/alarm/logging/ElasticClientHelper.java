@@ -10,7 +10,7 @@ import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsIndexTemplateRequest;
 import co.elastic.clients.elasticsearch.indices.PutIndexTemplateRequest;
 import co.elastic.clients.elasticsearch.indices.PutIndexTemplateResponse;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import tools.jackson.databind.ObjectMapper;
@@ -25,6 +25,7 @@ import org.elasticsearch.client.sniff.Sniffer;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,7 +73,7 @@ public class ElasticClientHelper {
 
     BlockingQueue<SimpleImmutableEntry<String, AlarmCommandMessage>> commandMessagedQueue = new LinkedBlockingDeque<>();
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final JsonMapper mapper = new JsonMapper();
 
     private ElasticClientHelper() {
         try {
@@ -124,7 +125,7 @@ public class ElasticClientHelper {
 
             transport = new RestClientTransport(
                     restClient,
-                    new JacksonJsonpMapper(mapper)
+                    new Jackson3JsonpMapper(mapper)
             );
             client = new ElasticsearchClient(transport);
             if (props.getProperty("es_sniff").equals("true")) {
@@ -311,7 +312,7 @@ public class ElasticClientHelper {
                             .name(ALARM_STATE_TEMPLATE)
                             .indexPatterns(Arrays.asList(ALARM_STATE_TEMPLATE_PATTERN))
                             .withJson(is)
-                            .priority(1)
+                            .priority(1L)
                             .create(true)
                             .build();
                     PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
@@ -331,7 +332,7 @@ public class ElasticClientHelper {
                             .name(ALARM_CMD_TEMPLATE)
                             .indexPatterns(Arrays.asList(ALARM_CMD_TEMPLATE_PATTERN))
                             .withJson(is)
-                            .priority(2)
+                            .priority(2L)
                             .create(true)
                             .build();
                     PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
@@ -351,7 +352,7 @@ public class ElasticClientHelper {
                             .name(ALARM_CONFIG_TEMPLATE)
                             .indexPatterns(Arrays.asList(ALARM_CONFIG_TEMPLATE_PATTERN))
                             .withJson(is)
-                            .priority(3)
+                            .priority(3L)
                             .create(true)
                             .build();
                     PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
