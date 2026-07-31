@@ -63,6 +63,24 @@
       <artifactId>app-alarm-model</artifactId>
       <version>6.0.0-SNAPSHOT</version>
     </dependency>
+
+    <!-- tools.jackson required for JsonNode usage in AlarmServerMain -->
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${tools.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${tools.jackson.version}</version>
+    </dependency>
+    <!-- Jackson 3.x keeps annotations at com.fasterxml, requires 2.22+ -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.annotations.version}</version>
+    </dependency>
     <!--JUL bindings for sfl4j-->
     <dependency> 
       <groupId>org.slf4j</groupId>

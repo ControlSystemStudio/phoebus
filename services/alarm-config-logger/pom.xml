@@ -85,6 +85,12 @@
       <artifactId>jackson-databind</artifactId>
       <version>${tools.jackson.version}</version>
     </dependency>
+    <!-- Jackson 3.x keeps annotations at com.fasterxml, but requires 2.22+. -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.annotations.version}</version>
+    </dependency>
     <!--JUL bindings for sfl4j-->
     <dependency> 
       <groupId>org.slf4j</groupId>
