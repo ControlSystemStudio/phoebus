@@ -8,6 +8,7 @@
 
 package org.phoebus.archive.reader.json.internal;
 
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
 import tools.jackson.core.exc.StreamReadException;
@@ -138,7 +139,7 @@ public class JsonValueIterator implements ValueIterator {
         // there is an exception, we log it and return false.
         try {
             has_next = hasNextInternal();
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
             close();
             logger.log(
                     Level.SEVERE,

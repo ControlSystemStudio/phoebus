@@ -36,6 +36,8 @@ import java.util.logging.Logger;
 
 public class OlogQueryManager {
 
+    private static final Logger logger = Logger.getLogger(OlogQueryManager.class.getName());
+
     private static OlogQueryManager INSTANCE;
     private List<OlogQuery> ologQueries;
     private Comparator<OlogQuery> ologQueryComparator
@@ -60,7 +62,7 @@ public class OlogQueryManager {
     }
 
     public static OlogQueryManager getInstance(File file) {
-        if (INSTANCE == null) {
+        if (INSTANCE == null || !INSTANCE.ologQueriesFile.equals(file)) {
             INSTANCE = new OlogQueryManager(file);
         }
         return INSTANCE;
@@ -71,14 +73,40 @@ public class OlogQueryManager {
         if(size >= 5 && size <= 30){
             queryListSize = size;
         }
-        if (ologQueriesFile.exists()) {
-            ologQueries = objectMapper.readValue(ologQueriesFile, new TypeReference<>() {
-            });
-        } else {
-            ologQueries = new ArrayList<>();
-            OlogQuery defaultQuery = new OlogQuery(LogbookUIPreferences.default_logbook_query);
-            defaultQuery.setDefaultQuery(true);
-            ologQueries.add(defaultQuery);
+
+        if (!ologQueriesFile.exists() || ologQueriesFile.length() == 0) {
+            initializeWithDefaultQuery(true);
+            return;
+        }
+
+        if (ologQueriesFile.length() > 0) {
+            try {
+                ologQueries = objectMapper.readValue(ologQueriesFile, new TypeReference<>() {
+                });
+                if (ologQueries != null && !ologQueries.isEmpty()) {
+                    return;
+                }
+                // Existing file contained an empty list: keep app behavior consistent by
+                // exposing at least the default query in memory.
+                initializeWithDefaultQuery(false);
+                return;
+            } catch (RuntimeException ex) {
+                logger.log(Level.WARNING, "Failed to read query history, reinitializing defaults", ex);
+                // Keep app usable, but don't overwrite an existing non-empty file automatically.
+                initializeWithDefaultQuery(false);
+                return;
+            }
+        }
+
+        initializeWithDefaultQuery(false);
+    }
+
+    private void initializeWithDefaultQuery(boolean persistToFile) {
+        ologQueries = new ArrayList<>();
+        OlogQuery defaultQuery = new OlogQuery(LogbookUIPreferences.default_logbook_query);
+        defaultQuery.setDefaultQuery(true);
+        ologQueries.add(defaultQuery);
+        if (persistToFile) {
             save();
         }
     }
