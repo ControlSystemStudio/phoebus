@@ -207,6 +207,21 @@
 			<version>${commons.collections.version}</version>
 		</dependency>
 
+		<!-- Apache HTTP Client 5 — Spring Boot 2.7.x BOM pins httpclient5 to 5.1.3
+		     which is missing ConnectionConfig (added in 5.2.0). Rest5ClientBuilder
+		     (elasticsearch-java 9.x) calls ConnectionConfig at startup, so we must
+		     override the BOM version explicitly here. -->
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+			<version>5.2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents.core5</groupId>
+			<artifactId>httpcore5</artifactId>
+			<version>5.2.4</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
