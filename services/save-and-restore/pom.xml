@@ -237,19 +237,23 @@
 			</resource>
 		</resources>
 		<plugins>
-			<!-- The Elasticsearch-backed *IT tests need the IT Spring profile, but
-			     the surefire unit tests rely on the @Profile("!IT") mock configs
-			     (ElasticTestConfig, ControllersTestConfig). Scope the IT profile to
-			     the failsafe (integration-test) fork only, so it is not forced onto
-			     the surefire unit tests. -->
-			<plugin>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<configuration>
-					<systemPropertyVariables>
-						<spring.profiles.active>IT</spring.profiles.active>
-					</systemPropertyVariables>
-				</configuration>
-			</plugin>
+		<!-- The Elasticsearch-backed *IT tests need the IT Spring profile, but
+		     the surefire unit tests rely on the @Profile("!IT") mock configs
+		     (ElasticTestConfig, ControllersTestConfig). Scope the IT profile to
+		     the failsafe (integration-test) fork only, so it is not forced onto
+		     the surefire unit tests. -->
+		<plugin>
+			<artifactId>maven-failsafe-plugin</artifactId>
+			<configuration>
+				<systemPropertyVariables>
+					<spring.profiles.active>IT</spring.profiles.active>
+					<spring.main.allow-bean-definition-overriding>true</spring.main.allow-bean-definition-overriding>
+				</systemPropertyVariables>
+				<additionalClasspathElements>
+					<additionalClasspathElement>${project.build.outputDirectory}</additionalClasspathElement>
+				</additionalClasspathElements>
+			</configuration>
+		</plugin>
 		</plugins>
 	</build>
 
