@@ -7,6 +7,8 @@
   </parent>
   <properties>
     <java.version>21</java.version>
+    <!-- Phase 1: override root spring.boot.version for this module only -->
+    <spring.boot.version>3.5.16</spring.boot.version>
   </properties>
   <artifactId>service-alarm-config-logger</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
@@ -91,8 +93,8 @@
       <artifactId>jackson-annotations</artifactId>
       <version>${jackson.annotations.version}</version>
     </dependency>
-    <!--JUL bindings for sfl4j-->
-    <dependency> 
+    <!--JUL bindings for slf4j -->
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
       <version>1.7.28</version>
