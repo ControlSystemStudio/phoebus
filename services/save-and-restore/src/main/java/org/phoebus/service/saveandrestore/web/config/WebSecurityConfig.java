@@ -11,9 +11,11 @@ import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -277,7 +279,7 @@ public class WebSecurityConfig {
      */
     @Bean
     @ConditionalOnProperty(name = "auth.impl", havingValue = "ad")
-    public AuthenticationManager authenticationProvider() throws Exception {
+    public AuthenticationManager authenticationProvider() {
         ActiveDirectoryLdapAuthenticationProvider adProvider =
                 new ActiveDirectoryLdapAuthenticationProvider(ad_domain, ad_url);
         adProvider.setConvertSubErrorCodesToExceptions(true);
@@ -286,33 +288,24 @@ public class WebSecurityConfig {
         SimpleAuthorityMapper simpleAuthorityMapper = new SimpleAuthorityMapper();
         simpleAuthorityMapper.setConvertToUpperCase(true);
         adProvider.setAuthoritiesMapper(simpleAuthorityMapper);
-        return new AuthenticationManagerBuilder(new ObjectPostProcessor<>() {
-            @Override
-            public <O> O postProcess(O object) {
-                return object;
-            }
-        }).authenticationProvider(adProvider).build();
+        return new ProviderManager(adProvider);
     }
 
     /**
      * Created only if application property auth.impl = demo.
-     * @param auth Injected by Spring
      * @return A {@link AuthenticationManager} object
-     * @throws Exception on error
      */
     @Bean
     @ConditionalOnProperty(name = "auth.impl", havingValue = "demo")
-    public AuthenticationManager demoAuthenticationManager(AuthenticationManagerBuilder auth) throws Exception {
-        return new AuthenticationManagerBuilder(new ObjectPostProcessor<>() {
-            @Override
-            public <O> O postProcess(O object) {
-                return object;
-            }
-        }).inMemoryAuthentication()
-                .passwordEncoder(encoder())
-                .withUser(demoAdmin).password(encoder().encode(demoAdminPassword)).roles(roleAdmin()).and()
-                .withUser(demoUser).password(encoder().encode(demoUserPassword)).roles(roleUser()).and()
-                .withUser(demoReadOnly).password(encoder().encode(demoReadOnlyPassword)).roles().and().and().build();
+    public AuthenticationManager demoAuthenticationManager() {
+        InMemoryUserDetailsManager userDetailsService = new InMemoryUserDetailsManager(
+                User.withUsername(demoAdmin).password(encoder().encode(demoAdminPassword)).roles(roleAdmin()).build(),
+                User.withUsername(demoUser).password(encoder().encode(demoUserPassword)).roles(roleUser()).build(),
+                User.withUsername(demoReadOnly).password(encoder().encode(demoReadOnlyPassword)).roles().build()
+        );
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(encoder());
+        return new ProviderManager(provider);
     }
 
     /**
