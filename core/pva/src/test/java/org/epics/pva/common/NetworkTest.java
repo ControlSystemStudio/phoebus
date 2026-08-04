@@ -131,7 +131,11 @@ public class NetworkTest
             System.out.println("Skipping loopback test");
         else
         {
-            addr = Network.parseAddress("[ff02::42:1]:5099@" + lo.getDisplayName(), PVASettings.EPICS_PVA_BROADCAST_PORT);
+            try {
+                addr = Network.parseAddress("[ff02::42:1]:5099@" + lo.getDisplayName(), PVASettings.EPICS_PVA_BROADCAST_PORT);
+            } catch (Exception ex) {
+                addr = Network.parseAddress("[ff02::42:1]:5099@" + lo.getName(), PVASettings.EPICS_PVA_BROADCAST_PORT);
+            }
             System.out.println(addr);
             assertEquals("ff02:0:0:0:0:0:42:1", addr.getAddress().getHostString());
             assertTrue(addr.getAddress().getAddress().isMulticastAddress());
