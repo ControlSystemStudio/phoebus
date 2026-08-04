@@ -13,6 +13,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.logging.Level;
 
 import org.epics.vtype.VType;
@@ -66,6 +68,9 @@ public class RawSampleIterator extends AbstractRDBValueIterator
             value = null;
         }
     }
+
+    // UTC time zone
+    private static final ZoneId UTC = ZoneId.of("UTC");
 
     /** Get the samples: <code>result_set</code> will have the samples,
      *  <code>value</code> will contain the first sample
@@ -132,8 +137,20 @@ public class RawSampleIterator extends AbstractRDBValueIterator
 
         reader.addForCancellation(sel_samples);
         sel_samples.setInt(1, channel_id);
-        sel_samples.setTimestamp(2, start_stamp);
-        sel_samples.setTimestamp(3, end_stamp);
+
+        if (RDBPreferences.use_utc_in_raw_query)
+        {   // Send a 'local' time stamp, no time zone info, with UTC-based values
+            Timestamp start_utc = Timestamp.valueOf(LocalDateTime.ofInstant(start_stamp.toInstant(), UTC));
+            Timestamp end_utc   = Timestamp.valueOf(LocalDateTime.ofInstant(end_stamp.toInstant(), UTC));
+            sel_samples.setTimestamp(2, start_utc);
+            sel_samples.setTimestamp(3, end_utc);
+        }
+        else
+        {   // Send time stamp that's based on EPOCH.
+            // All but Oracle will properly deal with local/UTC conversions
+            sel_samples.setTimestamp(2, start_stamp);
+            sel_samples.setTimestamp(3, end_stamp);
+        }
         result_set = sel_samples.executeQuery();
         // Get first sample
         if (result_set.next())
