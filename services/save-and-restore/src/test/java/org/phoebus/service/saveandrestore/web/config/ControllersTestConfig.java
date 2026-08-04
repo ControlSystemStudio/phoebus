@@ -43,7 +43,10 @@ import jakarta.servlet.ServletContext;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
 @TestConfiguration
+@EnableWebMvc
 @ComponentScan(basePackages = "org.phoebus.service.saveandrestore.web.controllers")
 @SuppressWarnings("unused")
 @Profile("!IT")
@@ -131,7 +134,9 @@ public class ControllersTestConfig {
 
     @Bean
     public SnapshotUtil snapshotUtil() {
-        return new SnapshotUtil();
+        // Return a mock so tests can stub it with when(...); previously @MockBean was used
+        // but @MockBean was removed in Spring Boot 4.x.
+        return Mockito.mock(SnapshotUtil.class);
     }
 
     @Bean

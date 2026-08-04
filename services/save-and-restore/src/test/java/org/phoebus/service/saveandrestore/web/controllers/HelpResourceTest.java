@@ -20,24 +20,14 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
-import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-@ExtendWith(SpringExtension.class)
-@WebMvcTest(HelpResource.class)
-@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class, WebSecurityConfig.class})})
 @TestPropertySource(locations = "classpath:test_application.properties")
 public class HelpResourceTest{
 
