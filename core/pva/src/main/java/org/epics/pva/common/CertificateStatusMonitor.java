@@ -88,9 +88,6 @@ public class CertificateStatusMonitor
      */
     public synchronized CertificateStatus checkCertStatus(final TLSHandshakeInfo tls_info,final CertificateStatusListener listener)
     {
-        if (!tls_info.status_pv_name.startsWith("CERT:STATUS:"))
-            throw new IllegalArgumentException("Need CERT:STATUS:... PV, got " + tls_info.status_pv_name);
-
         logger.log(Level.FINER, () -> "Checking " + tls_info.status_pv_name + " for '" + tls_info.name + "'");
 
         final CertificateStatus cert_stat = certificate_states.computeIfAbsent(tls_info.status_pv_name,
