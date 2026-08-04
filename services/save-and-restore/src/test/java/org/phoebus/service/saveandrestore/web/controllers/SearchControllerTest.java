@@ -42,9 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.util.LinkedMultiValueMap;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
+import org.springframework.util.MultiValueMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -96,7 +94,7 @@ public class SearchControllerTest {
 
     @Test
     public void testSearchForPVs() {
-        MultivaluedMap<String, List<String>> searchParams = new MultivaluedHashMap<>();
+        MultiValueMap<String, List<String>> searchParams = new LinkedMultiValueMap<>();
         searchParams.put("type", List.of(List.of(NodeType.CONFIGURATION.toString())));
         searchParams.put("pvs", List.of(List.of("abc")));
 

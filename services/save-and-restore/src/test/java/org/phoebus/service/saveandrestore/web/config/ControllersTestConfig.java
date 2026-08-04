@@ -36,10 +36,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.util.Base64Utils;
+import java.util.Base64;
 import org.springframework.web.socket.WebSocketSession;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -111,17 +111,17 @@ public class ControllersTestConfig {
 
     @Bean("userAuthorization")
     public String userAuthorization() {
-        return "Basic " + Base64Utils.encodeToString((demoUser + ":" + demoUserPassword).getBytes());
+        return "Basic " + Base64.getEncoder().encodeToString((demoUser + ":" + demoUserPassword).getBytes());
     }
 
     @Bean("adminAuthorization")
     public String adminAuthorization() {
-        return "Basic " + Base64Utils.encodeToString((demoAdmin + ":" + demoAdminPassword).getBytes());
+        return "Basic " + Base64.getEncoder().encodeToString((demoAdmin + ":" + demoAdminPassword).getBytes());
     }
 
     @Bean("readOnlyAuthorization")
     public String readOnlyAuthorization() {
-        return "Basic " + Base64Utils.encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
+        return "Basic " + Base64.getEncoder().encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
     }
 
     @Bean

@@ -13,8 +13,7 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -30,13 +29,15 @@ import org.springframework.security.ldap.userdetails.PersonContextMapper;
 import org.springframework.security.web.SecurityFilterChain;
 import tools.jackson.databind.json.JsonMapper;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 /**
  * {@link Configuration} class setting up authentication/authorization depending on the
  * auth.impl application property.
  */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 @SuppressWarnings("unused")
 public class WebSecurityConfig {
 
@@ -189,8 +190,8 @@ public class WebSecurityConfig {
     public WebSecurityCustomizer ignoringCustomizer() {
         return web -> {
             // The below lists exceptions for authentication.
-            web.ignoring().antMatchers(HttpMethod.GET, "/**");
-            web.ignoring().antMatchers(HttpMethod.POST, "/**/login*");
+            web.ignoring().requestMatchers(HttpMethod.GET, "/**");
+            web.ignoring().requestMatchers(HttpMethod.POST, "/**/login*");
         };
     }
 
@@ -202,9 +203,9 @@ public class WebSecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-        http.authorizeRequests().anyRequest().authenticated();
-        http.httpBasic();
+        http.csrf(csrf -> csrf.disable());
+        http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+        http.httpBasic(withDefaults());
         return http.build();
     }
 
@@ -255,17 +256,17 @@ public class WebSecurityConfig {
         myAuthPopulator.setGroupSearchFilter(ldap_groups_search_pattern);
         myAuthPopulator.setSearchSubtree(true);
         myAuthPopulator.setIgnorePartialResultException(true);
-        LdapAuthenticationProviderConfigurer configurer = new LdapAuthenticationProviderConfigurer();
-        if (ldap_user_dn_pattern != null && !ldap_user_dn_pattern.isEmpty()) {
-            configurer.userDnPatterns(ldap_user_dn_pattern);
-        }
-        if (ldap_user_search_filter != null && !ldap_user_search_filter.isEmpty()) {
-            configurer.userSearchFilter(ldap_user_search_filter);
-        }
-        if (ldap_user_search_base != null && !ldap_user_search_base.isEmpty()) {
-            configurer.userSearchBase(ldap_user_search_base);
-        }
-        configurer.contextSource(contextSource);
+//        LdapAuthenticationProviderConfigurer configurer = new LdapAuthenticationProviderConfigurer();
+//        if (ldap_user_dn_pattern != null && !ldap_user_dn_pattern.isEmpty()) {
+//            configurer.userDnPatterns(ldap_user_dn_pattern);
+//        }
+//        if (ldap_user_search_filter != null && !ldap_user_search_filter.isEmpty()) {
+//            configurer.userSearchFilter(ldap_user_search_filter);
+//        }
+//        if (ldap_user_search_base != null && !ldap_user_search_base.isEmpty()) {
+//            configurer.userSearchBase(ldap_user_search_base);
+//        }
+//        configurer.contextSource(contextSource);
         return myAuthPopulator;
     }
 
@@ -347,9 +348,7 @@ public class WebSecurityConfig {
      */
     @Bean
     public RoleHierarchy roleHierarchy() {
-        RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
-        hierarchy.setHierarchy("ROLE_" + roleAdmin.toUpperCase() + " > ROLE_" + roleUser.toUpperCase());
-        return hierarchy;
+        return RoleHierarchyImpl.fromHierarchy("ROLE_" + roleAdmin.toUpperCase() + " > ROLE_" + roleUser.toUpperCase());
     }
 
     /**
