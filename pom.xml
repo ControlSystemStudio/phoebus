@@ -110,6 +110,7 @@
           <target>${maven.compiler.target}</target>
           <fork>true</fork>
           <compilerArgs>
+            <arg>-parameters</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
@@ -148,7 +149,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>  
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
