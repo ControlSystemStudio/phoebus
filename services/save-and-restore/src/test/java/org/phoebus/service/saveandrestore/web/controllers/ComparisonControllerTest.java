@@ -24,10 +24,12 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.web.config.ComparisonControllerRealSnapshotUtilTestConfig;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -44,8 +46,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = {ControllersTestConfig.class, WebSecurityConfig.class}, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(
+        classes = {ControllersTestConfig.class, WebSecurityConfig.class},
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        properties = "spring.main.allow-bean-definition-overriding=true")
 @TestPropertySource(locations = "classpath:test_application.properties")
+@Import(ComparisonControllerRealSnapshotUtilTestConfig.class)
 public class ComparisonControllerTest {
 
     @Autowired
@@ -99,7 +105,8 @@ public class ComparisonControllerTest {
         ConfigPv configPv2 = new ConfigPv();
         configPv2.setPvName("loc://y(771.0)");
 
-        when(nodeDAO.getParentNode("nodeId")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId("configId").build());
+        when(nodeDAO.getParentNode("nodeId")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION)
+            .uniqueId("configId").build());
 
         ConfigurationData configurationData = new ConfigurationData();
         configurationData.setUniqueId("configId");
@@ -125,10 +132,13 @@ public class ComparisonControllerTest {
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+
         List<ComparisonResult> compareResults =
-                objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readValue(responseBody,
                         new TypeReference<>() {
                         });
+
         assertEquals(2, compareResults.size());
         compareResults.forEach(cr -> assertTrue(cr.isEqual()));
 
@@ -140,6 +150,7 @@ public class ComparisonControllerTest {
     public void testCompositeSnapshot() throws Exception{
         when(nodeDAO.getNode("nodeId")).
                 thenReturn(Node.builder().uniqueId("nodeId").nodeType(NodeType.COMPOSITE_SNAPSHOT).build());
+
         CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
         compositeSnapshotData.setReferencedSnapshotNodes(List.of("id1", "id2"));
         when(nodeDAO.getCompositeSnapshotData("nodeId")).thenReturn(compositeSnapshotData);
@@ -184,10 +195,13 @@ public class ComparisonControllerTest {
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+
         List<ComparisonResult> compareResults =
-                objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.readValue(responseBody,
                         new TypeReference<>() {
                         });
+
         assertEquals(2, compareResults.size());
         compareResults.forEach(cr -> assertTrue(cr.isEqual()));
 
