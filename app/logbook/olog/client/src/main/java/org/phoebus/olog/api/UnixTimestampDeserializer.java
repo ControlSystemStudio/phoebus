@@ -1,19 +1,23 @@
 package org.phoebus.olog.api;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.deser.std.StdDeserializer;
 
-class UnixTimestampDeserializer extends JsonDeserializer<Instant> {
+class UnixTimestampDeserializer extends StdDeserializer<Instant> {
     Logger logger = Logger.getLogger(UnixTimestampDeserializer.class.getName());
 
+    public UnixTimestampDeserializer() {
+        super(Instant.class);
+    }
+
     @Override
-    public Instant deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public Instant deserialize(JsonParser jp, DeserializationContext ctxt) throws JacksonException {
         String timestamp = jp.getText().trim();
         try {
             return Instant.ofEpochMilli(Long.parseLong(timestamp));

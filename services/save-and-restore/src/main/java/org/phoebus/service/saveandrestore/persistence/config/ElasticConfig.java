@@ -8,20 +8,20 @@ import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.message.BasicHeader;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
+import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5ClientBuilder;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -112,33 +112,37 @@ public class ElasticConfig {
     @Bean({"client"})
     public ElasticsearchClient getClient() {
         if (client == null) {
-            // Create the low-level client
-            RestClientBuilder clientBuilder = RestClient.builder(new HttpHost(host, port, protocol));
+            Rest5ClientBuilder clientBuilder =
+                    Rest5Client.builder(new HttpHost(protocol, host, port));
 
             // Configure authentication
             if (!authorizationHeader.isEmpty()) {
-                clientBuilder.setDefaultHeaders(new Header[] {new BasicHeader("Authorization", authorizationHeader)});
+                clientBuilder.setDefaultHeaders(
+                        new Header[]{new BasicHeader("Authorization", authorizationHeader)});
                 if (!username.isEmpty() || !password.isEmpty()) {
                     logger.warning("elasticsearch.authorization_header is set, ignoring elasticsearch.username and elasticsearch.password.");
                 }
             } else if (!username.isEmpty() || !password.isEmpty()) {
-                final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-                credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
-                clientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+                final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(
+                        new AuthScope(new HttpHost(protocol, host, port)),
+                        new UsernamePasswordCredentials(username, password.toCharArray()));
+                clientBuilder.setHttpClientConfigCallback(
+                        httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
             }
-            RestClient httpClient = clientBuilder.build();
-            JacksonJsonpMapper jacksonJsonpMapper = new JacksonJsonpMapper();
+
+            Rest5Client httpClient = clientBuilder.build();
             SimpleModule module = new SimpleModule();
             module.addSerializer(VType.class, new VTypeSerializer());
             module.addDeserializer(VType.class, new VTypeDeserializer());
+            JsonMapper jsonMapper = JsonMapper.builder()
+                    .addModule(module)
+                    .build();
+            Jackson3JsonpMapper jackson3JsonpMapper = new Jackson3JsonpMapper(jsonMapper);
 
-            jacksonJsonpMapper.objectMapper().registerModule(module);
-
-
-            // Create the Java API Client with the same low level client
-            ElasticsearchTransport transport = new RestClientTransport(
+            ElasticsearchTransport transport = new Rest5ClientTransport(
                     httpClient,
-                    jacksonJsonpMapper
+                    jackson3JsonpMapper
             );
             client = new ElasticsearchClient(transport);
             // Each ElasticConfig bean (i.e. each Spring context) ensures its own indices and

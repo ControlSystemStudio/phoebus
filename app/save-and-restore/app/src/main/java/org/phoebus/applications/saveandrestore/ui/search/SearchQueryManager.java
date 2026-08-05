@@ -18,14 +18,15 @@
 
 package org.phoebus.applications.saveandrestore.ui.search;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
 import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.framework.workbench.Locations;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -39,15 +40,17 @@ public class SearchQueryManager {
     private List<SearchQuery> searchQueries;
     private final Comparator<SearchQuery> searchQueryComparator
             = Comparator.comparing(SearchQuery::getLastUsed).reversed();
-    private final ObjectMapper objectMapper =
-            new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final File searchQueriesFile;
 
     private static final int QUERY_LIST_SIZE = 15;
 
     private SearchQueryManager(File file) {
         searchQueriesFile = file;
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper = JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                .build();
         initialize();
     }
 
@@ -70,7 +73,7 @@ public class SearchQueryManager {
             try {
                 searchQueries = objectMapper.readValue(searchQueriesFile, new TypeReference<>() {
                 });
-            } catch (IOException e) {
+            } catch (Exception e) {
                 //e.g. empty file
                 searchQueries = new ArrayList<>();
             }
@@ -140,7 +143,7 @@ public class SearchQueryManager {
     public void save() {
         try {
             objectMapper.writeValue(searchQueriesFile, searchQueries);
-        } catch (IOException e) {
+        } catch (Exception e) {
             Logger.getLogger(SearchQueryManager.class.getName())
                     .log(Level.WARNING, "Failed to save Olog queries file", e);
         }

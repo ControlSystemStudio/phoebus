@@ -1,7 +1,7 @@
 package org.phoebus.channel.views.ui;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -9,8 +9,11 @@ import javafx.stage.Stage;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.XmlChannel;
 import org.phoebus.ui.javafx.ApplicationWrapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,18 +39,26 @@ public class ChannelTableDemo extends ApplicationWrapper {
         primaryStage.show();
     }
 
-    private List<Channel> testChannels() throws IOException {
+    private List<Channel> testChannels() {
         List<Channel> channels = new ArrayList<>();
 
-        final ObjectMapper mapper = new ObjectMapper();
-        try {
-            List<XmlChannel> xmlChannels = mapper.readValue(this.getClass().getClassLoader().getResource("testChannels.json"), new TypeReference<List<XmlChannel>>() {
-            });
+        final JsonMapper mapper = JsonMapper.builder().build();
+        try (InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("testChannels.json"))
+        {
+            if (inputStream == null) {
+                throw new IllegalStateException("testChannels.json resource not found");
+            }
+            List<XmlChannel> xmlChannels = mapper.readValue(
+                    inputStream.readAllBytes(),
+                    new TypeReference<List<XmlChannel>>() {
+                    }
+            );
             for (XmlChannel xmlchannel : xmlChannels) {
                 channels.add(new Channel(xmlchannel));
             }
-        } catch (IOException ex) {
 
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         return channels;

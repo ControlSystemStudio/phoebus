@@ -11,11 +11,10 @@ import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.json.JsonData;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.phoebus.alarm.logging.AlarmLoggingService;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.util.indexname.IndexNameHelper;
@@ -51,8 +50,7 @@ public class AlarmLogSearchUtil {
     private static final ObjectMapper mapper;
 
     static {
-        mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
+        mapper = JsonMapper.builder().build();
     }
 
     private static final String PV = "pv";
@@ -234,15 +232,16 @@ public class AlarmLogSearchUtil {
             //Effectively final
             Instant finalFromInstant = fromInstant;
             Instant finalToInstant = toInstant;
+
             boolQuery.must(
                     Query.of(q -> q
                             .range(RangeQuery.of(r -> r
+                                    .longNumber(n -> n
                                             .field("message_time")
-                                            .gte(JsonData.of(finalFromInstant.toEpochMilli()))
-                                            .lte(JsonData.of(finalToInstant.toEpochMilli()))
-                                            .format("epoch_millis")
+                                            .gte(finalFromInstant.toEpochMilli())
+                                            .lte(finalToInstant.toEpochMilli())
                                     )
-                            )
+                            ))
                     )
             );
 
@@ -282,7 +281,7 @@ public class AlarmLogSearchUtil {
                 JsonNode jsonNode = hit.source();
                 try {
                     return mapper.treeToValue(jsonNode, AlarmLogMessage.class);
-                } catch (JsonProcessingException e) {
+                } catch (JacksonException e) {
                     logger.log(Level.SEVERE, "Failed to parse the searched alarm log messages. " + hit, e);
                 }
                 return null;
@@ -329,7 +328,7 @@ public class AlarmLogSearchUtil {
                 JsonNode jsonNode = hit.source();
                 try {
                     return mapper.treeToValue(jsonNode, AlarmLogMessage.class);
-                } catch (JsonProcessingException e) {
+                } catch (JacksonException e) {
                     logger.log(Level.SEVERE, "Failed to parse the searched alarm config messages. " + hit, e);
                 }
                 return null;

@@ -20,20 +20,17 @@
       <version>1.3</version>
       <scope>test</scope>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-core -->
     <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-core</artifactId>
-        <version>${jackson.version}</version>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${tools.jackson.version}</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind -->
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
+      <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
-      <version>${jackson.version}</version>
+      <version>${tools.jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>

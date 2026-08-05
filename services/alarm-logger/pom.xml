@@ -7,7 +7,6 @@
   </parent>
   <properties>
     <java.version>21</java.version>
-    <elasticsearch.version>8.2.0</elasticsearch.version>
   </properties>
   <artifactId>service-alarm-logger</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
@@ -72,14 +71,14 @@
       <version>${elasticsearch.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
+      <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
+      <version>${tools.jackson.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
+      <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>${jackson.version}</version>
+      <version>${tools.jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>jakarta.json</groupId>
@@ -89,12 +88,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
-      <version>${jackson.version}</version>
+      <version>${jackson.annotations.version}</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>

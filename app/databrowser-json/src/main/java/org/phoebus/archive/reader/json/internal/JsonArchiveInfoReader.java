@@ -8,11 +8,11 @@
 
 package org.phoebus.archive.reader.json.internal;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,26 +46,32 @@ public final class JsonArchiveInfoReader {
      *
      * @param parser JSON parser from which the tokens are read.
      * @return list representing the parsed JSON array.
-     * @throws IOException
+     * @throws JacksonException
      *  if the JSON data is malformed or there is an I/O problem.
      */
     public static List<ArchiveInfo> readArchiveInfos(JsonParser parser)
-            throws IOException {
+            throws JacksonException {
         var token = parser.currentToken();
         if (token == null) {
-            throw new IOException("Unexpected end of stream.");
+            throw new StreamReadException(
+                    parser,
+                    "Unexpected end of stream.",
+                    parser.currentTokenLocation());
         }
         if (token != JsonToken.START_ARRAY) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected START_ARRAY but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         final var archive_infos = new LinkedList<ArchiveInfo>();
         while (true) {
             token = parser.nextToken();
             if (token == null) {
-                throw new IOException("Unexpected end of stream.");
+                throw new StreamReadException(
+                        parser,
+                        "Unexpected end of stream.",
+                        parser.currentTokenLocation());
             }
             if (token == JsonToken.END_ARRAY) {
                 break;
@@ -79,23 +85,23 @@ public final class JsonArchiveInfoReader {
             final JsonParser parser,
             final String field_name,
             final Object field_value)
-            throws JsonParseException {
+            throws StreamReadException {
         if (field_value != null) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Field \"" + field_name + "\" occurs twice.",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
     }
 
     private static ArchiveInfo readArchiveInfo(JsonParser parser)
-            throws IOException {
-        JsonToken token = parser.getCurrentToken();
+            throws JacksonException {
+        JsonToken token = parser.currentToken();
         if (token != JsonToken.START_OBJECT) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected START_OBJECT but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         Integer archive_key = null;
         String archive_name = null;
@@ -104,20 +110,23 @@ public final class JsonArchiveInfoReader {
         while (true) {
             token = parser.nextToken();
             if (token == null) {
-                throw new IOException("Unexpected end of stream.");
+                throw new StreamReadException(
+                        parser,
+                        "Unexpected end of stream.",
+                        parser.currentTokenLocation());
             }
             if (token == JsonToken.END_OBJECT) {
                 break;
             }
             if (field_name == null) {
-                if (token == JsonToken.FIELD_NAME) {
-                    field_name = parser.getCurrentName();
+                if (token == JsonToken.PROPERTY_NAME) {
+                    field_name = parser.currentName();
                     continue;
                 } else {
-                    throw new JsonParseException(
+                    throw new StreamReadException(
                             parser,
-                            "Expected FIELD_NAME but got " + token,
-                            parser.getTokenLocation());
+                            "Expected PROPERTY_NAME but got " + token,
+                            parser.currentTokenLocation());
                 }
             }
             switch (field_name) {
@@ -134,47 +143,47 @@ public final class JsonArchiveInfoReader {
                     duplicateFieldIfNotNull(parser, field_name, archive_name);
                     archive_name = readStringValue(parser);
                 }
-                default -> throw new JsonParseException(
+                default -> throw new StreamReadException(
                         parser,
                         "Found unknown field \"" + field_name + "\".",
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             field_name = null;
         }
         if (archive_description == null
                 || archive_key == null
                 || archive_name == null) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Mandatory field is missing in object.",
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         return new ArchiveInfo(archive_description, archive_key, archive_name);
     }
 
     private static int readIntValue(final JsonParser parser)
-            throws IOException {
-        final var token = parser.getCurrentToken();
+            throws JacksonException {
+        final var token = parser.currentToken();
         if (token != JsonToken.VALUE_NUMBER_INT) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected VALUE_NUMBER_INT but got "
                             + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         return parser.getIntValue();
     }
 
     private static String readStringValue(final JsonParser parser)
-            throws IOException {
+            throws JacksonException {
         final var token = parser.currentToken();
         if (token != JsonToken.VALUE_STRING) {
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected VALUE_STRING but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
-        return parser.getText();
+        return parser.getString();
     }
 
 }

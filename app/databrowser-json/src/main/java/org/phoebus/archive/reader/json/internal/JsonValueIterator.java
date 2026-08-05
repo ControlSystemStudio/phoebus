@@ -8,9 +8,10 @@
 
 package org.phoebus.archive.reader.json.internal;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.exc.StreamReadException;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.reader.json.JsonArchiveReader;
@@ -91,10 +92,10 @@ public class JsonValueIterator implements ValueIterator {
         }
         if (token != JsonToken.START_ARRAY) {
             // The server response is malformed, so we cannot continue.
-            throw new JsonParseException(
+            throw new StreamReadException(
                     parser,
                     "Expected START_ARRAY but got " + token,
-                    parser.getTokenLocation());
+                    parser.currentTokenLocation());
         }
         // We try to read the first sample. If that sample is malformed, the
         // exception is raised before an iterator is even returned. If it is
@@ -138,7 +139,7 @@ public class JsonValueIterator implements ValueIterator {
         // there is an exception, we log it and return false.
         try {
             has_next = hasNextInternal();
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
             close();
             logger.log(
                     Level.SEVERE,
@@ -194,10 +195,10 @@ public class JsonValueIterator implements ValueIterator {
             // There should be no data after the end of the array.
             final var next_token = parser.nextToken();
             if (next_token != null) {
-                throw new JsonParseException(
+                throw new StreamReadException(
                         parser,
                         "Expected end-of-stream but found " + next_token + ".",
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             return false;
         }

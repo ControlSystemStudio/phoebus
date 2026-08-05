@@ -19,16 +19,16 @@
 package org.phoebus.applications.saveandrestore.model.json;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 import javax.json.Json;
 import javax.json.JsonReader;
 
 import org.epics.vtype.VType;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.deser.std.StdDeserializer;
 import org.epics.vtype.json.VTypeToJson;
 
 /**
@@ -36,21 +36,31 @@ import org.epics.vtype.json.VTypeToJson;
  * @author georgweiss
  * Created 30 Nov 2018
  */
-public class VTypeDeserializer extends JsonDeserializer<VType> {
-	
+public class VTypeDeserializer extends StdDeserializer<VType> {
+
+	public VTypeDeserializer() {
+		super(VType.class);
+	}
+
 	@Override 
     public VType deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
-            throws IOException {
-		String valueAsJson = jsonParser.getCodec().readTree(jsonParser).toString();
-		JsonReader jsonReader = null;
+            throws JacksonException {
 		try {
-			jsonReader = Json.createReader(new ByteArrayInputStream(valueAsJson.getBytes()));
-			return VTypeToJson.toVType(jsonReader.readObject());
-		} 
-		finally {
-			if(jsonReader != null) {
-				jsonReader.close();
+			String valueAsJson = deserializationContext.readTree(jsonParser).toString();
+			JsonReader jsonReader = null;
+			try {
+				jsonReader = Json.createReader(new ByteArrayInputStream(valueAsJson.getBytes()));
+				return VTypeToJson.toVType(jsonReader.readObject());
 			}
+			finally {
+				if(jsonReader != null) {
+					jsonReader.close();
+				}
+			}
+		} catch (JacksonException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
     }
 }

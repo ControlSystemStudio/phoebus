@@ -8,11 +8,12 @@
 
 package org.phoebus.archive.reader.json;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.StreamReadFeature;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
@@ -134,12 +135,13 @@ public class JsonArchiveReader implements ArchiveReader {
         this.cleaner = Cleaner.create();
         this.http_url = http_url;
         this.iterators = new WeakHashMap<>();
-        this.json_factory = JsonFactory.builder()
-                .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS).build();
         // We want to ensure that the underlying input stream is closed when
         // closing a parser. This should be the default, but it is better to be
         // sure.
-        this.json_factory.enable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+        this.json_factory = JsonFactory.builder()
+                .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS)
+                .enable(StreamReadFeature.AUTO_CLOSE_SOURCE)
+                .build();
         this.key = key;
         this.preferences = Objects.requireNonNull(preferences);
         // We have to initialize most fields before we can retrieve the
@@ -180,10 +182,10 @@ public class JsonArchiveReader implements ArchiveReader {
                 throw new IOException("Unexpected end of stream.");
             }
             if (token != JsonToken.START_ARRAY) {
-                throw new JsonParseException(
+                throw new StreamReadException(
                         parser,
                         "Expected START_ARRAY but got " + token,
-                        parser.getTokenLocation());
+                        parser.currentTokenLocation());
             }
             final var channel_names = new LinkedList<String>();
             while (true) {
@@ -195,13 +197,13 @@ public class JsonArchiveReader implements ArchiveReader {
                     break;
                 }
                 if (token == JsonToken.VALUE_STRING) {
-                    String channel_name = parser.getText();
+                    String channel_name = parser.getString();
                     channel_names.add(channel_name);
                 } else {
-                    throw new JsonParseException(
+                    throw new StreamReadException(
                             parser,
                             "Expected VALUE_STRING but got " + token,
-                            parser.getTokenLocation());
+                            parser.currentTokenLocation());
                 }
             }
             return channel_names;
@@ -295,7 +297,7 @@ public class JsonArchiveReader implements ArchiveReader {
         final var input_stream = doGet(url);
         try {
             return json_factory.createParser(input_stream);
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             // If we could not create the parser, we have to close the input
             // stream. Otherwise, the input stream is going to be closed when
             // the parser is closed.
@@ -359,18 +361,14 @@ public class JsonArchiveReader implements ArchiveReader {
         // first token.
         try {
             parser.nextToken();
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             parser.close();
             throw e;
         }
         // Prepare the cleanup action. This action is executed when the
         // iterator is closed or garbage collected.
         final Runnable iterator_cleanup_action = () -> {
-            try {
-                parser.close();
-            } catch (IOException e) {
-                // We ignore an exception that happens on cleanup.
-            }
+            parser.close();
         };
         // Create an iterator based on the JSON parser.
         try {
@@ -395,7 +393,7 @@ public class JsonArchiveReader implements ArchiveReader {
                 iterator.close();
             }
             return iterator;
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             // If we cannot create the iterator, we have to close the parser
             // now. First, it is not going to be used for anything else.
             // Second, the iterator does not exist, so it will not be closed

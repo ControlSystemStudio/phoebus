@@ -1,7 +1,7 @@
 package org.phoebus.applications.queueserver.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 import org.phoebus.applications.queueserver.api.HistoryGetPayload;
 import org.phoebus.applications.queueserver.api.QueueItem;
 import org.phoebus.applications.queueserver.api.QueueItemAddBatch;
@@ -457,12 +457,7 @@ public final class RePlanHistoryController implements Initializable {
             
     private static final class PlanHistorySaver {
 
-        private static final ObjectMapper JSON =
-                (ObjectMapper) new ObjectMapper()
-                        .writerWithDefaultPrettyPrinter()
-                        .withDefaultPrettyPrinter()
-                        .getFactory()
-                        .getCodec();
+        private static final ObjectMapper JSON = new ObjectMapper();
 
         private static final DateTimeFormatter TS =
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")

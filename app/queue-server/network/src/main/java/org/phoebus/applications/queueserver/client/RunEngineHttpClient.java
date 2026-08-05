@@ -1,17 +1,17 @@
 package org.phoebus.applications.queueserver.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.phoebus.applications.queueserver.api.*;
 import org.phoebus.applications.queueserver.api.Envelope;
 import org.phoebus.applications.queueserver.api.EverythingElse.Arbitrary;
 import org.phoebus.applications.queueserver.api.NoBody;
 import org.phoebus.applications.queueserver.util.HttpSupport;
 import org.phoebus.applications.queueserver.util.RateLimiter;
-
 import java.net.URI;
 import java.net.http.*;
 import java.time.Duration;
@@ -42,13 +42,18 @@ public final class RunEngineHttpClient {
     }
 
     private final HttpClient http;
-    private final ObjectMapper mapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);;
+    private final ObjectMapper mapper = createMapper();
     private final String base;
     private final String apiKey;
     private final RateLimiter limiter;
     private static final Logger logger = HttpSupport.logger;
+
+    private static ObjectMapper createMapper() {
+        return JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                .build();
+    }
 
     private RunEngineHttpClient(String baseUrl, String apiKey, double permitsPerSecond) {
         this.http = HttpClient.newBuilder()
@@ -81,7 +86,7 @@ public final class RunEngineHttpClient {
         {
             try {
                 return (type == Void.class) ? null : mapper.readValue(rsp.body(), type);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -102,7 +107,7 @@ public final class RunEngineHttpClient {
         return executeWithRetry(req, api, rsp -> {
             try {
                 return mapper.readValue(rsp.body(), type);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -160,7 +165,7 @@ public final class RunEngineHttpClient {
                     String msg = String.valueOf(map.getOrDefault("msg", "(no msg)"));
                     throw new RequestFailedException(api, msg);
                 }
-            } catch (JsonProcessingException ignore) {
+            } catch (JacksonException ignore) {
                 /* response isn't a generic object, that's fine (e.g. plain "OK") */
             }
         } else if (rsp.statusCode() < 500) {

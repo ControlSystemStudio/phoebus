@@ -14,7 +14,6 @@
 
 	<properties>
 		<commons.collections.version>4.4</commons.collections.version>
-		<elasticsearch.version>8.2.0</elasticsearch.version>
 	</properties>
 
 	<dependencyManagement>
@@ -107,6 +106,27 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- tools.jackson.core and jackson-databind for Jackson 3.x -->
+		<dependency>
+			<groupId>tools.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${tools.jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>tools.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${tools.jackson.version}</version>
+		</dependency>
+
+		<!-- Jackson 3.x keeps annotations at com.fasterxml, but requires 2.22+.
+		     Override Spring Boot BOM's older version explicitly. -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson.annotations.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
@@ -187,6 +207,26 @@
 			<version>${commons.collections.version}</version>
 		</dependency>
 
+		<!-- Apache HTTP Client 5 — Spring Boot 2.7.x BOM pins httpclient5 to 5.1.3
+		     which is missing ConnectionConfig (added in 5.2.0). Rest5ClientBuilder
+		     (elasticsearch-java 9.x) calls ConnectionConfig at startup, so we must
+		     override the BOM version explicitly here. -->
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+			<version>5.2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents.core5</groupId>
+			<artifactId>httpcore5</artifactId>
+			<version>5.2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents.core5</groupId>
+			<artifactId>httpcore5-h2</artifactId>
+			<version>5.2.4</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -197,19 +237,23 @@
 			</resource>
 		</resources>
 		<plugins>
-			<!-- The Elasticsearch-backed *IT tests need the IT Spring profile, but
-			     the surefire unit tests rely on the @Profile("!IT") mock configs
-			     (ElasticTestConfig, ControllersTestConfig). Scope the IT profile to
-			     the failsafe (integration-test) fork only, so it is not forced onto
-			     the surefire unit tests. -->
-			<plugin>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<configuration>
-					<systemPropertyVariables>
-						<spring.profiles.active>IT</spring.profiles.active>
-					</systemPropertyVariables>
-				</configuration>
-			</plugin>
+		<!-- The Elasticsearch-backed *IT tests need the IT Spring profile, but
+		     the surefire unit tests rely on the @Profile("!IT") mock configs
+		     (ElasticTestConfig, ControllersTestConfig). Scope the IT profile to
+		     the failsafe (integration-test) fork only, so it is not forced onto
+		     the surefire unit tests. -->
+		<plugin>
+			<artifactId>maven-failsafe-plugin</artifactId>
+			<configuration>
+				<systemPropertyVariables>
+					<spring.profiles.active>IT</spring.profiles.active>
+					<spring.main.allow-bean-definition-overriding>true</spring.main.allow-bean-definition-overriding>
+				</systemPropertyVariables>
+				<additionalClasspathElements>
+					<additionalClasspathElement>${project.build.outputDirectory}</additionalClasspathElement>
+				</additionalClasspathElements>
+			</configuration>
+		</plugin>
 		</plugins>
 	</build>
 

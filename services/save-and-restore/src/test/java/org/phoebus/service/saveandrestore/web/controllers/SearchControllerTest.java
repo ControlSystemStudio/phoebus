@@ -20,7 +20,7 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import co.elastic.clients.elasticsearch.core.SearchRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
