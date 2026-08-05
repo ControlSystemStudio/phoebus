@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 
 # deployment unit
 COPY target/service-alarm-logger-*.jar /alarmlogger/service-alarm-logger-*.jar

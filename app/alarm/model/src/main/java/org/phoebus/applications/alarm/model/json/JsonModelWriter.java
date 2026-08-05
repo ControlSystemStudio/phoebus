@@ -20,8 +20,8 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ObjectMapper;
 
 /** Write alarm model as JSON
  *  @author Kay Kasemir
@@ -51,38 +51,38 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             jg.writeStartObject();
-            jg.writeStringField(JsonTags.SEVERITY, state.severity.name());
+            jg.writeStringProperty(JsonTags.SEVERITY, state.severity.name());
             if (state instanceof AlarmState)
             {
                 final AlarmState as = (AlarmState) state;
                 if (as.isLatched())
-                    jg.writeBooleanField(JsonTags.LATCH, true);
+                    jg.writeBooleanProperty(JsonTags.LATCH, true);
             }
             if (state instanceof ClientState)
             {
                 final ClientState as = (ClientState) state;
-                jg.writeStringField(JsonTags.MESSAGE, as.message);
-                jg.writeStringField(JsonTags.VALUE, as.value);
+                jg.writeStringProperty(JsonTags.MESSAGE, as.message);
+                jg.writeStringProperty(JsonTags.VALUE, as.value);
                 {
-                    jg.writeObjectFieldStart(JsonTags.TIME);
-                    jg.writeNumberField(JsonTags.SECONDS, as.time.getEpochSecond());
-                    jg.writeNumberField(JsonTags.NANO, as.time.getNano());
+                    jg.writeObjectPropertyStart(JsonTags.TIME);
+                    jg.writeNumberProperty(JsonTags.SECONDS, as.time.getEpochSecond());
+                    jg.writeNumberProperty(JsonTags.NANO, as.time.getNano());
                     jg.writeEndObject();
                 }
-                jg.writeStringField(JsonTags.CURRENT_SEVERITY, as.current_severity.name());
-                jg.writeStringField(JsonTags.CURRENT_MESSAGE, as.current_message);
+                jg.writeStringProperty(JsonTags.CURRENT_SEVERITY, as.current_severity.name());
+                jg.writeStringProperty(JsonTags.CURRENT_MESSAGE, as.current_message);
             }
             if (maintenance_mode)
             {
-                jg.writeStringField(JsonTags.MODE, JsonTags.MAINTENANCE);
+                jg.writeStringProperty(JsonTags.MODE, JsonTags.MAINTENANCE);
             }
 	    if (disable_notify)
             {
-                jg.writeBooleanField(JsonTags.NOTIFY, false);
+                jg.writeBooleanProperty(JsonTags.NOTIFY, false);
             }
             jg.writeEndObject();
         }
@@ -112,13 +112,13 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             jg.writeStartObject();
 
-            jg.writeStringField(JsonTags.USER, IdentificationHelper.getUser());
-            jg.writeStringField(JsonTags.HOST, IdentificationHelper.getHost());
+            jg.writeStringProperty(JsonTags.USER, IdentificationHelper.getUser());
+            jg.writeStringProperty(JsonTags.HOST, IdentificationHelper.getHost());
 
             if (item instanceof AlarmTreeLeaf)
                 writeLeafDetail(jg, (AlarmTreeLeaf) item);
@@ -135,26 +135,26 @@ public class JsonModelWriter
 
     private static void writeLeafDetail(final JsonGenerator jg, final AlarmTreeLeaf item) throws Exception
     {
-        jg.writeStringField(JsonTags.DESCRIPTION, item.getDescription());
+        jg.writeStringProperty(JsonTags.DESCRIPTION, item.getDescription());
 
         // if not enabled and not an enabled date, set false
         if ((! item.isEnabled()) && ( item.getEnabledDate() == null)) {
-            jg.writeBooleanField(JsonTags.ENABLED, false);
+            jg.writeBooleanProperty(JsonTags.ENABLED, false);
         }
         // if enabled date is populated, write string field
         if ( item.getEnabledDate() != null) {
-            jg.writeStringField(JsonTags.ENABLED, item.getEnabled().toString());
+            jg.writeStringProperty(JsonTags.ENABLED, item.getEnabled().toString());
         }
         if (! item.isLatching())
-            jg.writeBooleanField(JsonTags.LATCHING, false);
+            jg.writeBooleanProperty(JsonTags.LATCHING, false);
         if (! item.isAnnunciating())
-            jg.writeBooleanField(JsonTags.ANNUNCIATING, false);
+            jg.writeBooleanProperty(JsonTags.ANNUNCIATING, false);
         if (item.getDelay() > 0)
-            jg.writeNumberField(JsonTags.DELAY, item.getDelay());
+            jg.writeNumberProperty(JsonTags.DELAY, item.getDelay());
         if (item.getCount() > 0)
-            jg.writeNumberField(JsonTags.COUNT, item.getCount());
+            jg.writeNumberProperty(JsonTags.COUNT, item.getCount());
         if (! item.getFilter().isEmpty())
-            jg.writeStringField(JsonTags.FILTER, item.getFilter());
+            jg.writeStringProperty(JsonTags.FILTER, item.getFilter());
     }
 
     private static void writeTitleDetail(final JsonGenerator jg, final String name, final List<TitleDetail> infos) throws Exception
@@ -162,12 +162,12 @@ public class JsonModelWriter
         if (infos.isEmpty())
             return;
 
-        jg.writeArrayFieldStart(name);
+        jg.writeArrayPropertyStart(name);
         for (TitleDetail info : infos)
         {
             jg.writeStartObject();
-            jg.writeStringField(JsonTags.TITLE, info.title);
-            jg.writeStringField(JsonTags.DETAILS, info.detail);
+            jg.writeStringProperty(JsonTags.TITLE, info.title);
+            jg.writeStringProperty(JsonTags.DETAILS, info.detail);
             jg.writeEndObject();
         }
         jg.writeEndArray();
@@ -178,14 +178,14 @@ public class JsonModelWriter
         if (infos.isEmpty())
             return;
 
-        jg.writeArrayFieldStart(name);
+        jg.writeArrayPropertyStart(name);
         {
             for (TitleDetailDelay info : infos)
             {
                 jg.writeStartObject();
-                jg.writeStringField(JsonTags.TITLE, info.title);
-                jg.writeStringField(JsonTags.DETAILS, info.detail);
-                jg.writeNumberField(JsonTags.DELAY, info.delay);
+                jg.writeStringProperty(JsonTags.TITLE, info.title);
+                jg.writeStringProperty(JsonTags.DETAILS, info.detail);
+                jg.writeNumberProperty(JsonTags.DELAY, info.delay);
                 jg.writeEndObject();
             }
         }
@@ -204,13 +204,13 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             jg.writeStartObject();
-            jg.writeStringField(JsonTags.USER, IdentificationHelper.getUser());
-            jg.writeStringField(JsonTags.HOST, IdentificationHelper.getHost());
-            jg.writeStringField(JsonTags.COMMAND, cmd);
+            jg.writeStringProperty(JsonTags.USER, IdentificationHelper.getUser());
+            jg.writeStringProperty(JsonTags.HOST, IdentificationHelper.getHost());
+            jg.writeStringProperty(JsonTags.COMMAND, cmd);
             jg.writeEndObject();
         }
         return buf.toByteArray();
@@ -257,13 +257,13 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             jg.writeStartObject();
-            jg.writeBooleanField(JsonTags.STANDOUT, standout);
-            jg.writeStringField(JsonTags.SEVERITY, severity.toString());
-            jg.writeStringField(JsonTags.TALK, message);
+            jg.writeBooleanProperty(JsonTags.STANDOUT, standout);
+            jg.writeStringProperty(JsonTags.SEVERITY, severity.toString());
+            jg.writeStringProperty(JsonTags.TALK, message);
             jg.writeEndObject();
         }
         return buf.toString();
@@ -278,7 +278,7 @@ public class JsonModelWriter
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try
         (
-            JsonGenerator jg = mapper.getFactory().createGenerator(buf);
+            JsonGenerator jg = mapper.tokenStreamFactory().createGenerator(buf);
         )
         {
             final String user = IdentificationHelper.getUser();
@@ -287,11 +287,12 @@ public class JsonModelWriter
             final String msg  = "Deleting";
 
             jg.writeStartObject();
-            jg.writeStringField(JsonTags.USER, user);
-            jg.writeStringField(JsonTags.HOST, host);
-            jg.writeStringField(JsonTags.DELETE, msg);
+            jg.writeStringProperty(JsonTags.USER, user);
+            jg.writeStringProperty(JsonTags.HOST, host);
+            jg.writeStringProperty(JsonTags.DELETE, msg);
             jg.writeEndObject();
         }
         return buf.toByteArray();
     }
 }
+

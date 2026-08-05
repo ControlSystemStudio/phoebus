@@ -7,8 +7,9 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.phoebus.applications.alarm.model.EnabledState;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 /** XML Message parser */
 public class MessageParser<T> implements Serializer<T>, Deserializer<T> {
@@ -26,7 +27,7 @@ public class MessageParser<T> implements Serializer<T>, Deserializer<T> {
         SimpleModule simple_module = new SimpleModule();
         simple_module.addSerializer(EnabledState.class, new EnabledSerializer());
         simple_module.addDeserializer(EnabledState.class, new EnabledDeserializer());
-        objectMapper.registerModule(simple_module);
+        objectMapper = JsonMapper.builder().addModule(simple_module).build();
     }
 
     @Override

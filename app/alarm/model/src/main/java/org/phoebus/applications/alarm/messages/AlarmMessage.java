@@ -16,7 +16,7 @@ import org.phoebus.applications.alarm.model.EnabledState;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 /**
  * A message which describes both state and configuration events
@@ -417,9 +417,9 @@ public class AlarmMessage implements Serializable{
     /**
      * @return json string representation of this object
      *
-     * @throws JsonProcessingException on error
+     * @throws JacksonException on error
      */
-    public String toJson() throws JsonProcessingException {
+    public String toJson() throws JacksonException {
         if (isConfig()) {
             return objectConfigMapper.writeValueAsString(this);
         } else if (isState()){
@@ -433,7 +433,7 @@ public class AlarmMessage implements Serializable{
     public String toString() {
         try {
             return toJson();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.log(Level.WARNING, "failed to parse the alarm message ", e);
         }
         return "";

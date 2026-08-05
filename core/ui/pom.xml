@@ -38,6 +38,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.testfx</groupId>
+      <artifactId>openjfx-monocle</artifactId>
+      <version>21.0.2</version>
+      <scope>test</scope>
+    </dependency>
     <!-- Include all JavaFX modules so single dependency
          on core-ui will provide all that's needed
       -->
