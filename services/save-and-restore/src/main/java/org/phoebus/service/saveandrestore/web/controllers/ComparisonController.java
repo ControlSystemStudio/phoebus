@@ -61,7 +61,7 @@ public class ComparisonController extends BaseController {
      * comparison evaluates to &quot;equal&quot; for a PV.
      */
     @GetMapping(value = "/{nodeId}", produces = JSON)
-    public List<ComparisonResult> compare(@PathVariable String nodeId,
+    public List<ComparisonResult> compare(@PathVariable("nodeId") String nodeId,
                                           @RequestParam(value = "tolerance", required = false, defaultValue = "0") double tolerance,
                                           @RequestParam(value = "compareMode", required = false, defaultValue = "ABSOLUTE") ComparisonMode compareMode,
                                           @RequestParam(value = "skipReadback", required = false, defaultValue = "false") boolean skipReadback) {

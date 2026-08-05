@@ -65,7 +65,7 @@ public class HelpResource {
     @SuppressWarnings("unused")
     @GetMapping(value = "{what}", produces = CONTENT_TYPE)
     public String getHelpContent(@RequestParam(name = "lang", required = false) String lang,
-                                 @PathVariable String what,
+                                 @PathVariable("what") String what,
                                  HttpServletRequest request) {
         String language = determineLang(lang, request);
         String content;
