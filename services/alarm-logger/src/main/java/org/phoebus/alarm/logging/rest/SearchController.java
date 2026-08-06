@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -98,7 +98,8 @@ public class SearchController {
     })
     @RequestMapping(value = "/search/alarm", method = RequestMethod.GET)
     public List<AlarmLogMessage> search(@Parameter(hidden = true) @RequestParam Map<String, String> allRequestParams) {
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), allRequestParams);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(),
+                ElasticClientHelper.getInstance().getRestClient(), allRequestParams);
         return result;
     }
 
@@ -107,7 +108,8 @@ public class SearchController {
     public List<AlarmLogMessage> searchPv(@Parameter(name="pv", description = "PV name") @PathVariable String pv) {
         Map<String, String> searchParameters = new HashMap<>();
         searchParameters.put("pv", pv);
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), searchParameters);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(),
+                ElasticClientHelper.getInstance().getRestClient(), searchParameters);
         return result;
     }
 
@@ -124,7 +126,8 @@ public class SearchController {
                 allRequestParams.get("config").isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(), allRequestParams);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(),
+                ElasticClientHelper.getInstance().getRestClient(), allRequestParams);
         return result;
     }
 

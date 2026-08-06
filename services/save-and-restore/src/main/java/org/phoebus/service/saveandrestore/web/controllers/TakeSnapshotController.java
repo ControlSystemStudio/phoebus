@@ -48,7 +48,7 @@ public class TakeSnapshotController extends BaseController {
      */
     @SuppressWarnings("unused")
     @GetMapping(value = "/take-snapshot/{configNodeId}", produces = JSON)
-    public List<SnapshotItem> takeSnapshot(@PathVariable String configNodeId) {
+    public List<SnapshotItem> takeSnapshot(@PathVariable("configNodeId") String configNodeId) {
         Node configNode = nodeDAO.getNode(configNodeId);
         LOG.log(Level.INFO, "Take snapshot for configuration '" + configNode.getName() + "'");
         ConfigurationData configurationData = nodeDAO.getConfigurationData(configNodeId);
@@ -75,7 +75,7 @@ public class TakeSnapshotController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PutMapping(value = "/take-snapshot/{configNodeId}", produces = JSON)
-    public Snapshot takeSnapshotAndSave(@PathVariable String configNodeId,
+    public Snapshot takeSnapshotAndSave(@PathVariable("configNodeId") String configNodeId,
                                         @RequestParam(name = "name", required = false) String snapshotName,
                                         @RequestParam(name = "comment", required = false) String comment) {
         if (snapshotName != null) {

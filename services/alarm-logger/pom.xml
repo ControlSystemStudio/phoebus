@@ -7,6 +7,8 @@
   </parent>
   <properties>
     <java.version>21</java.version>
+    <!-- override root spring.boot.version for this module only -->
+    <spring.boot.version>4.1.0</spring.boot.version>
   </properties>
   <artifactId>service-alarm-logger</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
@@ -61,14 +63,25 @@
       <version>${kafka.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.elasticsearch.client</groupId>
-      <artifactId>elasticsearch-rest-client-sniffer</artifactId>
-      <version>${elasticsearch.version}</version>
-    </dependency>
-    <dependency>
       <groupId>co.elastic.clients</groupId>
       <artifactId>elasticsearch-java</artifactId>
       <version>${elasticsearch.version}</version>
+    </dependency>
+    <!-- Rest5Client in elasticsearch-java 9.x requires HttpClient 5.2+ -->
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>5.2.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5</artifactId>
+      <version>5.2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5-h2</artifactId>
+      <version>5.2.4</version>
     </dependency>
     <dependency>
       <groupId>tools.jackson.core</groupId>
@@ -141,8 +154,8 @@
 
     <dependency>
       <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-ui</artifactId>
-      <version>1.7.0</version>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>${springdoc.version}</version>
     </dependency>
 
 

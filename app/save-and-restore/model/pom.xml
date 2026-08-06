@@ -72,11 +72,20 @@
 			<version>${tools.jackson.version}</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.glassfish/javax.json -->
+		<!-- Old Glassfish javax.json impl — required by org.epics:vtype-json which
+		     uses javax.json.spi.JsonProvider SPI. Must coexist with jakarta.json
+		     because the two SPI registrations are under different class names. -->
 		<dependency>
 			<groupId>org.glassfish</groupId>
 			<artifactId>javax.json</artifactId>
 			<version>1.1.4</version>
+		</dependency>
+		<!-- New Glassfish jakarta.json impl — satisfies jakarta.json.spi.JsonProvider
+		     SPI used by elasticsearch-java 9.x and other Jakarta EE consumers. -->
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>jakarta.json</artifactId>
+			<version>2.0.1</version>
 		</dependency>
 		
 		<!-- https://mvnrepository.com/artifact/junit/junit -->

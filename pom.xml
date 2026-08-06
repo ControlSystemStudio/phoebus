@@ -99,6 +99,7 @@
     <commons.compress.version>1.26.1</commons.compress.version>
     <spring.framework.version>5.3.22</spring.framework.version>
     <spring.boot.version>2.7.18</spring.boot.version>
+    <springdoc.version>3.1.0</springdoc.version>
   </properties>
   <build>
     <plugins>
@@ -110,6 +111,7 @@
           <target>${maven.compiler.target}</target>
           <fork>true</fork>
           <compilerArgs>
+            <arg>-parameters</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
@@ -148,7 +150,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>  
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
