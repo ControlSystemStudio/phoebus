@@ -37,6 +37,9 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
@@ -48,8 +51,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -75,6 +82,14 @@ public class FilterRepository implements CrudRepository<Filter, String> {
     @Qualifier("client")
     private ElasticsearchClient client;
 
+    @Autowired
+    @Qualifier("restClient")
+    private Rest5Client restClient;
+
+    @Autowired
+    @Qualifier("elasticObjectMapper")
+    private ObjectMapper objectMapper;
+
     /**
      * Saves an {@link Filter} object.
      *
@@ -94,12 +109,7 @@ public class FilterRepository implements CrudRepository<Filter, String> {
             IndexResponse response = client.index(indexRequest);
 
             if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
-                GetRequest getRequest =
-                        GetRequest.of(g ->
-                                g.index(ES_FILTER_INDEX).id(response.id()));
-                GetResponse<Filter> resp =
-                        client.get(getRequest, Filter.class);
-                return (S) resp.source();
+                return (S) getFilterById(response.id()).orElse(null);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save Filter object: " + filter.getName(), e);
@@ -125,16 +135,11 @@ public class FilterRepository implements CrudRepository<Filter, String> {
     @Override
     public Optional<Filter> findById(@NonNull String name) {
         try {
-            GetRequest getRequest =
-                    GetRequest.of(g ->
-                            g.index(ES_FILTER_INDEX).id(name));
-            GetResponse<Filter> resp =
-                    client.get(getRequest, Filter.class);
-
-            if (!resp.found()) {
+            Optional<Filter> result = getFilterById(name);
+            if (result.isEmpty()) {
                 throw new NodeNotFoundException("Filter with name " + name + " not found.");
             }
-            return Optional.of(resp.source());
+            return result;
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to retrieve Filter with name: " + name, e);
             throw new RuntimeException("Failed to Filter with name: " + name);
@@ -203,16 +208,8 @@ public class FilterRepository implements CrudRepository<Filter, String> {
         }
         List<String> ids = new ArrayList<>();
         uniqueNames.forEach(ids::add);
-        MgetRequest mgetRequest = MgetRequest.of(m -> m.index(ES_FILTER_INDEX).ids(ids));
         try {
-            List<Filter> filters = new ArrayList<>();
-            MgetResponse<Filter> resp = client.mget(mgetRequest, Filter.class);
-            resp.docs().forEach(doc -> {
-                if (doc.result().found()) { // Only add elements that actually exist
-                    filters.add(doc.result().source());
-                }
-            });
-            return filters;
+            return mgetFilters(ids);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to retrieve multiple filters");
             throw new RuntimeException("Failed to retrieve multiple filters");
@@ -271,5 +268,54 @@ public class FilterRepository implements CrudRepository<Filter, String> {
             logger.log(Level.SEVERE, "Failed to delete all Filter objects", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private Optional<Filter> getFilterById(String id) throws IOException {
+        String endpoint = "/" + encodePathSegment(ES_FILTER_INDEX) + "/_doc/" + encodePathSegment(id);
+        Request request = new Request("GET", endpoint);
+        try {
+            var response = restClient.performRequest(request);
+            JsonNode body = objectMapper.readTree(response.getEntity().getContent());
+            if (!body.path("found").asBoolean(false)) {
+                return Optional.empty();
+            }
+            JsonNode source = body.get("_source");
+            if (source == null || source.isNull()) {
+                return Optional.empty();
+            }
+            return Optional.of(objectMapper.treeToValue(source, Filter.class));
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusCode() == 404) {
+                return Optional.empty();
+            }
+            throw e;
+        }
+    }
+
+    private List<Filter> mgetFilters(List<String> ids) throws IOException {
+        String endpoint = "/" + encodePathSegment(ES_FILTER_INDEX) + "/_mget";
+        Request request = new Request("POST", endpoint);
+        request.setJsonEntity(objectMapper.writeValueAsString(java.util.Map.of("ids", ids)));
+
+        var response = restClient.performRequest(request);
+        JsonNode docs = objectMapper.readTree(response.getEntity().getContent()).path("docs");
+        if (!docs.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<Filter> filters = new ArrayList<>();
+        for (JsonNode doc : docs) {
+            if (doc.path("found").asBoolean(false)) {
+                JsonNode source = doc.get("_source");
+                if (source != null && !source.isNull()) {
+                    filters.add(objectMapper.treeToValue(source, Filter.class));
+                }
+            }
+        }
+        return filters;
+    }
+
+    private static String encodePathSegment(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 }

@@ -25,6 +25,9 @@ import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
 import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
@@ -36,8 +39,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +67,14 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
     private ElasticsearchClient client;
 
     @Autowired
+    @Qualifier("restClient")
+    private Rest5Client restClient;
+
+    @Autowired
+    @Qualifier("elasticObjectMapper")
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private SearchUtil searchUtil;
 
     private final Logger logger = Logger.getLogger(ConfigurationDataRepository.class.getName());
@@ -76,12 +91,7 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
             IndexResponse response = client.index(indexRequest);
 
             if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
-                GetRequest getRequest =
-                        GetRequest.of(g ->
-                                g.index(ES_CONFIGURATION_INDEX).id(response.id()));
-                GetResponse<ConfigurationData> resp =
-                        client.get(getRequest, ConfigurationData.class);
-                return (S) resp.source();
+                return (S) getConfigurationDataById(response.id()).orElse(null);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save configuration for config id " + entity.getUniqueId(), e);
@@ -98,16 +108,7 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
     @Override
     public Optional<ConfigurationData> findById(String id) {
         try {
-            GetRequest getRequest =
-                    GetRequest.of(g ->
-                            g.index(ES_CONFIGURATION_INDEX).id(id));
-            GetResponse<ConfigurationData> resp =
-                    client.get(getRequest, ConfigurationData.class);
-
-            if (!resp.found()) {
-                return Optional.empty();
-            }
-            return resp.source() != null ? Optional.of(resp.source()) : Optional.empty();
+            return getConfigurationDataById(id);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to retrieve configuration with id: " + id, e);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve configuration with id: " + id);
@@ -213,5 +214,31 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Optional<ConfigurationData> getConfigurationDataById(String id) throws IOException {
+        String endpoint = "/" + encodePathSegment(ES_CONFIGURATION_INDEX) + "/_doc/" + encodePathSegment(id);
+        Request request = new Request("GET", endpoint);
+        try {
+            var response = restClient.performRequest(request);
+            JsonNode body = objectMapper.readTree(response.getEntity().getContent());
+            if (!body.path("found").asBoolean(false)) {
+                return Optional.empty();
+            }
+            JsonNode source = body.get("_source");
+            if (source == null || source.isNull()) {
+                return Optional.empty();
+            }
+            return Optional.of(objectMapper.treeToValue(source, ConfigurationData.class));
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusCode() == 404) {
+                return Optional.empty();
+            }
+            throw e;
+        }
+    }
+
+    private static String encodePathSegment(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 }

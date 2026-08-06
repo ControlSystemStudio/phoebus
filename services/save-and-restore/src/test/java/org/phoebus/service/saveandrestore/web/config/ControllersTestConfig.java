@@ -19,6 +19,7 @@
 package org.phoebus.service.saveandrestore.web.config;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import org.mockito.Mockito;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
@@ -38,6 +39,8 @@ import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.mock.web.MockServletContext;
 import java.util.Base64;
 import org.springframework.web.socket.WebSocketSession;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import jakarta.servlet.ServletContext;
 import java.util.concurrent.ExecutorService;
@@ -98,6 +101,16 @@ public class ControllersTestConfig {
     @Bean
     public ElasticsearchClient client() {
         return Mockito.mock(ElasticsearchClient.class);
+    }
+
+    @Bean("restClient")
+    public Rest5Client restClient() {
+        return Mockito.mock(Rest5Client.class);
+    }
+
+    @Bean("elasticObjectMapper")
+    public ObjectMapper elasticObjectMapper() {
+        return JsonMapper.builder().build();
     }
 
     @SuppressWarnings("unused")

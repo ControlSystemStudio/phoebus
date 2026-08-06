@@ -1,11 +1,14 @@
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import org.mockito.Mockito;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @Profile("!IT")
@@ -21,6 +24,16 @@ public class ElasticTestConfig {
     @Bean({"client"})
     public ElasticsearchClient getClient() {
         return Mockito.mock(ElasticsearchClient.class);
+    }
+
+    @Bean("restClient")
+    public Rest5Client restClient() {
+        return Mockito.mock(Rest5Client.class);
+    }
+
+    @Bean("elasticObjectMapper")
+    public ObjectMapper elasticObjectMapper() {
+        return JsonMapper.builder().build();
     }
 
     @Bean

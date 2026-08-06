@@ -26,6 +26,9 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
 import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
@@ -38,8 +41,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.MultiValueMap;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,6 +73,14 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @Autowired
     @Qualifier("client")
     ElasticsearchClient client;
+
+    @Autowired
+    @Qualifier("restClient")
+    private Rest5Client restClient;
+
+    @Autowired
+    @Qualifier("elasticObjectMapper")
+    private ObjectMapper objectMapper;
 
     @SuppressWarnings("unused")
     @Autowired
@@ -120,12 +135,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             IndexResponse response = client.index(indexRequest);
 
             if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
-                GetRequest getRequest =
-                        GetRequest.of(g ->
-                                g.index(ES_TREE_INDEX).id(response.id()));
-                GetResponse<ESTreeNode> resp =
-                        client.get(getRequest, ESTreeNode.class);
-                return (S) resp.source();
+                return (S) getTreeNodeById(response.id()).orElse(null);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save ESTreeNode object: " + elasticTreeNode, e);
@@ -152,16 +162,11 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @Override
     public Optional<ESTreeNode> findById(@NonNull String id) {
         try {
-            GetRequest getRequest =
-                    GetRequest.of(g ->
-                            g.index(ES_TREE_INDEX).id(id));
-            GetResponse<ESTreeNode> resp =
-                    client.get(getRequest, ESTreeNode.class);
-
-            if (!resp.found()) {
+            Optional<ESTreeNode> result = getTreeNodeById(id);
+            if (result.isEmpty()) {
                 throw new NodeNotFoundException("ESTreeNode with id " + id + " not found.");
             }
-            return Optional.of(resp.source());
+            return result;
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to retrieve ESTreeNode with id: " + id, e);
             throw new RuntimeException("Failed to ESTreeNode with id: " + id);
@@ -212,16 +217,8 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         }
         List<String> ids = new ArrayList<>();
         uniqueIds.forEach(ids::add);
-        MgetRequest mgetRequest = MgetRequest.of(m -> m.index(ES_TREE_INDEX).ids(ids));
         try {
-            List<ESTreeNode> treeNodes = new ArrayList<>();
-            MgetResponse<ESTreeNode> resp = client.mget(mgetRequest, ESTreeNode.class);
-            resp.docs().forEach(doc -> {
-                if (doc.result().found()) { // Only add elements that actually exist
-                    treeNodes.add(doc.result().source());
-                }
-            });
-            return treeNodes;
+            return mgetTreeNodes(ids);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to retrieve multiple nodes");
             throw new NodeNotFoundException("Failed to retrieve multiple nodes");
@@ -367,5 +364,54 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Optional<ESTreeNode> getTreeNodeById(String id) throws IOException {
+        String endpoint = "/" + encodePathSegment(ES_TREE_INDEX) + "/_doc/" + encodePathSegment(id);
+        Request request = new Request("GET", endpoint);
+        try {
+            var response = restClient.performRequest(request);
+            JsonNode body = objectMapper.readTree(response.getEntity().getContent());
+            if (!body.path("found").asBoolean(false)) {
+                return Optional.empty();
+            }
+            JsonNode source = body.get("_source");
+            if (source == null || source.isNull()) {
+                return Optional.empty();
+            }
+            return Optional.of(objectMapper.treeToValue(source, ESTreeNode.class));
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusCode() == 404) {
+                return Optional.empty();
+            }
+            throw e;
+        }
+    }
+
+    private List<ESTreeNode> mgetTreeNodes(List<String> ids) throws IOException {
+        String endpoint = "/" + encodePathSegment(ES_TREE_INDEX) + "/_mget";
+        Request request = new Request("POST", endpoint);
+        request.setJsonEntity(objectMapper.writeValueAsString(Map.of("ids", ids)));
+
+        var response = restClient.performRequest(request);
+        JsonNode docs = objectMapper.readTree(response.getEntity().getContent()).path("docs");
+        if (!docs.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<ESTreeNode> treeNodes = new ArrayList<>();
+        for (JsonNode doc : docs) {
+            if (doc.path("found").asBoolean(false)) {
+                JsonNode source = doc.get("_source");
+                if (source != null && !source.isNull()) {
+                    treeNodes.add(objectMapper.treeToValue(source, ESTreeNode.class));
+                }
+            }
+        }
+        return treeNodes;
+    }
+
+    private static String encodePathSegment(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 }

@@ -16,6 +16,7 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -34,7 +35,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -174,23 +178,28 @@ public class ElasticConfig {
 
         try {
             if (!documentExists(ES_TREE_INDEX, ROOT_FOLDER_UNIQUE_ID)) {
-                ESTreeNode elasticsearchTreeNode = new ESTreeNode();
-                elasticsearchTreeNode.setNode(ROOT_NODE);
+                String payload = buildRootNodePayload();
 
                 Request request = new Request("PUT", "/" + encodePathSegment(ES_TREE_INDEX)
                         + "/_doc/" + encodePathSegment(ROOT_FOLDER_UNIQUE_ID));
                 request.addParameter("refresh", "true");
-                request.setJsonEntity(objectMapper.writeValueAsString(elasticsearchTreeNode));
+                request.setJsonEntity(payload);
 
                 int statusCode = restClient.performRequest(request).getStatusCode();
                 if (statusCode >= 200 && statusCode < 300) {
                     logger.info("Created root node in index '" + ES_TREE_INDEX + "'.");
                 } else {
-                    logger.warning("Failed to create root node in index '" + ES_TREE_INDEX + "' (HTTP " + statusCode + ").");
+                    logger.warning("Failed to create root node in index '" + ES_TREE_INDEX
+                            + "' (HTTP " + statusCode + "). endpoint=" + request.getEndpoint()
+                            + ", payload=" + payload);
                 }
             } else {
                 logger.info("Root node already exists in index '" + ES_TREE_INDEX + "'.");
             }
+        } catch (ResponseException e) {
+            int statusCode = e.getResponse().getStatusCode();
+            logger.warning("Failed to create root node in index '" + ES_TREE_INDEX
+                    + "' (HTTP " + statusCode + "): " + readExceptionBody(e));
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to initialize root node in index '" + ES_TREE_INDEX + "'.", e);
         }
@@ -264,6 +273,32 @@ public class ElasticConfig {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
+    private String buildRootNodePayload() throws IOException {
+        Map<String, Object> node = new LinkedHashMap<>();
+        node.put("created", ROOT_NODE.getCreated().getTime());
+        node.put("lastModified", ROOT_NODE.getLastModified().getTime());
+        node.put("name", ROOT_NODE.getName());
+        node.put("nodeType", ROOT_NODE.getNodeType().name());
+        node.put("uniqueId", ROOT_NODE.getUniqueId());
+        node.put("userName", ROOT_NODE.getUserName());
+
+        Map<String, Object> rootDocument = new LinkedHashMap<>();
+        rootDocument.put("childNodes", new ArrayList<>());
+        rootDocument.put("node", node);
+        return objectMapper.writeValueAsString(rootDocument);
+    }
+
+    private static String readExceptionBody(ResponseException e) {
+        try {
+            if (e.getResponse().getEntity() == null) {
+                return "<no response body>";
+            }
+            return EntityUtils.toString(e.getResponse().getEntity(), StandardCharsets.UTF_8);
+        } catch (Exception ex) {
+            return "<failed to read response body: " + ex.getMessage() + ">";
+        }
+    }
+
     /**
      *
      * @return A {@link SearchUtil} instance.
@@ -272,5 +307,21 @@ public class ElasticConfig {
     @Bean
     public SearchUtil searchUtil(){
         return new SearchUtil();
+    }
+
+    @Bean("restClient")
+    public Rest5Client getRestClient() {
+        if (restClient == null) {
+            getClient();
+        }
+        return restClient;
+    }
+
+    @Bean("elasticObjectMapper")
+    public ObjectMapper elasticObjectMapper() {
+        if (objectMapper == null) {
+            getClient();
+        }
+        return objectMapper;
     }
 }

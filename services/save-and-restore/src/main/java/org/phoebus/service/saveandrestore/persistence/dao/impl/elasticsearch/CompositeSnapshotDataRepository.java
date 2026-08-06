@@ -38,6 +38,9 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
@@ -51,8 +54,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -78,6 +85,14 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
     ElasticsearchClient client;
 
     @Autowired
+    @Qualifier("restClient")
+    private Rest5Client restClient;
+
+    @Autowired
+    @Qualifier("elasticObjectMapper")
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private SearchUtil searchUtil;
 
     private final Logger logger = Logger.getLogger(CompositeSnapshotDataRepository.class.getName());
@@ -94,12 +109,7 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
             IndexResponse response = client.index(indexRequest);
 
             if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
-                GetRequest getRequest =
-                        GetRequest.of(g ->
-                                g.index(ES_COMPOSITE_SNAPSHOT_INDEX).id(response.id()));
-                GetResponse<CompositeSnapshotData> resp =
-                        client.get(getRequest, CompositeSnapshotData.class);
-                return (S) resp.source();
+                return (S) getCompositeSnapshotDataById(response.id()).orElse(null);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save composite snapshot for unique id " + entity.getUniqueId(), e);
@@ -116,16 +126,7 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
     @Override
     public Optional<CompositeSnapshotData> findById(String id) {
         try {
-            GetRequest getRequest =
-                    GetRequest.of(g ->
-                            g.index(ES_COMPOSITE_SNAPSHOT_INDEX).id(id));
-            GetResponse<CompositeSnapshotData> resp =
-                    client.get(getRequest, CompositeSnapshotData.class);
-
-            if (!resp.found()) {
-                return Optional.empty();
-            }
-            return Optional.of(resp.source());
+            return getCompositeSnapshotDataById(id);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to retrieve composite snapshot with id: " + id, e);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve composite snapshot with id: " + id);
@@ -267,5 +268,31 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
             logger.log(Level.SEVERE, "Failed to search for referenced snapshot nodes", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private Optional<CompositeSnapshotData> getCompositeSnapshotDataById(String id) throws IOException {
+        String endpoint = "/" + encodePathSegment(ES_COMPOSITE_SNAPSHOT_INDEX) + "/_doc/" + encodePathSegment(id);
+        Request request = new Request("GET", endpoint);
+        try {
+            var response = restClient.performRequest(request);
+            JsonNode body = objectMapper.readTree(response.getEntity().getContent());
+            if (!body.path("found").asBoolean(false)) {
+                return Optional.empty();
+            }
+            JsonNode source = body.get("_source");
+            if (source == null || source.isNull()) {
+                return Optional.empty();
+            }
+            return Optional.of(objectMapper.treeToValue(source, CompositeSnapshotData.class));
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusCode() == 404) {
+                return Optional.empty();
+            }
+            throw e;
+        }
+    }
+
+    private static String encodePathSegment(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 }
