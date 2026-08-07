@@ -56,7 +56,7 @@ public class ScanInfoModel
     private volatile List<ScanInfo> infos = Collections.emptyList();
 
     /** Listeners */
-    private List<ScanInfoModelListener> listeners = new CopyOnWriteArrayList<ScanInfoModelListener>();
+    private List<ScanInfoModelListener> listeners = new CopyOnWriteArrayList<>();
 
 
     /** Obtain reference to the singleton instance.

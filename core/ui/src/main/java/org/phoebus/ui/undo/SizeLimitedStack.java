@@ -21,7 +21,7 @@ import java.util.NoSuchElementException;
 public class SizeLimitedStack<T>
 {
     final private int limit;
-    final private LinkedList<T> list = new LinkedList<T>();
+    final private LinkedList<T> list = new LinkedList<>();
 
     /**@param limit Maximum number of stack elements */
     public SizeLimitedStack(final int limit)

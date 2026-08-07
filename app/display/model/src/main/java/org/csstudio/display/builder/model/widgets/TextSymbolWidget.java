@@ -68,7 +68,7 @@ public class TextSymbolWidget extends PVWidget {
     private static final WidgetPropertyDescriptor<String>                       propSymbol     = newStringPropertyDescriptor (WidgetPropertyCategory.WIDGET,   "symbol",      Messages.WidgetProperties_Symbol);
 
     /** 'items' property: list of items (string properties) for combo box */
-    public static final ArrayWidgetProperty.Descriptor<WidgetProperty<String> > propSymbols    = new ArrayWidgetProperty.Descriptor< WidgetProperty<String> >(
+    public static final ArrayWidgetProperty.Descriptor<WidgetProperty<String> > propSymbols    = new ArrayWidgetProperty.Descriptor<>(
         WidgetPropertyCategory.WIDGET,
         "symbols",
         Messages.WidgetProperties_Symbols,

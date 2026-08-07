@@ -28,7 +28,7 @@ public class LogService {
 
     private LogService() {
         // Load available adapter factories
-        logFactories = new HashMap<String, LogFactory>();
+        logFactories = new HashMap<>();
         loader = ServiceLoader.load(LogFactory.class);
         loader.stream().forEach(p -> {
             LogFactory logFactory = p.get();

@@ -39,8 +39,8 @@ public class Channel {
 		private String name;
 		// optional
 		private String owner;
-		private Set<Tag.Builder> tags = new HashSet<Tag.Builder>();
-		private Set<Property.Builder> properties = new HashSet<Property.Builder>();
+		private Set<Tag.Builder> tags = new HashSet<>();
+		private Set<Property.Builder> properties = new HashSet<>();
 
 		/**
 		 * Create a channel builder initialized to a copy of the channel
@@ -170,12 +170,12 @@ public class Channel {
 	public Channel(XmlChannel channel) {
 		this.name = channel.getName();
 		this.owner = channel.getOwner();
-		Map<String, Tag> newTags = new HashMap<String, Tag>();
+		Map<String, Tag> newTags = new HashMap<>();
 		for (XmlTag tag : channel.getTags()) {
 			newTags.put(tag.getName(), new Tag(tag));
 		}
 		this.tags = Collections.unmodifiableMap(newTags);
-		Map<String, Property> newProperties = new HashMap<String, Property>();
+		Map<String, Property> newProperties = new HashMap<>();
 		for (XmlProperty property : channel.getProperties()) {
 			newProperties.put(property.getName(), new Property(property));
 		}
@@ -186,12 +186,12 @@ public class Channel {
 	private Channel(Builder builder) {
 		this.name = builder.name;
 		this.owner = builder.owner;
-		Map<String, Tag> newTags = new HashMap<String, Tag>();
+		Map<String, Tag> newTags = new HashMap<>();
 		for (Tag.Builder tag : builder.tags) {
 			newTags.put(tag.build().getName(), tag.build());
 		}
 		this.tags = Collections.unmodifiableMap(newTags);
-		Map<String, Property> newProperties = new HashMap<String, Property>();
+		Map<String, Property> newProperties = new HashMap<>();
 		for (Property.Builder property : builder.properties) {
 			newProperties.put(property.build().getName(), property.build());
 		}

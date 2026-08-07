@@ -92,31 +92,29 @@ public class TimePlotDemo extends ApplicationWrapper
 
         plot.showToolbar(false);
 
-        plot.addListener(new RTPlotListener<Instant>()
-        {
+        plot.addListener(new RTPlotListener<>() {
             @Override
-            public void changedXAxis(Axis<Instant> x_axis)
-            {
+            public void changedXAxis(Axis<Instant> x_axis) {
                 System.out.println("X Axis changed: " + x_axis);
             }
+
             @Override
-            public void changedYAxis(YAxis<Instant> y_axis)
-            {
+            public void changedYAxis(YAxis<Instant> y_axis) {
                 System.out.println("Y Axis changed: " + y_axis);
             }
+
             @Override
-            public void changedPlotMarker(final int index)
-            {
+            public void changedPlotMarker(final int index) {
                 System.out.println("Moved " + plot.getMarkers().get(index));
             }
+
             @Override
-            public void changedAnnotations()
-            {
+            public void changedAnnotations() {
                 System.out.println("Annotations changed");
             }
+
             @Override
-            public void changedCursors()
-            {
+            public void changedCursors() {
                 // System.out.println("Cursors changed");
             }
         });

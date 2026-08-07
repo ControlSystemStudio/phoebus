@@ -266,7 +266,7 @@ public class WidgetFontPopOverController implements Initializable {
         styles.valueProperty().addListener(( observable, oldValue, newValue ) -> stylesUpdater.accept(newValue));
 
         sizes.setPlaceholder(new Label(Messages.WidgetFontPopOver_Sizes));
-        sizes.setConverter(new FormatStringConverter<Double>(new DecimalFormat("##0.0#")) {
+        sizes.setConverter(new FormatStringConverter<>(new DecimalFormat("##0.0#")) {
             @Override
             public Double fromString ( String value ) {
                 return ((Number) super.fromString(value)).doubleValue();

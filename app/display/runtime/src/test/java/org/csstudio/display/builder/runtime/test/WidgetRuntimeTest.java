@@ -47,14 +47,14 @@ public class WidgetRuntimeTest {
            //Write new value
            double newValue = 20;
            
-           List<ActionInfo> actionList = new ArrayList<ActionInfo>();
+           List<ActionInfo> actionList = new ArrayList<>();
            ActionInfo writeAction = new WritePVAction("Write value", pv_name, String.valueOf(newValue));
            actionList.add(writeAction);
            ActionInfos actInfos = new ActionInfos(actionList, true);
            widget.setPropertyValue(CommonWidgetProperties.propActions.getName(), actInfos);
            
            //Create Widget Runtime
-           WidgetRuntime<ActionButtonWidget> ofWidget = new WidgetRuntime<ActionButtonWidget>();
+           WidgetRuntime<ActionButtonWidget> ofWidget = new WidgetRuntime<>();
            ofWidget.initialize(widget);
            ofWidget.addPV(pv, true);
            ofWidget.start();

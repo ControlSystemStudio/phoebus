@@ -248,12 +248,12 @@ public class LogPropertiesController {
         });
 
         // Hide the headers
-        treeTableView.widthProperty().addListener(new ChangeListener<Number>() {
+        treeTableView.widthProperty().addListener(new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
                 // Get the table header
-                Pane header = (Pane)treeTableView.lookup("TableHeaderRow");
-                if(header!=null && header.isVisible()) {
+                Pane header = (Pane) treeTableView.lookup("TableHeaderRow");
+                if (header != null && header.isVisible()) {
                     header.setMaxHeight(0);
                     header.setMinHeight(0);
                     header.setPrefHeight(0);
@@ -339,7 +339,7 @@ public class LogPropertiesController {
         }
 
         public SimpleObjectProperty<PropertyTreeNode> nodeProperty() {
-            return new SimpleObjectProperty<PropertyTreeNode>(this);
+            return new SimpleObjectProperty<>(this);
         }
 
         private PropertyTreeNode(String fullQualifiedName, String name, String value) {

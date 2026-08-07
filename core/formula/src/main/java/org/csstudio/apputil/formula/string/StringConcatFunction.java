@@ -79,7 +79,7 @@ public class StringConcatFunction implements FormulaFunction {
         }
         else if (value instanceof VNumberArray)
         {
-            List<String> stringData = new ArrayList<String>();
+            List<String> stringData = new ArrayList<>();
             ListNumber data = ((VNumberArray) value).getData();
             for (int i = 0; i < data.size(); i++) {
                 stringData.add(String.valueOf(data.getDouble(i)));

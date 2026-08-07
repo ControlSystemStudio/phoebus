@@ -184,7 +184,7 @@ public class AlarmMessageLogger implements Runnable {
 //            logger.config("Processing alarm message with key : " + key != null ? key
 //                    : "null" + " " + value != null ? value.toString() : "null");
             value.setKey(key);
-            return new KeyValue<String, AlarmMessage>(key, value);
+            return new KeyValue<>(key, value);
         });
 
         alarms.split(Named.as("alarm-"))
@@ -253,7 +253,7 @@ public class AlarmMessageLogger implements Runnable {
     private void processAlarmStateStream(KStream<String, AlarmMessage> alarmStateBranch) {
 
         KStream<String, AlarmStateMessage> transformedAlarms = alarmStateBranch
-                .transform(new TransformerSupplier<String, AlarmMessage, KeyValue<String, AlarmStateMessage>>() {
+                .transform(new TransformerSupplier<>() {
 
                     @Override
                     public Transformer<String, AlarmMessage, KeyValue<String, AlarmStateMessage>> get() {
@@ -301,12 +301,13 @@ public class AlarmMessageLogger implements Runnable {
     }
 
     private void processAlarmConfigurationStream(KStream<String, AlarmMessage> alarmConfigBranch) {
-        KStream<String, AlarmConfigMessage> alarmConfigMessages = alarmConfigBranch.transform(new TransformerSupplier<String, AlarmMessage, KeyValue<String,AlarmConfigMessage>>() {
+        KStream<String, AlarmConfigMessage> alarmConfigMessages = alarmConfigBranch.transform(new TransformerSupplier<>() {
 
             @Override
             public Transformer<String, AlarmMessage, KeyValue<String, AlarmConfigMessage>> get() {
-                return new Transformer<String, AlarmMessage, KeyValue<String, AlarmConfigMessage>>() {
+                return new Transformer<>() {
                     private ProcessorContext context;
+
                     @Override
                     public void init(ProcessorContext context) {
                         this.context = context;
@@ -314,13 +315,13 @@ public class AlarmMessageLogger implements Runnable {
 
                     @Override
                     public KeyValue<String, AlarmConfigMessage> transform(String key, AlarmMessage value) {
-                        
+
                         key = key.replace("\\", "");
-                        if(value != null) {
+                        if (value != null) {
                             AlarmConfigMessage newValue = value.getAlarmConfigMessage();
                             newValue.setConfig(key);
                             newValue.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
-                            return new KeyValue<String, AlarmConfigMessage>(key, newValue);
+                            return new KeyValue<>(key, newValue);
                         } else {
                             return null;
                         }
@@ -328,9 +329,9 @@ public class AlarmMessageLogger implements Runnable {
 
                     @Override
                     public void close() {
-                        
+
                     }
-                    
+
                 };
             }
         });

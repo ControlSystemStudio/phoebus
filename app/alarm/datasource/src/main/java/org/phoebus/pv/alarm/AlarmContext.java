@@ -76,7 +76,7 @@ public class AlarmContext
     {
         if(!pvs.containsKey(alarmPV.getInfo().getCompletePath()))
         {
-            pvs.put(alarmPV.getInfo().getCompletePath(), new ArrayList<AlarmPV>());
+            pvs.put(alarmPV.getInfo().getCompletePath(), new ArrayList<>());
         }
         pvs.get(alarmPV.getInfo().getCompletePath()).add(alarmPV);
         // Check if the alarm client associated with the root is created and running

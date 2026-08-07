@@ -44,15 +44,13 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
     private static final Pattern PVSEV_PATTERN = Pattern.compile("pvSev([0-9]+)");
 
     private static final WidgetPropertyDescriptor<String> miscUnknownPropID =
-            new WidgetPropertyDescriptor<String>(WidgetPropertyCategory.MISC,
-                    "rule_unknown_propid", "RulesWidgetProperty:miscUnknownPropID", false)
-    {
-        @Override
-        public WidgetProperty<String> createProperty(final Widget widget, final String value)
-        {
-            return new StringWidgetProperty(this, widget, value);
-        }
-    };
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.MISC,
+            "rule_unknown_propid", "RulesWidgetProperty:miscUnknownPropID", false) {
+            @Override
+            public WidgetProperty<String> createProperty(final Widget widget, final String value) {
+                return new StringWidgetProperty(this, widget, value);
+            }
+        };
 
 
     /** @param widget Widget

@@ -126,24 +126,19 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
      */
     public Future<ValueRange> determineValueRange(final PlotDataProvider<XTYPE> data, AxisRange<XTYPE> position_range)
     {
-        return thread_pool.submit(new Callable<ValueRange>()
-        {
+        return thread_pool.submit(new Callable<>() {
             @Override
-            public ValueRange call() throws Exception
-            {
+            public ValueRange call() throws Exception {
                 double low = Double.MAX_VALUE;
                 double high = -Double.MAX_VALUE;
                 final PlotDataSearch<XTYPE> search = new PlotDataSearch<>();
 
-                if (! data.getLock().tryLock(10, TimeUnit.SECONDS))
+                if (!data.getLock().tryLock(10, TimeUnit.SECONDS))
                     throw new TimeoutException("Cannot lock " + data);
-                try
-                {
-                    if (data.size() > 0)
-                    {
+                try {
+                    if (data.size() > 0) {
                         int start, stop;
-                        if (isOrdered(data))
-                        {
+                        if (isOrdered(data)) {
                             // Find start..stop indices from ordered positions to match axis range.
                             // Consider first sample at-or-before start
                             start = search.findSampleLessOrEqual(data, position_range.getLow());
@@ -155,20 +150,17 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                                 stop = 0;
                             if (logger.isLoggable(Level.FINE))
                                 logger.log(Level.FINE, "For " + data.size() + " samples, checking elements " + start + " .. " + stop +
-                                           " which are positioned within " + position_range.getLow() + " .. " + position_range.getHigh());
-                        }
-                        else
-                        {
+                                    " which are positioned within " + position_range.getLow() + " .. " + position_range.getHigh());
+                        } else {
                             // Data does not have ordered 'positions', so consider all samples
                             start = 0;
-                            stop = data.size()-1;
+                            stop = data.size() - 1;
                         }
 
                         // If data is completely outside the position_range,
                         // we end up using just data[0]
                         // Check [start .. stop], including stop
-                        for (int idx = start; idx <= stop; idx++)
-                        {
+                        for (int idx = start; idx <= stop; idx++) {
                             final PlotDataItem<XTYPE> item = data.get(idx);
                             final double value = item.getValue();
                             if (!Double.isFinite(value))
@@ -184,9 +176,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                                 high = item.getMax();
                         }
                     }
-                }
-                finally
-                {
+                } finally {
                     data.getLock().unlock();
                 }
                 return new ValueRange(low, high);
@@ -210,11 +200,9 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
      */
     public Future<ValueRange> determineValueRange(final YAxisImpl<XTYPE> axis, AxisRange<XTYPE> position_range)
     {
-        return thread_pool.submit(new Callable<ValueRange>()
-        {
+        return thread_pool.submit(new Callable<>() {
             @Override
-            public ValueRange call() throws Exception
-            {
+            public ValueRange call() throws Exception {
                 // In parallel, determine range of all traces in this axis
                 final List<Future<ValueRange>> ranges = new ArrayList<>();
                 for (Trace<XTYPE> trace : axis.getTraces())
@@ -224,8 +212,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 // Merge the trace ranges into overall axis range
                 double low = Double.MAX_VALUE;
                 double high = -Double.MAX_VALUE;
-                for (Future<ValueRange> result : ranges)
-                {
+                for (Future<ValueRange> result : ranges) {
                     final ValueRange range = result.get();
                     if (range.getLow() < low)
                         low = range.getLow();

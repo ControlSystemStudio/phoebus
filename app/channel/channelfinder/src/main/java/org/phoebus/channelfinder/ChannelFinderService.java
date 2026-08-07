@@ -27,7 +27,7 @@ public class ChannelFinderService {
     private static final String DEFAULT = "default";
     
     private ChannelFinderService() {
-        channelFinderClients = new HashMap<String, ChannelFinderClient>();
+        channelFinderClients = new HashMap<>();
     }
 
     public static ChannelFinderService getInstance() {

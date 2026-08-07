@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 @XmlRootElement(name = "attachments")
 public class XmlAttachments {
-    private Collection<XmlAttachment> attachments = new ArrayList<XmlAttachment>();
+    private Collection<XmlAttachment> attachments = new ArrayList<>();
 
     /** Creates a new instance of XmlAttachments. */
     public XmlAttachments() {

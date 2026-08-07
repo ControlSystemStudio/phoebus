@@ -73,7 +73,7 @@ public class ArchiveFileIndexReader implements AutoCloseable
         long start = buffer.getUnsignedInt();
         long size = buffer.getUnsignedInt();
 
-        Queue<Long> ret = new ArrayDeque<Long>();
+        Queue<Long> ret = new ArrayDeque<>();
         buffer.offset(start);
         while (--size > 0)
         {

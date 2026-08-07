@@ -38,20 +38,19 @@ public class LineNumberTableCellFactory<T, E> implements Callback<TableColumn<T,
 
     @Override
     public TableCell<T, E> call ( TableColumn<T, E> param ) {
-        return new TableCell<T, E>() {
+        return new TableCell<>() {
 
-            /* Instance initializer. */
-            {
+            /* Instance initializer. */ {
                 setAlignment(Pos.CENTER_LEFT);
             }
 
             @Override
-            protected void updateItem ( E item, boolean empty ) {
+            protected void updateItem(E item, boolean empty) {
 
                 super.updateItem(item, empty);
 
-                if ( !empty ) {
-                    setText(String.valueOf(getTableRow().getIndex() + ( startFromZero ? 0 : 1 )));
+                if (!empty) {
+                    setText(String.valueOf(getTableRow().getIndex() + (startFromZero ? 0 : 1)));
                 } else {
                     setText("");
                 }

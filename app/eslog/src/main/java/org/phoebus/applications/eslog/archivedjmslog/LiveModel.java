@@ -20,7 +20,7 @@ public class LiveModel<T extends LogMessage> extends Model
 {
     protected String dateField;
     private Set<LiveModelListener<T>> listeners = Collections
-            .newSetFromMap(new WeakHashMap<LiveModelListener<T>, Boolean>());
+            .newSetFromMap(new WeakHashMap<>());
     private volatile boolean running = false;
     private Function<MapMessage, T> parser;
 

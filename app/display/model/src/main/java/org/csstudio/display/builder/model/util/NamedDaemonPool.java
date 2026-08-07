@@ -66,7 +66,7 @@ public class NamedDaemonPool
         // Downside: No way to avoid a gazillion threads.
         return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                 10L, TimeUnit.SECONDS,
-                new SynchronousQueue<Runnable>(),
+            new SynchronousQueue<>(),
                 new NamedThreadFactory(name));
     }
 

@@ -98,7 +98,7 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
     public String[] getDeviceNames(final MacroContext macros) throws Exception
     {
         final String device_name = command.getDeviceName();
-        final Set<String> device_names = new HashSet<String>();
+        final Set<String> device_names = new HashSet<>();
         device_names.add(macros.resolveMacros(device_name));
         if (command.getWait()  &&  command.getReadback().length() > 0)
             device_names.add(macros.resolveMacros(command.getReadback()));

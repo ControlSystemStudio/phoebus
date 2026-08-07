@@ -153,11 +153,7 @@ public class PVA_PV extends PV
                 {
                     return PVAStructureHelper.getVType(data.get(timeout, unit), name_helper);
                 }
-                catch (InterruptedException ex)
-                {
-                    throw ex;
-                }
-                catch (TimeoutException ex)
+                catch (InterruptedException | TimeoutException ex)
                 {
                     throw ex;
                 }

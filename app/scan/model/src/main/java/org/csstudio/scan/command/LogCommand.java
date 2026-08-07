@@ -95,7 +95,7 @@ public class LogCommand extends ScanCommand
     @Override
     public void readXML(final Element element) throws Exception
     {
-        final List<String> devices = new ArrayList<String>();
+        final List<String> devices = new ArrayList<>();
         Element node = XMLUtil.getChildElement(element, "devices");
         if (node == null)
             throw new Exception("Missing 'devices'");

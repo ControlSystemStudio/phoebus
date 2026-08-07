@@ -38,8 +38,8 @@ public class UndoableActionManager
     /** @param stack_size Number of undo/redo entries */
     public UndoableActionManager(final int stack_size)
     {
-        undoStack = new SizeLimitedStack<UndoableAction>(stack_size);
-        redoStack = new SizeLimitedStack<UndoableAction>(stack_size);
+        undoStack = new SizeLimitedStack<>(stack_size);
+        redoStack = new SizeLimitedStack<>(stack_size);
     }
 
     /** @param listener Listener to add */

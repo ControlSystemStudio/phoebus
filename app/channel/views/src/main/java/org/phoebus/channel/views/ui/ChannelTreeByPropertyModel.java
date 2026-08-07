@@ -39,11 +39,11 @@ class ChannelTreeByPropertyModel {
 
         // Filter the channels that would not show up as leaf because they don't
         // have a value for all properties
-        this.allChannels = new ArrayList<Channel>(ChannelUtil.filterbyProperties(allChannels, properties));
+        this.allChannels = new ArrayList<>(ChannelUtil.filterbyProperties(allChannels, properties));
         this.properties = properties;
 
-        this.nodePVs = new ArrayList<PV>();
-        this.nodePVValues = new HashMap<String, VType>();
+        this.nodePVs = new ArrayList<>();
+        this.nodePVValues = new HashMap<>();
 
         this.query = query;
         this.showChannelNames = showChannelNames;

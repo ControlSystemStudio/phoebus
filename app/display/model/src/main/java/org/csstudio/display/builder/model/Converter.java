@@ -56,7 +56,7 @@ public class Converter {
 	 */
 
 	public List<String> listOpiFiles(String folder) {
-		List<String> extensionsList = new ArrayList<String>();
+		List<String> extensionsList = new ArrayList<>();
 		extensionsList.add(OPI_EXTENSION);
 		return listFiles(folder, extensionsList);
 	}
@@ -66,7 +66,7 @@ public class Converter {
 	 * @return all bob files contained in a given folder
 	 */
 	public List<String> listBobFiles(String folder) {
-		List<String> extensionsList = new ArrayList<String>();
+		List<String> extensionsList = new ArrayList<>();
 		extensionsList.add(BOB_EXTENSION);
 		return listFiles(folder, extensionsList);
 	}
@@ -76,7 +76,7 @@ public class Converter {
 	 * @return all script files contained in a given folder
 	 */
 	public List<String> listScriptFiles(String folder) {
-		List<String> extensionsList = new ArrayList<String>();
+		List<String> extensionsList = new ArrayList<>();
 		extensionsList.add(PYTHON_EXTENSION);
 		extensionsList.add(PY_EXTENSION);
 		extensionsList.add(JAVASCRIPT_EXTENSION);
@@ -91,7 +91,7 @@ public class Converter {
 	 * @return true if the file is a script file
 	 */
 	public boolean isScriptFile(String fileName) {
-		List<String> extensionsList = new ArrayList<String>();
+		List<String> extensionsList = new ArrayList<>();
 		extensionsList.add(PYTHON_EXTENSION);
 		extensionsList.add(PY_EXTENSION);
 		extensionsList.add(JAVASCRIPT_EXTENSION);
@@ -106,7 +106,7 @@ public class Converter {
 	 * @return true if the file is a opi file
 	 */
 	public boolean isOpiFile(String fileName) {
-		List<String> extensionsList = new ArrayList<String>();
+		List<String> extensionsList = new ArrayList<>();
 		extensionsList.add(OPI_EXTENSION);
 		return matchExtensions(fileName, extensionsList);
 	}
@@ -118,7 +118,7 @@ public class Converter {
 	 * @return true if the file is a bob file
 	 */
 	public boolean isBobFile(String fileName) {
-		List<String> extensionsList = new ArrayList<String>();
+		List<String> extensionsList = new ArrayList<>();
 		extensionsList.add(BOB_EXTENSION);
 		return matchExtensions(fileName, extensionsList);
 	}
@@ -147,7 +147,7 @@ public class Converter {
 	 * @return all files contained in a given folder and match with given extension
 	 */
 	public List<String> listFiles(String folder, List<String> searchExtension) {
-		List<String> searchFiles = new ArrayList<String>();
+		List<String> searchFiles = new ArrayList<>();
 		File folderFile = new File(folder);
 		if (folderFile.exists() && folderFile.isDirectory()) {
 			File[] listFiles = folderFile.listFiles();

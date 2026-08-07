@@ -46,13 +46,13 @@ public class DiagController {
     public void createContextMenu() {
 
         final ContextMenu contextMenu = new ContextMenu();
-        contextMenu.setOnShowing(new EventHandler<WindowEvent>() {
+        contextMenu.setOnShowing(new EventHandler<>() {
             @Override
             public void handle(WindowEvent e) {
                 System.out.println("showing");
             }
         });
-        contextMenu.setOnShown(new EventHandler<WindowEvent>() {
+        contextMenu.setOnShown(new EventHandler<>() {
             @Override
             public void handle(WindowEvent e) {
                 System.out.println("shown");
@@ -60,14 +60,14 @@ public class DiagController {
         });
 
         MenuItem item1 = new MenuItem("About");
-        item1.setOnAction(new EventHandler<ActionEvent>() {
+        item1.setOnAction(new EventHandler<>() {
             @Override
             public void handle(ActionEvent e) {
                 System.out.println("About");
             }
         });
         MenuItem item2 = new MenuItem("Preferences");
-        item2.setOnAction(new EventHandler<ActionEvent>() {
+        item2.setOnAction(new EventHandler<>() {
             @Override
             public void handle(ActionEvent e) {
                 System.out.println("Preferences");

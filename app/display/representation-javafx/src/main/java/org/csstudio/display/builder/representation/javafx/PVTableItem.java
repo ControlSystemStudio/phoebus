@@ -110,9 +110,9 @@ public class PVTableItem {
                 TableView<PVTableItem> table = getTableView();
                 if (table != null) {
                     TableColumn<PVTableItem, String> column = getTableColumn();
-                    TableColumn.CellEditEvent<PVTableItem, String> event = new CellEditEvent<PVTableItem, String>(table,
-                            new TablePosition<PVTableItem, String>(table, getIndex(), column),
-                            TableColumn.editCommitEvent(), newValue);
+                    TableColumn.CellEditEvent<PVTableItem, String> event = new CellEditEvent<>(table,
+                        new TablePosition<>(table, getIndex(), column),
+                        TableColumn.editCommitEvent(), newValue);
                     Event.fireEvent(column, event);
                 }
             }

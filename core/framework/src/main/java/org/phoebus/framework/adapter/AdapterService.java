@@ -27,11 +27,11 @@ public class AdapterService {
     /**
      * A map where the key is a type mapped to a list of adapter that can convert to this type.
      */
-    private static Map<Class, List<AdapterFactory>> adapters = new HashMap<Class, List<AdapterFactory>>();
+    private static Map<Class, List<AdapterFactory>> adapters = new HashMap<>();
     /**
      * A map where the key is a type mapped to a list of adapters that can process this type to other types.
      */
-    private static Map<Class, List<AdapterFactory>> adaptables = new HashMap<Class, List<AdapterFactory>>();
+    private static Map<Class, List<AdapterFactory>> adaptables = new HashMap<>();
 
     static {
         loader = ServiceLoader.load(AdapterFactory.class);

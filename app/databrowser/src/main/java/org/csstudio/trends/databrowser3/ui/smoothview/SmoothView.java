@@ -209,7 +209,7 @@ public class SmoothView extends VBox {
         validValueRangeLabel.prefWidthProperty().bind(this.widthProperty().divide(14));
 
         validValueRangeLabel.setPadding(new Insets(5));
-        StringConverter<Number> converter = new StringConverter<Number>() {
+        StringConverter<Number> converter = new StringConverter<>() {
             private final DoubleStringConverter doubleConverter = new DoubleStringConverter();
 
             @Override

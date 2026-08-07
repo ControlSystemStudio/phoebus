@@ -85,7 +85,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
 
     // Model
     private Map<Appointment, LogEntry> map;
-    private Map<String, Agenda.AppointmentGroup> appointmentGroupMap = new TreeMap<String, Agenda.AppointmentGroup>();
+    private Map<String, Agenda.AppointmentGroup> appointmentGroupMap = new TreeMap<>();
 
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
@@ -100,7 +100,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         resize.setText("<");
 
         agenda = new Agenda();
-        agenda.setEditAppointmentCallback(new Callback<Agenda.Appointment, Void>() {
+        agenda.setEditAppointmentCallback(new Callback<>() {
 
             @Override
             public Void call(Appointment appointment) {
@@ -152,7 +152,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
         advancedSearchViewController.setSearchParameters(searchParameters);
 
-        searchParameters.addListener(new MapChangeListener<Keys, String>() {
+        searchParameters.addListener(new MapChangeListener<>() {
             @Override
             public void onChanged(Change<? extends Keys, ? extends String> change) {
                 Platform.runLater(() -> {
@@ -279,8 +279,8 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
     }
 
     private void refresh() {
-        map = new HashMap<Appointment, LogEntry>();
-        map = this.logEntries.stream().collect(Collectors.toMap(new Function<LogEntry, Appointment>() {
+        map = new HashMap<>();
+        map = this.logEntries.stream().collect(Collectors.toMap(new Function<>() {
 
             @Override
             public Appointment apply(LogEntry logentry) {
@@ -288,21 +288,21 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 appointment.withSummary(logentry.getDescription());
                 appointment.withDescription(logentry.getDescription());
                 appointment.withStartLocalDateTime(
-                        LocalDateTime.ofInstant(logentry.getCreatedDate(), ZoneId.systemDefault()));
+                    LocalDateTime.ofInstant(logentry.getCreatedDate(), ZoneId.systemDefault()));
                 appointment.withEndLocalDateTime(
-                        LocalDateTime.ofInstant(logentry.getCreatedDate().plusSeconds(2400), ZoneId.systemDefault()));
+                    LocalDateTime.ofInstant(logentry.getCreatedDate().plusSeconds(2400), ZoneId.systemDefault()));
                 List<String> logbookNames = getLogbookNames();
-                if(logbookNames !=null && !logbookNames.isEmpty()){
+                if (logbookNames != null && !logbookNames.isEmpty()) {
                     int index = logbookNames.indexOf(logentry.getLogbooks().iterator().next().getName());
-                    if(index >= 0 && index <= 22){
-                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d",(index+1))));
+                    if (index >= 0 && index <= 22) {
+                        appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", (index + 1))));
                     } else {
                         appointment.setAppointmentGroup(appointmentGroupMap.get(String.format("group%02d", 23)));
                     }
                 }
                 return appointment;
             }
-        }, new Function<LogEntry, LogEntry>() {
+        }, new Function<>() {
 
             @Override
             public LogEntry apply(LogEntry logentry) {

@@ -181,10 +181,10 @@ public class LogEntryImpl implements LogEntry {
         private Instant createdDate;
         private Instant modifiedDate;
         private int version;
-        private Set<Tag> tags = new HashSet<Tag>();
-        private Set<Logbook> logbooks = new HashSet<Logbook>();
-        private Set<Property> properties = new HashSet<Property>();
-        private Set<Attachment> attachments = new HashSet<Attachment>();
+        private Set<Tag> tags = new HashSet<>();
+        private Set<Logbook> logbooks = new HashSet<>();
+        private Set<Property> properties = new HashSet<>();
+        private Set<Attachment> attachments = new HashSet<>();
 
         public static LogEntryBuilder log(LogEntry log) {
             LogEntryBuilder logentryBuilder = new LogEntryBuilder();

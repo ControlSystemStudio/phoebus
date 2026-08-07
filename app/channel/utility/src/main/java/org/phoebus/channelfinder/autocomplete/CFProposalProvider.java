@@ -38,15 +38,15 @@ public class CFProposalProvider implements PVProposalProvider {
                 return;
             }
 
-            ConnectionCheckJob.submit(this.client, new BiConsumer<String, Exception>() {
+            ConnectionCheckJob.submit(this.client, new BiConsumer<>() {
                 @Override
                 public void accept(String s, Exception e) {
                     active = false;
                     Throwable cause = e.getCause();
-                    while (cause != null && ! (cause instanceof ChannelFinderException))
+                    while (cause != null && !(cause instanceof ChannelFinderException))
                         cause = cause.getCause();
                     if (cause != null)
-                        e = (Exception)cause;
+                        e = (Exception) cause;
                     CFProposalProvider.logger.log(Level.INFO, "Failed to create Channel Finder PVProposalProvider", e);
                 }
             });
@@ -67,7 +67,7 @@ public class CFProposalProvider implements PVProposalProvider {
         }
         // TODO this needs the v3.0.2 of channelfinder
         if (active) {
-            Map<String, String> searchMap = new HashMap<String, String>();
+            Map<String, String> searchMap = new HashMap<>();
             searchMap.put("~name", "*" + searchString + "*");
             // searchMap.put("~size", "20");
             result = client.find(searchMap).stream().limit(20).map((channel) -> {

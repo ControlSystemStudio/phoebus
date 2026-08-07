@@ -104,10 +104,10 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
         }, 2, TimeUnit.SECONDS);
 
         ex.schedule(() -> {
-            Set<Tag> tags = new HashSet<Tag>();
+            Set<Tag> tags = new HashSet<>();
             tags.add(TagImpl.of("tag1", "active"));
             tags.add(TagImpl.of("tag2", "active"));
-            Set<Logbook> logbooks = new HashSet<Logbook>();
+            Set<Logbook> logbooks = new HashSet<>();
             logbooks.add(LogbookImpl.of("logbook1", "active"));
             logbooks.add(LogbookImpl.of("logbook2", "active"));
 
@@ -125,10 +125,10 @@ public class LogEntryDisplayDemo extends ApplicationWrapper {
         }, 2, TimeUnit.SECONDS);
 
         ex.schedule(() -> {
-            Set<Tag> tags = new HashSet<Tag>();
+            Set<Tag> tags = new HashSet<>();
             tags.add(TagImpl.of("tag1", "active"));
             tags.add(TagImpl.of("tag2", "active"));
-            Set<Logbook> logbooks = new HashSet<Logbook>();
+            Set<Logbook> logbooks = new HashSet<>();
             logbooks.add(LogbookImpl.of("logbook1", "active"));
             logbooks.add(LogbookImpl.of("logbook2", "active"));
 

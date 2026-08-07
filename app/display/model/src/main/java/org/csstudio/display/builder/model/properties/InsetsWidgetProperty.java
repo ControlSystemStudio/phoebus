@@ -29,30 +29,26 @@ public class InsetsWidgetProperty extends RuntimeWidgetProperty<int[]>
 {
     /** 'insets' with two offsets */
     public static final WidgetPropertyDescriptor<int[]> runtimePropInsets =
-        new WidgetPropertyDescriptor<int[]>(
-            WidgetPropertyCategory.RUNTIME, "insets", Messages.WidgetProperties_Insets)
-    {
-        @Override
-        public WidgetProperty<int[]> createProperty(final Widget widget,
-                                                    final int[] default_value)
-        {
-            return new InsetsWidgetProperty(widget, default_value);
-        }
-    };
+        new WidgetPropertyDescriptor<>(
+            WidgetPropertyCategory.RUNTIME, "insets", Messages.WidgetProperties_Insets) {
+            @Override
+            public WidgetProperty<int[]> createProperty(final Widget widget,
+                                                        final int[] default_value) {
+                return new InsetsWidgetProperty(widget, default_value);
+            }
+        };
 
 
     /** 'insets' with four offsets */
     public static final WidgetPropertyDescriptor<int[]> runtimePropExtendedInsets =
-        new WidgetPropertyDescriptor<int[]>(
-            WidgetPropertyCategory.RUNTIME, "insets", Messages.WidgetProperties_Insets)
-    {
-        @Override
-        public WidgetProperty<int[]> createProperty(final Widget widget,
-                                                    final int[] default_value)
-        {
-            return new InsetsWidgetProperty(widget, default_value, 4);
-        }
-    };
+        new WidgetPropertyDescriptor<>(
+            WidgetPropertyCategory.RUNTIME, "insets", Messages.WidgetProperties_Insets) {
+            @Override
+            public WidgetProperty<int[]> createProperty(final Widget widget,
+                                                        final int[] default_value) {
+                return new InsetsWidgetProperty(widget, default_value, 4);
+            }
+        };
 
 
 

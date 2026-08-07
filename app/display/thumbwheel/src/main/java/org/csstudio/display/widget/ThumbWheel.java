@@ -136,17 +136,17 @@ public class ThumbWheel extends GridPane {
     /*
      * ---- backgroundColor ----------------------------------------------------
      */
-    private final ObjectProperty<Color> backgroundColor = new SimpleObjectProperty<Color>(this, "backgroundColor", Color.LIGHTGRAY) {
+    private final ObjectProperty<Color> backgroundColor = new SimpleObjectProperty<>(this, "backgroundColor", Color.LIGHTGRAY) {
         @Override
         protected void invalidated() {
-            if ( get() == null ) {
+            if (get() == null) {
                 set(Color.LIGHTGRAY);
             } else {
                 setStyle(MessageFormat.format(
                     "-se-thumbwheel-inner-background: rgb({0,number,###}, {1,number,###}, {2,number,###});",
-                    (int) ( 255 * getBackgroundColor().getRed() ),
-                    (int) ( 255 * getBackgroundColor().getGreen() ),
-                    (int) ( 255 * getBackgroundColor().getBlue() )
+                    (int) (255 * getBackgroundColor().getRed()),
+                    (int) (255 * getBackgroundColor().getGreen()),
+                    (int) (255 * getBackgroundColor().getBlue())
                 ));
             }
         }
@@ -163,10 +163,10 @@ public class ThumbWheel extends GridPane {
     /*
      * ---- decrementButtonsColor ----------------------------------------------
      */
-    private final ObjectProperty<Color> decrementButtonsColor = new SimpleObjectProperty<Color>(this, "decrementButtonsColor", DEFAULT_DECREMENT_BUTTON_COLOR) {
+    private final ObjectProperty<Color> decrementButtonsColor = new SimpleObjectProperty<>(this, "decrementButtonsColor", DEFAULT_DECREMENT_BUTTON_COLOR) {
         @Override
         protected void invalidated() {
-            if ( get() == null ) {
+            if (get() == null) {
                 set(DEFAULT_DECREMENT_BUTTON_COLOR);
             } else {
 
@@ -208,12 +208,12 @@ public class ThumbWheel extends GridPane {
     /*
      * ---- foregroundColor ----------------------------------------------------
      */
-    private final ObjectProperty<Color> foregroundColor = new SimpleObjectProperty<Color>(this, "foregroundColor", Color.BLACK) {
+    private final ObjectProperty<Color> foregroundColor = new SimpleObjectProperty<>(this, "foregroundColor", Color.BLACK) {
         @Override
         protected void invalidated() {
-            if ( get() == null ) {
+            if (get() == null) {
                 set(Color.BLACK);
-            } else if ( !isInvalid() ) {
+            } else if (!isInvalid()) {
                 changeLabelsColor(get());
             }
         }
@@ -230,20 +230,20 @@ public class ThumbWheel extends GridPane {
     /*
      * ---- font ---------------------------------------------------------------
      */
-    private final ObjectProperty<Font> font = new SimpleObjectProperty<Font>(this, "font", DEFAULT_FONT) {
+    private final ObjectProperty<Font> font = new SimpleObjectProperty<>(this, "font", DEFAULT_FONT) {
         @Override
         protected void invalidated() {
-            if ( get() == null ) {
+            if (get() == null) {
                 set(DEFAULT_FONT);
             } else {
 
                 Font f = get();
 
-                if ( signLabel != null ) {
+                if (signLabel != null) {
                     signLabel.setFont(f);
                 }
 
-                if ( separatorLabel != null ) {
+                if (separatorLabel != null) {
                     separatorLabel.setFont(f);
                 }
 
@@ -299,10 +299,10 @@ public class ThumbWheel extends GridPane {
     /*
      * ---- incrementButtonsColor ----------------------------------------------
      */
-    private final ObjectProperty<Color> incrementButtonsColor = new SimpleObjectProperty<Color>(this, "incrementButtonsColor", DEFAULT_INCREMENT_BUTTON_COLOR) {
+    private final ObjectProperty<Color> incrementButtonsColor = new SimpleObjectProperty<>(this, "incrementButtonsColor", DEFAULT_INCREMENT_BUTTON_COLOR) {
         @Override
         protected void invalidated() {
-            if ( get() == null ) {
+            if (get() == null) {
                 set(DEFAULT_INCREMENT_BUTTON_COLOR);
             } else {
 
@@ -358,12 +358,12 @@ public class ThumbWheel extends GridPane {
     /*
      * ---- invalidColor -------------------------------------------------------
      */
-    private final ObjectProperty<Color> invalidColor = new SimpleObjectProperty<Color>(this, "invalidColor", Color.RED) {
+    private final ObjectProperty<Color> invalidColor = new SimpleObjectProperty<>(this, "invalidColor", Color.RED) {
         @Override
         protected void invalidated() {
-            if ( get() == null ) {
+            if (get() == null) {
                 set(Color.RED);
-            } else if ( isInvalid() ) {
+            } else if (isInvalid()) {
                 changeLabelsColor(get());
             }
         }

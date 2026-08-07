@@ -19,8 +19,8 @@ import com.fasterxml.jackson.annotation.*;
 public class XmlChannel {
     private String name;
     private String owner;
-    private List<XmlProperty> properties = new ArrayList<XmlProperty>();
-    private List<XmlTag> tags = new ArrayList<XmlTag>();
+    private List<XmlProperty> properties = new ArrayList<>();
+    private List<XmlTag> tags = new ArrayList<>();
   
     /** Creates a new instance of XmlChannel */
     public XmlChannel() {

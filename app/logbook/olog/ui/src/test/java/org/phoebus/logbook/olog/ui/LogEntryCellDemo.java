@@ -67,10 +67,10 @@ public class LogEntryCellDemo extends ApplicationWrapper {
 
         ex.schedule(() -> {
 
-            Set<Tag> tags = new HashSet<Tag>();
+            Set<Tag> tags = new HashSet<>();
             tags.add(TagImpl.of("tag1", "active"));
             tags.add(TagImpl.of("tag2", "active"));
-            Set<Logbook> logbooks = new HashSet<Logbook>();
+            Set<Logbook> logbooks = new HashSet<>();
             logbooks.add(LogbookImpl.of("logbook1", "active"));
             logbooks.add(LogbookImpl.of("logbook2", "active"));
 
@@ -89,10 +89,10 @@ public class LogEntryCellDemo extends ApplicationWrapper {
         }, 2, TimeUnit.SECONDS);
 
         ex.schedule(() -> {
-            Set<Tag> tags = new HashSet<Tag>();
+            Set<Tag> tags = new HashSet<>();
             tags.add(TagImpl.of("tag1", "active"));
             tags.add(TagImpl.of("tag2", "active"));
-            Set<Logbook> logbooks = new HashSet<Logbook>();
+            Set<Logbook> logbooks = new HashSet<>();
             logbooks.add(LogbookImpl.of("logbook1", "active"));
             logbooks.add(LogbookImpl.of("logbook2", "active"));
 
@@ -115,8 +115,8 @@ public class LogEntryCellDemo extends ApplicationWrapper {
                         .id(3L)
                         .description(
                                 "Fast correctors for the vertical orbit have glitched to near saturation. Archiver shows there have been several episodes the past 24 hrs. Appears that FOFB in vertical plane might have momentary bad BPM reading.")
-                        .withTags(new HashSet<Tag>(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))))
-                        .inLogbooks(new HashSet<Logbook>(Arrays.asList(LogbookImpl.of("Operations", "active"), LogbookImpl.of("Electrical", "active"))))
+                        .withTags(new HashSet<>(Arrays.asList(TagImpl.of("Orbit", "active"), TagImpl.of("Studies", "active"))))
+                        .inLogbooks(new HashSet<>(Arrays.asList(LogbookImpl.of("Operations", "active"), LogbookImpl.of("Electrical", "active"))))
                         .owner("nsls2-user");
                 listOfFiles.forEach(file -> {
                     lb.attach(AttachmentImpl.of(file));

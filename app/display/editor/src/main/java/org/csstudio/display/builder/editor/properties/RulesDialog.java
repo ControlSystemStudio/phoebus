@@ -119,7 +119,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             internal_prop_val = prop_val;
             string_prop = CommonWidgetProperties.propText.createProperty(widget, prop_val);
             field.setValue(PropertyPanelSection.
-                    bindSimplePropertyField(undo, bindings, string_prop, new ArrayList<Widget>()));
+                    bindSimplePropertyField(undo, bindings, string_prop, new ArrayList<>()));
         }
 
         @Override
@@ -151,7 +151,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
             super(bool_exp, prop_val, undo);
             internal_prop_val = prop_val;
             field.setValue(PropertyPanelSection.
-                    bindSimplePropertyField(undo, bindings, prop_val, new ArrayList<Widget>()));
+                    bindSimplePropertyField(undo, bindings, prop_val, new ArrayList<>()));
         }
 
         @Override
@@ -675,7 +675,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         // Create table with editable rule 'name' column
         final TableColumn<RuleItem, String> name_col = new TableColumn<>(Messages.RulesDialog_ColName);
 
-        name_col.setCellValueFactory(new PropertyValueFactory<RuleItem, String>("name"));
+        name_col.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         name_col.setCellFactory(list -> EditCell.createStringEditCell());
 
@@ -816,7 +816,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         // Create table with editable rule 'bool expression' column
         final TableColumn<ExprItem<?>, String> bool_exp_col = new TableColumn<>(Messages.RulesDialog_ColBoolExp);
         bool_exp_col.setSortable(false);
-        bool_exp_col.setCellValueFactory(new PropertyValueFactory<ExprItem<?>, String>("boolExp"));
+        bool_exp_col.setCellValueFactory(new PropertyValueFactory<>("boolExp"));
         bool_exp_col.setCellFactory(tableColumn -> EditCell.createStringEditCell());
 
         // Create table with editable rule 'value expression' column
@@ -835,7 +835,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         });
 
         val_exp_col.setSortable(false);
-        val_exp_col.setCellValueFactory(new PropertyValueFactory<ExprItem<?>, Node>("field"));
+        val_exp_col.setCellValueFactory(new PropertyValueFactory<>("field"));
         val_exp_col.setCellFactory(tableColumn -> new TableCell<>()
         {
             @Override
@@ -933,7 +933,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         // Create table with editable 'name' column
         final TableColumn<PVTableItem, String> name_col = new TableColumn<>(Messages.ScriptsDialog_ColPV);
         name_col.setSortable(false);
-        name_col.setCellValueFactory(new PropertyValueFactory<PVTableItem, String>("name"));
+        name_col.setCellValueFactory(new PropertyValueFactory<>("name"));
         name_col.setCellFactory(col -> new AutoCompletedTableCell(btn_add_pv));
         name_col.setOnEditCommit(event ->
         {
@@ -946,7 +946,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         // modifies the Observable Property
         final TableColumn<PVTableItem, Boolean> trigger_col = new TableColumn<>(Messages.ScriptsDialog_ColTrigger);
         trigger_col.setSortable(false);
-        trigger_col.setCellValueFactory(new PropertyValueFactory<PVTableItem, Boolean>("trigger"));
+        trigger_col.setCellValueFactory(new PropertyValueFactory<>("trigger"));
         trigger_col.setCellFactory(CheckBoxTableCell.<PVTableItem> forTableColumn(trigger_col));
         trigger_col.setResizable(false);
         trigger_col.setMaxWidth(70);

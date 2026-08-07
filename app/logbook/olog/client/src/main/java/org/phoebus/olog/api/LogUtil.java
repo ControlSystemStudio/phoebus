@@ -24,7 +24,7 @@ public class LogUtil {
     }
 
     static Collection<LogEntry> toLogs(XmlLogs xmlLogs) {
-        Collection<LogEntry> logs = new HashSet<LogEntry>();
+        Collection<LogEntry> logs = new HashSet<>();
         for (XmlLog xmlLog : xmlLogs.getLogs()) {
             logs.add(new OlogLog(xmlLog));
         }
@@ -32,7 +32,7 @@ public class LogUtil {
     }
 
     public static Collection<String> getLogDescriptions(Collection<OlogLog> logs) {
-        Collection<String> logDescriptions = new ArrayList<String>();
+        Collection<String> logDescriptions = new ArrayList<>();
         for (OlogLog log : logs) {
             logDescriptions.add(log.getDescription());
         }
