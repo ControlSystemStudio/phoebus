@@ -151,7 +151,9 @@ public class DockItemWithInput extends DockItem {
         if (isFileResource) {
             final MenuItem showInFileBrowser = new MenuItem(Messages.ShowInFileBrowserApp, new ImageView(fileBrowserIcon));
             showInFileBrowser.setOnAction(e -> {
-                ApplicationService.createInstance("file_browser", new File(input.getPath()).toURI());
+                final File file = ResourceParser.getFile(input);
+                if (file != null)
+                    ApplicationService.createInstance("file_browser", file.toURI());
             });
             name_tab.getContextMenu().getItems().add(1, showInFileBrowser);
         }

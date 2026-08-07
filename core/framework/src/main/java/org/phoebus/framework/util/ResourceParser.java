@@ -159,6 +159,14 @@ public class ResourceParser
             return null;
         // URI might be file:/some/path/file.plt?MACRO1=Value1
         // Create file for just the path, not the query params.
+        //
+        // Preserve URI host for UNC/network paths, for example
+        // file://wsl.localhost/AlmaLinux-9/home/user/file.bob.
+        // Using only resource.getPath() would drop the host and create
+        // a wrong local path like /AlmaLinux-9/home/.. on Windows.
+        final String host = resource.getHost();
+        if (host != null && !host.isEmpty())
+            return new File("//" + host + resource.getPath());
         return new File(resource.getPath());
     }
 
@@ -168,7 +176,33 @@ public class ResourceParser
      */
     public static URI getURI(final File file)
     {
-        return file.toURI();
+        final URI uri = file.toURI();
+        // On Windows, File.toURI() for UNC paths (\\host\share\path) may
+        // produce URIs without a proper host component, e.g.
+        // file:////host/share/path (host embedded in path).
+        // Normalize to file://host/share/path so consumers can use getHost().
+        if ("file".equals(uri.getScheme()) && uri.getHost() == null)
+        {
+            final String path = uri.getPath();
+            if (path != null && path.startsWith("//"))
+            {
+                final int thirdSlash = path.indexOf('/', 2);
+                if (thirdSlash > 2)
+                {
+                    final String host = path.substring(2, thirdSlash);
+                    final String remainder = path.substring(thirdSlash);
+                    try
+                    {
+                        return new URI("file", host, remainder, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Fall through to return original URI
+                    }
+                }
+            }
+        }
+        return uri;
     }
 
     /** Open a resource that can be read (file, web link)

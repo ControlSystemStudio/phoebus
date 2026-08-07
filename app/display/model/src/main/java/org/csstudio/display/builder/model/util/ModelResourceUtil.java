@@ -119,6 +119,10 @@ public class ModelResourceUtil
             path = splitPath[1];
         }
 
+        // Detect UNC paths BEFORE backslash conversion.
+        // UNC paths start with "//" (Unix-style) or "\\" (Windows-style).
+        final boolean isUNC = path.startsWith("//") || path.startsWith("\\\\");
+
         path = path.replaceAll("\\\\(?!\\\\)", "/");
 
         // Collapse "something/../" into "something/"
@@ -135,7 +139,17 @@ public class ModelResourceUtil
         // Pattern: '\(?!\)', i.e. backslash _not_ followed by another one.
         // Each \ is doubled as \\ to get one '\' into the string,
         // then doubled once more to tell regex that we want a '\'
-        return protocol + path.replaceAll("\\\\(?!\\\\)", "/");
+        path = protocol + path.replaceAll("\\\\(?!\\\\)", "/");
+
+        // Restore UNC prefix after Paths.get().normalize() and backslash conversion.
+        // On Linux,  "//host/share" normalizes to "/host/share", so need to add "/".
+        // On Windows, "//host/share" normalizes to "\\host\share", so regex converts
+        //   only the second \ (not followed by \), leaving "\/host/share", so need to
+        //   strip leading separators and re-add "//".
+        if (isUNC && !path.startsWith("//"))
+            path = "//" + path.replaceFirst("^[/\\\\]+", "");
+
+        return path;
     }
 
     /** Obtain directory of file. For URL, this is the path up to the last element
@@ -399,8 +413,12 @@ public class ModelResourceUtil
             }
         }
         // To get a file, strip query information,
-        // because new File("file://xxxx?with_query") will throw exception
-        return ResourceParser.getFile(new URI(resource.getScheme(), null, null, -1, resource.getPath(), null, null));
+        // because new File("file://xxxx?with_query") will throw exception.
+        // Preserve host/userInfo/port so UNC/network paths like
+        // file://wsl.localhost/share/path are handled correctly.
+        return ResourceParser.getFile(new URI(resource.getScheme(), resource.getUserInfo(),
+                                              resource.getHost(), resource.getPort(),
+                                              resource.getPath(), null, null));
     }
 
     /** Open a file, web location, ..
