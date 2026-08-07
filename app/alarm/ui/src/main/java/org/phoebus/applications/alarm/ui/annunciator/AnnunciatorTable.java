@@ -10,34 +10,42 @@ package org.phoebus.applications.alarm.ui.annunciator;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
+import javafx.collections.ObservableList;
+import javafx.scene.control.*;
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.talk.TalkClient;
 import org.phoebus.applications.alarm.talk.TalkClientListener;
+import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.tree.*;
+import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
+import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PrintAction;
+import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
+import org.phoebus.ui.selection.AppSelection;
+import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
-import javafx.scene.control.TableView;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
@@ -271,8 +279,40 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
 
         getChildren().setAll(toolbar, table);
 
-        // Annunciate message so that user can determine if annunciator and table are indeed functional.
+        createContextMenu();
+
         messageReceived(SeverityLevel.OK, true, "Annunciator started");
+    }
+
+    private void createContextMenu()
+    {
+        final ContextMenu menu = new ContextMenu();
+
+        table.setOnContextMenuRequested(event ->
+        {
+            final ObservableList<MenuItem> menu_items = menu.getItems();
+            menu_items.clear();
+
+            final Selection originalSelection = SelectionService.getInstance().getSelection();
+            final List<AppSelection> newSelection = Arrays.asList(AppSelection.of(table, "Annunciator Screenshot", "see annunciator screenshot", () -> Screenshot.imageFromNode(table)));
+            SelectionService.getInstance().setSelection("Annunciator", newSelection);
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+               MenuItem supportedMenuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+               supportedMenuItem.setOnAction((e) -> {
+                   try{
+                       SelectionService.getInstance().setSelection("Annunciator", newSelection);
+                       action.call(table, SelectionService.getInstance().getSelection());
+                   } catch (Exception ex) {
+                       logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from Annunciator.", ex);
+                   }
+               });
+               menu_items.add(supportedMenuItem);
+            });
+            menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
+            SelectionService.getInstance().setSelection("Annunciator", originalSelection);
+            menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
     }
 
     ToolBar getToolbar()

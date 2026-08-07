@@ -21,7 +21,7 @@ public class ContextMenuService {
 
     private static ContextMenuService contextMenuService;
     private static ServiceLoader<ContextMenuEntry> loader;
-    private List<ContextMenuEntry> contextMenuEntries;
+    private final List<ContextMenuEntry> contextMenuEntries;
 
     private ContextMenuService() {
         loader = ServiceLoader.load(ContextMenuEntry.class);
@@ -55,12 +55,12 @@ public class ContextMenuService {
      * @return A list of {@link ContextMenuEntry}'s supported for the current
      *         selection
      */
+
     public List<ContextMenuEntry> listSupportedContextMenuEntries() {
         // List of types of the current selection
         List<Class> selectionTypes = SelectionService.getInstance().getSelection().getSelections().stream().map(s -> {
             return s.getClass();
         }).collect(Collectors.toList());
-
         // Take into account the types the selected objects can be converted into
         List<Class> allAdaptableSelectionType = new ArrayList<>();
         selectionTypes.forEach(s -> {
