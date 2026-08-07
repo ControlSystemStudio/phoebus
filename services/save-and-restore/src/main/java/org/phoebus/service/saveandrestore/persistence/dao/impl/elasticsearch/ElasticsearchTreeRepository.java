@@ -19,16 +19,12 @@
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.Refresh;
-import co.elastic.clients.elasticsearch._types.Result;
-import co.elastic.clients.elasticsearch._types.query_dsl.*;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
-import co.elastic.clients.elasticsearch.core.*;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.transport.endpoints.BooleanResponse;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.rest5_client.low_level.Request;
 import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import jakarta.json.stream.JsonGenerator;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
@@ -43,14 +39,15 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.MultiValueMap;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Repository for {@link ESTreeNode} objects.
@@ -69,10 +66,6 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
      * operation. If so, the last modified date should be preserved.
      */
     private boolean migrationContext;
-
-    @Autowired
-    @Qualifier("client")
-    ElasticsearchClient client;
 
     @Autowired
     @Qualifier("restClient")
@@ -126,16 +119,15 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
                 elasticTreeNode.getNode().setLastModified(now);
             }
 
-            IndexRequest<ESTreeNode> indexRequest =
-                    IndexRequest.of(i ->
-                            i.index(ES_TREE_INDEX)
-                                    .id(elasticTreeNode.getNode().getUniqueId())
-                                    .document(elasticTreeNode)
-                                    .refresh(Refresh.True));
-            IndexResponse response = client.index(indexRequest);
+            String id = elasticTreeNode.getNode().getUniqueId();
+            Request request = new Request("PUT", "/" + encodePathSegment(ES_TREE_INDEX)
+                    + "/_doc/" + encodePathSegment(id));
+            request.addParameter("refresh", "true");
+            request.setJsonEntity(buildTreeNodePayload(elasticTreeNode));
+            int statusCode = restClient.performRequest(request).getStatusCode();
 
-            if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
-                return (S) getTreeNodeById(response.id()).orElse(null);
+            if (statusCode >= 200 && statusCode < 300) {
+                return (S) getTreeNodeById(id).orElse(null);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save ESTreeNode object: " + elasticTreeNode, e);
@@ -181,9 +173,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     public boolean existsById(@NonNull String id) {
 
         try {
-            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(ES_TREE_INDEX).id(id));
-            BooleanResponse existsResponse = client.exists(existsRequest);
-            return existsResponse.value();
+            return documentExists(ES_TREE_INDEX, id);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to query if ESTreeNode with id " + id + " exists");
         }
@@ -241,10 +231,12 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @Override
     public void deleteById(@NonNull String id) {
         try {
-            DeleteRequest deleteRequest = DeleteRequest.of(d ->
-                    d.index(ES_TREE_INDEX).id(id).refresh(Refresh.True));
-            DeleteResponse deleteResponse = client.delete(deleteRequest);
-            if (deleteResponse.result().equals(Result.Deleted)) {
+            Request request = new Request("DELETE", "/" + encodePathSegment(ES_TREE_INDEX)
+                    + "/_doc/" + encodePathSegment(id));
+            request.addParameter("refresh", "true");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            String result = body.path("result").asText("");
+            if ("deleted".equalsIgnoreCase(result)) {
                 logger.log(Level.WARNING, "Node with id " + id + " deleted.");
             } else {
                 logger.log(Level.WARNING, "Node with id " + id + " NOT deleted.");
@@ -273,10 +265,11 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @Override
     public void deleteAll() {
         try {
-            DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
-                    d.index(ES_TREE_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
-            DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
-            logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " ESTreeNode objects");
+            Request request = new Request("POST", "/" + encodePathSegment(ES_TREE_INDEX) + "/_delete_by_query");
+            request.addParameter("refresh", "true");
+            request.setJsonEntity("{\"query\":{\"match_all\":{}}}");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            logger.log(Level.INFO, "Deleted " + body.path("deleted").asLong(0L) + " ESTreeNode objects");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to delete all ESTreeNode objects", e);
             throw new RuntimeException(e);
@@ -293,20 +286,20 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
      * <code>null</code>.
      */
     public ESTreeNode getParentNode(String uniqueId) {
-        Builder bqb = new Builder();
-        bqb.must(TermQuery.of(w -> w.field("childNodes").value(uniqueId))._toQuery());
-        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
-                .query(bqb.build()._toQuery())
-                .timeout("60s"));
         try {
-            SearchResponse<ESTreeNode> searchResponse = client.search(searchRequest, ESTreeNode.class);
-            if (!searchResponse.hits().hits().isEmpty()) {
-                if (searchResponse.hits().hits().size() > 1) {
+            Map<String, Object> query = Map.of(
+                    "query", Map.of("bool", Map.of("must", List.of(Map.of("term", Map.of("childNodes", uniqueId))))),
+                    "timeout", "60s",
+                    "size", 2
+            );
+            JsonNode response = executeSearch("/" + encodePathSegment(ES_TREE_INDEX) + "/_search",
+                    objectMapper.writeValueAsString(query));
+            List<ESTreeNode> result = parseSearchHits(response, ESTreeNode.class);
+            if (!result.isEmpty()) {
+                if (result.size() > 1) {
                     logger.log(Level.SEVERE, "Node " + uniqueId + " is child node of multiple nodes. Should not happen!");
                     throw new RuntimeException("Node " + uniqueId + " contained in multiple parent nodes. Should not happen!");
                 }
-                List<ESTreeNode> result =
-                        searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
                 return result.get(0);
             } else {
                 throw new NodeNotFoundException("Unable to locate parent node for unique id " + uniqueId);
@@ -323,24 +316,28 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
      * @return A potentially empty list of {@link Tag}s.
      */
     public List<ESTreeNode> searchNodesForTag(boolean goldenOnly) {
-        BoolQuery.Builder boolQueryBuilder = new Builder();
-        NestedQuery innerNestedQuery;
-        if (!goldenOnly) {
-            ExistsQuery existsQuery = ExistsQuery.of(e -> e.field("node.tags"));
-            innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(existsQuery._toQuery()));
-        } else {
-            MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.tags.name").query(Tag.GOLDEN));
-            innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(matchQuery._toQuery()));
-        }
-        NestedQuery outerNestedQuery = NestedQuery.of(n2 -> n2.path("node").query(innerNestedQuery._toQuery()));
-        boolQueryBuilder.must(outerNestedQuery._toQuery());
-        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
-                .query(boolQueryBuilder.build()._toQuery())
-                .timeout("60s")
-                .size(1000));
         try {
-            SearchResponse<ESTreeNode> esTreeNodeSearchResponse = client.search(searchRequest, ESTreeNode.class);
-            return esTreeNodeSearchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
+            Map<String, Object> innerQuery;
+            if (!goldenOnly) {
+                innerQuery = Map.of("exists", Map.of("field", "node.tags"));
+            } else {
+                innerQuery = Map.of("match", Map.of("node.tags.name", Tag.GOLDEN));
+            }
+
+            Map<String, Object> query = Map.of(
+                    "query", Map.of("bool", Map.of("must", List.of(
+                            Map.of("nested", Map.of(
+                                    "path", "node",
+                                    "query", Map.of("nested", Map.of("path", "node.tags", "query", innerQuery))
+                            ))
+                    ))),
+                    "timeout", "60s",
+                    "size", 1000
+            );
+
+            JsonNode response = executeSearch("/" + encodePathSegment(ES_TREE_INDEX) + "/_search",
+                    objectMapper.writeValueAsString(query));
+            return parseSearchHits(response, ESTreeNode.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -356,10 +353,13 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
 
         SearchRequest searchRequest = searchUtil.buildSearchRequest(searchParameters);
         try {
-            SearchResponse<ESTreeNode> searchResponse = client.search(searchRequest, ESTreeNode.class);
+            String endpoint = "/" + encodePathSegment(ES_TREE_INDEX) + "/_search";
+            String payload = serializeSearchRequest(searchRequest);
+            JsonNode searchResponse = executeSearch(endpoint, payload);
+            List<ESTreeNode> hits = parseSearchHits(searchResponse, ESTreeNode.class);
             SearchResult searchResult = new SearchResult();
-            searchResult.setHitCount((int) searchResponse.hits().total().value());
-            searchResult.setNodes(searchResponse.hits().hits().stream().map(e -> e.source().getNode()).collect(Collectors.toList()));
+            searchResult.setHitCount((int) getTotalHits(searchResponse));
+            searchResult.setNodes(hits.stream().map(e -> e.getNode()).filter(Objects::nonNull).toList());
             return searchResult;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -413,5 +413,125 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
 
     private static String encodePathSegment(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    private boolean documentExists(String indexName, String documentId) throws IOException {
+        try {
+            Request request = new Request("HEAD", "/" + encodePathSegment(indexName)
+                    + "/_doc/" + encodePathSegment(documentId));
+            int statusCode = restClient.performRequest(request).getStatusCode();
+            return statusCode >= 200 && statusCode < 300;
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusCode() == 404) {
+                return false;
+            }
+            throw e;
+        }
+    }
+
+    private JsonNode executeSearch(String endpoint, String payload) throws IOException {
+        Request request = new Request("POST", endpoint);
+        request.setJsonEntity(payload);
+        return objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+    }
+
+    private <T> List<T> parseSearchHits(JsonNode response, Class<T> type) throws IOException {
+        JsonNode hits = response.path("hits").path("hits");
+        if (!hits.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<T> result = new ArrayList<>();
+        for (JsonNode hit : hits) {
+            JsonNode source = hit.get("_source");
+            if (source != null && !source.isNull()) {
+                result.add(objectMapper.treeToValue(source, type));
+            }
+        }
+        return result;
+    }
+
+    private long getTotalHits(JsonNode response) {
+        JsonNode total = response.path("hits").path("total");
+        if (total.isObject()) {
+            return total.path("value").asLong(0L);
+        }
+        if (total.isNumber()) {
+            return total.asLong(0L);
+        }
+        return 0L;
+    }
+
+    private String serializeSearchRequest(SearchRequest searchRequest) {
+        try {
+            StringWriter writer = new StringWriter();
+            JsonMapper jsonMapper = objectMapper instanceof JsonMapper
+                    ? (JsonMapper) objectMapper
+                    : JsonMapper.builder().build();
+            Jackson3JsonpMapper mapper = new Jackson3JsonpMapper(jsonMapper);
+            JsonGenerator generator = mapper.jsonProvider().createGenerator(writer);
+            searchRequest.serialize(generator, mapper);
+            generator.close();
+            return writer.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize search request", e);
+        }
+    }
+
+    private String buildTreeNodePayload(ESTreeNode treeNode) throws IOException {
+        Map<String, Object> doc = new LinkedHashMap<>();
+        doc.put("childNodes", treeNode.getChildNodes() == null ? new ArrayList<>() : treeNode.getChildNodes());
+
+        Map<String, Object> nodeMap = new LinkedHashMap<>();
+        var node = treeNode.getNode();
+        if (node != null) {
+            if (node.getUniqueId() != null) {
+                nodeMap.put("uniqueId", node.getUniqueId());
+            }
+            if (node.getName() != null) {
+                nodeMap.put("name", node.getName());
+            }
+            if (node.getDescription() != null) {
+                nodeMap.put("description", node.getDescription());
+            }
+            if (node.getCreated() != null) {
+                nodeMap.put("created", node.getCreated().getTime());
+            }
+            if (node.getLastModified() != null) {
+                nodeMap.put("lastModified", node.getLastModified().getTime());
+            }
+            if (node.getNodeType() != null) {
+                nodeMap.put("nodeType", node.getNodeType().name());
+            }
+            if (node.getUserName() != null) {
+                nodeMap.put("userName", node.getUserName());
+            }
+            if (node.getTags() != null) {
+                List<Map<String, Object>> tags = new ArrayList<>();
+                for (Tag tag : node.getTags()) {
+                    if (tag == null) {
+                        continue;
+                    }
+                    Map<String, Object> tagMap = new LinkedHashMap<>();
+                    if (tag.getName() != null) {
+                        tagMap.put("name", tag.getName());
+                    }
+                    if (tag.getComment() != null) {
+                        tagMap.put("comment", tag.getComment());
+                    }
+                    if (tag.getUserName() != null) {
+                        tagMap.put("userName", tag.getUserName());
+                    }
+                    if (tag.getCreated() != null) {
+                        tagMap.put("created", tag.getCreated().getTime());
+                    }
+                    tags.add(tagMap);
+                }
+                nodeMap.put("tags", tags);
+            }
+        }
+
+        doc.put("node", nodeMap);
+        return objectMapper.writeValueAsString(doc);
     }
 }

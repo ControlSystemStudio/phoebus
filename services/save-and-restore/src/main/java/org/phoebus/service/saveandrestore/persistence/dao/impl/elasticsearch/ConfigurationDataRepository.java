@@ -19,15 +19,12 @@
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.Refresh;
-import co.elastic.clients.elasticsearch._types.Result;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
-import co.elastic.clients.elasticsearch.core.*;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.transport.endpoints.BooleanResponse;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.rest5_client.low_level.Request;
 import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import jakarta.json.stream.JsonGenerator;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
@@ -41,8 +38,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -51,7 +50,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Repository for {@link ConfigurationData}.
@@ -61,10 +59,6 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
 
     @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
     private String ES_CONFIGURATION_INDEX;
-
-    @Autowired
-    @Qualifier("client")
-    private ElasticsearchClient client;
 
     @Autowired
     @Qualifier("restClient")
@@ -82,16 +76,15 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
     @Override
     public <S extends ConfigurationData> S save(S entity) {
         try {
-            IndexRequest<ConfigurationData> indexRequest =
-                    IndexRequest.of(i ->
-                            i.index(ES_CONFIGURATION_INDEX)
-                                    .id(entity.getUniqueId())
-                                    .document(entity)
-                                    .refresh(Refresh.True));
-            IndexResponse response = client.index(indexRequest);
+            String id = entity.getUniqueId();
+            Request request = new Request("PUT", "/" + encodePathSegment(ES_CONFIGURATION_INDEX)
+                    + "/_doc/" + encodePathSegment(id));
+            request.addParameter("refresh", "true");
+            request.setJsonEntity(objectMapper.writeValueAsString(entity));
+            int statusCode = restClient.performRequest(request).getStatusCode();
 
-            if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
-                return (S) getConfigurationDataById(response.id()).orElse(null);
+            if (statusCode >= 200 && statusCode < 300) {
+                return (S) getConfigurationDataById(id).orElse(null);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save configuration for config id " + entity.getUniqueId(), e);
@@ -118,9 +111,7 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
     @Override
     public boolean existsById(String s) {
         try {
-            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(ES_CONFIGURATION_INDEX).id(s));
-            BooleanResponse existsResponse = client.exists(existsRequest);
-            return existsResponse.value();
+            return documentExists(ES_CONFIGURATION_INDEX, s);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to query if ConfigurationData with id " + s + " exists");
         }
@@ -140,10 +131,9 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
     @Override
     public long count() {
         try {
-            CountRequest countRequest = CountRequest.of(c ->
-                    c.index(ES_CONFIGURATION_INDEX));
-            CountResponse countResponse = client.count(countRequest);
-            return countResponse.count();
+            Request request = new Request("POST", "/" + encodePathSegment(ES_CONFIGURATION_INDEX) + "/_count");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            return body.path("count").asLong(0L);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to count ConfigurationData objects", e);
             throw new RuntimeException(e);
@@ -153,10 +143,11 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
     @Override
     public void deleteById(String s) {
         try {
-            DeleteRequest deleteRequest = DeleteRequest.of(d ->
-                    d.index(ES_CONFIGURATION_INDEX).id(s).refresh(Refresh.True));
-            DeleteResponse deleteResponse = client.delete(deleteRequest);
-            if (deleteResponse.result().equals(Result.Deleted)) {
+            Request request = new Request("DELETE", "/" + encodePathSegment(ES_CONFIGURATION_INDEX)
+                    + "/_doc/" + encodePathSegment(s));
+            request.addParameter("refresh", "true");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            if ("deleted".equalsIgnoreCase(body.path("result").asText(""))) {
                 logger.log(Level.WARNING, "Configuration with id " + s + " deleted.");
             } else {
                 logger.log(Level.WARNING, "Configuration with id " + s + " NOT deleted.");
@@ -185,10 +176,11 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
     @Override
     public void deleteAll() {
         try {
-            DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
-                    d.index(ES_CONFIGURATION_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
-            DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
-            logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " ConfigurationData objects");
+            Request request = new Request("POST", "/" + encodePathSegment(ES_CONFIGURATION_INDEX) + "/_delete_by_query");
+            request.addParameter("refresh", "true");
+            request.setJsonEntity("{\"query\":{\"match_all\":{}}}");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            logger.log(Level.INFO, "Deleted " + body.path("deleted").asLong(0L) + " ConfigurationData objects");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to delete all ConfigurationData objects", e);
             throw new RuntimeException(e);
@@ -209,8 +201,10 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
         }
         SearchRequest searchRequest = searchUtil.buildSearchRequestForPvs(optional.get().getValue());
         try {
-            SearchResponse<ConfigurationData> searchResponse = client.search(searchRequest, ConfigurationData.class);
-            return searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
+            Request request = new Request("POST", "/" + encodePathSegment(ES_CONFIGURATION_INDEX) + "/_search");
+            request.setJsonEntity(serializeSearchRequest(searchRequest));
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            return parseSearchHits(body, ConfigurationData.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -240,5 +234,51 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
 
     private static String encodePathSegment(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    private boolean documentExists(String indexName, String documentId) throws IOException {
+        try {
+            Request request = new Request("HEAD", "/" + encodePathSegment(indexName)
+                    + "/_doc/" + encodePathSegment(documentId));
+            int statusCode = restClient.performRequest(request).getStatusCode();
+            return statusCode >= 200 && statusCode < 300;
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusCode() == 404) {
+                return false;
+            }
+            throw e;
+        }
+    }
+
+    private <T> List<T> parseSearchHits(JsonNode response, Class<T> type) throws IOException {
+        JsonNode hits = response.path("hits").path("hits");
+        if (!hits.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<T> result = new java.util.ArrayList<>();
+        for (JsonNode hit : hits) {
+            JsonNode source = hit.get("_source");
+            if (source != null && !source.isNull()) {
+                result.add(objectMapper.treeToValue(source, type));
+            }
+        }
+        return result;
+    }
+
+    private String serializeSearchRequest(SearchRequest searchRequest) {
+        try {
+            StringWriter writer = new StringWriter();
+            JsonMapper jsonMapper = objectMapper instanceof JsonMapper
+                    ? (JsonMapper) objectMapper
+                    : JsonMapper.builder().build();
+            Jackson3JsonpMapper mapper = new Jackson3JsonpMapper(jsonMapper);
+            JsonGenerator generator = mapper.jsonProvider().createGenerator(writer);
+            searchRequest.serialize(generator, mapper);
+            generator.close();
+            return writer.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize search request", e);
+        }
     }
 }

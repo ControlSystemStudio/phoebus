@@ -19,28 +19,12 @@
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.Refresh;
-import co.elastic.clients.elasticsearch._types.Result;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
-import co.elastic.clients.elasticsearch.core.CountRequest;
-import co.elastic.clients.elasticsearch.core.CountResponse;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
-import co.elastic.clients.elasticsearch.core.DeleteRequest;
-import co.elastic.clients.elasticsearch.core.DeleteResponse;
-import co.elastic.clients.elasticsearch.core.ExistsRequest;
-import co.elastic.clients.elasticsearch.core.GetRequest;
-import co.elastic.clients.elasticsearch.core.GetResponse;
-import co.elastic.clients.elasticsearch.core.IndexRequest;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
-import co.elastic.clients.transport.endpoints.BooleanResponse;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.rest5_client.low_level.Request;
 import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import jakarta.json.stream.JsonGenerator;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
@@ -56,16 +40,18 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * {@link Repository} class for {@link CompositeSnapshotData}.
@@ -79,10 +65,6 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
 
     @Autowired
     private ElasticsearchTreeRepository elasticsearchTreeRepository;
-
-    @Autowired
-    @Qualifier("client")
-    ElasticsearchClient client;
 
     @Autowired
     @Qualifier("restClient")
@@ -100,16 +82,15 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
     @Override
     public <S extends CompositeSnapshotData> S save(S entity) {
         try {
-            IndexRequest<CompositeSnapshotData> indexRequest =
-                    IndexRequest.of(i ->
-                            i.index(ES_COMPOSITE_SNAPSHOT_INDEX)
-                                    .id(entity.getUniqueId())
-                                    .document(entity)
-                                    .refresh(Refresh.True));
-            IndexResponse response = client.index(indexRequest);
+            String id = entity.getUniqueId();
+            Request request = new Request("PUT", "/" + encodePathSegment(ES_COMPOSITE_SNAPSHOT_INDEX)
+                    + "/_doc/" + encodePathSegment(id));
+            request.addParameter("refresh", "true");
+            request.setJsonEntity(objectMapper.writeValueAsString(entity));
+            int statusCode = restClient.performRequest(request).getStatusCode();
 
-            if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
-                return (S) getCompositeSnapshotDataById(response.id()).orElse(null);
+            if (statusCode >= 200 && statusCode < 300) {
+                return (S) getCompositeSnapshotDataById(id).orElse(null);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save composite snapshot for unique id " + entity.getUniqueId(), e);
@@ -136,9 +117,7 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
     @Override
     public boolean existsById(String s) {
         try {
-            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(ES_COMPOSITE_SNAPSHOT_INDEX).id(s));
-            BooleanResponse existsResponse = client.exists(existsRequest);
-            return existsResponse.value();
+            return documentExists(ES_COMPOSITE_SNAPSHOT_INDEX, s);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to query if CompositeSnapshot with id " + s + " exists");
         }
@@ -159,10 +138,10 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
         int from = 0;
         while (true) {
             try {
-                SearchResponse<CompositeSnapshotData> searchResponse = runPagedMatchAll(pageSize, from);
-                result.addAll(searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList()));
-                from += searchResponse.hits().hits().size();
-                if (searchResponse.hits().hits().size() < pageSize) {
+                List<CompositeSnapshotData> batch = runPagedMatchAll(pageSize, from);
+                result.addAll(batch);
+                from += batch.size();
+                if (batch.size() < pageSize) {
                     break;
                 }
             } catch (IOException e) {
@@ -173,14 +152,11 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
         return result;
     }
 
-    private SearchResponse<CompositeSnapshotData> runPagedMatchAll(int pageSize, int from) throws IOException {
-        SearchRequest searchRequest =
-                SearchRequest.of(s ->
-                        s.index(ES_COMPOSITE_SNAPSHOT_INDEX)
-                                .query(new MatchAllQuery.Builder().build()._toQuery())
-                                .size(pageSize)
-                                .from(from));
-        return client.search(searchRequest, CompositeSnapshotData.class);
+    private List<CompositeSnapshotData> runPagedMatchAll(int pageSize, int from) throws IOException {
+        Request request = new Request("POST", "/" + encodePathSegment(ES_COMPOSITE_SNAPSHOT_INDEX) + "/_search");
+        request.setJsonEntity("{\"query\":{\"match_all\":{}},\"size\":" + pageSize + ",\"from\":" + from + "}");
+        JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+        return parseSearchHits(body, CompositeSnapshotData.class);
     }
 
     @Override
@@ -191,10 +167,9 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
     @Override
     public long count() {
         try {
-            CountRequest countRequest = CountRequest.of(c ->
-                    c.index(ES_COMPOSITE_SNAPSHOT_INDEX));
-            CountResponse countResponse = client.count(countRequest);
-            return countResponse.count();
+            Request request = new Request("POST", "/" + encodePathSegment(ES_COMPOSITE_SNAPSHOT_INDEX) + "/_count");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            return body.path("count").asLong(0L);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to count CompositeSnapshot objects", e);
             throw new RuntimeException(e);
@@ -204,10 +179,11 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
     @Override
     public void deleteById(String s) {
         try {
-            DeleteRequest deleteRequest = DeleteRequest.of(d ->
-                    d.index(ES_COMPOSITE_SNAPSHOT_INDEX).id(s).refresh(Refresh.True));
-            DeleteResponse deleteResponse = client.delete(deleteRequest);
-            if (deleteResponse.result().equals(Result.Deleted)) {
+            Request request = new Request("DELETE", "/" + encodePathSegment(ES_COMPOSITE_SNAPSHOT_INDEX)
+                    + "/_doc/" + encodePathSegment(s));
+            request.addParameter("refresh", "true");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            if ("deleted".equalsIgnoreCase(body.path("result").asText(""))) {
                 logger.log(Level.WARNING, "Composite snapshot with id " + s + " deleted.");
             } else {
                 logger.log(Level.WARNING, "Composite snapshot with id " + s + " NOT deleted.");
@@ -236,10 +212,11 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
     @Override
     public void deleteAll() {
         try {
-            DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
-                    d.index(ES_COMPOSITE_SNAPSHOT_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
-            DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
-            logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " CompositeSnapshot objects");
+            Request request = new Request("POST", "/" + encodePathSegment(ES_COMPOSITE_SNAPSHOT_INDEX) + "/_delete_by_query");
+            request.addParameter("refresh", "true");
+            request.setJsonEntity("{\"query\":{\"match_all\":{}}}");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            logger.log(Level.INFO, "Deleted " + body.path("deleted").asLong(0L) + " CompositeSnapshot objects");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to delete all CompositeSnapshot objects", e);
             throw new RuntimeException(e);
@@ -257,13 +234,14 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
 
         SearchRequest searchRequest = searchUtil.buildSearchRequest(searchParameters);
         try {
-            SearchResponse<CompositeSnapshotData> response = client.search(searchRequest, CompositeSnapshotData.class);
-            HitsMetadata<CompositeSnapshotData> hitsMetadata = response.hits();
-            List<CompositeSnapshotData> compositeSnapshotDataList = hitsMetadata.hits().stream().map(Hit::source).toList();
+            Request request = new Request("POST", "/" + encodePathSegment(ES_COMPOSITE_SNAPSHOT_INDEX) + "/_search");
+            request.setJsonEntity(serializeSearchRequest(searchRequest));
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            List<CompositeSnapshotData> compositeSnapshotDataList = parseSearchHits(body, CompositeSnapshotData.class);
             Iterable<ESTreeNode> esTreeNodes = elasticsearchTreeRepository.findAllById(compositeSnapshotDataList.stream().map(CompositeSnapshotData::getUniqueId).toList());
             List<Node> list = new ArrayList<>();
             esTreeNodes.iterator().forEachRemaining(es -> list.add(es.getNode()));
-            return new SearchResult((int) hitsMetadata.total().value(), list);
+            return new SearchResult((int) getTotalHits(body), list);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to search for referenced snapshot nodes", e);
             throw new RuntimeException(e);
@@ -294,5 +272,62 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
 
     private static String encodePathSegment(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    private boolean documentExists(String indexName, String documentId) throws IOException {
+        try {
+            Request request = new Request("HEAD", "/" + encodePathSegment(indexName)
+                    + "/_doc/" + encodePathSegment(documentId));
+            int statusCode = restClient.performRequest(request).getStatusCode();
+            return statusCode >= 200 && statusCode < 300;
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusCode() == 404) {
+                return false;
+            }
+            throw e;
+        }
+    }
+
+    private <T> List<T> parseSearchHits(JsonNode response, Class<T> type) throws IOException {
+        JsonNode hits = response.path("hits").path("hits");
+        if (!hits.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<T> result = new ArrayList<>();
+        for (JsonNode hit : hits) {
+            JsonNode source = hit.get("_source");
+            if (source != null && !source.isNull()) {
+                result.add(objectMapper.treeToValue(source, type));
+            }
+        }
+        return result;
+    }
+
+    private long getTotalHits(JsonNode response) {
+        JsonNode total = response.path("hits").path("total");
+        if (total.isObject()) {
+            return total.path("value").asLong(0L);
+        }
+        if (total.isNumber()) {
+            return total.asLong(0L);
+        }
+        return 0L;
+    }
+
+    private String serializeSearchRequest(SearchRequest searchRequest) {
+        try {
+            StringWriter writer = new StringWriter();
+            JsonMapper jsonMapper = objectMapper instanceof JsonMapper
+                    ? (JsonMapper) objectMapper
+                    : JsonMapper.builder().build();
+            Jackson3JsonpMapper mapper = new Jackson3JsonpMapper(jsonMapper);
+            JsonGenerator generator = mapper.jsonProvider().createGenerator(writer);
+            searchRequest.serialize(generator, mapper);
+            generator.close();
+            return writer.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize search request", e);
+        }
     }
 }

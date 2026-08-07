@@ -19,15 +19,6 @@
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.Refresh;
-import co.elastic.clients.elasticsearch._types.Result;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
-import co.elastic.clients.elasticsearch.core.GetRequest;
-import co.elastic.clients.elasticsearch.core.GetResponse;
-import co.elastic.clients.elasticsearch.core.IndexRequest;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.transport.rest5_client.low_level.Request;
 import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
@@ -60,10 +51,6 @@ public class SnapshotDataRepository implements CrudRepository<SnapshotData, Stri
     private String ES_SNAPSHOT_INDEX;
 
     @Autowired
-    @Qualifier("client")
-    private ElasticsearchClient client;
-
-    @Autowired
     @Qualifier("restClient")
     private Rest5Client restClient;
 
@@ -81,16 +68,15 @@ public class SnapshotDataRepository implements CrudRepository<SnapshotData, Stri
     @Override
     public <S extends SnapshotData> S save(@NonNull S entity) {
         try {
-            IndexRequest<SnapshotData> indexRequest =
-                    IndexRequest.of(i ->
-                            i.index(ES_SNAPSHOT_INDEX)
-                                    .id(entity.getUniqueId())
-                                    .document(entity)
-                                    .refresh(Refresh.True));
-            IndexResponse response = client.index(indexRequest);
+            String id = entity.getUniqueId();
+            Request request = new Request("PUT", "/" + encodePathSegment(ES_SNAPSHOT_INDEX)
+                    + "/_doc/" + encodePathSegment(id));
+            request.addParameter("refresh", "true");
+            request.setJsonEntity(objectMapper.writeValueAsString(entity));
+            int statusCode = restClient.performRequest(request).getStatusCode();
 
-            if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
-                return (S) getSnapshotDataById(response.id()).orElse(null);
+            if (statusCode >= 200 && statusCode < 300) {
+                return (S) getSnapshotDataById(id).orElse(null);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save snapshot for config id " + entity.getUniqueId(), e);
@@ -177,10 +163,11 @@ public class SnapshotDataRepository implements CrudRepository<SnapshotData, Stri
     @Override
     public void deleteAll() {
         try {
-            DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
-                    d.index(ES_SNAPSHOT_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
-            DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
-            logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " Snapshot objects");
+            Request request = new Request("POST", "/" + encodePathSegment(ES_SNAPSHOT_INDEX) + "/_delete_by_query");
+            request.addParameter("refresh", "true");
+            request.setJsonEntity("{\"query\":{\"match_all\":{}}}");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            logger.log(Level.INFO, "Deleted " + body.path("deleted").asLong(0L) + " Snapshot objects");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to delete all Snapshot objects", e);
             throw new RuntimeException(e);
