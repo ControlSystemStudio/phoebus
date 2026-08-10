@@ -19,30 +19,25 @@
 
 package org.phoebus.alarm.logging.purge;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.FieldSort;
-import co.elastic.clients.elasticsearch._types.SortOptions;
-import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
-import co.elastic.clients.elasticsearch.cat.IndicesResponse;
-import co.elastic.clients.elasticsearch.cat.indices.IndicesRecord;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
-import co.elastic.clients.elasticsearch.indices.DeleteIndexResponse;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import org.phoebus.alarm.logging.ElasticClientHelper;
-import org.phoebus.alarm.logging.rest.AlarmLogMessage;
 import org.phoebus.alarm.logging.rest.AlarmLogSearchUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,7 +56,7 @@ public class ElasticIndexPurger {
 
     private static final Logger logger = Logger.getLogger(ElasticIndexPurger.class.getName());
 
-    private ElasticsearchClient elasticsearchClient;
+    private static final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     @SuppressWarnings("unused")
     @Value("${retention_period_days:0}")
@@ -70,48 +65,78 @@ public class ElasticIndexPurger {
     @SuppressWarnings("unused")
     @PostConstruct
     public void init() {
-        elasticsearchClient = ElasticClientHelper.getInstance().getClient();
+        // Rest5Client is obtained lazily from ElasticClientHelper when needed.
     }
 
     /**
-     * Deletes Elasticsearch indices based on the {@link AlarmLogMessage#getMessage_time()} for each index found
-     * by the client. The message time {@link Instant} is compared to current time minus the number of days specified as
-     * application property.
+     * Deletes Elasticsearch indices based on the last document's message_time for each alarm index found.
+     * Uses the low-level Rest5Client to avoid media-type header issues with ES 8 backends.
      */
     @SuppressWarnings("unused")
     @Scheduled(cron = "${purge_cron_expr}")
     public void purgeElasticIndices() {
         try {
-            IndicesResponse indicesResponse = elasticsearchClient.cat().indices();
-            List<IndicesRecord> indicesRecords = indicesResponse.indices();
+            Rest5Client restClient = ElasticClientHelper.getInstance().getRestClient();
+
+            // Get all indices via _cat/indices API (returns JSON array)
+            Request catRequest = new Request("GET", "/_cat/indices?format=json");
+            var catResponse = restClient.performRequest(catRequest);
+            JsonNode indicesArray = objectMapper.readTree(catResponse.getEntity().getContent());
+
             Instant toInstant = Instant.now().minus(retentionPeriod, ChronoUnit.DAYS);
-            for (IndicesRecord indicesRecord : indicesRecords) {
-                // Elasticsearch may contain indices other than alarm indices...
-                String indexName = indicesRecord.index();
-                if (indexName != null && !indexName.startsWith("_alarms") && (indexName.contains("_alarms_state") ||
+
+            if (!indicesArray.isArray()) {
+                logger.log(Level.WARNING, "Unexpected response from _cat/indices endpoint.");
+                return;
+            }
+
+            for (JsonNode indexRecord : indicesArray) {
+                String indexName = indexRecord.path("index").asText(null);
+                if (indexName == null) {
+                    continue;
+                }
+                // Only consider alarm-related indices
+                if (!indexName.startsWith("_alarms") && (indexName.contains("_alarms_state") ||
                         indexName.contains("_alarms_cmd") ||
                         indexName.contains("_alarms_config"))) {
-                    // Find most recent document - based on message_time - in the alarm index.
-                    SearchRequest searchRequest = SearchRequest.of(s ->
-                            s.index(indexName)
-                                    .query(new MatchAllQuery.Builder().build()._toQuery())
-                                    .size(1)
-                                    .sort(SortOptions.of(so -> so.field(FieldSort.of(f -> f.field("message_time").order(SortOrder.Desc))))));
-                    SearchResponse<AlarmLogMessage> searchResponse = elasticsearchClient.search(searchRequest, AlarmLogMessage.class);
-                    if (!searchResponse.hits().hits().isEmpty()) {
-                        AlarmLogMessage alarmLogMessage = searchResponse.hits().hits().get(0).source();
-                        if (alarmLogMessage != null && alarmLogMessage.getMessage_time().isBefore(toInstant)) {
-                            DeleteIndexRequest deleteIndexRequest = DeleteIndexRequest.of(d -> d.index(indexName));
-                            DeleteIndexResponse deleteIndexResponse = elasticsearchClient.indices().delete(deleteIndexRequest);
-                            logger.log(Level.INFO, "Delete index " + indexName + " acknowledged: " + deleteIndexResponse.acknowledged());
+                    // Find most recent document based on message_time
+                    String searchBody = "{\"query\":{\"match_all\":{}},\"size\":1,\"sort\":[{\"message_time\":{\"order\":\"desc\"}}]}";
+                    Request searchRequest = new Request("POST",
+                            "/" + URLEncoder.encode(indexName, StandardCharsets.UTF_8) + "/_search");
+                    searchRequest.setJsonEntity(searchBody);
+
+                    try {
+                        var searchResponse = restClient.performRequest(searchRequest);
+                        JsonNode searchResult = objectMapper.readTree(searchResponse.getEntity().getContent());
+                        JsonNode hits = searchResult.path("hits").path("hits");
+
+                        if (hits.isArray() && hits.size() > 0) {
+                            JsonNode source = hits.get(0).get("_source");
+                            if (source != null) {
+                                long messageTimeMillis = source.path("message_time").asLong(0L);
+                                Instant messageInstant = Instant.ofEpochMilli(messageTimeMillis);
+                                if (messageInstant.isBefore(toInstant)) {
+                                    Request deleteRequest = new Request("DELETE",
+                                            "/" + URLEncoder.encode(indexName, StandardCharsets.UTF_8));
+                                    var deleteResponse = restClient.performRequest(deleteRequest);
+                                    JsonNode deleteResult = objectMapper.readTree(
+                                            deleteResponse.getEntity().getContent());
+                                    boolean acknowledged = deleteResult.path("acknowledged").asBoolean(false);
+                                    logger.log(Level.INFO,
+                                            "Delete index " + indexName + " acknowledged: " + acknowledged);
+                                }
+                            }
+                        } else {
+                            logger.log(Level.WARNING,
+                                    "Index " + indexName + " cannot be evaluated for removal as document count is zero.");
                         }
-                    } else {
-                        logger.log(Level.WARNING, "Index " + indexName + " cannot be evaluated for removal as document count is zero.");
+                    } catch (ResponseException e) {
+                        logger.log(Level.WARNING, "Failed to query index " + indexName + " for purge evaluation.", e);
                     }
                 }
             }
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Elastic query failed", e);
+            logger.log(Level.WARNING, "Elastic query failed during index purge.", e);
         }
     }
 

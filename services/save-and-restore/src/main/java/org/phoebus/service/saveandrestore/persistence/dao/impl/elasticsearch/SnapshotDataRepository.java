@@ -18,7 +18,6 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.transport.rest5_client.low_level.Request;
 import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;

@@ -18,7 +18,6 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.rest5_client.low_level.Request;

@@ -1,6 +1,5 @@
 package org.phoebus.alarm.logging.rest;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldSort;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
@@ -10,9 +9,11 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
 import co.elastic.clients.transport.rest5_client.low_level.Request;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import jakarta.json.stream.JsonGenerator;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -71,13 +72,11 @@ public class AlarmLogSearchUtil {
     /**
      * Find all the log (state and config) messages which match the search criteria
      *
-     * @param client           elastic client
      * @param restClient       low-level Rest5Client for performing requests
      * @param searchParameters search parameters
      * @return list of alarm state and config messages
      */
-    public static List<AlarmLogMessage> search(ElasticsearchClient client,
-                                               Rest5Client restClient,
+    public static List<AlarmLogMessage> search(Rest5Client restClient,
                                                Map<String, String> searchParameters) {
         logger.fine("searching for alarm log entires : " +
                 searchParameters.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining()));
@@ -293,13 +292,11 @@ public class AlarmLogSearchUtil {
     /**
      * Return the latest alarm config message associated with 'config'
      *
-     * @param client           elastic client
      * @param restClient       low-level Rest5Client for performing requests
      * @param allRequestParams the wildcard pattern which matches the 'config'
      * @return last alarm config message for the given 'config'
      */
-    public static List<AlarmLogMessage> searchConfig(ElasticsearchClient client,
-                                                      Rest5Client restClient,
+    public static List<AlarmLogMessage> searchConfig(Rest5Client restClient,
                                                       Map<String, String> allRequestParams) {
         String configString = allRequestParams.get("config");
         // Determine which alarm config to specify as Elasticsearch index, convert to lower case as
@@ -390,49 +387,21 @@ public class AlarmLogSearchUtil {
     }
 
     /**
-     * Helper method to convert SearchRequest to JSON string for low-level API
-     * This works by using Jackson to serialize the SearchRequest object tree to JSON
-     * NOTE: We exclude 'index' from the JSON since indices are specified in the URL path
+     * Helper method to convert SearchRequest to JSON string for low-level API.
+     * Uses JSONP serialization to produce the correct Elasticsearch request body.
+     * The 'index' field is NOT included because it belongs in the URL path, not the body.
      */
     private static String buildSearchJson(SearchRequest searchRequest) throws IOException {
-        // Serialize the entire request first to get all fields
-        String fullJson = mapper.writeValueAsString(searchRequest);
-        JsonNode fullNode = mapper.readTree(fullJson);
-
-        // Build a new JSON object with only the fields Elasticsearch expects in the body
-        Map<String, Object> searchBody = new java.util.LinkedHashMap<>();
-
-        // Query - only include if present
-        if (fullNode.has("query") && !fullNode.get("query").isNull()) {
-            searchBody.put("query", mapper.convertValue(fullNode.get("query"), Object.class));
-        }
-
-        // Size - only include if present
-        if (fullNode.has("size") && !fullNode.get("size").isNull()) {
-            searchBody.put("size", fullNode.get("size").asInt());
-        }
-
-        // Sort - only include if present
-        if (fullNode.has("sort") && !fullNode.get("sort").isNull() && fullNode.get("sort").isArray()) {
-            searchBody.put("sort", mapper.convertValue(fullNode.get("sort"), Object.class));
-        }
-
-        String result = mapper.writeValueAsString(searchBody);
+        java.io.StringWriter writer = new java.io.StringWriter();
+        Jackson3JsonpMapper jsonpMapper = new Jackson3JsonpMapper(JsonMapper.builder().build());
+        JsonGenerator generator = jsonpMapper.jsonProvider().createGenerator(writer);
+        searchRequest.serialize(generator, jsonpMapper);
+        generator.close();
+        String result = writer.toString();
         logger.fine("Built search JSON: " + result);
         return result;
     }
 
-    private static Object toMap(Query query) throws IOException {
-        // Serialize the Query object to a map via JSON round-trip
-        String json = mapper.writeValueAsString(query);
-        return mapper.readValue(json, Object.class);
-    }
-
-    private static List<?> toList(java.util.List<?> list) throws IOException {
-        // Serialize the list to map via JSON round-trip
-        String json = mapper.writeValueAsString(list);
-        return mapper.readValue(json, List.class);
-    }
 
     private static List<AlarmLogMessage> executeSearch(Rest5Client restClient,
                                                        String endpoint,
