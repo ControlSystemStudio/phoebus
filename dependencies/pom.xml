@@ -15,13 +15,13 @@
   <profiles>
     <profile>
       <id>packageTarget</id>
-      <!-- Package the phoebus product with dependencies, run scripts, and 
+      <!-- Package the phoebus product with dependencies, run scripts, and
         sources -->
       <build>
         <plugins>
           <plugin>
             <artifactId>maven-dependency-plugin</artifactId>
-            <version>2.10</version>
+            <version>3.11.0</version>
             <executions>
               <execution>
                 <id>download-sources</id>
