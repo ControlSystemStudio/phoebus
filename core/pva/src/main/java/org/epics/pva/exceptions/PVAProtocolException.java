@@ -9,4 +9,3 @@ public class PVAProtocolException extends Exception
         super(message);
     }
 }
-
