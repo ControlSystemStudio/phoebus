@@ -1,9 +1,9 @@
 package org.phoebus.alarm.logging.rest;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.ElasticsearchVersionInfo;
-import co.elastic.clients.elasticsearch.core.InfoResponse;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -62,14 +62,14 @@ public class SearchController {
 
         Map<String, String> elasticInfo = new LinkedHashMap<String, String>();
         try {
-            ElasticsearchClient client = ElasticClientHelper.getInstance().getClient();
-            InfoResponse response = client.info();
-
+            Rest5Client restClient = ElasticClientHelper.getInstance().getRestClient();
+            Request request = new Request("GET", "/");
+            JsonNode responseNode = objectMapper.readTree(
+                    restClient.performRequest(request).getEntity().getContent());
             elasticInfo.put("status", "Connected");
-            elasticInfo.put("clusterName", response.clusterName());
-            elasticInfo.put("clusterUuid", response.clusterUuid());
-            ElasticsearchVersionInfo version = response.version();
-            elasticInfo.put("version", version.toString());
+            elasticInfo.put("clusterName", responseNode.path("cluster_name").asText(""));
+            elasticInfo.put("clusterUuid", responseNode.path("cluster_uuid").asText(""));
+            elasticInfo.put("version", responseNode.path("version").path("number").asText(""));
         } catch (IOException e) {
             AlarmLoggingService.logger.log(Level.WARNING, "Failed to create Alarm Logging service info resource.", e);
             elasticInfo.put("status", "Failed to connect to elastic " + e.getLocalizedMessage());
@@ -98,7 +98,8 @@ public class SearchController {
     })
     @RequestMapping(value = "/search/alarm", method = RequestMethod.GET)
     public List<AlarmLogMessage> search(@Parameter(hidden = true) @RequestParam Map<String, String> allRequestParams) {
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), allRequestParams);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(
+                ElasticClientHelper.getInstance().getRestClient(), allRequestParams);
         return result;
     }
 
@@ -107,7 +108,8 @@ public class SearchController {
     public List<AlarmLogMessage> searchPv(@Parameter(name="pv", description = "PV name") @PathVariable String pv) {
         Map<String, String> searchParameters = new HashMap<>();
         searchParameters.put("pv", pv);
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), searchParameters);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(
+                ElasticClientHelper.getInstance().getRestClient(), searchParameters);
         return result;
     }
 
@@ -124,7 +126,8 @@ public class SearchController {
                 allRequestParams.get("config").isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(), allRequestParams);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(
+                ElasticClientHelper.getInstance().getRestClient(), allRequestParams);
         return result;
     }
 

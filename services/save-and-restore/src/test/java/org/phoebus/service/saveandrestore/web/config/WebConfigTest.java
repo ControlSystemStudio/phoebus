@@ -20,17 +20,15 @@ package org.phoebus.service.saveandrestore.web.config;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextHierarchy;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(SpringExtension.class)
-@ContextHierarchy({@ContextConfiguration(classes = {WebConfiguration.class, ControllersTestConfig.class, WebSecurityConfig.class})})
-@TestPropertySource(locations = "classpath:test_application.properties")
+@SpringBootTest(classes = {WebConfiguration.class, ControllersTestConfig.class, WebSecurityConfig.class},
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@TestPropertySource(locations = "classpath:test_application.properties",
+        properties = "spring.main.allow-bean-definition-overriding=true")
 @SuppressWarnings("unused")
 public class WebConfigTest {
 

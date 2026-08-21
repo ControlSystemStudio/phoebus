@@ -1,6 +1,5 @@
 package org.phoebus.alarm.logging.rest;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldSort;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
@@ -10,7 +9,11 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
+import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import jakarta.json.stream.JsonGenerator;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -69,11 +72,11 @@ public class AlarmLogSearchUtil {
     /**
      * Find all the log (state and config) messages which match the search criteria
      *
-     * @param client           elastic client
+     * @param restClient       low-level Rest5Client for performing requests
      * @param searchParameters search parameters
      * @return list of alarm state and config messages
      */
-    public static List<AlarmLogMessage> search(ElasticsearchClient client,
+    public static List<AlarmLogMessage> search(Rest5Client restClient,
                                                Map<String, String> searchParameters) {
         logger.fine("searching for alarm log entires : " +
                 searchParameters.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining()));
@@ -276,16 +279,10 @@ public class AlarmLogSearchUtil {
         }
         SearchRequest searchRequest = searchRequestBuilder.build();
         try {
-            SearchResponse<JsonNode> strResponse = client.search(searchRequest, JsonNode.class);
-            return strResponse.hits().hits().stream().map(hit -> {
-                JsonNode jsonNode = hit.source();
-                try {
-                    return mapper.treeToValue(jsonNode, AlarmLogMessage.class);
-                } catch (JacksonException e) {
-                    logger.log(Level.SEVERE, "Failed to parse the searched alarm log messages. " + hit, e);
-                }
-                return null;
-            }).collect(Collectors.toList());
+            String requestBody = buildSearchJson(searchRequest);
+            String indexParam = indexList.isEmpty() ? "" : String.join(",", indexList);
+            String endpoint = indexParam.isEmpty() ? "/_search" : "/" + indexParam + "/_search";
+            return executeSearch(restClient, endpoint, requestBody, "alarm logs");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to search for alarm logs ", e);
         }
@@ -295,11 +292,12 @@ public class AlarmLogSearchUtil {
     /**
      * Return the latest alarm config message associated with 'config'
      *
-     * @param client           elastic client
+     * @param restClient       low-level Rest5Client for performing requests
      * @param allRequestParams the wildcard pattern which matches the 'config'
      * @return last alarm config message for the given 'config'
      */
-    public static List<AlarmLogMessage> searchConfig(ElasticsearchClient client, Map<String, String> allRequestParams) {
+    public static List<AlarmLogMessage> searchConfig(Rest5Client restClient,
+                                                      Map<String, String> allRequestParams) {
         String configString = allRequestParams.get("config");
         // Determine which alarm config to specify as Elasticsearch index, convert to lower case as
         // indices are created using lower case.
@@ -323,16 +321,9 @@ public class AlarmLogSearchUtil {
         );
 
         try {
-            SearchResponse<JsonNode> strResponse = client.search(searchRequest, JsonNode.class);
-            return strResponse.hits().hits().stream().map(hit -> {
-                JsonNode jsonNode = hit.source();
-                try {
-                    return mapper.treeToValue(jsonNode, AlarmLogMessage.class);
-                } catch (JacksonException e) {
-                    logger.log(Level.SEVERE, "Failed to parse the searched alarm config messages. " + hit, e);
-                }
-                return null;
-            }).collect(Collectors.toList());
+            String requestBody = buildSearchJson(searchRequest);
+            String endpoint = "/" + alarmConfig + "_alarms_config_*/_search";
+            return executeSearch(restClient, endpoint, requestBody, "alarm config logs");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to search for alarm config logs ", e);
         }
@@ -393,5 +384,92 @@ public class AlarmLogSearchUtil {
             default:
                 return -1;
         }
+    }
+
+    /**
+     * Helper method to convert SearchRequest to JSON string for low-level API.
+     * Uses JSONP serialization to produce the correct Elasticsearch request body.
+     * The 'index' field is NOT included because it belongs in the URL path, not the body.
+     */
+    private static String buildSearchJson(SearchRequest searchRequest) throws IOException {
+        java.io.StringWriter writer = new java.io.StringWriter();
+        Jackson3JsonpMapper jsonpMapper = new Jackson3JsonpMapper(JsonMapper.builder().build());
+        JsonGenerator generator = jsonpMapper.jsonProvider().createGenerator(writer);
+        searchRequest.serialize(generator, jsonpMapper);
+        generator.close();
+        String result = writer.toString();
+        logger.fine("Built search JSON: " + result);
+        return result;
+    }
+
+
+    private static List<AlarmLogMessage> executeSearch(Rest5Client restClient,
+                                                       String endpoint,
+                                                       String requestBody,
+                                                       String context) throws IOException {
+        logger.fine("Search endpoint: " + endpoint);
+        logger.fine("Search body: " + requestBody);
+
+        Request request = new Request("POST", endpoint);
+        request.setJsonEntity(requestBody);
+
+        try {
+            var response = restClient.performRequest(request);
+            return parseHits(response, context);
+        } catch (ResponseException e) {
+            String errorBody = readExceptionBody(e);
+            logger.log(Level.SEVERE,
+                    "Failed to search " + context + " (HTTP " + e.getResponse().getStatusCode() + ")"
+                            + "\nEndpoint: " + endpoint
+                            + "\nRequest body: " + requestBody
+                            + "\nError response: " + errorBody,
+                    e);
+            return Collections.emptyList();
+        }
+    }
+
+    private static List<AlarmLogMessage> parseHits(co.elastic.clients.transport.rest5_client.low_level.Response response,
+                                                   String context) throws IOException {
+        int statusCode = response.getStatusCode();
+        if (statusCode < 200 || statusCode >= 300) {
+            String errorBody = "";
+            if (response.getEntity() != null && response.getEntity().getContent() != null) {
+                errorBody = new String(response.getEntity().getContent().readAllBytes());
+            }
+            logger.log(Level.SEVERE,
+                    "Failed to search " + context + " (HTTP " + statusCode + ")"
+                            + "\nError response: " + errorBody);
+            return Collections.emptyList();
+        }
+
+        JsonNode responseJson = mapper.readTree(response.getEntity().getContent());
+        JsonNode hits = responseJson.path("hits").path("hits");
+        if (!hits.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<AlarmLogMessage> results = new ArrayList<>();
+        for (JsonNode hit : hits) {
+            JsonNode source = hit.get("_source");
+            if (source != null) {
+                try {
+                    results.add(mapper.treeToValue(source, AlarmLogMessage.class));
+                } catch (JacksonException e) {
+                    logger.log(Level.SEVERE, "Failed to parse searched " + context + " entry: " + source, e);
+                }
+            }
+        }
+        return results;
+    }
+
+    private static String readExceptionBody(ResponseException e) {
+        try {
+            if (e.getResponse().getEntity() != null && e.getResponse().getEntity().getContent() != null) {
+                return new String(e.getResponse().getEntity().getContent().readAllBytes());
+            }
+        } catch (Exception ignored) {
+            // Best-effort logging helper.
+        }
+        return "";
     }
 }

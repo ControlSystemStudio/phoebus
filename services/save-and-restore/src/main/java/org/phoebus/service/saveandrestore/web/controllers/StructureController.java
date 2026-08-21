@@ -123,7 +123,7 @@ public class StructureController extends BaseController {
      */
     @SuppressWarnings("unused")
     @GetMapping("/path/{uniqueNodeId}")
-    public String getFullPath(@PathVariable String uniqueNodeId) {
+    public String getFullPath(@PathVariable("uniqueNodeId") String uniqueNodeId) {
         String fullPath = nodeDAO.getFullPath(uniqueNodeId);
         if (fullPath == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
