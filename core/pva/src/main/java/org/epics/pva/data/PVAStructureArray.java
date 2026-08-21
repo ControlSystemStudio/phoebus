@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.epics.pva.data;
 
+import org.epics.pva.exceptions.ElementTypeException;
+import org.epics.pva.exceptions.PVAProtocolException;
+
 import static org.epics.pva.PVASettings.logger;
 
 import java.nio.ByteBuffer;
@@ -161,7 +164,7 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
 
         // Each element needs at least the 'non null' info byte
         if (count < 0  ||  count > buffer.remaining())
-            throw new Exception("Structure element count " + count + " with only " + buffer.remaining() + " bytes in buffer");
+            throw new PVAProtocolException("Structure element count " + count + " with only " + buffer.remaining() + " bytes in buffer");
 
         // Try to re-use elements
         PVAStructure[] new_elements = elements;

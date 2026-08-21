@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.epics.pva.data;
 
+import org.epics.pva.exceptions.PVAProtocolException;
+
 import static org.epics.pva.PVASettings.logger;
 
 import java.nio.ByteBuffer;
@@ -57,7 +59,7 @@ public class PVAStructure extends PVADataWithID
 
         // Each element needs name (at least byte for length) and value (at least byte)
         if (size < 0  ||  size*2 > buffer.remaining())
-            throw new Exception("Structure with " + size + " elements but only " + buffer.remaining() + " bytes in buffer");
+            throw new PVAProtocolException("Structure with " + size + " elements but only " + buffer.remaining() + " bytes in buffer");
 
         // (name, FieldDesc)[]
         final List<PVAData> values = new ArrayList<>(size);
