@@ -19,6 +19,8 @@ public class RDBPreferences
     @Preference static String user, password, prefix;
     @Preference static int timeout_secs;
     @Preference static boolean use_array_blob;
+    @Preference static String raw_query;
+    @Preference static boolean use_utc_in_raw_query;
     @Preference static String stored_procedure;
     @Preference static String starttime_function;
     @Preference static int fetch_size;
