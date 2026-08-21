@@ -19,6 +19,8 @@
 
 package org.epics.pva.data;
 
+import org.epics.pva.exceptions.PVAArraySizeException;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -130,7 +132,7 @@ public class PVAAnyArray extends PVADataWithID implements PVAArray{
         final int count = PVASize.decodeSize(buffer);
         // Each array element needs at least the 'non_null' byte
         if (count < 0  ||  count > buffer.remaining())
-            throw new Exception("Array size " + count + " with only " + buffer.remaining() + " bytes in buffer");
+            throw new PVAArraySizeException(count, buffer.remaining());
         // Try to re-use elements
         PVAny[] new_elements = elements;
         if (new_elements == null  ||  new_elements.length != count)

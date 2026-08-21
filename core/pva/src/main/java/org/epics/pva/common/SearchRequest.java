@@ -64,7 +64,7 @@ public class SearchRequest
         {
             return "'" + name + "' [CID " + cid + "]";
         }
-    };
+    }
 
     /** Server should reply with its GUID and empty CID list
      *  even if it does not host any of the searched channels
@@ -128,7 +128,7 @@ public class SearchRequest
         // plus the list of names.
         if (payload < 4+1+3+16+2+1+2)
         {
-            logger.log(Level.WARNING, "PVA client " + from + " sent only " + payload + " bytes for search request");
+            logger.log(Level.WARNING, () -> "PVA client " + from + " sent only " + payload + " bytes for search request");
             return null;
         }
         final SearchRequest search = new SearchRequest();
@@ -154,7 +154,7 @@ public class SearchRequest
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " with invalid address");
+            logger.log(Level.WARNING, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " with invalid address");
             return null;
         }
         int port = Short.toUnsignedInt(buffer.getShort());
@@ -207,7 +207,8 @@ public class SearchRequest
         {   // Channel search request
             if (! (tcp || search.tls))
             {
-                logger.log(Level.WARNING, LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " for protocol '" + unknown_protocol + "', need 'tcp' or 'tls'");
+                final String unsupported_protocol = unknown_protocol;
+                logger.log(Level.WARNING, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " for protocol '" + unsupported_protocol + "', need 'tcp' or 'tls'");
                 return null;
             }
             search.channels = new ArrayList<>(count);
