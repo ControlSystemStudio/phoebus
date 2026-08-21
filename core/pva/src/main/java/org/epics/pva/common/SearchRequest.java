@@ -26,6 +26,9 @@ import org.epics.pva.data.PVAString;
 @SuppressWarnings("nls")
 public class SearchRequest
 {
+    private static final String LOG_PVA_CLIENT = "PVA Client ";
+    private static final String LOG_SENT_SEARCH = " sent search #";
+
     /** Channel with CID to be searched */
     public static class Channel
     {
@@ -151,7 +154,7 @@ public class SearchRequest
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, "PVA Client " + from + " sent search #" + search.seq + " with invalid address");
+            logger.log(Level.WARNING, LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " with invalid address");
             return null;
         }
         int port = Short.toUnsignedInt(buffer.getShort());
@@ -188,7 +191,7 @@ public class SearchRequest
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, ex, () -> "PVA Client " + from + " sent search #" + search.seq + " with invalid protocol");
+            logger.log(Level.WARNING, ex, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " with invalid protocol");
             return null;
         }
 
@@ -198,13 +201,13 @@ public class SearchRequest
         if (count == 0)
         {   // pvlist request
             search.channels = null;
-            logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " to list servers");
+            logger.log(Level.FINER, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " to list servers");
         }
         else
         {   // Channel search request
             if (! (tcp || search.tls))
             {
-                logger.log(Level.WARNING, "PVA Client " + from + " sent search #" + search.seq + " for protocol '" + unknown_protocol + "', need 'tcp' or 'tls'");
+                logger.log(Level.WARNING, LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " for protocol '" + unknown_protocol + "', need 'tcp' or 'tls'");
                 return null;
             }
             search.channels = new ArrayList<>(count);
@@ -214,7 +217,7 @@ public class SearchRequest
                 {
                     final int cid = buffer.getInt();
                     final String name = PVAString.decodeString(buffer);
-                    logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " for " + name + " [cid " + cid + "]"
+                    logger.log(Level.FINER, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " for " + name + " [cid " + cid + "]"
                             + ", reply addr " + orig_response_addr
                             + (orig_response_addr.equals(search.client) ? "" : ", using " + search.client)
                             + (search.tls               ? " (TLS)" : "")
@@ -226,7 +229,7 @@ public class SearchRequest
             }
             catch (Exception ex)
             {
-                logger.log(Level.WARNING, ex, () -> "PVA Client " + from + " sent damaged search #" + search.seq);
+                logger.log(Level.WARNING, ex, () -> LOG_PVA_CLIENT + from + " sent damaged search #" + search.seq);
                 return null;
             }
         }
