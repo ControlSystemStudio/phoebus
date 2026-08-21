@@ -50,14 +50,14 @@ public class WidgetColorPropertyBinding
         popover = new WidgetColorPopOver(widget_property,
                                          wColor ->
         {
-            undo.execute(new SetWidgetPropertyAction<WidgetColor>(widget_property, wColor));
+            undo.execute(new SetWidgetPropertyAction<>(widget_property, wColor));
             if (! other.isEmpty())
             {
                 final String path = widget_property.getPath();
                 for (Widget w : other)
                 {
                     final ColorWidgetProperty other_prop = (ColorWidgetProperty) w.getProperty(path);
-                    undo.execute(new SetWidgetPropertyAction<WidgetColor>(other_prop, wColor));
+                    undo.execute(new SetWidgetPropertyAction<>(other_prop, wColor));
                 }
             }
         });

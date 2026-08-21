@@ -355,7 +355,7 @@ public class RePlanEditorController implements Initializable {
 
         // Add tooltips to parameter names
         paramCol.setCellFactory(column -> {
-            TableCell<ParameterRow, String> cell = new TableCell<ParameterRow, String>() {
+            TableCell<ParameterRow, String> cell = new TableCell<>() {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);

@@ -63,11 +63,6 @@
     <!-- For testing. mockito-all contains hamcrest packages, resulting in
       conflicts. This combination of junit, mockito, hamcrest seems to work -->
     <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>install-jars</artifactId>
-      <version>6.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <version>${junit.version}</version>
@@ -427,7 +422,7 @@
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>pbrawclient</artifactId>
-      <version>0.2.2</version>
+      <version>0.2.3</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
@@ -627,6 +622,11 @@
           <artifactId>javafx-controls</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>pbrawclient</artifactId>
+      <version>0.2.3</version>
     </dependency>
   </dependencies>
 

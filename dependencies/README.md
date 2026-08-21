@@ -32,7 +32,7 @@ including for example a JSON and a MySQL client library.
    external dependencies are available.
  * The target platform is in a format that allows using
    different build tools
-   
+
 Our current way of defining and creating the target platform
 is Maven-centric, but with slight adjustments and
 conventions over a Maven-only approach to meet all goals.
@@ -76,7 +76,6 @@ especially when combined with limited network access:
 
 To overcome these issues, we list all external dependencies
 that can be obtailed from Maven-Central in the file `dependencies/phoebus-target/pom.xml`.
-The `dependencies/install-jars` subtree allows adding dependencies that cannot be downloaded.
 
 One initial maven build of the dependencies collects the target platform into
 `dependencies/phoebus-target/target/lib`:

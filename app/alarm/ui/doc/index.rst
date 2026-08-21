@@ -457,7 +457,7 @@ Where the include component is identified in the inclusion file with a DID decla
 Context Menu
 ------------
 
-In the Alarm Tree and the Alarm Table views user may right click on an alarm item to launch a context menu:
+In the Alarm Tree, the Alarm Table views and the Annunciator user may right click on an alarm item to launch a context menu:
 
 .. image:: images/context_menu_new.png
     :width: 20%

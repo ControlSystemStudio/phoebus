@@ -22,7 +22,7 @@ public class QueryParserTest {
     public void basic() {
         URI uri = URI.create("logbook://?search=*Fault*Motor*&tag=operation");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
-        Map<String, String> expectedMap = new HashMap<String, String>();
+        Map<String, String> expectedMap = new HashMap<>();
         expectedMap.put("search", "*Fault*Motor*");
         expectedMap.put("tag", "operation");
         assertEquals(expectedMap, queryParameters);
@@ -47,7 +47,7 @@ public class QueryParserTest {
     public void emptyValueTest() {
         URI uri = URI.create("logbook://?search=*Fault*Motor*&tag=operation&logbook");
         Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
-        Map<String, String> expectedMap = new HashMap<String, String>();
+        Map<String, String> expectedMap = new HashMap<>();
         expectedMap.put("search", "*Fault*Motor*");
         expectedMap.put("tag", "operation");
         expectedMap.put("logbook", "*");

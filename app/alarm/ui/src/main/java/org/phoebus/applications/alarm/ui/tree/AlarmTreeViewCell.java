@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
@@ -15,20 +16,16 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 
-import javafx.util.Pair;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
-import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.Messages;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
 
 /** TreeCell for AlarmTreeItem
  *  @author Kay Kasemir
@@ -82,10 +79,8 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             setGraphic(null);
         else
         {
-            final SeverityLevel severity;
-            if (item instanceof AlarmClientLeaf)
+            if (item instanceof AlarmClientLeaf leaf)
             {
-                final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
                 final ClientState state = leaf.getState();
 
                 final StringBuilder text = new StringBuilder();
@@ -111,7 +106,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                 } else {
                     if (leaf.getEnabled().enabled_date != null) {
                         LocalDateTime enabledDate = leaf.getEnabled().enabled_date;
-                        String enabledDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(enabledDate);
+                        String enabledDateString = TimestampFormats.SECONDS_FORMAT.format(enabledDate);
                         disabledTimerIndicator.setText("(" + Messages.disabledUntil + " " + enabledDateString + ")");
                     } else {
                         disabledTimerIndicator.setText("(" + Messages.disabled + ")");
@@ -126,45 +121,25 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             }
             else
             {
-                final AlarmClientNode node = (AlarmClientNode) item;
-
-                Optional<Pair<LeavesDisabledStatus, Boolean>> maybeLeavesDisabledStatusBooleanPair = leavesDisabledStatus(node);
-                if (maybeLeavesDisabledStatusBooleanPair.isPresent() && !maybeLeavesDisabledStatusBooleanPair.get().getKey().equals(LeavesDisabledStatus.AllEnabled)) {
-                    Pair<LeavesDisabledStatus, Boolean> leavesDisabledStatusBooleanPair = maybeLeavesDisabledStatusBooleanPair.get();
-
-                    if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.AllDisabled)) {
-                        if (leavesDisabledStatusBooleanPair.getValue()) {
-                            disabledTimerIndicator.setText("(" + Messages.disabled + "; " + Messages.timer + ")");
+                // To get the information to display on non-leaf nodes one will need to walk a potentially deep
+                // tree structure, so this is done off the UI thread.
+                JobManager.schedule("Get Tree Node Info", monitor -> {
+                    TreeNodeInfo info = AlarmTreeHelper.getTreeNodeInfo(item);
+                    Platform.runLater(() -> {
+                        String labelText = item.getName();
+                        label.setText(labelText);
+                        SeverityLevel severityLevel = item.getState().severity;
+                        disabledTimerIndicator.setText(AlarmTreeHelper.treeNodeInfoToString(info));
+                        if(info.disabled() + info.disabledWithEnableDate() == info.leaves().size()){
+                            label.setTextFill(Color.GRAY);
                         }
-                        else {
-                            disabledTimerIndicator.setText("(" + Messages.disabled + ")");
+                        else{
+                            label.setTextFill(AlarmUI.getColor(severityLevel));
                         }
-                    }
-                    else if (leavesDisabledStatusBooleanPair.getKey().equals(LeavesDisabledStatus.SomeEnabledSomeDisabled)) {
-                        if (leavesDisabledStatusBooleanPair.getValue()) {
-                            disabledTimerIndicator.setText("(" + Messages.partlyDisabled + "; " + Messages.timer + ")");
-                        }
-                        else {
-                            disabledTimerIndicator.setText("(" + Messages.partlyDisabled + ")");
-                        }
-                    }
-                }
-                else {
-                    disabledTimerIndicator.setText("");
-                }
-
-                String labelText = item.getName();
-                label.setText(labelText);
-
-                severity = node.getState().severity;
-                if (maybeLeavesDisabledStatusBooleanPair.isPresent() && maybeLeavesDisabledStatusBooleanPair.get().getKey().equals(LeavesDisabledStatus.AllDisabled)) {
-                    label.setTextFill(Color.GRAY);
-                }
-                else {
-                    label.setTextFill(AlarmUI.getColor(severity));
-                }
-                label.setBackground(AlarmUI.getBackground(severity));
-                image.setImage(AlarmUI.getIcon(severity));
+                        label.setBackground(AlarmUI.getBackground(severityLevel));
+                        image.setImage(AlarmUI.getIcon(severityLevel));
+                    });
+                });
             }
             // Profiler showed small advantage when skipping redundant 'setGraphic' call
             if (getGraphic() != content)
@@ -174,62 +149,5 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
 
     private boolean isLeafDisabled(AlarmClientLeaf alarmClientLeaf) {
         return !alarmClientLeaf.isEnabled() || alarmClientLeaf.getState().isDynamicallyDisabled();
-    }
-
-    private enum LeavesDisabledStatus {
-        AllEnabled,
-        SomeEnabledSomeDisabled,
-        AllDisabled,
-    }
-
-    // leavesDisabledStatus() optionally returns a pair.
-    //
-    // If a pair is _not_ returned, it means that there exist no leaves
-    // in 'alarmClientNode', and the disabled status is undefined.
-    //
-    // When a pair _is_ returned, the first component describes
-    // whether all leaves are disabled, all leaves are enabled, or whether
-    // some leaves are enabled and some are disabled, and the second component
-    // indicates whether one or more disabled leaves have a timer associated
-    // with them ('true'), at the end of which they will automatically become
-    // enabled again. When the second component is 'false' there is no
-    // associated timer.
-    private Optional<Pair<LeavesDisabledStatus, Boolean>> leavesDisabledStatus(AlarmClientNode alarmClientNode) {
-        List<Pair<LeavesDisabledStatus, Boolean>> leavesDisabledStatusList = new LinkedList<>();
-        for (var child : alarmClientNode.getChildren()) {
-            if (child instanceof AlarmClientLeaf alarmClientLeaf) {
-
-                if (isLeafDisabled(alarmClientLeaf)) {
-                    boolean timer = alarmClientLeaf.getEnabled().enabled_date != null;
-                    leavesDisabledStatusList.add(new Pair<>(LeavesDisabledStatus.AllDisabled, timer));
-                }
-                else {
-                    leavesDisabledStatusList.add(new Pair<>(LeavesDisabledStatus.AllEnabled, false));
-                }
-            }
-            else if (child instanceof AlarmClientNode alarmClientNode1 && !alarmClientNode1.getChildren().isEmpty()) {
-                if (leavesDisabledStatus(alarmClientNode1).isPresent()) {
-                    leavesDisabledStatusList.add(leavesDisabledStatus(alarmClientNode1).get());
-                }
-                // If leavesDisabledStatus(alarmClientNode1).isPresent() evaluates to false, there are no leaves and therefore no result.
-            }
-            else if (child instanceof AlarmClientNode alarmClientNode1 && alarmClientNode1.getChildren().isEmpty()) {
-                // Don't add any LeavesDisabledStatus, since there are no leaves
-            }
-            else {
-                throw new RuntimeException("Missing case: " + child.getClass().getName());
-            }
-        }
-
-        Optional<Pair<LeavesDisabledStatus, Boolean>> leavesDisabledStatus = leavesDisabledStatusList.stream().reduce((status1, status2) -> {
-            if (status1.getKey().equals(status2.getKey())) {
-                return new Pair<>(status1.getKey(), status1.getValue() || status2.getValue());
-            }
-            else {
-                return new Pair<>(LeavesDisabledStatus.SomeEnabledSomeDisabled, status1.getValue() || status2.getValue());
-            }
-        });
-
-        return leavesDisabledStatus;
     }
 }

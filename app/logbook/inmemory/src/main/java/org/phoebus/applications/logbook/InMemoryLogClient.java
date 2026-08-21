@@ -75,7 +75,7 @@ public class InMemoryLogClient implements LogClient {
     }
 
     public InMemoryLogClient() {
-        logEntries = new HashMap<Long, LogEntry>();
+        logEntries = new HashMap<>();
         logIdCounter = new AtomicInteger();
     }
 

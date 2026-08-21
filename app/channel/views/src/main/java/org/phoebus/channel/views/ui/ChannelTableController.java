@@ -94,10 +94,10 @@ public class ChannelTableController extends ChannelFinderController {
 
         tableView.getColumns().clear();
         TableColumn<Channel, String> nameCol = new TableColumn<>(Messages.ChannelTableNameColumn);
-        nameCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("name"));
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         TableColumn<Channel, String> ownerCol = new TableColumn<>(Messages.ChannelTableOwnerColumn);
-        ownerCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("owner"));
+        ownerCol.setCellValueFactory(new PropertyValueFactory<>("owner"));
         tableView.getColumns().addAll(nameCol, ownerCol);
 
         if (showActiveCb) {
@@ -287,12 +287,12 @@ public class ChannelTableController extends ChannelFinderController {
             @Override
             public TableColumn<Channel, String> apply(String propName) {
                 TableColumn<Channel, String> propCol = new TableColumn<>(propName);
-                propCol.setCellValueFactory(new Callback<CellDataFeatures<Channel, String>, ObservableValue<String>>() {
+                propCol.setCellValueFactory(new Callback<>() {
 
                     @Override
                     public ObservableValue<String> call(CellDataFeatures<Channel, String> channel) {
                         Property prop = channel.getValue().getProperty(propName);
-                        return new SimpleStringProperty(prop != null ? prop.getValue(): "");
+                        return new SimpleStringProperty(prop != null ? prop.getValue() : "");
                     }
                 });
                 return propCol;
@@ -304,7 +304,7 @@ public class ChannelTableController extends ChannelFinderController {
             @Override
             public TableColumn<Channel, String> apply(String tagName) {
                 TableColumn<Channel, String> tagCol = new TableColumn<>(tagName);
-                tagCol.setCellValueFactory(new Callback<CellDataFeatures<Channel, String>, ObservableValue<String>>() {
+                tagCol.setCellValueFactory(new Callback<>() {
 
                     @Override
                     public ObservableValue<String> call(CellDataFeatures<Channel, String> channel) {

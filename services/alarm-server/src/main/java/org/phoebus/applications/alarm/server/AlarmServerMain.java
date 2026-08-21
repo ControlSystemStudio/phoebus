@@ -504,7 +504,7 @@ public class AlarmServerMain implements ServerModelListener {
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
-        HashMap<String, String> parsed_args = new HashMap<String, String>();
+        HashMap<String, String> parsed_args = new HashMap<>();
         try {
             // define command line arguments
             String help_arg = "-help";

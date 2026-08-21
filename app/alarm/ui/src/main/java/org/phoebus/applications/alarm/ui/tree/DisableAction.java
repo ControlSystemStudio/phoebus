@@ -23,11 +23,11 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DisableAction extends Menu {
 
-    private AlarmClient alarmClient;
+    private final AlarmClient alarmClient;
 
     public DisableAction(final Node node, final AlarmClient model, final List<AlarmTreeItem<?>> items) {
         this.alarmClient = model;
@@ -37,19 +37,13 @@ public class DisableAction extends Menu {
         disable.setText(Messages.indefinitely);
         MenuItem disableUntil = new MenuItem(Messages.withEnableDate);
         disableUntil.setDisable(true);
-        Set<AlarmClientLeaf> totalLeafItems = new HashSet<>();
-        Set<AlarmClientLeaf> leafItemsWithEnableDate = new HashSet<>();
-        setOnShowing(e -> {
-
-            new Thread(() -> {
-                if (checkEnableDates(items, totalLeafItems, leafItemsWithEnableDate)) {
-                    Platform.runLater(() -> disableUntil.setDisable(false));
-                }
-
-            }).start();
-
-
-        });
+        AtomicReference<TreeNodeInfo> treeNodeInfo = new AtomicReference<>();
+        setOnShowing(e -> JobManager.schedule("Get Tree Node Info", monitor -> {
+            treeNodeInfo.set(AlarmTreeHelper.getTreeNodeInfo(items));
+            if(treeNodeInfo.get().disabledWithEnableDate() == 0 || treeNodeInfo.get().commonEnableDate().isPresent()) {
+                Platform.runLater(() -> disableUntil.setDisable(false));
+            }
+        }));
         disableUntil.setOnAction(e -> {
             final FXMLLoader fxmlLoader = new FXMLLoader();
             fxmlLoader.setResources(NLS.getMessages(Messages.class));
@@ -64,12 +58,9 @@ public class DisableAction extends Menu {
 
             DisableUntilDialogController dialogController = fxmlLoader.getController();
 
-
-            if (!leafItemsWithEnableDate.isEmpty()){
-                LocalDateTime defaultDate = leafItemsWithEnableDate.iterator().next().getEnabledDate();
-                dialogController.setDefaultDate(defaultDate);
+            if (treeNodeInfo.get().commonEnableDate().isPresent()) {
+                dialogController.setDefaultDate(treeNodeInfo.get().commonEnableDate().get());
             }
-
 
             final Dialog<LocalDateTime> dlg = new Dialog<>();
             dlg.setTitle("Disable until");
@@ -82,74 +73,11 @@ public class DisableAction extends Menu {
                 return null;
             });
             Optional<LocalDateTime> localDateTime = dlg.showAndWait();
-            if (localDateTime.isPresent()) {
-                updateEnablement(localDateTime.get(), totalLeafItems);
-                System.out.println(localDateTime.get());
-            }
-
+            localDateTime.ifPresent(dateTime -> updateEnablement(dateTime, treeNodeInfo.get().leaves()));
         });
 
         getItems().addAll(disable, disableUntil);
     }
-
-    /**
-     * Divides items the user clicked on in leaf items and non leaf items
-     * Returns true when all leaf items of the same structure either have no enable dates or all the same
-     * Returns false if the enable dates differ
-     *
-     * @param items           Root item
-     * @param totalLeafItems          {@link Set} that will hold all leaf nodes
-     * @param leafItemsWithEnableDate {@link Set} that will hold all leaf nodes with non-null enable date
-     *
-     */
-
-    public static boolean checkEnableDates(final List<AlarmTreeItem<?>> items, Set<AlarmClientLeaf> totalLeafItems, Set<AlarmClientLeaf> leafItemsWithEnableDate) {
-        Set<AlarmTreeItem<?>> nonLeafItems =
-                items.stream().filter(i -> !(i instanceof AlarmClientLeaf)).collect(Collectors.toSet());
-        Set<AlarmTreeItem<?>> leafItems =
-                items.stream().filter(i -> (i instanceof AlarmClientLeaf)).collect(Collectors.toSet());
-        nonLeafItems.forEach(i -> findAffectedPVs(i, totalLeafItems, leafItemsWithEnableDate));
-        leafItems.forEach(i -> findAffectedPVs(i, totalLeafItems, leafItemsWithEnableDate));
-        if (leafItemsWithEnableDate.isEmpty()) {
-            return true;
-        } else if (totalLeafItems.size() != leafItemsWithEnableDate.size()) {
-            return false;
-        } else {
-            LocalDateTime firstDate = leafItemsWithEnableDate.iterator().next().getEnabledDate();
-            for (AlarmClientLeaf alarmClientLeaf : totalLeafItems) {
-                LocalDateTime currDate = alarmClientLeaf.getEnabledDate();
-                if (!firstDate.equals(currDate)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
-
-    /**
-     * Recursively counts alarm tree items in a subtree to find total number and
-     * number of disabled with enable date.
-     *
-     * @param item           Root item
-     * @param total          {@link Set} that will hold all leaf nodes
-     * @param withEnableDate {@link Set} that will hold all leaf nodes with non-null enable date
-     *
-     */
-    public static void findAffectedPVs(final AlarmTreeItem<?> item, final Set<AlarmClientLeaf> total, final Set<AlarmClientLeaf> withEnableDate) {
-        if (item instanceof AlarmClientLeaf) {
-            final AlarmClientLeaf pv = (AlarmClientLeaf) item;
-            total.add(pv);
-            if (pv.getEnabledDate() != null) {
-                withEnableDate.add(pv);
-            }
-        } else {
-            for (AlarmTreeItem<?> sub : item.getChildren()) {
-                findAffectedPVs(sub, total, withEnableDate);
-            }
-        }
-    }
-
 
     /**
      * Updates a component to disable a hierarchy of PVs with an enable date.

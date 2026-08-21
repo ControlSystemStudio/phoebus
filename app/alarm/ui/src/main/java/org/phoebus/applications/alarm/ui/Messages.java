@@ -24,8 +24,11 @@ public class Messages
     public static String disableAlarmFailed;
     public static String disableAlarms;
     public static String disabled;
+    public static String disabledIndefinitely;
     public static String disableMenu;
     public static String disabledUntil;
+    public static String disabledCommonEnableDate;
+    public static String disabledVaryingEnableDate;
     public static String displays;
     public static String enableAlarmFailed;
     public static String enableAlarms;
@@ -37,12 +40,10 @@ public class Messages
     public static String headerConfirmEnable;
     public static String indefinitely;
     public static String moveItemFailed;
-    public static String partlyDisabled;
     public static String promptTitle;
-    public static String promptContent;
     public static String removeComponentFailed;
     public static String renameItemFailed;
-    public static String timer;
+    public static String totalPVs;
     public static String unacknowledgeFailed;
     public static String withEnableDate;
 
@@ -52,7 +53,7 @@ public class Messages
         NLS.initializeMessages(Messages.class);
     }
 
-    private Messages() 
+    private Messages()
     {
         // prevent instantiation
     }

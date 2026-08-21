@@ -2,9 +2,10 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-    -   id: check-yaml
-    # TODO add end of file fixer and whitespace fixer
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.26.1 
+    rev: v1.26.1
     hooks:
     - id: zizmor

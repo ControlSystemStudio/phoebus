@@ -7,16 +7,22 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
-import java.util.List;
+import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeView;
+import org.phoebus.util.time.TimestampFormats;
 
 /** @author Evan Smith
  */
@@ -104,18 +110,111 @@ public class AlarmTreeHelper
 		    item = item.getChild(path_elems[i]);
 		    if (null == item)
 		    {
-		        // System.out.println("Path element " + path_elems[i] + " does not exist in the tree at that location.");
 		        return false;
 		    }
 		    // Make sure the path does not contain a PV.
 		    // PV cannot have children.
 		    if (item instanceof AlarmClientLeaf)
 		    {
-		        // System.out.println("Path element " + path_elems[i] + " is a leaf.");
 		        return false;
 		    }
 		}
 
 		return true;
+	}
+
+	/**
+	 * Collects {@link AlarmClientLeaf}s items.
+	 * @param items A {@link List} of {@link AlarmTreeItem}s, typically selected by user in the tree view. This could
+	 *              be a mix of leaf and non-leaf nodes. Moreover, leaf nodes could be child nodes of non-leaf nodes
+	 *              in the {@link List}.
+	 * @return A {@link Set} of only {@link AlarmClientLeaf}s, i.e. no duplicates even id user selection would indicate it.
+	 */
+	protected static Set<AlarmClientLeaf> getLeafItems(List<AlarmTreeItem<?>> items){
+		return items.stream().flatMap(item -> streamLeafItems(item)).collect(Collectors.toSet());
+	}
+
+	/**
+	 * Collects {@link AlarmClientLeaf}s items.
+	 * @param root The start node from where to get {@link AlarmClientLeaf}s. If this is an {@link AlarmClientLeaf}, it
+	 *             will be returned as the sole item in the {@link Set}
+	 * @return A {@link Set} of only {@link AlarmClientLeaf}s.
+	 */
+	protected static Set<AlarmClientLeaf> getLeafItems(final AlarmTreeItem<?> root) {
+		return streamLeafItems(root).collect(Collectors.toSet());
+	}
+
+	private static Stream<AlarmClientLeaf> streamLeafItems(final AlarmTreeItem<?> alarmTreeItem){
+		if (alarmTreeItem instanceof AlarmClientLeaf alarmClientLeaf){
+			return Stream.of(alarmClientLeaf);
+		}
+		else {
+			return alarmTreeItem.getChildren().stream().flatMap(child -> streamLeafItems(child));
+		}
+	}
+
+	/**
+	 *
+	 * @param items {@link List} of {@link AlarmTreeItem}s that may be a mix of leaves and non-leaves, e.g. a user
+	 *                          selection in the alarm tree view.
+	 * @return A {@link TreeNodeInfo} object.
+	 */
+	public static TreeNodeInfo getTreeNodeInfo(List<AlarmTreeItem<?>> items){
+		Set<AlarmClientLeaf> leaves = getLeafItems(items);
+		int disabledIndefinitely = 0;
+		int disabledWithEnableDate = 0;
+		Optional<LocalDateTime> localDateTime = Optional.empty();
+
+		for(AlarmClientLeaf leaf : leaves){
+			if(!leaf.isEnabled()){
+				LocalDateTime enableDate = leaf.getEnabledDate();
+				if(enableDate != null){
+					if(localDateTime.isPresent() && !localDateTime.get().equals(enableDate)){
+						localDateTime = Optional.empty();
+					}
+					else{
+						localDateTime = Optional.of(enableDate);
+					}
+					disabledWithEnableDate++;
+				}
+				else{
+					disabledIndefinitely++;
+				}
+			}
+		}
+		return new TreeNodeInfo(leaves, disabledIndefinitely, disabledWithEnableDate, localDateTime);
+	}
+
+	/**
+	 *
+	 * @param item A {@link AlarmTreeItem}, can be either a leaf or non-leaf in the alarm tree view.
+	 * @return A {@link TreeNodeInfo} object.
+	 */
+	public static TreeNodeInfo getTreeNodeInfo(AlarmTreeItem<?> item){
+		return getTreeNodeInfo(List.of(item));
+	}
+
+	/**
+	 * Formats a {@link TreeNodeInfo} object based on its content.
+	 * @param treeNodeInfo A {@link TreeNodeInfo}
+	 * @return A string describing total number of leaves, disabled leaves (if any) and an enable date where applicable.
+	 */
+	public static String treeNodeInfoToString(TreeNodeInfo treeNodeInfo){
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append(MessageFormat.format(Messages.totalPVs, treeNodeInfo.leaves().size()));
+		if(treeNodeInfo.disabled() > 0){
+			stringBuilder.append(", ").append(MessageFormat.format(Messages.disabledIndefinitely, treeNodeInfo.disabled()));
+		}
+		int disabledWithEnableDate = treeNodeInfo.disabledWithEnableDate();
+		if(disabledWithEnableDate > 0){
+			stringBuilder.append(", ");
+			if(treeNodeInfo.commonEnableDate().isPresent()){
+				stringBuilder.append(MessageFormat.format(Messages.disabledCommonEnableDate, TimestampFormats.SECONDS_FORMAT.format(treeNodeInfo.commonEnableDate().get()), disabledWithEnableDate));
+			}
+			else{
+				stringBuilder.append(MessageFormat.format(Messages.disabledVaryingEnableDate, disabledWithEnableDate));
+			}
+		}
+		return stringBuilder.toString();
 	}
 }

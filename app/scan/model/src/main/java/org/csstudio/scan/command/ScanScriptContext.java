@@ -47,9 +47,9 @@ abstract public class ScanScriptContext
     public double[][] getData(final String... devices) throws Exception
     {
         ScanDataIterator sheet = new ScanDataIterator(getScanData(), devices);
-        final List<List<Double>> data = new ArrayList<List<Double>>(devices.length);
+        final List<List<Double>> data = new ArrayList<>(devices.length);
         for (int i=0; i<devices.length; ++i)
-            data.add(new ArrayList<Double>());
+            data.add(new ArrayList<>());
         while (sheet.hasNext())
         {
             final ScanSample[] samples = sheet.getSamples();

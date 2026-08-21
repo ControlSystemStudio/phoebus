@@ -139,7 +139,7 @@ public class EdmColor extends EdmAttribute {
             throw new EdmException(EdmException.COLOR_FORMAT_ERROR, "Color name is empty", null);
         }
         dynamic = true;
-        ruleMap = new LinkedHashMap<String, String>();
+        ruleMap = new LinkedHashMap<>();
         Scanner scanner = null;
         try {
             String rule = getValue(2);

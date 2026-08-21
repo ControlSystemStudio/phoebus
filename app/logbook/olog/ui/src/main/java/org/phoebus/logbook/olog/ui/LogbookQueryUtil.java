@@ -32,7 +32,7 @@ public class LogbookQueryUtil {
         // The human readable name of the query key
         private final String name;
         // A lookuptable for finding the Keys constant that matches the human readable query key
-        private static Map<String, Keys> lookupTable = new HashMap<String, Keys>();
+        private static Map<String, Keys> lookupTable = new HashMap<>();
 
         static {
             lookupTable.put("desc", Keys.DESC);

@@ -59,7 +59,7 @@ public class EditCell<S, T> extends TableCell<S, T> {
     /**
      * Convenience converter that does nothing (converts Strings to themselves and vice-versa...).
      */
-    public static final StringConverter<String> IDENTITY_CONVERTER = new StringConverter<String>() {
+    public static final StringConverter<String> IDENTITY_CONVERTER = new StringConverter<>() {
 
         @Override
         public String toString(String object) {
@@ -78,7 +78,7 @@ public class EditCell<S, T> extends TableCell<S, T> {
      * @return the edit cell
      */
     public static <S> EditCell<S, String> createStringEditCell() {
-        return new EditCell<S, String>(IDENTITY_CONVERTER);
+        return new EditCell<>(IDENTITY_CONVERTER);
     }
 
     // set the text of the text field and display the graphic
@@ -108,9 +108,9 @@ public class EditCell<S, T> extends TableCell<S, T> {
             TableView<S> table = getTableView();
             if (table != null) {
                 TableColumn<S, T> column = getTableColumn();
-                CellEditEvent<S, T> event = new CellEditEvent<S, T>(table,
-                        new TablePosition<S, T>(table, getIndex(), column),
-                        TableColumn.editCommitEvent(), item);
+                CellEditEvent<S, T> event = new CellEditEvent<>(table,
+                    new TablePosition<>(table, getIndex(), column),
+                    TableColumn.editCommitEvent(), item);
                 Event.fireEvent(column, event);
             }
         }

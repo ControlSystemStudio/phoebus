@@ -24,7 +24,7 @@ public class LiveSamples extends PlotSamples
     // No locking in here, all access is via PVSamples
 
     private RingBuffer<PlotSample> samples =
-        new RingBuffer<PlotSample>(Preferences.live_buffer_size);
+        new RingBuffer<>(Preferences.live_buffer_size);
 
     /** Waveform index */
     final private AtomicInteger waveform_index;

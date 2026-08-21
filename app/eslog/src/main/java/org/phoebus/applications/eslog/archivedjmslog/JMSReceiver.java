@@ -91,7 +91,7 @@ public class JMSReceiver
             this.listeners
                     .computeIfAbsent(topic,
                             t -> Collections.newSetFromMap(
-                                    new WeakHashMap<LiveModel<?>, Boolean>()))
+                                new WeakHashMap<>()))
                     .add(listener);
         }
     }

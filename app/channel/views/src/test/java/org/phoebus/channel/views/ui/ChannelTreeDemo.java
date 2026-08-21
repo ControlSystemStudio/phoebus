@@ -1,7 +1,6 @@
 package org.phoebus.channel.views.ui;
 
 import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;

@@ -15,5 +15,10 @@ concurrency:
 jobs:
   lint:
     uses: ./.github/workflows/_lint.yml
+    with:
+      # not github.event.before: that is the all-zero SHA when the branch is
+      # first pushed. `master...HEAD` is what the branch adds, either way.
+      from-ref: origin/master
+      to-ref: ${{ github.sha }}
   build:
     uses: ./.github/workflows/_build.yml

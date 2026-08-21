@@ -395,9 +395,7 @@ public class WaterfallPlotWidgetRepresentation extends JFXBaseRepresentation<Pan
         try {
             Runnable stopScheduledRedrawing = futureReturningStopScheduledRedrawing.get();
             stopScheduledRedrawing.run();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         } finally {
             unregisterPropertyListeners();

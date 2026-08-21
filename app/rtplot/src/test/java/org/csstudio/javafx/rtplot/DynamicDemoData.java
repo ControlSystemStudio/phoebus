@@ -52,14 +52,14 @@ public class DynamicDemoData implements PlotDataProvider<Instant>
             final double y = 0.1*Math.random()  +  2.0 + Math.sin(2.0*Math.PI * x / period);
             // Some raw samples, rest min/max/average
             if (Math.random() > 0.3)
-                item = new SimpleDataItem<Instant>(time, y);
+                item = new SimpleDataItem<>(time, y);
             else
             {
                 final double noise = 0.2;
                 final double min = y - y*noise*Math.random();
                 final double max = y + y*noise*Math.random();
                 final double stddev = (max - y)/2;
-                item = new SimpleDataItem<Instant>(time, y, stddev, min, max, "Optimized");
+                item = new SimpleDataItem<>(time, y, stddev, min, max, "Optimized");
             }
         }
 

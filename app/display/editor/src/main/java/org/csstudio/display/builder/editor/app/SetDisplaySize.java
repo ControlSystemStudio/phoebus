@@ -44,8 +44,8 @@ public class SetDisplaySize extends MenuItem
             final Rectangle2D bounds = GeometryTools.getBounds(model.getChildren());
 
             final CompoundUndoableAction resize = new CompoundUndoableAction(getText());
-            resize.add(new SetWidgetPropertyAction<Integer>(model.propWidth(), (int) (2*bounds.getMinX() + bounds.getWidth())));
-            resize.add(new SetWidgetPropertyAction<Integer>(model.propHeight(), (int) (2*bounds.getMinY() + bounds.getHeight())));
+            resize.add(new SetWidgetPropertyAction<>(model.propWidth(), (int) (2 * bounds.getMinX() + bounds.getWidth())));
+            resize.add(new SetWidgetPropertyAction<>(model.propHeight(), (int) (2 * bounds.getMinY() + bounds.getHeight())));
             editor.getUndoableActionManager().execute(resize);
         });
     }

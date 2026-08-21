@@ -137,16 +137,16 @@ public class DigitalClockWidget extends BaseClockWidget {
     }
 
     /** Property */
-    public static final WidgetPropertyDescriptor<Design>  propLcdDesign         = new WidgetPropertyDescriptor<Design> (WidgetPropertyCategory.WIDGET, "lcd_design",          Messages.WidgetProperties_LcdDesign) {
+    public static final WidgetPropertyDescriptor<Design>  propLcdDesign         = new WidgetPropertyDescriptor<>(WidgetPropertyCategory.WIDGET, "lcd_design", Messages.WidgetProperties_LcdDesign) {
         @Override
-        public EnumWidgetProperty<Design> createProperty ( Widget widget, Design defaultValue ) {
+        public EnumWidgetProperty<Design> createProperty(Widget widget, Design defaultValue) {
             return new EnumWidgetProperty<>(this, widget, defaultValue);
         }
     };
     /** Property */
-    public static final WidgetPropertyDescriptor<LCDFont> propLcdFont           = new WidgetPropertyDescriptor<LCDFont>(WidgetPropertyCategory.WIDGET, "lcd_font",            Messages.WidgetProperties_LcdFont) {
+    public static final WidgetPropertyDescriptor<LCDFont> propLcdFont           = new WidgetPropertyDescriptor<>(WidgetPropertyCategory.WIDGET, "lcd_font", Messages.WidgetProperties_LcdFont) {
         @Override
-        public EnumWidgetProperty<LCDFont> createProperty ( Widget widget, LCDFont defaultValue ) {
+        public EnumWidgetProperty<LCDFont> createProperty(Widget widget, LCDFont defaultValue) {
             return new EnumWidgetProperty<>(this, widget, defaultValue);
         }
     };

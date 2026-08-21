@@ -41,7 +41,7 @@ public class ApplianceArchiveReader implements ArchiveReader {
     private final boolean useNewOptimizedOperator;
 
     Map<ApplianceValueIterator, ApplianceArchiveReader> iterators = Collections.synchronizedMap(
-               new WeakHashMap<ApplianceValueIterator, ApplianceArchiveReader>());
+        new WeakHashMap<>());
 
     /**
      * Constructor that sets appliance archiver reader url.
@@ -240,7 +240,7 @@ public class ApplianceArchiveReader implements ArchiveReader {
         String searchURL = httpURL + ApplianceArchiveReaderConstants.SEARCH_PATH + URLEncoder.encode(reg, "UTF-8");
         URL url = new URL(searchURL);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        ArrayList<String> names = new ArrayList<String>();
+        ArrayList<String> names = new ArrayList<>();
         BufferedReader br = null;
         try {
             connection.connect();

@@ -118,7 +118,7 @@ public class ScriptCommand extends ScanCommand
     {
         setScript(XMLUtil.getChildString(element, "path").orElse(""));
 
-        final List<String> arguments = new ArrayList<String>();
+        final List<String> arguments = new ArrayList<>();
         Element node = XMLUtil.getChildElement(element, "arguments");
         if (node != null)
         {

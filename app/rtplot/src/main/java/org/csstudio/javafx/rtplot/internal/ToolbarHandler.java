@@ -148,12 +148,10 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
                 dialog.showAndWait();
                 edit_annotation.setDisable(! haveUserAnnotations());
             });
-            plot.addListener(new RTPlotListener<XTYPE>()
-            {
+            plot.addListener(new RTPlotListener<>() {
                 @Override
-                public void changedAnnotations()
-                {
-                    Platform.runLater(() -> edit_annotation.setDisable(! haveUserAnnotations()));
+                public void changedAnnotations() {
+                    Platform.runLater(() -> edit_annotation.setDisable(!haveUserAnnotations()));
                 }
             });
             crosshair.setOnAction(event ->  plot.showCrosshair(crosshair.isSelected()));

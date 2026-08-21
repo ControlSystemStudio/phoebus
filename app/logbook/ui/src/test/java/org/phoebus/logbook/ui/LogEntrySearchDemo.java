@@ -64,13 +64,13 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
         primaryStage.setScene(new Scene(root, 400, 400));
         primaryStage.show();
 
-        List<LogEntry> logs = new ArrayList<LogEntry>();
+        List<LogEntry> logs = new ArrayList<>();
 
-        Set<Tag> tags = new HashSet<Tag>();
+        Set<Tag> tags = new HashSet<>();
         tags.add(TagImpl.of("tag1", "active"));
         tags.add(TagImpl.of("tag2", "active"));
 
-        Set<Logbook> logbooks = new HashSet<Logbook>();
+        Set<Logbook> logbooks = new HashSet<>();
         logbooks.add(LogbookImpl.of("logbook1", "active"));
         logbooks.add(LogbookImpl.of("logbook2", "active"));
 

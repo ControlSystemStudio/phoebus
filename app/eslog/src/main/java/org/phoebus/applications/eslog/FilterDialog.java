@@ -54,7 +54,7 @@ public class FilterDialog extends Dialog<PropertyFilter[]>
 
         // top row: severity
         grid.add(new Label("Min Severity:"), 0, 0);
-        this.severityCombo = new ComboBox<String>();
+        this.severityCombo = new ComboBox<>();
         this.severityCombo.getItems().addAll(Helpers.LOG_LEVELS);
         grid.add(this.severityCombo, 1, 0);
 

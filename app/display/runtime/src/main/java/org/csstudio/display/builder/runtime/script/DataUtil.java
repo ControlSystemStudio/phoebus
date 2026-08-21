@@ -77,6 +77,6 @@ public class DataUtil {
      */
     public final static LinkedHashMap<String, String> createMacrosInput(boolean include_parent_macros)
     {
-         return new LinkedHashMap<String, String>();
+         return new LinkedHashMap<>();
     }
 }

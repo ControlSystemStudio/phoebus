@@ -11,6 +11,9 @@ permissions:
 jobs:
   lint:
     uses: ./.github/workflows/_lint.yml
+    with:
+      from-ref: ${{ github.event.before }}
+      to-ref: ${{ github.sha }}
   build:
     strategy:
       fail-fast: false

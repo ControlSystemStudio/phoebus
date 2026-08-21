@@ -51,7 +51,7 @@ abstract public class ScanCommandWithBody extends ScanCommand
      */
     protected static List<ScanCommand> toList(final ScanCommand[] commands)
     {
-        final List<ScanCommand> list = new ArrayList<ScanCommand>(commands.length);
+        final List<ScanCommand> list = new ArrayList<>(commands.length);
         for (ScanCommand command : commands)
             list.add(command);
         return list;

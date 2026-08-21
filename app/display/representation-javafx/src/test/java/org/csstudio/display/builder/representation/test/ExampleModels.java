@@ -86,14 +86,8 @@ public class ExampleModels
     public static void main(String[] args) throws Exception
     {
         final DisplayModel model = createModel();
-        final ModelWriter writer = new ModelWriter(new FileOutputStream("example.opi"));
-        try
-        {
+        try (ModelWriter writer = new ModelWriter(new FileOutputStream("example.opi"))) {
             writer.writeModel(model);
-        }
-        finally
-        {
-            writer.close();
         }
     }
 }

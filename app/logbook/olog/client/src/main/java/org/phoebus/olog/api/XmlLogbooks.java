@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 @XmlRootElement(name = "logbooks")
 public class XmlLogbooks {
-    private Collection<XmlLogbook> logbooks = new ArrayList<XmlLogbook>();
+    private Collection<XmlLogbook> logbooks = new ArrayList<>();
   
     /** Creates a new instance of XmlLogbooks. */
     public XmlLogbooks() {

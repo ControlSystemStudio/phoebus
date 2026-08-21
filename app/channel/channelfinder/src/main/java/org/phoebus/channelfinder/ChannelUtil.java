@@ -34,7 +34,7 @@ public class ChannelUtil {
      * @return Collection of names of tags
      */
     public static Collection<String> getTagNames(Channel channel) {
-        Collection<String> tagNames = new HashSet<String>();
+        Collection<String> tagNames = new HashSet<>();
         for (Tag tag : channel.getTags()) {
             tagNames.add(tag.getName());
         }
@@ -50,7 +50,7 @@ public class ChannelUtil {
      *         channel in channels
      */
     public static Collection<String> getAllTagNames(Collection<Channel> channels) {
-        Collection<String> tagNames = new HashSet<String>();
+        Collection<String> tagNames = new HashSet<>();
         for (Channel channel : channels) {
             tagNames.addAll(getTagNames(channel));
         }
@@ -65,7 +65,7 @@ public class ChannelUtil {
      * @return Collection of names of properties
      */
     public static Collection<String> getPropertyNames(Channel channel) {
-        Collection<String> propertyNames = new HashSet<String>();
+        Collection<String> propertyNames = new HashSet<>();
         for (Property property : channel.getProperties()) {
             if (property.getValue() != null)
                 propertyNames.add(property.getName());
@@ -82,7 +82,7 @@ public class ChannelUtil {
      *         more channel in channels
      */
     public static Collection<String> getPropertyNames(Collection<Channel> channels) {
-        Collection<String> propertyNames = new HashSet<String>();
+        Collection<String> propertyNames = new HashSet<>();
         for (Channel channel : channels) {
             propertyNames.addAll(getPropertyNames(channel));
         }
@@ -90,7 +90,7 @@ public class ChannelUtil {
     }
 
     public static Collection<String> getPropValues(Collection<Channel> channels, String propertyName) {
-        SortedSet<String> propertyValues = new TreeSet<String>();
+        SortedSet<String> propertyValues = new TreeSet<>();
         for (Channel channel : channels) {
             if (channel.getProperty(propertyName) != null && channel.getProperty(propertyName).getValue() != null)
                 propertyValues.add(channel.getProperty(propertyName).getValue());
@@ -107,7 +107,7 @@ public class ChannelUtil {
      *         channels
      */
     public static Collection<String> getChannelNames(Collection<Channel> channels) {
-        Collection<String> channelNames = new HashSet<String>();
+        Collection<String> channelNames = new HashSet<>();
         for (Channel channel : channels) {
             channelNames.add(channel.getName());
         }
@@ -126,8 +126,8 @@ public class ChannelUtil {
      * @return Collection of Channels which contains all properties with propNames
      */
     public static Collection<Channel> filterbyProperties(Collection<Channel> channels, Collection<String> propNames) {
-        Collection<Channel> result = new ArrayList<Channel>();
-        Collection<Channel> input = new ArrayList<Channel>(channels);
+        Collection<Channel> result = new ArrayList<>();
+        Collection<Channel> input = new ArrayList<>(channels);
         for (Channel channel : input) {
             if (channel.getPropertyNames().containsAll(propNames)) {
                 result.add(channel);
@@ -148,8 +148,8 @@ public class ChannelUtil {
      * @return Collections of Channels which have all the tags within tagNames
      */
     public static Collection<Channel> filterbyTags(Collection<Channel> channels, Collection<String> tagNames) {
-        Collection<Channel> result = new ArrayList<Channel>();
-        Collection<Channel> input = new ArrayList<Channel>(channels);
+        Collection<Channel> result = new ArrayList<>();
+        Collection<Channel> input = new ArrayList<>(channels);
         for (Channel channel : input) {
             if (channel.getTagNames().containsAll(tagNames)) {
                 result.add(channel);
@@ -174,8 +174,8 @@ public class ChannelUtil {
      */
     public static Collection<Channel> filterbyElements(Collection<Channel> channels, Collection<String> propNames,
             Collection<String> tagNames) {
-        Collection<Channel> result = new ArrayList<Channel>();
-        Collection<Channel> input = new ArrayList<Channel>(channels);
+        Collection<Channel> result = new ArrayList<>();
+        Collection<Channel> input = new ArrayList<>(channels);
         for (Channel channel : input) {
             if (channel.getPropertyNames().containsAll(propNames) && channel.getTagNames().containsAll(tagNames)) {
                 result.add(channel);
@@ -193,7 +193,7 @@ public class ChannelUtil {
      * @return Collection of {@link Channel} built from the channelBuilders
      */
     public static Collection<Channel> toChannels(Collection<Channel.Builder> channelBuilders) {
-        Collection<Channel> channels = new HashSet<Channel>();
+        Collection<Channel> channels = new HashSet<>();
         for (Channel.Builder builder : channelBuilders) {
             channels.add(builder.build());
         }
@@ -209,7 +209,7 @@ public class ChannelUtil {
      * @return Collection of {@link Channel} built from the channelBuilders
      */
     public static List<XmlChannel> toCollectionXmlChannels(Collection<Channel.Builder> channelBuilders) {
-        List<XmlChannel> xmlchannels = new ArrayList<XmlChannel>();
+        List<XmlChannel> xmlchannels = new ArrayList<>();
         for (Channel.Builder builder : channelBuilders) {
             xmlchannels.add(builder.toXml());
         }

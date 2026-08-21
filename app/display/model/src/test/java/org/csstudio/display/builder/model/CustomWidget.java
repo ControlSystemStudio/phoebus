@@ -24,26 +24,22 @@ public class CustomWidget extends Widget
 {
     /** Property: Category Misc, name "zero_ten", Integer 0..10 */
     final public static WidgetPropertyDescriptor<Integer> propZeroTen =
-        new WidgetPropertyDescriptor<Integer>(WidgetPropertyCategory.MISC,
-                "zero_ten", "Number 0..10", false)
-        {
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.MISC,
+            "zero_ten", "Number 0..10", false) {
             @Override
             public WidgetProperty<Integer> createProperty(final Widget widget,
-                    final Integer default_value)
-            {
+                                                          final Integer default_value) {
                 return new IntegerWidgetProperty(this, widget, default_value, 0, 10);
             }
         };
 
     /** Property: Category Misc, name "zero_ten", Integer 0..10 */
     final public static WidgetPropertyDescriptor<String> propQuirk =
-        new WidgetPropertyDescriptor<String>(WidgetPropertyCategory.WIDGET,
-                "quirk", "Quirk", false)
-        {
+        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.WIDGET,
+            "quirk", "Quirk", false) {
             @Override
             public WidgetProperty<String> createProperty(final Widget widget,
-                    final String default_value)
-            {
+                                                         final String default_value) {
                 return new StringWidgetProperty(this, widget, default_value);
             }
         };

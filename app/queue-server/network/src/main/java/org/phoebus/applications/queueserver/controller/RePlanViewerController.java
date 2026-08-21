@@ -156,7 +156,7 @@ public class RePlanViewerController implements Initializable {
         valueCol.setMinWidth(50);
 
         paramCol.setCellFactory(column -> {
-            TableCell<ParameterRow, String> cell = new TableCell<ParameterRow, String>() {
+            TableCell<ParameterRow, String> cell = new TableCell<>() {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
@@ -185,7 +185,7 @@ public class RePlanViewerController implements Initializable {
         });
 
         valueCol.setCellFactory(column -> {
-            TableCell<ParameterRow, String> cell = new TableCell<ParameterRow, String>() {
+            TableCell<ParameterRow, String> cell = new TableCell<>() {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);

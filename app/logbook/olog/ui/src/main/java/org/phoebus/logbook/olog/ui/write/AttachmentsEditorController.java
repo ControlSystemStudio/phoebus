@@ -51,7 +51,6 @@ import org.phoebus.util.MimeTypeDetector;
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -442,7 +441,7 @@ public class AttachmentsEditorController {
     private File detectHeicFiles(List<File> files) {
         for (File file : files) {
             try {
-                String mimeType = MimeTypeDetector.determineMimeType(new FileInputStream(file));
+                String mimeType = MimeTypeDetector.determineMimeType(file);
                 if (mimeType != null && mimeType.toLowerCase().contains("image/heic")) {
                     return file;
                 }
