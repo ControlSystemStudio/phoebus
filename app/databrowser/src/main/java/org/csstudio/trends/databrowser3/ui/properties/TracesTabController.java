@@ -376,7 +376,6 @@ public class TracesTabController {
         model.addListener(modelListener);
         updateFromModel();
 
-        //traceTable.getItems().setAll(model.getItems());
         traceTable.getSelectionModel().getSelectedItems().addListener(selectionChanged);
 
         archivesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
