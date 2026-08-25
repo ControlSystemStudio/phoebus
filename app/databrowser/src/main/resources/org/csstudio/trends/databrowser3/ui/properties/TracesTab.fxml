@@ -15,7 +15,7 @@
         </placeholder>
         <columns>
             <TableColumn fx:id="visibilityColumn" text="%TraceVisibility" />
-            <TableColumn fx:id="itemNameColumn" text="%ItemName" />
+            <TableColumn fx:id="itemNameColumn" text="%ItemName" prefWidth="130"/>
             <TableColumn fx:id="displayNameColumn" text="%TraceDisplayName" />
             <TableColumn fx:id="colorColumn" text="%Color" />
             <TableColumn fx:id="cursorValueColumn" editable="false" text="%CursorValue" />
@@ -29,6 +29,7 @@
             <TableColumn fx:id="pointSizeColumn" text="%PointSize" />
             <TableColumn fx:id="requestTypeColumn" text="%RequestType" />
             <TableColumn fx:id="waveformIndexColumn" text="%WaveformIndexCol" />
+            <TableColumn fx:id="alarmLimitsVisibilityColumn" text="%ShowAlarmLimits" prefWidth="130"/>
         </columns>
     </TableView>
     <StackPane>

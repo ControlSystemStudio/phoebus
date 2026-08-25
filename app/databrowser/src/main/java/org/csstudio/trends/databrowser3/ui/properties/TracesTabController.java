@@ -86,6 +86,8 @@ public class TracesTabController {
     @FXML
     private TableColumn<ModelItem, String> waveformIndexColumn;
     @FXML
+    private TableColumn<ModelItem, Boolean> alarmLimitsVisibilityColumn;
+    @FXML
     private TableColumn<ArchiveDataSource, String> archiveNameColumn;
     @FXML
     private TableColumn<ArchiveDataSource, String> urlColumn;
@@ -367,6 +369,17 @@ public class TracesTabController {
         });
         PropertyPanel.addTooltip(waveformIndexColumn, Messages.WaveformIndexColTT);
 
+        alarmLimitsVisibilityColumn.setCellFactory(modelItemBooleanTableColumn -> new AlarmVisibilityTableCell());
+
+        alarmLimitsVisibilityColumn.setCellValueFactory(cell -> {
+            final SimpleBooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).isShowAlarmLimits());
+            // Update model when CheckBoxTableCell updates this property
+            visibilityProperty.addListener((p, old, visible) -> {
+                // TODO: Implementation goes here...
+            });
+            return visibilityProperty;
+        });
+
         traceTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         traceTable.getColumns().forEach(c -> c.setSortable(false));
 
@@ -461,6 +474,33 @@ public class TracesTabController {
                     new ChangeRequestTypeCommand(undoableActionManager, (PVItem)getTableRow().getItem(), type);
                 });
                 setGraphic(button);
+            }
+        }
+    }
+
+    /**
+     * Custom {@link TableCell} for the Show Alarm Limits column. Idea is to hide it for {@link FormulaItem}s and
+     * if {@link PVItem} is retrieved with {@link RequestType#OPTIMIZED}.
+     */
+    private static class AlarmVisibilityTableCell extends CheckBoxTableCell<ModelItem, Boolean> {
+        @Override
+        public void updateItem(final Boolean visible, final boolean empty) {
+            super.updateItem(visible, empty);
+            if(empty){
+                setGraphic(null);
+                return;
+            }
+            TableRow<ModelItem> tableRow = getTableRow();
+            if (tableRow != null){
+                ModelItem modelItem = tableRow.getItem();
+                if(modelItem instanceof FormulaItem) {
+                    // Showing alarm limits for formula items does not make sense...
+                    setGraphic(null);
+                }
+                else if(modelItem instanceof PVItem pvItem && pvItem.getRequestType().equals(RequestType.OPTIMIZED)){
+                    // Showing alarm limits not possible only with optimized request
+                    setGraphic(null);
+                }
             }
         }
     }

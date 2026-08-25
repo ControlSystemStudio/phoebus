@@ -89,6 +89,14 @@ public class PVItem extends ModelItem
      * once upon the first reception of a value from the PV*/
     private boolean checkDisplayName = false;
 
+    /**
+     * Determines if the plot should show alarm limits, is available from the archiver.
+     * This should not be persisted to plt file as alarm limits are available
+     * only with raw requests. Saving it (as true) would trigger raw requests for
+     * all PVs when loading the plt.
+     */
+    private volatile boolean showAlarmLimits = false;
+
     /** Initialize
      *  @param name PV name
      *  @param period Scan period in seconds, &le;0 to 'monitor'
@@ -572,5 +580,13 @@ public class PVItem extends ModelItem
         archives.clear();
         current_value = null;
         samples.clear();
+    }
+
+    public boolean isShowAlarmLimits() {
+        return showAlarmLimits;
+    }
+
+    public void setShowAlarmLimits(boolean showAlarmLimits) {
+        this.showAlarmLimits = showAlarmLimits;
     }
 }
