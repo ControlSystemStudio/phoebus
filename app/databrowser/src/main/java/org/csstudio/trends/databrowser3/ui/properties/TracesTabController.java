@@ -1,5 +1,6 @@
 package org.csstudio.trends.databrowser3.ui.properties;
 
+import com.sun.javafx.binding.StringFormatter;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -21,7 +22,10 @@ import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.*;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
+import org.epics.vtype.Display;
+import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
+import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -138,7 +142,7 @@ public class TracesTabController {
                     Preferences.setVisibilityPrompt(! dialog.isHideSelected());
                     if (doNotHide)
                     {   // Restore checkbox
-                        visibilityProperty.set(true);
+                        Platform.runLater(() -> visibilityProperty.set(true)); // Yes, wrapping in Platform.runLater is necessary!
                         return;
                     }
                 }
@@ -370,12 +374,30 @@ public class TracesTabController {
         PropertyPanel.addTooltip(waveformIndexColumn, Messages.WaveformIndexColTT);
 
         alarmLimitsVisibilityColumn.setCellFactory(modelItemBooleanTableColumn -> new AlarmVisibilityTableCell());
-
         alarmLimitsVisibilityColumn.setCellValueFactory(cell -> {
             final SimpleBooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).isShowAlarmLimits());
-            // Update model when CheckBoxTableCell updates this property
             visibilityProperty.addListener((p, old, visible) -> {
-                // TODO: Implementation goes here...
+                if(visible){
+                    PVItem pvItem = (PVItem)cell.getValue();
+                    PVSamples pvSamples = pvItem.getSamples();
+                    pvSamples.lockForWriting();
+                    PlotSample plotSample = pvSamples.get(0);
+                    pvSamples.unlockForWriting();
+                    VType vType = plotSample.getVType();
+                    if(!VTypeHelper.hasAlarmLimits(vType)){
+                        pvItem.setShowAlarmLimits(false);
+                        Platform.runLater(() -> visibilityProperty.set(false)); // Yes, wrapping in Platform.runLater is necessary!
+                        final Alert dialog = new Alert(Alert.AlertType.ERROR);
+                        dialog.setTitle(Messages.CannotShowAlarmLimits);
+                        dialog.setHeaderText(MessageFormat.format(Messages.CannotShowAlarmLimitsDetail, pvItem.getName()));
+                        dialog.getDialogPane().setMinSize(350, 150);
+                        DialogHelper.positionDialog(dialog, traceTable, -400, -350);
+                        dialog.showAndWait();
+                    }
+                    else{
+
+                    }
+                }
             });
             return visibilityProperty;
         });
@@ -498,8 +520,10 @@ public class TracesTabController {
                     setGraphic(null);
                 }
                 else if(modelItem instanceof PVItem pvItem && pvItem.getRequestType().equals(RequestType.OPTIMIZED)){
-                    // Showing alarm limits not possible only with optimized request
-                    setGraphic(null);
+                    // Showing alarm limits not possible with optimized request
+                    CheckBox checkBox = (CheckBox)getGraphic();
+                    checkBox.disableProperty().unbind();
+                    checkBox.disableProperty().set(true);
                 }
             }
         }
