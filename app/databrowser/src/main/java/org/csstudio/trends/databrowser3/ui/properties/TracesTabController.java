@@ -1,6 +1,5 @@
 package org.csstudio.trends.databrowser3.ui.properties;
 
-import com.sun.javafx.binding.StringFormatter;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -22,8 +21,8 @@ import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.*;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
-import org.epics.vtype.Display;
 import org.epics.vtype.VType;
+import org.phoebus.archive.reader.appliance.ApplianceArchiveReaderConstants;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
@@ -385,16 +384,33 @@ public class TracesTabController {
                     pvSamples.unlockForWriting();
                     VType vType = plotSample.getVType();
                     if(!VTypeHelper.hasAlarmLimits(vType)){
-                        pvItem.setShowAlarmLimits(false);
-                        Platform.runLater(() -> visibilityProperty.set(false)); // Yes, wrapping in Platform.runLater is necessary!
                         final Alert dialog = new Alert(Alert.AlertType.ERROR);
                         dialog.setTitle(Messages.CannotShowAlarmLimits);
                         dialog.setHeaderText(MessageFormat.format(Messages.CannotShowAlarmLimitsDetail, pvItem.getName()));
                         dialog.getDialogPane().setMinSize(350, 150);
                         DialogHelper.positionDialog(dialog, traceTable, -400, -350);
                         dialog.showAndWait();
+                        pvItem.setShowAlarmLimits(false);
+                        Platform.runLater(() -> visibilityProperty.set(false)); // Yes, wrapping in Platform.runLater is necessary!
                     }
                     else{
+                        String[] limitTypes = new  String[]{ApplianceArchiveReaderConstants.LOLO,
+                                ApplianceArchiveReaderConstants.LOW,
+                                ApplianceArchiveReaderConstants.HIGH,
+                                ApplianceArchiveReaderConstants.HIHI};
+                        for(String limitType : limitTypes){
+                            AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, limitType);
+                            alarmLimitItem.setAxis(pvItem.getAxis());
+                            alarmLimitItem.setDisplayName("");
+                            alarmLimitItem.setColor(pvItem.getPaintColor());
+                            alarmLimitItem.setLineStyle(pvItem.getLineStyle());
+                            alarmLimitItem.setLineWidth(1);
+                            try {
+                                model.addItem(alarmLimitItem);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
 
                     }
                 }
@@ -535,12 +551,16 @@ public class TracesTabController {
         @Override
         public void itemRemoved(final ModelItem item)
         {
+
             updateFromModel();
         }
 
         @Override
         public void itemAdded(final ModelItem item)
         {
+            if(item instanceof AlarmLimitItem){
+                return;
+            }
             updateFromModel();
         }
 
