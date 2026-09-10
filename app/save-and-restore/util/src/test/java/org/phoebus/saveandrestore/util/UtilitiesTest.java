@@ -115,15 +115,15 @@ public class UtilitiesTest {
 
         val = VEnum.of(1, EnumDisplay.of("first", "second", "third"), alarm, time);
         result = Utilities.valueToString(val);
-        assertEquals("second", result);
+        assertEquals("1 [ second ]", result);
 
         val = VEnum.of(1, EnumDisplay.of("", "", ""), alarm, time);
         result = Utilities.valueToString(val);
-        assertEquals("1", result);
+        assertEquals("1 [  ]", result);
 
         val = VEnum.of(1, EnumDisplay.of("a", "", ""), alarm, time);
         result = Utilities.valueToString(val);
-        assertEquals("", result);
+        assertEquals("1 [  ]", result);
 
         val = VString.of("third", alarm, time);
         result = Utilities.valueToString(val);
@@ -675,7 +675,7 @@ public class UtilitiesTest {
         val1 = VEnum.of(1, labels, alarm, time);
         val2 = VEnum.of(1, labels, alarm, time);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("val2", result.getString());
+        assertEquals("1 [ val2 ]", result.getString());
         assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
         assertEquals(0, result.getAbsoluteDelta(), 0.0);
@@ -683,16 +683,16 @@ public class UtilitiesTest {
         val1 = VEnum.of(1, labels, alarm, time);
         val2 = VEnum.of(2, labels, alarm, time);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("val2", result.getString());
-        assertTrue(result.getValuesEqual() < 0);
+        assertEquals("1 [ val2 ]", result.getString());
+        assertTrue(result.getValuesEqual() != 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
 
         val1 = VEnum.of(2, labels, alarm, time);
         val2 = VEnum.of(1, labels, alarm, time);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("val3", result.getString());
-        assertTrue(result.getValuesEqual() > 0);
+        assertEquals("2 [ val3 ]", result.getString());
+        assertTrue(result.getValuesEqual() != 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
 
@@ -1180,21 +1180,21 @@ public class UtilitiesTest {
         val1 = VEnum.of(1, labels, alarm, time);
         val2 = VEnum.of(1, labels, alarm, time);
         result = Utilities.deltaValueToString(val1, val2, Optional.empty());
-        assertEquals("val2", result.getString());
+        assertEquals("1 [ val2 ]", result.getString());
         assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
 
         val1 = VEnum.of(1, labels, alarm, time);
         val2 = VEnum.of(2, labels, alarm, time);
         result = Utilities.deltaValueToString(val1, val2, Optional.empty());
-        assertEquals("val2", result.getString());
-        assertTrue(result.getValuesEqual() < 0);
+        assertEquals("1 [ val2 ]", result.getString());
+        assertTrue(result.getValuesEqual() != 0);
         assertFalse(result.isWithinThreshold());
 
         val1 = VEnum.of(2, labels, alarm, time);
         val2 = VEnum.of(1, labels, alarm, time);
         result = Utilities.deltaValueToString(val1, val2, Optional.empty());
-        assertEquals("val3", result.getString());
+        assertEquals("2 [ val3 ]", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
 

@@ -166,7 +166,7 @@
             <groupId>org.phoebus</groupId>
             <artifactId>app-display-waterfallplot</artifactId>
             <version>6.0.0-SNAPSHOT</version>
-        </dependency>	
+        </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-display-editor</artifactId>
@@ -296,6 +296,11 @@
             <groupId>org.phoebus</groupId>
             <artifactId>core-pv-jackie</artifactId>
             <version>6.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.epics</groupId>
+            <artifactId>pbrawclient</artifactId>
+            <version>0.2.3</version>
         </dependency>
     </dependencies>
     <build>
