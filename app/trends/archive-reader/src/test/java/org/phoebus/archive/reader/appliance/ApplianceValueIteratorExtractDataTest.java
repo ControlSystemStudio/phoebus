@@ -9,11 +9,9 @@ import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
 import org.epics.vtype.*;
 import org.junit.jupiter.api.Test;
-import org.phoebus.util.time.TimestampHelper;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,12 +49,6 @@ class ApplianceValueIteratorExtractDataTest {
         PayloadInfo.Builder b = PayloadInfo.newBuilder().setType(type);
         for (FieldValue h : headers) b.addHeaders(h);
         when(s.getPayLoadInfo()).thenReturn(b.buildPartial());
-        return s;
-    }
-
-    private static GenMsgIterator streamOfTypeWithFieldValues(PayloadType type, FieldValue... fieldValues) {
-        GenMsgIterator s = mock(GenMsgIterator.class);
-        when(s.iterator()).thenReturn(Collections.emptyIterator());
         return s;
     }
 
