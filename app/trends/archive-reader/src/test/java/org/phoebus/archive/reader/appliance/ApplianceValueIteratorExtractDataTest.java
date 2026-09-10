@@ -7,19 +7,16 @@ import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadInfo;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadType;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VString;
-import org.epics.vtype.VType;
+import org.epics.vtype.*;
 import org.junit.jupiter.api.Test;
+import org.phoebus.util.time.TimestampHelper;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -54,6 +51,12 @@ class ApplianceValueIteratorExtractDataTest {
         PayloadInfo.Builder b = PayloadInfo.newBuilder().setType(type);
         for (FieldValue h : headers) b.addHeaders(h);
         when(s.getPayLoadInfo()).thenReturn(b.buildPartial());
+        return s;
+    }
+
+    private static GenMsgIterator streamOfTypeWithFieldValues(PayloadType type, FieldValue... fieldValues) {
+        GenMsgIterator s = mock(GenMsgIterator.class);
+        when(s.iterator()).thenReturn(Collections.emptyIterator());
         return s;
     }
 
@@ -240,4 +243,104 @@ class ApplianceValueIteratorExtractDataTest {
         assertEquals((byte) 2, vba.getData().getByte(1));
         assertEquals((byte) 3, vba.getData().getByte(2));
     }
+
+    @Test
+    void testExtractDisplayFromPayloadInfo() throws Exception {
+        GenMsgIterator iter = mock(GenMsgIterator.class);
+        FakeDataRetrieval fakeDataRetrieval = new FakeDataRetrieval(iter);
+        FakeApplianceArchiveReader fakeApplianceArchiveReader = new FakeApplianceArchiveReader(fakeDataRetrieval);
+        ApplianceValueIterator applianceValueIterator = new ApplianceRawValueIterator(fakeApplianceArchiveReader, "PV:NAME", Instant.EPOCH, Instant.now());
+
+        PayloadInfo payloadInfo = PayloadInfo.newBuilder()
+                .setType(PayloadType.SCALAR_DOUBLE)
+                .setPvname("PV:NAME")
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOLO).setVal("-100").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOW).setVal("-50").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HIGH).setVal("50").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HIHI).setVal("100").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOPR).setVal("-200").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HOPR).setVal("200").build())
+                .setYear(2000).build();
+
+        Display display = applianceValueIterator.getDisplay(payloadInfo);
+
+        assertEquals(-100, display.getAlarmRange().getMinimum());
+        assertEquals(100, display.getAlarmRange().getMaximum());
+        assertEquals(-50, display.getWarningRange().getMinimum());
+        assertEquals(50, display.getWarningRange().getMaximum());
+        assertEquals(-200, display.getControlRange().getMinimum());
+        assertEquals(200, display.getControlRange().getMaximum());
+    }
+
+    @Test
+    void testExtractDisplayFromEpicsMessage() throws Exception {
+
+        GenMsgIterator iter = mock(GenMsgIterator.class);
+        FakeDataRetrieval fakeDataRetrieval = new FakeDataRetrieval(iter);
+        FakeApplianceArchiveReader fakeApplianceArchiveReader = new FakeApplianceArchiveReader(fakeDataRetrieval);
+        ApplianceValueIterator applianceValueIterator = new ApplianceRawValueIterator(fakeApplianceArchiveReader, "PV:NAME", Instant.EPOCH, Instant.now());
+
+        PayloadInfo payloadInfo = PayloadInfo.newBuilder()
+                .setType(PayloadType.SCALAR_DOUBLE)
+                .setPvname("PV:NAME")
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOLO).setVal("-100").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOW).setVal("-50").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HIGH).setVal("50").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HIHI).setVal("100").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOPR).setVal("-200").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HOPR).setVal("200").build())
+                .setYear(2000).build();
+        when(iter.getPayLoadInfo()).thenReturn(payloadInfo);
+        EpicsMessage epicsMessage = mock(EpicsMessage.class);
+        when(epicsMessage.getTimestamp()).thenReturn(new Timestamp(1000000L));
+        Map<String, String> fieldValues = new HashMap();
+        fieldValues.put(ApplianceArchiveReaderConstants.LOLO, "-10");
+        fieldValues.put(ApplianceArchiveReaderConstants.LOW, "-5");
+        fieldValues.put(ApplianceArchiveReaderConstants.HIGH, "5");
+        fieldValues.put(ApplianceArchiveReaderConstants.HIHI, "10");
+        fieldValues.put(ApplianceArchiveReaderConstants.LOPR, "-20");
+        fieldValues.put(ApplianceArchiveReaderConstants.HOPR, "20");
+        when(epicsMessage.getFieldValues()).thenReturn(fieldValues);
+        when(epicsMessage.getNumberValue()).thenReturn(771);
+        VType vType = applianceValueIterator.extractData(epicsMessage);
+        assertEquals(-10, Display.displayOf(vType).getAlarmRange().getMinimum());
+        assertEquals(-5, Display.displayOf(vType).getWarningRange().getMinimum());
+        assertEquals(5, Display.displayOf(vType).getWarningRange().getMaximum());
+        assertEquals(10, Display.displayOf(vType).getAlarmRange().getMaximum());
+        assertEquals(-20, Display.displayOf(vType).getControlRange().getMinimum());
+        assertEquals(20, Display.displayOf(vType).getControlRange().getMaximum());
+    }
+
+    @Test
+    void testExtractDisplayFromEpicsMessageWithNullFieldValues() throws Exception {
+
+        GenMsgIterator iter = mock(GenMsgIterator.class);
+        FakeDataRetrieval fakeDataRetrieval = new FakeDataRetrieval(iter);
+        FakeApplianceArchiveReader fakeApplianceArchiveReader = new FakeApplianceArchiveReader(fakeDataRetrieval);
+        ApplianceValueIterator applianceValueIterator = new ApplianceRawValueIterator(fakeApplianceArchiveReader, "PV:NAME", Instant.EPOCH, Instant.now());
+
+        PayloadInfo payloadInfo = PayloadInfo.newBuilder()
+                .setType(PayloadType.SCALAR_DOUBLE)
+                .setPvname("PV:NAME")
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOLO).setVal("-100").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOW).setVal("-50").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HIGH).setVal("50").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HIHI).setVal("100").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOPR).setVal("-200").build())
+                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HOPR).setVal("200").build())
+                .setYear(2000).build();
+        when(iter.getPayLoadInfo()).thenReturn(payloadInfo);
+        EpicsMessage epicsMessage = mock(EpicsMessage.class);
+        when(epicsMessage.getTimestamp()).thenReturn(new Timestamp(1000000L));
+        when(epicsMessage.getFieldValues()).thenReturn(null);
+        when(epicsMessage.getNumberValue()).thenReturn(771);
+        VType vType = applianceValueIterator.extractData(epicsMessage);
+        assertEquals(-100, Display.displayOf(vType).getAlarmRange().getMinimum());
+        assertEquals(-50, Display.displayOf(vType).getWarningRange().getMinimum());
+        assertEquals(50, Display.displayOf(vType).getWarningRange().getMaximum());
+        assertEquals(100, Display.displayOf(vType).getAlarmRange().getMaximum());
+        assertEquals(-200, Display.displayOf(vType).getControlRange().getMinimum());
+        assertEquals(200, Display.displayOf(vType).getControlRange().getMaximum());
+    }
+
 }
