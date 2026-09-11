@@ -3,17 +3,23 @@ package org.csstudio.trends.databrowser3.model;
 import org.epics.util.stats.Range;
 import org.epics.vtype.*;
 import org.phoebus.archive.reader.appliance.ApplianceArchiveReaderConstants;
+import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.pv.PV;
 
 
 import javax.xml.stream.XMLStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * Extension for the purpose of creating a plottable {@link ModelItem} representing alarm limits. Each sample
  * - historic and live - is based on the alarm limits (if present) of a {@link PlotSample}'s {@link VType}.
  */
 public class AlarmLimitItem extends PVItem {
+
+    private String limitType;
+    private PVItem parentItem;
 
     public static AlarmLimitItem createAlarmLimitItem(final PVItem parentItem, final String limitType) throws IllegalArgumentException {
         if (parentItem == null) {
@@ -62,18 +68,25 @@ public class AlarmLimitItem extends PVItem {
 
     private AlarmLimitItem(final PVItem parentItem, final String limitType) {
         super(parentItem.getName(), parentItem.getScanPeriod());
+        this.limitType = limitType;
+        this.parentItem = parentItem;
         PVSamples samplesFromArchiver = parentItem.getSamples();
         samplesFromArchiver.lockForWriting();
         List<VType> historicAlarmLimitValues = new ArrayList<>(samplesFromArchiver.size());
         for (int i = 0; i < samplesFromArchiver.size(); i++) {
             VType vType = samplesFromArchiver.get(i).getVType();
-            historicAlarmLimitValues.add(getAlarmLimitVType(vType, limitType));
+            historicAlarmLimitValues.add(getAlarmLimitVType(vType));
         }
         samplesFromArchiver.unlockForWriting();
         getSamples().mergeArchivedData(parentItem.getName(), historicAlarmLimitValues);
+        try {
+            setName(parentItem.getName());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private VType getAlarmLimitVType(VType archiverSample, String limitType) {
+    private VType getAlarmLimitVType(VType archiverSample) {
         Display display = Display.displayOf(archiverSample);
         switch (limitType) {
             case ApplianceArchiveReaderConstants.LOLO:
@@ -93,7 +106,18 @@ public class AlarmLimitItem extends PVItem {
     }
 
 
+    /**
+     * Does not write anything to the plt file as alarm limits are not supposed to be displayed by default.
+     * @param writer PrintWriter
+     * @throws Exception
+     */
     @Override
     public void write(final XMLStreamWriter writer) throws Exception {
     }
+
+    @Override
+    public void valueChanged(VType value){
+        super.valueChanged(getAlarmLimitVType(value));
+    }
+
 }

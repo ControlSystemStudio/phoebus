@@ -9,9 +9,7 @@ package org.csstudio.trends.databrowser3.model;
 
 import static org.csstudio.trends.databrowser3.Activator.logger;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -72,8 +70,8 @@ public class PVItem extends ModelItem
     private double period;
 
     /** Timer that was used to schedule the scanner */
-    final private static ScheduledExecutorService scan_timer =
-            Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("DataBrowserScanner"));
+    final static private ScheduledExecutorService scan_timer =
+            Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory(UUID.randomUUID().toString()));
 
     /** For a period &gt;0, this timer task performs the scanning */
     private ScheduledFuture<?> scanner = null;
@@ -360,7 +358,7 @@ public class PVItem extends ModelItem
     }
 
     /** Called by PV's onValueEvent */
-    private void valueChanged(final VType value)
+    protected void valueChanged(final VType value)
     {
         boolean added = false;
         // Cache most recent for 'scanned' operation
@@ -427,19 +425,20 @@ public class PVItem extends ModelItem
     }
 
     /** Scan, i.e. add 'current' value to live samples */
-    private void doScan()
+    protected void doScan()
     {
         final VType value = current_value;
         logger.log(Level.FINE, "PV {0} scans {1}", new Object[] { getName(), value });
         if (value == null)
             logDisconnected();
-        else
+        else {
             // Transform value to have 'now' as time stamp
             samples.addLiveSample(VTypeHelper.transformTimestampToNow(value));
+        }
     }
 
     /** Add one(!) 'disconnected' sample */
-    private void logDisconnected()
+    protected void logDisconnected()
     {
         if (! samples.lockForWriting())
             return;

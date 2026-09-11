@@ -381,9 +381,14 @@ public class TracesTabController {
                     PVSamples pvSamples = pvItem.getSamples();
                     pvSamples.lockForWriting();
                     PlotSample plotSample = pvSamples.get(0);
+                    boolean hasAlarmLimits = false;
+                    for(int i = 0; i < pvSamples.size(); i++){
+                        hasAlarmLimits = VTypeHelper.hasAlarmLimits(pvSamples.get(i).getVType());
+                    }
                     pvSamples.unlockForWriting();
+
                     VType vType = plotSample.getVType();
-                    if(!VTypeHelper.hasAlarmLimits(vType)){
+                    if(!hasAlarmLimits){
                         final Alert dialog = new Alert(Alert.AlertType.ERROR);
                         dialog.setTitle(Messages.CannotShowAlarmLimits);
                         dialog.setHeaderText(MessageFormat.format(Messages.CannotShowAlarmLimitsDetail, pvItem.getName()));

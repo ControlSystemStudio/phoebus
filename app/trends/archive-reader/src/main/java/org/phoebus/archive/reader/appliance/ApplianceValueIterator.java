@@ -166,7 +166,8 @@ public abstract class ApplianceValueIterator implements ValueIterator {
             type == PayloadType.SCALAR_FLOAT ||
             type == PayloadType.SCALAR_INT ||
             type == PayloadType.SCALAR_SHORT) {
-            if (display==null) display = getDisplay(dataMessage);
+            /*if (display==null)*/ display = getDisplay(dataMessage);
+
             return VNumber.of(dataMessage.getNumberValue(),
                               alarm, time, display);
         } else if (type == PayloadType.SCALAR_ENUM) {
@@ -354,15 +355,18 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      */
     protected Display getDisplay(EpicsMessage message) {
         Map<String, String> fieldValues = message.getFieldValues();
-        if (fieldValues == null) {
+        boolean hasFieldVaues = !fieldValues.isEmpty();
+        if (!hasFieldVaues) {
             fieldValues = new HashMap<>();
-        }
-        if (fieldValues.isEmpty()) {
             for (FieldValue fieldValue : mainStream.getPayLoadInfo().getHeadersList()) {
                 if (!fieldValues.containsKey(fieldValue.getName())) {
                     fieldValues.put(fieldValue.getName(), fieldValue.getVal());
                 }
             }
+        }
+
+        if(hasFieldVaues) {
+            System.out.println(message.getTimestamp() + " " + message.getNumberValue() + " " + getDisplay(fieldValues));
         }
 
         return getDisplay(fieldValues);

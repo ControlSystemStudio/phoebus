@@ -25,14 +25,7 @@ import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJob;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJobListener;
-import org.csstudio.trends.databrowser3.model.AnnotationInfo;
-import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
-import org.csstudio.trends.databrowser3.model.ArchiveRescale;
-import org.csstudio.trends.databrowser3.model.AxisConfig;
-import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.model.ModelItem;
-import org.csstudio.trends.databrowser3.model.ModelListener;
-import org.csstudio.trends.databrowser3.model.PVItem;
+import org.csstudio.trends.databrowser3.model.*;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
@@ -597,12 +590,14 @@ public class Controller
     public void refresh()
     {
         // Clear live data buffer of PVs
-        for (ModelItem item : model.getItems())
-            if (item instanceof PVItem)
-            {
-                final PVItem pv = (PVItem) item;
+        for (ModelItem item : model.getItems()) {
+            if (item instanceof PVItem pv) {
                 pv.getSamples().clear();
             }
+            if (item instanceof AlarmLimitItem alarmLimitItem) {
+                System.out.println();
+            }
+        }
         // Re-fetch archived data
         scheduleArchiveRetrieval();
     }
