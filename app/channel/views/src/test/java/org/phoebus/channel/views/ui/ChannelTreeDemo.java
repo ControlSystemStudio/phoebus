@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.XmlChannel;
 import org.phoebus.ui.javafx.ApplicationWrapper;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
