@@ -578,10 +578,10 @@ public class RePlanEditorController implements Initializable {
         }
 
         Map<String, Object> result = item.result();
-        
+
         // Add a separator row for metadata section
         if (!result.isEmpty()) {
-            ParameterRow separator = new ParameterRow("--- Metadata & Results ---", false, "", 
+            ParameterRow separator = new ParameterRow("--- Metadata & Results ---", false, "",
                 "Execution metadata and results (read-only)", false, null);
             parameterRows.add(separator);
         }
@@ -592,7 +592,7 @@ public class RePlanEditorController implements Initializable {
             Object value = entry.getValue();
             String displayValue = formatResultValue(value);
             String description = "Result field: " + key + " (read-only)";
-            
+
             ParameterRow row = new ParameterRow(key, false, displayValue, description, false, null);
             parameterRows.add(row);
         }
@@ -602,7 +602,7 @@ public class RePlanEditorController implements Initializable {
         if (value == null) {
             return "null";
         }
-        
+
         if (value instanceof Map) {
             Map<?, ?> map = (Map<?, ?>) value;
             if (map.isEmpty()) {
@@ -610,7 +610,7 @@ public class RePlanEditorController implements Initializable {
             }
             return "Map (" + map.size() + " entries)";
         }
-        
+
         if (value instanceof List) {
             List<?> list = (List<?>) value;
             if (list.isEmpty()) {
@@ -618,7 +618,7 @@ public class RePlanEditorController implements Initializable {
             }
             return "List (" + list.size() + " items)";
         }
-        
+
         if (value instanceof String) {
             String str = (String) value;
             if (str.length() > 100) {
@@ -626,7 +626,7 @@ public class RePlanEditorController implements Initializable {
             }
             return str;
         }
-        
+
         return String.valueOf(value);
     }
 
@@ -956,7 +956,7 @@ public class RePlanEditorController implements Initializable {
     private void openBatchUpload() {
         BatchUploadDialog dialog = new BatchUploadDialog(table.getScene().getWindow());
         Optional<BatchUploadDialog.Result> result = dialog.showAndWait();
-        
+
         if (result.isPresent()) {
             BatchUploadDialog.Result uploadResult = result.get();
             processBatchFile(uploadResult.getFilePath(), uploadResult.getFileType());
@@ -1076,34 +1076,34 @@ public class RePlanEditorController implements Initializable {
 
     private List<QueueItem> parseExcelFile(java.io.File file) throws Exception {
         List<QueueItem> items = new ArrayList<>();
-        
+
         try (java.io.FileInputStream fis = new java.io.FileInputStream(file);
              Workbook workbook = new HSSFWorkbook(fis)) {
-            
+
             Sheet sheet = workbook.getSheetAt(0); // Use first sheet
-            
+
             if (sheet.getPhysicalNumberOfRows() == 0) {
                 return items;
             }
-            
+
             // Parse header row
             Row headerRow = sheet.getRow(0);
             if (headerRow == null) {
                 return items;
             }
-            
+
             List<String> headers = new ArrayList<>();
             for (int i = 0; i < headerRow.getLastCellNum(); i++) {
                 Cell cell = headerRow.getCell(i);
                 String header = getCellValueAsString(cell);
                 headers.add(header != null ? header.trim() : "");
             }
-            
+
             // Parse data rows
             for (int rowNum = 1; rowNum <= sheet.getLastRowNum(); rowNum++) {
                 Row row = sheet.getRow(rowNum);
                 if (row == null) continue;
-                
+
                 // Skip empty rows
                 boolean hasData = false;
                 for (int i = 0; i < Math.min(2, headers.size()); i++) {
@@ -1114,39 +1114,39 @@ public class RePlanEditorController implements Initializable {
                     }
                 }
                 if (!hasData) continue;
-                
+
                 String itemType = "";
                 String planName = "";
-                
+
                 if (headers.size() >= 1) {
                     Cell cell = row.getCell(0);
                     itemType = getCellValueAsString(cell);
                     itemType = itemType != null ? itemType.trim() : "";
                 }
-                
+
                 if (headers.size() >= 2) {
                     Cell cell = row.getCell(1);
                     planName = getCellValueAsString(cell);
                     planName = planName != null ? planName.trim() : "";
                 }
-                
+
                 if (planName.isEmpty()) continue;
-                
+
                 Map<String, Object> kwargs = new HashMap<>();
-                
+
                 // Parse additional parameters
                 for (int i = 2; i < Math.min(headers.size(), row.getLastCellNum()); i++) {
                     String paramName = headers.get(i).trim();
                     if (paramName.isEmpty()) continue;
-                    
+
                     Cell cell = row.getCell(i);
                     Object paramValue = getCellValueAsObject(cell);
-                    
+
                     if (paramValue != null) {
                         kwargs.put(paramName, paramValue);
                     }
                 }
-                
+
                 QueueItem item = new QueueItem(
                         itemType.isEmpty() ? "plan" : itemType,
                         planName,
@@ -1160,13 +1160,13 @@ public class RePlanEditorController implements Initializable {
                 items.add(item);
             }
         }
-        
+
         return items;
     }
-    
+
     private String getCellValueAsString(Cell cell) {
         if (cell == null) return null;
-        
+
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue();
@@ -1204,20 +1204,20 @@ public class RePlanEditorController implements Initializable {
                 return null;
         }
     }
-    
+
     private Object getCellValueAsObject(Cell cell) {
         if (cell == null) return null;
-        
+
         switch (cell.getCellType()) {
             case STRING:
                 String strValue = cell.getStringCellValue().trim();
                 if (strValue.isEmpty()) return null;
-                
+
                 // Try to parse as boolean
                 if ("true".equalsIgnoreCase(strValue) || "false".equalsIgnoreCase(strValue)) {
                     return Boolean.parseBoolean(strValue);
                 }
-                
+
                 // Try to parse as number
                 try {
                     if (strValue.contains(".")) {
@@ -1228,7 +1228,7 @@ public class RePlanEditorController implements Initializable {
                 } catch (NumberFormatException e) {
                     return strValue;
                 }
-                
+
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell)) {
                     return cell.getDateCellValue();
@@ -1300,67 +1300,67 @@ public class RePlanEditorController implements Initializable {
     }
 
     private static class BatchUploadDialog extends Dialog<BatchUploadDialog.Result> {
-        
+
         public static class Result {
             private final String filePath;
             private final String fileType;
-            
+
             public Result(String filePath, String fileType) {
                 this.filePath = filePath;
                 this.fileType = fileType;
             }
-            
+
             public String getFilePath() { return filePath; }
             public String getFileType() { return fileType; }
         }
-        
+
         private TextField filePathField;
         private ComboBox<String> fileTypeCombo;
         private Button browseButton;
         private String selectedFilePath;
-        
+
         public BatchUploadDialog(javafx.stage.Window owner) {
             initOwner(owner);
             setTitle("Batch Upload");
             setHeaderText("Load Plans from Spreadsheet");
-            
+
             // Create content
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
             grid.setPadding(new Insets(20, 150, 10, 10));
-            
+
             // File selection
             browseButton = new Button("...");
             browseButton.setOnAction(e -> selectFile());
-            
+
             filePathField = new TextField();
             filePathField.setEditable(false);
             filePathField.setPrefWidth(300);
-            
+
             // File type selection
             fileTypeCombo = new ComboBox<>();
             fileTypeCombo.getItems().addAll("xls", "csv");
             fileTypeCombo.setValue("xls");
-            
+
             grid.add(browseButton, 0, 0);
             grid.add(filePathField, 1, 0);
             grid.add(new Label("Spreadsheet Type:"), 0, 1);
             grid.add(fileTypeCombo, 1, 1);
-            
+
             getDialogPane().setContent(grid);
-            
+
             // Add buttons
             getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-            
+
             // Initially disable OK button
             getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
-            
+
             // Enable OK button when file is selected
             filePathField.textProperty().addListener((obs, oldVal, newVal) -> {
                 getDialogPane().lookupButton(ButtonType.OK).setDisable(newVal == null || newVal.trim().isEmpty());
             });
-            
+
             // Result converter
             setResultConverter(dialogButton -> {
                 if (dialogButton == ButtonType.OK && selectedFilePath != null) {
@@ -1369,7 +1369,7 @@ public class RePlanEditorController implements Initializable {
                 return null;
             });
         }
-        
+
         private void selectFile() {
             javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
             fileChooser.setTitle("Select Spreadsheet File");
@@ -1378,12 +1378,12 @@ public class RePlanEditorController implements Initializable {
                 new javafx.stage.FileChooser.ExtensionFilter("CSV Files (*.csv)", "*.csv"),
                 new javafx.stage.FileChooser.ExtensionFilter("All Files", "*.*")
             );
-            
+
             java.io.File file = fileChooser.showOpenDialog(getDialogPane().getScene().getWindow());
             if (file != null) {
                 selectedFilePath = file.getAbsolutePath();
                 filePathField.setText(selectedFilePath);
-                
+
                 // Auto-detect file type based on extension
                 String fileName = file.getName().toLowerCase();
                 if (fileName.endsWith(".xls")) {

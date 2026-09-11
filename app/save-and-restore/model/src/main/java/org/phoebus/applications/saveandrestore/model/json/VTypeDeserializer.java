@@ -42,7 +42,7 @@ public class VTypeDeserializer extends StdDeserializer<VType> {
 		super(VType.class);
 	}
 
-	@Override 
+	@Override
     public VType deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)
             throws JacksonException {
 		try {
