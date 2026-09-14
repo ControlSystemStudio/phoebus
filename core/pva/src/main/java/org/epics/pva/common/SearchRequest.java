@@ -26,8 +26,14 @@ import org.epics.pva.data.PVAString;
 @SuppressWarnings("nls")
 public class SearchRequest
 {
-    private static final String LOG_PVA_CLIENT = "PVA Client ";
-    private static final String LOG_SENT_SEARCH = " sent search #";
+    private static final String LOG_SHORT_SEARCH_FORMAT = "PVA client %s sent only %d bytes for search request";
+    private static final String LOG_SENT_SEARCH_FORMAT = "PVA Client %s sent search #%d";
+    private static final String LOG_DAMAGED_SEARCH_FORMAT = "PVA Client %s sent damaged search #%d";
+
+    private static String searchPrefix(final InetSocketAddress from, final int seq)
+    {
+        return String.format(LOG_SENT_SEARCH_FORMAT, from, seq);
+    }
 
     /** Channel with CID to be searched */
     public static class Channel
@@ -128,7 +134,7 @@ public class SearchRequest
         // plus the list of names.
         if (payload < 4+1+3+16+2+1+2)
         {
-            logger.log(Level.WARNING, () -> "PVA client " + from + " sent only " + payload + " bytes for search request");
+            logger.log(Level.WARNING, () -> String.format(LOG_SHORT_SEARCH_FORMAT, from, payload));
             return null;
         }
         final SearchRequest search = new SearchRequest();
@@ -154,7 +160,7 @@ public class SearchRequest
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " with invalid address");
+            logger.log(Level.WARNING, () -> searchPrefix(from, search.seq) + " with invalid address");
             return null;
         }
         int port = Short.toUnsignedInt(buffer.getShort());
@@ -191,7 +197,7 @@ public class SearchRequest
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, ex, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " with invalid protocol");
+            logger.log(Level.WARNING, ex, () -> searchPrefix(from, search.seq) + " with invalid protocol");
             return null;
         }
 
@@ -201,14 +207,14 @@ public class SearchRequest
         if (count == 0)
         {   // pvlist request
             search.channels = null;
-            logger.log(Level.FINER, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " to list servers");
+            logger.log(Level.FINER, () -> searchPrefix(from, search.seq) + " to list servers");
         }
         else
         {   // Channel search request
             if (! (tcp || search.tls))
             {
                 final String unsupported_protocol = unknown_protocol;
-                logger.log(Level.WARNING, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " for protocol '" + unsupported_protocol + "', need 'tcp' or 'tls'");
+                logger.log(Level.WARNING, () -> searchPrefix(from, search.seq) + " for protocol '" + unsupported_protocol + "', need 'tcp' or 'tls'");
                 return null;
             }
             search.channels = new ArrayList<>(count);
@@ -218,7 +224,7 @@ public class SearchRequest
                 {
                     final int cid = buffer.getInt();
                     final String name = PVAString.decodeString(buffer);
-                    logger.log(Level.FINER, () -> LOG_PVA_CLIENT + from + LOG_SENT_SEARCH + search.seq + " for " + name + " [cid " + cid + "]"
+                    logger.log(Level.FINER, () -> searchPrefix(from, search.seq) + " for " + name + " [cid " + cid + "]"
                             + ", reply addr " + orig_response_addr
                             + (orig_response_addr.equals(search.client) ? "" : ", using " + search.client)
                             + (search.tls               ? " (TLS)" : "")
@@ -230,7 +236,7 @@ public class SearchRequest
             }
             catch (Exception ex)
             {
-                logger.log(Level.WARNING, ex, () -> LOG_PVA_CLIENT + from + " sent damaged search #" + search.seq);
+                logger.log(Level.WARNING, ex, () -> String.format(LOG_DAMAGED_SEARCH_FORMAT, from, search.seq));
                 return null;
             }
         }
