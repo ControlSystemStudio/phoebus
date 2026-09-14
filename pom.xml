@@ -68,11 +68,12 @@
     <epics.version>7.0.11</epics.version>
     <epics.util.version>1.0.8</epics.util.version>
     <vtype.version>1.0.8</vtype.version>
-    <openjfx.version>21.0.7</openjfx.version>
+    <openjfx.version>25.0.4</openjfx.version>
     <!-- netscape.javascript jar for the JDK 26+ profiles; versioned separately
          from openjfx as it's only published for 25+. -->
     <jsobject.version>26.0.1</jsobject.version>
-    <jackson.version>2.12.3</jackson.version>
+    <jackson.annotations.version>2.22</jackson.annotations.version>
+    <tools.jackson.version>3.2.1</tools.jackson.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
     <postgresql.driver.version>42.6.2</postgresql.driver.version>
@@ -81,7 +82,7 @@
     <jetty.version>11.0.26</jetty.version>
     <apache.commons.math.version>3.6.1</apache.commons.math.version>
     <junit.version>5.8.2</junit.version>
-    <elasticsearch.version>8.2.0</elasticsearch.version>
+    <elasticsearch.version>9.4.4</elasticsearch.version>
     <kafka.version>3.9.1</kafka.version>
     <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -92,12 +93,13 @@
     <derby.version>10.16.1.1</derby.version>
     <jython.version>2.7.4b1</jython.version>
     <jgit.version>6.9.0.202403050737-r</jgit.version>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>25</maven.compiler.target>
     <activemq.client.version>5.18.4</activemq.client.version>
     <commons.compress.version>1.26.1</commons.compress.version>
     <spring.framework.version>5.3.22</spring.framework.version>
-    <spring.boot.version>2.7.18</spring.boot.version>
+    <spring.boot.version>4.1.0</spring.boot.version>
+    <springdoc.version>3.1.0</springdoc.version>
   </properties>
   <build>
     <plugins>
@@ -109,6 +111,7 @@
           <target>${maven.compiler.target}</target>
           <fork>true</fork>
           <compilerArgs>
+            <arg>-parameters</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
@@ -147,7 +150,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>  
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>

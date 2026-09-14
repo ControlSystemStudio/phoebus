@@ -7,5 +7,5 @@ runs:
     - uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287
       with:
         distribution: temurin
-        java-version: '21'
+        java-version: '25'
         cache: maven

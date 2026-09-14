@@ -26,14 +26,9 @@ import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO.NodeNameComparator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextHierarchy;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,11 +40,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
-@EnableConfigurationProperties
-@ContextHierarchy({@ContextConfiguration(classes = {ElasticTestConfig.class})})
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
+@ContextConfiguration(classes = {ElasticTestConfig.class})
 @TestPropertySource(locations = "classpath:test_application.properties")
-@Profile("IT")
 public class ElasticsearchDAOTest {
 
     @Autowired

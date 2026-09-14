@@ -21,8 +21,9 @@ import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Helper for creating JSON for a servlet response.
  *  @author Kay Kasemir
@@ -31,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @SuppressWarnings("nls")
 public class JSONWriter implements AutoCloseable
 {
-    public static final ObjectMapper mapper = new ObjectMapper();
+    public static final ObjectMapper mapper = JsonMapper.builder().build();
 
     private final PrintWriter out;
     private final JsonGenerator jg;
@@ -41,7 +42,7 @@ public class JSONWriter implements AutoCloseable
     {
         response.setContentType("application/json");
         out = response.getWriter();
-        jg = mapper.getFactory().createGenerator(out);
+        jg = mapper.tokenStreamFactory().createGenerator(out);
         jg.writeStartObject();
     }
 
@@ -61,39 +62,39 @@ public class JSONWriter implements AutoCloseable
     public void writeVType(final VType value) throws IOException
     {
         if (value == null)
-            jg.writeNullField("Value");
+            jg.writeNullProperty("Value");
         else
         {
             Instant timestamp = VTypeHelper.getTimestamp(value);
-            jg.writeStringField("Timestamp", TimestampHelper.format(timestamp));
-            jg.writeStringField("Value", VTypeHelper.toString(value));
+            jg.writeStringProperty("Timestamp", TimestampHelper.format(timestamp));
+            jg.writeStringProperty("Value", VTypeHelper.toString(value));
         }
     }
 
     public void writeChannel(final ArchiveChannel channel) throws IOException
     {
-        jg.writeStringField(Messages.HTTP_Channel, channel.getName());
-        jg.writeBooleanField(Messages.HTTP_Connected, channel.isConnected());
-        jg.writeStringField(Messages.HTTP_InternalState, channel.getInternalState());
-        jg.writeStringField(Messages.HTTP_Mechanism, channel.getMechanism());
+        jg.writeStringProperty(Messages.HTTP_Channel, channel.getName());
+        jg.writeBooleanProperty(Messages.HTTP_Connected, channel.isConnected());
+        jg.writeStringProperty(Messages.HTTP_InternalState, channel.getInternalState());
+        jg.writeStringProperty(Messages.HTTP_Mechanism, channel.getMechanism());
 
-        jg.writeObjectFieldStart(Messages.HTTP_CurrentValue);
+        jg.writeObjectPropertyStart(Messages.HTTP_CurrentValue);
         writeVType(channel.getCurrentValue());
         jg.writeEndObject();
 
-        jg.writeObjectFieldStart(Messages.HTTP_LastArchivedValue);
+        jg.writeObjectPropertyStart(Messages.HTTP_LastArchivedValue);
         writeVType(channel.getLastArchivedValue());
         jg.writeEndObject();
 
-        jg.writeNumberField(Messages.HTTP_ReceivedValues, channel.getReceivedValues());
-        jg.writeBooleanField(Messages.HTTP_State, channel.isEnabled());
+        jg.writeNumberProperty(Messages.HTTP_ReceivedValues, channel.getReceivedValues());
+        jg.writeBooleanProperty(Messages.HTTP_State, channel.isEnabled());
 
         final SampleBuffer buffer = channel.getSampleBuffer();
         final BufferStats stats = buffer.getBufferStats();
-        jg.writeNumberField(Messages.HTTP_QueueLen, buffer.getQueueSize());
-        jg.writeNumberField(Messages.HTTP_QueueAvg, stats.getAverageSize());
-        jg.writeNumberField(Messages.HTTP_QueueMax, stats.getMaxSize());
-        jg.writeNumberField(Messages.HTTP_QueueCapacity, buffer.getCapacity());
-        jg.writeNumberField(Messages.HTTP_QueueOverruns, stats.getOverruns());
+        jg.writeNumberProperty(Messages.HTTP_QueueLen, buffer.getQueueSize());
+        jg.writeNumberProperty(Messages.HTTP_QueueAvg, stats.getAverageSize());
+        jg.writeNumberProperty(Messages.HTTP_QueueMax, stats.getMaxSize());
+        jg.writeNumberProperty(Messages.HTTP_QueueCapacity, buffer.getCapacity());
+        jg.writeNumberProperty(Messages.HTTP_QueueOverruns, stats.getOverruns());
     }
 }

@@ -1,7 +1,6 @@
 package org.phoebus.applications.queueserver.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.List;
 import java.util.Map;

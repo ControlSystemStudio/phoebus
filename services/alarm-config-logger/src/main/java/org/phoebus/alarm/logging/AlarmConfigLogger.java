@@ -51,7 +51,8 @@ import org.eclipse.jgit.util.FS;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * A Runnable which creates the alarm config model for the given topic and its
@@ -226,7 +227,7 @@ public class AlarmConfigLogger implements Runnable {
         System.exit(0);
     }
 
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builder().build();
 
     /**
      * Process a single alarm configuration event

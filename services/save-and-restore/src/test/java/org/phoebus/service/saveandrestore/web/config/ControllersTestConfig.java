@@ -19,6 +19,7 @@
 package org.phoebus.service.saveandrestore.web.config;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import org.mockito.Mockito;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
@@ -36,14 +37,19 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.util.Base64Utils;
+import java.util.Base64;
 import org.springframework.web.socket.WebSocketSession;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
 @TestConfiguration
+@EnableWebMvc
 @ComponentScan(basePackages = "org.phoebus.service.saveandrestore.web.controllers")
 @SuppressWarnings("unused")
 @Profile("!IT")
@@ -97,6 +103,16 @@ public class ControllersTestConfig {
         return Mockito.mock(ElasticsearchClient.class);
     }
 
+    @Bean("restClient")
+    public Rest5Client restClient() {
+        return Mockito.mock(Rest5Client.class);
+    }
+
+    @Bean("elasticObjectMapper")
+    public ObjectMapper elasticObjectMapper() {
+        return JsonMapper.builder().build();
+    }
+
     @SuppressWarnings("unused")
     @Bean
     public AcceptHeaderResolver acceptHeaderResolver() {
@@ -111,17 +127,17 @@ public class ControllersTestConfig {
 
     @Bean("userAuthorization")
     public String userAuthorization() {
-        return "Basic " + Base64Utils.encodeToString((demoUser + ":" + demoUserPassword).getBytes());
+        return "Basic " + Base64.getEncoder().encodeToString((demoUser + ":" + demoUserPassword).getBytes());
     }
 
     @Bean("adminAuthorization")
     public String adminAuthorization() {
-        return "Basic " + Base64Utils.encodeToString((demoAdmin + ":" + demoAdminPassword).getBytes());
+        return "Basic " + Base64.getEncoder().encodeToString((demoAdmin + ":" + demoAdminPassword).getBytes());
     }
 
     @Bean("readOnlyAuthorization")
     public String readOnlyAuthorization() {
-        return "Basic " + Base64Utils.encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
+        return "Basic " + Base64.getEncoder().encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
     }
 
     @Bean
@@ -131,7 +147,9 @@ public class ControllersTestConfig {
 
     @Bean
     public SnapshotUtil snapshotUtil() {
-        return new SnapshotUtil();
+        // Return a mock so tests can stub it with when(...); previously @MockBean was used
+        // but @MockBean was removed in Spring Boot 4.x.
+        return Mockito.mock(SnapshotUtil.class);
     }
 
     @Bean

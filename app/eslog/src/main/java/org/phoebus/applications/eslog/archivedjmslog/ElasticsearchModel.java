@@ -13,12 +13,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestClient;
 import org.phoebus.applications.eslog.Activator;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.Time;
@@ -30,8 +31,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.TermsQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.TermsQueryField;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.json.JsonData;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 
 /**
@@ -165,9 +165,10 @@ public class ElasticsearchModel<T extends LogMessage> extends ArchiveModel<T>
     @SuppressWarnings("nls")
     protected Query getTimeQuery(Instant from, Instant to)
     {
-        return RangeQuery.of(r -> r.field(this.dateField)
-                .gte(JsonData.of(from.toEpochMilli()))
-                .lte(JsonData.of(to.toEpochMilli())).format("epoch_millis"))
+        return RangeQuery.of(r -> r.longNumber(n -> n
+                .field(this.dateField)
+                .gte(from.toEpochMilli())
+                .lte(to.toEpochMilli())))
                 ._toQuery();
     }
 
@@ -193,7 +194,7 @@ public class ElasticsearchModel<T extends LogMessage> extends ArchiveModel<T>
                                             ElasticsearchModel.this.protocol))
                                     .build();
                             final var transport = new RestClientTransport(
-                                    restClient, new JacksonJsonpMapper());
+                                    restClient, new Jackson3JsonpMapper());
                             final var client = new ElasticsearchClient(
                                     transport);
 
