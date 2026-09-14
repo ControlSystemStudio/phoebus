@@ -61,7 +61,7 @@ class ClientUDPHandler extends UDPHandler
          *  @param server Server that replied to a search request
          *  @param version Server version
          *  @param guid  Globally unique ID of the server
-         *  @param tcp Does server require TLS?
+         *  @param tls Does server require TLS?
          */
         void handleSearchResponse(int channel_id, InetSocketAddress server, int version, Guid guid, boolean tls);
     }
@@ -250,15 +250,15 @@ class ClientUDPHandler extends UDPHandler
         else
             server = new InetSocketAddress(addr, port);
 
-        final String protocol = PVAString.decodeString(buffer);
-        if (! "tcp".equals(protocol))
-        {
-            logger.log(Level.WARNING, "PVA Server " + from + " sent beacon for protocol '" + protocol + "'");
-            return false;
-        }
-
         try
         {
+            final String protocol = PVAString.decodeString(buffer);
+            if (! "tcp".equals(protocol))
+            {
+                logger.log(Level.WARNING, "PVA Server " + from + " sent beacon for protocol '" + protocol + "'");
+                return false;
+            }
+
             // Decode optional server status (likely null)
             final PVATypeRegistry types = new PVATypeRegistry();
             final PVAData server_status = types.decodeType("", buffer);

@@ -10,6 +10,8 @@ package org.epics.pva.common;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import org.epics.pva.exceptions.PVAProtocolException;
+
 /** PVA Message Header
  *
  *  <pre>
@@ -174,9 +176,9 @@ public class PVAHeader
      *  @param buffer Buffer as start of protocol header
      *  @param expect_server Expect a server message? Else client message
      *  @return Expected total message size (header + payload)
-     *  @throws Exception on protocol violation
+     *  @throws PVAProtocolException on protocol violation
      */
-    public static int checkMessageAndGetSize(final ByteBuffer buffer, final boolean expect_server) throws Exception
+    public static int checkMessageAndGetSize(final ByteBuffer buffer, final boolean expect_server) throws PVAProtocolException
     {
         if (buffer.position() < PVAHeader.HEADER_SIZE)
             return PVAHeader.HEADER_SIZE;
@@ -185,11 +187,11 @@ public class PVAHeader
         // parsing the initial set of bytes
         final byte magic = buffer.get(0);
         if (magic != PVAHeader.PVA_MAGIC)
-            throw new Exception(String.format("Message lacks magic 0x%02X, got 0x%02X", PVAHeader.PVA_MAGIC, magic));
+            throw new PVAProtocolException(String.format("Message lacks magic 0x%02X, got 0x%02X", PVAHeader.PVA_MAGIC, magic));
 
         final byte version = buffer.get(1);
         if (version < PVAHeader.REQUIRED_PVA_PROTOCOL_REVISION)
-            throw new Exception("Cannot handle protocol version " + version +
+            throw new PVAProtocolException("Cannot handle protocol version " + version +
                                 ", expect version " +
                                 PVAHeader.REQUIRED_PVA_PROTOCOL_REVISION +
                                 " or higher");
@@ -197,7 +199,7 @@ public class PVAHeader
         final byte flags = buffer.get(2);
         final boolean is_server = (flags & PVAHeader.FLAG_SERVER) != 0;
         if (is_server != expect_server)
-                throw new Exception(expect_server ? "Expected server message" : "Expected client message");
+                throw new PVAProtocolException(expect_server ? "Expected server message" : "Expected client message");
 
         // With each received message, check the byte order
         // and adjust buffer to read further content which usually
@@ -213,6 +215,17 @@ public class PVAHeader
 
         // Application messages are followed by this number of data bytes
         final int payload = buffer.getInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE);
+        // Java implementation for now does not handle large 'unsigned' sizes,
+        // limited to the positive range of a signed int.
+        // Could use `Integer.toUnsignedLong(payload)`, but JDK API
+        // like buffer buffer.remaining() or buffer.get(10) is using int,
+        // so us updating to long would be of limited use
+        if (payload < 0)
+            throw new PVAProtocolException("Payload size " + payload +
+                                " exceeds max signed integer " + Integer.toHexString(Integer.MAX_VALUE));
+        // Could check against a PVA variant of EPICS_CA_MAX_ARRAY_BYTES,
+        // but PVA design specifically aims to use all available memory
+        // without self-enforced limitations (confirmed in 2026-07-10 EPICS code telecon)
 
         // Total message size: Header followed by data
         return PVAHeader.HEADER_SIZE + payload;

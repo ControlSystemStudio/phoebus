@@ -72,8 +72,9 @@ public class PVAStatus
 
     /** @param buffer Source buffer
      *  @return Decoded status
+     *  @throws Exception on error
      */
-    public static PVAStatus decode(final ByteBuffer buffer)
+    public static PVAStatus decode(final ByteBuffer buffer) throws Exception
     {
         final byte b = buffer.get();
         if (b == -1)

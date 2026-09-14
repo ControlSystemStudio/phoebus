@@ -49,12 +49,16 @@ public class PVAString extends PVAData implements PVAValue
 
     /** @param buffer Buffer from which to decode string
      *  @return Decoded string
+     *  @throws Exception on error
      */
-    public static String decodeString(final ByteBuffer buffer)
+    public static String decodeString(final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
         if (size >= 0)
         {
+            if (size > buffer.remaining())
+                throw new Exception("PVAString size " + size +
+                                    " exceeds remaining buffer size " + buffer.remaining());
             byte[] bytes = new byte[size];
             buffer.get(bytes);
             return new String(bytes);

@@ -27,10 +27,13 @@ public class PVABitSet
 
     /** @param buffer Source buffer
      *  @return Decoded bits
+     *  @throws Exception on error
      */
-    public static BitSet decodeBitSet(final ByteBuffer buffer)
+    public static BitSet decodeBitSet(final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
+        if (size < 0  ||  size > buffer.remaining())
+            throw new Exception("Bitset size " + size + " with only " + buffer.remaining() + " bytes in buffer");
         final byte[] bytes = new byte[size];
         buffer.get(bytes);
         return BitSet.valueOf(bytes);
