@@ -149,9 +149,15 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
         model_widget.propTabs().addPropertyListener(tabsListener);
         model_widget.propDirection().addUntypedPropertyListener(layoutListener);
         model_widget.propTabHeight().addUntypedPropertyListener(layoutListener);
+        model_widget.propDefaultTab().addUntypedPropertyListener(layoutListener);
 
         // Select initial tab
-        track_active_model_tab.propertyChanged(model_widget.propActiveTab(), null, null);
+        // For backward compatibility, default tab property default value is -1
+        // In this case the initial tab is set according to the active tab property
+        if (model_widget.propDefaultTab().getValue() == -1)
+            track_active_model_tab.propertyChanged(model_widget.propActiveTab(), null, null);
+        else
+            track_active_model_tab.propertyChanged(model_widget.propDefaultTab(), null, null);
         model_widget.propActiveTab().addPropertyListener(track_active_model_tab);
 
         // Update model when UI selects a tab
@@ -179,6 +185,7 @@ public class TabsRepresentation extends JFXBaseRepresentation<TabPane, TabsWidge
         model_widget.propTabs().removePropertyListener(tabsListener);
         model_widget.propDirection().removePropertyListener(layoutListener);
         model_widget.propTabHeight().removePropertyListener(layoutListener);
+        model_widget.propDefaultTab().removePropertyListener(layoutListener);
         model_widget.propActiveTab().addPropertyListener(track_active_model_tab);
 
         super.unregisterListeners();
