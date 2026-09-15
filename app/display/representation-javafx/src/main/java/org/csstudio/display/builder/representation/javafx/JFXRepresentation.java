@@ -41,6 +41,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
@@ -899,13 +900,14 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     }
 
     @Override
-    public String showPasswordDialog(final Widget widget, final String title, final String correct_password)
+    public String showPasswordDialog(final Widget widget, final String title, final String correct_password, final CryptedPassword crypted_password)
     {
         final Node node = JFXBaseRepresentation.getJFXNode(widget);
         final CompletableFuture<String> done = new CompletableFuture<>();
         execute( ()->
         {
-            final PasswordDialog dialog = new PasswordDialog(title, correct_password);
+
+            final PasswordDialog dialog = new PasswordDialog(title, correct_password, crypted_password);
             DialogHelper.positionDialog(dialog, node, -100, -50);
             dialog.initOwner(node.getScene().getWindow());
             final Optional<String> result = dialog.showAndWait();

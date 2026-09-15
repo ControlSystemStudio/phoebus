@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialog;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propCryptedPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
@@ -24,6 +25,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import java.util.Arrays;
 import java.util.List;
 
+import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
@@ -36,6 +38,7 @@ import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
@@ -237,6 +240,7 @@ public class ActionButtonWidget extends PVWidget
     private volatile WidgetProperty<Boolean> confirm_dialog;
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
+    private volatile WidgetProperty<CryptedPassword> cryptedPassword;
 
     /** Constructor */
     public ActionButtonWidget()
@@ -271,6 +275,7 @@ public class ActionButtonWidget extends PVWidget
         properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
+        properties.add(cryptedPassword = propCryptedPassword.createProperty(this, CryptedPassword.NONE));
     }
 
     @Override
@@ -357,5 +362,11 @@ public class ActionButtonWidget extends PVWidget
     public WidgetProperty<String> propPassword()
     {
         return password;
+    }
+
+    /** @return 'crypted_password' property */
+    public WidgetProperty<CryptedPassword> propCryptedPassword()
+    {
+        return cryptedPassword;
     }
 }

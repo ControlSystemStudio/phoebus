@@ -12,6 +12,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PlaceholderWidget;
@@ -549,7 +550,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      * @param correct_password Password to check
      * @return Entered password or <code>null</code>
      */
-    abstract public String showPasswordDialog(final Widget widget, final String title, final String correct_password);
+    abstract public String showPasswordDialog(final Widget widget, final String title, final String correct_password, final CryptedPassword crypted_password);
 
     /**
      * Show file "Save As" dialog for selecting/entering a new file name

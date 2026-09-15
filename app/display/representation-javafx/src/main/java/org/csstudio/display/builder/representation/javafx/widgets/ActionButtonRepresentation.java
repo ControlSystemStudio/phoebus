@@ -31,6 +31,7 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.spi.ActionInfo;
@@ -221,9 +222,11 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             if (model_widget.propConfirmDialog().getValue()) {
                 final String message = model_widget.propConfirmMessage().getValue();
                 final String password = model_widget.propPassword().getValue();
+                final CryptedPassword cryptedPassword = model_widget.propCryptedPassword().getValue();
+
                 // .. check either with password or generic Ok/Cancel prompt
                 if (password.length() > 0) {
-                    if (toolkit.showPasswordDialog(model_widget, message, password) == null)
+                    if (toolkit.showPasswordDialog(model_widget, message, password, cryptedPassword) == null)
                         return;
                 } else if (!toolkit.showConfirmationDialog(model_widget, message))
                     return;

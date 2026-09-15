@@ -9,12 +9,14 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialog;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propCryptedPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propItemsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
+
 import static org.csstudio.display.builder.model.widgets.ComboWidget.propItem;
 
 import java.util.Arrays;
@@ -30,6 +32,7 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.ui.color.NamedWidgetColors;
 import org.phoebus.ui.color.WidgetColor;
@@ -65,6 +68,7 @@ public class RadioWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> confirm_dialog;
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
+    private volatile WidgetProperty<CryptedPassword> cryptedPassword;
 
     private static ArrayWidgetProperty.Descriptor<WidgetProperty<String>> radioItemDescriptor =
             new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.BEHAVIOR, "items", "Items",
@@ -95,6 +99,7 @@ public class RadioWidget extends WritablePVWidget
         properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
+        properties.add(cryptedPassword = propCryptedPassword.createProperty(this, CryptedPassword.NONE));
     }
 
     /** @return 'foreground_color' property */
@@ -149,6 +154,12 @@ public class RadioWidget extends WritablePVWidget
     public WidgetProperty<String> propPassword()
     {
         return password;
+    }
+
+    /** @return 'crypted_password' property */
+    public WidgetProperty<CryptedPassword> propCryptedPassword()
+    {
+        return cryptedPassword;
     }
 
     //  TODO: CR: Changing the name of a radio button item has no immediate effect,
