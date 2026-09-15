@@ -13,6 +13,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHashPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVerticalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
+import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
@@ -237,7 +239,7 @@ public class ActionButtonWidget extends PVWidget
     private volatile WidgetProperty<Boolean> confirm_dialog;
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
-
+    private volatile WidgetProperty<String> hash_password;
     /** Constructor */
     public ActionButtonWidget()
     {
@@ -271,6 +273,8 @@ public class ActionButtonWidget extends PVWidget
         properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
+        properties.add(hash_password = propHashPassword.createProperty(this, ""));
+        hash_password.setInformativeTooltip(Messages.InformativeTooltipHashPassword);
     }
 
     @Override
@@ -310,13 +314,13 @@ public class ActionButtonWidget extends PVWidget
     {
         return transparent;
     }
-    
+
     /** @return 'horizontal_alignment' property */
     public WidgetProperty<HorizontalAlignment> propHorizontalAlignment()
     {
         return horizontal_alignment;
     }
-    
+
     /** @return 'vertical_alignment' property */
     public WidgetProperty<VerticalAlignment> propVerticalAlignment()
     {
@@ -353,9 +357,16 @@ public class ActionButtonWidget extends PVWidget
         return confirm_message;
     }
 
+    /** @return 'hash_password' property */
+    public WidgetProperty<String> propHashPassword()
+    {
+        return hash_password;
+    }
+
     /** @return 'password' property */
     public WidgetProperty<String> propPassword()
     {
         return password;
     }
+
 }

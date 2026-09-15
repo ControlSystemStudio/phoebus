@@ -14,6 +14,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHashPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propItemsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 
@@ -132,6 +133,7 @@ public class ComboWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> confirm_dialog;
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
+    private volatile WidgetProperty<String> hash_password;
 
     /** Constructor */
     public ComboWidget()
@@ -153,6 +155,8 @@ public class ComboWidget extends WritablePVWidget
         properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
+        properties.add(hash_password = propHashPassword.createProperty(this, ""));
+        hash_password.setInformativeTooltip(Messages.InformativeTooltipHashPassword);
     }
 
     /** @return 'foreground_color' property */
@@ -233,5 +237,11 @@ public class ComboWidget extends WritablePVWidget
     public WidgetProperty<String> propPassword()
     {
         return password;
+    }
+
+    /** @return 'hash_password' property */
+    public WidgetProperty<String> propHashPassword()
+    {
+        return hash_password;
     }
 }

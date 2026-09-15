@@ -16,6 +16,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHashPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOnColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
@@ -80,7 +81,7 @@ public class SlideButtonWidget extends WritablePVWidget {
     private volatile WidgetProperty<WidgetColor>   off_color;
     private volatile WidgetProperty<WidgetColor>   on_color;
     private volatile WidgetProperty<String>        password;
-
+    private volatile WidgetProperty<String>        hash_password;
     /** Constructor */
     public SlideButtonWidget () {
         super(WIDGET_DESCRIPTOR.getType(), 100, 30);
@@ -156,11 +157,16 @@ public class SlideButtonWidget extends WritablePVWidget {
         return on_color;
     }
 
-    /**
-     * @return 'password' property.
-     */
-    public WidgetProperty<String> propPassword ( ) {
+    /** @return 'password' property */
+    public WidgetProperty<String> propPassword()
+    {
         return password;
+    }
+
+    /** @return 'hash_password' property */
+    public WidgetProperty<String> propHashPassword()
+    {
+        return hash_password;
     }
 
     @Override
@@ -179,6 +185,7 @@ public class SlideButtonWidget extends WritablePVWidget {
         properties.add(confirm_dialog = propConfirmDialogOptions.createProperty(this, ConfirmDialog.NONE));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
-
+        properties.add(hash_password = propHashPassword.createProperty(this, ""));
+        hash_password.setInformativeTooltip(Messages.InformativeTooltipHashPassword);
     }
 }
