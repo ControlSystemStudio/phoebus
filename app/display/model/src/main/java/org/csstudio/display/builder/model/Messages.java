@@ -59,6 +59,7 @@ public class Messages
                          GroupWidget_Description,
                          GroupWidget_Name,
                          HighlightActiveRegion,
+                         InformativeTooltipCryptedPassword,
                          InformativeTooltipActions,
                          InformativeTooltipAlarmBorder,
                          InformativeTooltipHeight,

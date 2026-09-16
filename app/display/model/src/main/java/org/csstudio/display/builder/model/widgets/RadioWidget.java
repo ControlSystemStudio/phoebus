@@ -100,6 +100,7 @@ public class RadioWidget extends WritablePVWidget
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
         properties.add(cryptedPassword = propCryptedPassword.createProperty(this, CryptedPassword.NONE));
+        cryptedPassword.setInformativeTooltip(Messages.InformativeTooltipCryptedPassword);
     }
 
     /** @return 'foreground_color' property */
