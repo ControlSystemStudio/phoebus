@@ -13,6 +13,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBit;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialogOptions;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propCryptedPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
@@ -33,6 +34,7 @@ import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.ui.color.NamedWidgetColors;
 import org.phoebus.ui.color.WidgetColor;
@@ -80,6 +82,7 @@ public class SlideButtonWidget extends WritablePVWidget {
     private volatile WidgetProperty<WidgetColor>   off_color;
     private volatile WidgetProperty<WidgetColor>   on_color;
     private volatile WidgetProperty<String>        password;
+    private volatile WidgetProperty<CryptedPassword> cryptedPassword;
 
     /** Constructor */
     public SlideButtonWidget () {
@@ -163,6 +166,12 @@ public class SlideButtonWidget extends WritablePVWidget {
         return password;
     }
 
+    /** @return 'crypted_password' property */
+    public WidgetProperty<CryptedPassword> propCryptedPassword()
+    {
+        return cryptedPassword;
+    }
+
     @Override
     protected void defineProperties ( final List<WidgetProperty<?>> properties ) {
 
@@ -179,6 +188,7 @@ public class SlideButtonWidget extends WritablePVWidget {
         properties.add(confirm_dialog = propConfirmDialogOptions.createProperty(this, ConfirmDialog.NONE));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
-
+        properties.add(cryptedPassword = propCryptedPassword.createProperty(this, CryptedPassword.NONE));
+        cryptedPassword.setInformativeTooltip(Messages.InformativeTooltipCryptedPassword);
     }
 }
