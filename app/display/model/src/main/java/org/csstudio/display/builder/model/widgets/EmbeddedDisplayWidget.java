@@ -113,6 +113,11 @@ public class EmbeddedDisplayWidget extends MacroWidget
     static final WidgetPropertyDescriptor<String> propGroupName =
         CommonWidgetProperties.newStringPropertyDescriptor(
             WidgetPropertyCategory.DISPLAY, "group_name", Messages.EmbeddedDisplayWidget_GroupName);
+    /**
+     * 'rotation' property
+     */
+     static final WidgetPropertyDescriptor<Double> propRotation =
+            CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "rotation", Messages.WidgetProperties_Rotation);
 
     /** 'embedded_model' */
     public static final WidgetPropertyDescriptor<DisplayModel> runtimeModel =
@@ -279,6 +284,7 @@ public class EmbeddedDisplayWidget extends MacroWidget
     private volatile WidgetProperty<String> group_name;
     private volatile WidgetProperty<DisplayModel> embedded_model;
     private volatile WidgetProperty<Boolean> transparent;
+    private volatile WidgetProperty<Double> rotation;
 
     /** Constructor */
     public EmbeddedDisplayWidget()
@@ -295,6 +301,7 @@ public class EmbeddedDisplayWidget extends MacroWidget
         properties.add(group_name = propGroupName.createProperty(this, ""));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
         properties.add(transparent = propTransparent.createProperty(this, false));
+        properties.add(rotation = propRotation.createProperty(this, 0.0));
         BorderSupport.addBorderProperties(this, properties);
     }
 
@@ -342,6 +349,12 @@ public class EmbeddedDisplayWidget extends MacroWidget
     public WidgetProperty<Boolean> propTransparent()
     {
         return transparent;
+    }
+
+    /** @return 'rotation' property */
+    public WidgetProperty<Double> propRotation()
+    {
+        return rotation;
     }
 
     @Override
