@@ -419,7 +419,7 @@ public class ScanClient
             query.add("queue=false");
         }
         if (scheduled != null) {
-            query.add("scheduled=" + TimestampFormats.SECONDS_FORMAT.format(scheduled));
+            query.add("scheduled=" + scheduled.toEpochMilli());
         }
 
         final HttpURLConnection connection = connect("/scan/" + name, String.join("&", query), long_timeout);

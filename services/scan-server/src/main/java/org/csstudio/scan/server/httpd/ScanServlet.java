@@ -122,11 +122,11 @@ public class ScanServlet extends HttpServlet
             // Execute pre/post commands unless "?pre_post=false"
 
             text = request.getParameter("scheduled");
-            if (text != null  && !"0000-00-00 00:00:00".equals(text))
+            if (text != null)
             {
                 try
                 {
-                    scheduled = Instant.from(TimestampFormats.SECONDS_FORMAT.parse(text));
+                    scheduled = Instant.ofEpochMilli(Long.parseLong(text));
                 }
                 catch (Exception ex)
                 {

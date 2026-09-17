@@ -100,22 +100,30 @@ public class ScheduledScan extends ExecutableScan {
         return super.getScanState();
     }
 
+    private static String formatWait(long millis) {
+        Duration d = Duration.ofMillis(millis);
+        return String.format("%dd %dh %dm %ds",
+            d.toDaysPart(), d.toHoursPart(), d.toMinutesPart(), d.toSecondsPart());
+    }
+
     @Override
     public ScanInfo getScanInfo() {
         ScanInfo base_info = super.getScanInfo();
         if (!getExecutable()) {
             // override finish time / current command if the scan is still scheduled
             long total_duration = Duration.between(created, getScheduledTime()).toMillis();
+            long time_left = Duration.between(Instant.now(), getScheduledTime()).toMillis();
+
             return new ScanInfo(
                     this,
                     base_info.getState(),
                     base_info.getError(),
                     base_info.getRuntimeMillisecs(),
                     getScheduledTime().toEpochMilli(),
-                    total_duration - Duration.between(Instant.now(), getScheduledTime()).toMillis(),
+                    total_duration - time_left,
                     total_duration,
                     base_info.getCurrentAddress(),
-                    "Waiting until " + TimestampFormats.SECONDS_FORMAT.format(getScheduledTime()) + "..."
+                    "Waiting for " + formatWait(time_left) + " until scheduled time..."
             );
         }
         return base_info;
