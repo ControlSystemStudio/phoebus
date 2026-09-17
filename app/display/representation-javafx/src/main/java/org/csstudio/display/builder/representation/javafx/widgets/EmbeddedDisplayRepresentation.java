@@ -16,6 +16,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Transform;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -87,7 +90,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
 
     private volatile double zoom_factor_x = 1.0;
     private volatile double zoom_factor_y = 1.0;
-
+    private volatile double rotate = 0;
 
     /** Inner pane that holds child widgets
      *
@@ -99,6 +102,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
 
     /** Zoom for 'inner' pane */
     private Scale zoom;
+    /** Rotation for 'inner' pane */
+    private Rotate rotation;
 
     /** Optional scroll pane between 'jfx_node' Pane and 'inner'.
      *
@@ -143,7 +148,10 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         // Using a separate Scale transformation does not have that problem.
         // See http://stackoverflow.com/questions/10707880/javafx-scale-and-translate-operation-results-in-anomaly
         inner = new Pane();
-        inner.getTransforms().add(zoom = new Scale());
+
+        ObservableList<Transform> innerTransforms = inner.getTransforms();
+        innerTransforms.add(zoom = new Scale());
+        innerTransforms.add(rotation = new Rotate(0, 0, 0));
 
         scroll = new NonCachingScrollPane(inner);
         scroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
@@ -175,13 +183,13 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         model_widget.propWidth().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(sizesChangedListener);
         model_widget.propResize().addUntypedPropertyListener(sizesChangedListener);
+        model_widget.propRotation().addUntypedPropertyListener(sizesChangedListener);
 
         model_widget.propFile().addUntypedPropertyListener(fileChangedListener);
         model_widget.propGroupName().addUntypedPropertyListener(fileChangedListener);
         model_widget.propMacros().addUntypedPropertyListener(fileChangedListener);
 
         model_widget.propTransparent().addUntypedPropertyListener(backgroundChangedListener);
-
         fileChanged(null, null, null);
     }
 
@@ -191,10 +199,12 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         model_widget.propWidth().removePropertyListener(sizesChangedListener);
         model_widget.propHeight().removePropertyListener(sizesChangedListener);
         model_widget.propResize().removePropertyListener(sizesChangedListener);
+        model_widget.propRotation().removePropertyListener(sizesChangedListener);
         model_widget.propFile().removePropertyListener(fileChangedListener);
         model_widget.propGroupName().removePropertyListener(fileChangedListener);
         model_widget.propMacros().removePropertyListener(fileChangedListener);
         model_widget.propTransparent().removePropertyListener(backgroundChangedListener);
+
         super.unregisterListeners();
     }
 
@@ -233,6 +243,13 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
                 zoom_factor_x = content_width  > 0 ? (double) widget_width  / content_width : 1.0;
                 zoom_factor_y = content_height > 0 ? (double) widget_height / content_height : 1.0;
             }
+
+            // Apply the rotation
+            rotate=model_widget.propRotation().getValue();
+            rotation.setAngle(rotate);
+            rotation.setPivotX((double)content_width / 2);
+            rotation.setPivotY((double) content_height / 2);
+
         }
 
         dirty_sizes.mark();
