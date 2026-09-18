@@ -8,7 +8,6 @@
 package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newColorPropertyDescriptor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newIntegerPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFillColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
@@ -31,7 +30,6 @@ import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
-import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.ui.color.NamedWidgetColors;
 import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.ui.color.WidgetColorService;
@@ -73,13 +71,6 @@ public class TankWidget extends ScaledPVWidget
         }
     };
 
-    /** 'tank_border_width' — width in pixels of the border drawn around the
-     *  tank body; 0 (default) means no border, preserving the original look.
-     */
-    public static final WidgetPropertyDescriptor<Integer> propTankBorderWidth =
-        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tank_border_width",
-                                     Messages.WidgetProperties_BorderWidth, 0, 5);
-
     /** 'empty_color' */
     public static final WidgetPropertyDescriptor<WidgetColor> propEmptyColor =
         newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "empty_color", Messages.WidgetProperties_EmptyColor);
@@ -113,7 +104,7 @@ public class TankWidget extends ScaledPVWidget
 
                 element = XMLUtil.getChildElement(xml, "show_scale");
                 if (element != null)
-                    tank.scale_visible.readFromXML(model_reader, element);
+                    tank.propScaleVisible().readFromXML(model_reader, element);
 
                 if (XMLUtil.getChildBoolean(xml, "show_markers").orElse(true)  &&
                     (XMLUtil.getChildBoolean(xml, "show_hi").orElse(true)   ||
@@ -140,19 +131,9 @@ public class TankWidget extends ScaledPVWidget
         return new CustomConfigurator(persisted_version);
     }
 
-    private volatile WidgetProperty<WidgetFont> font;
-    private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
-    private volatile WidgetProperty<WidgetColor> fill_color;
     private volatile WidgetProperty<WidgetColor> empty_color;
-    private volatile WidgetProperty<Boolean> scale_visible;
-    private volatile WidgetProperty<Boolean> show_minor_ticks;
-    private volatile WidgetProperty<Boolean> showScaleLabels;
-    private volatile WidgetProperty<Boolean> perpendicular_tick_labels;
-    private volatile WidgetProperty<Boolean> opposite_scale_visible;
-    private volatile WidgetProperty<Boolean> log_scale;
     private volatile WidgetProperty<Boolean> horizontal;
-    private volatile WidgetProperty<Integer>  border_width_prop;
 
 
     /** Constructor */
@@ -168,16 +149,16 @@ public class TankWidget extends ScaledPVWidget
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.READ_BACKGROUND)));
-        properties.add(fill_color = propFillColor.createProperty(this, new WidgetColor(0, 0, 255)));
+        properties.add(fillColor = propFillColor.createProperty(this, new WidgetColor(0, 0, 255)));
         properties.add(empty_color = propEmptyColor.createProperty(this, new WidgetColor(192, 192, 192)));
-        properties.add(scale_visible = propScaleVisible.createProperty(this, true));
-        properties.add(opposite_scale_visible = propOppositeScaleVisible.createProperty(this, false));
-        properties.add(show_minor_ticks = propShowMinorTicks.createProperty(this, true));
+        properties.add(scaleVisible = propScaleVisible.createProperty(this, true));
+        properties.add(oppositeScaleVisible = propOppositeScaleVisible.createProperty(this, false));
+        properties.add(showMinorTicks = propShowMinorTicks.createProperty(this, true));
         properties.add(showScaleLabels = propShowScaleLabels.createProperty(this, true));
-        properties.add(perpendicular_tick_labels = propPerpendicularTickLabels.createProperty(this, false));
-        properties.add(log_scale = propLogscale.createProperty(this, false));
+        properties.add(perpendicularTickLabels = propPerpendicularTickLabels.createProperty(this, false));
+        properties.add(logScale = propLogscale.createProperty(this, false));
         properties.add(horizontal = propHorizontal.createProperty(this, false));
-        properties.add(border_width_prop = propTankBorderWidth.createProperty(this, 0));
+        properties.add(borderWidth = propTankBorderWidth.createProperty(this, 0));
     }
 
     @Override
@@ -189,28 +170,10 @@ public class TankWidget extends ScaledPVWidget
         return super.getProperty(name);
     }
 
-    /** @return 'font' property */
-    public WidgetProperty<WidgetFont> propFont()
-    {
-        return font;
-    }
-
-    /** @return 'foreground_color' property */
-    public WidgetProperty<WidgetColor> propForeground()
-    {
-        return foreground;
-    }
-
     /** @return 'background_color' property */
     public WidgetProperty<WidgetColor> propBackground()
     {
         return background;
-    }
-
-    /** @return 'fill_color' property */
-    public WidgetProperty<WidgetColor> propFillColor()
-    {
-        return fill_color;
     }
 
     /** @return 'empty_color' property */
@@ -219,51 +182,10 @@ public class TankWidget extends ScaledPVWidget
         return empty_color;
     }
 
-    /** @return 'scale_visible' property */
-    public WidgetProperty<Boolean> propScaleVisible()
-    {
-        return scale_visible;
-    }
-
-    /** @return 'show_minor_ticks' property */
-    public WidgetProperty<Boolean> propShowMinorTicks()
-    {
-        return show_minor_ticks;
-    }
-
-    /** @return 'show_scale_labels' property */
-    public WidgetProperty<Boolean> propShowScaleLabels()
-    {
-        return showScaleLabels;
-    }
-
-    /** @return 'perpendicular_tick_labels' property */
-    public WidgetProperty<Boolean> propPerpendicularTickLabels()
-    {
-        return perpendicular_tick_labels;
-    }
-
-    /** @return 'opposite_scale_visible' property */
-    public WidgetProperty<Boolean> propOppositeScaleVisible()
-    {
-        return opposite_scale_visible;
-    }
-
-    /** @return 'log_scale' property */
-    public WidgetProperty<Boolean> propLogScale()
-    {
-        return log_scale;
-    }
-
     /** @return 'horizontal' property */
     public WidgetProperty<Boolean> propHorizontal()
     {
         return horizontal;
     }
 
-    /** @return 'border_width' property (0 = no border) */
-    public WidgetProperty<Integer> propBorderWidth()
-    {
-        return border_width_prop;
-    }
 }

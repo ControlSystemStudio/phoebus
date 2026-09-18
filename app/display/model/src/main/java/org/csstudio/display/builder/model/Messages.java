@@ -241,6 +241,7 @@ public class Messages
                          WidgetProperties_HourTickMarkColor,
                          WidgetProperties_HourTickMarkVisible,
                          WidgetProperties_Increment,
+                         WidgetProperties_InnerPadding,
                          WidgetProperties_InitialIndex,
                          WidgetProperties_Insets,
                          WidgetProperties_Interactive,

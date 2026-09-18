@@ -11,9 +11,13 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newColorPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newDoublePropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newIntegerPropertyDescriptor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFillColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
+import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propLogscale;
 
 import java.util.List;
 
@@ -22,7 +26,10 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
+import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
+import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.ui.color.NamedWidgetColors;
 import org.phoebus.ui.color.WidgetColor;
 import org.phoebus.ui.color.WidgetColorService;
@@ -150,6 +157,19 @@ public abstract class ScaledPVWidget extends PVWidget
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_scale_labels",
                                      Messages.WidgetProperties_ShowScaleLabels);
 
+    /** 'tank_border_width': width in pixels of the border drawn around the
+     *  body (0..5). The name avoids the 'border_width' element that legacy
+     *  BOY files carry for every widget. */
+    public static final WidgetPropertyDescriptor<Integer> propTankBorderWidth =
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tank_border_width",
+                                     Messages.WidgetProperties_BorderWidth, 0, 5);
+
+    /** 'inner_padding': padding in pixels (0..20). For the progress bar, the gap
+     *  between the track and the fill */
+    public static final WidgetPropertyDescriptor<Integer> propInnerPadding =
+        newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "inner_padding",
+                                     Messages.WidgetProperties_InnerPadding, 0, 20);
+
     // ---- Instance fields ------------------------------------------------
 
     private volatile WidgetProperty<ScaleFormat>  format;
@@ -165,6 +185,19 @@ public abstract class ScaledPVWidget extends PVWidget
     private volatile WidgetProperty<Double>      level_hihi;
     private volatile WidgetProperty<WidgetColor> minor_alarm_color;
     private volatile WidgetProperty<WidgetColor> major_alarm_color;
+
+    // Scale look. Subclasses create these in defineScaleLookProperties(),
+    // or one by one when they need a different order or defaults.
+    protected volatile WidgetProperty<WidgetFont>  font;
+    protected volatile WidgetProperty<WidgetColor> foreground;
+    protected volatile WidgetProperty<WidgetColor> fillColor;
+    protected volatile WidgetProperty<Boolean>     logScale;
+    protected volatile WidgetProperty<Boolean>     scaleVisible;
+    protected volatile WidgetProperty<Boolean>     showMinorTicks;
+    protected volatile WidgetProperty<Boolean>     showScaleLabels;
+    protected volatile WidgetProperty<Boolean>     oppositeScaleVisible;
+    protected volatile WidgetProperty<Boolean>     perpendicularTickLabels;
+    protected volatile WidgetProperty<Integer>     borderWidth;
 
     protected ScaledPVWidget(final String type, final int default_width, final int default_height)
     {
@@ -202,6 +235,67 @@ public abstract class ScaledPVWidget extends PVWidget
         properties.add(major_alarm_color    = propMajorAlarmColor.createProperty(this,
                 WidgetColorService.getColor(NamedWidgetColors.ALARM_MAJOR)));
     }
+
+    /** Define the scale look properties: font, foreground and fill color,
+     *  log scale, scale visibility and tick options, border width.
+     *  @param properties Property list of the widget
+     *  @param showScale Default for 'scale_visible'
+     *  @param perpendicularLabels Default for 'perpendicular_tick_labels'
+     */
+    protected void defineScaleLookProperties(final List<WidgetProperty<?>> properties,
+                                             final boolean showScale,
+                                             final boolean perpendicularLabels)
+    {
+        properties.add(font                    = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
+        properties.add(foreground              = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
+        properties.add(fillColor               = propFillColor.createProperty(this, new WidgetColor(60, 255, 60)));
+        properties.add(logScale                = propLogscale.createProperty(this, false));
+        properties.add(scaleVisible            = propScaleVisible.createProperty(this, showScale));
+        properties.add(showMinorTicks          = propShowMinorTicks.createProperty(this, true));
+        properties.add(showScaleLabels         = propShowScaleLabels.createProperty(this, true));
+        properties.add(oppositeScaleVisible    = propOppositeScaleVisible.createProperty(this, false));
+        properties.add(perpendicularTickLabels = propPerpendicularTickLabels.createProperty(this, perpendicularLabels));
+        properties.add(borderWidth             = propTankBorderWidth.createProperty(this, 0));
+    }
+
+    /** @return The scale look properties, for representations that listen to all of them */
+    public List<WidgetProperty<?>> getScaleLookProperties()
+    {
+        return List.of(font, foreground, fillColor, logScale,
+                       scaleVisible, showMinorTicks, showScaleLabels,
+                       oppositeScaleVisible, perpendicularTickLabels,
+                       borderWidth);
+    }
+
+    /** @return 'font' property */
+    public WidgetProperty<WidgetFont> propFont()                  { return font; }
+
+    /** @return 'foreground_color' property */
+    public WidgetProperty<WidgetColor> propForeground()           { return foreground; }
+
+    /** @return 'fill_color' property */
+    public WidgetProperty<WidgetColor> propFillColor()            { return fillColor; }
+
+    /** @return 'log_scale' property */
+    public WidgetProperty<Boolean> propLogScale()                 { return logScale; }
+
+    /** @return 'scale_visible' property */
+    public WidgetProperty<Boolean> propScaleVisible()             { return scaleVisible; }
+
+    /** @return 'show_minor_ticks' property */
+    public WidgetProperty<Boolean> propShowMinorTicks()           { return showMinorTicks; }
+
+    /** @return 'show_scale_labels' property */
+    public WidgetProperty<Boolean> propShowScaleLabels()          { return showScaleLabels; }
+
+    /** @return 'opposite_scale_visible' property */
+    public WidgetProperty<Boolean> propOppositeScaleVisible()     { return oppositeScaleVisible; }
+
+    /** @return 'perpendicular_tick_labels' property */
+    public WidgetProperty<Boolean> propPerpendicularTickLabels()  { return perpendicularTickLabels; }
+
+    /** @return 'tank_border_width' property (0 = no border) */
+    public WidgetProperty<Integer> propBorderWidth()              { return borderWidth; }
 
     /** @return 'format' property (scale label format) */
     public WidgetProperty<ScaleFormat> propFormat()          { return format; }
