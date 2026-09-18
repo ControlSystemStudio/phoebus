@@ -168,12 +168,19 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             });
             // While getting the focus does not activate the widget
             // (first need to type something or click),
-            // _loosing_ focus de-activates the widget.
+            // _getting_ focus replaces eventually truncated text by full text
+            // _loosing_ focus when active de-activates the widget.
+            // _loosing_ focus when inactive restores truncated text.
             // Otherwise widget where one moves the cursor, then clicks
             // someplace else would remain active and not show any updates
             text.focusedProperty().addListener((prop, old, focused) ->
             {
-                if (active  &&  !focused)
+                if (focused)
+                {
+                    if (jfx_node instanceof TextField)
+                        jfx_node.setText(value_text);
+                }
+                else if (active)
                 {
                     // For multi-line, submit on exit because users
                     // cannot remember Ctrl-Enter.
@@ -185,6 +192,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                         restore();
                     setActive(false);
                 }
+                else
+                    restore();
             });
         }
 
@@ -248,12 +257,12 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         if (enabled) {
             // Strip 'units' etc. from text
             final String text = jfx_node.getText();
-    
+
             final Object value = FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), text,
                                                            model_widget.propFormat().getValue());
             logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
             toolkit.fireWrite(model_widget, value);
-    
+
             // Wrote value. Expected is either
             // a) PV receives that value, PV updates to
             //    submitted value or maybe a 'clamped' value
@@ -462,7 +471,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                 String alignment = model_widget.propHorizontalAlignment().getValue().toString().toLowerCase();
                 PseudoClass alignmentClass = PseudoClass.getPseudoClass(alignment);
                 jfx_node.pseudoClassStateChanged(alignmentClass, true);
-                
+
                 if (jfx_node.getScene() != null && !enabled) {
                     // Need to get the TextArea 'content' node to set the cursor
                     // for the whole widget otherwise it will only show on the borders.
@@ -499,11 +508,6 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                     }
                 }
             }
-        }
-        if (active)
-        {
-            if (jfx_node instanceof TextField)
-                jfx_node.setText(value_text);
         }
         // When not managed, trigger layout
         if (!jfx_node.isManaged())
