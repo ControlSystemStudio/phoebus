@@ -45,7 +45,11 @@ import javafx.scene.transform.Translate;
  *        (colors, scale visibility, font, ...)</li>
  *    <li>{@link #applyLookToTank()}: push the current appearance properties
  *        to the tank after size and orientation have been set</li>
+ *    <li>{@link #configureTank()}: optional one-time tank setup</li>
  *  </ul>
+ *
+ *  <p>{@link #registerScaleLookListeners()} and {@link #applyScaleLook()}
+ *  handle the scale look properties that all {@link ScaledPVWidget}s share.
  *
  *  @param <W> concrete {@link ScaledPVWidget} subtype
  */
@@ -83,7 +87,13 @@ public abstract class RTScaledWidgetRepresentation<W extends ScaledPVWidget>
     {
         tank = new RTTank();
         tank.setUpdateThrottle(Preferences.image_update_delay, TimeUnit.MILLISECONDS);
+        configureTank();
         return new Pane(tank);
+    }
+
+    /** Called once after the tank is created, for one-time settings like a rendering style */
+    protected void configureTank()
+    {
     }
 
     /** Register listeners on the {@link ScaledPVWidget} value and limit
@@ -119,6 +129,30 @@ public abstract class RTScaledWidgetRepresentation<W extends ScaledPVWidget>
         // Apply the current state, range first, then limits
         valueChanged(null, null, null);
         limitsChanged(null, null, null);
+    }
+
+    /** Listen to the widget size, the label format and the scale look
+     *  properties shared by all scaled widgets.
+     *  Subclasses call this from {@link #registerLookListeners()}. */
+    protected void registerScaleLookListeners()
+    {
+        model_widget.propWidth().addUntypedPropertyListener(lookListener);
+        model_widget.propHeight().addUntypedPropertyListener(lookListener);
+        model_widget.propFormat().addUntypedPropertyListener(lookListener);
+        model_widget.propPrecision().addUntypedPropertyListener(lookListener);
+        for (WidgetProperty<?> property : model_widget.getScaleLookProperties())
+            property.addUntypedPropertyListener(lookListener);
+    }
+
+    /** Undo {@link #registerScaleLookListeners()} */
+    protected void unregisterScaleLookListeners()
+    {
+        model_widget.propWidth().removePropertyListener(lookListener);
+        model_widget.propHeight().removePropertyListener(lookListener);
+        model_widget.propFormat().removePropertyListener(lookListener);
+        model_widget.propPrecision().removePropertyListener(lookListener);
+        for (WidgetProperty<?> property : model_widget.getScaleLookProperties())
+            property.removePropertyListener(lookListener);
     }
 
     /** Register listeners on widget-specific appearance properties.
@@ -259,6 +293,26 @@ public abstract class RTScaledWidgetRepresentation<W extends ScaledPVWidget>
         }
         dirtyLook.mark();
         toolkit.scheduleUpdate(this);
+    }
+
+    /** Push the scale look properties shared by all scaled widgets to the
+     *  tank: font, colors, log scale, label format, scale visibility and
+     *  tick options, border width.
+     *  Subclasses call this from {@link #applyLookToTank()}. */
+    protected void applyScaleLook()
+    {
+        tank.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+        tank.setForeground(JFXUtil.convert(model_widget.propForeground().getValue()));
+        tank.setFillColor(JFXUtil.convert(model_widget.propFillColor().getValue()));
+        tank.setLogScale(model_widget.propLogScale().getValue());
+        tank.setLabelFormat(model_widget.propFormat().getValue(),
+                            model_widget.propPrecision().getValue());
+        tank.setScaleVisible(model_widget.propScaleVisible().getValue());
+        tank.setShowMinorTicks(model_widget.propShowMinorTicks().getValue());
+        tank.setScaleLabelsVisible(model_widget.propShowScaleLabels().getValue());
+        tank.setRightScaleVisible(model_widget.propOppositeScaleVisible().getValue());
+        tank.setPerpendicularTickLabels(model_widget.propPerpendicularTickLabels().getValue());
+        tank.setBorderWidth(model_widget.propBorderWidth().getValue());
     }
 
     /** Push the current widget-specific appearance properties to the tank.

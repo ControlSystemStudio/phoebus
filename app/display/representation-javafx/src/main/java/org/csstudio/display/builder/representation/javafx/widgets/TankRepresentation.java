@@ -15,7 +15,7 @@ import org.csstudio.display.builder.representation.javafx.JFXUtil;
  *  <p>All shared RTTank wiring (value updates, alarm limits,
  *  orientation handling) lives in {@link RTScaledWidgetRepresentation}.
  *  This class contributes only the Tank-specific appearance properties:
- *  background, foreground, fill and empty colors.
+ *  background and empty colors.
  *
  *  @author Kay Kasemir
  *  @author Heredie Delvalle &mdash; CLS, alarm limits, dual scale,
@@ -32,63 +32,26 @@ public class TankRepresentation extends RTScaledWidgetRepresentation<TankWidget>
     @Override
     protected void registerLookListeners()
     {
-        model_widget.propWidth().addUntypedPropertyListener(lookListener);
-        model_widget.propHeight().addUntypedPropertyListener(lookListener);
-        model_widget.propFont().addUntypedPropertyListener(lookListener);
-        model_widget.propForeground().addUntypedPropertyListener(lookListener);
+        registerScaleLookListeners();
         model_widget.propBackground().addUntypedPropertyListener(lookListener);
-        model_widget.propFillColor().addUntypedPropertyListener(lookListener);
         model_widget.propEmptyColor().addUntypedPropertyListener(lookListener);
-        model_widget.propScaleVisible().addUntypedPropertyListener(lookListener);
-        model_widget.propShowMinorTicks().addUntypedPropertyListener(lookListener);
-        model_widget.propShowScaleLabels().addUntypedPropertyListener(lookListener);
-        model_widget.propPerpendicularTickLabels().addUntypedPropertyListener(lookListener);
-        model_widget.propFormat().addUntypedPropertyListener(lookListener);
-        model_widget.propPrecision().addUntypedPropertyListener(lookListener);
-        model_widget.propOppositeScaleVisible().addUntypedPropertyListener(lookListener);
-        model_widget.propBorderWidth().addUntypedPropertyListener(lookListener);
-        model_widget.propLogScale().addUntypedPropertyListener(lookListener);
         model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
     }
 
     @Override
     protected void unregisterLookListeners()
     {
-        model_widget.propWidth().removePropertyListener(lookListener);
-        model_widget.propHeight().removePropertyListener(lookListener);
-        model_widget.propFont().removePropertyListener(lookListener);
-        model_widget.propForeground().removePropertyListener(lookListener);
+        unregisterScaleLookListeners();
         model_widget.propBackground().removePropertyListener(lookListener);
-        model_widget.propFillColor().removePropertyListener(lookListener);
         model_widget.propEmptyColor().removePropertyListener(lookListener);
-        model_widget.propScaleVisible().removePropertyListener(lookListener);
-        model_widget.propShowMinorTicks().removePropertyListener(lookListener);
-        model_widget.propShowScaleLabels().removePropertyListener(lookListener);
-        model_widget.propPerpendicularTickLabels().removePropertyListener(lookListener);
-        model_widget.propFormat().removePropertyListener(lookListener);
-        model_widget.propPrecision().removePropertyListener(lookListener);
-        model_widget.propOppositeScaleVisible().removePropertyListener(lookListener);
-        model_widget.propBorderWidth().removePropertyListener(lookListener);
-        model_widget.propLogScale().removePropertyListener(lookListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
     }
 
     @Override
     protected void applyLookToTank()
     {
-        tank.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+        applyScaleLook();
         tank.setBackground(JFXUtil.convert(model_widget.propBackground().getValue()));
-        tank.setForeground(JFXUtil.convert(model_widget.propForeground().getValue()));
-        tank.setFillColor(JFXUtil.convert(model_widget.propFillColor().getValue()));
         tank.setEmptyColor(JFXUtil.convert(model_widget.propEmptyColor().getValue()));
-        tank.setScaleVisible(model_widget.propScaleVisible().getValue());
-        tank.setShowMinorTicks(model_widget.propShowMinorTicks().getValue());
-        tank.setScaleLabelsVisible(model_widget.propShowScaleLabels().getValue());
-        tank.setPerpendicularTickLabels(model_widget.propPerpendicularTickLabels().getValue());
-        tank.setLogScale(model_widget.propLogScale().getValue());
-        tank.setLabelFormat(model_widget.propFormat().getValue(),
-                            model_widget.propPrecision().getValue());
-        tank.setRightScaleVisible(model_widget.propOppositeScaleVisible().getValue());
-        tank.setBorderWidth(model_widget.propBorderWidth().getValue());
     }
 }
