@@ -77,6 +77,7 @@ public class TankWidgetUnitTest
         assertThat(tank.propScaleVisible().getValue(), equalTo(true));
         assertThat(tank.propOppositeScaleVisible().getValue(), equalTo(false));
         assertThat(tank.propShowMinorTicks().getValue(), equalTo(true));
+        assertThat(tank.propShowScaleLabels().getValue(), equalTo(true));
         assertThat(tank.propPerpendicularTickLabels().getValue(), equalTo(false));
         assertThat(tank.propFormat().getValue(), equalTo(ScaleFormat.DEFAULT));
         assertThat(tank.propPrecision().getValue(), equalTo(2));
@@ -138,6 +139,7 @@ public class TankWidgetUnitTest
         original.propOppositeScaleVisible().setValue(true);
         original.propBorderWidth().setValue(3);
         original.propPerpendicularTickLabels().setValue(true);
+        original.propShowScaleLabels().setValue(false);
         original.propFormat().setValue(ScaleFormat.DECIMAL);
         original.propPrecision().setValue(3);
 
@@ -184,6 +186,7 @@ public class TankWidgetUnitTest
         assertThat(tank.propOppositeScaleVisible().getValue(), equalTo(true));
         assertThat(tank.propBorderWidth().getValue(), equalTo(3));
         assertThat(tank.propPerpendicularTickLabels().getValue(), equalTo(true));
+        assertThat(tank.propShowScaleLabels().getValue(), equalTo(false));
         assertThat(tank.propFormat().getValue(), equalTo(ScaleFormat.DECIMAL));
         assertThat(tank.propPrecision().getValue(), equalTo(3));
     }
@@ -213,5 +216,6 @@ public class TankWidgetUnitTest
         assertThat(xml, not(containsString("<level_lolo>")));
         assertThat(xml, not(containsString("<opposite_scale_visible>")));
         assertThat(xml, not(containsString("<tank_border_width>")));
+        assertThat(xml, not(containsString("<show_scale_labels>")));
     }
 }
