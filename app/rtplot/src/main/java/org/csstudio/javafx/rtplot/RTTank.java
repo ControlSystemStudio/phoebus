@@ -94,6 +94,15 @@ public class RTTank extends Canvas
     /** Border width in pixels around the tank body; 0 = no border (default) */
     private volatile int border_width = 0;
 
+    /** Extra inset from the canvas edge to the plot body on all four sides.
+     *  0 for the tank look; a progress bar uses it for the gap between the
+     *  widget edge and the bar. */
+    private volatile int inner_padding = 0;
+
+    /** Paint the empty part of the tank in a solid color instead of the
+     *  shaded gradient, like the track of a progress bar. */
+    private volatile boolean flat_track = false;
+
     /** Current value, i.e. fill level */
     private volatile double value = 5.0;
 
@@ -219,6 +228,22 @@ public class RTTank extends Canvas
         requestUpdate();
     }
 
+    /** @param pixels Extra inset from all four canvas edges to the plot body, 0..20 */
+    public void setInnerPadding(final int pixels)
+    {
+        inner_padding = Math.max(0, Math.min(20, pixels));
+        need_layout.set(true);
+        requestUpdate();
+    }
+
+    /** @param flat Paint the empty part of the tank solid ({@code true})
+     *              or with the shaded gradient ({@code false}, default) */
+    public void setFlatTrack(final boolean flat)
+    {
+        flat_track = flat;
+        requestUpdate();
+    }
+
     /** @param color Background color */
     public void setBackground(final javafx.scene.paint.Color color)
     {
@@ -282,6 +307,17 @@ public class RTTank extends Canvas
         scale.setShowMinorTicks(show);
         right_scale.setShowMinorTicks(show);
         requestUpdate();
+    }
+
+    /** Show or hide the tick labels while keeping the tick marks.
+     *  Stacked widgets can then share one labelled scale: only the first
+     *  shows labels, the others show aligned tick marks.
+     *  @param visible {@code true} (default) for labels, {@code false} for ticks only */
+    public void setScaleLabelsVisible(final boolean visible)
+    {
+        // The axes request layout and refresh themselves when this changes
+        scale.setScaleLabelsVisible(visible);
+        right_scale.setScaleLabelsVisible(visible);
     }
 
     /** Configure the number format used for scale tick labels.
@@ -549,11 +585,13 @@ public class RTTank extends Canvas
         // Inset = ceil(border_width/2) keeps the outer stroke edge inside the canvas.
         // On sides with a scale the label area provides ample margin so inset=0.
         // When there is no border, inset=1 is the original clip guard.
+        // inner_padding is added on all four sides regardless of scale presence.
         final int half_bw_ceil = (border_width + 1) / 2;
-        final int inset_left   = (left_width  == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_right  = (right_width == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_top    = (ends[1] == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_bottom = (ends[0] == 0) ? Math.max(1, half_bw_ceil) : 0;
+        final int ip = inner_padding;
+        final int inset_left   = (left_width  == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
+        final int inset_right  = (right_width == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
+        final int inset_top    = (ends[1] == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
+        final int inset_bottom = (ends[0] == 0) ? Math.max(1, half_bw_ceil) + ip : ip;
 
         final int top    = bounds.y + ends[1] + inset_top;
         final int height = bounds.height - ends[0] - ends[1] - inset_top - inset_bottom;
@@ -609,8 +647,10 @@ public class RTTank extends Canvas
         final int level = computeFillLevel(plot_bounds.height, min, max, current, scale.isLogarithmic());
 
         final int arc = Math.min(plot_bounds.width, plot_bounds.height) / 10;
-        gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, plot_bounds.x+plot_bounds.width/2, 0, empty_shadow, true));
-
+        if (flat_track)
+            gc.setColor(empty);
+        else
+            gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, plot_bounds.x+plot_bounds.width/2, 0, empty_shadow, true));
         gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height, arc, arc);
 
         gc.setPaint(new GradientPaint(plot_bounds.x, 0, fill, plot_bounds.x+plot_bounds.width/2, 0, fill_highlight, true));
