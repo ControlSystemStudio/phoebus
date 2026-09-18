@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 European Spallation Source ERIC.
+ * Copyright (C) 2026 European Spallation Source ERIC.
  */
 
 package org.phoebus.service.saveandrestore.web.controllers;
@@ -32,10 +32,10 @@ public class ComparisonControllerTestIT extends AbstractElasticsearchIT {
     @Autowired
     private NodeDAO nodeDAO;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    public void testGetSnapshotItemsAndConfig() throws Exception{
+    public void testGetSnapshotItemsAndConfig(){
         Node topLevelFolder = Node.builder().nodeType(NodeType.FOLDER).name(UUID.randomUUID().toString())
                         .build();
         topLevelFolder = nodeDAO.createNode(Node.ROOT_FOLDER_UNIQUE_ID, topLevelFolder);

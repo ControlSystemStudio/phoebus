@@ -20,7 +20,6 @@ public class ElasticTestConfig {
         return new ElasticsearchDAO();
     }
 
-
     @Bean({"client"})
     public ElasticsearchClient getClient() {
         return Mockito.mock(ElasticsearchClient.class);

@@ -3,11 +3,10 @@ package org.phoebus.service.saveandrestore.persistence.config;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest5_client.Rest5ClientOptions;
 import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
-import co.elastic.clients.transport.rest5_client.low_level.Request;
-import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
-import co.elastic.clients.transport.rest5_client.low_level.Rest5ClientBuilder;
-import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
+import co.elastic.clients.transport.rest5_client.low_level.*;
+import org.apache.hc.core5.http.HttpHeaders;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
@@ -23,7 +22,6 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.json.VTypeDeserializer;
 import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
-import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -110,7 +108,7 @@ public class ElasticConfig {
 
     /**
      *
-     * @return The {@link org.elasticsearch.client.ElasticsearchClient} bean.
+     * @return The {@link ElasticsearchClient} bean.
      */
     @Bean({"client"})
     public ElasticsearchClient getClient() {
@@ -144,10 +142,18 @@ public class ElasticConfig {
             objectMapper = jsonMapper;
             Jackson3JsonpMapper jackson3JsonpMapper = new Jackson3JsonpMapper(jsonMapper);
 
+            RequestOptions.Builder restClientOptionsBuilder = RequestOptions.DEFAULT.toBuilder();
+
+            restClientOptionsBuilder
+                    .addHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+                    .addHeader(HttpHeaders.ACCEPT, "application/json");
+
+            Rest5ClientOptions restClientOptions = new Rest5ClientOptions.Builder(restClientOptionsBuilder).build();
+
             ElasticsearchTransport transport = new Rest5ClientTransport(
                     httpClient,
-                    jackson3JsonpMapper
-            );
+                    jackson3JsonpMapper,
+                    restClientOptions);
             restClient = httpClient;
             client = new ElasticsearchClient(transport);
             // Use low-level requests for index/bootstrap operations to keep behavior stable

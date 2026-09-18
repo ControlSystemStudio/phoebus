@@ -33,14 +33,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = {ControllersTestConfig.class, WebSecurityConfig.class}, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(classes = {ControllersTestConfig.class, WebSecurityConfig.class},
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        properties = "spring.main.allow-bean-definition-overriding=true")
 @TestPropertySource(locations = "classpath:test_application_permit_all.properties")
 public class TakeSnapshotControllerTest {
 
     @Autowired
     private NodeDAO nodeDAO;
 
-    private SnapshotUtil snapshotUtil = Mockito.mock(SnapshotUtil.class);
+    private final SnapshotUtil snapshotUtil = Mockito.mock(SnapshotUtil.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

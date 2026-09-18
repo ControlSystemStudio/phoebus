@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 European Spallation Source ERIC.
+ * Copyright (C) 2026 European Spallation Source ERIC.
  */
 
 package org.phoebus.service.saveandrestore.web.controllers;
@@ -24,12 +24,9 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.web.config.ComparisonControllerRealSnapshotUtilTestConfig;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
-import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -47,11 +44,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(
-        classes = {ControllersTestConfig.class, WebSecurityConfig.class},
+        classes = {ControllersTestConfig.class},
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = "spring.main.allow-bean-definition-overriding=true")
 @TestPropertySource(locations = "classpath:test_application.properties")
-@Import(ComparisonControllerRealSnapshotUtilTestConfig.class)
 public class ComparisonControllerTest {
 
     @Autowired

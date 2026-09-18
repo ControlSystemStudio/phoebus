@@ -1,29 +1,17 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2026 European Spallation Source ERIC.
  *
  */
 
 package org.phoebus.service.saveandrestore.web.controllers;
+
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -57,10 +45,13 @@ import static org.phoebus.service.saveandrestore.web.controllers.BaseController.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
-@SpringBootTest(classes = {ControllersTestConfig.class, WebSecurityConfig.class}, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+
+@SpringBootTest(classes = {ControllersTestConfig.class, WebSecurityConfig.class},
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        properties = "spring.main.allow-bean-definition-overriding=true")
 @TestPropertySource(locations = "classpath:test_application.properties")
 public class CompositeSnapshotControllerTest {
 
@@ -86,7 +77,9 @@ public class CompositeSnapshotControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(springSecurity())
+                .build();
     }
 
     @Autowired
@@ -123,7 +116,7 @@ public class CompositeSnapshotControllerTest {
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
+        MvcResult result = mockMvc.perform(request).andDo(print()).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
 
         String s = result.getResponse().getContentAsString();
@@ -160,7 +153,7 @@ public class CompositeSnapshotControllerTest {
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andDo(print()).andExpect(status().isForbidden());
 
         verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
@@ -369,7 +362,7 @@ public class CompositeSnapshotControllerTest {
     @Test
     public void testGetCompositeSnapshotConsistency() throws Exception {
 
-        when(nodeDAO.checkForPVNameDuplicates(Mockito.any(List.class))).thenReturn(List.of("ref"));
+        when(nodeDAO.checkForPVNameDuplicates(Mockito.anyList())).thenReturn(List.of("ref"));
 
         MockHttpServletRequestBuilder request = post("/composite-snapshot-consistency-check")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
