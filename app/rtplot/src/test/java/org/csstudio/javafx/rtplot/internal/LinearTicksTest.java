@@ -9,9 +9,11 @@ package org.csstudio.javafx.rtplot.internal;
 
 import org.csstudio.javafx.rtplot.TicksTestBase;
 import org.csstudio.javafx.rtplot.internal.LinearTicks;
+import org.csstudio.javafx.rtplot.internal.MajorTick;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test
@@ -45,6 +47,25 @@ public class LinearTicksTest extends TicksTestBase
             assertThat(LinearTicks.selectNiceStep(1.99*order_of_magnitude), equalTo(2.0*order_of_magnitude));
             assertThat(LinearTicks.selectNiceStep(1.5*order_of_magnitude), equalTo(2.0*order_of_magnitude));
         }
+    }
+
+    /** A label format set by the user applies to every label, and a value
+     *  that is numerically almost zero still reads as zero, not "-0.00" */
+    @Test
+    public void testLabelFormat()
+    {
+        final LinearTicks ticks = new LinearTicks();
+        ticks.setLabelFormat(LinearTicks.createDecimalFormat(2));
+        ticks.compute(-0.7, 0.7, gc, buf.getWidth());
+        for (MajorTick<Double> tick : ticks.getMajorTicks())
+        {
+            final String label = tick.getLabel();
+            if (label.isEmpty())
+                continue;
+            assertThat(label, not(equalTo("-0.00")));
+            assertThat(label + " has two decimals", label.matches("-?\\d+\\.\\d\\d"), equalTo(true));
+        }
+        assertThat(ticks.format(-1e-17), equalTo("0.00"));
     }
 
     @Test
