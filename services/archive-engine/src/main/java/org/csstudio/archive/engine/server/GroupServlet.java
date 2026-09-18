@@ -21,7 +21,7 @@ import org.csstudio.archive.engine.model.BufferStats;
 import org.csstudio.archive.engine.model.EngineModel;
 import org.csstudio.archive.engine.model.SampleBuffer;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonGenerator;
 
 /** 'groups' web page
  *  @author Kay Kasemir
@@ -63,14 +63,14 @@ public class GroupServlet extends HttpServlet
             final JsonGenerator jg = json.getGenerator();
 
             // Basic group info
-            jg.writeBooleanField(Messages.HTTP_Enabled, group.isEnabled());
+            jg.writeBooleanProperty(Messages.HTTP_Enabled, group.isEnabled());
 
             final ArchiveChannel ena_channel = group.getEnablingChannel();
             if (ena_channel != null)
-                jg.writeStringField(Messages.HTTP_EnablingChannel, ena_channel.getName());
+                jg.writeStringProperty(Messages.HTTP_EnablingChannel, ena_channel.getName());
 
             // JSON object of all channels in the group
-            jg.writeArrayFieldStart(Messages.HTTP_Channels);
+            jg.writeArrayPropertyStart(Messages.HTTP_Channels);
 
             final int channel_count = group.getChannelCount();
             for (int j=0; j<channel_count; ++j)

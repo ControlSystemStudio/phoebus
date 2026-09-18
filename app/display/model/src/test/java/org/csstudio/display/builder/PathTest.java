@@ -56,6 +56,7 @@ public class PathTest
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testCombineNotWindows()
     {
         String path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");

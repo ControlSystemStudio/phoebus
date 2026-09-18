@@ -16,7 +16,7 @@ import org.phoebus.util.time.TimestampFormats;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 /**
  *
@@ -225,7 +225,7 @@ public class AlarmConfigMessage {
     public String toString() {
         try {
             return AlarmMessageUtil.objectConfigMapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.log(Level.WARNING, "failed to parse the alarm config message ", e);
         }
         return "";

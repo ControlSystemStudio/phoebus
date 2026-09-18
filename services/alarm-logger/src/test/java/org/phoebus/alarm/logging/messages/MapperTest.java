@@ -1,19 +1,17 @@
 package org.phoebus.alarm.logging.messages;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ser.FilterProvider;
+import tools.jackson.databind.ser.std.SimpleBeanPropertyFilter;
+import tools.jackson.databind.ser.std.SimpleFilterProvider;
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class MapperTest {
 
@@ -39,31 +37,30 @@ public class MapperTest {
         SimpleBeanPropertyFilter emptyFilter = SimpleBeanPropertyFilter.serializeAll();
         FilterProvider filters = new SimpleFilterProvider().addFilter("timeFilter", emptyFilter);
 
-        try {
-            // Parsing object to json string
-            assertEquals(expectedJsonString,
-                    objectMapper.writer(filters).writeValueAsString(message),
-                    "Failed to map the AlarmStateMessage");
-            // Serializing object to byte[]
-            assertArrayEquals(expectedJsonString.getBytes(),
-                    objectMapper.writer(filters).writeValueAsBytes(message),
-                    "Failed to parse AlarmStateMessage to byte[] ");
+        final String actualJsonString = objectMapper.writer(filters).writeValueAsString(message);
+        final byte[] actualJsonBytes = objectMapper.writer(filters).writeValueAsBytes(message);
 
-            // Check the pasrsing json string to object
-            // bjectMapper.
-            AlarmStateMessage state = objectMapper.readValue(expectedJsonString, AlarmStateMessage.class);
-            assertEquals(message,
-                    objectMapper.readValue(expectedJsonString, AlarmStateMessage.class),
-                    "Failed to map the AlarmStateMessage");
-            // Check sdeserializing byte[] to object
-            assertEquals(message,
-                    objectMapper.readValue(expectedJsonString.getBytes(), AlarmStateMessage.class),
-                    "Failed to parse AlarmStateMessage to byte[] ");
+        // Verify object -> JSON string content regardless of property ordering.
+        assertEquals(objectMapper.readTree(expectedJsonString),
+                objectMapper.readTree(actualJsonString),
+                "Failed to map the AlarmStateMessage");
+        // Verify object -> JSON byte[] content regardless of property ordering.
+        assertEquals(objectMapper.readTree(expectedJsonString),
+                objectMapper.readTree(actualJsonBytes),
+                "Failed to parse AlarmStateMessage to byte[] ");
+        // Keep explicit coverage that byte[] serialization represents the same JSON text.
+        assertEquals(actualJsonString,
+                new String(actualJsonBytes, StandardCharsets.UTF_8),
+                "String and byte[] serialization differ");
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        // Verify JSON string -> object deserialization.
+        assertEquals(message,
+                objectMapper.readValue(expectedJsonString, AlarmStateMessage.class),
+                "Failed to map the AlarmStateMessage");
+        // Verify JSON byte[] -> object deserialization.
+        assertEquals(message,
+                objectMapper.readValue(expectedJsonString.getBytes(), AlarmStateMessage.class),
+                "Failed to parse AlarmStateMessage to byte[] ");
 
     }
 

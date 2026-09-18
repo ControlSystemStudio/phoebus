@@ -1,11 +1,12 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.ElasticsearchVersionInfo;
-import co.elastic.clients.elasticsearch.core.InfoResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,10 +37,12 @@ public class InfoController extends BaseController {
     private String version;
 
     @Autowired
-    @Qualifier("client")
-    ElasticsearchClient client;
+    @Qualifier("restClient")
+    Rest5Client restClient;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectMapper objectMapper = JsonMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .build();
 
     /**
      *
@@ -54,12 +57,12 @@ public class InfoController extends BaseController {
 
         Map<String, String> elasticInfo = new LinkedHashMap<>();
         try {
-            InfoResponse response = client.info();
+            Request request = new Request("GET", "/");
+            JsonNode response = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
             elasticInfo.put("status", "Connected");
-            elasticInfo.put("clusterName", response.clusterName());
-            elasticInfo.put("clusterUuid", response.clusterUuid());
-            ElasticsearchVersionInfo version = response.version();
-            elasticInfo.put("version", version.toString());
+            elasticInfo.put("clusterName", response.path("cluster_name").asText(""));
+            elasticInfo.put("clusterUuid", response.path("cluster_uuid").asText(""));
+            elasticInfo.put("version", response.path("version").path("number").asText(""));
             //elasticInfo.put("elasticHost", host);
             //elasticInfo.put("elasticPort", String.valueOf(port));
         } catch (IOException e) {
@@ -72,7 +75,7 @@ public class InfoController extends BaseController {
 
          try {
             return objectMapper.writeValueAsString(saveRestoreServiceInfo);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.log(Level.WARNING, "Failed to create Save and Restore service info resource.", e);
             return "Failed to gather Save and Restore service info";
         }

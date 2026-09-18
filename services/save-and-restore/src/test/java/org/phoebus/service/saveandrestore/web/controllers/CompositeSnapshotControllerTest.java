@@ -1,30 +1,22 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2026 European Spallation Source ERIC.
  *
  */
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
@@ -37,12 +29,8 @@ import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
 import org.phoebus.service.saveandrestore.websocket.WebSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -57,12 +45,13 @@ import static org.phoebus.service.saveandrestore.web.controllers.BaseController.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
-@ExtendWith(SpringExtension.class)
-@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class, WebSecurityConfig.class})})
-@WebMvcTest(CompositeSnapshotController.class)
+
+@SpringBootTest(classes = {ControllersTestConfig.class, WebSecurityConfig.class},
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        properties = "spring.main.allow-bean-definition-overriding=true")
 @TestPropertySource(locations = "classpath:test_application.properties")
 public class CompositeSnapshotControllerTest {
 
@@ -82,7 +71,16 @@ public class CompositeSnapshotControllerTest {
     private String demoUser;
 
     @Autowired
+    private WebApplicationContext webApplicationContext;
+
     private MockMvc mockMvc;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(springSecurity())
+                .build();
+    }
 
     @Autowired
     private WebSocketService webSocketService;
@@ -118,7 +116,7 @@ public class CompositeSnapshotControllerTest {
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
+        MvcResult result = mockMvc.perform(request).andDo(print()).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
 
         String s = result.getResponse().getContentAsString();
@@ -155,7 +153,7 @@ public class CompositeSnapshotControllerTest {
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andDo(print()).andExpect(status().isForbidden());
 
         verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
@@ -364,7 +362,7 @@ public class CompositeSnapshotControllerTest {
     @Test
     public void testGetCompositeSnapshotConsistency() throws Exception {
 
-        when(nodeDAO.checkForPVNameDuplicates(Mockito.any(List.class))).thenReturn(List.of("ref"));
+        when(nodeDAO.checkForPVNameDuplicates(Mockito.anyList())).thenReturn(List.of("ref"));
 
         MockHttpServletRequestBuilder request = post("/composite-snapshot-consistency-check")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
