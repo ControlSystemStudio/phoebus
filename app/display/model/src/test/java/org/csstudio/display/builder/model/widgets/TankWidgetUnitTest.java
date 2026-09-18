@@ -86,6 +86,18 @@ public class TankWidgetUnitTest
         assertThat(tank.propBorderWidth().getValue(), equalTo(0));
     }
 
+    /** The Tank defines the shared scale look properties in its own order;
+     *  the list for representations must contain all of them */
+    @Test
+    public void testScaleLookProperties()
+    {
+        final TankWidget tank = new TankWidget();
+        final List<WidgetProperty<?>> look = tank.getScaleLookProperties();
+        assertThat(look.size(), equalTo(10));
+        assertTrue(look.contains(tank.propBorderWidth()));
+        assertTrue(look.contains(tank.propForeground()));
+    }
+
     /** Verify that alarm properties appear together and in the expected
      *  order when listed in the property panel.
      *
