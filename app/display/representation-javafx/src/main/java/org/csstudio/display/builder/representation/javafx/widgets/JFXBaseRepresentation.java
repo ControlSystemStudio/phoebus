@@ -14,7 +14,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 
+import javafx.geometry.Bounds;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.input.*;
+import javafx.scene.layout.Pane;
+import javafx.scene.shape.Line;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -336,12 +340,24 @@ abstract public class JFXBaseRepresentation<JFX extends Node, MW extends Widget>
     @Override
     public void updateChanges()
     {
-        if (dirty_position.checkAndClear())
-        {
+        if (dirty_position.checkAndClear()) {
             jfx_node.relocate(model_widget.propX().getValue(),
-                              model_widget.propY().getValue());
-            if (visible != null)
-                jfx_node.setVisible(visible.getValue());
+                    model_widget.propY().getValue());
+            if (visible != null) {
+
+                jfx_node.setVisible(toolkit.isEditMode() || visible.getValue());
+
+                if (toolkit.isEditMode() && !visible.getValue()) {
+                    ColorAdjust effect = new ColorAdjust();
+                    effect.setSaturation(-1.0);
+                    effect.setBrightness(0.5);
+                    jfx_node.setOpacity(0.5);
+                    jfx_node.setEffect(effect);
+                } else {
+                    jfx_node.setOpacity(1.0);
+                    jfx_node.setEffect(null);
+                }
+            }
         }
     }
 
