@@ -185,6 +185,7 @@ public class Messages
                          WidgetProperties_BorderAlarmSensitive,
                          WidgetProperties_BorderColor,
                          WidgetProperties_BorderWidth,
+                         WidgetProperties_BulbSize,
                          WidgetProperties_CellColors,
                          WidgetProperties_Class,
                          WidgetProperties_ColorHiHi,
