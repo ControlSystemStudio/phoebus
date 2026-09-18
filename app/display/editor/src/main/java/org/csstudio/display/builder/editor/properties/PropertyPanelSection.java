@@ -60,6 +60,7 @@ import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetClassProperty;
 import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
+import org.csstudio.display.builder.model.widgets.ThermometerWidget;
 import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.ui.color.NamedWidgetColor;
@@ -163,6 +164,9 @@ public class PropertyPanelSection extends GridPane {
         if (property.getWidget() instanceof ProgressBarWidget)
             return !Preferences.progressbar_scale_mode
                 && ProgressBarWidget.SCALE_MODE_PROPS.contains(property.getName());
+        if (property.getWidget() instanceof ThermometerWidget)
+            return !Preferences.thermometer_scale_mode
+                && ThermometerWidget.SCALE_MODE_PROPS.contains(property.getName());
         return false;
     }
 
