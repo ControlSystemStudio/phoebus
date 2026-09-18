@@ -16,6 +16,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
+import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -34,6 +35,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
@@ -53,6 +55,7 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
     private final UntypedWidgetPropertyListener contentListener = this::contentChanged;
     private final WidgetPropertyListener<String> pvNameListener = this::pvnameChanged;
     private volatile String value_text = "<?>";
+    private volatile String truncated_value_text = "<?>";
     private volatile Pos pos;
 
     /** Was there ever any transformation applied to the jfx_node?
@@ -174,9 +177,38 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
         if (value == PVWidget.RUNTIME_VALUE_NO_PV)
             return "";
         return FormatOptionHandler.format(value,
-                                          model_widget.propFormat().getValue(),
-                                          model_widget.propPrecision().getValue(),
-                                          model_widget.propShowUnits().getValue());
+                model_widget.propFormat().getValue(),
+                model_widget.propPrecision().getValue(),
+                model_widget.propShowUnits().getValue());
+    }
+
+    /** @param Text to truncate
+     *  @return Truncated text to display depending on widget width
+     */
+    private String truncateText(final String full_string)
+    {
+        Text textValue = new Text(full_string);
+        textValue.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+        // Compute string width in pixels
+        double fullStringWidth = textValue.getLayoutBounds().getWidth();
+        // Check if string is wider than field
+        double widthRatio = fullStringWidth/model_widget.propWidth().getValue();
+        // Displaying ellipsis if the string overflows the field
+        if (widthRatio > 1)
+        {
+            String truncatedString = "<?>";
+            // Computing the number of characters to keep from full string before adding ellipisis
+            int stringTruncIndex = (int) (full_string.length()/widthRatio);
+            // Append ellipsis if content is left-aligned
+            if (model_widget.propHorizontalAlignment().getValue() == HorizontalAlignment.LEFT)
+                truncatedString = full_string.substring(0,stringTruncIndex - 1) + "...";
+            // Prepend ellipsis if content is right-aligned
+            if (model_widget.propHorizontalAlignment().getValue() == HorizontalAlignment.RIGHT)
+                truncatedString = "..." + full_string.substring(full_string.length() - stringTruncIndex + 2);
+            return truncatedString;
+        }
+        else
+            return full_string;
     }
 
     private void pvnameChanged(final WidgetProperty<String> property, final String old_value, final String new_value)
@@ -197,6 +229,7 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
         if (value_text.equals(new_text))
             return;
         value_text = new_text;
+        truncated_value_text = truncateText(value_text);
         dirty_content.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -279,7 +312,7 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
         if (dirty_content.checkAndClear())
         {
             if (jfx_node instanceof Label)
-                ((Label)jfx_node).setText(value_text);
+                ((Label)jfx_node).setText(truncated_value_text);
             else
             {   // Implies 'interactive' mode
                 final TextArea area = (TextArea)jfx_node;
