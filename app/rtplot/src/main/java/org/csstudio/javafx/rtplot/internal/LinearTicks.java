@@ -53,9 +53,9 @@ public class LinearTicks extends Ticks<Double>
     /** Threshold for order-of-magnitude to use exponential notation */
     private long exponential_threshold = 4;
 
-    /** User-specified override format, or {@code null} for automatic selection.
-     *  When set, it is applied to all non-empty major tick labels after
-     *  {@code compute()} finishes its internal layout.
+    /** User-specified format for the tick labels, or {@code null} for the
+     *  automatic format. Applied by {@link #format(Double)}, so it covers
+     *  every label that {@code compute()} creates.
      */
     private volatile NumberFormat label_fmt_override = null;
 
@@ -91,21 +91,6 @@ public class LinearTicks extends Ticks<Double>
     public boolean isPerpendicularTickLabels()
     {
         return perpendicular_tick_labels;
-    }
-
-    /** Re-apply {@code fmt} to every non-empty major tick label in {@code ticks}.
-     *  @param ticks List to mutate in-place
-     *  @param fmt   Format to use
-     */
-    protected static void relabelTicks(final List<MajorTick<Double>> ticks,
-                                       final NumberFormat fmt)
-    {
-        for (int i = 0; i < ticks.size(); i++)
-        {
-            final MajorTick<Double> t = ticks.get(i);
-            if (!t.getLabel().isEmpty())
-                ticks.set(i, new MajorTick<>(t.getValue(), fmt.format(t.getValue())));
-        }
     }
 
     /** @param order_of_magnitude determines when to use exponential notation */
@@ -194,7 +179,7 @@ public class LinearTicks extends Ticks<Double>
         double distance = selectNiceStep(min_distance);
         if (distance == 0.0)
             throw new Error("Broken tickmark computation");
-        
+
         // Update num_fmt based on distance between major tick labels.
         // For example, an axis with range 0 .. 10 would ordinarily use precision 0
         // and axis markers like 0, 2, 4, 6, 8, 10.
@@ -280,6 +265,7 @@ public class LinearTicks extends Ticks<Double>
             major_ticks.add(0, new MajorTick<>(low, format(low)));
             major_ticks.add(new MajorTick<>(high, format(high)));
         }
+
         this.major_ticks = major_ticks;
         this.minor_ticks = minor_ticks;
     }
@@ -385,9 +371,9 @@ public class LinearTicks extends Ticks<Double>
             return "Inf";
         // Patch numbers that are "very close to zero"
         // to avoid "-0.00" or "0.0e-22"
-        if (Math.abs(num) < zero_threshold)
-            return num_fmt.format(0.0);
-        return num_fmt.format(num);
+        final double val = Math.abs(num) < zero_threshold ? 0.0 : num;
+        final NumberFormat override = getLabelFormatOverride();
+        return (override != null) ? override.format(val) : num_fmt.format(val);
     }
 
     /** {@inheritDoc} */
