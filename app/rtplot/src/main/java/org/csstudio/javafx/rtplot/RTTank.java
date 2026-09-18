@@ -16,7 +16,10 @@ import java.awt.MultipleGradientPaint;
 import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
+import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
+import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
@@ -46,6 +49,8 @@ import javafx.scene.text.Font;
  *
  *  <p>Renders a vertical tank with fill level, optional left and right
  *  scales, a foreground outline, and optional alarm/warning limit lines.
+ *  With {@link #setThermometerStyle} the tank is drawn as a thermometer,
+ *  a narrow tube with a bulb, using the same scales and limit lines.
  *  The dual-scale layout is modelled after CS-Studio BOY's tank widget
  *  which supported markers on both sides of the bar.
  *
@@ -128,6 +133,34 @@ public class RTTank extends Canvas
 
     /** Shades of {@link #fill} for the filled part of a bar */
     private volatile Color[] fillShades = shadesOf(Color.BLUE);
+
+    /** Draw as a thermometer instead of a tank: a narrow tube, centered
+     *  in the plot area, with a bulb at the bottom. Scale, value mapping
+     *  and alarm limits are shared with the tank look. */
+    private volatile boolean thermometerStyle = false;
+
+    /** Extra bulb diameter beyond the tube width, in pixels.
+     *  Thermometer look only; the bulb is clamped to the space left by the scales. */
+    private volatile int bulbSize = 20;
+
+    /** Thermometer geometry, computed by {@link #thermoGeometry} and
+     *  shared by tube, bulb, liquid and scales so they stay aligned.
+     *  All values are canvas pixels. */
+    record ThermoGeom(double centerX, double tubeWidth,
+                      double tubeTop, double tubeBottom,
+                      double bulbCenterY, double bulbRadius)
+    {
+        double tubeLeft()     { return centerX - tubeWidth / 2; }
+        double tubeRight()    { return centerX + tubeWidth / 2; }
+        double bulbDiameter() { return 2 * bulbRadius; }
+    }
+
+    /** Pixels reserved around the thermometer for the scales: width of the
+     *  left and right scale, label overhang at the top and bottom */
+    record ScaleSpace(int left, int right, int top, int bottom) {}
+
+    /** Geometry from the most recent thermometer layout, {@code null} until then */
+    private volatile ThermoGeom thermoGeom = null;
 
     /** Current value, i.e. fill level */
     private volatile double value = 5.0;
@@ -254,7 +287,9 @@ public class RTTank extends Canvas
         requestUpdate();
     }
 
-    /** @param pixels Extra inset from all four canvas edges to the plot body, 0..20 */
+    /** @param pixels Extra inset from all four canvas edges to the plot body, 0..20.
+     *                For a bar, the gap between the track and the fill.
+     *                The thermometer look keeps a fixed margin instead. */
     public void setInnerPadding(final int pixels)
     {
         innerPadding = Math.clamp(pixels, 0, 20);
@@ -267,6 +302,26 @@ public class RTTank extends Canvas
     public void setBarTrack(final boolean bar)
     {
         barTrack = bar;
+        requestUpdate();
+    }
+
+    /** Select the thermometer look: a narrow tube with a bulb at the bottom
+     *  instead of the full width tank body. Scale, value mapping and alarm
+     *  limits behave the same in both looks.
+     *  @param thermometer {@code true} for thermometer, {@code false} (default) for tank */
+    public void setThermometerStyle(final boolean thermometer)
+    {
+        thermometerStyle = thermometer;
+        need_layout.set(true);
+        requestUpdate();
+    }
+
+    /** @param pixels Extra bulb diameter beyond the tube width (thermometer look),
+     *                clamped at layout time so the bulb fits the plot area */
+    public void setBulbSize(final int pixels)
+    {
+        bulbSize = Math.max(0, pixels);
+        need_layout.set(true);
         requestUpdate();
     }
 
@@ -673,6 +728,41 @@ public class RTTank extends Canvas
         return (int) (plotHeight * (current - min) / (max - min) + 0.5);
     }
 
+    /** @return Is at least one alarm limit line configured? */
+    private boolean hasLimitLines()
+    {
+        return !Double.isNaN(limit_lolo) || !Double.isNaN(limit_lo) ||
+               !Double.isNaN(limit_hi)   || !Double.isNaN(limit_hihi);
+    }
+
+    /** @return Stroke for limit lines: solid for limits from the PV,
+     *          dashed for manually configured ones */
+    private Stroke limitLineStroke()
+    {
+        if (limits_from_pv)
+            return new BasicStroke(2f);
+        return new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+                               10f, new float[] { 6f, 4f }, 0f);
+    }
+
+    // Thermometer look. Sizes in pixels.
+
+    /** The tube widens with the widget up to a cap, as in the stock thermometer */
+    private static final int TUBE_MIN_WIDTH = 6;
+    private static final int TUBE_MAX_WIDTH = 20;
+
+    /** Tube height kept above the bulb, so the bulb never swallows the tube */
+    private static final int TUBE_MIN_HEIGHT = 8;
+
+    /** The bulb is always at least this much wider than the tube */
+    private static final int BULB_MIN_OVERHANG = 6;
+
+    /** Gap between a scale and the tube wall */
+    private static final int SCALE_GAP = 3;
+
+    /** Margin between the thermometer and the edge of the widget */
+    private static final int THERMO_MARGIN = 3;
+
     /** Compute layout of plot components.
      *  Supports independent left and right scales; the plot area sits
      *  between them.  A 1-pixel inset is added on any edge that has no
@@ -680,6 +770,12 @@ public class RTTank extends Canvas
      */
     private void computeLayout(final Graphics2D gc, final Rectangle bounds)
     {
+        if (thermometerStyle)
+        {
+            computeThermoLayout(gc, bounds);
+            return;
+        }
+
         int left_width  = 0;
         int right_width = 0;
         int[] ends = { 0, 0 };   // [bottom gap, top gap]
@@ -724,6 +820,233 @@ public class RTTank extends Canvas
                             bounds.width - left_width - right_width - inset_left - inset_right, height);
     }
 
+    /** Thermometer layout
+     *
+     *  <p>Unlike the tank, the scales sit right next to the narrow tube and
+     *  only span the tube, not the bulb. Scales, tube and bulb are centered
+     *  as a whole in the available width.
+     *  The geometry is kept in {@link #thermoGeom} so that painting and
+     *  the scale transform use the same numbers.
+     */
+    private void computeThermoLayout(final Graphics2D gc, final Rectangle bounds)
+    {
+        final ScaleSpace space = measureThermoScales(gc, bounds);
+        final ThermoGeom geom = thermoGeometry(bounds, space);
+        placeThermoScales(geom, space);
+
+        // Plot area is the bounding box of tube and bulb, the reference for scale.paint()
+        final double bulbBottom = geom.bulbCenterY() + geom.bulbRadius();
+        plot_area.setBounds((int) Math.round(geom.centerX() - geom.bulbRadius()),
+                            (int) Math.round(geom.tubeTop()),
+                            (int) Math.round(geom.bulbDiameter()),
+                            (int) Math.round(bulbBottom - geom.tubeTop()));
+        thermoGeom = geom;
+    }
+
+    /** @return Space taken by the visible scales */
+    private ScaleSpace measureThermoScales(final Graphics2D gc, final Rectangle bounds)
+    {
+        int left = 0;
+        int right = 0;
+        int top = 0;
+        int bottom = 0;
+        if (scale_visible)
+        {
+            left = scale.getDesiredPixelSize(bounds, gc);
+            final int[] gaps = scale.getPixelGaps(gc);   // [bottom, top]
+            bottom = gaps[0];
+            top = gaps[1];
+        }
+        if (right_scale_visible)
+        {
+            right = right_scale.getDesiredPixelSize(bounds, gc);
+            final int[] gaps = right_scale.getPixelGaps(gc);
+            bottom = Math.max(bottom, gaps[0]);
+            top = Math.max(top, gaps[1]);
+        }
+        return new ScaleSpace(left, right, top, bottom);
+    }
+
+    /** Size and place tube and bulb in the space left by the scales
+     *  @param bounds Canvas area
+     *  @param space Space reserved for the scales
+     *  @return Thermometer geometry
+     */
+    ThermoGeom thermoGeometry(final Rectangle bounds, final ScaleSpace space)
+    {
+        // Vertical extent, leaving room for the label overhang and the outline stroke
+        final int halfOutline = (border_width + 1) / 2;
+        final double inset = THERMO_MARGIN + halfOutline + 1.0;
+        final double top = bounds.y + space.top() + inset;
+        final double bottom = Math.max(top + 1.0, bounds.y + bounds.height - space.bottom() - inset);
+        final double height = bottom - top;
+
+        // Width left for tube and bulb
+        final int leftSpace = space.left() > 0 ? space.left() + SCALE_GAP : 0;
+        final int rightSpace = space.right() > 0 ? space.right() + SCALE_GAP : 0;
+        final double width = Math.max(TUBE_MIN_WIDTH,
+                                      bounds.width - 2.0 * THERMO_MARGIN - leftSpace - rightSpace);
+
+        // Tube takes half the width, capped, as in the stock thermometer
+        final double tubeWidth = Math.clamp(width / 2, TUBE_MIN_WIDTH, TUBE_MAX_WIDTH);
+
+        // Bulb is wider than the tube, but must fit the remaining width and height
+        double bulbDiameter = tubeWidth + bulbSize;
+        bulbDiameter = Math.min(bulbDiameter, Math.min(width, height - TUBE_MIN_HEIGHT));
+        bulbDiameter = Math.max(bulbDiameter, tubeWidth + BULB_MIN_OVERHANG);
+        final double bulbRadius = bulbDiameter / 2;
+
+        // Center the assembly. On each side, the scale or the bulb reaches
+        // out from the tube center, whichever is wider. A widget that is
+        // narrower than that keeps tube and bulb in view and clips the scale.
+        final double leftExtent = Math.max(tubeWidth / 2 + leftSpace, bulbRadius);
+        final double rightExtent = Math.max(tubeWidth / 2 + rightSpace, bulbRadius);
+        final double centered = bounds.x + (bounds.width - leftExtent - rightExtent) / 2 + leftExtent;
+        final double centerX = Math.max(bounds.x + THERMO_MARGIN + bulbRadius,
+                                        Math.min(centered, bounds.x + bounds.width - THERMO_MARGIN - bulbRadius));
+
+        // The tube ends where its walls meet the bulb circle, never above its own top
+        final double bulbCenterY = bottom - bulbRadius;
+        final double halfChord = Math.min(tubeWidth / 2, bulbRadius - 0.001);
+        final double tubeBottom = Math.max(top,
+                bulbCenterY - Math.sqrt(bulbRadius * bulbRadius - halfChord * halfChord));
+
+        return new ThermoGeom(centerX, tubeWidth, top, tubeBottom, bulbCenterY, bulbRadius);
+    }
+
+    /** Place the scales flush against the tube walls, spanning only the tube.
+     *  The left scale is always positioned, even when hidden, because its
+     *  value transform maps the liquid level and the limit lines onto the tube. */
+    private void placeThermoScales(final ThermoGeom geom, final ScaleSpace space)
+    {
+        final int y = (int) Math.round(geom.tubeTop());
+        final int height = Math.max(1, (int) Math.round(geom.tubeBottom() - geom.tubeTop()));
+        scale.setBounds(new Rectangle((int) Math.round(geom.tubeLeft() - SCALE_GAP - space.left()),
+                                      y, space.left(), height));
+        if (right_scale_visible)
+            right_scale.setBounds(new Rectangle((int) Math.round(geom.tubeRight() + SCALE_GAP),
+                                                y, space.right(), height));
+    }
+
+    /** Draw the thermometer from the geometry of the last layout:
+     *  empty tube, liquid, limit lines and glass outline */
+    private void drawThermometer(final Graphics2D gc, final double min, final double max, final double current)
+    {
+        final ThermoGeom geom = thermoGeom;
+        if (geom == null)
+            return;
+        final int arc = (int) Math.max(2, geom.tubeWidth() * 0.6);
+
+        paintEmptyTube(gc, geom, arc);
+        paintLiquid(gc, geom, arc, liquidLevel(geom, min, max, current));
+        paintThermoLimits(gc, geom, min, max);
+        paintGlassOutline(gc, geom, arc);
+    }
+
+    /** @return Y coordinate of the liquid surface, taken from the scale so it
+     *          lines up with the tick marks, and clamped to the tube */
+    private double liquidLevel(final ThermoGeom geom, final double min, final double max,
+                               final double current)
+    {
+        // Like the tank, show NaN as empty. Values far outside the range
+        // would overflow the integer screen coordinate, so limit them first.
+        if (Double.isNaN(current))
+            return geom.tubeBottom();
+        final double inRange = Math.clamp(current, min, max);
+        return Math.clamp(scale.getScreenCoord(inRange), geom.tubeTop(), geom.tubeBottom());
+    }
+
+    /** Paint the tube in the empty color, shaded like the tank */
+    private void paintEmptyTube(final Graphics2D gc, final ThermoGeom geom, final int arc)
+    {
+        gc.setPaint(new GradientPaint((float) geom.tubeLeft(), 0, empty,
+                                      (float) geom.centerX(), 0, empty_shadow, true));
+        gc.fillRoundRect((int) Math.round(geom.tubeLeft()), (int) Math.round(geom.tubeTop()),
+                         (int) Math.round(geom.tubeWidth()),
+                         (int) Math.round(geom.tubeBottom() - geom.tubeTop()),
+                         arc, arc);
+    }
+
+    /** Paint the bulb, which is always full, and the liquid column up to {@code level} */
+    private void paintLiquid(final Graphics2D gc, final ThermoGeom geom, final int arc, final double level)
+    {
+        gc.setPaint(new GradientPaint((float) geom.tubeLeft(), 0, fill,
+                                      (float) geom.centerX(), 0, fill_highlight, true));
+        final int bulbDiameter = (int) Math.round(geom.bulbDiameter());
+        gc.fillOval((int) Math.round(geom.centerX() - geom.bulbRadius()),
+                    (int) Math.round(geom.bulbCenterY() - geom.bulbRadius()),
+                    bulbDiameter, bulbDiameter);
+        if (level < geom.tubeBottom())
+            gc.fillRoundRect((int) Math.round(geom.tubeLeft()), (int) Math.round(level),
+                             (int) Math.round(geom.tubeWidth()),
+                             (int) Math.round(geom.tubeBottom() - level) + arc,
+                             arc, arc);
+    }
+
+    /** Paint the alarm limit lines across the tube */
+    private void paintThermoLimits(final Graphics2D gc, final ThermoGeom geom,
+                                   final double min, final double max)
+    {
+        if (!hasLimitLines())
+            return;
+        gc.setStroke(limitLineStroke());
+        drawThermoLimit(gc, geom, min, max, limit_lolo, limit_major_color);
+        drawThermoLimit(gc, geom, min, max, limit_lo,   limit_minor_color);
+        drawThermoLimit(gc, geom, min, max, limit_hi,   limit_minor_color);
+        drawThermoLimit(gc, geom, min, max, limit_hihi, limit_major_color);
+        gc.setStroke(new BasicStroke(1f));
+    }
+
+    /** Draw one limit line across the tube, placed via the scale so that it
+     *  matches the tick marks. Limits outside the range are skipped. */
+    private void drawThermoLimit(final Graphics2D gc, final ThermoGeom geom,
+                                 final double min, final double max,
+                                 final double limit, final Color color)
+    {
+        if (!Double.isFinite(limit) || limit <= min || limit >= max)
+            return;
+        final int y = scale.getScreenCoord(limit);
+        if (y < geom.tubeTop() || y > geom.tubeBottom())
+            return;
+        gc.setColor(color);
+        gc.drawLine((int) Math.round(geom.tubeLeft()), y, (int) Math.round(geom.tubeRight()), y);
+    }
+
+    /** Paint the glass outline: tube walls, rounded top and the bulb arc.
+     *  Nothing is drawn for border width 0. */
+    private void paintGlassOutline(final Graphics2D gc, final ThermoGeom geom, final int arc)
+    {
+        if (border_width <= 0)
+            return;
+        final double left = geom.tubeLeft();
+        final double right = geom.tubeRight();
+        final double top = geom.tubeTop();
+        final double bottom = geom.tubeBottom();
+
+        final Path2D.Double outline = new Path2D.Double();
+        outline.moveTo(left, bottom);
+        outline.lineTo(left, top + arc / 2.0);
+        outline.quadTo(left, top, left + arc / 2.0, top);
+        outline.lineTo(right - arc / 2.0, top);
+        outline.quadTo(right, top, right, top + arc / 2.0);
+        outline.lineTo(right, bottom);
+        // Around the bulb, from the right wall back to the left wall
+        final double dy = bottom - geom.bulbCenterY();
+        final double angleRight = Math.toDegrees(Math.atan2(-dy, right - geom.centerX()));
+        final double angleLeft  = Math.toDegrees(Math.atan2(-dy, left - geom.centerX()));
+        outline.append(new Arc2D.Double(geom.centerX() - geom.bulbRadius(),
+                                        geom.bulbCenterY() - geom.bulbRadius(),
+                                        geom.bulbDiameter(), geom.bulbDiameter(),
+                                        angleRight, angleLeft - angleRight - 360, Arc2D.OPEN),
+                       true);
+        outline.closePath();
+
+        gc.setColor(foreground);
+        gc.setStroke(new BasicStroke(border_width));
+        gc.draw(outline);
+        gc.setStroke(new BasicStroke(1f));
+    }
+
     /** Draw all components into image buffer */
     protected Image updateImageBuffer()
     {
@@ -758,25 +1081,38 @@ public class RTTank extends Canvas
         plot_area.paint(gc);
 
         final AxisRange<Double> range = scale.getValueRange();
-        final boolean normal = range.getLow() <= range.getHigh();
         final double min = Math.min(range.getLow(), range.getHigh());
         final double max = Math.max(range.getLow(), range.getHigh());
         final double current = value;
-        final int level = computeFillLevel(plot_bounds.height, min, max, current, scale.isLogarithmic());
+        if (thermometerStyle)
+            drawThermometer(gc, min, max, current);
+        else
+            drawTank(gc, plot_bounds, min, max, current, range.getLow() <= range.getHigh());
 
+        gc.dispose();
+
+        // Convert to JFX
+        return SwingFXUtils.toFXImage(image, null);
+    }
+
+    /** Draw the tank body: track, fill level, optional border and limit lines
+     *  @param normal Range runs bottom-up? Otherwise the tank fills from the top
+     */
+    private void drawTank(final Graphics2D gc, final Rectangle plotBounds,
+                          final double min, final double max, final double current,
+                          final boolean normal)
+    {
         // A widget too small for its padding and scale has no room for the
         // fill, so draw no body rather than one that looks empty
-        if (plot_bounds.width <= 0  ||  plot_bounds.height <= 0)
-        {
-            gc.dispose();
-            return SwingFXUtils.toFXImage(image, null);
-        }
+        if (plotBounds.width <= 0  ||  plotBounds.height <= 0)
+            return;
 
-        final int arc = Math.min(plot_bounds.width, plot_bounds.height) / 10;
+        final int level = computeFillLevel(plotBounds.height, min, max, current, scale.isLogarithmic());
+        final int arc = Math.min(plotBounds.width, plotBounds.height) / 10;
         // The body is the tank, or the track of a bar. The track extends into
         // the inner padding so that the fill sits inside it, like in the
         // JavaFX progress bar.
-        final Rectangle body = new Rectangle(plot_bounds);
+        final Rectangle body = new Rectangle(plotBounds);
         final int bodyArc;
         final int fillArc;
         if (barTrack)
@@ -789,22 +1125,22 @@ public class RTTank extends Canvas
         else
         {
             bodyArc = fillArc = arc;
-            final int center = plot_bounds.x + plot_bounds.width/2;
-            gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, center, 0, empty_shadow, true));
-            gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height, arc, arc);
+            final int center = plotBounds.x + plotBounds.width/2;
+            gc.setPaint(new GradientPaint(plotBounds.x, 0, empty, center, 0, empty_shadow, true));
+            gc.fillRoundRect(plotBounds.x, plotBounds.y, plotBounds.width, plotBounds.height, arc, arc);
         }
 
-        gc.setPaint(fillPaint(plot_bounds));
+        gc.setPaint(fillPaint(plotBounds));
         if (normal)
-            gc.fillRoundRect(plot_bounds.x, plot_bounds.y+plot_bounds.height-level, plot_bounds.width, level, fillArc, fillArc);
+            gc.fillRoundRect(plotBounds.x, plotBounds.y+plotBounds.height-level, plotBounds.width, level, fillArc, fillArc);
         else
-            gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, level, fillArc, fillArc);
+            gc.fillRoundRect(plotBounds.x, plotBounds.y, plotBounds.width, level, fillArc, fillArc);
 
-        // Optional border: stroked CENTRED on the body — no integer half-pixel
-        // shifting.  The inner half of the stroke covers the fill edge (no gap);
-        // the outer half extends beyond the body into the inset margin.
-        // For a tank, ticks land at the body edges = centre of the border stroke,
-        // matching the CS-Studio BOY convention.
+        // Optional border: stroked CENTRED on the body. The inner half of the
+        // stroke covers the fill edge (no gap); the outer half extends beyond
+        // the body into the inset margin. For a tank, ticks land at the body
+        // edges, the centre of the border stroke, matching the CS-Studio BOY
+        // convention.
         if (border_width > 0)
         {
             // Java2D: fillRoundRect covers x..x+w-1, drawRoundRect strokes x..x+w.
@@ -817,30 +1153,15 @@ public class RTTank extends Canvas
             gc.setStroke(new BasicStroke(1f));
         }
 
-        // Draw alarm / warning limit lines over the tank body
-        final double lim_lolo = limit_lolo;
-        final double lim_lo   = limit_lo;
-        final double lim_hi   = limit_hi;
-        final double lim_hihi = limit_hihi;
-        if (normal && (!Double.isNaN(lim_lolo) || !Double.isNaN(lim_lo) ||
-                        !Double.isNaN(lim_hi)   || !Double.isNaN(lim_hihi)))
+        if (normal && hasLimitLines())
         {
-            if (limits_from_pv)
-                gc.setStroke(new BasicStroke(2f));
-            else
-                gc.setStroke(new BasicStroke(2f, BasicStroke.CAP_BUTT,
-                        BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_lolo, limit_major_color);
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_lo,   limit_minor_color);
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_hi,   limit_minor_color);
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_hihi, limit_major_color);
+            gc.setStroke(limitLineStroke());
+            drawLimitLineAt(gc, plotBounds, min, max, limit_lolo, limit_major_color);
+            drawLimitLineAt(gc, plotBounds, min, max, limit_lo,   limit_minor_color);
+            drawLimitLineAt(gc, plotBounds, min, max, limit_hi,   limit_minor_color);
+            drawLimitLineAt(gc, plotBounds, min, max, limit_hihi, limit_major_color);
             gc.setStroke(new BasicStroke(1f));
         }
-
-        gc.dispose();
-
-        // Convert to JFX
-        return SwingFXUtils.toFXImage(image, null);
     }
 
     /** Request a complete redraw of the plot */
