@@ -284,6 +284,17 @@ public class RTTank extends Canvas
         requestUpdate();
     }
 
+    /** Show or hide the tick labels while keeping the tick marks.
+     *  Stacked widgets can then share one labelled scale: only the first
+     *  shows labels, the others show aligned tick marks.
+     *  @param visible {@code true} (default) for labels, {@code false} for ticks only */
+    public void setScaleLabelsVisible(final boolean visible)
+    {
+        // The axes request layout and refresh themselves when this changes
+        scale.setScaleLabelsVisible(visible);
+        right_scale.setScaleLabelsVisible(visible);
+    }
+
     /** Configure the number format used for scale tick labels.
      *  @param format    Display format; {@code null} or {@link ScaleFormat#DEFAULT} restores automatic formatting.
      *  @param precision Number of decimal places; clamped to [0, 15].
