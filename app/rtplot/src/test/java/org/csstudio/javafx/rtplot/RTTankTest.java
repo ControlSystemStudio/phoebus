@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.csstudio.javafx.rtplot;
 
+import java.awt.Rectangle;
+
 import org.junit.jupiter.api.Test;
 
 import org.phoebus.ui.vtype.ScaleFormat;
@@ -15,6 +17,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** JUnit tests for {@link RTTank}.
  *
@@ -50,6 +53,36 @@ public class RTTankTest
         tank.setRange(100, 100);   // flat
         tank.setRange(100, 0);     // inverted
         tank.setRange(Double.POSITIVE_INFINITY, 100);
+    }
+
+    /** The thermometer layout must produce a usable geometry for any size:
+     *  tube and bulb inside the canvas, tube above the bulb, no exception */
+    @Test
+    public void testThermometerGeometry()
+    {
+        final RTTank tank = new RTTank();
+        tank.setThermometerStyle(true);
+        for (int[] size : new int[][] { { 1, 1 }, { 12, 40 }, { 24, 60 }, { 30, 30 }, { 40, 160 }, { 400, 600 } })
+            for (int bulb : new int[] { 0, 20, 50, 500 })
+                for (int padding : new int[] { 0, 20 })
+                {
+                    tank.setBulbSize(bulb);
+                    tank.setInnerPadding(padding);
+                    final Rectangle bounds = new Rectangle(0, 0, size[0], size[1]);
+                    final RTTank.ThermoGeom geom = tank.thermoGeometry(bounds, new RTTank.ScaleSpace(30, 0, 5, 5));
+                    final String what = size[0] + "x" + size[1] + " bulb " + bulb + " padding " + padding;
+                    assertTrue(geom.tubeBottom() >= geom.tubeTop(), what + ": tube ends above its top");
+                    assertTrue(geom.tubeWidth() >= 1, what + ": no tube");
+                    assertTrue(geom.bulbRadius() > geom.tubeWidth() / 2, what + ": bulb narrower than tube");
+                    // A canvas smaller than the minimum tube and bulb overflows, larger ones must not
+                    if (size[0] >= 40 + 2 * padding  &&  size[1] >= 60 + 2 * padding)
+                    {
+                        assertTrue(geom.bulbCenterY() + geom.bulbRadius() <= bounds.height, what + ": bulb below the canvas");
+                        assertTrue(geom.centerX() - geom.bulbRadius() >= 0, what + ": bulb left of the canvas");
+                        assertTrue(geom.centerX() + geom.bulbRadius() <= bounds.width, what + ": bulb right of the canvas");
+                        assertTrue(geom.tubeTop() >= 0, what + ": tube above the canvas");
+                    }
+                }
     }
 
     /** setValue should handle NaN and Infinity */
