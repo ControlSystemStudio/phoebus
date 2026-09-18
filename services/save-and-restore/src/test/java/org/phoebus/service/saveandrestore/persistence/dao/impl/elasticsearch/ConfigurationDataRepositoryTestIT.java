@@ -113,4 +113,3 @@ public class ConfigurationDataRepositoryTestIT extends AbstractElasticsearchIT {
         configurationDataRepository.deleteAll();
     }
 }
-
