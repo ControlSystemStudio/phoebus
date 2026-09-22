@@ -2,14 +2,9 @@ package org.phoebus.archive.reader.appliance;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Iterator;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Comparator;
 
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
@@ -154,7 +149,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      *
      * @param dataMessage source of data
      * @return the appropriate VType data object
-     * @throws UnsupportedOperationException
+     * @throws UnsupportedOperationException Indicates unexpected processing of the data.
      */
     protected VType extractData(EpicsMessage dataMessage) {
         PayloadType type = mainStream.getPayLoadInfo().getType();
@@ -166,8 +161,12 @@ public abstract class ApplianceValueIterator implements ValueIterator {
             type == PayloadType.SCALAR_FLOAT ||
             type == PayloadType.SCALAR_INT ||
             type == PayloadType.SCALAR_SHORT) {
-            /*if (display==null)*/ display = getDisplay(dataMessage);
-
+            if(display == null) {
+                display = getDisplay(mainStream.getPayLoadInfo());
+            }
+            else{
+                display = updateDisplay(dataMessage, display);
+            }
             return VNumber.of(dataMessage.getNumberValue(),
                               alarm, time, display);
         } else if (type == PayloadType.SCALAR_ENUM) {
@@ -346,31 +345,6 @@ public abstract class ApplianceValueIterator implements ValueIterator {
         return ChannelAccessStatusUtil.idToName(status);
     }
 
-    /**
-     * Determines the {@link Display} for the sample. For optimized requests, this falls back to getting it
-     * from the payload info. For raw requests, it is expected to be present in the field values, i.e.
-     * each sample may define {@link Display} differently.
-     * @param message the info to extract the limits from
-     * @return A {@link Display} object.
-     */
-    protected Display getDisplay(EpicsMessage message) {
-        Map<String, String> fieldValues = message.getFieldValues();
-        boolean hasFieldVaues = !fieldValues.isEmpty();
-        if (!hasFieldVaues) {
-            fieldValues = new HashMap<>();
-            for (FieldValue fieldValue : mainStream.getPayLoadInfo().getHeadersList()) {
-                if (!fieldValues.containsKey(fieldValue.getName())) {
-                    fieldValues.put(fieldValue.getName(), fieldValue.getVal());
-                }
-            }
-        }
-
-        if(hasFieldVaues) {
-            System.out.println(message.getTimestamp() + " " + message.getNumberValue() + " " + getDisplay(fieldValues));
-        }
-
-        return getDisplay(fieldValues);
-    }
 
     private Display getDisplay(Map<String, String> fieldValues) {
 
@@ -396,4 +370,43 @@ public abstract class ApplianceValueIterator implements ValueIterator {
                 (prec != null) ? NumberFormats.precisionFormat((int) Math.round(Double.parseDouble(prec)))
                         : NumberFormats.toStringFormat());
     }
+
+    protected static Display updateDisplay(EpicsMessage message, Display currentDisplay) {
+
+        if(message.getFieldValues().isEmpty()){
+            return currentDisplay;
+        }
+
+        Map<String, String> fieldValues = message.getFieldValues();
+        // There are field values. Update the current display from these.
+        String low = fieldValues.get(ApplianceArchiveReaderConstants.LOW);
+        String lolo = fieldValues.get(ApplianceArchiveReaderConstants.LOLO);
+        String high = fieldValues.get(ApplianceArchiveReaderConstants.HIGH);
+        String hihi = fieldValues.get(ApplianceArchiveReaderConstants.HIHI);
+
+        String egu = fieldValues.get(ApplianceArchiveReaderConstants.EGU);
+        String prec = fieldValues.get(ApplianceArchiveReaderConstants.PREC);
+        String lopr = fieldValues.get(ApplianceArchiveReaderConstants.LOPR);
+        String hopr = fieldValues.get(ApplianceArchiveReaderConstants.HOPR);
+
+        final Range displayRange = Range.of((lopr != null) ? Double.parseDouble(lopr) : currentDisplay.getDisplayRange().getMinimum(),
+                (hopr != null) ? Double.parseDouble(hopr) : currentDisplay.getDisplayRange().getMaximum());
+
+        final Range alarmRange = Range.of((lolo != null) ? Double.parseDouble(lolo) : currentDisplay.getAlarmRange().getMinimum(),
+                (hihi != null) ? Double.parseDouble(hihi) : currentDisplay.getAlarmRange().getMaximum());
+
+        final Range warningRange = Range.of((low != null) ? Double.parseDouble(low) : currentDisplay.getWarningRange().getMinimum(),
+                (high != null) ? Double.parseDouble(high) : currentDisplay.getWarningRange().getMaximum());
+
+        return Display.of(displayRange,
+                alarmRange,
+                warningRange,
+                Range.of(currentDisplay.getControlRange().getMinimum(), currentDisplay.getControlRange().getMaximum()),
+                (egu != null) ? egu : "",
+                (prec != null) ? NumberFormats.precisionFormat((int) Math.round(Double.parseDouble(prec)))
+                        : NumberFormats.toStringFormat());
+
+    }
+
+
 }
