@@ -20,12 +20,8 @@ public class OlogObjectMapperTest {
         property.getAttributes().put("Attribute1", "value1");
         property.getAttributes().put("Attribute2", "value2");
         String expectedJson = "{\"name\":\"TestProperty\",\"attributes\":[{\"name\":\"Attribute2\",\"value\":\"value2\"},{\"name\":\"Attribute1\",\"value\":\"value1\"}]}";
-        try {
-            StringWriter writer = new StringWriter();
-            OlogObjectMappers.logEntrySerializer.writeValue(writer, property);
-            assertEquals(writer.toString(), expectedJson);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        StringWriter writer = new StringWriter();
+        OlogObjectMappers.logEntrySerializer.writeValue(writer, property);
+        assertEquals(writer.toString(), expectedJson);
     }
 }

@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,7 +65,7 @@ public class HelpResource {
     @SuppressWarnings("unused")
     @GetMapping(value = "{what}", produces = CONTENT_TYPE)
     public String getHelpContent(@RequestParam(name = "lang", required = false) String lang,
-                                 @PathVariable String what,
+                                 @PathVariable("what") String what,
                                  HttpServletRequest request) {
         String language = determineLang(lang, request);
         String content;

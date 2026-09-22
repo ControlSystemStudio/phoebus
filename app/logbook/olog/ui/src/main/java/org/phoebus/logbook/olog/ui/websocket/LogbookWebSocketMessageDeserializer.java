@@ -4,10 +4,10 @@
 
 package org.phoebus.logbook.olog.ui.websocket;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.deser.std.StdDeserializer;
 import org.phoebus.core.websocket.common.WebSocketMessage;
 
 /**
@@ -31,7 +31,7 @@ public class LogbookWebSocketMessageDeserializer extends StdDeserializer<WebSock
     @Override
     public WebSocketMessage<?> deserialize(JsonParser jsonParser, DeserializationContext context) {
         try {
-            JsonNode rootNode = jsonParser.getCodec().readTree(jsonParser);
+            JsonNode rootNode = context.readTree(jsonParser);
             LogbookMessageType logbookMessageType = LogbookMessageType.valueOf(rootNode.get("messageType").asText());
             JsonNode payload = rootNode.get("payload");
             switch (logbookMessageType) {

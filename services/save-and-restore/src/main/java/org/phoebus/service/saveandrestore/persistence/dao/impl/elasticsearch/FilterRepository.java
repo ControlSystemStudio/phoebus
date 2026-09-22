@@ -1,43 +1,12 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
- *
- *  This program is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either version 2
- *  of the License, or (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Copyright (C) 2026 European Spallation Source ERIC.
  */
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.Refresh;
-import co.elastic.clients.elasticsearch._types.Result;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
-import co.elastic.clients.elasticsearch.core.DeleteRequest;
-import co.elastic.clients.elasticsearch.core.DeleteResponse;
-import co.elastic.clients.elasticsearch.core.ExistsRequest;
-import co.elastic.clients.elasticsearch.core.GetRequest;
-import co.elastic.clients.elasticsearch.core.GetResponse;
-import co.elastic.clients.elasticsearch.core.IndexRequest;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
-import co.elastic.clients.elasticsearch.core.MgetRequest;
-import co.elastic.clients.elasticsearch.core.MgetResponse;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.transport.endpoints.BooleanResponse;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.ResponseException;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,16 +17,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Repository class for {@link Filter} objects.
@@ -72,8 +40,12 @@ public class FilterRepository implements CrudRepository<Filter, String> {
     private String ES_FILTER_INDEX;
 
     @Autowired
-    @Qualifier("client")
-    private ElasticsearchClient client;
+    @Qualifier("restClient")
+    private Rest5Client restClient;
+
+    @Autowired
+    @Qualifier("elasticObjectMapper")
+    private ObjectMapper objectMapper;
 
     /**
      * Saves an {@link Filter} object.
@@ -85,21 +57,15 @@ public class FilterRepository implements CrudRepository<Filter, String> {
     public <S extends Filter> S save(S filter) {
         try {
             filter.setLastUpdated(new Date());
-            IndexRequest<Filter> indexRequest =
-                    IndexRequest.of(i ->
-                            i.index(ES_FILTER_INDEX)
-                                    .id(filter.getName())
-                                    .document(filter)
-                                    .refresh(Refresh.True));
-            IndexResponse response = client.index(indexRequest);
+            String id = filter.getName();
+            Request request = new Request("PUT", "/" + encodePathSegment(ES_FILTER_INDEX)
+                    + "/_doc/" + encodePathSegment(id));
+            request.addParameter("refresh", "true");
+            request.setJsonEntity(buildTreeNodePayload(filter));
+            int statusCode = restClient.performRequest(request).getStatusCode();
 
-            if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
-                GetRequest getRequest =
-                        GetRequest.of(g ->
-                                g.index(ES_FILTER_INDEX).id(response.id()));
-                GetResponse<Filter> resp =
-                        client.get(getRequest, Filter.class);
-                return (S) resp.source();
+            if (statusCode >= 200 && statusCode < 300) {
+                return (S) getFilterById(id).orElse(null);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save Filter object: " + filter.getName(), e);
@@ -125,16 +91,11 @@ public class FilterRepository implements CrudRepository<Filter, String> {
     @Override
     public Optional<Filter> findById(@NonNull String name) {
         try {
-            GetRequest getRequest =
-                    GetRequest.of(g ->
-                            g.index(ES_FILTER_INDEX).id(name));
-            GetResponse<Filter> resp =
-                    client.get(getRequest, Filter.class);
-
-            if (!resp.found()) {
+            Optional<Filter> result = getFilterById(name);
+            if (result.isEmpty()) {
                 throw new NodeNotFoundException("Filter with name " + name + " not found.");
             }
-            return Optional.of(resp.source());
+            return result;
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to retrieve Filter with name: " + name, e);
             throw new RuntimeException("Failed to Filter with name: " + name);
@@ -145,9 +106,7 @@ public class FilterRepository implements CrudRepository<Filter, String> {
     public boolean existsById(String name) {
 
         try {
-            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(ES_FILTER_INDEX).id(name));
-            BooleanResponse existsResponse = client.exists(existsRequest);
-            return existsResponse.value();
+            return documentExists(ES_FILTER_INDEX, name);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to query if Filter with name " + name + " exists");
         }
@@ -161,10 +120,10 @@ public class FilterRepository implements CrudRepository<Filter, String> {
         int from = 0;
         while(true){
             try {
-                SearchResponse<Filter> searchResponse = runPagedMatchAll(pageSize, from);
-                result.addAll(searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList()));
-                from += searchResponse.hits().hits().size();
-                if(searchResponse.hits().hits().size() < pageSize){
+                List<Filter> batch = runPagedMatchAll(pageSize, from);
+                result.addAll(batch);
+                from += batch.size();
+                if(batch.size() < pageSize){
                     break;
                 }
             } catch (IOException e) {
@@ -175,14 +134,11 @@ public class FilterRepository implements CrudRepository<Filter, String> {
         return result;
     }
 
-    private SearchResponse<Filter> runPagedMatchAll(int pageSize, int from) throws IOException{
-        SearchRequest searchRequest =
-                SearchRequest.of(s ->
-                        s.index(ES_FILTER_INDEX)
-                                .query(new MatchAllQuery.Builder().build()._toQuery())
-                                .size(pageSize)
-                                .from(from));
-        return client.search(searchRequest, Filter.class);
+    private List<Filter> runPagedMatchAll(int pageSize, int from) throws IOException{
+        Request request = new Request("POST", "/" + encodePathSegment(ES_FILTER_INDEX) + "/_search");
+        request.setJsonEntity("{\"query\":{\"match_all\":{}},\"size\":" + pageSize + ",\"from\":" + from + "}");
+        JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+        return parseSearchHits(body, Filter.class);
     }
 
     /**
@@ -203,16 +159,8 @@ public class FilterRepository implements CrudRepository<Filter, String> {
         }
         List<String> ids = new ArrayList<>();
         uniqueNames.forEach(ids::add);
-        MgetRequest mgetRequest = MgetRequest.of(m -> m.index(ES_FILTER_INDEX).ids(ids));
         try {
-            List<Filter> filters = new ArrayList<>();
-            MgetResponse<Filter> resp = client.mget(mgetRequest, Filter.class);
-            resp.docs().forEach(doc -> {
-                if (doc.result().found()) { // Only add elements that actually exist
-                    filters.add(doc.result().source());
-                }
-            });
-            return filters;
+            return mgetFilters(ids);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to retrieve multiple filters");
             throw new RuntimeException("Failed to retrieve multiple filters");
@@ -232,10 +180,11 @@ public class FilterRepository implements CrudRepository<Filter, String> {
     @Override
     public void deleteById(String name) {
         try {
-            DeleteRequest deleteRequest = DeleteRequest.of(d ->
-                    d.index(ES_FILTER_INDEX).id(name).refresh(Refresh.True));
-            DeleteResponse deleteResponse = client.delete(deleteRequest);
-            if (deleteResponse.result().equals(Result.Deleted)) {
+            Request request = new Request("DELETE", "/" + encodePathSegment(ES_FILTER_INDEX)
+                    + "/_doc/" + encodePathSegment(name));
+            request.addParameter("refresh", "true");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            if ("deleted".equalsIgnoreCase(body.path("result").asText(""))) {
                 logger.log(Level.WARNING, "Filter with name " + name + " deleted.");
             } else {
                 logger.log(Level.WARNING, "Filter with id " + name + " NOT deleted.");
@@ -263,13 +212,104 @@ public class FilterRepository implements CrudRepository<Filter, String> {
     @Override
     public void deleteAll() {
         try {
-            DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
-                    d.index(ES_FILTER_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
-            DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
-            logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " Filter objects");
+            Request request = new Request("POST", "/" + encodePathSegment(ES_FILTER_INDEX) + "/_delete_by_query");
+            request.addParameter("refresh", "true");
+            request.setJsonEntity("{\"query\":{\"match_all\":{}}}");
+            JsonNode body = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
+            logger.log(Level.INFO, "Deleted " + body.path("deleted").asLong(0L) + " Filter objects");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to delete all Filter objects", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private Optional<Filter> getFilterById(String id) throws IOException {
+        String endpoint = "/" + encodePathSegment(ES_FILTER_INDEX) + "/_doc/" + encodePathSegment(id);
+        Request request = new Request("GET", endpoint);
+        try {
+            var response = restClient.performRequest(request);
+            JsonNode body = objectMapper.readTree(response.getEntity().getContent());
+            if (!body.path("found").asBoolean(false)) {
+                return Optional.empty();
+            }
+            JsonNode source = body.get("_source");
+            if (source == null || source.isNull()) {
+                return Optional.empty();
+            }
+            return Optional.of(objectMapper.treeToValue(source, Filter.class));
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusCode() == 404) {
+                return Optional.empty();
+            }
+            throw e;
+        }
+    }
+
+    private List<Filter> mgetFilters(List<String> ids) throws IOException {
+        String endpoint = "/" + encodePathSegment(ES_FILTER_INDEX) + "/_mget";
+        Request request = new Request("POST", endpoint);
+        request.setJsonEntity(objectMapper.writeValueAsString(java.util.Map.of("ids", ids)));
+
+        var response = restClient.performRequest(request);
+        JsonNode docs = objectMapper.readTree(response.getEntity().getContent()).path("docs");
+        if (!docs.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<Filter> filters = new ArrayList<>();
+        for (JsonNode doc : docs) {
+            if (doc.path("found").asBoolean(false)) {
+                JsonNode source = doc.get("_source");
+                if (source != null && !source.isNull()) {
+                    filters.add(objectMapper.treeToValue(source, Filter.class));
+                }
+            }
+        }
+        return filters;
+    }
+
+    private static String encodePathSegment(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    private boolean documentExists(String indexName, String documentId) throws IOException {
+        try {
+            Request request = new Request("HEAD", "/" + encodePathSegment(indexName)
+                    + "/_doc/" + encodePathSegment(documentId));
+            int statusCode = restClient.performRequest(request).getStatusCode();
+            return statusCode >= 200 && statusCode < 300;
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusCode() == 404) {
+                return false;
+            }
+            throw e;
+        }
+    }
+
+    private <T> List<T> parseSearchHits(JsonNode response, Class<T> type){
+        JsonNode hits = response.path("hits").path("hits");
+        if (!hits.isArray()) {
+            return Collections.emptyList();
+        }
+
+        List<T> result = new ArrayList<>();
+        for (JsonNode hit : hits) {
+            JsonNode source = hit.get("_source");
+            if (source != null && !source.isNull()) {
+                result.add(objectMapper.treeToValue(source, type));
+            }
+        }
+        return result;
+    }
+
+    private String buildTreeNodePayload(Filter filter) {
+
+        Map<String, Object> nodeMap = new LinkedHashMap<>();
+        nodeMap.put("name", filter.getName());
+        nodeMap.put("lastUpdated", filter.getLastUpdated().getTime());
+        nodeMap.put("queryString", filter.getQueryString());
+        nodeMap.put("user", filter.getUser());
+
+        return objectMapper.writeValueAsString(nodeMap);
     }
 }
