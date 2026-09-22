@@ -66,16 +66,22 @@ public class AlarmLimitItem extends PVItem {
         return new AlarmLimitItem(parentItem, limitType);
     }
 
-    private AlarmLimitItem(final PVItem parentItem, final String limitType) {
+    protected AlarmLimitItem(final PVItem parentItem, final String limitType) {
         super(parentItem.getName(), parentItem.getScanPeriod());
         this.limitType = limitType;
         this.parentItem = parentItem;
         PVSamples samplesFromArchiver = parentItem.getSamples();
         samplesFromArchiver.lockForWriting();
         List<VType> historicAlarmLimitValues = new ArrayList<>(samplesFromArchiver.size());
+        VNumber vPreviousAlarmLimit = null;
         for (int i = 0; i < samplesFromArchiver.size(); i++) {
             VType vType = samplesFromArchiver.get(i).getVType();
-            historicAlarmLimitValues.add(getAlarmLimitVType(vType));
+            VType alarmLimitVType = getAlarmLimitVType(vType);
+            VNumber alarmLimitVTypeNumber = (VNumber)alarmLimitVType;
+            if(vPreviousAlarmLimit == null || !vPreviousAlarmLimit.getValue().equals(alarmLimitVTypeNumber.getValue())){
+                historicAlarmLimitValues.add(alarmLimitVType);
+            }
+            vPreviousAlarmLimit = alarmLimitVTypeNumber;
         }
         samplesFromArchiver.unlockForWriting();
         getSamples().mergeArchivedData(parentItem.getName(), historicAlarmLimitValues);
