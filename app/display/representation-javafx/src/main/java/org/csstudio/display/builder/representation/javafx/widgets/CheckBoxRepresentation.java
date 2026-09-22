@@ -15,6 +15,7 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -100,9 +101,11 @@ public class CheckBoxRepresentation extends RegionBaseRepresentation<CheckBox, C
         {
             final String message = model_widget.propConfirmMessage().getValue();
             final String password = model_widget.propPassword().getValue();
+            final CryptedPassword cryptedPassword = model_widget.propCryptedPassword().getValue();
+
             if (password.length() > 0)
             {
-                if (toolkit.showPasswordDialog(model_widget, message, password) == null)
+                if (toolkit.showPasswordDialog(model_widget, message, password, cryptedPassword) == null)
                     return;
             }
             else if (!toolkit.showConfirmationDialog(model_widget, message))

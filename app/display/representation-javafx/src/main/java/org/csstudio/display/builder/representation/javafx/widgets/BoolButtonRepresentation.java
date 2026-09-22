@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
@@ -172,9 +173,11 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         {   // Require password, or plain prompt?
             final String message = model_widget.propConfirmMessage().getValue();
             final String password = model_widget.propPassword().getValue();
+            final CryptedPassword cryptedPassword = model_widget.propCryptedPassword().getValue();
+
             if (password.length() > 0)
             {
-                if (toolkit.showPasswordDialog(model_widget, message, password) == null)
+                if (toolkit.showPasswordDialog(model_widget, message, password, cryptedPassword) == null)
                     return;
             }
             else if (! toolkit.showConfirmationDialog(model_widget, message))

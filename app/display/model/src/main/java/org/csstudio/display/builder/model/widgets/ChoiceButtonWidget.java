@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialog;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propCryptedPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
@@ -34,6 +35,7 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -77,6 +79,7 @@ public class ChoiceButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> confirm_dialog;
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
+    private volatile WidgetProperty<CryptedPassword> cryptedPassword;
 
     /** Constructor */
     public ChoiceButtonWidget()
@@ -110,6 +113,8 @@ public class ChoiceButtonWidget extends WritablePVWidget
         properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
+        properties.add(cryptedPassword = propCryptedPassword.createProperty(this, CryptedPassword.NONE));
+        cryptedPassword.setInformativeTooltip(Messages.InformativeTooltipCryptedPassword);
     }
 
     /** @return 'foreground_color' property */
@@ -188,5 +193,11 @@ public class ChoiceButtonWidget extends WritablePVWidget
     public WidgetProperty<String> propPassword()
     {
         return password;
+    }
+
+    /** @return 'crypted_password' property */
+    public WidgetProperty<CryptedPassword> propCryptedPassword()
+    {
+        return cryptedPassword;
     }
 }

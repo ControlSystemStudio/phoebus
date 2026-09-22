@@ -772,6 +772,18 @@ public class CommonWidgetProperties {
             newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "password", Messages.WidgetProperties_Password);
 
     /**
+     * 'crypted password' property: Select the hash algorithm of the provided crypted password
+     */
+    public static final WidgetPropertyDescriptor<CryptedPassword> propCryptedPassword =
+            new WidgetPropertyDescriptor<>(
+                    WidgetPropertyCategory.BEHAVIOR, "crypted_password", Messages.WidgetProperties_CryptedPassword) {
+                @Override
+                public EnumWidgetProperty<CryptedPassword> createProperty(final Widget widget,
+                                                                              final CryptedPassword default_value) {
+                    return new EnumWidgetProperty<>(this, widget, default_value);
+                }
+            };
+    /**
      * Runtime 'pv_value' property: Typically read from primary PV
      */
     public static final WidgetPropertyDescriptor<VType> runtimePropPVValue =

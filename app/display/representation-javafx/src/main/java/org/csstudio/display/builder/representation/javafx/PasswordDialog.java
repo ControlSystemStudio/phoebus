@@ -18,6 +18,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
+
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
 
 /** Dialog that prompts for password
  *
@@ -38,15 +42,29 @@ import javafx.scene.layout.Priority;
 public class PasswordDialog extends Dialog<String>
 {
     private final String correct_password;
+    private final CryptedPassword crypted_password;
     private final PasswordField pass_entry = new PasswordField();
     private final Label pass_caption = new Label(Messages.Password_Caption);
+
+    public static String hash(String value, String algorithm) throws Exception {
+        MessageDigest md = MessageDigest.getInstance(algorithm);
+        byte[] hash = md.digest(value.getBytes(StandardCharsets.UTF_8));
+
+        StringBuilder hex = new StringBuilder(hash.length * 2);
+        for (byte b : hash) {
+            hex.append(String.format("%02x", b));
+        }
+
+        return hex.toString();
+    }
 
     /** @param title Title, message
      *  @param correct_password Password to check
      */
-    public PasswordDialog(final String title, final String correct_password)
+    public PasswordDialog(final String title, final String correct_password, final CryptedPassword crypted_password)
     {
         this.correct_password = correct_password;
+        this.crypted_password = crypted_password;
         final DialogPane pane = getDialogPane();
 
         pass_entry.setPromptText(Messages.Password_Prompt);
@@ -70,8 +88,12 @@ public class PasswordDialog extends Dialog<String>
             final Button okButton = (Button) pane.lookupButton(ButtonType.OK);
             okButton.addEventFilter(ActionEvent.ACTION, event ->
             {
-                if (! checkPassword())
-                    event.consume();
+                try {
+                    if (! checkPassword())
+                        event.consume();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             });
         }
 
@@ -83,11 +105,17 @@ public class PasswordDialog extends Dialog<String>
         Platform.runLater(() -> pass_entry.requestFocus());
     }
 
-    private boolean checkPassword()
-    {
+    private boolean checkPassword() throws Exception {
         final String password = pass_entry.getText();
-        if (correct_password.equals(password))
+        boolean check;
+        if ("None".equals(crypted_password.toString())) {
+            check = correct_password.equals(password);
+        } else {
+            check = correct_password.equals(hash(password, crypted_password.toString()));
+        }
+        if (check)
             return true;
+
         setHeaderText(Messages.Password_Error);
         Platform.runLater(() ->
         {

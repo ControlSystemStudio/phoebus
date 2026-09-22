@@ -31,6 +31,7 @@ import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.properties.CryptedPassword;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.runtime.ActionUtil;
@@ -276,11 +277,11 @@ public class ScriptUtil
      *  @param correct_password Password to check
      *  @return Entered password or <code>null</code>
      */
-    public static String showPasswordDialog(final Widget widget, final String title, final String correct_password)
+    public static String showPasswordDialog(final Widget widget, final String title, final String correct_password, final CryptedPassword crypted_password)
     {
         try
         {
-            return ToolkitRepresentation.getToolkit(widget.getDisplayModel()).showPasswordDialog(widget, title, correct_password);
+            return ToolkitRepresentation.getToolkit(widget.getDisplayModel()).showPasswordDialog(widget, title, correct_password, crypted_password);
         }
         catch (Exception ex)
         {
