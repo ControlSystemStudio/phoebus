@@ -9,6 +9,9 @@ package org.csstudio.display.builder.model.properties;
 
 import org.csstudio.display.builder.model.Messages;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /** Description of a font style
  *  @author Kay Kasemir
  */
@@ -26,7 +29,7 @@ public enum WidgetFontStyle
 
     private final String name;
 
-    private WidgetFontStyle(final String name)
+    WidgetFontStyle(final String name)
     {
         this.name = name;
     }
@@ -35,5 +38,21 @@ public enum WidgetFontStyle
     public String toString()
     {
         return name;
+    }
+
+    /**
+     * Returns the WidgetFontStyle corresponding to the given name.
+     * If the name does not match any enum constant, returns REGULAR.
+     *
+     * @param name The name of the font style
+     * @return The corresponding WidgetFontStyle, or REGULAR if not found
+     */
+    public static WidgetFontStyle safeValueOf(String name) {
+        try {
+            return WidgetFontStyle.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            Logger.getLogger(WidgetFontStyle.class.getName()).log(Level.WARNING, "Cannot find WidgetFontStyle : " + name, e);
+            return REGULAR;
+        }
     }
 }
