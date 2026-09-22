@@ -51,7 +51,7 @@ public enum WidgetFontStyle
         try {
             return WidgetFontStyle.valueOf(name);
         } catch (IllegalArgumentException e) {
-            Logger.getLogger(WidgetFontStyle.class.getName()).log(Level.WARNING, "Cannot find WidgetFontStyle", e);
+            Logger.getLogger(WidgetFontStyle.class.getName()).log(Level.WARNING, "Cannot find WidgetFontStyle : " + name, e);
             return REGULAR;
         }
     }
