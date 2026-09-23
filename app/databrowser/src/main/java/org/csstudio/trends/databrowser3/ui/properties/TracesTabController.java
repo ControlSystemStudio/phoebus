@@ -106,13 +106,17 @@ public class TracesTabController {
     private final List<String> lineStyles = List.of(LineStyle.getDisplayNames());
     private final List<String> pointTypes = List.of(PointType.getDisplayNames());
 
-
     private final Model model;
 
     private final UndoableActionManager undoableActionManager;
 
     private final List<WeakReference<SelectedSampleProperty>> selectedSamples = new ArrayList<>();
     private final ObservableList<String> axisNames = FXCollections.observableArrayList();
+
+    private static final String[] limitTypes = new  String[]{ApplianceArchiveReaderConstants.LOLO,
+            ApplianceArchiveReaderConstants.LOW,
+            ApplianceArchiveReaderConstants.HIGH,
+            ApplianceArchiveReaderConstants.HIHI};
 
 
     public TracesTabController(final Model model, final UndoableActionManager undoableActionManager) {
@@ -375,8 +379,8 @@ public class TracesTabController {
         alarmLimitsVisibilityColumn.setCellValueFactory(cell -> {
             final SimpleBooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).isShowAlarmLimits());
             visibilityProperty.addListener((p, old, visible) -> {
+                PVItem pvItem = (PVItem)cell.getValue();
                 if(visible){
-                    PVItem pvItem = (PVItem)cell.getValue();
                     PVSamples pvSamples = pvItem.getSamples();
                     pvSamples.lockForWriting();
                     boolean hasAlarmLimits = false;
@@ -399,10 +403,7 @@ public class TracesTabController {
                         Platform.runLater(() -> visibilityProperty.set(false)); // Yes, wrapping in Platform.runLater is necessary!
                     }
                     else{
-                        String[] limitTypes = new  String[]{ApplianceArchiveReaderConstants.LOLO,
-                                ApplianceArchiveReaderConstants.LOW,
-                                ApplianceArchiveReaderConstants.HIGH,
-                                ApplianceArchiveReaderConstants.HIHI};
+
                         for(String limitType : limitTypes){
                             AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, limitType);
                             alarmLimitItem.setAxis(pvItem.getAxis());
@@ -416,8 +417,15 @@ public class TracesTabController {
                                 throw new RuntimeException(e);
                             }
                         }
-
                     }
+                }
+                else{
+                    // Remove alarm limit items from model
+                    model.getItems().forEach(modelItem -> {
+                        if(modelItem instanceof AlarmLimitItem){
+                            model.removeItem(modelItem);
+                        }
+                    });
                 }
             });
             return visibilityProperty;
