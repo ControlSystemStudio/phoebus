@@ -382,6 +382,9 @@ public class TracesTabController {
                     boolean hasAlarmLimits = false;
                     for(int i = 0; i < pvSamples.size(); i++){
                         hasAlarmLimits = VTypeHelper.hasAlarmLimits(pvSamples.get(i).getVType());
+                        if(hasAlarmLimits){
+                            break;
+                        }
                     }
                     pvSamples.unlockForWriting();
 
