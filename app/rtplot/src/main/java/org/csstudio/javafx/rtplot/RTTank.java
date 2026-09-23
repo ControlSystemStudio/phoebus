@@ -97,6 +97,10 @@ public class RTTank extends Canvas
     /** Current value, i.e. fill level */
     private volatile double value = 5.0;
 
+    /** Requested value range, see {@link #setRange}; NaN until set */
+    private volatile double rangeLow = Double.NaN;
+    private volatile double rangeHigh = Double.NaN;
+
     /** Does layout need to be re-computed? */
     protected final AtomicBoolean need_layout = new AtomicBoolean(true);
 
@@ -273,6 +277,7 @@ public class RTTank extends Canvas
     {
         scale.setLogarithmic(logscale);
         right_scale.setLogarithmic(logscale);
+        applyRange();
         requestUpdate();
     }
 
@@ -441,34 +446,65 @@ public class RTTank extends Canvas
         requestUpdate();
     }
 
-    /** Set value range
-     *  @param low Lower limit
-     *  @param high Upper limit
+    /** Set value range.
+     *
+     *  <p>An inverted range ({@code low > high}) runs the scale top-down
+     *  and fills the tank from the top. A logarithmic scale always runs
+     *  bottom-up. Non-finite and zero-width ranges are ignored.
+     *
+     *  @param low Value at the bottom of the tank
+     *  @param high Value at the top of the tank
      */
     public void setRange(final double low, final double high)
     {
-        // Guard against NaN, Infinite, or inverted/flat range
-        if (!Double.isFinite(low) || !Double.isFinite(high) || low >= high)
+        if (!Double.isFinite(low) || !Double.isFinite(high) || low == high)
             return;
+        rangeLow = low;
+        rangeHigh = high;
+        applyRange();
+    }
+
+    /** @return Current value range of the scale */
+    public AxisRange<Double> getValueRange()
+    {
+        return scale.getValueRange();
+    }
+
+    /** Push the requested range to both scales, ascending for a log scale */
+    private void applyRange()
+    {
+        double low = rangeLow;
+        double high = rangeHigh;
+        if (Double.isNaN(low))
+            return;
+        if (scale.isLogarithmic()  &&  low > high)
+        {
+            low = rangeHigh;
+            high = rangeLow;
+        }
         scale.setValueRange(low, high);
         right_scale.setValueRange(low, high);
     }
 
-    /** @param value Set value */
+    /** @param value Set value; a non-finite value shows an empty tank */
     public void setValue(final double value)
     {
         if (Double.isFinite(value))
             this.value = value;
         else
-            this.value = scale.getValueRange().getLow();
+        {
+            final AxisRange<Double> range = scale.getValueRange();
+            this.value = Math.min(range.getLow(), range.getHigh());
+        }
         requestUpdate();
     }
 
-    /** Map a value to a Y pixel within the plot bounds (low value at bottom).
+    /** Map a value to a Y pixel within the plot bounds.
      *  Returns -1 when the mapping is undefined (e.g. log scale with non-positive inputs).
+     *  @param normal Range runs bottom-up? Otherwise the low value is at the top
      */
     private int valueToY(final Rectangle pb, final double min, final double max,
-                         final double v, final boolean logscale)
+                         final double v, final boolean logscale, final boolean normal)
     {
         final double frac;
         if (logscale)
@@ -479,17 +515,17 @@ public class RTTank extends Canvas
         }
         else
             frac = (v - min) / (max - min);
-        return (int) (pb.y + pb.height * (1.0 - frac));
+        return (int) (pb.y + pb.height * (normal ? 1.0 - frac : frac));
     }
 
     /** Draw a single horizontal limit line across the tank area at the given value. */
     private void drawLimitLineAt(final Graphics2D gc, final Rectangle pb,
-                                  final double min, final double max,
+                                  final double min, final double max, final boolean normal,
                                   final double limit, final Color color)
     {
         if (!Double.isFinite(limit) || limit <= min || limit >= max)
             return;
-        final int y = valueToY(pb, min, max, limit, scale.isLogarithmic());
+        final int y = valueToY(pb, min, max, limit, scale.isLogarithmic(), normal);
         if (y < pb.y || y > pb.y + pb.height)
             return;
         gc.setColor(color);
@@ -642,18 +678,18 @@ public class RTTank extends Canvas
         final double lim_lo   = limit_lo;
         final double lim_hi   = limit_hi;
         final double lim_hihi = limit_hihi;
-        if (normal && (!Double.isNaN(lim_lolo) || !Double.isNaN(lim_lo) ||
-                        !Double.isNaN(lim_hi)   || !Double.isNaN(lim_hihi)))
+        if (!Double.isNaN(lim_lolo) || !Double.isNaN(lim_lo) ||
+            !Double.isNaN(lim_hi)   || !Double.isNaN(lim_hihi))
         {
             if (limits_from_pv)
                 gc.setStroke(new BasicStroke(2f));
             else
                 gc.setStroke(new BasicStroke(2f, BasicStroke.CAP_BUTT,
                         BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_lolo, limit_major_color);
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_lo,   limit_minor_color);
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_hi,   limit_minor_color);
-            drawLimitLineAt(gc, plot_bounds, min, max, lim_hihi, limit_major_color);
+            drawLimitLineAt(gc, plot_bounds, min, max, normal, lim_lolo, limit_major_color);
+            drawLimitLineAt(gc, plot_bounds, min, max, normal, lim_lo,   limit_minor_color);
+            drawLimitLineAt(gc, plot_bounds, min, max, normal, lim_hi,   limit_minor_color);
+            drawLimitLineAt(gc, plot_bounds, min, max, normal, lim_hihi, limit_major_color);
             gc.setStroke(new BasicStroke(1f));
         }
 
