@@ -8,6 +8,7 @@
  */
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,7 +31,9 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+
 
 /**
  * JavaFX representation of the SlideButton model.
@@ -53,6 +56,9 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     private final WidgetPropertyListener<Integer> bitChangedListener   = this::bitChanged;
     private final WidgetPropertyListener<String>  labelChangedListener = this::labelChanged;
     private final WidgetPropertyListener<VType>   valueChangedListener = this::valueChanged;
+    private final UntypedWidgetPropertyListener   stretchedChangedListener = this::stretchedChanged;
+
+    private final AtomicBoolean updating = new AtomicBoolean();
 
     protected volatile int     bit          = 0;
     protected volatile boolean enabled      = true;
@@ -61,33 +67,32 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     protected volatile int     value        = 0;
 
     private volatile ToggleSwitch button;
-    private volatile Label        label, emptyLabel;
+    private volatile Label        label;
+    private volatile StackPane    buttonContainer;
 
     private volatile Color  foreground;
     private volatile String state_colors;
-
-    private volatile AtomicBoolean updating = new AtomicBoolean();
-	private Pos alignment;
 
     @Override
     public void updateChanges ( ) {
 
         super.updateChanges();
 
-       
-        if ( dirty_size.checkAndClear() ) {
+        final boolean sizeChanged = dirty_size.checkAndClear();
+        final boolean styleChanged = dirty_style.checkAndClear();
+
+        if (sizeChanged) {
             if ( model_widget.propAutoSize().getValue() ) {
                 jfx_node.setPrefSize(-1, -1);
                 jfx_node.autosize();
                 model_widget.propWidth().setValue((int) jfx_node.getWidth());
                 model_widget.propHeight().setValue((int) jfx_node.getHeight());
-              button.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
             }
             else
                 jfx_node.setPrefSize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
         }
 
-        if ( dirty_style.checkAndClear() ) {
+        if (styleChanged) {
 
             button.setStyle(state_colors);
 
@@ -102,7 +107,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
             setDisabledLook(enabled, jfx_node.getChildren());
 
             // Since jfx_node.isManaged() == false, need to trigger layout
-            jfx_node.layout();            
+            jfx_node.layout();
 
             if (model_widget.propAutoSize().getValue())
                 sizeChanged(null, null, null);
@@ -114,84 +119,90 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
                 updating.set(false);
             }
         }
-        
-        // Define border
-        // Set label position
-        label.setAlignment(Pos.CENTER_RIGHT);
-        label.setScaleShape(enabled);
-        label.setCenterShape(enabled);
-               
-        // Assign vertical scale to label height
-        button.setScaleY(label.getHeight()/20);
-        
-        // Assign horizontal scale according to vertical scale
-        button.setScaleX(button.getScaleY());
-        button.setAlignment(Pos.CENTER_LEFT);
 
-        // Create and set the left empty string
-        char[] myCharArray = new char[(int)label.getText().length()/8];
-
-        for (int i = 0; i < myCharArray.length; i++)
-        {
-            myCharArray[i] = ' '; // Remplit le tableau avec des lettres de 'A' à 'J'
-        }   
-        
-        emptyLabel.setAlignment(Pos.CENTER_LEFT);
-        emptyLabel.setFont(label.getFont());
-        emptyLabel.setText(String.valueOf(myCharArray));        
+        if (sizeChanged || styleChanged) {
+            updateLayout();
         }
-   
+    }
 
     @Override
     public HBox createJFXNode ( ) throws Exception {
+        return updateLayout();
+    }
 
-        button = new ToggleSwitch();
+    protected HBox updateLayout()
+    {
+        final HBox hbox;
+
+        if (button == null) {
+            button = new ToggleSwitch();
+            if (!toolkit.isEditMode())
+                button.addEventFilter(MouseEvent.MOUSE_RELEASED, event ->
+                {
+                    // To avoid setting a new value when context menu is requested,
+                    // slide only if primary button was pressed.
+                    if (event.getButton().equals(MouseButton.PRIMARY)) {
+                        handleSlide();
+                    }
+                    event.consume();
+                });
+        }
+
         button.setMinSize(37, 20);
         button.setPrefSize(37, 20);
         button.setGraphicTextGap(0);
         button.setMnemonicParsing(false);
 
-        if (! toolkit.isEditMode() )
-            button.addEventFilter(MouseEvent.MOUSE_RELEASED, event ->
-            {
-                // To avoid setting a new value when context menu is requested,
-                // slide only if primary button was pressed.
-                if(event.getButton().equals(MouseButton.PRIMARY)) {
-                    handleSlide();
-                }
-                event.consume();
-            });
-        // Label
-        label = new Label(labelContent);
-        label.setMaxWidth(Double.MAX_VALUE);
-        label.setMnemonicParsing(false);
-        
-        // Empty label
-        emptyLabel = new Label();
-        
-        HBox.setHgrow(label, Priority.ALWAYS);
-        HBox hbox = new HBox(6,emptyLabel, button, label);
-        hbox.setAlignment(Pos.CENTER);
-        hbox.setCenterShape(true);
-        button.setCenterShape(true);
-        
-        /*
-        // Border
-        float space = 6f;
-        BorderWidths width = new BorderWidths(space, space, space, space, true, true, true, true);
-        Insets insets = new Insets((int)space, (int)space, (int)space, (int)space);
-        CornerRadii cornerRadii = new CornerRadii(space);
-        Paint paint = Paint.valueOf("Blue");
-        BorderStroke stroke = new BorderStroke(paint, BorderStrokeStyle.SOLID, cornerRadii, width, insets); 
-        Border border = new Border(stroke);
-        hbox.setBorder(border);
-        */
-        
-        return hbox;
+        if (label == null)
+            label = new Label(labelContent);
 
+        label.setMnemonicParsing(false);
+        label.setMaxWidth(Double.MAX_VALUE);
+
+
+        if (jfx_node != null) {
+            hbox = jfx_node;
+            hbox.getChildren().clear();
+        } else {
+            hbox = new HBox(6);
+        }
+
+        if (model_widget.propStretched().getValue()) {
+            if (buttonContainer == null) {
+                buttonContainer = new StackPane(button);
+                buttonContainer.setAlignment(Pos.CENTER);
+            }
+
+            double height = hbox.getHeight();
+            if (height > 20) {
+                double scale = height / 20.0;
+                button.setScaleX(scale);
+                button.setScaleY(scale);
+
+                buttonContainer.setPrefWidth(37 * scale);
+                buttonContainer.setMinWidth(37 * scale);
+                buttonContainer.setMaxWidth(37 * scale);
+            }
+
+            hbox.getChildren().addAll(buttonContainer, label);
+            hbox.setAlignment(Pos.CENTER_LEFT);
+        } else {
+            buttonContainer = null;
+
+            button.setScaleX(1);
+            button.setScaleY(1);
+
+            hbox.getChildren().addAll(button, label);
+            hbox.setAlignment(Pos.CENTER_RIGHT);
+
+            HBox.setHgrow(label, Priority.ALWAYS);
+        }
+
+        return hbox;
     }
 
-	@Override
+
+    @Override
     protected boolean isFilteringEditModeClicks()
     {
         return true;
@@ -211,6 +222,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
 
         styleChanged(null, null, null);
 
+        model_widget.propStretched().addUntypedPropertyListener(stretchedChangedListener);
         model_widget.propEnabled().addUntypedPropertyListener(styleChangedListener);
         model_widget.propFont().addUntypedPropertyListener(styleChangedListener);
         model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
@@ -230,6 +242,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     @Override
     protected void unregisterListeners()
     {
+        model_widget.propStretched().removePropertyListener(stretchedChangedListener);
         model_widget.propAutoSize().removePropertyListener(sizeChangedListener);
         model_widget.propHeight().removePropertyListener(sizeChangedListener);
         model_widget.propWidth().removePropertyListener(sizeChangedListener);
@@ -246,11 +259,14 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     }
 
     private void bitChanged ( final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value ) {
-
         bit = ( new_value != null ? new_value : model_widget.propBit().getValue() );
-
         stateChanged(bit, value);
+    }
 
+    private void stretchedChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value) {
+        dirty_size.mark();
+        dirty_style.mark();
+        toolkit.scheduleUpdate(this);
     }
 
     private void confirm ( ) {
@@ -277,7 +293,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
             final String message = model_widget.propConfirmMessage().getValue();
             final String password = model_widget.propPassword().getValue();
 
-            if ( password.length() > 0 ) {
+            if (!password.isEmpty()) {
                 if ( toolkit.showPasswordDialog(model_widget, message, password) == null ) {
                     return;
                 }

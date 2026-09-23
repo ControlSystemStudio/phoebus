@@ -719,6 +719,13 @@ public class CommonWidgetProperties {
             newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "enabled", Messages.WidgetProperties_Enabled);
 
     /**
+     * 'stretched' property
+     */
+    public static final WidgetPropertyDescriptor<Boolean> propStretched =
+            newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "stretched", Messages.WidgetProperties_Stretched);
+
+
+    /**
      * 'interactive' property: Does widget react to mouse etc. at runtime?
      */
     public static final WidgetPropertyDescriptor<Boolean> propInteractive =
