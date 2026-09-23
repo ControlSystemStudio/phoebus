@@ -20,7 +20,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJob;
@@ -55,7 +54,7 @@ public class Controller
     final Model model;
 
     /** Listener to model that informs this controller */
-    private ModelListener model_listener;
+    private final ModelListener model_listener;
 
     /** GUI for displaying the data */
     final ModelBasedPlot plot;
@@ -72,7 +71,7 @@ public class Controller
     final private long archive_fetch_delay = Preferences.archive_fetch_delay;
 
     /** Delayed task to avoid flurry of archive requests
-     *  @see #scheduleArchiveRetrieval(ITimestamp, ITimestamp)
+     *  @see #scheduleArchiveRetrieval()
      */
     private ScheduledFuture<?> archive_fetch_delay_task = null;
 
