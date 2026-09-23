@@ -217,6 +217,7 @@ public class Messages
                          WidgetProperties_Editable,
                          WidgetProperties_EmptyColor,
                          WidgetProperties_Enabled,
+                         WidgetProperties_Stretched,
                          WidgetProperties_ExtremaVisible,
                          WidgetProperties_FallbackSymbol,
                          WidgetProperties_File,
