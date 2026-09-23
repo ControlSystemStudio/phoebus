@@ -21,7 +21,6 @@ import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.*;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
-import org.epics.vtype.VType;
 import org.phoebus.archive.reader.appliance.ApplianceArchiveReaderConstants;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
 import org.phoebus.archive.vtype.VTypeHelper;
@@ -380,14 +379,12 @@ public class TracesTabController {
                     PVItem pvItem = (PVItem)cell.getValue();
                     PVSamples pvSamples = pvItem.getSamples();
                     pvSamples.lockForWriting();
-                    PlotSample plotSample = pvSamples.get(0);
                     boolean hasAlarmLimits = false;
                     for(int i = 0; i < pvSamples.size(); i++){
                         hasAlarmLimits = VTypeHelper.hasAlarmLimits(pvSamples.get(i).getVType());
                     }
                     pvSamples.unlockForWriting();
 
-                    VType vType = plotSample.getVType();
                     if(!hasAlarmLimits){
                         final Alert dialog = new Alert(Alert.AlertType.ERROR);
                         dialog.setTitle(Messages.CannotShowAlarmLimits);

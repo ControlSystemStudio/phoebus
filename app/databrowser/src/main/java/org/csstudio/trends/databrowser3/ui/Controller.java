@@ -594,9 +594,6 @@ public class Controller
             if (item instanceof PVItem pv) {
                 pv.getSamples().clear();
             }
-            if (item instanceof AlarmLimitItem alarmLimitItem) {
-                System.out.println();
-            }
         }
         // Re-fetch archived data
         scheduleArchiveRetrieval();
