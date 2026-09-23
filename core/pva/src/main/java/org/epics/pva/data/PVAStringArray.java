@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.exceptions.PVAArraySizeException;
 
 /** 'Primitive' PV Access data type
  *   @author Kay Kasemir
@@ -89,6 +90,9 @@ public class PVAStringArray extends PVAData implements PVAArray, PVAValue
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
+        // Each array element needs to contain at least a byte for the string size
+        if (size < 0  ||  size > buffer.remaining())
+            throw new PVAArraySizeException(size, buffer.remaining());
         String[] new_value = value;
         if (new_value == null  ||  new_value.length != size)
             new_value = new String[size];

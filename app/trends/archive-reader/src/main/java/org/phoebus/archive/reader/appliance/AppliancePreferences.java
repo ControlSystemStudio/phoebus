@@ -20,6 +20,7 @@ public class AppliancePreferences {
     @Preference static boolean useStatisticsForOptimizedData;
     @Preference static boolean useNewOptimizedOperator;
     @Preference static boolean useHttps;
+    @Preference static boolean ppOptimizedWithLastSample;
 
     static {
     	AnnotatedPreferences.initialize(AppliancePreferences.class, "/appliance_preferences.properties");

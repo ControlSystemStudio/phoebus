@@ -13,6 +13,7 @@ import java.util.BitSet;
 import java.util.List;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.exceptions.PVAArraySizeException;
 
 /** 'Primitive' PV Access data type
  *   @author Kay Kasemir
@@ -95,6 +96,8 @@ public class PVABoolArray extends PVAData implements PVAArray, PVAValue
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
+        if (size < 0  ||  size > buffer.remaining())
+            throw new PVAArraySizeException(size, buffer.remaining());
         final boolean[] new_value = new boolean[size];
         for (int i=0; i<size; ++i)
             new_value[i] = buffer.get() != 0;
