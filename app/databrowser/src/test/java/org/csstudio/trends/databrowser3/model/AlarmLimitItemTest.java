@@ -95,4 +95,121 @@ public class AlarmLimitItemTest {
         assertEquals(4, alarmLimitItem.getSamples().size());
 
     }
+
+    @Test
+    public void testInfiniteCheck1(){
+
+        PVItem pvItem = Mockito.mock(PVItem.class);
+        when(pvItem.getName()).thenReturn("name");
+        when(pvItem.getScanPeriod()).thenReturn(1.0);
+
+        PVSamples pvSamples = new PVSamples(new AtomicInteger(0));
+        Range displayRange = Range.of(-20, 20);
+
+        VType vType1 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now()), Display.of(displayRange, Range.of(Double.NEGATIVE_INFINITY, 10), Range.of(-5, 5), displayRange, "unit", new DecimalFormat()));
+        VType vType2 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now().plusSeconds(1)), Display.of(displayRange, Range.of(-100, 10), Range.of(-5, 5), displayRange, "unit", new DecimalFormat()));
+        VType vType3 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now().plusSeconds(2)), Display.of(displayRange, Range.of(-1000, 10), Range.of(-5, 5), displayRange, "unit", new DecimalFormat()));
+
+        pvSamples.mergeArchivedData("source", List.of(vType1, vType2, vType3));
+
+        when(pvItem.getSamples()).thenReturn(pvSamples);
+
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
+
+        alarmLimitItem.getSamples().lockForWriting();
+
+        assertEquals(3, alarmLimitItem.getSamples().size());
+
+    }
+
+    @Test
+    public void testInfiniteCheck2(){
+
+        PVItem pvItem = Mockito.mock(PVItem.class);
+        when(pvItem.getName()).thenReturn("name");
+        when(pvItem.getScanPeriod()).thenReturn(1.0);
+
+        PVSamples pvSamples = new PVSamples(new AtomicInteger(0));
+        Range displayRange = Range.of(-20, 20);
+
+        VType vType1 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now()), Display.of(displayRange, Range.of(-10, Double.POSITIVE_INFINITY), Range.of(-5, 5), displayRange, "unit", new DecimalFormat()));
+        VType vType2 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now().plusSeconds(1)), Display.of(displayRange, Range.of(-100, 100), Range.of(-5, 5), displayRange, "unit", new DecimalFormat()));
+        VType vType3 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now().plusSeconds(2)), Display.of(displayRange, Range.of(-1000, 1000), Range.of(-5, 5), displayRange, "unit", new DecimalFormat()));
+
+        pvSamples.mergeArchivedData("source", List.of(vType1, vType2, vType3));
+
+        when(pvItem.getSamples()).thenReturn(pvSamples);
+
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.HIHI);
+
+        alarmLimitItem.getSamples().lockForWriting();
+
+        assertEquals(3, alarmLimitItem.getSamples().size());
+
+    }
+
+    @Test
+    public void testInfiniteCheck3(){
+
+        PVItem pvItem = Mockito.mock(PVItem.class);
+        when(pvItem.getName()).thenReturn("name");
+        when(pvItem.getScanPeriod()).thenReturn(1.0);
+
+        PVSamples pvSamples = new PVSamples(new AtomicInteger(0));
+        Range displayRange = Range.of(-20, 20);
+
+        VType vType1 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now()), Display.of(displayRange, Range.of(-10, 10), Range.of(Double.NEGATIVE_INFINITY, 5), displayRange, "unit", new DecimalFormat()));
+        VType vType2 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now().plusSeconds(1)), Display.of(displayRange, Range.of(-100, 100), Range.of(-50, 50), displayRange, "unit", new DecimalFormat()));
+        VType vType3 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now().plusSeconds(2)), Display.of(displayRange, Range.of(-1000, 1000), Range.of(-500, 500), displayRange, "unit", new DecimalFormat()));
+
+        pvSamples.mergeArchivedData("source", List.of(vType1, vType2, vType3));
+
+        when(pvItem.getSamples()).thenReturn(pvSamples);
+
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOW);
+
+        alarmLimitItem.getSamples().lockForWriting();
+
+        assertEquals(3, alarmLimitItem.getSamples().size());
+
+    }
+
+    @Test
+    public void testInfiniteCheck4(){
+
+        PVItem pvItem = Mockito.mock(PVItem.class);
+        when(pvItem.getName()).thenReturn("name");
+        when(pvItem.getScanPeriod()).thenReturn(1.0);
+
+        PVSamples pvSamples = new PVSamples(new AtomicInteger(0));
+        Range displayRange = Range.of(-20, 20);
+
+        VType vType1 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now()), Display.of(displayRange, Range.of(-10, 10), Range.of(-5, Double.POSITIVE_INFINITY), displayRange, "unit", new DecimalFormat()));
+        VType vType2 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now().plusSeconds(1)), Display.of(displayRange, Range.of(-100, 100), Range.of(-50, 50), displayRange, "unit", new DecimalFormat()));
+        VType vType3 = VDouble.of(1.0, Alarm.none(), Time.timeOf(Instant.now().plusSeconds(2)), Display.of(displayRange, Range.of(-1000, 1000), Range.of(-500, 500), displayRange, "unit", new DecimalFormat()));
+
+        pvSamples.mergeArchivedData("source", List.of(vType1, vType2, vType3));
+
+        when(pvItem.getSamples()).thenReturn(pvSamples);
+
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.HIGH);
+
+        alarmLimitItem.getSamples().lockForWriting();
+
+        assertEquals(3, alarmLimitItem.getSamples().size());
+
+    }
+
+    @Test
+    public void testIllegalArgument1(){
+        assertThrows(IllegalArgumentException.class, () -> AlarmLimitItem.createAlarmLimitItem(null, null));
+    }
+
+    @Test
+    public void testIllegalArgument2(){
+        PVItem pvItem = Mockito.mock(PVItem.class);
+        assertThrows(IllegalArgumentException.class, () -> AlarmLimitItem.createAlarmLimitItem(pvItem, null));
+    }
+
+
 }

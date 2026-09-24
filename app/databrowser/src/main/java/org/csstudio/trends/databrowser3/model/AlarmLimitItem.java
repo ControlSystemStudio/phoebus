@@ -1,15 +1,12 @@
 package org.csstudio.trends.databrowser3.model;
 
-import org.epics.util.stats.Range;
 import org.epics.vtype.*;
 import org.phoebus.archive.reader.appliance.ApplianceArchiveReaderConstants;
-import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.pv.PV;
-
 
 import javax.xml.stream.XMLStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -18,70 +15,46 @@ import java.util.List;
  */
 public class AlarmLimitItem extends PVItem {
 
-    private String limitType;
-    private PVItem parentItem;
+    private final String limitType;
 
+    /**
+     * Creates an {@link AlarmLimitItem} based on a {@link PVItem} and the {@link Display} information in each sample.
+     * @param parentItem The {@link PVItem} from which to construct an {@link AlarmLimitItem}
+     * @param limitType One of the limit types defined in {@link ApplianceArchiveReaderConstants}
+     * @return An {@link AlarmLimitItem} if all is well.
+     * @throws IllegalArgumentException
+     */
     public static AlarmLimitItem createAlarmLimitItem(final PVItem parentItem, final String limitType) throws IllegalArgumentException {
         if (parentItem == null) {
             throw new IllegalArgumentException("Parent item cannot be null");
         }
-        PVSamples pvSamples = parentItem.getSamples();
-        pvSamples.lockForWriting();
-        PlotSample plotSample = pvSamples.get(0);
-        if (plotSample == null) {
-            throw new IllegalArgumentException("First element in samples cannot be null");
-        }
-        Display display = Display.displayOf(plotSample.getVType());
-        if (display == null) {
-            throw new IllegalArgumentException("Display of first sample is not available");
-        }
-        Range alarmRange = display.getAlarmRange();
-        Range warningRange = display.getWarningRange();
-        pvSamples.unlockForWriting();
-        switch (limitType) {
-            case ApplianceArchiveReaderConstants.LOLO:
-                if (!Double.isFinite(alarmRange.getMinimum())) {
-                    throw new IllegalArgumentException("LOLO alarm limit must be finite");
-                }
-                break;
-            case ApplianceArchiveReaderConstants.LOW:
-                if (!Double.isFinite(warningRange.getMinimum())) {
-                    throw new IllegalArgumentException("LOW alarm limit must be finite");
-                }
-                break;
-            case ApplianceArchiveReaderConstants.HIGH:
-                if (!Double.isFinite(warningRange.getMaximum())) {
-                    throw new IllegalArgumentException("HIGH alarm limit must be finite");
-                }
-                break;
-            case ApplianceArchiveReaderConstants.HIHI:
-                if (!Double.isFinite(alarmRange.getMaximum())) {
-                    throw new IllegalArgumentException("HIHI alarm limit must be finite");
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown alarm limit type");
-        }
+        if(!ApplianceArchiveReaderConstants.LOLO.equals(limitType) &&
+            !ApplianceArchiveReaderConstants.LOW.equals(limitType) &&
+            !ApplianceArchiveReaderConstants.HIGH.equals(limitType) &&
+            !ApplianceArchiveReaderConstants.HIHI.equals(limitType)) {
 
+            throw new IllegalArgumentException("Limit type " + limitType + " is not supported");
+        }
         return new AlarmLimitItem(parentItem, limitType);
     }
 
-    protected AlarmLimitItem(final PVItem parentItem, final String limitType) {
+    public AlarmLimitItem(final PVItem parentItem, final String limitType) throws IllegalArgumentException {
         super(parentItem.getName(), parentItem.getScanPeriod());
         this.limitType = limitType;
-        this.parentItem = parentItem;
         PVSamples samplesFromArchiver = parentItem.getSamples();
         samplesFromArchiver.lockForWriting();
         List<VType> historicAlarmLimitValues = new ArrayList<>(samplesFromArchiver.size());
         VNumber vPreviousAlarmLimit = null;
         for (int i = 0; i < samplesFromArchiver.size(); i++) {
             VType vType = samplesFromArchiver.get(i).getVType();
-            VType alarmLimitVType = getAlarmLimitVType(vType);
-            VNumber alarmLimitVTypeNumber = (VNumber)alarmLimitVType;
-            if(vPreviousAlarmLimit == null || !vPreviousAlarmLimit.getValue().equals(alarmLimitVTypeNumber.getValue())){
-                historicAlarmLimitValues.add(alarmLimitVType);
+            Optional<VType> alarmLimitVType = getAlarmLimitVType(vType);
+            if(alarmLimitVType.isPresent()) {
+                VNumber alarmLimitVTypeNumber = (VNumber)alarmLimitVType.get();
+                if(vPreviousAlarmLimit == null || !vPreviousAlarmLimit.getValue().equals(alarmLimitVTypeNumber.getValue())){
+                    historicAlarmLimitValues.add(alarmLimitVType.get());
+                }
+                vPreviousAlarmLimit = alarmLimitVTypeNumber;
             }
-            vPreviousAlarmLimit = alarmLimitVTypeNumber;
         }
         samplesFromArchiver.unlockForWriting();
         getSamples().mergeArchivedData(parentItem.getName(), historicAlarmLimitValues);
@@ -92,23 +65,35 @@ public class AlarmLimitItem extends PVItem {
         }
     }
 
-    private VType getAlarmLimitVType(VType archiverSample) {
-        Display display = Display.displayOf(archiverSample);
+    /**
+     * Computes a {@link VType} from the {@link Display} of an archived or live {@link VType} value.
+     * @param value Archived or live {@link VType} value.
+     * @return {@link Optional#empty()} if the {@link Display} of the {@link VType} values is {@link Double#NEGATIVE_INFINITY}
+     * or {@link Double#POSITIVE_INFINITY}. Otherwise a {@link VDouble} where the value is the alarm limit (as
+     * specified in {@link #limitType}), no alarm and same {@link Time} as the {@link VType} value.
+      */
+    protected Optional<VType> getAlarmLimitVType(VType value) {
+        Display display = Display.displayOf(value);
+        double doubleValue;
         switch (limitType) {
             case ApplianceArchiveReaderConstants.LOLO:
-                return VDouble.of(display.getAlarmRange().getMinimum(),
-                        Alarm.none(), Time.timeOf(archiverSample), Display.none());
+                doubleValue = display.getAlarmRange().getMinimum();
+                return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
+                        Optional.empty();
             case ApplianceArchiveReaderConstants.LOW:
-                return VDouble.of(display.getWarningRange().getMinimum(),
-                        Alarm.none(), Time.timeOf(archiverSample), Display.none());
+                doubleValue = display.getWarningRange().getMinimum();
+                return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
+                        Optional.empty();
             case ApplianceArchiveReaderConstants.HIGH:
-                return VDouble.of(display.getWarningRange().getMaximum(),
-                        Alarm.none(), Time.timeOf(archiverSample), Display.none());
+                doubleValue = display.getWarningRange().getMaximum();
+                return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
+                        Optional.empty();
             case ApplianceArchiveReaderConstants.HIHI:
-                return VDouble.of(display.getAlarmRange().getMaximum(),
-                        Alarm.none(), Time.timeOf(archiverSample), Display.none());
+                doubleValue = display.getAlarmRange().getMaximum();
+                return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
+                        Optional.empty();
         }
-        return null;
+        return Optional.empty();
     }
 
 
@@ -121,9 +106,20 @@ public class AlarmLimitItem extends PVItem {
     public void write(final XMLStreamWriter writer) throws Exception {
     }
 
+    /**
+     * Handles new live data.
+     * <p>
+     *     If an alarm limit is not defined, the live data will use Double.POSITIVE_INFINITE or
+     *     Double.NEGATIVE_INFITE. As we do not want to plot that, such live values are ignored.
+     * </p>
+     * <p>
+     *     Note that the command line tools caget/pvget return zero for an undefined alarm limit,
+     *     while the PV libs in Phoebus treat this differently.
+     * </p>
+     * @param value A live value added to the {@link ModelItem}
+     */
     @Override
     public void valueChanged(VType value){
-        super.valueChanged(getAlarmLimitVType(value));
+        getAlarmLimitVType(value).ifPresent(super::valueChanged);
     }
-
 }

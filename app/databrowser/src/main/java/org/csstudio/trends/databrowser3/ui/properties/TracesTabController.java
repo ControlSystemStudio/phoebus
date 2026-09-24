@@ -410,7 +410,7 @@ public class TracesTabController {
                             alarmLimitItem.setDisplayName("");
                             alarmLimitItem.setColor(pvItem.getPaintColor());
                             alarmLimitItem.setLineStyle(pvItem.getLineStyle());
-                            alarmLimitItem.setLineWidth(1);
+                            alarmLimitItem.setLineWidth(3);
                             try {
                                 model.addItem(alarmLimitItem);
                             } catch (Exception e) {
