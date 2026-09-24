@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
+import org.csstudio.display.builder.model.widgets.PVASecurityWidget;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
 import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
 import org.csstudio.display.builder.model.widgets.TableWidget;
@@ -44,6 +45,7 @@ public class BaseWidgetRuntimes implements WidgetRuntimesService
             entry(GroupWidget.WIDGET_DESCRIPTOR.getType(),           () -> new GroupWidgetRuntime()),
             entry(ImageWidget.WIDGET_DESCRIPTOR.getType(),           () -> new ImageWidgetRuntime()),
             entry(NavigationTabsWidget.WIDGET_DESCRIPTOR.getType(),  () -> new NavigationTabsRuntime()),
+            entry(PVASecurityWidget.WIDGET_DESCRIPTOR.getType(),      () -> new PVASecurityRuntime()),
             entry(ScaledSliderWidget.WIDGET_DESCRIPTOR.getType(),    () -> new SliderWidgetRuntime()),
             entry(ScrollBarWidget.WIDGET_DESCRIPTOR.getType(),       () -> new SliderWidgetRuntime()),
             entry(StripchartWidget.WIDGET_DESCRIPTOR.getType(),      () -> new StripchartWidgetRuntime()),
