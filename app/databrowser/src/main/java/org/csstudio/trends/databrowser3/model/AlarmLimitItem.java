@@ -38,7 +38,7 @@ public class AlarmLimitItem extends PVItem {
         return new AlarmLimitItem(parentItem, limitType);
     }
 
-    public AlarmLimitItem(final PVItem parentItem, final String limitType) throws IllegalArgumentException {
+    private AlarmLimitItem(final PVItem parentItem, final String limitType) throws IllegalArgumentException {
         super(parentItem.getName(), parentItem.getScanPeriod());
         this.limitType = limitType;
         PVSamples samplesFromArchiver = parentItem.getSamples();
@@ -69,7 +69,7 @@ public class AlarmLimitItem extends PVItem {
      * Computes a {@link VType} from the {@link Display} of an archived or live {@link VType} value.
      * @param value Archived or live {@link VType} value.
      * @return {@link Optional#empty()} if the {@link Display} of the {@link VType} values is {@link Double#NEGATIVE_INFINITY}
-     * or {@link Double#POSITIVE_INFINITY}. Otherwise a {@link VDouble} where the value is the alarm limit (as
+     * or {@link Double#POSITIVE_INFINITY}. Otherwise, a {@link VDouble} where the value is the alarm limit (as
      * specified in {@link #limitType}), no alarm and same {@link Time} as the {@link VType} value.
       */
     protected Optional<VType> getAlarmLimitVType(VType value) {
@@ -113,7 +113,7 @@ public class AlarmLimitItem extends PVItem {
      *     Double.NEGATIVE_INFITE. As we do not want to plot that, such live values are ignored.
      * </p>
      * <p>
-     *     Note that the command line tools caget/pvget return zero for an undefined alarm limit,
+     *     Note that command line tools caget and pvget return zero for an undefined alarm limit,
      *     while the PV libs in Phoebus treat this differently.
      * </p>
      * @param value A live value added to the {@link ModelItem}

@@ -36,9 +36,8 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
+        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
 
-        alarmLimitItem.getSamples().lockForWriting();
         // PVSamples returns the size of raw + 1 to account for a live sample, so need to compare to 2.
         assertEquals(2, alarmLimitItem.getSamples().size());
 
@@ -62,9 +61,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
-
-        alarmLimitItem.getSamples().lockForWriting();
+        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
         // PVSamples returns the size of raw + 1 to account for a live sample, so need to compare to 3.
         assertEquals(3, alarmLimitItem.getSamples().size());
 
@@ -88,7 +85,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
+        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
 
         alarmLimitItem.getSamples().lockForWriting();
         // PVSamples returns the size of raw + 1 to account for a live sample, so need to compare to 4.
@@ -114,10 +111,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
-
-        alarmLimitItem.getSamples().lockForWriting();
-
+        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
         assertEquals(3, alarmLimitItem.getSamples().size());
 
     }
@@ -140,10 +134,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.HIHI);
-
-        alarmLimitItem.getSamples().lockForWriting();
-
+        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.HIHI);
         assertEquals(3, alarmLimitItem.getSamples().size());
 
     }
@@ -166,9 +157,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOW);
-
-        alarmLimitItem.getSamples().lockForWriting();
+        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOW);
 
         assertEquals(3, alarmLimitItem.getSamples().size());
 
@@ -192,10 +181,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.HIGH);
-
-        alarmLimitItem.getSamples().lockForWriting();
-
+        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.HIGH);
         assertEquals(3, alarmLimitItem.getSamples().size());
 
     }
