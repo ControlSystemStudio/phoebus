@@ -377,7 +377,7 @@ public class TracesTabController {
 
         alarmLimitsVisibilityColumn.setCellFactory(modelItemBooleanTableColumn -> new AlarmVisibilityTableCell());
         alarmLimitsVisibilityColumn.setCellValueFactory(cell -> {
-            final SimpleBooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).isShowAlarmLimits());
+            final SimpleBooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).showAlarmLimits());
             visibilityProperty.addListener((p, old, visible) -> {
                 PVItem pvItem = (PVItem)cell.getValue();
                 if(visible){
