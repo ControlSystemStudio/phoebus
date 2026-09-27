@@ -39,6 +39,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -112,6 +114,8 @@ public class TracesTabController {
 
     private final List<WeakReference<SelectedSampleProperty>> selectedSamples = new ArrayList<>();
     private final ObservableList<String> axisNames = FXCollections.observableArrayList();
+
+    private final Logger logger = Logger.getLogger(TracesTabController.class.getName());
 
     private static final String[] limitTypes = new  String[]{ApplianceArchiveReaderConstants.LOLO,
             ApplianceArchiveReaderConstants.LOW,
@@ -414,18 +418,18 @@ public class TracesTabController {
                             try {
                                 model.addItem(alarmLimitItem);
                             } catch (Exception e) {
-                                throw new RuntimeException(e);
+                                logger.log(Level.WARNING, "Unable to create alarm limit item for " + pvItem.getName(), e);
                             }
                         }
                     }
                 }
                 else{
-                    // Remove alarm limit items from model
                     model.getItems().forEach(modelItem -> {
                         if(modelItem instanceof AlarmLimitItem){
                             model.removeItem(modelItem);
                         }
                     });
+                    //hideAlarmLimits(pvItem.getName());
                 }
             });
             return visibilityProperty;
@@ -447,6 +451,17 @@ public class TracesTabController {
         createContextMenu();
         updateAxisNames();
     }
+
+    private void hideAllAlarmLimits() {
+        model.getItems().stream().map(ModelItem::getName).forEach(pvName -> hideAlarmLimits(pvName));
+    }
+
+    private void hideAlarmLimits(String pvName) {
+        model.getItems().stream().filter(i -> i.getName().equals(pvName) && i instanceof AlarmLimitItem).forEach(modelItem -> {
+            model.removeItem(modelItem);
+        });
+    }
+
 
     private static class SelectedSampleProperty extends SimpleStringProperty
     {
