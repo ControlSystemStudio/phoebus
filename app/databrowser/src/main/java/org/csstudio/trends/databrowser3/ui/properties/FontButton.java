@@ -43,17 +43,31 @@ public class FontButton extends Button
     private final ComboBox<String> size = new ComboBox<>(FXCollections.observableArrayList("8", "10", "12", "14", "16", "18", "22", "24", "32"));
     private final CheckBox bold = new CheckBox(Messages.FontBtnBold),
                            italic = new CheckBox(Messages.FontBtnItalics);
-    private TextField example = new TextField(Messages.FontBtnExample);
+    private final TextField example = new TextField(Messages.FontBtnExample);
 
-    private PopOver popover;
+    private final PopOver popover;
 
     private Font font;
     private Consumer<Font> on_font_selected;
 
+    /**
+     * No-arg constructor needed by FXML.
+     * <p>
+     *     Initial font and on_font_selected callback must be set if this constructor is used.
+     * </p>
+     */
     public FontButton(){
+        popover = new PopOver(createContent());
+        setOnAction(event ->
+        {
+            if (popover.isShowing())
+                popover.hide();
+            else
+                popover.show(this);
+        });
     }
 
-    /** @param initial_font Intiial font
+    /** @param initial_font Initial font
      *  @param on_font_selected Callback for selected font
      */
     public FontButton(final Font initial_font, final Consumer<Font> on_font_selected)
@@ -170,5 +184,13 @@ public class FontButton extends Button
         if (! font.getStyle().toLowerCase().contains("regular"))
             buf.append(",").append(font.getStyle());
         return buf.toString();
+    }
+
+    public void setOnFontSelected(final Consumer<Font> onFontSelected) {
+        this.on_font_selected = onFontSelected;
+    }
+
+    public void setInitialFont(final Font initialFont) {
+        this.font = initialFont;
     }
 }
