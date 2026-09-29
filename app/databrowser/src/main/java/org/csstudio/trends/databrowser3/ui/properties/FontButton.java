@@ -72,16 +72,9 @@ public class FontButton extends Button
      */
     public FontButton(final Font initial_font, final Consumer<Font> on_font_selected)
     {
+        this();
         this.font = initial_font;
         this.on_font_selected = on_font_selected;
-        popover = new PopOver(createContent());
-        setOnAction(event ->
-        {
-            if (popover.isShowing())
-                popover.hide();
-            else
-                popover.show(this);
-        });
     }
 
     private Node createContent()
