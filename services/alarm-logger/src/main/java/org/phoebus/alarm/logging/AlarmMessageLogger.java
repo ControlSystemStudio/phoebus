@@ -57,7 +57,7 @@ public class AlarmMessageLogger implements Runnable {
      * Create a alarm logger for the alarm messages (both state and configuration)
      * for a given alarm server topic.
      * This runnable will create the kafka streams for the given alarm messages which match the format 'topic'
-     * 
+     *
      * @param topic - the alarm topic in kafka
      */
     public AlarmMessageLogger(String topic) {
@@ -189,9 +189,9 @@ public class AlarmMessageLogger implements Runnable {
 
         alarms.split(Named.as("alarm-"))
                 .branch((k, v) -> k.startsWith("state"),
-                        Branched.withConsumer(alarmStateStream -> processAlarmStateStream(alarmStateStream)))
+                        Branched.withConsumer(this::processAlarmStateStream))
                 .branch((k, v) -> k.startsWith("config"),
-                        Branched.withConsumer(alarmConfigStream -> processAlarmConfigurationStream(alarmConfigStream)))
+                        Branched.withConsumer(this::processAlarmConfigurationStream))
                 .defaultBranch(Branched.withConsumer(stream -> {
                     // Log each unmatched key in the default branch
                     stream.foreach((k, v) -> logger.warning("Unknown alarm message type for key: " + k));

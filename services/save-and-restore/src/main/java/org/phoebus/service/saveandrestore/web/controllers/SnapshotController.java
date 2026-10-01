@@ -57,7 +57,7 @@ public class SnapshotController extends BaseController {
      * @return SnapshotData object associated with #uniqueId.
      */
     @GetMapping(value = "/snapshot/{uniqueId}", produces = JSON)
-    public SnapshotData getSnapshotData(@PathVariable String uniqueId) {
+    public SnapshotData getSnapshotData(@PathVariable("uniqueId") String uniqueId) {
         return nodeDAO.getSnapshotData(uniqueId);
     }
 

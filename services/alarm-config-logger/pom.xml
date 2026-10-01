@@ -6,7 +6,9 @@
     <version>6.0.0-SNAPSHOT</version>
   </parent>
   <properties>
-    <java.version>21</java.version>
+    <java.version>25</java.version>
+    <!-- override root spring.boot.version for this module only -->
+    <spring.boot.version>4.1.0</spring.boot.version>
   </properties>
   <artifactId>service-alarm-config-logger</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
@@ -75,8 +77,24 @@
       <artifactId>org.eclipse.jgit.ssh.apache</artifactId>
       <version>${jgit.version}</version>
     </dependency>
-    <!--JUL bindings for sfl4j-->
-    <dependency> 
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${tools.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${tools.jackson.version}</version>
+    </dependency>
+    <!-- Jackson 3.x keeps annotations at com.fasterxml, but requires 2.22+. -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${jackson.annotations.version}</version>
+    </dependency>
+    <!--JUL bindings for slf4j -->
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
       <version>1.7.28</version>

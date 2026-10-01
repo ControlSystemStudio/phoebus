@@ -1,7 +1,7 @@
 package org.phoebus.applications.queueserver.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.phoebus.applications.queueserver.Preferences;
 import org.phoebus.applications.queueserver.client.*;
 import org.phoebus.applications.queueserver.client.ApiEndpoint;
@@ -61,7 +61,7 @@ public final class RunEngineRepl {
             if (parts.length == 2) {
                 try {
                     body = JSON.readValue(parts[1], Object.class);
-                } catch (JsonProcessingException badJson) {
+                } catch (JacksonException badJson) {
                     System.out.println("❌ Invalid JSON: " + badJson.getOriginalMessage());
                     continue;
                 }

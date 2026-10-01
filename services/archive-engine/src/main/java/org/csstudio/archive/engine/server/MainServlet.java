@@ -25,7 +25,7 @@ import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeDuration;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonGenerator;
 
 /** 'main' web page
  *  @author Kay Kasemir
@@ -69,31 +69,31 @@ public class MainServlet extends HttpServlet
             final JSONWriter json = new JSONWriter(request, response);
             final JsonGenerator jg = json.getGenerator();
 
-            jg.writeStringField(Messages.HTTP_Version, Engine.VERSION);
-            jg.writeStringField(Messages.HTTP_Description, model.getName());
-            jg.writeStringField(Messages.HTTP_State, model.getState().name());
+            jg.writeStringProperty(Messages.HTTP_Version, Engine.VERSION);
+            jg.writeStringProperty(Messages.HTTP_Description, model.getName());
+            jg.writeStringProperty(Messages.HTTP_State, model.getState().name());
 
             if (start != null)
             {
-                jg.writeStringField(Messages.HTTP_StartTime, TimestampHelper.format(start));
+                jg.writeStringProperty(Messages.HTTP_StartTime, TimestampHelper.format(start));
                 final double up_secs =
                         TimeDuration.toSecondsDouble(Duration.between(start, Instant.now()));
-                jg.writeStringField(Messages.HTTP_Uptime, SecondsParser.formatSeconds(up_secs));
+                jg.writeStringProperty(Messages.HTTP_Uptime, SecondsParser.formatSeconds(up_secs));
             }
 
-            jg.writeNumberField(Messages.HTTP_GroupCount, group_count);
-            jg.writeNumberField(Messages.HTTP_ChannelCount, totalChannelCount);
-            jg.writeNumberField(Messages.HTTP_Disconnected, disconnectCount);
-            jg.writeNumberField(Messages.HTTP_BatchSize, Preferences.batch_size);
-            jg.writeNumberField(Messages.HTTP_WritePeriod, Preferences.write_period);
+            jg.writeNumberProperty(Messages.HTTP_GroupCount, group_count);
+            jg.writeNumberProperty(Messages.HTTP_ChannelCount, totalChannelCount);
+            jg.writeNumberProperty(Messages.HTTP_Disconnected, disconnectCount);
+            jg.writeNumberProperty(Messages.HTTP_BatchSize, Preferences.batch_size);
+            jg.writeNumberProperty(Messages.HTTP_WritePeriod, Preferences.write_period);
 
-            jg.writeStringField(Messages.HTTP_WriteState, (SampleBuffer.isInErrorState()
+            jg.writeStringProperty(Messages.HTTP_WriteState, (SampleBuffer.isInErrorState()
                     ? Messages.HTTP_WriteError : "OK"));
 
-            jg.writeStringField(Messages.HTTP_LastWriteTime, last_write_time == null ? "Never" : TimestampHelper.format(last_write_time));
-            jg.writeNumberField(Messages.HTTP_WriteCount, model.getWriteCount());
-            jg.writeNumberField(Messages.HTTP_WriteDuration, model.getWriteDuration());
-            jg.writeNumberField(Messages.HTTP_Idletime, model.getIdlePercentage());
+            jg.writeStringProperty(Messages.HTTP_LastWriteTime, last_write_time == null ? "Never" : TimestampHelper.format(last_write_time));
+            jg.writeNumberProperty(Messages.HTTP_WriteCount, model.getWriteCount());
+            jg.writeNumberProperty(Messages.HTTP_WriteDuration, model.getWriteDuration());
+            jg.writeNumberProperty(Messages.HTTP_Idletime, model.getIdlePercentage());
 
             final Runtime runtime = Runtime.getRuntime();
             final double used_mem = runtime.totalMemory() / MB;
@@ -101,9 +101,9 @@ public class MainServlet extends HttpServlet
             final double perc_mem = max_mem > 0 ?
                          used_mem / max_mem * 100.0 : 0.0;
 
-            jg.writeNumberField("Used Memory", used_mem);
-            jg.writeNumberField("Max Memory", max_mem);
-            jg.writeNumberField("Percentage Memory", perc_mem);
+            jg.writeNumberProperty("Used Memory", used_mem);
+            jg.writeNumberProperty("Max Memory", max_mem);
+            jg.writeNumberProperty("Percentage Memory", perc_mem);
 
             json.close();
         }

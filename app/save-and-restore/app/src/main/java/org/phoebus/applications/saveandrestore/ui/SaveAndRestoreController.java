@@ -4,9 +4,9 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
@@ -410,13 +410,8 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (savedTreeState == null) {
             return null;
         }
-        try {
-            return objectMapper.readValue(savedTreeState, new TypeReference<>() {
-            });
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, "Unable to parse saved tree state", e);
-            return null;
-        }
+        return objectMapper.readValue(savedTreeState, new TypeReference<>() {
+        });
     }
 
     private String getSavedFilterName() {
@@ -424,12 +419,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         if (savedFilterName == null) {
             return null;
         }
-        try {
-            return objectMapper.readValue(savedFilterName, String.class);
-        } catch (IOException e) {
-            LOG.log(Level.WARNING, "Unable to parse saved filter name", e);
-            return null;
-        }
+        return objectMapper.readValue(savedFilterName, String.class);
     }
 
     /**
@@ -914,7 +904,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME,
                         objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
             }
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             LOG.log(Level.WARNING, "Failed to persist tree state");
         }
     }

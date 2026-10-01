@@ -19,7 +19,7 @@ import org.csstudio.archive.engine.model.ArchiveChannel;
 import org.csstudio.archive.engine.model.ArchiveGroup;
 import org.csstudio.archive.engine.model.EngineModel;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonGenerator;
 
 /** 'disconnected' web page
  *  @author Kay Kasemir
@@ -44,7 +44,7 @@ public class DisconnectedServlet extends HttpServlet
             final JSONWriter json = new JSONWriter(request, response);
             final JsonGenerator jg = json.getGenerator();
 
-            jg.writeArrayFieldStart(Messages.HTTP_DisconnectedTitle);
+            jg.writeArrayPropertyStart(Messages.HTTP_DisconnectedTitle);
 
             final int group_count = model.getGroupCount();
             for (int i=0; i<group_count; ++i)
@@ -57,8 +57,8 @@ public class DisconnectedServlet extends HttpServlet
                     if (! channel.isConnected())
                     {
                         jg.writeStartObject();
-                        jg.writeStringField(Messages.HTTP_Channel, channel.getName());
-                        jg.writeStringField(Messages.HTTP_Group, group.getName());
+                        jg.writeStringProperty(Messages.HTTP_Channel, channel.getName());
+                        jg.writeStringProperty(Messages.HTTP_Group, group.getName());
                         jg.writeEndObject();
                     }
                 }

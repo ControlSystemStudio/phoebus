@@ -19,14 +19,12 @@ import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
-import javax.websocket.DeploymentException;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +35,7 @@ import java.util.logging.Logger;
  *     <li>Manages keep alive as supported by the Spring Framework libs</li>
  *     <li>Passes string messages to registered {@link WebSocketMessageHandler}a</li>
  *     <li>Calls {@link Runnable}s (if specified) to signal connection or disconnection</li>
- *     <li>Attempts to auto-reconnect if web socket is closed by remote peer.</li>
+ *     <li>Attempts to auto-reconnect if web socket is closed by remote peer or if connection attempt fails.</li>
  * </ul>
  * <p>
  *     All messages received from the remote peer are strings only, but may be JSON formatted.
@@ -56,12 +54,13 @@ import java.util.logging.Logger;
  */
 public class WebSocketClientService {
 
-
     private StompSession stompSession;
     private Runnable connectCallback;
     private Runnable disconnectCallback;
     private final List<WebSocketMessageHandler> webSocketMessageHandlers = Collections.synchronizedList(new ArrayList<>());
-    private final AtomicBoolean attemptReconnect = new AtomicBoolean();
+    private final WebSocketClient webSocketClient = new StandardWebSocketClient();
+    private final WebSocketStompClient stompClient;
+    private final StompSessionHandler sessionHandler = new StompSessionHandler();
     /**
      * Full path to the web socket connection URL, e.g. ws://localhost:8080/Olog/web-socket
      */
@@ -88,6 +87,12 @@ public class WebSocketClientService {
             path = path.substring(0, path.length() - 1);
         }
         this.subscriptionEndpoint = path + Constants.MESSAGES;
+        stompClient = new WebSocketStompClient(webSocketClient);
+        stompClient.setMessageConverter(new StringMessageConverter());
+        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+        threadPoolTaskScheduler.initialize();
+        stompClient.setTaskScheduler(threadPoolTaskScheduler);
+        stompClient.setDefaultHeartbeat(new long[]{60000, 60000});
     }
 
     /**
@@ -122,62 +127,20 @@ public class WebSocketClientService {
     }
 
     /**
-     * Disconnects the socket if connected and terminates connection thread.
+     * Disconnects the socket if connected.
      */
-    public synchronized void shutdown() {
-        attemptReconnect.set(false);
+    public void shutdown() {
         if (stompSession != null && stompSession.isConnected()) {
             stompSession.disconnect();
         }
     }
 
     /**
-     * Attempts to connect to the remote peer, both in initial connection and in a reconnection scenario.
-     * If connection fails, new attempts are made every 10s until successful.
+     * Attempts to connect to the remote peer.
      */
     public void connect() {
-        attemptReconnect.set(true);
-        WebSocketClient webSocketClient = new StandardWebSocketClient();
-        WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
-        stompClient.setMessageConverter(new StringMessageConverter());
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.initialize();
-        stompClient.setTaskScheduler(threadPoolTaskScheduler);
-        stompClient.setDefaultHeartbeat(new long[]{60000, 60000});
-        StompSessionHandler sessionHandler = new StompSessionHandler();
         logger.log(Level.INFO, "Attempting web socket connection to " + connectUrl);
-        new Thread(() -> {
-            while (true) {
-                try {
-                    synchronized (WebSocketClientService.this) {
-                        if (attemptReconnect.get()) {
-                            stompSession = stompClient.connect(connectUrl, sessionHandler).get();
-                            stompSession.subscribe(this.subscriptionEndpoint, new StompFrameHandler() {
-                                @Override
-                                public Type getPayloadType(StompHeaders headers) {
-                                    return String.class;
-                                }
-
-                                @Override
-                                public void handleFrame(StompHeaders headers, Object payload) {
-                                    logger.log(Level.INFO, "Handling subscription frame: " + payload);
-                                    webSocketMessageHandlers.forEach(h -> h.handleWebSocketMessage((String) payload));
-                                }
-                            });
-                            attemptReconnect.set(false);
-                        }
-                        break;
-                    }
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Got exception when trying to connect", e);
-                }
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    logger.log(Level.WARNING, "Got exception when putting thread to sleep", e);
-                }
-            }
-        }).start();
+        stompClient.connectAsync(connectUrl, sessionHandler);
     }
 
     /**
@@ -199,22 +162,34 @@ public class WebSocketClientService {
         }
 
         /**
-         * Handles connection success callback: thread to attempt connection is aborted,
-         * and connect callback is called, if set by API client.
+         * Registers subscription for messages.
          *
          * @param session          the client STOMP session
          * @param connectedHeaders the STOMP CONNECTED frame headers
          */
         @Override
         public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
+            stompSession = session;
             logger.log(Level.INFO, "Connected to web socket");
+            stompSession.subscribe(subscriptionEndpoint, new StompFrameHandler() {
+                @Override
+                public Type getPayloadType(StompHeaders headers) {
+                    return String.class;
+                }
+
+                @Override
+                public void handleFrame(StompHeaders headers, Object payload) {
+                    logger.log(Level.INFO, "Handling subscription frame: " + payload);
+                    webSocketMessageHandlers.forEach(h -> h.handleWebSocketMessage((String) payload));
+                }
+            });
             if (connectCallback != null) {
                 connectCallback.run();
             }
         }
 
         /**
-         * Hit for instance if an attempt is made to send a message to peer after {@link StompSession} has been closed.
+         * Called when - for instance - an attempt is made to send a message to peer after {@link StompSession} has been closed.
          *
          * @param session   the client STOMP session
          * @param command   the STOMP command of the frame
@@ -229,30 +204,22 @@ public class WebSocketClientService {
         }
 
         /**
-         * Handles error for different type of {@link Exception}s:
-         * <ol>
-         *     <li>{@link DeploymentException}: unable to connect, i.e. do not start a new connection thread.</li>
-         *     <li>{@link ConnectionLostException}: service not reachable, e.g. due to network issues or service down.
-         *     Connection thread started.</li>
-         *     <li>{@link IllegalStateException}: service very busy or being debugged, i.e. heartbeat messages
-         *     not received. Connection thread started.</li>
-         * </ol>
+         * Called if connection fails or if connection is lost (e.g. remote service is terminated).
          *
          * @param session   the client STOMP session
-         * @param exception the exception that occurred. This is evaluated to determine if a reconnection
-         *                  thread should be launched.
+         * @param exception the exception that occurred.
          */
         @Override
         public void handleTransportError(StompSession session, Throwable exception) {
-            if(exception instanceof DeploymentException){
-                logger.log(Level.WARNING, "Unable to connect", exception);
+            logger.log(Level.WARNING, "Connection failed or lost, will attempt to reconnect", exception);
+            if (disconnectCallback != null && exception instanceof ConnectionLostException) {
+                disconnectCallback.run();
             }
-            else {
-                logger.log(Level.WARNING, "Connection lost, will attempt to reconnect", exception);
-                if (exception instanceof ConnectionLostException && disconnectCallback != null) {
-                    disconnectCallback.run();
-                }
+            try {
+                Thread.sleep(10000);
                 connect();
+            } catch (InterruptedException e) {
+                logger.log(Level.WARNING, "Sleep interrupted", e);
             }
         }
     }
@@ -268,7 +235,7 @@ public class WebSocketClientService {
         WebSocketClient webSocketClient = new StandardWebSocketClient();
         WebSocketStompClient stompClient = new WebSocketStompClient(webSocketClient);
         try {
-            StompSession stompSession = stompClient.connect(webSocketConnectUrl, new StompSessionHandlerAdapter() {
+            StompSession stompSession = stompClient.connectAsync(webSocketConnectUrl, new StompSessionHandlerAdapter() {
                 @Override
                 public Type getPayloadType(StompHeaders headers) {
                     return super.getPayloadType(headers);
@@ -277,7 +244,7 @@ public class WebSocketClientService {
             stompSession.disconnect();
             return true;
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Remote service on " + webSocketConnectUrl + " does not support web socket connection", e);
+            logger.log(Level.WARNING, "Remote service on " + webSocketConnectUrl + " does not support web socket connection on url " + webSocketConnectUrl, e);
         }
         return false;
     }
