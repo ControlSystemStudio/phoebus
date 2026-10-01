@@ -11,8 +11,13 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
+import java.awt.LinearGradientPaint;
+import java.awt.MultipleGradientPaint;
+import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.geom.Area;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
 import java.util.Objects;
@@ -93,6 +98,36 @@ public class RTTank extends Canvas
 
     /** Border width in pixels around the tank body; 0 = no border (default) */
     private volatile int border_width = 0;
+
+    /** Extra inset from the canvas edge to the plot body on all four sides.
+     *  0 for the tank look. With a bar track, the track extends into this
+     *  space, so it becomes the gap between the track and the fill. */
+    private volatile int innerPadding = 0;
+
+    /** Paint the empty part like the track of a progress bar, framed and
+     *  shaded across the bar like the JavaFX control, instead of the tank's
+     *  left-to-center gradient. */
+    private volatile boolean barTrack = false;
+
+    /** Stop positions of the track and fill shades, see {@link #shadesOf} */
+    private static final float[] TRACK_FRACTIONS = { 0.0f, 1f/3, 2f/3, 1.0f };
+
+    /** Stop positions of the frame shades, see {@link #frameShadesOf} */
+    private static final float[] FRAME_FRACTIONS = { 0.0f, 1.0f };
+
+    /** Corner arcs of the bar track frame and of the track and fill inside it,
+     *  twice the radii of the JavaFX style sheet */
+    private static final int FRAME_ARC = 6;
+    private static final int TRACK_ARC = 4;
+
+    /** Shades of {@link #empty} for the bar track */
+    private volatile Color[] trackShades = shadesOf(Color.LIGHT_GRAY.brighter().brighter());
+
+    /** Shades of the frame around the bar track */
+    private volatile Color[] frameShades = frameShadesOf(255);
+
+    /** Shades of {@link #fill} for the filled part of a bar */
+    private volatile Color[] fillShades = shadesOf(Color.BLUE);
 
     /** Current value, i.e. fill level */
     private volatile double value = 5.0;
@@ -219,6 +254,22 @@ public class RTTank extends Canvas
         requestUpdate();
     }
 
+    /** @param pixels Extra inset from all four canvas edges to the plot body, 0..20 */
+    public void setInnerPadding(final int pixels)
+    {
+        innerPadding = Math.clamp(pixels, 0, 20);
+        need_layout.set(true);
+        requestUpdate();
+    }
+
+    /** @param bar Paint the empty part like a progress bar track ({@code true})
+     *             or like a tank ({@code false}, default) */
+    public void setBarTrack(final boolean bar)
+    {
+        barTrack = bar;
+        requestUpdate();
+    }
+
     /** @param color Background color */
     public void setBackground(final javafx.scene.paint.Color color)
     {
@@ -243,6 +294,94 @@ public class RTTank extends Canvas
                 Math.max(0, empty.getBlue()  - 32),
                 empty.getAlpha()
             );
+        trackShades = shadesOf(empty);
+        frameShades = frameShadesOf(empty.getAlpha());
+    }
+
+    /** Shades of a bar color, following the JavaFX progress bar style sheet,
+     *  which shades the track and the bar across the bar through -7%, 0%,
+     *  -3% and -9% of the color's brightness.
+     *  @param color Track or fill color
+     *  @return The four shades, across the bar
+     */
+    private static Color[] shadesOf(final Color color)
+    {
+        return new Color[] { darker(color, 7), color, darker(color, 3), darker(color, 9) };
+    }
+
+    /** Shades of the frame around the bar track, as in the stock Phoebus
+     *  progress bar: the JavaFX style sheet shades the frame from -10% of
+     *  the text box border color to that color, and Phoebus sets the border
+     *  color to a light gray with the alpha of the track color.
+     *  @param alpha Alpha of the track color
+     *  @return The two shades, across the bar
+     */
+    private static Color[] frameShadesOf(final int alpha)
+    {
+        final Color border = new Color(236, 236, 236, alpha);
+        return new Color[] { darker(border, 10), border };
+    }
+
+    /** @param color Color to darken
+     *  @param percent How much darker, in percent of the brightness
+     *  @return Darkened color, alpha unchanged
+     */
+    private static Color darker(final Color color, final int percent)
+    {
+        final double scale = 1.0 - percent / 100.0;
+        return new Color((int) (color.getRed()   * scale),
+                         (int) (color.getGreen() * scale),
+                         (int) (color.getBlue()  * scale),
+                         color.getAlpha());
+    }
+
+    /** Paint the track of a bar: a one pixel frame around the shaded track.
+     *  The frame is painted as a ring, not under the track, so that a
+     *  semi-transparent track color is not applied twice.
+     *  @param gc Graphics
+     *  @param track Outer bounds of the track, including the frame
+     */
+    private void paintBarTrack(final Graphics2D gc, final Rectangle track)
+    {
+        final Rectangle inside = new Rectangle(track);
+        inside.grow(-1, -1);
+        final Area frame = new Area(new RoundRectangle2D.Double(track.x, track.y, track.width, track.height,
+                                                                FRAME_ARC, FRAME_ARC));
+        frame.subtract(new Area(new RoundRectangle2D.Double(inside.x, inside.y, inside.width, inside.height,
+                                                            TRACK_ARC, TRACK_ARC)));
+        gc.setPaint(barPaint(track, FRAME_FRACTIONS, frameShades));
+        gc.fill(frame);
+        gc.setPaint(barPaint(inside, TRACK_FRACTIONS, trackShades));
+        gc.fillRoundRect(inside.x, inside.y, inside.width, inside.height, TRACK_ARC, TRACK_ARC);
+    }
+
+    /** @param bounds Area to fill
+     *  @return Paint for the filled region: a bar fill or the tank gradient
+     */
+    private Paint fillPaint(final Rectangle bounds)
+    {
+        if (barTrack)
+            return barPaint(bounds, TRACK_FRACTIONS, fillShades);
+        final int center = bounds.x + bounds.width/2;
+        return new GradientPaint(bounds.x, 0, fill, center, 0, fill_highlight, true);
+    }
+
+    /** @param bounds Area to fill
+     *  @param fractions Stop positions of the shades
+     *  @param shades Shades across the bar
+     *  @return Gradient across the bar, in the style of the JavaFX progress bar.
+     *          The tank renders vertically, so the bar runs along Y and the
+     *          shading across it is along X, for both widget orientations.
+     *          An area too narrow for a gradient gets the first shade.
+     */
+    private static Paint barPaint(final Rectangle bounds, final float[] fractions, final Color[] shades)
+    {
+        if (bounds.width < 2)
+            return shades[0];
+        final int right = bounds.x + bounds.width;
+        return new LinearGradientPaint(bounds.x, bounds.y, right, bounds.y,
+                                       fractions, shades,
+                                       MultipleGradientPaint.CycleMethod.NO_CYCLE);
     }
 
     /** @param color Color for filled region */
@@ -250,6 +389,7 @@ public class RTTank extends Canvas
     {
         fill = GraphicsUtils.convert(Objects.requireNonNull(color));
         final int saturationContribution = (int) ( 48.f * Color.RGBtoHSB(fill.getRed(), fill.getGreen(), fill.getBlue(), null)[1] );
+        fillShades = shadesOf(fill);
         fill_highlight = new Color(
             Math.min(255, fill.getRed()   + 32 + saturationContribution),
             Math.min(255, fill.getGreen() + 32 + saturationContribution),
@@ -282,6 +422,17 @@ public class RTTank extends Canvas
         scale.setShowMinorTicks(show);
         right_scale.setShowMinorTicks(show);
         requestUpdate();
+    }
+
+    /** Show or hide the tick labels while keeping the tick marks.
+     *  Stacked widgets can then share one labelled scale: only the first
+     *  shows labels, the others show aligned tick marks.
+     *  @param visible {@code true} (default) for labels, {@code false} for ticks only */
+    public void setScaleLabelsVisible(final boolean visible)
+    {
+        // The axes request layout and refresh themselves when this changes
+        scale.setScaleLabelsVisible(visible);
+        right_scale.setScaleLabelsVisible(visible);
     }
 
     /** Configure the number format used for scale tick labels.
@@ -549,11 +700,16 @@ public class RTTank extends Canvas
         // Inset = ceil(border_width/2) keeps the outer stroke edge inside the canvas.
         // On sides with a scale the label area provides ample margin so inset=0.
         // When there is no border, inset=1 is the original clip guard.
+        // innerPadding is added on all four sides regardless of scale presence.
+        // A bar track grows back into it, so next to a scale it keeps a gap
+        // for the border and one pixel, clear of the axis line.
         final int half_bw_ceil = (border_width + 1) / 2;
-        final int inset_left   = (left_width  == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_right  = (right_width == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_top    = (ends[1] == 0) ? Math.max(1, half_bw_ceil) : 0;
-        final int inset_bottom = (ends[0] == 0) ? Math.max(1, half_bw_ceil) : 0;
+        final int padding = innerPadding;
+        final int scaleGap = barTrack ? half_bw_ceil + 1 : 0;
+        final int inset_left   = (left_width  == 0) ? Math.max(1, half_bw_ceil) + padding : padding + scaleGap;
+        final int inset_right  = (right_width == 0) ? Math.max(1, half_bw_ceil) + padding : padding + scaleGap;
+        final int inset_top    = (ends[1] == 0) ? Math.max(1, half_bw_ceil) + padding : padding;
+        final int inset_bottom = (ends[0] == 0) ? Math.max(1, half_bw_ceil) + padding : padding;
 
         final int top    = bounds.y + ends[1] + inset_top;
         final int height = bounds.height - ends[0] - ends[1] - inset_top - inset_bottom;
@@ -608,22 +764,47 @@ public class RTTank extends Canvas
         final double current = value;
         final int level = computeFillLevel(plot_bounds.height, min, max, current, scale.isLogarithmic());
 
+        // A widget too small for its padding and scale has no room for the
+        // fill, so draw no body rather than one that looks empty
+        if (plot_bounds.width <= 0  ||  plot_bounds.height <= 0)
+        {
+            gc.dispose();
+            return SwingFXUtils.toFXImage(image, null);
+        }
+
         final int arc = Math.min(plot_bounds.width, plot_bounds.height) / 10;
-        gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, plot_bounds.x+plot_bounds.width/2, 0, empty_shadow, true));
-
-        gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height, arc, arc);
-
-        gc.setPaint(new GradientPaint(plot_bounds.x, 0, fill, plot_bounds.x+plot_bounds.width/2, 0, fill_highlight, true));
-        if (normal)
-            gc.fillRoundRect(plot_bounds.x, plot_bounds.y+plot_bounds.height-level, plot_bounds.width, level, arc, arc);
+        // The body is the tank, or the track of a bar. The track extends into
+        // the inner padding so that the fill sits inside it, like in the
+        // JavaFX progress bar.
+        final Rectangle body = new Rectangle(plot_bounds);
+        final int bodyArc;
+        final int fillArc;
+        if (barTrack)
+        {
+            body.grow(innerPadding, innerPadding);
+            bodyArc = FRAME_ARC;
+            fillArc = TRACK_ARC;
+            paintBarTrack(gc, body);
+        }
         else
-            gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, level, arc, arc);
+        {
+            bodyArc = fillArc = arc;
+            final int center = plot_bounds.x + plot_bounds.width/2;
+            gc.setPaint(new GradientPaint(plot_bounds.x, 0, empty, center, 0, empty_shadow, true));
+            gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, plot_bounds.height, arc, arc);
+        }
 
-        // Optional border: stroked CENTRED on plot_bounds — no integer half-pixel
+        gc.setPaint(fillPaint(plot_bounds));
+        if (normal)
+            gc.fillRoundRect(plot_bounds.x, plot_bounds.y+plot_bounds.height-level, plot_bounds.width, level, fillArc, fillArc);
+        else
+            gc.fillRoundRect(plot_bounds.x, plot_bounds.y, plot_bounds.width, level, fillArc, fillArc);
+
+        // Optional border: stroked CENTRED on the body — no integer half-pixel
         // shifting.  The inner half of the stroke covers the fill edge (no gap);
-        // the outer half extends beyond plot_bounds into the inset margin.
-        // Ticks land at plot_bounds edges = centre of the border stroke, matching
-        // the CS-Studio BOY convention.
+        // the outer half extends beyond the body into the inset margin.
+        // For a tank, ticks land at the body edges = centre of the border stroke,
+        // matching the CS-Studio BOY convention.
         if (border_width > 0)
         {
             // Java2D: fillRoundRect covers x..x+w-1, drawRoundRect strokes x..x+w.
@@ -631,9 +812,8 @@ public class RTTank extends Canvas
             // making all four edges symmetric.
             gc.setColor(foreground);
             gc.setStroke(new BasicStroke(border_width));
-            gc.drawRoundRect(plot_bounds.x, plot_bounds.y,
-                             plot_bounds.width - 1, plot_bounds.height - 1,
-                             arc, arc);
+            gc.drawRoundRect(body.x, body.y, body.width - 1, body.height - 1,
+                             bodyArc, bodyArc);
             gc.setStroke(new BasicStroke(1f));
         }
 
