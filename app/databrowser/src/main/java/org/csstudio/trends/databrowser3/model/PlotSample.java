@@ -10,7 +10,9 @@ package org.csstudio.trends.databrowser3.model;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
+import org.csstudio.javafx.rtplot.internal.YAxisImpl;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
@@ -23,6 +25,8 @@ import org.epics.vtype.VType;
 import org.epics.vtype.VEnum;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.pv.TimeHelper;
+import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 /** Data Sample from control system ({@link VType})
  *  with interface for XYGraph
@@ -236,5 +240,10 @@ public class PlotSample implements PlotDataItem<Instant>
     public String toString()
     {
         return VTypeHelper.toString(value);
+    }
+
+    @Override
+    public String format(YAxisImpl<Instant> axis, Trace<Instant> trace) {
+        return FormatOptionHandler.format(value, FormatOption.DEFAULT, -1, true);
     }
 }
