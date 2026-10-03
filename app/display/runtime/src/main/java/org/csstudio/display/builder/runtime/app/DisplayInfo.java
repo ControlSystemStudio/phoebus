@@ -59,7 +59,21 @@ public class DisplayInfo
         // Get basic file or http 'path' from path
         final String path;
         if (uri.getScheme() == null  ||  uri.getScheme().equals("file"))
-            path = uri.getPath();
+        {
+            // Preserve URI host for UNC/network paths, e.g.
+            // file://wsl.localhost/share/path -> //wsl.localhost/share/path
+            final String host = uri.getHost();
+            if (host != null && !host.isEmpty())
+                path = "//" + host + uri.getPath();
+            else
+            {
+                // On Windows, File.toURI() for UNC paths may produce URIs
+                // with the host embedded in the path (file:////host/share).
+                // In that case getHost() is null but getPath() starts with "//".
+                // Preserve the double-slash so it's treated as a UNC path.
+                path = uri.getPath();
+            }
+        }
         else
         {
             final StringBuilder buf = new StringBuilder();
@@ -118,7 +132,12 @@ public class DisplayInfo
         {
             String userDataInputFile = model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
             String userDataInputFile_lowerCase = userDataInputFile.toLowerCase(Locale.ROOT);
-            if (   !userDataInputFile_lowerCase.startsWith("/")
+            if (userDataInputFile.startsWith("\\\\")) {
+                // UNC path like \\wsl.localhost\share\... -> //wsl.localhost/share/...
+                // Don't prepend '/' — the double slash IS the leading path indicator for UNC
+                path = userDataInputFile.replace('\\', '/');
+            }
+            else if (   !userDataInputFile_lowerCase.startsWith("/")
                 && !userDataInputFile_lowerCase.startsWith("examples:")
                 && !userDataInputFile_lowerCase.startsWith("file:")
                 && !userDataInputFile_lowerCase.startsWith("http:")
