@@ -34,6 +34,7 @@ import org.csstudio.display.builder.model.widgets.PictureWidget;
 import org.csstudio.display.builder.model.widgets.PolygonWidget;
 import org.csstudio.display.builder.model.widgets.PolylineWidget;
 import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
+import org.csstudio.display.builder.model.widgets.PVASecurityWidget;
 import org.csstudio.display.builder.model.widgets.RadioWidget;
 import org.csstudio.display.builder.model.widgets.RectangleWidget;
 import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
@@ -106,6 +107,7 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(PolygonWidget.WIDGET_DESCRIPTOR,         () -> (WidgetRepresentation) new PolygonRepresentation()),
             entry(PolylineWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new PolylineRepresentation()),
             entry(ProgressBarWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new ProgressBarRepresentation()),
+            entry(PVASecurityWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new PVASecurityRepresentation()),
             entry(RadioWidget.WIDGET_DESCRIPTOR,           () -> (WidgetRepresentation) new RadioRepresentation()),
             entry(RectangleWidget.WIDGET_DESCRIPTOR,       () -> (WidgetRepresentation) new RectangleRepresentation()),
             entry(ScaledSliderWidget.WIDGET_DESCRIPTOR,    () -> (WidgetRepresentation) new ScaledSliderRepresentation()),
