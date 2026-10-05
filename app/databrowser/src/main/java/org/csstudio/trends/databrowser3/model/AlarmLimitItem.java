@@ -39,7 +39,7 @@ public class AlarmLimitItem extends PVItem {
     }
 
     private AlarmLimitItem(final PVItem parentItem, final String limitType) throws IllegalArgumentException {
-        super(parentItem.getName(), parentItem.getScanPeriod());
+        super(parentItem.getName() + "_" + limitType, parentItem.getScanPeriod());
         this.limitType = limitType;
         PVSamples samplesFromArchiver = parentItem.getSamples();
         samplesFromArchiver.lockForWriting();
@@ -58,11 +58,14 @@ public class AlarmLimitItem extends PVItem {
         }
         samplesFromArchiver.unlockForWriting();
         getSamples().mergeArchivedData(parentItem.getName(), historicAlarmLimitValues);
+        /*
         try {
             setName(parentItem.getName());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+         */
     }
 
     /**

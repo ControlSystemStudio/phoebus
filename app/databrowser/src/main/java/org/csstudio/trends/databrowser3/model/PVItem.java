@@ -321,6 +321,10 @@ public class PVItem extends ModelItem
     /** @param request_type New request type */
     public void setRequestType(final RequestType request_type)
     {
+        // If user switches to OPTIMIZED request, remove alarm limit traces
+        if(request_type.equals(RequestType.OPTIMIZED)){
+            showAlarmLimits(false);
+        }
         if (this.request_type == request_type)
             return;
         this.request_type = request_type;
