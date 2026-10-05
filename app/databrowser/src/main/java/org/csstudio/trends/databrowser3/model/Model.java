@@ -994,6 +994,13 @@ public class Model
             listener.selectedSamplesChanged();
     }
 
+    /**
+     * Notifies {@link ModelListener}s that a {@link ModelItem} contains alarm limits.
+     */
+    public void fireAlarmLimitsChanged() {
+        listeners.forEach(ModelListener::itemHasAlarmLimits);
+    }
+
     /** Dispose all items, remove all listeners */
     public void dispose()
     {

@@ -2,9 +2,8 @@ package org.csstudio.trends.databrowser3.ui.properties;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -379,61 +378,21 @@ public class TracesTabController {
         });
         PropertyPanel.addTooltip(waveformIndexColumn, Messages.WaveformIndexColTT);
 
-        alarmLimitsVisibilityColumn.setCellFactory(modelItemBooleanTableColumn -> new AlarmVisibilityTableCell());
+
+        alarmLimitsVisibilityColumn.setCellFactory(modelItemBooleanTableColumn -> {
+            AlarmVisibilityTableCell alarmVisibilityTableCell = new AlarmVisibilityTableCell();
+            return alarmVisibilityTableCell;
+        });
+
         alarmLimitsVisibilityColumn.setCellValueFactory(cell -> {
-            final SimpleBooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).showAlarmLimits());
+            final SimpleBooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).getShowAlarmLimits());
             visibilityProperty.addListener((p, old, visible) -> {
                 PVItem pvItem = (PVItem)cell.getValue();
-                if(visible){
-                    PVSamples pvSamples = pvItem.getSamples();
-                    pvSamples.lockForWriting();
-                    boolean hasAlarmLimits = false;
-                    for(int i = 0; i < pvSamples.size(); i++){
-                        hasAlarmLimits = VTypeHelper.hasAlarmLimits(pvSamples.get(i).getVType());
-                        if(hasAlarmLimits){
-                            break;
-                        }
-                    }
-                    pvSamples.unlockForWriting();
-
-                    if(!hasAlarmLimits){
-                        final Alert dialog = new Alert(Alert.AlertType.ERROR);
-                        dialog.setTitle(Messages.CannotShowAlarmLimits);
-                        dialog.setHeaderText(MessageFormat.format(Messages.CannotShowAlarmLimitsDetail, pvItem.getName()));
-                        dialog.getDialogPane().setMinSize(350, 150);
-                        DialogHelper.positionDialog(dialog, traceTable, -400, -350);
-                        dialog.showAndWait();
-                        pvItem.setShowAlarmLimits(false);
-                        Platform.runLater(() -> visibilityProperty.set(false)); // Yes, wrapping in Platform.runLater is necessary!
-                    }
-                    else{
-
-                        for(String limitType : limitTypes){
-                            AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, limitType);
-                            alarmLimitItem.setAxis(pvItem.getAxis());
-                            alarmLimitItem.setDisplayName("");
-                            alarmLimitItem.setColor(pvItem.getPaintColor());
-                            alarmLimitItem.setLineStyle(pvItem.getLineStyle());
-                            alarmLimitItem.setLineWidth(3);
-                            try {
-                                model.addItem(alarmLimitItem);
-                            } catch (Exception e) {
-                                logger.log(Level.WARNING, "Unable to create alarm limit item for " + pvItem.getName(), e);
-                            }
-                        }
-                    }
-                }
-                else{
-                    model.getItems().forEach(modelItem -> {
-                        if(modelItem instanceof AlarmLimitItem){
-                            model.removeItem(modelItem);
-                        }
-                    });
-                    //hideAlarmLimits(pvItem.getName());
-                }
+                pvItem.showAlarmLimits(visible);
             });
             return visibilityProperty;
         });
+
 
         traceTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         traceTable.getColumns().forEach(c -> c.setSortable(false));
@@ -545,30 +504,25 @@ public class TracesTabController {
     }
 
     /**
-     * Custom {@link TableCell} for the Show Alarm Limits column. Idea is to hide it for {@link FormulaItem}s and
-     * if {@link PVItem} is retrieved with {@link RequestType#OPTIMIZED}.
+     * Custom {@link TableCell} for the Show Alarm Limits column. Idea is to hide it for non-{@link PVItem}s.
      */
     private static class AlarmVisibilityTableCell extends CheckBoxTableCell<ModelItem, Boolean> {
+
         @Override
         public void updateItem(final Boolean visible, final boolean empty) {
             super.updateItem(visible, empty);
-            if(empty){
+            if(empty || getTableRow() == null){
                 setGraphic(null);
                 return;
             }
-            TableRow<ModelItem> tableRow = getTableRow();
-            if (tableRow != null){
-                ModelItem modelItem = tableRow.getItem();
-                if(modelItem instanceof FormulaItem) {
-                    // Showing alarm limits for formula items does not make sense...
-                    setGraphic(null);
-                }
-                else if(modelItem instanceof PVItem pvItem && pvItem.getRequestType().equals(RequestType.OPTIMIZED)){
-                    // Showing alarm limits not possible with optimized request
-                    CheckBox checkBox = (CheckBox)getGraphic();
-                    checkBox.disableProperty().unbind();
-                    checkBox.disableProperty().set(true);
-                }
+
+            ModelItem modelItem = getTableRow().getItem();
+            if (modelItem instanceof FormulaItem) {
+                // Showing alarm limits for formula items does not make sense...
+                setGraphic(null);
+            } else if (modelItem instanceof PVItem pvItem && (!pvItem.hasAlarmLimits() || pvItem.getRequestType().equals(RequestType.OPTIMIZED))) {
+                // No alarm limits available, not RAW request
+                setGraphic(null);
             }
         }
     }
@@ -636,11 +590,16 @@ public class TracesTabController {
                     prop.update();
             }
         }
+
+        @Override
+        public void itemHasAlarmLimits() {
+            traceTable.refresh();
+        }
     };
 
     private void updateFromModel()
     {
-        traceTable.getItems().setAll(model.getItems());
+        traceTable.getItems().setAll(model.getItems().stream().filter(i -> !(i instanceof AlarmLimitItem)).collect(Collectors.toList()));
         updateAxisNames();
     }
 

@@ -25,6 +25,7 @@ import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
+import org.phoebus.archive.reader.appliance.ApplianceArchiveReaderConstants;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -88,12 +89,28 @@ public class PVItem extends ModelItem
     private boolean checkDisplayName = false;
 
     /**
+     * Indicates if this {@link PVItem} defines alarm limits. The is determined
+     */
+    private boolean hasAlarmLimits = false;
+
+    private AlarmLimitItem loloAlarmLimitItem;
+    private AlarmLimitItem lowAlarmLimitItem;
+    private AlarmLimitItem highAlarmLimitItem;
+    private AlarmLimitItem hihiAlarmLimitItem;
+
+    private static final String[] limitTypes = new  String[]{ApplianceArchiveReaderConstants.LOLO,
+            ApplianceArchiveReaderConstants.LOW,
+            ApplianceArchiveReaderConstants.HIGH,
+            ApplianceArchiveReaderConstants.HIHI};
+
+    /**
      * Determines if the plot should show alarm limits.
      * This should not be persisted to plt file as alarm limits are available
      * only with raw requests. Saving it (as true) would trigger raw requests for
      * all PVs when loading the plt.
      */
     private volatile boolean showAlarmLimits = false;
+
 
     /** Initialize
      *  @param name PV name
@@ -474,6 +491,13 @@ public class PVItem extends ModelItem
         try
         {
             samples.mergeArchivedData(server_name, new_samples);
+            for (VType sample : new_samples){
+                hasAlarmLimits = VTypeHelper.hasAlarmLimits(sample);
+                if(hasAlarmLimits){
+                    model.get().fireAlarmLimitsChanged();
+                    break;
+                }
+            }
             need_refresh = automaticRefresh && model.isPresent() &&
                     samples.isHistoryRefreshNeeded(model.get().getTimerange());
         }
@@ -581,17 +605,91 @@ public class PVItem extends ModelItem
         samples.clear();
     }
 
-    /**
-     * @return <code>true</code> if this item is showing alarm limits
-     */
-    public boolean showAlarmLimits() {
+
+    public void showAlarmLimits(boolean show) {
+        if(show){
+            for(String limitType : limitTypes){
+                switch(limitType){
+                    case ApplianceArchiveReaderConstants.LOLO:
+                        loloAlarmLimitItem = AlarmLimitItem.createAlarmLimitItem(this, limitType);
+                        loloAlarmLimitItem.setAxis(getAxis());
+                        loloAlarmLimitItem.setDisplayName("");
+                        loloAlarmLimitItem.setColor(getPaintColor());
+                        loloAlarmLimitItem.setLineStyle(getLineStyle());
+                        loloAlarmLimitItem.setLineWidth(3);
+                        try {
+                            model.get().addItem(loloAlarmLimitItem);
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Unable to create alarm LOLO limit item for " + getName(), e);
+                        }
+                        break;
+                    case ApplianceArchiveReaderConstants.LOW:
+                        lowAlarmLimitItem = AlarmLimitItem.createAlarmLimitItem(this, limitType);
+                        lowAlarmLimitItem.setAxis(getAxis());
+                        lowAlarmLimitItem.setDisplayName("");
+                        lowAlarmLimitItem.setColor(getPaintColor());
+                        lowAlarmLimitItem.setLineStyle(getLineStyle());
+                        lowAlarmLimitItem.setLineWidth(3);
+                        try {
+                            model.get().addItem(lowAlarmLimitItem);
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Unable to create alarm LOW limit item for " + getName(), e);
+                        }
+                        break;
+                    case ApplianceArchiveReaderConstants.HIGH:
+                        highAlarmLimitItem = AlarmLimitItem.createAlarmLimitItem(this, limitType);
+                        highAlarmLimitItem.setAxis(getAxis());
+                        highAlarmLimitItem.setDisplayName("");
+                        highAlarmLimitItem.setColor(getPaintColor());
+                        highAlarmLimitItem.setLineStyle(getLineStyle());
+                        highAlarmLimitItem.setLineWidth(3);
+                        try {
+                            model.get().addItem(highAlarmLimitItem);
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Unable to create alarm HIGH limit item for " + getName(), e);
+                        }
+                        break;
+                    case ApplianceArchiveReaderConstants.HIHI:
+                        hihiAlarmLimitItem = AlarmLimitItem.createAlarmLimitItem(this, limitType);
+                        hihiAlarmLimitItem.setAxis(getAxis());
+                        hihiAlarmLimitItem.setDisplayName("");
+                        hihiAlarmLimitItem.setColor(getPaintColor());
+                        hihiAlarmLimitItem.setLineStyle(getLineStyle());
+                        hihiAlarmLimitItem.setLineWidth(3);
+                        try {
+                            model.get().addItem(hihiAlarmLimitItem);
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Unable to create alarm HIHI limit item for " + getName(), e);
+                        }
+                        break;
+                }
+            }
+
+        }
+        else{
+            if(loloAlarmLimitItem != null){
+                model.get().removeItem(loloAlarmLimitItem);
+            }
+            if(lowAlarmLimitItem != null){
+                model.get().removeItem(lowAlarmLimitItem);
+            }
+            if(highAlarmLimitItem != null){
+                model.get().removeItem(highAlarmLimitItem);
+            }
+            if(hihiAlarmLimitItem != null){
+                model.get().removeItem(hihiAlarmLimitItem);
+            }
+        }
+        this.showAlarmLimits = show;
+
+    }
+
+    public boolean hasAlarmLimits() {
+        return hasAlarmLimits;
+    }
+
+    public boolean getShowAlarmLimits() {
         return showAlarmLimits;
     }
 
-    /**
-     * @param showAlarmLimits <code>true</code> if this item should show alarm limits
-     */
-    public void setShowAlarmLimits(boolean showAlarmLimits) {
-        this.showAlarmLimits = showAlarmLimits;
-    }
 }

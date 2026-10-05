@@ -79,4 +79,7 @@ public interface ModelListener
 
     /** ModelItems have new selected sample */
     default void selectedSamplesChanged() {}
+
+    default void itemHasAlarmLimits() {}
+
 }
