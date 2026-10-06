@@ -3,7 +3,7 @@
     <parent>
         <artifactId>app-display</artifactId>
         <groupId>org.phoebus</groupId>
-        <version>6.0.0</version>
+        <version>7.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -15,19 +15,19 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-display-model</artifactId>
-            <version>6.0.0</version>
+            <version>7.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-display-representation</artifactId>
-            <version>6.0.0</version>
+            <version>7.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-display-representation-javafx</artifactId>
-            <version>6.0.0</version>
+            <version>7.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
