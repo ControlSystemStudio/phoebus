@@ -1,7 +1,6 @@
 package org.csstudio.trends.databrowser3.model;
 
 import org.epics.vtype.*;
-import org.phoebus.archive.reader.appliance.ApplianceArchiveReaderConstants;
 
 import javax.xml.stream.XMLStreamWriter;
 import java.util.ArrayList;
@@ -15,31 +14,17 @@ import java.util.Optional;
  */
 public class AlarmLimitItem extends PVItem {
 
-    private final String limitType;
+    private final LimitType limitType;
 
     /**
      * Creates an {@link AlarmLimitItem} based on a {@link PVItem} and the {@link Display} information in each sample.
      * @param parentItem The {@link PVItem} from which to construct an {@link AlarmLimitItem}
-     * @param limitType One of the limit types defined in {@link ApplianceArchiveReaderConstants}
+     * @param limitType One of the limit types defined in {@link LimitType}
      * @return An {@link AlarmLimitItem} if all is well.
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException If <code>parentItem</code> is <code>null</code> or if
      */
-    public static AlarmLimitItem createAlarmLimitItem(final PVItem parentItem, final String limitType) throws IllegalArgumentException {
-        if (parentItem == null) {
-            throw new IllegalArgumentException("Parent item cannot be null");
-        }
-        if(!ApplianceArchiveReaderConstants.LOLO.equals(limitType) &&
-            !ApplianceArchiveReaderConstants.LOW.equals(limitType) &&
-            !ApplianceArchiveReaderConstants.HIGH.equals(limitType) &&
-            !ApplianceArchiveReaderConstants.HIHI.equals(limitType)) {
-
-            throw new IllegalArgumentException("Limit type " + limitType + " is not supported");
-        }
-        return new AlarmLimitItem(parentItem, limitType);
-    }
-
-    private AlarmLimitItem(final PVItem parentItem, final String limitType) throws IllegalArgumentException {
-        super(parentItem.getName() + "_" + limitType, parentItem.getScanPeriod());
+    public AlarmLimitItem(final PVItem parentItem, final LimitType limitType){
+        super(parentItem.getName(), parentItem.getScanPeriod());
         this.limitType = limitType;
         PVSamples samplesFromArchiver = parentItem.getSamples();
         samplesFromArchiver.lockForWriting();
@@ -58,14 +43,7 @@ public class AlarmLimitItem extends PVItem {
         }
         samplesFromArchiver.unlockForWriting();
         getSamples().mergeArchivedData(parentItem.getName(), historicAlarmLimitValues);
-        /*
-        try {
-            setName(parentItem.getName());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-         */
+        setDisplayName(parentItem.getName() + "_" + limitType);
     }
 
     /**
@@ -79,19 +57,19 @@ public class AlarmLimitItem extends PVItem {
         Display display = Display.displayOf(value);
         double doubleValue;
         switch (limitType) {
-            case ApplianceArchiveReaderConstants.LOLO:
+            case LOLO:
                 doubleValue = display.getAlarmRange().getMinimum();
                 return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
                         Optional.empty();
-            case ApplianceArchiveReaderConstants.LOW:
+            case LOW:
                 doubleValue = display.getWarningRange().getMinimum();
                 return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
                         Optional.empty();
-            case ApplianceArchiveReaderConstants.HIGH:
+            case HIGH:
                 doubleValue = display.getWarningRange().getMaximum();
                 return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
                         Optional.empty();
-            case ApplianceArchiveReaderConstants.HIHI:
+            case HIHI:
                 doubleValue = display.getAlarmRange().getMaximum();
                 return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
                         Optional.empty();
@@ -124,5 +102,15 @@ public class AlarmLimitItem extends PVItem {
     @Override
     public void valueChanged(VType value){
         getAlarmLimitVType(value).ifPresent(super::valueChanged);
+    }
+
+    /**
+     * Helper enum...
+     */
+    public enum LimitType {
+        LOLO,
+        LOW,
+        HIGH,
+        HIHI
     }
 }

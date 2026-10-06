@@ -25,7 +25,6 @@ import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
-import org.phoebus.archive.reader.appliance.ApplianceArchiveReaderConstants;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.framework.jobs.NamedThreadFactory;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -89,7 +88,9 @@ public class PVItem extends ModelItem
     private boolean checkDisplayName = false;
 
     /**
-     * Indicates if this {@link PVItem} defines alarm limits. The is determined
+     * Indicates if this {@link PVItem} defines alarm limits. This is determined when
+     * data from the archiver is merged. Note that this is <i>not</i> updated even if live
+     * samples should indicate presence of alarm limits.
      */
     private boolean hasAlarmLimits = false;
 
@@ -97,11 +98,6 @@ public class PVItem extends ModelItem
     private AlarmLimitItem lowAlarmLimitItem;
     private AlarmLimitItem highAlarmLimitItem;
     private AlarmLimitItem hihiAlarmLimitItem;
-
-    private static final String[] limitTypes = new  String[]{ApplianceArchiveReaderConstants.LOLO,
-            ApplianceArchiveReaderConstants.LOW,
-            ApplianceArchiveReaderConstants.HIGH,
-            ApplianceArchiveReaderConstants.HIHI};
 
     /**
      * Determines if the plot should show alarm limits.
@@ -502,6 +498,9 @@ public class PVItem extends ModelItem
                     break;
                 }
             }
+
+            showAlarmLimits(showAlarmLimits);
+
             need_refresh = automaticRefresh && model.isPresent() &&
                     samples.isHistoryRefreshNeeded(model.get().getTimerange());
         }
@@ -609,13 +608,12 @@ public class PVItem extends ModelItem
         samples.clear();
     }
 
-
     public void showAlarmLimits(boolean show) {
         if(show){
-            for(String limitType : limitTypes){
+            for(AlarmLimitItem.LimitType limitType : AlarmLimitItem.LimitType.values()){
                 switch(limitType){
-                    case ApplianceArchiveReaderConstants.LOLO:
-                        loloAlarmLimitItem = AlarmLimitItem.createAlarmLimitItem(this, limitType);
+                    case LOLO:
+                        loloAlarmLimitItem = new AlarmLimitItem(this, limitType);
                         loloAlarmLimitItem.setAxis(getAxis());
                         loloAlarmLimitItem.setDisplayName("");
                         loloAlarmLimitItem.setColor(getPaintColor());
@@ -627,8 +625,8 @@ public class PVItem extends ModelItem
                             logger.log(Level.WARNING, "Unable to create alarm LOLO limit item for " + getName(), e);
                         }
                         break;
-                    case ApplianceArchiveReaderConstants.LOW:
-                        lowAlarmLimitItem = AlarmLimitItem.createAlarmLimitItem(this, limitType);
+                    case LOW:
+                        lowAlarmLimitItem = new AlarmLimitItem(this, limitType);
                         lowAlarmLimitItem.setAxis(getAxis());
                         lowAlarmLimitItem.setDisplayName("");
                         lowAlarmLimitItem.setColor(getPaintColor());
@@ -640,8 +638,8 @@ public class PVItem extends ModelItem
                             logger.log(Level.WARNING, "Unable to create alarm LOW limit item for " + getName(), e);
                         }
                         break;
-                    case ApplianceArchiveReaderConstants.HIGH:
-                        highAlarmLimitItem = AlarmLimitItem.createAlarmLimitItem(this, limitType);
+                    case HIGH:
+                        highAlarmLimitItem = new AlarmLimitItem(this, limitType);
                         highAlarmLimitItem.setAxis(getAxis());
                         highAlarmLimitItem.setDisplayName("");
                         highAlarmLimitItem.setColor(getPaintColor());
@@ -653,8 +651,8 @@ public class PVItem extends ModelItem
                             logger.log(Level.WARNING, "Unable to create alarm HIGH limit item for " + getName(), e);
                         }
                         break;
-                    case ApplianceArchiveReaderConstants.HIHI:
-                        hihiAlarmLimitItem = AlarmLimitItem.createAlarmLimitItem(this, limitType);
+                    case HIHI:
+                        hihiAlarmLimitItem = new AlarmLimitItem(this, limitType);
                         hihiAlarmLimitItem.setAxis(getAxis());
                         hihiAlarmLimitItem.setDisplayName("");
                         hihiAlarmLimitItem.setColor(getPaintColor());
@@ -671,21 +669,24 @@ public class PVItem extends ModelItem
 
         }
         else{
-            if(loloAlarmLimitItem != null){
+            if(loloAlarmLimitItem != null && loloAlarmLimitItem.isVisible()){
                 model.get().removeItem(loloAlarmLimitItem);
+                loloAlarmLimitItem = null;
             }
-            if(lowAlarmLimitItem != null){
+            if(lowAlarmLimitItem != null && lowAlarmLimitItem.isVisible()){
                 model.get().removeItem(lowAlarmLimitItem);
+                lowAlarmLimitItem = null;
             }
-            if(highAlarmLimitItem != null){
+            if(highAlarmLimitItem != null && highAlarmLimitItem.isVisible()){
                 model.get().removeItem(highAlarmLimitItem);
+                highAlarmLimitItem = null;
             }
-            if(hihiAlarmLimitItem != null){
+            if(hihiAlarmLimitItem != null && hihiAlarmLimitItem.isVisible()){
                 model.get().removeItem(hihiAlarmLimitItem);
+                hihiAlarmLimitItem = null;
             }
         }
         this.showAlarmLimits = show;
-
     }
 
     public boolean hasAlarmLimits() {

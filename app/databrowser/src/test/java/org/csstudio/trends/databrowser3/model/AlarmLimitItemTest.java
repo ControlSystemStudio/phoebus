@@ -4,7 +4,7 @@ import org.epics.util.stats.Range;
 import org.epics.vtype.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.phoebus.archive.reader.appliance.ApplianceArchiveReaderConstants;
+import static org.csstudio.trends.databrowser3.model.AlarmLimitItem.LimitType;
 
 import java.text.DecimalFormat;
 import java.time.Instant;
@@ -13,8 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
-
-
 
 public class AlarmLimitItemTest {
 
@@ -36,7 +34,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, LimitType.LOLO);
 
         // PVSamples returns the size of raw + 1 to account for a live sample, so need to compare to 2.
         assertEquals(2, alarmLimitItem.getSamples().size());
@@ -61,7 +59,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, LimitType.LOLO);
         // PVSamples returns the size of raw + 1 to account for a live sample, so need to compare to 3.
         assertEquals(3, alarmLimitItem.getSamples().size());
 
@@ -85,7 +83,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, LimitType.LOLO);
 
         alarmLimitItem.getSamples().lockForWriting();
         // PVSamples returns the size of raw + 1 to account for a live sample, so need to compare to 4.
@@ -111,7 +109,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOLO);
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem,LimitType.LOLO);
         assertEquals(3, alarmLimitItem.getSamples().size());
 
     }
@@ -134,7 +132,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.HIHI);
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, LimitType.HIHI);
         assertEquals(3, alarmLimitItem.getSamples().size());
 
     }
@@ -157,7 +155,7 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.LOW);
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, LimitType.LOW);
 
         assertEquals(3, alarmLimitItem.getSamples().size());
 
@@ -181,21 +179,8 @@ public class AlarmLimitItemTest {
 
         when(pvItem.getSamples()).thenReturn(pvSamples);
 
-        AlarmLimitItem alarmLimitItem = AlarmLimitItem.createAlarmLimitItem(pvItem, ApplianceArchiveReaderConstants.HIGH);
+        AlarmLimitItem alarmLimitItem = new AlarmLimitItem(pvItem, LimitType.HIGH);
         assertEquals(3, alarmLimitItem.getSamples().size());
 
     }
-
-    @Test
-    public void testIllegalArgument1(){
-        assertThrows(IllegalArgumentException.class, () -> AlarmLimitItem.createAlarmLimitItem(null, null));
-    }
-
-    @Test
-    public void testIllegalArgument2(){
-        PVItem pvItem = Mockito.mock(PVItem.class);
-        assertThrows(IllegalArgumentException.class, () -> AlarmLimitItem.createAlarmLimitItem(pvItem, null));
-    }
-
-
 }

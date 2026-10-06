@@ -2,7 +2,6 @@ package org.csstudio.trends.databrowser3.ui.properties;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -20,9 +19,7 @@ import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.*;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
-import org.phoebus.archive.reader.appliance.ApplianceArchiveReaderConstants;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
-import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -38,8 +35,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -113,14 +108,6 @@ public class TracesTabController {
 
     private final List<WeakReference<SelectedSampleProperty>> selectedSamples = new ArrayList<>();
     private final ObservableList<String> axisNames = FXCollections.observableArrayList();
-
-    private final Logger logger = Logger.getLogger(TracesTabController.class.getName());
-
-    private static final String[] limitTypes = new  String[]{ApplianceArchiveReaderConstants.LOLO,
-            ApplianceArchiveReaderConstants.LOW,
-            ApplianceArchiveReaderConstants.HIGH,
-            ApplianceArchiveReaderConstants.HIHI};
-
 
     public TracesTabController(final Model model, final UndoableActionManager undoableActionManager) {
         this.model = model;
@@ -379,13 +366,11 @@ public class TracesTabController {
         PropertyPanel.addTooltip(waveformIndexColumn, Messages.WaveformIndexColTT);
 
 
-        alarmLimitsVisibilityColumn.setCellFactory(modelItemBooleanTableColumn -> {
-            AlarmVisibilityTableCell alarmVisibilityTableCell = new AlarmVisibilityTableCell();
-            return alarmVisibilityTableCell;
-        });
+        alarmLimitsVisibilityColumn.setCellFactory(modelItemBooleanTableColumn ->
+                new AlarmVisibilityTableCell());
 
         alarmLimitsVisibilityColumn.setCellValueFactory(cell -> {
-            final SimpleBooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).getShowAlarmLimits());
+            final BooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).getShowAlarmLimits());
             visibilityProperty.addListener((p, old, visible) -> {
                 PVItem pvItem = (PVItem)cell.getValue();
                 pvItem.showAlarmLimits(visible);
@@ -410,17 +395,6 @@ public class TracesTabController {
         createContextMenu();
         updateAxisNames();
     }
-
-    private void hideAllAlarmLimits() {
-        model.getItems().stream().map(ModelItem::getName).forEach(pvName -> hideAlarmLimits(pvName));
-    }
-
-    private void hideAlarmLimits(String pvName) {
-        model.getItems().stream().filter(i -> i.getName().equals(pvName) && i instanceof AlarmLimitItem).forEach(modelItem -> {
-            model.removeItem(modelItem);
-        });
-    }
-
 
     private static class SelectedSampleProperty extends SimpleStringProperty
     {
