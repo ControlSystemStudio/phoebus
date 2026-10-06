@@ -531,6 +531,9 @@ public class PVItem extends ModelItem
             writer.writeStartElement(XMLPersistence.TAG_REQUEST);
             writer.writeCharacters(getRequestType().name());
             writer.writeEndElement();
+            writer.writeStartElement(XMLPersistence.TAG_SHOW_ALARM_LIMITS);
+            writer.writeCharacters(Boolean.toString(showAlarmLimits));
+            writer.writeEndElement();
             int key = 1;
             for (ArchiveDataSource archive : archives)
             {
@@ -596,6 +599,9 @@ public class PVItem extends ModelItem
         // probably not meant to be replaced by a default.
         if (Preferences.use_default_archives  &&  !have_imported_data)
             item.useDefaultArchiveDataSources();
+
+        boolean showAlarmLimits = XMLUtil.getChildBoolean(node, XMLPersistence.TAG_SHOW_ALARM_LIMITS).orElse(false);
+        item.showAlarmLimits(showAlarmLimits);
 
         return item;
     }

@@ -431,6 +431,7 @@ abstract public class ModelItem
         writer.writeStartElement(XMLPersistence.TAG_WAVEFORM_INDEX);
         writer.writeCharacters(Integer.toString(getWaveformIndex()));
         writer.writeEndElement();
+
     }
 
     /** Load common XML configuration elements into this item
