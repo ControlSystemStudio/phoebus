@@ -8,6 +8,7 @@ import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
 
 @SuppressWarnings("nls")
 public class FileBrowserApp implements AppResourceDescriptor {
@@ -46,17 +47,13 @@ public class FileBrowserApp implements AppResourceDescriptor {
     @Override
     public AppInstance create(final URI resource)
     {
-        try
-        {
-            // Remove query component since File(URI) does not accept it
-            URI clean = new URI(resource.getScheme(), resource.getSchemeSpecificPart(), null);
-            return createWithRoot(new File(clean));
-        }
-        catch (Exception ex)
-        {
-            // Fallback: try using path string
-            return createWithRoot(new File(resource.getPath()));
-        }
+        // Use ResourceParser.getFile which handles UNC/network paths
+        // (URIs with a host/authority component)
+        final File file = ResourceParser.getFile(resource);
+        if (file != null)
+            return createWithRoot(file);
+        // Fallback: try using path string
+        return createWithRoot(new File(resource.getPath()));
     }
 
 
