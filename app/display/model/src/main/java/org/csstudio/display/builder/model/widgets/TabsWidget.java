@@ -110,6 +110,10 @@ public class TabsWidget extends MacroWidget
     static final WidgetPropertyDescriptor<Integer> propTabHeight =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tab_height", Messages.Tab_Height);
 
+    static final WidgetPropertyDescriptor<Integer> propDefaultTab =
+            CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "default_tab", Messages.DefaultTab,
+                    -1, Integer.MAX_VALUE);
+
     static final WidgetPropertyDescriptor<Integer> propActiveTab =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "active_tab", Messages.ActiveTab,
                                                             0, Integer.MAX_VALUE);
@@ -180,6 +184,7 @@ public class TabsWidget extends MacroWidget
 
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetFont> font;
+    private volatile WidgetProperty<Integer> default_tab;
     private volatile WidgetProperty<Integer> active;
     private volatile ArrayWidgetProperty<TabItemProperty> tabs;
     private volatile WidgetProperty<Direction> direction;
@@ -198,6 +203,7 @@ public class TabsWidget extends MacroWidget
         super.defineProperties(properties);
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
+        properties.add(default_tab = propDefaultTab.createProperty(this, -1));
         properties.add(active = propActiveTab.createProperty(this, 0));
         properties.add(tabs = propTabs.createProperty(this, Arrays.asList(new TabItemProperty(this, 0),
                                                                              new TabItemProperty(this, 1))));
@@ -241,6 +247,12 @@ public class TabsWidget extends MacroWidget
     public WidgetProperty<WidgetFont> propFont()
     {
         return font;
+    }
+
+    /** @return 'default_tab' property */
+    public WidgetProperty<Integer> propDefaultTab()
+    {
+        return default_tab;
     }
 
     /** @return 'active_tab' property */
