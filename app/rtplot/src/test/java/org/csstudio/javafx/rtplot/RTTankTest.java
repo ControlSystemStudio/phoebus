@@ -39,17 +39,36 @@ public class RTTankTest
         assertThat(tank, not(nullValue()));
     }
 
-    /** setRange should reject invalid ranges */
+    /** setRange should ignore non-finite and zero-width ranges */
     @Test
-    public void testSetRangeRejectsInvalid()
+    public void testSetRangeIgnoresInvalid()
     {
         final RTTank tank = new RTTank();
-        // Should silently ignore these — no exception
+        tank.setRange(0, 100);
         tank.setRange(Double.NaN, 100);
         tank.setRange(0, Double.NaN);
-        tank.setRange(100, 100);   // flat
-        tank.setRange(100, 0);     // inverted
+        tank.setRange(100, 100);
         tank.setRange(Double.POSITIVE_INFINITY, 100);
+        assertThat(tank.getValueRange().getLow(), equalTo(0.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(100.0));
+    }
+
+    /** An inverted range is kept, except on a log scale which is always ascending */
+    @Test
+    public void testInvertedRange()
+    {
+        final RTTank tank = new RTTank();
+        tank.setRange(100, 1);
+        assertThat(tank.getValueRange().getLow(), equalTo(100.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(1.0));
+
+        tank.setLogScale(true);
+        assertThat(tank.getValueRange().getLow(), equalTo(1.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(100.0));
+
+        tank.setLogScale(false);
+        assertThat(tank.getValueRange().getLow(), equalTo(100.0));
+        assertThat(tank.getValueRange().getHigh(), equalTo(1.0));
     }
 
     /** setValue should handle NaN and Infinity */
