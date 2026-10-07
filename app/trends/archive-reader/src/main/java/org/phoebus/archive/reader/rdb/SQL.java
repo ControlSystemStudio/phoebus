@@ -87,12 +87,13 @@ class SQL
                 "   WHERE channel_id=?" +
                 "     AND smpl_time BETWEEN ? AND ?" +
                 "   ORDER BY smpl_time";
-            sample_sel_by_id_start_end_with_blob =
-                "SELECT smpl_time, severity_id, status_id, num_val, float_val, str_val, datatype, array_val" +
+            sample_sel_by_id_start_end_with_blob = RDBPreferences.raw_query.isEmpty()
+              ? "SELECT smpl_time, severity_id, status_id, num_val, float_val, str_val, datatype, array_val" +
                 "   FROM " + prefix + "sample" +
                 "   WHERE channel_id=?" +
                 "     AND smpl_time>=? AND smpl_time<=?" +
-                "   ORDER BY smpl_time";
+                "   ORDER BY smpl_time"
+              : RDBPreferences.raw_query;
         sample_sel_array_vals = "SELECT float_val FROM " + prefix + "array_val" +
                 " WHERE channel_id=? AND smpl_time=? ORDER BY seq_nbr";
         }
