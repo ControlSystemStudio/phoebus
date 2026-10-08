@@ -1,8 +1,9 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
 import javafx.collections.ObservableMap;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.framework.jobs.Job;
@@ -11,6 +12,7 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.util.http.QueryParamsHelper;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -63,8 +65,10 @@ public class AlarmLogSearchJob implements JobRunnable {
         this.searchParameters = searchParameters;
         this.alarmMessageHandler = alarmMessageHandler;
         this.errorHandler = errorHandler;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper = JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                .build();
     }
 
     @Override

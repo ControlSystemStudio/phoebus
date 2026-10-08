@@ -2,13 +2,12 @@ package org.phoebus.applications.alarm.logging.ui;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
-import java.io.IOException;
 import java.time.Instant;
 
 @JsonInclude(Include.NON_NULL)
@@ -152,13 +151,14 @@ public class AlarmLogTableItem {
         this.enabled = enabled;
     }
 
-    public static class AlarmInstantDeserializer extends JsonDeserializer<Instant> {
+    public static class AlarmInstantDeserializer extends StdDeserializer<Instant> {
 
         public AlarmInstantDeserializer() {
+            super(Instant.class);
         }
 
         @Override
-        public Instant deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        public Instant deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
             return Instant.parse(p.getText());
         }
     }

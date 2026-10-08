@@ -1,7 +1,7 @@
 package org.phoebus.applications.queueserver.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 import org.phoebus.applications.queueserver.api.HistoryGetPayload;
 import org.phoebus.applications.queueserver.api.QueueItem;
 import org.phoebus.applications.queueserver.api.QueueItemAddBatch;
@@ -102,7 +102,7 @@ public final class RePlanHistoryController implements Initializable {
             hookButtons();
             updateButtonStates();
         }
-        
+
         hookExportButtons();
 
         table.getSelectionModel().getSelectedIndices()
@@ -268,12 +268,12 @@ public final class RePlanHistoryController implements Initializable {
         table.getSelectionModel().getSelectedIndices()
                 .addListener((ListChangeListener<? super Integer>) c -> updateButtonStates());
     }
-    
+
     private void hookExportButtons() {
         exportTxtItem.setOnAction(e -> exportHistory(PlanHistorySaver.Format.TXT, "txt"));
         exportJsonItem.setOnAction(e -> exportHistory(PlanHistorySaver.Format.JSON, "json"));
         exportYamlItem.setOnAction(e -> exportHistory(PlanHistorySaver.Format.YAML, "yaml"));
-        
+
         exportBtn.setOnAction(e -> exportHistory(PlanHistorySaver.Format.TXT, "txt"));
     }
 
@@ -316,7 +316,7 @@ public final class RePlanHistoryController implements Initializable {
         try { svc.historyClear(); }
         catch (Exception ex) { logger.log(Level.WARNING, "Clear-history failed", ex); }
     }
-    
+
     private void exportHistory(PlanHistorySaver.Format fmt, String ext) {
         FileChooser fc = new FileChooser();
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(ext.toUpperCase(), "."+ext));
@@ -454,15 +454,10 @@ public final class RePlanHistoryController implements Initializable {
             String params,
             String user,
             String group) {}
-            
+
     private static final class PlanHistorySaver {
 
-        private static final ObjectMapper JSON =
-                (ObjectMapper) new ObjectMapper()
-                        .writerWithDefaultPrettyPrinter()
-                        .withDefaultPrettyPrinter()
-                        .getFactory()
-                        .getCodec();
+        private static final ObjectMapper JSON = new ObjectMapper();
 
         private static final DateTimeFormatter TS =
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")

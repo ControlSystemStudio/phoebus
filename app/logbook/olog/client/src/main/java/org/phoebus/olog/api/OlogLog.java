@@ -15,7 +15,7 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * @author Eric Berryman taken from shroffk
@@ -77,7 +77,7 @@ public class OlogLog implements LogEntry {
     public OlogLog(XmlLog xmlLog) {
         this.id = xmlLog.getId();
         this.version = xmlLog.getVersion();
-        
+
         owner = xmlLog.getOwner();
         source = xmlLog.getSource();
         level = xmlLog.getLevel();
@@ -301,7 +301,7 @@ public class OlogLog implements LogEntry {
 
     /**
      * Setter for log's XmlProperties.
-     * 
+     *
      * @param properties XmlProperties
      */
     public void setXmlProperties(Collection<Property> properties) {

@@ -103,7 +103,7 @@ public class CompositeSnapshotController extends BaseController {
      * @return The {@link CompositeSnapshotData} associated with the {@link CompositeSnapshot} {@link Node}.
      */
     @GetMapping(value = "/composite-snapshot/{uniqueId}", produces = JSON)
-    public CompositeSnapshotData getCompositeSnapshotData(@PathVariable String uniqueId) {
+    public CompositeSnapshotData getCompositeSnapshotData(@PathVariable("uniqueId") String uniqueId) {
         return nodeDAO.getCompositeSnapshotData(uniqueId);
     }
 
@@ -114,7 +114,7 @@ public class CompositeSnapshotController extends BaseController {
      * {@link NodeType#COMPOSITE_SNAPSHOT}.
      */
     @GetMapping(value = "/composite-snapshot/{uniqueId}/nodes", produces = JSON)
-    public List<Node> getCompositeSnapshotNodes(@PathVariable String uniqueId) {
+    public List<Node> getCompositeSnapshotNodes(@PathVariable("uniqueId") String uniqueId) {
         CompositeSnapshotData compositeSnapshotData = nodeDAO.getCompositeSnapshotData(uniqueId);
         return nodeDAO.getNodes(compositeSnapshotData.getReferencedSnapshotNodes());
     }
@@ -124,7 +124,7 @@ public class CompositeSnapshotController extends BaseController {
      * @return List of {@link SnapshotItem}s contained in the referenced {@link Node}s
      */
     @GetMapping(value = "/composite-snapshot/{uniqueId}/items", produces = JSON)
-    public List<SnapshotItem> getCompositeSnapshotItems(@PathVariable String uniqueId) {
+    public List<SnapshotItem> getCompositeSnapshotItems(@PathVariable("uniqueId") String uniqueId) {
         return nodeDAO.getSnapshotItemsFromCompositeSnapshot(uniqueId);
     }
 

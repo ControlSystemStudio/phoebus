@@ -19,11 +19,13 @@
 
 package org.phoebus.logbook.olog.ui;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.std.StdSerializer;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -102,18 +104,25 @@ public class ArchivedLogEntriesManager {
             Platform.runLater(() -> {
                 File destinationFile = fileChooser.showSaveDialog(ownerNode.getScene().getWindow());
                 if (destinationFile != null) {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
                             .withZone(ZoneId.systemDefault());
-                    JavaTimeModule javaTimeModule = new JavaTimeModule();
-                    // Since this write to file that someone will read, format time accordingly...
-                    javaTimeModule.addSerializer(Instant.class, new JsonSerializer<>() {
-                        @Override
-                        public void serialize(Instant value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-                            gen.writeString(formatter.format(value));
-                        }
-                    });
+                     SimpleModule instantModule = new SimpleModule();
+                     // Since this write to file that someone will read, format time accordingly...
+                     instantModule.addSerializer(Instant.class, new StdSerializer<Instant>(Instant.class) {
+                         @Override
+                         public void serialize(Instant value, JsonGenerator gen, SerializationContext serializers) throws JacksonException {
+                             try {
+                                 gen.writeString(formatter.format(value));
+                             } catch (Exception e) {
+                                 throw new RuntimeException(e);
+                             }
+                         }
+                     });
 
-                    ObjectMapper objectMapper = new ObjectMapper().registerModule(javaTimeModule);
+                     ObjectMapper objectMapper = JsonMapper.builder()
+                            .addModule(instantModule)
+                            .build();
+
                     BufferedOutputStream writer = null;
                     try {
                         writer = new BufferedOutputStream(new FileOutputStream(destinationFile));
