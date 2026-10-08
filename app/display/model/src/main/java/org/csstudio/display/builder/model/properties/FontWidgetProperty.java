@@ -99,7 +99,7 @@ public class FontWidgetProperty extends WidgetProperty<WidgetFont>
         {   // Current format:  <font name="Name" family="Liberation Sans" style="BOLD" size="18" />
             name = font_el.getAttribute(XMLTags.NAME);
             family = font_el.getAttribute(FAMILY);
-            style = WidgetFontStyle.valueOf(font_el.getAttribute(STYLE));
+            style = WidgetFontStyle.safeValueOf(font_el.getAttribute(STYLE));
             size = Double.parseDouble(font_el.getAttribute(SIZE));
         }
         else

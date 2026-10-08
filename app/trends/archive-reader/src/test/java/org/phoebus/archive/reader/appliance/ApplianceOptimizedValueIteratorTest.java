@@ -38,13 +38,13 @@ class ApplianceOptimizedValueIteratorTest {
     @Test
     void fetchUrlContainsOptimizedNOperator() throws Exception {
         FakeDataRetrieval dr = new FakeDataRetrieval(probeStream(PayloadType.SCALAR_DOUBLE));
-        dr.whenPvContains("optimized_", emptyStream());
+        dr.whenPvContains("optimLastSample_", emptyStream());
 
         FakeApplianceArchiveReader reader = new FakeApplianceArchiveReader(dr);
         new ApplianceOptimizedValueIterator(reader, "TEST:PV", START, END, POINTS, false);
 
-        assertTrue(dr.pvsCalled.stream().anyMatch(pv -> pv.startsWith("optimized_") && pv.endsWith("(TEST:PV)")),
-                "Expected optimized_<N>(TEST:PV) call, got: " + dr.pvsCalled);
+        assertTrue(dr.pvsCalled.stream().anyMatch(pv -> pv.startsWith("optimLastSample_") && pv.endsWith("(TEST:PV)")),
+                "Expected optimLastSample__<N>(TEST:PV) call, got: " + dr.pvsCalled);
     }
 
     @Test
@@ -78,7 +78,7 @@ class ApplianceOptimizedValueIteratorTest {
         when(dataStream.getPayLoadInfo()).thenReturn(waveformInfo);
 
         FakeDataRetrieval dr = new FakeDataRetrieval(probeStream(PayloadType.SCALAR_DOUBLE));
-        dr.whenPvContains("optimized_", dataStream);
+        dr.whenPvContains("optimLastSample_", dataStream);
 
         FakeApplianceArchiveReader reader = new FakeApplianceArchiveReader(dr);
         return new ApplianceOptimizedValueIterator(reader, "TEST:PV", START, END, POINTS, useStatistics);

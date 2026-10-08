@@ -19,6 +19,7 @@
 
 package org.epics.pva.data;
 
+import org.epics.pva.exceptions.ElementTypeException;
 import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;

@@ -97,6 +97,9 @@ public class SearchResponse
         result.found = PVABool.decodeBoolean(buffer);
 
         final int count = Short.toUnsignedInt(buffer.getShort());
+        if (count*Integer.BYTES > buffer.remaining())
+            throw new Exception("PVA Server sent search reply #" + result.seq + " for " + count + " CIDs " +
+                                " with only " + buffer.remaining() + " bytes in buffer");
         result.cid = new int[count];
         for (int i=0; i<count; ++i)
             result.cid[i] = buffer.getInt();

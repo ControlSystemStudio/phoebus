@@ -52,6 +52,8 @@ public class ApplianceArchiveReaderConstants {
     public static final String OP_MEAN = "mean_";
     /** Operator for the optimized post processor */
     public static final String OP_OPTIMIZED = "optimized_";
+    /** Operator for the optimized with last sample post processor */
+    public static final String OP_OPTIMIZED_WITH_LAST_SAMPLE = "optimLastSample_";
 
     /** The schema delimiter: ca://pvName or pva://pvname */
     static final String SCHEMA_DELIMITER = "://";

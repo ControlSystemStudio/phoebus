@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>6.0.0-SNAPSHOT</version>
+  <version>7.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
   <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>
@@ -64,7 +64,7 @@
   </distributionManagement>
 
   <properties>
-    <project.build.outputTimestamp>2026-05-08T14:22:40Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2026-10-06T19:17:33Z</project.build.outputTimestamp>
     <epics.version>7.0.11</epics.version>
     <epics.util.version>1.0.8</epics.util.version>
     <vtype.version>1.0.8</vtype.version>
@@ -387,7 +387,7 @@
           <plugin>
             <groupId>org.sonatype.central</groupId>
             <artifactId>central-publishing-maven-plugin</artifactId>
-            <version>0.7.0</version>
+            <version>0.11.0</version>
             <extensions>true</extensions>
             <configuration>
               <publishingServerId>phoebus-releases</publishingServerId>

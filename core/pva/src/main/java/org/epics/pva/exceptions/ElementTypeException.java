@@ -17,13 +17,15 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.epics.pva.data;
+package org.epics.pva.exceptions;
+
+import org.epics.pva.data.PVAStructure;
 
 /**
  * Exception for when updating a PVAStructure array with a value that
  * includes a PVAStructure which does not match the element type of the array.
  */
-public class ElementTypeException extends Exception {
+public class ElementTypeException extends PVAProtocolException {
 
     /**
      * Constructor returns an exception with a message based on the

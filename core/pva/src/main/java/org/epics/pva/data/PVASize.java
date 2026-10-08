@@ -54,6 +54,9 @@ public class PVASize
      */
     public static final int decodeSize(final ByteBuffer buffer)
     {
+        // XXXX Update to long, using Integer.toUnsignedLong(..)?
+        // JDK api like buffer.remaining() is limited to int,
+        // so this would have limited effect...
         byte b = buffer.get();
         if (b == -1)
             return -1;
