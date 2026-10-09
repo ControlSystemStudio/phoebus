@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,9 +48,13 @@ public class WebBrowserWidget extends VisibleWidget
     /** 'show_toolbar' */
     public static final WidgetPropertyDescriptor<Boolean> propShowToolbar =
         CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_toolbar", Messages.WebBrowser_showToolbar);
+    /** 'resize_with_window' */
+    public static final WidgetPropertyDescriptor<Boolean> propResizeWithWindow =
+        CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "resize_with_window", Messages.WebBrowser_resizeWithWindow);
 
     private volatile WidgetProperty<String> url;
     private volatile WidgetProperty<Boolean> show_toolbar;
+    private volatile WidgetProperty<Boolean> resize_with_window;
 
     /** Constructor */
     public WebBrowserWidget()
@@ -64,6 +68,8 @@ public class WebBrowserWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(url = propWidgetURL.createProperty(this, ""));
         properties.add(show_toolbar = propShowToolbar.createProperty(this, true));
+        properties.add(resize_with_window = propResizeWithWindow.createProperty(this, false));
+        resize_with_window.setInformativeTooltip(Messages.InformativeTooltipResizeWithWindow);
     }
 
     /** @return Widget 'url' property */
@@ -76,5 +82,11 @@ public class WebBrowserWidget extends VisibleWidget
     public WidgetProperty<Boolean> propShowToolbar()
     {
         return show_toolbar;
+    }
+
+    /** @return 'resize_with_window' property */
+    public WidgetProperty<Boolean> propResizeWithWindow()
+    {
+        return resize_with_window;
     }
 }
