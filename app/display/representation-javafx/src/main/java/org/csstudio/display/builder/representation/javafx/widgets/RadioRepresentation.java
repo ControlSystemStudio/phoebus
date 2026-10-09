@@ -18,6 +18,8 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.RadioWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -305,6 +307,10 @@ public class RadioRepresentation extends JFXBaseRepresentation<TilePane, RadioWi
                 final RadioButton rb = (RadioButton) rb_node;
                 rb.setTextFill(fg);
                 rb.setFont(font);
+                WidgetFont fontStyle = model_widget.propFont().getValue();
+                WidgetFontStyle style = fontStyle.getStyle();
+                boolean underline = style.toString().contains(WidgetFontStyle.UNDERLINE.toString());
+                rb.setUnderline(underline);
             }
         }
     }

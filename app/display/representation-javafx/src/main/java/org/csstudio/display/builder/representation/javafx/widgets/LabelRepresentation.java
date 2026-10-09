@@ -12,6 +12,8 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.RotationStep;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.phoebus.ui.javafx.TextUtils;
@@ -188,6 +190,10 @@ public class LabelRepresentation extends RegionBaseRepresentation<Pane, LabelWid
                 label.setBackground(new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY)));
             }
             label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            WidgetFont font = model_widget.propFont().getValue();
+            WidgetFontStyle style = font.getStyle();
+            boolean underline = style.toString().contains(WidgetFontStyle.UNDERLINE.toString());
+            label.setUnderline(underline);
         }
     }
 }
