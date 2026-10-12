@@ -97,6 +97,18 @@ public class MiscTabController
             model.setAreaOpacity((int)Math.round(opacitySlider.getValue()));
             updating = false;
         });
+
+        titleFont.setOnFontSelected(font -> new ChangeFontCommand(model, undo, model.getTitleFont(), font, (m, f) -> m.setTitleFont(f)));
+        titleFont.setInitialFont(model.getTitleFont());
+
+        labelFont.setOnFontSelected(font -> new ChangeFontCommand(model, undo, model.getLabelFont(), font, (m, f) -> m.setLabelFont(f)));
+        labelFont.setInitialFont(model.getLabelFont());
+
+        scaleFont.setOnFontSelected(font -> new ChangeFontCommand(model, undo, model.getScaleFont(), font, (m, f) -> m.setScaleFont(f)));
+        scaleFont.setInitialFont(model.getScaleFont());
+
+        legendFont.setOnFontSelected(font -> new ChangeFontCommand(model, undo, model.getLegendFont(), font, (m, f) -> m.setLegendFont(f)));
+        legendFont.setInitialFont(model.getLegendFont());
     }
 
     // -----------------------------------------------------------------------

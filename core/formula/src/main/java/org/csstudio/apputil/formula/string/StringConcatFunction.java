@@ -3,12 +3,7 @@ package org.csstudio.apputil.formula.string;
 
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.util.array.ListNumber;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.Time;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VType;
+import org.epics.vtype.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +51,9 @@ public class StringConcatFunction implements FormulaFunction {
             } else if (isString(arg))
             {
                 stringBuilder.append(((VString)arg).getValue());
+            } else if (isEnum(arg))
+            {
+                stringBuilder.append(((VEnum)arg).getValue());
             }
         });
         return VString.of(stringBuilder.toString(), Alarm.none(), Time.now());
@@ -63,12 +61,12 @@ public class StringConcatFunction implements FormulaFunction {
 
     /**
      * Returns true is the value is a StringArray or can be converted to a StringArray
-     * @param value 
+     * @param value
      * @return boolean true if value can be used as a string array
      */
     private boolean isStringArray(VType value)
     {
-        return value instanceof VStringArray 
+        return value instanceof VStringArray
             || value instanceof VNumberArray;
     }
 
@@ -92,5 +90,10 @@ public class StringConcatFunction implements FormulaFunction {
     private boolean isString(VType value)
     {
         return value instanceof VString;
+    }
+
+    private boolean isEnum(VType value)
+    {
+        return value instanceof VEnum;
     }
 }

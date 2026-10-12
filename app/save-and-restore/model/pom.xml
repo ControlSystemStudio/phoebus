@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>app-save-and-restore</artifactId>
-		<version>6.0.0-SNAPSHOT</version>
+		<version>7.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>save-and-restore-model</artifactId>
@@ -14,25 +14,25 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-framework</artifactId>
-			<version>6.0.0-SNAPSHOT</version>
+			<version>7.0.0-SNAPSHOT</version>
 		</dependency>
 
       <dependency>
           <groupId>org.phoebus</groupId>
           <artifactId>core-security</artifactId>
-          <version>6.0.0-SNAPSHOT</version>
+          <version>7.0.0-SNAPSHOT</version>
       </dependency>
 
 	  <dependency>
 		  <groupId>org.phoebus</groupId>
 		  <artifactId>core-websocket-common</artifactId>
-		  <version>6.0.0-SNAPSHOT</version>
+		  <version>7.0.0-SNAPSHOT</version>
 	  </dependency>
 
 	  <dependency>
 		  <groupId>org.phoebus</groupId>
 		  <artifactId>core-websocket-client</artifactId>
-		  <version>6.0.0-SNAPSHOT</version>
+		  <version>7.0.0-SNAPSHOT</version>
 	  </dependency>
 
 		<dependency>
@@ -80,7 +80,7 @@
 			<artifactId>javax.json</artifactId>
 			<version>1.1.4</version>
 		</dependency>
-		
+
 		<!-- https://mvnrepository.com/artifact/junit/junit -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

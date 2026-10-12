@@ -121,25 +121,19 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
             }
             else
             {
-                // To get the information to display on non-leaf nodes one will need to walk a potentially deep
-                // tree structure, so this is done off the UI thread.
-                JobManager.schedule("Get Tree Node Info", monitor -> {
-                    TreeNodeInfo info = AlarmTreeHelper.getTreeNodeInfo(item);
-                    Platform.runLater(() -> {
-                        String labelText = item.getName();
-                        label.setText(labelText);
-                        SeverityLevel severityLevel = item.getState().severity;
-                        disabledTimerIndicator.setText(AlarmTreeHelper.treeNodeInfoToString(info));
-                        if(info.disabled() + info.disabledWithEnableDate() == info.leaves().size()){
-                            label.setTextFill(Color.GRAY);
-                        }
-                        else{
-                            label.setTextFill(AlarmUI.getColor(severityLevel));
-                        }
-                        label.setBackground(AlarmUI.getBackground(severityLevel));
-                        image.setImage(AlarmUI.getIcon(severityLevel));
-                    });
-                });
+                TreeNodeInfo info = AlarmTreeHelper.getTreeNodeInfo(item);
+                String labelText = item.getName();
+                label.setText(labelText);
+                SeverityLevel severityLevel = item.getState().severity;
+                disabledTimerIndicator.setText(AlarmTreeHelper.treeNodeInfoToString(info));
+                if(info.disabled() + info.disabledWithEnableDate() == info.leaves().size()){
+                    label.setTextFill(Color.GRAY);
+                }
+                else{
+                    label.setTextFill(AlarmUI.getColor(severityLevel));
+                }
+                label.setBackground(AlarmUI.getBackground(severityLevel));
+                image.setImage(AlarmUI.getIcon(severityLevel));
             }
             // Profiler showed small advantage when skipping redundant 'setGraphic' call
             if (getGraphic() != content)
