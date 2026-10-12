@@ -2,7 +2,6 @@ package org.csstudio.trends.databrowser3.model;
 
 import org.epics.vtype.*;
 
-import javax.xml.stream.XMLStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,8 +19,6 @@ public class AlarmLimitItem extends PVItem {
      * Creates an {@link AlarmLimitItem} based on a {@link PVItem} and the {@link Display} information in each sample.
      * @param parentItem The {@link PVItem} from which to construct an {@link AlarmLimitItem}
      * @param limitType One of the limit types defined in {@link LimitType}
-     * @return An {@link AlarmLimitItem} if all is well.
-     * @throws IllegalArgumentException If <code>parentItem</code> is <code>null</code> or if
      */
     public AlarmLimitItem(final PVItem parentItem, final LimitType limitType){
         super(parentItem.getName(), parentItem.getScanPeriod());
@@ -55,36 +52,14 @@ public class AlarmLimitItem extends PVItem {
       */
     protected Optional<VType> getAlarmLimitVType(VType value) {
         Display display = Display.displayOf(value);
-        double doubleValue;
-        switch (limitType) {
-            case LOLO:
-                doubleValue = display.getAlarmRange().getMinimum();
-                return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
-                        Optional.empty();
-            case LOW:
-                doubleValue = display.getWarningRange().getMinimum();
-                return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
-                        Optional.empty();
-            case HIGH:
-                doubleValue = display.getWarningRange().getMaximum();
-                return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
-                        Optional.empty();
-            case HIHI:
-                doubleValue = display.getAlarmRange().getMaximum();
-                return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
-                        Optional.empty();
-        }
-        return Optional.empty();
-    }
-
-
-    /**
-     * Does not write anything to the plt file as alarm limits are not supposed to be displayed by default.
-     * @param writer PrintWriter
-     * @throws Exception
-     */
-    @Override
-    public void write(final XMLStreamWriter writer) throws Exception {
+        double doubleValue = switch (limitType) {
+            case LOLO -> display.getAlarmRange().getMinimum();
+            case LOW -> display.getWarningRange().getMinimum();
+            case HIGH -> display.getWarningRange().getMaximum();
+            case HIHI -> display.getAlarmRange().getMaximum();
+        };
+        return Double.isFinite(doubleValue) ? Optional.of(VDouble.of(doubleValue, Alarm.none(), Time.timeOf(value), Display.none())) :
+                Optional.empty();
     }
 
     /**

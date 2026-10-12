@@ -89,6 +89,10 @@ public class TracesTabController {
     private TableColumn<ArchiveDataSource, String> archiveNameColumn;
     @FXML
     private TableColumn<ArchiveDataSource, String> urlColumn;
+    @FXML
+    private TableColumn<ModelItem, ColorPicker> loloHiHiColorColumn;
+    @FXML
+    private TableColumn<ModelItem, ColorPicker> lowHighColorColumn;
 
     // Earlier version used
     //   trace_types = FXCollections.observableArrayList(TraceType.getDisplayNames());
@@ -370,14 +374,45 @@ public class TracesTabController {
                 new AlarmVisibilityTableCell());
 
         alarmLimitsVisibilityColumn.setCellValueFactory(cell -> {
-            final BooleanProperty visibilityProperty = new SimpleBooleanProperty(((PVItem)cell.getValue()).getShowAlarmLimits());
-            visibilityProperty.addListener((p, old, visible) -> {
-                PVItem pvItem = (PVItem)cell.getValue();
-                pvItem.showAlarmLimits(visible);
-            });
-            return visibilityProperty;
+            if(cell.getValue() instanceof PVItem pvItem){
+                final BooleanProperty visibilityProperty = new SimpleBooleanProperty(pvItem.getShowAlarmLimits());
+                visibilityProperty.addListener((p, old, visible) -> {
+                    pvItem.showAlarmLimits(visible);
+                });
+                return visibilityProperty;
+            }
+            else{
+                return new SimpleBooleanProperty(false);
+            }
         });
 
+        loloHiHiColorColumn.setCellValueFactory(cell -> {
+            if(cell.getValue() instanceof PVItem pvItem){
+                Color color = pvItem.getAlarmLimits() != null ? pvItem.getAlarmLimits().getMajorColor() : null;
+                final ColorPicker picker = PropertyPanel.ConcealableColorTableCell.createPicker(color == null ? pvItem.getPaintColor() : color);
+                picker.setOnAction(event ->
+                        new ChangeLoloHihiAlarmLimitColorCommand(undoableActionManager, pvItem, picker.getValue()));
+                return new SimpleObjectProperty<>(picker);
+            }
+            else{
+                return null;
+            }
+        });
+        loloHiHiColorColumn.setCellFactory(cell -> new PropertyPanel.ConcealableColorTableCell<>());
+
+        lowHighColorColumn.setCellValueFactory(cell -> {
+            if(cell.getValue() instanceof PVItem pvItem){
+                Color color = pvItem.getAlarmLimits() != null ? pvItem.getAlarmLimits().getMinorColor() : null;
+                final ColorPicker picker = PropertyPanel.ConcealableColorTableCell.createPicker(color == null ? pvItem.getPaintColor() : color);
+                picker.setOnAction(event ->
+                        new ChangeLowHighAlarmLimitColorCommand(undoableActionManager, pvItem, picker.getValue()));
+                return new SimpleObjectProperty<>(picker);
+            }
+            else{
+                return null;
+            }
+        });
+        lowHighColorColumn.setCellFactory(cell -> new PropertyPanel.ConcealableColorTableCell<>());
 
         traceTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         traceTable.getColumns().forEach(c -> c.setSortable(false));
@@ -567,6 +602,11 @@ public class TracesTabController {
 
         @Override
         public void itemHasAlarmLimits() {
+            traceTable.refresh();
+        }
+
+        @Override
+        public void showAlarmLimitsChanged() {
             traceTable.refresh();
         }
     };

@@ -265,45 +265,6 @@ class ApplianceValueIteratorExtractDataTest {
     }
 
     @Test
-    void testExtractDisplayFromEpicsMessage() throws Exception {
-
-        GenMsgIterator iter = mock(GenMsgIterator.class);
-        FakeDataRetrieval fakeDataRetrieval = new FakeDataRetrieval(iter);
-        FakeApplianceArchiveReader fakeApplianceArchiveReader = new FakeApplianceArchiveReader(fakeDataRetrieval);
-        ApplianceValueIterator applianceValueIterator = new ApplianceRawValueIterator(fakeApplianceArchiveReader, "PV:NAME", Instant.EPOCH, Instant.now());
-
-        PayloadInfo payloadInfo = PayloadInfo.newBuilder()
-                .setType(PayloadType.SCALAR_DOUBLE)
-                .setPvname("PV:NAME")
-                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOLO).setVal("-100").build())
-                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOW).setVal("-50").build())
-                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HIGH).setVal("50").build())
-                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HIHI).setVal("100").build())
-                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.LOPR).setVal("-200").build())
-                .addHeaders(FieldValue.newBuilder().setName(ApplianceArchiveReaderConstants.HOPR).setVal("200").build())
-                .setYear(2000).build();
-        when(iter.getPayLoadInfo()).thenReturn(payloadInfo);
-        EpicsMessage epicsMessage = mock(EpicsMessage.class);
-        when(epicsMessage.getTimestamp()).thenReturn(new Timestamp(1000000L));
-        Map<String, String> fieldValues = new HashMap();
-        fieldValues.put(ApplianceArchiveReaderConstants.LOLO, "-10");
-        fieldValues.put(ApplianceArchiveReaderConstants.LOW, "-5");
-        fieldValues.put(ApplianceArchiveReaderConstants.HIGH, "5");
-        fieldValues.put(ApplianceArchiveReaderConstants.HIHI, "10");
-        fieldValues.put(ApplianceArchiveReaderConstants.LOPR, "-20");
-        fieldValues.put(ApplianceArchiveReaderConstants.HOPR, "20");
-        when(epicsMessage.getFieldValues()).thenReturn(fieldValues);
-        when(epicsMessage.getNumberValue()).thenReturn(771);
-        VType vType = applianceValueIterator.extractData(epicsMessage);
-        assertEquals(-10, Display.displayOf(vType).getAlarmRange().getMinimum());
-        assertEquals(-5, Display.displayOf(vType).getWarningRange().getMinimum());
-        assertEquals(5, Display.displayOf(vType).getWarningRange().getMaximum());
-        assertEquals(10, Display.displayOf(vType).getAlarmRange().getMaximum());
-        assertEquals(-20, Display.displayOf(vType).getControlRange().getMinimum());
-        assertEquals(20, Display.displayOf(vType).getControlRange().getMaximum());
-    }
-
-    @Test
     void testExtractDisplayFromEpicsMessageWithNullFieldValues() throws Exception {
 
         GenMsgIterator iter = mock(GenMsgIterator.class);

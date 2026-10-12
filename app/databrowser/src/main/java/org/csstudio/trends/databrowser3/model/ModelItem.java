@@ -47,7 +47,7 @@ abstract public class ModelItem
     private volatile String units;
 
     /** Show item's samples? */
-    private volatile boolean visible = true;
+    protected volatile boolean visible = true;
 
     /** RGB for item's color
      *  <p>

@@ -8,7 +8,7 @@
 package org.csstudio.trends.databrowser3.ui.properties;
 
 import org.csstudio.javafx.rtplot.util.RGBFactory;
-import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.model.*;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.ui.undo.UndoableActionManager;
 
@@ -55,6 +55,38 @@ public class PropertyPanel extends TabPane
             setGraphic(empty ? null : picker);
         }
     }
+
+    static class ConcealableColorTableCell<S> extends TableCell<S, ColorPicker> {
+
+        static ColorPicker createPicker(final Color color)
+        {
+            final ColorPicker picker = new ColorPicker(color);
+            picker.getCustomColors().setAll(RGBFactory.PALETTE);
+            picker.setStyle("-fx-color-label-visible: false ;");
+            return picker;
+        }
+
+        @Override
+        protected void updateItem(final ColorPicker picker, final boolean empty)
+        {
+            super.updateItem(picker, empty);
+            if(empty){
+                return;
+            }
+            ModelItem modelItem = (ModelItem)getTableRow().getItem();
+            if (modelItem instanceof FormulaItem) {
+                // Showing alarm limits for formula items does not make sense...
+                setGraphic(null);
+            } else if (modelItem instanceof PVItem pvItem && !pvItem.getShowAlarmLimits()) {
+                // No alarm limits available, not RAW request
+                setGraphic(null);
+            }
+            else {
+                setGraphic(picker);
+            }
+        }
+    }
+
 
 
     /** @param model Model

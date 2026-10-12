@@ -80,6 +80,17 @@ public interface ModelListener
     /** ModelItems have new selected sample */
     default void selectedSamplesChanged() {}
 
+    /**
+     * Purpose is to dispatch to listeners of presence of alarm
+     * limits when archived data has been retrieved.
+     */
     default void itemHasAlarmLimits() {}
+
+    /**
+     * Purpose is to dispatch to listeners of request to
+     * show alarm limits.
+     */
+    default void showAlarmLimitsChanged() {}
+
 
 }

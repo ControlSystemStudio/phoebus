@@ -30,6 +30,8 @@
             <TableColumn fx:id="requestTypeColumn" text="%RequestType" />
             <TableColumn fx:id="waveformIndexColumn" text="%WaveformIndexCol" />
             <TableColumn fx:id="alarmLimitsVisibilityColumn" text="%ShowAlarmLimits" prefWidth="130"/>
+            <TableColumn fx:id="lowHighColorColumn" text="%MinorAlarmColor" prefWidth="150"/>
+            <TableColumn fx:id="loloHiHiColorColumn" text="%MajorAlarmColor" prefWidth="150"/>
         </columns>
     </TableView>
     <StackPane>

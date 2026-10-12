@@ -88,25 +88,15 @@ public class PVItem extends ModelItem
     private boolean checkDisplayName = false;
 
     /**
-     * Indicates if this {@link PVItem} defines alarm limits. This is determined when
-     * data from the archiver is merged. Note that this is <i>not</i> updated even if live
-     * samples should indicate presence of alarm limits.
+     * Wrapper object holding alarm limit related APIs.
      */
-    private boolean hasAlarmLimits = false;
-
-    private AlarmLimitItem loloAlarmLimitItem;
-    private AlarmLimitItem lowAlarmLimitItem;
-    private AlarmLimitItem highAlarmLimitItem;
-    private AlarmLimitItem hihiAlarmLimitItem;
+    private AlarmLimits alarmLimits;
 
     /**
      * Determines if the plot should show alarm limits.
-     * This should not be persisted to plt file as alarm limits are available
-     * only with raw requests. Saving it (as true) would trigger raw requests for
-     * all PVs when loading the plt.
+     * This should not be persisted to plt file.
      */
     private volatile boolean showAlarmLimits = false;
-
 
     /** Initialize
      *  @param name PV name
@@ -317,12 +307,16 @@ public class PVItem extends ModelItem
     /** @param request_type New request type */
     public void setRequestType(final RequestType request_type)
     {
+        if (this.request_type == request_type) {
+            return;
+        }
         // If user switches to OPTIMIZED request, remove alarm limit traces
         if(request_type.equals(RequestType.OPTIMIZED)){
-            showAlarmLimits(false);
+            this.showAlarmLimits = false;
+            if(alarmLimits != null){
+                alarmLimits.showAlarmLimits(this.showAlarmLimits);
+            }
         }
-        if (this.request_type == request_type)
-            return;
         this.request_type = request_type;
         fireItemDataConfigChanged(true);
     }
@@ -492,14 +486,12 @@ public class PVItem extends ModelItem
         {
             samples.mergeArchivedData(server_name, new_samples);
             for (VType sample : new_samples){
-                hasAlarmLimits = VTypeHelper.hasAlarmLimits(sample);
-                if(hasAlarmLimits){
+                if(VTypeHelper.hasAlarmLimits(sample)){
+                    alarmLimits = new AlarmLimits(this, model.get());
                     model.get().fireAlarmLimitsChanged();
                     break;
                 }
             }
-
-            showAlarmLimits(showAlarmLimits);
 
             need_refresh = automaticRefresh && model.isPresent() &&
                     samples.isHistoryRefreshNeeded(model.get().getTimerange());
@@ -530,9 +522,6 @@ public class PVItem extends ModelItem
             writer.writeEndElement();
             writer.writeStartElement(XMLPersistence.TAG_REQUEST);
             writer.writeCharacters(getRequestType().name());
-            writer.writeEndElement();
-            writer.writeStartElement(XMLPersistence.TAG_SHOW_ALARM_LIMITS);
-            writer.writeCharacters(Boolean.toString(showAlarmLimits));
             writer.writeEndElement();
             int key = 1;
             for (ArchiveDataSource archive : archives)
@@ -600,9 +589,6 @@ public class PVItem extends ModelItem
         if (Preferences.use_default_archives  &&  !have_imported_data)
             item.useDefaultArchiveDataSources();
 
-        boolean showAlarmLimits = XMLUtil.getChildBoolean(node, XMLPersistence.TAG_SHOW_ALARM_LIMITS).orElse(false);
-        item.showAlarmLimits(showAlarmLimits);
-
         return item;
     }
 
@@ -614,93 +600,55 @@ public class PVItem extends ModelItem
         samples.clear();
     }
 
-    public void showAlarmLimits(boolean show) {
-        if(show){
-            for(AlarmLimitItem.LimitType limitType : AlarmLimitItem.LimitType.values()){
-                switch(limitType){
-                    case LOLO:
-                        loloAlarmLimitItem = new AlarmLimitItem(this, limitType);
-                        loloAlarmLimitItem.setAxis(getAxis());
-                        loloAlarmLimitItem.setDisplayName("");
-                        loloAlarmLimitItem.setColor(getPaintColor());
-                        loloAlarmLimitItem.setLineStyle(getLineStyle());
-                        loloAlarmLimitItem.setLineWidth(3);
-                        try {
-                            model.get().addItem(loloAlarmLimitItem);
-                        } catch (Exception e) {
-                            logger.log(Level.WARNING, "Unable to create alarm LOLO limit item for " + getName(), e);
-                        }
-                        break;
-                    case LOW:
-                        lowAlarmLimitItem = new AlarmLimitItem(this, limitType);
-                        lowAlarmLimitItem.setAxis(getAxis());
-                        lowAlarmLimitItem.setDisplayName("");
-                        lowAlarmLimitItem.setColor(getPaintColor());
-                        lowAlarmLimitItem.setLineStyle(getLineStyle());
-                        lowAlarmLimitItem.setLineWidth(3);
-                        try {
-                            model.get().addItem(lowAlarmLimitItem);
-                        } catch (Exception e) {
-                            logger.log(Level.WARNING, "Unable to create alarm LOW limit item for " + getName(), e);
-                        }
-                        break;
-                    case HIGH:
-                        highAlarmLimitItem = new AlarmLimitItem(this, limitType);
-                        highAlarmLimitItem.setAxis(getAxis());
-                        highAlarmLimitItem.setDisplayName("");
-                        highAlarmLimitItem.setColor(getPaintColor());
-                        highAlarmLimitItem.setLineStyle(getLineStyle());
-                        highAlarmLimitItem.setLineWidth(3);
-                        try {
-                            model.get().addItem(highAlarmLimitItem);
-                        } catch (Exception e) {
-                            logger.log(Level.WARNING, "Unable to create alarm HIGH limit item for " + getName(), e);
-                        }
-                        break;
-                    case HIHI:
-                        hihiAlarmLimitItem = new AlarmLimitItem(this, limitType);
-                        hihiAlarmLimitItem.setAxis(getAxis());
-                        hihiAlarmLimitItem.setDisplayName("");
-                        hihiAlarmLimitItem.setColor(getPaintColor());
-                        hihiAlarmLimitItem.setLineStyle(getLineStyle());
-                        hihiAlarmLimitItem.setLineWidth(3);
-                        try {
-                            model.get().addItem(hihiAlarmLimitItem);
-                        } catch (Exception e) {
-                            logger.log(Level.WARNING, "Unable to create alarm HIHI limit item for " + getName(), e);
-                        }
-                        break;
-                }
-            }
-
-        }
-        else{
-            if(loloAlarmLimitItem != null && loloAlarmLimitItem.isVisible()){
-                model.get().removeItem(loloAlarmLimitItem);
-                loloAlarmLimitItem = null;
-            }
-            if(lowAlarmLimitItem != null && lowAlarmLimitItem.isVisible()){
-                model.get().removeItem(lowAlarmLimitItem);
-                lowAlarmLimitItem = null;
-            }
-            if(highAlarmLimitItem != null && highAlarmLimitItem.isVisible()){
-                model.get().removeItem(highAlarmLimitItem);
-                highAlarmLimitItem = null;
-            }
-            if(hihiAlarmLimitItem != null && hihiAlarmLimitItem.isVisible()){
-                model.get().removeItem(hihiAlarmLimitItem);
-                hihiAlarmLimitItem = null;
-            }
-        }
-        this.showAlarmLimits = show;
-    }
-
-    public boolean hasAlarmLimits() {
-        return hasAlarmLimits;
-    }
-
+    /**
+     *
+     * @return <code>true</code> if alarm limit traces should be rendered.
+     */
     public boolean getShowAlarmLimits() {
         return showAlarmLimits;
     }
 
+    /**
+     *
+     * @return The {@link AlarmLimits} object holding {@link AlarmLimits} items.
+     * If <code>null</code>, then either the {@link AlarmLimitItem} have not been defined,
+     * or user has not requested to show them.
+     */
+    public AlarmLimits getAlarmLimits() {
+        return alarmLimits;
+    }
+
+    /**
+     *
+     * @param show <code>true</code> if user has requested to show alarm limits.
+     */
+    public void showAlarmLimits(boolean show) {
+        showAlarmLimits = show;
+        alarmLimits.showAlarmLimits(showAlarmLimits);
+    }
+
+    /**
+     *
+     * @return <code>true</code> if archiver retrieval shows that the {@link PVItem}
+     * defines alarm limits.
+     */
+    public boolean hasAlarmLimits(){
+        return alarmLimits != null;
+    }
+
+    /**
+     * Overrides in order to also handle visibility of potential
+     * alarm limit straces.
+     * @param visible Should item be displayed?
+     */
+    @Override
+    public void setVisible(boolean visible) {
+       if (this.visible == visible)
+           return;
+       this.visible = visible;
+       if(showAlarmLimits){
+           alarmLimits.setLimitTracesVisible(visible);
+       }
+       model.ifPresent(m -> m.fireItemVisibilityChanged(this));
+    }
 }

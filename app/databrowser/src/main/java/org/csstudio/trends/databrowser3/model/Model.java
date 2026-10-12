@@ -182,8 +182,10 @@ public class Model
 
         for (AxisConfig axis : other.axes)
             addAxis(axis);
-        for (ModelItem item : other.items)
+        for (ModelItem item : other.items){
             addItem(item);
+        }
+
         setAnnotations(other.annotations);
     }
 
@@ -995,10 +997,18 @@ public class Model
     }
 
     /**
-     * Notifies {@link ModelListener}s that a {@link ModelItem} contains alarm limits.
+     * Notifies {@link ModelListener}s that a {@link ModelItem} contains
+     * samples defining alarm limits.
      */
     public void fireAlarmLimitsChanged() {
         listeners.forEach(ModelListener::itemHasAlarmLimits);
+    }
+
+    /**
+     * Notifies {@link ModelListener}s to show or hide alarm limits.
+     */
+    public void fireShowAlarmLimitsChanged(){
+        listeners.forEach(ModelListener::showAlarmLimitsChanged);
     }
 
     /** Dispose all items, remove all listeners */
