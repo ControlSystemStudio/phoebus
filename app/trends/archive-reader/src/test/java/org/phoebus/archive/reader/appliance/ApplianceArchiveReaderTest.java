@@ -276,4 +276,3 @@ class ApplianceArchiveReaderTest {
         assertNotEquals(original.getFormat(), updated.getFormat());
     }
 }
-
