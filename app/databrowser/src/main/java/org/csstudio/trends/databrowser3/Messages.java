@@ -55,8 +55,6 @@ public class Messages
                          AxisOnRight,
                          AxisTT,
                          AxisVisibility,
-                         CannotShowAlarmLimits,
-                         CannotShowAlarmLimitsDetail,
                          ChangeLiveCapacityCommandErrorFmt,
                          ChangeNameErrorFmt,
                          Color,
