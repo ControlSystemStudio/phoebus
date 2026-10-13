@@ -1,0 +1,43 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Phoebus: Incremental Build and Debug",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Phoebus product",
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Phoebus: Debug Last Build (No Build)",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Phoebus: Clean Build and Debug",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Clean build Phoebus product",
+            "args": []
+        }
+    ]
+}
