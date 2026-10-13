@@ -91,7 +91,7 @@ public class ConfigurationController extends BaseController {
      */
     @SuppressWarnings("unused")
     @GetMapping(value = "/{uniqueId}", produces = JSON)
-    public ConfigurationData getConfigurationData(@PathVariable String uniqueId) {
+    public ConfigurationData getConfigurationData(@PathVariable("uniqueId") String uniqueId) {
         return nodeDAO.getConfigurationData(uniqueId);
     }
 

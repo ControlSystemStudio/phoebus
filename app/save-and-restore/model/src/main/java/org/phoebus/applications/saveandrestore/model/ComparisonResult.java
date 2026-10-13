@@ -4,8 +4,8 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.json.VTypeDeserializer;
 import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;

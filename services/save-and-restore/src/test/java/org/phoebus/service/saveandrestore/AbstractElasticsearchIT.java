@@ -11,10 +11,9 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -36,11 +35,10 @@ import java.util.UUID;
  * fresh suffix, and re-create its root. The throwaway indices are dropped once the class finishes.
  */
 @TestInstance(Lifecycle.PER_CLASS)
-@SpringBootTest
-@ContextConfiguration(classes = ElasticConfig.class)
+@SpringBootTest(classes = {ElasticConfig.class})
 @TestPropertySource(locations = "classpath:test_application.properties")
-@Profile("IT")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ActiveProfiles("IT")
 public abstract class AbstractElasticsearchIT {
 
     private static final List<String> INDEX_PROPERTY_KEYS = List.of(

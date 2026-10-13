@@ -1,10 +1,11 @@
 package org.phoebus.alarm.logging.rest;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.ElasticsearchVersionInfo;
-import co.elastic.clients.elasticsearch.core.InfoResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import co.elastic.clients.transport.rest5_client.low_level.Request;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -43,7 +44,7 @@ public class SearchController {
 
     static final Logger logger = Logger.getLogger(SearchController.class.getName());
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     @Value("${version:1.0.0}")
     private String version;
@@ -61,14 +62,14 @@ public class SearchController {
 
         Map<String, String> elasticInfo = new LinkedHashMap<>();
         try {
-            ElasticsearchClient client = ElasticClientHelper.getInstance().getClient();
-            InfoResponse response = client.info();
-
+            Rest5Client restClient = ElasticClientHelper.getInstance().getRestClient();
+            Request request = new Request("GET", "/");
+            JsonNode responseNode = objectMapper.readTree(
+                    restClient.performRequest(request).getEntity().getContent());
             elasticInfo.put("status", "Connected");
-            elasticInfo.put("clusterName", response.clusterName());
-            elasticInfo.put("clusterUuid", response.clusterUuid());
-            ElasticsearchVersionInfo version = response.version();
-            elasticInfo.put("version", version.toString());
+            elasticInfo.put("clusterName", responseNode.path("cluster_name").asText(""));
+            elasticInfo.put("clusterUuid", responseNode.path("cluster_uuid").asText(""));
+            elasticInfo.put("version", responseNode.path("version").path("number").asText(""));
         } catch (IOException e) {
             AlarmLoggingService.logger.log(Level.WARNING, "Failed to create Alarm Logging service info resource.", e);
             elasticInfo.put("status", "Failed to connect to elastic " + e.getLocalizedMessage());
@@ -76,7 +77,7 @@ public class SearchController {
         alarmLoggingServiceInfo.put("elastic", elasticInfo);
         try {
             return objectMapper.writeValueAsString(alarmLoggingServiceInfo);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             AlarmLoggingService.logger.log(Level.WARNING, "Failed to create Alarm Logging service info resource.", e);
             return "Failed to gather Alarm Logging service info";
         }
@@ -97,7 +98,8 @@ public class SearchController {
     })
     @RequestMapping(value = "/search/alarm", method = RequestMethod.GET)
     public List<AlarmLogMessage> search(@Parameter(hidden = true) @RequestParam Map<String, String> allRequestParams) {
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), allRequestParams);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(
+                ElasticClientHelper.getInstance().getRestClient(), allRequestParams);
         return result;
     }
 
@@ -106,7 +108,8 @@ public class SearchController {
     public List<AlarmLogMessage> searchPv(@Parameter(name="pv", description = "PV name") @PathVariable String pv) {
         Map<String, String> searchParameters = new HashMap<>();
         searchParameters.put("pv", pv);
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), searchParameters);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(
+                ElasticClientHelper.getInstance().getRestClient(), searchParameters);
         return result;
     }
 
@@ -123,7 +126,8 @@ public class SearchController {
                 allRequestParams.get("config").isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(), allRequestParams);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(
+                ElasticClientHelper.getInstance().getRestClient(), allRequestParams);
         return result;
     }
 

@@ -24,7 +24,7 @@ import org.epics.vtype.VStringArray;
 import org.junit.jupiter.api.Test;
 import org.phoebus.archive.reader.UnknownChannelException;
 
-import java.io.IOException;
+import tools.jackson.core.exc.StreamReadException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -836,7 +836,7 @@ public class JsonArchiveReaderTest extends HttpServerTestBase {
                 1, channel_name, samples_json, (base_url) -> {
                     try (final var reader = new JsonArchiveReader(
                             "json:" + base_url, preferences)) {
-                                assertThrows(IOException.class, () -> {
+                                assertThrows(StreamReadException.class, () -> {
                                     reader.getRawValues(
                                             channel_name, start, end);
                                 });

@@ -5,11 +5,10 @@
 package org.phoebus.applications.saveandrestore.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.authentication.SaveAndRestoreAuthenticationScope;
@@ -30,6 +29,7 @@ import org.phoebus.security.authorization.AuthenticationStatus;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.util.http.QueryParamsHelper;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.net.ConnectException;
@@ -71,10 +71,10 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofMillis(httpClientConnectTimeout))
                 .build();
-        OBJECT_MAPPER = new ObjectMapper();
-        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        OBJECT_MAPPER.registerModule(new JavaTimeModule());
-        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        OBJECT_MAPPER = JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                .build();
     }
 
     private String getBasicAuthenticationHeader() {
@@ -669,7 +669,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         HttpResponse<String> response = getCall(relativeUrl);
         try {
             return OBJECT_MAPPER.readValue(response.body(), clazz);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
@@ -678,7 +678,7 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         HttpResponse<String> response = getCall(relativeUrl);
         try {
             return OBJECT_MAPPER.readValue(response.body(), typeReference);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

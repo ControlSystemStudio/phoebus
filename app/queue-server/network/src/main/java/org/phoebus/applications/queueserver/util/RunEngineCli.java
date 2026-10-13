@@ -1,6 +1,6 @@
 package org.phoebus.applications.queueserver.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.phoebus.applications.queueserver.Preferences;
 import org.phoebus.applications.queueserver.client.*;
 import org.phoebus.applications.queueserver.client.ApiEndpoint;

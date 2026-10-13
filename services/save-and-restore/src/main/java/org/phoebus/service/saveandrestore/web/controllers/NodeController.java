@@ -125,7 +125,7 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @GetMapping(value = "/node/{uniqueNodeId}/parent", produces = JSON)
-    public Node getParentNode(@PathVariable String uniqueNodeId) {
+    public Node getParentNode(@PathVariable("uniqueNodeId") String uniqueNodeId) {
         return nodeDAO.getParentNode(uniqueNodeId);
     }
 
@@ -183,7 +183,7 @@ public class NodeController extends BaseController {
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node/{nodeId}", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayDelete(#nodeId, #root)")
-    public void deleteNode(@PathVariable String nodeId) {
+    public void deleteNode(@PathVariable("nodeId") String nodeId) {
         deleteNodes(List.of(nodeId));
     }
 
