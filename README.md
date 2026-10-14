@@ -24,7 +24,7 @@ mvn clean verify -f dependencies/pom.xml
 
 ## Building with maven
 
-Define the JAVA_HOME environment variable to point to your Java installation directory. 
+Define the JAVA_HOME environment variable to point to your Java installation directory.
 Mac OS users should use something like:
 ```
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.0.11+10/Contents/Home
@@ -52,7 +52,7 @@ Set the environment variable `LANG` to `en_US.UTF-8`
 to execute tests in a specific locale,
 or build with `mvn -DskipTests ...` to skip tests.
 
-### Running the phoebus application  
+### Running the phoebus application
 
 To run the product jar
 ```
@@ -253,20 +253,20 @@ Create a sonatype account and update the maven settings.xml file with your sonat
   </servers>
 ```
 
-**Prepare the release**  
-`mvn release:prepare`  
+**Prepare the release**
+`mvn release:prepare`
 In this step will ensure there are no uncommitted changes, ensure the versions number are correct, tag the scm, etc.
 A full list of checks is documented [here](https://maven.apache.org/maven-release/maven-release-plugin/usage/prepare-release.html).
 
-**Perform the release**  
-`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`  
+**Perform the release**
+`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`
 Checkout the release tag, build, sign and push the build binaries to sonatype. The `docs` profile is needed in order
 to create required javadocs jars.
 
-**Publish**  
+**Publish**
 Open the staging repository in [sonatype](https://s01.oss.sonatype.org/#stagingRepositories) and hit the *publish* button
 
 **Note:**
-In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the 
-dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should 
+In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the
+dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should
 updated to match the next development snapshotData version.
