@@ -629,11 +629,6 @@
       <artifactId>pbrawclient</artifactId>
       <version>0.2.3</version>
     </dependency>
-    <dependency>
-      <groupId>com.ceos.phoebus.runtime</groupId>
-      <artifactId>com.ceos.phoebus.runtime</artifactId>
-      <version>0.0.2</version>
-    </dependency>
   </dependencies>
 
   <build>
