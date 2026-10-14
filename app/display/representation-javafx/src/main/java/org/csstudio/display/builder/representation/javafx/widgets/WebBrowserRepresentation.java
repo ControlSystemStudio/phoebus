@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,29 +7,37 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
+import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 import org.csstudio.display.builder.representation.javafx.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.util.IOUtils;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
+import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -47,6 +55,19 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPan
     private final DirtyFlag dirty_url = new DirtyFlag();
     private final UntypedWidgetPropertyListener sizeListener = this::sizeChanged;
     private final WidgetPropertyListener<String> urlListener = this::urlChanged;
+
+    /** Lower bound for the fitted browser size, to avoid zero/negative dimensions */
+    private static final double MIN_FIT_SIZE = 1.0;
+
+    /** Host scroll pane whose viewport the browser fills when 'resize_with_window' is on.
+     *  Non-null only while the resize-with-window behavior is active.
+     */
+    private ScrollPane model_root = null;
+    /** Listener that refits the browser whenever the scroll pane (window/tab) changes size.
+     *  Bound to the pane's width/height (not its viewport bounds): the viewport shrinks/grows
+     *  with scroll-bar visibility, so listening to it would feed back into a resize loop.
+     */
+    private InvalidationListener resizeListener = null;
 
     private static final String[] downloads = new String[] { "zip", "csv", "cif", "tgz" };
 
@@ -296,11 +317,15 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPan
         if (!toolkit.isEditMode())
             model_widget.propWidgetURL().addPropertyListener(urlListener);
         //the showToolbar property cannot be changed at runtime
+        //the resize_with_window property cannot be changed at runtime
+        if (!toolkit.isEditMode()  &&  model_widget.propResizeWithWindow().getValue())
+            enableResizeWithWindow();
     }
 
     @Override
     protected void unregisterListeners()
     {
+        disableResizeWithWindow();
         model_widget.propWidth().removePropertyListener(sizeListener);
         model_widget.propHeight().removePropertyListener(sizeListener);
         if (!toolkit.isEditMode())
@@ -324,10 +349,92 @@ public class WebBrowserRepresentation extends RegionBaseRepresentation<BorderPan
     public void updateChanges()
     {
         super.updateChanges();
-        if (dirty_size.checkAndClear())
+        // While resize-with-window is active (resizeListener != null), fitToViewport() owns the size
+        if (dirty_size.checkAndClear()  &&  resizeListener == null)
             jfx_node.setPrefSize(model_widget.propWidth().getValue(),
                                  model_widget.propHeight().getValue());
         if (dirty_url.checkAndClear())
             ((Browser)jfx_node).goToURL(model_widget.propWidgetURL().getValue());
+    }
+
+    private void enableResizeWithWindow()
+    {
+        if (! (toolkit instanceof JFXRepresentation))
+            return;
+        // Only meaningful for a top-level browser. A widget nested in a Group/Tabs/embedded
+        // container has X/Y relative to that container, not the display root, so the computed
+        // fill size would be wrong; make the property a no-op there rather than mis-size.
+        if (! (model_widget.getParent().orElse(null) instanceof DisplayModel))
+        {
+            logger.log(Level.WARNING,
+                "'resize_with_window' is only supported for a top-level Web Browser widget; ignoring for {0}",
+                model_widget);
+            return;
+        }
+        model_root = ((JFXRepresentation) toolkit).getModelRoot();
+        if (model_root == null)
+            return;
+        // Refit on window/tab resize. Bound to the pane's width/height only: a pure zoom change
+        // scales widget_pane without changing those, so a zoom change does not refit until the
+        // next window resize.
+        resizeListener = prop -> fitToViewport();
+        model_root.widthProperty().addListener(resizeListener);
+        model_root.heightProperty().addListener(resizeListener);
+        // Defer the initial fit to a later pulse, after the scene/viewport has been laid out
+        Platform.runLater(this::fitToViewport);
+    }
+
+    private void disableResizeWithWindow()
+    {
+        if (model_root != null  &&  resizeListener != null)
+        {
+            model_root.widthProperty().removeListener(resizeListener);
+            model_root.heightProperty().removeListener(resizeListener);
+        }
+        model_root = null;
+        resizeListener = null;
+    }
+
+    private void fitToViewport()
+    {
+        // model_root is non-null only after the 'toolkit instanceof JFXRepresentation' check in
+        // enableResizeWithWindow(), so the cast below is safe.
+        if (model_root == null)
+            return;
+        // Size against the scroll pane's own width/height (minus a small scroll-bar allowance)
+        // rather than its viewport bounds, so scroll-bar visibility cannot feed back into the fit.
+        final double avail_width = model_root.getWidth() - JFXRepresentation.SCROLLBAR_ADJUST;
+        final double avail_height = model_root.getHeight() - JFXRepresentation.SCROLLBAR_ADJUST;
+        final double zoom = ((JFXRepresentation) toolkit).getZoom();
+        final double[] size = computeFitSize(avail_width, avail_height, zoom,
+                                             model_widget.propX().getValue(),
+                                             model_widget.propY().getValue(),
+                                             MIN_FIT_SIZE, MIN_FIT_SIZE);
+        jfx_node.setMinSize(size[0], size[1]);
+        jfx_node.setPrefSize(size[0], size[1]);
+        jfx_node.setMaxSize(size[0], size[1]);
+    }
+
+    /** Compute the browser size needed to fill the runtime window.
+     *
+     *  @param scrollPaneWidth  Host scroll pane width in scene pixels (getWidth(), not the
+     *                          viewport bounds, to avoid scroll-bar feedback)
+     *  @param scrollPaneHeight Host scroll pane height in scene pixels
+     *  @param zoom             Current display zoom factor (1.0 == 100%)
+     *  @param x                Widget X position (widget coordinates)
+     *  @param y                Widget Y position (widget coordinates)
+     *  @param minWidth         Lower bound for the resulting width
+     *  @param minHeight        Lower bound for the resulting height
+     *  @return { width, height } in widget coordinates
+     */
+    static double[] computeFitSize(final double scrollPaneWidth, final double scrollPaneHeight,
+                                   final double zoom,
+                                   final double x, final double y,
+                                   final double minWidth, final double minHeight)
+    {
+        final double z = zoom > 0 ? zoom : 1.0;
+        final double width = Math.max(minWidth, scrollPaneWidth / z - x);
+        final double height = Math.max(minHeight, scrollPaneHeight / z - y);
+        return new double[] { width, height };
     }
 }
