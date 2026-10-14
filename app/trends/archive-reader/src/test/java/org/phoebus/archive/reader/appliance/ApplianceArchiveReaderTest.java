@@ -191,7 +191,7 @@ class ApplianceArchiveReaderTest {
     }
 
     @Test
-    void testUpdateDisplay1() {
+    void testDisplayNotUpdated() {
         Display original = Display.of(Range.of(-1, 1),
                 Range.of(-3, 3),
                 Range.of(-2, 2),
@@ -209,7 +209,7 @@ class ApplianceArchiveReaderTest {
     }
 
     @Test
-    void testUpdateDisplay2() {
+    void testUpdateDisplayFromFieldValues() {
         Display original = Display.of(Range.of(-1, 1),
                 Range.of(-3, 3),
                 Range.of(-2, 2),
@@ -243,7 +243,7 @@ class ApplianceArchiveReaderTest {
     }
 
     @Test
-    void testUpdateDisplay3() {
+    void testUpdateDisplayFromFieldValuesWithMissingLowLimit() {
         Display original = Display.of(Range.of(-1, 1),
                 Range.of(-3, 3),
                 Range.of(-2, 2),

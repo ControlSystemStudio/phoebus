@@ -16,6 +16,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class AlarmLimitItemTest {
 
+    /**
+     * Tests that multiple archiver {@link VType} events with same {@link Display} result in but one sample
+     * in the {@link AlarmLimitItem} object.
+     */
     @Test
     public void testConstructor1(){
 
@@ -41,6 +45,10 @@ public class AlarmLimitItemTest {
 
     }
 
+    /**
+     * Tests that multiple archiver {@link VType} events where one has different {@link Display} result in two
+     * samples in the {@link AlarmLimitItem} object.
+     */
     @Test
     public void testConstructor2(){
 
@@ -65,6 +73,10 @@ public class AlarmLimitItemTest {
 
     }
 
+    /**
+     * Tests that multiple archiver {@link VType} events where all have different {@link Display} result in three
+     * samples in the {@link AlarmLimitItem} object.
+     */
     @Test
     public void testConstructor3(){
 
@@ -91,6 +103,10 @@ public class AlarmLimitItemTest {
 
     }
 
+    /**
+     * Tests that a {@link LimitType#LOLO} value at {@link Double#NEGATIVE_INFINITY} is not treated
+     * as a valid alarm limit and hence does not add an entry in the {@link AlarmLimitItem} samples.
+     */
     @Test
     public void testInfiniteCheck1(){
 
@@ -114,6 +130,10 @@ public class AlarmLimitItemTest {
 
     }
 
+    /**
+     * Tests that a {@link LimitType#HIHI} value at {@link Double#POSITIVE_INFINITY} is not treated
+     * as a valid alarm limit and hence does not add an entry in the {@link AlarmLimitItem} samples.
+     */
     @Test
     public void testInfiniteCheck2(){
 
@@ -137,6 +157,10 @@ public class AlarmLimitItemTest {
 
     }
 
+    /**
+     * Tests that a {@link LimitType#LOW} value at {@link Double#NEGATIVE_INFINITY} is not treated
+     * as a valid alarm limit and hence does not add an entry in the {@link AlarmLimitItem} samples.
+     */
     @Test
     public void testInfiniteCheck3(){
 
@@ -161,6 +185,10 @@ public class AlarmLimitItemTest {
 
     }
 
+    /**
+     * Tests that a {@link LimitType#HIGH} value at {@link Double#POSITIVE_INFINITY} is not treated
+     * as a valid alarm limit and hence does not add an entry in the {@link AlarmLimitItem} samples.
+     */
     @Test
     public void testInfiniteCheck4(){
 

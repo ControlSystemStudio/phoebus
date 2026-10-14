@@ -149,8 +149,8 @@ public class VTypeHelper
 
     /**
      * Determines if a {@link VType} value (in practice an archiver sample) has alarm limits. If both alarm and warning
-     * {@link Range}s are [{@link Double#NaN}...{@link Double#NaN}] or [0.0...0.0], the value under test
-     * is considered to <i>not</i> define alarm limits.
+     * {@link Range}s are [{@link Double#NaN}...{@link Double#NaN}], [{@link Double#NaN}...0.0], [0.0...{@link Double#NaN}]
+     * or [0.0...0.0], the value under test is considered to <i>not</i> define alarm limits.
      * @param value {@link VType} under test.
      * @return <code>true</code> if alarm or warning limits have been set.
      */
@@ -161,16 +161,10 @@ public class VTypeHelper
         }
         Range alarmRange = display.getAlarmRange();
         Range warningRange = display.getWarningRange();
-        boolean hasAlarmRange = true;
-        boolean hasWarningRange = true;
-        if((Double.isNaN(alarmRange.getMinimum()) && Double.isNaN(alarmRange.getMaximum())) ||
-                (alarmRange.getMinimum() == 0 && alarmRange.getMaximum() == 0)){
-            hasAlarmRange = false;
-        }
-        if((Double.isNaN(warningRange.getMinimum()) && Double.isNaN(warningRange.getMaximum())) ||
-                (warningRange.getMinimum() == 0 && warningRange.getMaximum() == 0)){
-            hasWarningRange = false;
-        }
-        return hasAlarmRange || hasWarningRange;
+
+        return (alarmRange.getMinimum() != 0 || alarmRange.getMaximum() != 0 ||
+                warningRange.getMinimum() != 0 || warningRange.getMaximum() != 0) &&
+                Double.isFinite(alarmRange.getMinimum()) && Double.isFinite(alarmRange.getMaximum()) &&
+                Double.isFinite(warningRange.getMinimum()) && Double.isFinite(warningRange.getMaximum());
     }
 }
