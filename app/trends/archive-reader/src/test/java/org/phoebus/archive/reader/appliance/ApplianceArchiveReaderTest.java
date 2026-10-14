@@ -4,11 +4,18 @@ import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadInfo;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadType;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
+import org.epics.util.stats.Range;
+import org.epics.util.text.NumberFormats;
+import org.epics.vtype.Display;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.lang.ref.WeakReference;
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -181,5 +188,91 @@ class ApplianceArchiveReaderTest {
         FakeApplianceArchiveReader reader = new FakeApplianceArchiveReader(dr, true, false);
         Object iter = reader.getOptimizedValues("TEST:PV", START, END, 100);
         assertInstanceOf(ApplianceRawValueIterator.class, iter);
+    }
+
+    @Test
+    void testDisplayNotUpdated() {
+        Display original = Display.of(Range.of(-1, 1),
+                Range.of(-3, 3),
+                Range.of(-2, 2),
+                Range.of(-4, 4),
+                "unit",
+                new DecimalFormat(),
+                "description");
+
+        EpicsMessage epicsMessage = Mockito.mock(EpicsMessage.class);
+        when(epicsMessage.getFieldValues()).thenReturn(Collections.emptyMap());
+
+        Display updated = ApplianceValueIterator.updateDisplay(epicsMessage, original);
+        assertEquals(original, updated);
+        assertSame(original, updated);
+    }
+
+    @Test
+    void testUpdateDisplayFromFieldValues() {
+        Display original = Display.of(Range.of(-1, 1),
+                Range.of(-3, 3),
+                Range.of(-2, 2),
+                Range.of(-4, 4),
+                "unit",
+                NumberFormats.precisionFormat(7));
+
+        EpicsMessage epicsMessage = Mockito.mock(EpicsMessage.class);
+        Map<String, String> fieldValues = new HashMap<>();
+        fieldValues.put(ApplianceArchiveReaderConstants.LOW, "-10");
+        fieldValues.put(ApplianceArchiveReaderConstants.HIGH, "10");
+        fieldValues.put(ApplianceArchiveReaderConstants.LOLO, "-30");
+        fieldValues.put(ApplianceArchiveReaderConstants.HIHI, "30");
+        fieldValues.put(ApplianceArchiveReaderConstants.LOPR, "-40");
+        fieldValues.put(ApplianceArchiveReaderConstants.HOPR, "40");
+        fieldValues.put(ApplianceArchiveReaderConstants.EGU, "otherunit");
+        fieldValues.put(ApplianceArchiveReaderConstants.PREC, "10");
+        when(epicsMessage.getFieldValues()).thenReturn(fieldValues);
+
+        Display updated = ApplianceValueIterator.updateDisplay(epicsMessage, original);
+
+        assertNotEquals(original, updated);
+        assertNotSame(original, updated);
+        assertNotEquals(original.getDisplayRange(), updated.getDisplayRange());
+        assertNotEquals(original.getWarningRange(), updated.getWarningRange());
+        assertNotEquals(original.getAlarmRange(), updated.getAlarmRange());
+        assertEquals(original.getControlRange(), updated.getControlRange());
+        assertNotEquals(original.getUnit(), updated.getUnit());
+        assertNotEquals(original.getFormat(), updated.getFormat());
+
+    }
+
+    @Test
+    void testUpdateDisplayFromFieldValuesWithMissingLowLimit() {
+        Display original = Display.of(Range.of(-1, 1),
+                Range.of(-3, 3),
+                Range.of(-2, 2),
+                Range.of(-4, 4),
+                "unit",
+                NumberFormats.precisionFormat(7));
+
+        EpicsMessage epicsMessage = Mockito.mock(EpicsMessage.class);
+        Map<String, String> fieldValues = new HashMap<>();
+        fieldValues.put(ApplianceArchiveReaderConstants.HIGH, "10");
+        fieldValues.put(ApplianceArchiveReaderConstants.LOLO, "-30");
+        fieldValues.put(ApplianceArchiveReaderConstants.HIHI, "30");
+        fieldValues.put(ApplianceArchiveReaderConstants.LOPR, "-40");
+        fieldValues.put(ApplianceArchiveReaderConstants.HOPR, "40");
+        fieldValues.put(ApplianceArchiveReaderConstants.EGU, "otherunit");
+        fieldValues.put(ApplianceArchiveReaderConstants.PREC, "10");
+        when(epicsMessage.getFieldValues()).thenReturn(fieldValues);
+
+        Display updated = ApplianceValueIterator.updateDisplay(epicsMessage, original);
+
+        assertNotEquals(original, updated);
+        assertNotSame(original, updated);
+        assertNotEquals(original.getDisplayRange(), updated.getDisplayRange());
+        assertNotEquals(original.getWarningRange(), updated.getWarningRange());
+        // ApplianceArchiveReaderConstants.LOW not present in field values, so it should be unchanged
+        assertEquals(-2, original.getWarningRange().getMinimum());
+        assertNotEquals(original.getAlarmRange(), updated.getAlarmRange());
+        assertEquals(original.getControlRange(), updated.getControlRange());
+        assertNotEquals(original.getUnit(), updated.getUnit());
+        assertNotEquals(original.getFormat(), updated.getFormat());
     }
 }

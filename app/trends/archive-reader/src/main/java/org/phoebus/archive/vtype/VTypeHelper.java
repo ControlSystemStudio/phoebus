@@ -9,6 +9,7 @@ package org.phoebus.archive.vtype;
 
 import java.time.Instant;
 
+import org.epics.util.stats.Range;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
@@ -144,5 +145,26 @@ public class VTypeHelper
     final public static String toString(final VType value)
     {
         return toString(value, DefaultVTypeFormat.get());
+    }
+
+    /**
+     * Determines if a {@link VType} value (in practice an archiver sample) has alarm limits. If both alarm and warning
+     * {@link Range}s are [{@link Double#NaN}...{@link Double#NaN}], [{@link Double#NaN}...0.0], [0.0...{@link Double#NaN}]
+     * or [0.0...0.0], the value under test is considered to <i>not</i> define alarm limits.
+     * @param value {@link VType} under test.
+     * @return <code>true</code> if alarm or warning limits have been set.
+     */
+    public final static boolean hasAlarmLimits(final VType value) {
+        Display display = Display.displayOf(value);
+        if(display.equals(Display.none())){
+            return false;
+        }
+        Range alarmRange = display.getAlarmRange();
+        Range warningRange = display.getWarningRange();
+
+        return (alarmRange.getMinimum() != 0 || alarmRange.getMaximum() != 0 ||
+                warningRange.getMinimum() != 0 || warningRange.getMaximum() != 0) &&
+                Double.isFinite(alarmRange.getMinimum()) && Double.isFinite(alarmRange.getMaximum()) &&
+                Double.isFinite(warningRange.getMinimum()) && Double.isFinite(warningRange.getMaximum());
     }
 }

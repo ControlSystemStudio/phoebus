@@ -97,6 +97,7 @@ public class XMLPersistence {
 
     TAG_AXIS = "axis",
             TAG_VISIBLE = "visible",
+            TAG_SHOW_ALARM_LIMITS = "show_alarm_limits",
             TAG_NAME = "name",
             TAG_USE_AXIS_NAME = "use_axis_name",
             TAG_USE_TRACE_NAMES = "use_trace_names",

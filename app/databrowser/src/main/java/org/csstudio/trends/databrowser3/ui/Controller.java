@@ -20,19 +20,11 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJob;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJobListener;
-import org.csstudio.trends.databrowser3.model.AnnotationInfo;
-import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
-import org.csstudio.trends.databrowser3.model.ArchiveRescale;
-import org.csstudio.trends.databrowser3.model.AxisConfig;
-import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.model.ModelItem;
-import org.csstudio.trends.databrowser3.model.ModelListener;
-import org.csstudio.trends.databrowser3.model.PVItem;
+import org.csstudio.trends.databrowser3.model.*;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
@@ -62,7 +54,7 @@ public class Controller
     final Model model;
 
     /** Listener to model that informs this controller */
-    private ModelListener model_listener;
+    private final ModelListener model_listener;
 
     /** GUI for displaying the data */
     final ModelBasedPlot plot;
@@ -79,7 +71,7 @@ public class Controller
     final private long archive_fetch_delay = Preferences.archive_fetch_delay;
 
     /** Delayed task to avoid flurry of archive requests
-     *  @see #scheduleArchiveRetrieval(ITimestamp, ITimestamp)
+     *  @see #scheduleArchiveRetrieval()
      */
     private ScheduledFuture<?> archive_fetch_delay_task = null;
 
@@ -597,12 +589,11 @@ public class Controller
     public void refresh()
     {
         // Clear live data buffer of PVs
-        for (ModelItem item : model.getItems())
-            if (item instanceof PVItem)
-            {
-                final PVItem pv = (PVItem) item;
+        for (ModelItem item : model.getItems()) {
+            if (item instanceof PVItem pv) {
                 pv.getSamples().clear();
             }
+        }
         // Re-fetch archived data
         scheduleArchiveRetrieval();
     }

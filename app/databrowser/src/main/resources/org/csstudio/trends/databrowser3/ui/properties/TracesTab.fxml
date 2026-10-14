@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<SplitPane dividerPositions="0.7" orientation="VERTICAL"
+           prefHeight="400.0" prefWidth="600.0"
+           xmlns="http://javafx.com/javafx/17.0.12"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.csstudio.trends.databrowser3.ui.properties.TracesTabController">
+    <TableView fx:id="traceTable" editable="true">
+        <placeholder>
+            <Label text="%TraceTableEmpty" />
+        </placeholder>
+        <columns>
+            <TableColumn fx:id="visibilityColumn" text="%TraceVisibility" />
+            <TableColumn fx:id="itemNameColumn" text="%ItemName" prefWidth="130"/>
+            <TableColumn fx:id="displayNameColumn" text="%TraceDisplayName" />
+            <TableColumn fx:id="colorColumn" text="%Color" />
+            <TableColumn fx:id="cursorValueColumn" editable="false" text="%CursorValue" />
+            <TableColumn fx:id="scanPeriodColumn" text="%ScanPeriod" />
+            <TableColumn fx:id="liveBufferSizeColumn" text="%LiveSampleBufferSize" />
+            <TableColumn fx:id="axisColumn" text="%Axis" />
+            <TableColumn fx:id="traceTypeColumn" text="%TraceType" />
+            <TableColumn fx:id="lineWidthColumn" text="%TraceLineWidth" />
+            <TableColumn fx:id="lineStyleColumn" text="%TraceLineStyle" />
+            <TableColumn fx:id="pointTypeColumn" text="%PointType" />
+            <TableColumn fx:id="pointSizeColumn" text="%PointSize" />
+            <TableColumn fx:id="requestTypeColumn" text="%RequestType" />
+            <TableColumn fx:id="waveformIndexColumn" text="%WaveformIndexCol" />
+            <TableColumn fx:id="alarmLimitsVisibilityColumn" text="%ShowAlarmLimits" prefWidth="130"/>
+            <TableColumn fx:id="lowHighColorColumn" text="%MinorAlarmColor" prefWidth="150"/>
+            <TableColumn fx:id="loloHiHiColorColumn" text="%MajorAlarmColor" prefWidth="150"/>
+        </columns>
+    </TableView>
+    <StackPane>
+        <Label fx:id="lowerPlaceholder" text="%SelectTrace" />
+        <TableView fx:id="archivesTable" visible="false">
+            <placeholder>
+                <Label text="%ArchiveListGUI_NoArchives" />
+            </placeholder>
+            <columns>
+                <TableColumn fx:id="archiveNameColumn" text="%ArchiveName" />
+                <TableColumn fx:id="urlColumn" text="URL" />
+            </columns>
+        </TableView>
+        <VBox fx:id="formulaPane" visible="false">
+            <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="5.0">
+                <Label text="%FormulaLabel" />
+                <TextField fx:id="formulaText" editable="false" onMousePressed="#handleFormula" HBox.hgrow="ALWAYS" />
+              <padding>
+                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+              </padding>
+            </HBox>
+            <Region VBox.vgrow="ALWAYS" />
+        </VBox>
+    </StackPane>
+</SplitPane>
