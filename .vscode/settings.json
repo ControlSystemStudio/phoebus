@@ -1,0 +1,5 @@
+{
+    "debug.hideSlowPreLaunchWarning": true,
+    "java.debug.settings.forceBuildBeforeLaunch": false,
+    "java.debug.settings.onBuildFailureProceed": false
+}
