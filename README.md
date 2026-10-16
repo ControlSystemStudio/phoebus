@@ -8,7 +8,7 @@ https://control-system-studio.readthedocs.io
 
 
 ## Requirements
- - [JDK21 or later, suggested is OpenJDK](https://adoptium.net/en-GB/temurin/releases?version=21).
+ - [JDK25 or later, suggested is OpenJDK](https://adoptium.net/en-GB/temurin/releases?version=25).
  - [maven 3.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
@@ -24,10 +24,10 @@ mvn clean verify -f dependencies/pom.xml
 
 ## Building with maven
 
-Define the JAVA_HOME environment variable to point to your Java installation directory. 
+Define the JAVA_HOME environment variable to point to your Java installation directory.
 Mac OS users should use something like:
 ```
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.0.11+10/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-25/Contents/Home
 ```
 Verify through:
 ```
@@ -52,7 +52,7 @@ Set the environment variable `LANG` to `en_US.UTF-8`
 to execute tests in a specific locale,
 or build with `mvn -DskipTests ...` to skip tests.
 
-### Running the phoebus application  
+### Running the phoebus application
 
 To run the product jar
 ```
@@ -73,14 +73,14 @@ Download "Eclipse for Java Developers" from https://www.eclipse.org/downloads/pa
 
 Start Eclipse like this:
 
-    export JAVA_HOME=/path/to/your/jdk-21-or-later
+    export JAVA_HOME=/path/to/your/jdk-25-or-later
     export PATH="$JAVA_HOME/bin:$PATH"
     eclipse/eclipse -consoleLog
 
 Check Eclipse Preferences:
 
- * Java, Installed JREs: JDK 21-or-later should be the default
- * Java, Compiler: JDK Compliance should be "21" or higher
+ * Java, Installed JREs: JDK 25-or-later should be the default
+ * Java, Compiler: JDK Compliance should be "25" or higher
 
 
 ### Use plain Java configuration
@@ -112,7 +112,7 @@ In Help/Eclipse Marketplace, search for Maven Integration for Eclipse Luna or ne
 Use File/Import/Maven/Existing Maven Projects to import the phoebus source code.
 
 There can be a compiler error because the "JRE System Library" in the Package Explorer shows "[J2SE-1.4]".
-Right click on the affected projects (greeting-app, probe), Build Path, Configure Build Path, Libraries, Edit the JRE System Library to use the Workspace default (jdk-21).
+Right click on the affected projects (greeting-app, probe), Build Path, Configure Build Path, Libraries, Edit the JRE System Library to use the Workspace default (jdk-25).
 Restart Eclipse IDE.
 
 Can now start product/src/main/java/org.phoebus.product/Launcher.java.
@@ -126,14 +126,14 @@ To import the project:
 * Select the Phoebus directory
 * Import project from external model: Maven
 * Accept the default options and click Next twice
- * Ensure that the JDK is version 21 or above
+ * Ensure that the JDK is version 25 or above
 * Change the project name to Phoebus and click finish
 
 To run the Phoebus application:
 
 * Run | Edit Configurations...
 * Select + | Application
- * Module: Your JRE 21
+ * Module: Your JRE 25
 * Classpath `-cp`: select `product` from drop-down
 * Main class: `org.phoebus.product.Launcher`
 * Set the name to Phoebus
@@ -253,20 +253,20 @@ Create a sonatype account and update the maven settings.xml file with your sonat
   </servers>
 ```
 
-**Prepare the release**  
-`mvn release:prepare`  
+**Prepare the release**
+`mvn release:prepare`
 In this step will ensure there are no uncommitted changes, ensure the versions number are correct, tag the scm, etc.
 A full list of checks is documented [here](https://maven.apache.org/maven-release/maven-release-plugin/usage/prepare-release.html).
 
-**Perform the release**  
-`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`  
+**Perform the release**
+`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`
 Checkout the release tag, build, sign and push the build binaries to sonatype. The `docs` profile is needed in order
 to create required javadocs jars.
 
-**Publish**  
+**Publish**
 Open the staging repository in [sonatype](https://s01.oss.sonatype.org/#stagingRepositories) and hit the *publish* button
 
 **Note:**
-In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the 
-dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should 
+In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the
+dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should
 updated to match the next development snapshotData version.
