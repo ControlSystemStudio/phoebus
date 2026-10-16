@@ -171,6 +171,29 @@ To run the Phoebus application:
    *Run* ➜ *Run Main Project* menu item.
 
 
+## Developing with VS Code
+
+Install [Visual Studio Code](https://code.visualstudio.com/) and the
+[Extension Pack for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack).
+Make sure a JDK 21 or later is installed and selected in VS Code (use
+**Java: Configure Java Runtime** from the Command Palette).
+
+Open the Phoebus root directory in VS Code. If the target platform has not yet
+been downloaded, run:
+
+```
+mvn clean verify -f dependencies/pom.xml
+```
+
+The workspace includes build tasks and launch configurations in `.vscode`.
+Select **Phoebus: Incremental Build and Debug** in the Run and Debug view and
+press the green play button. This builds the product with Maven, skipping unit
+tests, and launches `org.phoebus.product.Launcher`. Select
+**Phoebus: Clean Build and Debug** to clean before building, or
+**Phoebus: Debug Last Build (No Build)** to launch the most recent build
+without running a Maven build first.
+
+
 ## Complete Distribution, including manual and self-update
 
     # Obtain sources
