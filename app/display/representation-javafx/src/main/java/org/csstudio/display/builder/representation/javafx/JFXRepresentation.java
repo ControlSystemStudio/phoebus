@@ -957,14 +957,14 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         SwingFXUtils.toFXImage(image, wimage);
         final ImagePattern pattern = new ImagePattern(wimage, 0, 0, gridStepX, gridStepY, false);
         Background bg = new Background(new BackgroundFill(pattern, CornerRadii.EMPTY, Insets.EMPTY));
-        
-        // Set the background of the parent BorderPane 
+
+        // Set the background of the parent BorderPane
         if (model_root.getParent() instanceof Pane)
             ((Pane) model_root.getParent()).setBackground(bg);
         // Now make the scroll pane transparent to see the parent background
         model_root.setStyle("-fx-background: transparent; -fx-background-color: transparent; ");
         // Also set background of content to workaround JFX bugs (https://bugs.openjdk.org/browse/JDK-8118303
-        // and https://bugs.openjdk.org/browse/JDK-8095008) where text is rendered badly inside a transparent 
+        // and https://bugs.openjdk.org/browse/JDK-8095008) where text is rendered badly inside a transparent
         // ScrollPane.
         widget_pane.setBackground(bg);
     }
