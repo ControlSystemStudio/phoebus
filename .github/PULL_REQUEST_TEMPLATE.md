@@ -15,6 +15,9 @@
     - [ ] Tests were run
     - If not, explain how you tested your changes
 
+- Code quality:
+    - [ ] Pre-commit checks passed (pre-commit run)
+
 - Documentation:
     - [ ] The feature is documented
     - [ ] The documentation is up to date
