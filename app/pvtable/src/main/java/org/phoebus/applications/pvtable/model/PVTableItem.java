@@ -20,6 +20,7 @@ import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.DisplayProvider;
+import org.epics.vtype.DescriptionProvider;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
 import org.epics.vtype.VBoolean;
@@ -202,29 +203,13 @@ public class PVTableItem
     }
     
     private void updateDescription() {
-        if(desc_value == null) {
-            //update description from value or pv
-            VType currentValue = getValue();
-            if(currentValue != null) {
-                String description = null;
-                // DisplayProvider is an optional interface for VType values,
-                // not PVs, but the custum datasource as Muscade happens to implement
-                // DisplayProvider for enum and bool PVs, so check for that here 
-                Display display = currentValue instanceof DisplayProvider ? ((DisplayProvider) currentValue).getDisplay(): null;
-                if(display == null && currentValue instanceof VEnum){
-                    EnumDisplay enumdisplay =  ((VEnum) currentValue).getDisplay();
-                    if(enumdisplay instanceof DisplayProvider){
-                        display = ((DisplayProvider)enumdisplay).getDisplay();
-                    }
-                }
-                if (display != null) {
-                    description = display.getDescription();
-                }
-                desc_value = description != null ? description : null;
-                desc_name = desc_value != null ? "Description of " + name + " PV" : "no description";
-                desc_flow = value_flow;
-            }
-        }
+        desc_value = switch (getValue()) {
+            case VEnum vEnum when vEnum.getDisplay() instanceof DescriptionProvider descriptionProvider -> descriptionProvider.getDescription().orElse("");
+            case DescriptionProvider descriptionProvider -> descriptionProvider.getDescription().orElse("");
+            default -> "";
+        };
+        desc_name = desc_value != null ? "Description of " + name + " PV" : "no description";
+        desc_flow = value_flow;
     }
 
     /** @return <code>true</code> if item is selected to be restored */
