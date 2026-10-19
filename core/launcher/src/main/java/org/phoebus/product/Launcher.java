@@ -140,10 +140,15 @@ public class Launcher {
                     iter.remove();
 
                     logger.info("Loading settings from " + location);
-                    if (location.endsWith(".xml"))
-                        Preferences.importPreferences(new FileInputStream(location));
-                    else
-                        PropertyPreferenceLoader.load(location);
+                    try {
+                        if (location.endsWith(".xml"))
+                            Preferences.importPreferences(new FileInputStream(location));
+                        else
+                            PropertyPreferenceLoader.load(location);
+                    } catch (Exception e) {
+                        logger.severe("Failed to load settings from " + location);
+                        e.printStackTrace();
+                    }
 
                 } else if (cmd.equals("-export_settings")) {
                     if (!iter.hasNext())
