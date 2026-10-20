@@ -175,7 +175,7 @@ To run the Phoebus application:
 
 Install [Visual Studio Code](https://code.visualstudio.com/) and the
 [Extension Pack for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack).
-Make sure a JDK 21 or later is installed and selected in VS Code (use
+Make sure a JDK 25 or later is installed and selected in VS Code (use
 **Java: Configure Java Runtime** from the Command Palette).
 
 Open the Phoebus root directory in VS Code. If the target platform has not yet
@@ -185,11 +185,113 @@ been downloaded, run:
 mvn clean verify -f dependencies/pom.xml
 ```
 
-The workspace includes build tasks and launch configurations in `.vscode`.
-Select **Phoebus: Incremental Build and Debug** in the Run and Debug view and
-press the green play button. This builds the product with Maven, skipping unit
-tests, and launches `org.phoebus.product.Launcher`. Select
-**Phoebus: Clean Build and Debug** to clean before building, or
+The `.vscode` directory is intentionally not versioned, so create the following
+files locally to get build tasks and launch configurations.
+
+`.vscode/tasks.json`:
+
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Phoebus product",
+            "type": "process",
+            "command": "mvn",
+            "args": [
+                "-DskipTests",
+                "install"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean build Phoebus product",
+            "type": "process",
+            "command": "mvn",
+            "args": [
+                "-DskipTests",
+                "clean",
+                "install"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}
+```
+
+`.vscode/launch.json`:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Phoebus: Incremental Build and Debug",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Phoebus product",
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Phoebus: Debug Last Build (No Build)",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Phoebus: Clean Build and Debug",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Clean build Phoebus product",
+            "args": []
+        }
+    ]
+}
+```
+
+`.vscode/settings.json`:
+
+```json
+{
+    "debug.hideSlowPreLaunchWarning": true,
+    "java.debug.settings.forceBuildBeforeLaunch": false,
+    "java.debug.settings.onBuildFailureProceed": false
+}
+```
+
+With those files in place, select **Phoebus: Incremental Build and Debug** in
+the Run and Debug view and press the green play button. This builds the product
+with Maven, skipping unit tests, and launches `org.phoebus.product.Launcher`.
+Select **Phoebus: Clean Build and Debug** to clean before building, or
 **Phoebus: Debug Last Build (No Build)** to launch the most recent build
 without running a Maven build first.
 
