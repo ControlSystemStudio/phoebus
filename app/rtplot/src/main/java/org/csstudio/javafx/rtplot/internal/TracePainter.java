@@ -306,6 +306,10 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
             if (Double.isNaN(value))
             {
                 flushPolyLine(gc, poly_x, poly_y, line_width);
+                if (last_y != -1) {
+                    highlightDiscontinuity(gc, x_transform, item);
+                    gc.setStroke(createStroke(line_width, line_style));
+                }
                 last_x = last_y = -1;
             }
             else
@@ -346,6 +350,10 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
             final double value = item.getValue();
             if (Double.isNaN(value)) {
                 flushPolyLine(gc, value_poly_x, value_poly_y, line_width);
+                if (last_y != -1) {
+                    highlightDiscontinuity(gc, x_transform, item);
+                    gc.setStroke(createStroke(line_width, line_style));
+                }
             }
             else
             {
@@ -597,6 +605,20 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
     final private void drawPoint(final Graphics2D gc, final int x, final int y, final int size)
     {
         gc.fillOval(x-size/2, y-size/2, size, size);
+    }
+
+    /**
+     * Plot an additional vertical dashed line to indicate a transition to a
+     * non-plottable value, to highlight events such as an archiver disconnect.
+     * @param gc GC
+     * @param x_transform Horizontal axis
+     * @param item PlotDataItem
+     */
+    final private void highlightDiscontinuity(final Graphics2D gc, final ScreenTransform<XTYPE> x_transform,
+                                              final PlotDataItem<XTYPE> item) {
+        final int x1 = clipX(x_transform.transform(item.getPosition()));
+        gc.setStroke(createStroke(1, LineStyle.DOT));
+        gc.drawLine(x1, y_min, x1, y_max);
     }
 
     /** Fill area. All lists will be cleared.
