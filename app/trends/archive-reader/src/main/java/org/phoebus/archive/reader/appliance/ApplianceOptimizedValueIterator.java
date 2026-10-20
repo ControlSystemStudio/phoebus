@@ -7,13 +7,7 @@ import java.util.Iterator;
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.Display;
-import org.epics.vtype.Time;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VStatistics;
-import org.epics.vtype.VType;
+import org.epics.vtype.*;
 import org.phoebus.pv.TimeHelper;
 
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadInfo;
@@ -33,6 +27,8 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
 
     private final int requestedPoints;
     private final boolean useStatistics;
+    private boolean firstDisconnnect;
+    private EpicsMessage previousMessage;
 
     /**
      * Constructor that fetches data from appliance archive reader.
@@ -55,6 +51,8 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
         super(reader, name, start, end);
         this.requestedPoints = points;
         this.useStatistics = useStatistics;
+        this.firstDisconnnect = false;
+        this.previousMessage = null;
         this.display = determineDisplay(reader, name, end);
         fetchData();
     }
@@ -130,7 +128,22 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
             if (closed) {
                 return null;
             }
-            message = mainIterator.next();
+            if (!reuseMessage)
+                message = mainIterator.next();
+            else {
+                message = savedMessage;
+                reuseMessage = false;
+            }
+
+            // Check if a disconnect event was recorded and return a special
+            // value if so.
+            VType check = checkDisconnect(message);
+            if (check != null)
+                return check;
+
+            savedMessage = null;
+            firstDisconnnect = false;
+            previousMessage = message;
         }
         PayloadType type = mainStream.getPayLoadInfo().getType();
         if (type == PayloadType.WAVEFORM_DOUBLE) {
@@ -158,5 +171,44 @@ public class ApplianceOptimizedValueIterator extends ApplianceValueIterator {
             // raw data
             return super.extractData(message);
         }
+    }
+
+    /**
+     * Method to check the EpicsMessage for fieldValues containing the
+     * 'cnxlostepsecs' and 'cnxregainedepsecs' signifying a disconnect and reconnect
+     * of the PV (for raw data) or 'connectionChange' (for optimized data).
+     * Method extracts the time of the disconnect and returns an
+     * ArchiveVString with the value 'Disconnect'
+     *
+     * @param message Current EpicsMessage to check
+     * @return a VType that can be inserted to indicate a disconnect
+     */
+    @Override
+    VType checkDisconnect(EpicsMessage message) {
+        // Call parent method to test for "cnxlostepsecs" field in case of raw data
+        VType check = super.checkDisconnect(message);
+        if (check != null)
+            return check;
+
+        // In the OptimizedWithLastSample PP we get a connectionChange and then the following bins
+        //  will have 0 events (count) in them.
+        Boolean disconnectCondition = Boolean.parseBoolean(message.getFieldValues().get("connectionChange"))
+                && message.getNumberAt(4).intValue() == 0;
+        // In the Optimized PP we get a connectionChange but the following bins (which
+        //  technically have no events) will be a repeat of the last bin to have
+        //  events. Cannot currently detect disconnect times in the Optimized
+        //  request so disconnectCondition will always evaluate as false.
+
+        if (disconnectCondition && savedMessage == null) {
+            if (!firstDisconnnect) {
+                firstDisconnnect = true;
+                return VString.of("Disconnect in bin", Alarm.disconnected(),
+                        Time.of(TimestampHelper.fromSQLTimestamp(message.getTimestamp())));
+            } else {
+                return VString.of("", Alarm.disconnected(),
+                        Time.of(TimestampHelper.fromSQLTimestamp(message.getTimestamp())));
+            }
+        }
+        return null;
     }
 }
