@@ -28,7 +28,22 @@ public class Convert_activeBarClass extends ConverterBase<ProgressBarWidget>
         convertColor(r.getBgColor(), widget.propBackgroundColor());
         widget.propHorizontal().setValue(!"vertical".equals(r.getOrientation()));
         widget.propPVName().setValue(convertPVName(r.getIndicatorPv()));
+
+        widget.propScaleVisible().setValue(r.isShowScale());
         widget.propLimitsFromPV().setValue(r.isLimitsFromDb());
+        if (!r.isLimitsFromDb() && r.getMax() > r.getMin())
+        {
+            widget.propMinimum().setValue(r.getMin());
+            widget.propMaximum().setValue(r.getMax());
+        }
+
+        // EDM precision 0 usually means "not set"
+        if (r.getPrecision() > 0)
+            widget.propPrecision().setValue(r.getPrecision());
+
+        // EDM only knows border on/off
+        if (r.isBorder())
+            widget.propBorderWidth().setValue(1);
     }
 
     @Override
