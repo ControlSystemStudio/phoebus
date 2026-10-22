@@ -14,6 +14,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmDialogOptions;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propConfirmMessage;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propStretched;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffColor;
@@ -74,6 +75,7 @@ public class SlideButtonWidget extends WritablePVWidget {
     private volatile WidgetProperty<ConfirmDialog> confirm_dialog;
     private volatile WidgetProperty<String>        confirm_message;
     private volatile WidgetProperty<Boolean>       enabled;
+    private volatile WidgetProperty<Boolean>       stretched;
     private volatile WidgetProperty<WidgetFont>    font;
     private volatile WidgetProperty<WidgetColor>   foreground;
     private volatile WidgetProperty<String>        label;
@@ -119,6 +121,13 @@ public class SlideButtonWidget extends WritablePVWidget {
      */
     public WidgetProperty<Boolean> propEnabled ( ) {
         return enabled;
+    }
+
+    /**
+     * @return 'stretched' property.
+     */
+    public WidgetProperty<Boolean> propStretched ( ) {
+        return stretched;
     }
 
     /**
@@ -176,6 +185,7 @@ public class SlideButtonWidget extends WritablePVWidget {
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(auto_size = propAutoSize.createProperty(this, false));
         properties.add(enabled = propEnabled.createProperty(this, true));
+        properties.add(stretched = propStretched.createProperty(this, false));
         properties.add(confirm_dialog = propConfirmDialogOptions.createProperty(this, ConfirmDialog.NONE));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));

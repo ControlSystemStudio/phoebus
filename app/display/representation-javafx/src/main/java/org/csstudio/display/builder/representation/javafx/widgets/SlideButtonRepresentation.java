@@ -23,7 +23,6 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.SlideButtonWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
-import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -32,6 +31,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
 
@@ -56,6 +56,9 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     private final WidgetPropertyListener<Integer> bitChangedListener   = this::bitChanged;
     private final WidgetPropertyListener<String>  labelChangedListener = this::labelChanged;
     private final WidgetPropertyListener<VType>   valueChangedListener = this::valueChanged;
+    private final UntypedWidgetPropertyListener   stretchedChangedListener = this::stretchedChanged;
+
+    private final AtomicBoolean updating = new AtomicBoolean();
 
     protected volatile int     bit          = 0;
     protected volatile boolean enabled      = true;
@@ -65,18 +68,20 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
 
     private volatile ToggleSwitch button;
     private volatile Label        label;
+    private volatile StackPane    buttonContainer;
 
     private volatile Color  foreground;
     private volatile String state_colors;
-
-    private volatile AtomicBoolean updating = new AtomicBoolean();
 
     @Override
     public void updateChanges ( ) {
 
         super.updateChanges();
 
-        if ( dirty_size.checkAndClear() ) {
+        final boolean sizeChanged = dirty_size.checkAndClear();
+        final boolean styleChanged = dirty_style.checkAndClear();
+
+        if (sizeChanged) {
             if ( model_widget.propAutoSize().getValue() ) {
                 jfx_node.setPrefSize(-1, -1);
                 jfx_node.autosize();
@@ -87,7 +92,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
                 jfx_node.setPrefSize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
         }
 
-        if ( dirty_style.checkAndClear() ) {
+        if (styleChanged) {
 
             button.setStyle(state_colors);
 
@@ -115,39 +120,87 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
             }
         }
 
+        if (sizeChanged || styleChanged) {
+            updateLayout();
+        }
     }
 
     @Override
     public HBox createJFXNode ( ) throws Exception {
+        return updateLayout();
+    }
 
-        button = new ToggleSwitch();
+    protected HBox updateLayout()
+    {
+        final HBox hbox;
+
+        if (button == null) {
+            button = new ToggleSwitch();
+            if (!toolkit.isEditMode())
+                button.addEventFilter(MouseEvent.MOUSE_RELEASED, event ->
+                {
+                    // To avoid setting a new value when context menu is requested,
+                    // slide only if primary button was pressed.
+                    if (event.getButton().equals(MouseButton.PRIMARY)) {
+                        handleSlide();
+                    }
+                    event.consume();
+                });
+        }
 
         button.setMinSize(37, 20);
         button.setPrefSize(37, 20);
         button.setGraphicTextGap(0);
         button.setMnemonicParsing(false);
 
-        if (! toolkit.isEditMode() )
-            button.addEventFilter(MouseEvent.MOUSE_RELEASED, event ->
-            {
-                // To avoid setting a new value when context menu is requested,
-                // slide only if primary button was pressed.
-                if(event.getButton().equals(MouseButton.PRIMARY)) {
-                    handleSlide();
-                }
-                event.consume();
-            });
+        if (label == null)
+            label = new Label(labelContent);
 
-        label = new Label(labelContent);
-
-        label.setMaxWidth(Double.MAX_VALUE);
         label.setMnemonicParsing(false);
-        HBox.setHgrow(label, Priority.ALWAYS);
-        HBox hbox = new HBox(6, button, label);
-        hbox.setAlignment(Pos.CENTER_RIGHT);
-        return hbox;
+        label.setMaxWidth(Double.MAX_VALUE);
 
+
+        if (jfx_node != null) {
+            hbox = jfx_node;
+            hbox.getChildren().clear();
+        } else {
+            hbox = new HBox(6);
+        }
+
+        if (model_widget.propStretched().getValue()) {
+            if (buttonContainer == null) {
+                buttonContainer = new StackPane(button);
+                buttonContainer.setAlignment(Pos.CENTER);
+            }
+
+            double height = hbox.getHeight();
+            if (height > 20) {
+                double scale = height / 20.0;
+                button.setScaleX(scale);
+                button.setScaleY(scale);
+
+                buttonContainer.setPrefWidth(37 * scale);
+                buttonContainer.setMinWidth(37 * scale);
+                buttonContainer.setMaxWidth(37 * scale);
+            }
+
+            hbox.getChildren().addAll(buttonContainer, label);
+            hbox.setAlignment(Pos.CENTER_LEFT);
+        } else {
+            buttonContainer = null;
+
+            button.setScaleX(1);
+            button.setScaleY(1);
+
+            hbox.getChildren().addAll(button, label);
+            hbox.setAlignment(Pos.CENTER_RIGHT);
+
+            HBox.setHgrow(label, Priority.ALWAYS);
+        }
+
+        return hbox;
     }
+
 
     @Override
     protected boolean isFilteringEditModeClicks()
@@ -169,6 +222,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
 
         styleChanged(null, null, null);
 
+        model_widget.propStretched().addUntypedPropertyListener(stretchedChangedListener);
         model_widget.propEnabled().addUntypedPropertyListener(styleChangedListener);
         model_widget.propFont().addUntypedPropertyListener(styleChangedListener);
         model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
@@ -188,6 +242,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     @Override
     protected void unregisterListeners()
     {
+        model_widget.propStretched().removePropertyListener(stretchedChangedListener);
         model_widget.propAutoSize().removePropertyListener(sizeChangedListener);
         model_widget.propHeight().removePropertyListener(sizeChangedListener);
         model_widget.propWidth().removePropertyListener(sizeChangedListener);
@@ -204,11 +259,14 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     }
 
     private void bitChanged ( final WidgetProperty<Integer> property, final Integer old_value, final Integer new_value ) {
-
         bit = ( new_value != null ? new_value : model_widget.propBit().getValue() );
-
         stateChanged(bit, value);
+    }
 
+    private void stretchedChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value) {
+        dirty_size.mark();
+        dirty_style.mark();
+        toolkit.scheduleUpdate(this);
     }
 
     private void confirm ( ) {
@@ -235,7 +293,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
             final String message = model_widget.propConfirmMessage().getValue();
             final String password = model_widget.propPassword().getValue();
 
-            if ( password.length() > 0 ) {
+            if (!password.isEmpty()) {
                 if ( toolkit.showPasswordDialog(model_widget, message, password) == null ) {
                     return;
                 }
