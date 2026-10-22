@@ -52,13 +52,48 @@ Set the environment variable `LANG` to `en_US.UTF-8`
 to execute tests in a specific locale,
 or build with `mvn -DskipTests ...` to skip tests.
 
-### Running the phoebus application  
+### Running the phoebus application
 
 To run the product jar
 ```
 cd phoebus-product/target
 java -jar product-*-SNAPSHOT.jar
 ```
+
+### Pre-commit
+This project uses pre-commit to run automated checks defined in .pre-commit-config.yaml before changes are committed.
+
+#### Installation
+If you have _pip_ installed:
+```
+pip install pre-commit
+```
+
+- On Debian:
+```
+apt install pre-commit
+```
+- On macOs:
+```
+brew install pre-commit
+```
+- On Windows:
+```
+## If you have pipx installed - To be confirmed
+py -m pipx ensurepath
+pipx install pre-commit
+```
+#### Set up the Git hook
+```
+pre-commit install
+```
+Once set up, the pre-commit automatically runs before each commit.
+
+#### Run the check manually
+```
+pre-commit run
+```
+
 
 ## Building with ant
 
@@ -187,6 +222,131 @@ To run the Phoebus application:
    *Run* ➜ *Run Main Project* menu item.
 
 
+## Developing with VS Code
+
+Install [Visual Studio Code](https://code.visualstudio.com/) and the
+[Extension Pack for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack).
+Make sure a JDK 25 or later is installed and selected in VS Code (use
+**Java: Configure Java Runtime** from the Command Palette).
+
+Open the Phoebus root directory in VS Code. If the target platform has not yet
+been downloaded, run:
+
+```
+mvn clean verify -f dependencies/pom.xml
+```
+
+The `.vscode` directory is intentionally not versioned, so create the following
+files locally to get build tasks and launch configurations.
+
+`.vscode/tasks.json`:
+
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Phoebus product",
+            "type": "process",
+            "command": "mvn",
+            "args": [
+                "-DskipTests",
+                "install"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean build Phoebus product",
+            "type": "process",
+            "command": "mvn",
+            "args": [
+                "-DskipTests",
+                "clean",
+                "install"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}
+```
+
+`.vscode/launch.json`:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Phoebus: Incremental Build and Debug",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Phoebus product",
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Phoebus: Debug Last Build (No Build)",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Phoebus: Clean Build and Debug",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Clean build Phoebus product",
+            "args": []
+        }
+    ]
+}
+```
+
+`.vscode/settings.json`:
+
+```json
+{
+    "debug.hideSlowPreLaunchWarning": true,
+    "java.debug.settings.forceBuildBeforeLaunch": false,
+    "java.debug.settings.onBuildFailureProceed": false
+}
+```
+
+With those files in place, select **Phoebus: Incremental Build and Debug** in
+the Run and Debug view and press the green play button. This builds the product
+with Maven, skipping unit tests, and launches `org.phoebus.product.Launcher`.
+Select **Phoebus: Clean Build and Debug** to clean before building, or
+**Phoebus: Debug Last Build (No Build)** to launch the most recent build
+without running a Maven build first.
+
+
 ## Complete Distribution, including manual and self-update
 
     # Obtain sources
@@ -269,20 +429,20 @@ Create a sonatype account and update the maven settings.xml file with your sonat
   </servers>
 ```
 
-**Prepare the release**  
-`mvn release:prepare`  
+**Prepare the release**
+`mvn release:prepare`
 In this step will ensure there are no uncommitted changes, ensure the versions number are correct, tag the scm, etc.
 A full list of checks is documented [here](https://maven.apache.org/maven-release/maven-release-plugin/usage/prepare-release.html).
 
-**Perform the release**  
-`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`  
+**Perform the release**
+`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`
 Checkout the release tag, build, sign and push the build binaries to sonatype. The `docs` profile is needed in order
 to create required javadocs jars.
 
-**Publish**  
+**Publish**
 Open the staging repository in [sonatype](https://s01.oss.sonatype.org/#stagingRepositories) and hit the *publish* button
 
 **Note:**
-In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the 
-dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should 
+In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the
+dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should
 updated to match the next development snapshotData version.
