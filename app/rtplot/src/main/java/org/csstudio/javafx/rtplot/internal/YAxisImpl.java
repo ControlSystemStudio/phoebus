@@ -60,6 +60,11 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
     /** Show on right side? */
     private volatile boolean is_right = false;
 
+    /** When {@code false}, only the tick marks are drawn: no tick labels
+     *  and no axis label. Stacked widgets can then share one labelled scale.
+     *  Read on the render thread, written from the JavaFX thread. */
+    private volatile boolean labelsVisible = true;
+
     /** When {@code true}, rotated tick labels always use the 'up' direction
      *  (bottom-to-top) regardless of {@link #is_right}.  This keeps the text
      *  orientation of a right-side scale identical to a left-side scale.
@@ -161,6 +166,20 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         force_text_up = force;
     }
 
+    /** Show or hide the tick labels and the axis label while keeping the
+     *  tick marks. Tick positions do not change, so stacked widgets can
+     *  share one labelled scale.
+     *  @param show {@code true} (default) for labels, {@code false} for ticks only
+     */
+    public void setScaleLabelsVisible(final boolean show)
+    {
+        if (labelsVisible == show)
+            return;
+        labelsVisible = show;
+        requestLayout();
+        requestRefresh();
+    }
+
     /** Add trace to axis
      *  @param trace {@link Trace}
      *  @throws IllegalArgumentException if trace already on axis
@@ -210,6 +229,11 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
             return 0;
 
         this.region = region;
+
+        // Ticks only: the tick marks plus the axis line
+        if (!labelsVisible)
+            return TICK_LENGTH + 1;
+
         gc.setFont(label_font);
 
         FontMetrics metrics = gc.getFontMetrics();
@@ -392,7 +416,9 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         // Skip the visibility pass when LogTicks already thinned the labeled set:
         // a second greedy pass would destroy the intentional symmetric spacing.
         final boolean skipVisibility = (ticks instanceof LogTicks) && ((LogTicks) ticks).isThinned();
-        final boolean[] showLabel = skipVisibility
+        final boolean[] showLabel = !labelsVisible
+                ? new boolean[majorTicks.size()]
+                : skipVisibility
                 ? allLabeled(majorTicks)
                 : computeTickLabelVisibility(majorTicks, gc.getFontMetrics());
 
@@ -428,8 +454,11 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         gc.setColor(old_fg);
         gc.setBackground(old_bg);
 
-        gc.setFont(label_font);
-        paintLabels(gc);
+        if (labelsVisible)
+        {
+            gc.setFont(label_font);
+            paintLabels(gc);
+        }
     }
 
     protected void paintLabels(final Graphics2D gc)
