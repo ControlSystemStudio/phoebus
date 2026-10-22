@@ -16,10 +16,12 @@ import java.util.logging.Level;
 import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.input.MouseButton;
+import javafx.scene.text.Text;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
@@ -63,6 +65,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     private final UntypedWidgetPropertyListener contentListener = this::contentChanged;
     private final WidgetPropertyListener<String> pvNameListener = this::pvnameChanged;
     private volatile String value_text = "<?>";
+    private volatile String truncated_value_text = "<?>";
 
     private static WidgetColor active_color = WidgetColorService.getColor(NamedWidgetColors.ACTIVE_TEXT);
 
@@ -165,12 +168,19 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             });
             // While getting the focus does not activate the widget
             // (first need to type something or click),
-            // _loosing_ focus de-activates the widget.
+            // _getting_ focus replaces eventually truncated text by full text
+            // _loosing_ focus when active de-activates the widget.
+            // _loosing_ focus when inactive restores truncated text.
             // Otherwise widget where one moves the cursor, then clicks
             // someplace else would remain active and not show any updates
             text.focusedProperty().addListener((prop, old, focused) ->
             {
-                if (active  &&  !focused)
+                if (focused)
+                {
+                    if (jfx_node instanceof TextField)
+                        jfx_node.setText(value_text);
+                }
+                else if (active)
                 {
                     // For multi-line, submit on exit because users
                     // cannot remember Ctrl-Enter.
@@ -182,6 +192,8 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                         restore();
                     setActive(false);
                 }
+                else
+                    restore();
             });
         }
 
@@ -236,7 +248,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
      */
     private void restore()
     {
-        jfx_node.setText(value_text);
+        jfx_node.setText(truncated_value_text);
     }
 
     /** Submit value entered by user */
@@ -245,12 +257,12 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         if (enabled) {
             // Strip 'units' etc. from text
             final String text = jfx_node.getText();
-    
+
             final Object value = FormatOptionHandler.parse(model_widget.runtimePropValue().getValue(), text,
                                                            model_widget.propFormat().getValue());
             logger.log(Level.FINE, "Writing '" + text + "' as " + value + " (" + value.getClass().getName() + ")");
             toolkit.fireWrite(model_widget, value);
-    
+
             // Wrote value. Expected is either
             // a) PV receives that value, PV updates to
             //    submitted value or maybe a 'clamped' value
@@ -356,9 +368,38 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         if (value == PVWidget.RUNTIME_VALUE_NO_PV)
             return "";
         return FormatOptionHandler.format(value,
-                                          model_widget.propFormat().getValue(),
-                                          model_widget.propPrecision().getValue(),
-                                          model_widget.propShowUnits().getValue());
+                model_widget.propFormat().getValue(),
+                model_widget.propPrecision().getValue(),
+                model_widget.propShowUnits().getValue());
+    }
+
+    /** @param Text to truncate
+     *  @return Truncated text to display depending on widget width
+     */
+    private String truncateText(final String full_string)
+    {
+        Text textValue = new Text(full_string);
+        textValue.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+        // Compute string width in pixels
+        double fullStringWidth = textValue.getLayoutBounds().getWidth();
+        // Check if string is wider than field
+        double widthRatio = fullStringWidth/model_widget.propWidth().getValue();
+        // Displaying ellipsis if the string overflows the field
+        if (widthRatio > 1)
+        {
+            String truncatedString = "<?>";
+            // Computing the number of characters to keep from full string before adding ellipisis
+            int stringTruncIndex = (int) (full_string.length()/widthRatio);
+            // Append ellipsis if content is left-aligned
+            if (model_widget.propHorizontalAlignment().getValue() == HorizontalAlignment.LEFT)
+                truncatedString = full_string.substring(0,stringTruncIndex - 1) + "...";
+            // Prepend ellipsis if content is right-aligned
+            if (model_widget.propHorizontalAlignment().getValue() == HorizontalAlignment.RIGHT)
+                truncatedString = "..." + full_string.substring(full_string.length() - stringTruncIndex + 2);
+            return truncatedString;
+        }
+        else
+            return full_string;
     }
 
     private void pvnameChanged(final WidgetProperty<String> property, final String old_value, final String new_value)
@@ -375,6 +416,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
     private void contentChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         value_text = computeText(model_widget.runtimePropValue().getValue());
+        truncated_value_text = truncateText(value_text);
         dirty_content.mark();
         if (! active)
             toolkit.scheduleUpdate(this);
@@ -429,7 +471,7 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
                 String alignment = model_widget.propHorizontalAlignment().getValue().toString().toLowerCase();
                 PseudoClass alignmentClass = PseudoClass.getPseudoClass(alignment);
                 jfx_node.pseudoClassStateChanged(alignmentClass, true);
-                
+
                 if (jfx_node.getScene() != null && !enabled) {
                     // Need to get the TextArea 'content' node to set the cursor
                     // for the whole widget otherwise it will only show on the borders.
@@ -442,22 +484,28 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         {
             if (dirty_content.checkAndClear())
             {
-                // For middle-aligned multi-line text, keep the scroll position
-                final TextArea area = jfx_node instanceof TextArea ? (TextArea) jfx_node : null;
-                final VerticalAlignment align = model_widget.propVerticalAlignment().getValue();
-                double pos = 0;
-                if (area != null  &&  align == VerticalAlignment.MIDDLE)
-                    pos = area.getScrollTop();
-
-                jfx_node.setText(value_text);
-
-                if (area != null  &&  pos != 0)
-                    area.setScrollTop(pos);
-                // For bottom scroll detail, see comments in TextUpdateRepresentation
-                if (area != null && align == VerticalAlignment.BOTTOM)
+                if (jfx_node instanceof TextField) {
+                    jfx_node.setText(truncated_value_text);
+                }
+                else
                 {
-                    area.selectRange(0, 1);
-                    toolkit.schedule(() -> area.selectRange(value_text.length(), value_text.length()), 500, TimeUnit.MILLISECONDS);
+                    // For middle-aligned multi-line text, keep the scroll position
+                    final TextArea area = jfx_node instanceof TextArea ? (TextArea) jfx_node : null;
+                    final VerticalAlignment align = model_widget.propVerticalAlignment().getValue();
+                    double pos = 0;
+                    if (area != null  &&  align == VerticalAlignment.MIDDLE)
+                        pos = area.getScrollTop();
+
+                    jfx_node.setText(value_text);
+
+                    if (area != null  &&  pos != 0)
+                        area.setScrollTop(pos);
+                    // For bottom scroll detail, see comments in TextUpdateRepresentation
+                    if (area != null && align == VerticalAlignment.BOTTOM)
+                    {
+                        area.selectRange(0, 1);
+                        toolkit.schedule(() -> area.selectRange(value_text.length(), value_text.length()), 500, TimeUnit.MILLISECONDS);
+                    }
                 }
             }
         }
