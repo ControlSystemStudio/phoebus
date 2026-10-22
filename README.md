@@ -60,6 +60,41 @@ cd phoebus-product/target
 java -jar product-*-SNAPSHOT.jar
 ```
 
+### Pre-commit
+This project uses pre-commit to run automated checks defined in .pre-commit-config.yaml before changes are committed.
+
+#### Installation
+If you have _pip_ installed:
+```
+pip install pre-commit
+```
+
+- On Debian:
+```
+apt install pre-commit
+```
+- On macOs:
+```
+brew install pre-commit
+```
+- On Windows:
+```
+## If you have pipx installed - To be confirmed
+py -m pipx ensurepath
+pipx install pre-commit
+```
+#### Set up the Git hook
+```
+pre-commit install
+```
+Once set up, the pre-commit automatically runs before each commit.
+
+#### Run the check manually
+```
+pre-commit run
+```
+
+
 ## Building with ant
 
 ```
