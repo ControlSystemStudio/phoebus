@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2026 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -133,7 +133,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
 
     /** Adjustment for scroll body size to prevent scroll bars from being displayed */
     // XXX Would be good to understand this value instead of 2-by-trial-and-error
-    private static final int SCROLLBAR_ADJUST = 2;
+    public static final int SCROLLBAR_ADJUST = 2;
 
     /** Property for the DisplayModel that's represented */
     public static final String ACTIVE_MODEL = "_active_model";
