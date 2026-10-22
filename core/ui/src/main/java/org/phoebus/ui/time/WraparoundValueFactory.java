@@ -75,7 +75,7 @@ class WraparoundValueFactory extends SpinnerValueFactory<Integer>
     public void increment(final int steps)
     {
         final int value = getValue() + 1;
-        if (value != max)
+        if (value != max + 1)
             setValue(value);
         else
         {

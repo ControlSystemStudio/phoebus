@@ -33,6 +33,8 @@ record(mbbi, "$(P)State")
     field(FVST, "Finished")
     field(SXVL, "6")
     field(SXST, "Logged")
+    field(SVVL, "7")
+    field(SVST, "Scheduled")
 }
 
 record(waveform, "$(P)Status")
