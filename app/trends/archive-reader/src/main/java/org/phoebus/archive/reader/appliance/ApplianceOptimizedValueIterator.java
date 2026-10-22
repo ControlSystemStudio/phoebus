@@ -7,7 +7,14 @@ import java.util.Iterator;
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
 import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
-import org.epics.vtype.*;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VStatistics;
+import org.epics.vtype.VString;
+import org.epics.vtype.VType;
 import org.phoebus.pv.TimeHelper;
 
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadInfo;
