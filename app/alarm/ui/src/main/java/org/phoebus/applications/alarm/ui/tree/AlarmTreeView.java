@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
@@ -139,6 +141,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             final ObservableList<Node> items = getToolbar().getItems();
             items.remove(changing);
         });
+
+    private SimpleBooleanProperty isEditingMode = new SimpleBooleanProperty(false);
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
@@ -331,7 +335,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             setCursor(Cursor.WAIT);
             final ObservableList<Node> items = getToolbar().getItems();
             if (! items.contains(changing))
-                items.add(1, changing);
+                items.add(2, changing);
         }
         else
             previous.cancel(false);
@@ -344,8 +348,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         items.remove(no_server);
         if (! alive)
             // Place left of spring, collapse, expand_alarms,
-            // i.e. right of potential AlarmConfigSelector
-            items.add(items.size()-3, no_server);
+            items.add(items.size()-4, no_server);
     }
 
     // AlarmClientModelListener
@@ -593,7 +596,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
-            if (AlarmUI.mayConfigure(model))
+            if (AlarmUI.mayConfigure(model) && isEditingMode.get())
             {
                 if (selection.size() <= 0)
                     // Add first item to empty config
@@ -621,9 +624,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     menu_items.add(new RemoveComponentAction(tree_view, model, selection));
 
                 }
+
+                menu_items.add(new SeparatorMenuItem());
             }
 
-            menu_items.add(new SeparatorMenuItem());
             menu_items.add(new PrintAction(tree_view));
             menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
 
@@ -657,9 +661,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     {
         tree_view.setOnMouseClicked(event ->
         {
-            if (!AlarmUI.mayConfigure(model)       ||
-                event.getClickCount() != 2    ||
-                tree_view.getSelectionModel().getSelectedItems().size() != 1)
+            if (!AlarmUI.mayConfigure(model)
+                    || !isEditingMode.get()
+                    || event.getClickCount() != 2
+                    || tree_view.getSelectionModel().getSelectedItems().size() != 1)
                 return;
 
             final AlarmTreeItem<?> item = tree_view.getSelectionModel().getSelectedItems().get(0).getValue();
@@ -716,5 +721,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     		System.out.println(child.getValue().getName());
     		dumpTree(child);
     	}
+    }
+
+    public void toggleEditingMode() {
+        isEditingMode.set(!isEditingMode.get());
     }
 }

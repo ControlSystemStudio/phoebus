@@ -15,9 +15,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
+import javafx.scene.control.CheckBox;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.ui.AlarmConfigSelector;
+import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -94,6 +96,13 @@ class AlarmTreeInstance implements AppInstance
             {
                 final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
                 tree_view.getToolbar().getItems().add(0, configs);
+            }
+
+            if (AlarmUI.mayConfigure(client)) {
+                final CheckBox editingModeCheckbox = new CheckBox("Editing mode");
+                editingModeCheckbox.setSelected(false);
+                editingModeCheckbox.setOnAction(_ -> tree_view.toggleEditingMode());
+                tree_view.getToolbar().getItems().add(1, editingModeCheckbox);
             }
 
             return tree_view;
