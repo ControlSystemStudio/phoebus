@@ -617,7 +617,7 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
     final private void highlightDiscontinuity(final Graphics2D gc, final ScreenTransform<XTYPE> x_transform,
                                               final PlotDataItem<XTYPE> item) {
         final int x1 = clipX(x_transform.transform(item.getPosition()));
-        gc.setStroke(createStroke(1, LineStyle.DOT));
+        gc.setStroke(createStroke(2, LineStyle.DOT));
         gc.drawLine(x1, y_min, x1, y_max);
     }
 
