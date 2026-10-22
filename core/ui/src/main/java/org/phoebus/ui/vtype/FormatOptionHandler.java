@@ -36,6 +36,7 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
+import org.epics.vtype.VStatistics;
 import org.phoebus.pv.LongString;
 import org.phoebus.ui.Preferences;
 
@@ -108,6 +109,13 @@ public class FormatOptionHandler
             final String text = formatNumber(number.getValue(), number.getDisplay(), option, precision);
             if (show_units  &&  !number.getDisplay().getUnit().isEmpty())
                 return text + " " + number.getDisplay().getUnit();
+            return text;
+        }
+        else if (value instanceof VStatistics stats)
+        {
+            String text = formatNumber(stats.getAverage(), stats.getDisplay(), option, precision);
+            if (show_units  &&  !stats.getDisplay().getUnit().isEmpty())
+                return text + " " + stats.getDisplay().getUnit();
             return text;
         }
         else if (value instanceof VString)
