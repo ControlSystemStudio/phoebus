@@ -21,11 +21,7 @@ package org.csstudio.trends.databrowser3.ui.properties;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.csstudio.javafx.rtplot.data.PlotDataSearch;
 import org.csstudio.trends.databrowser3.Messages;
-import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.model.ModelItem;
-import org.csstudio.trends.databrowser3.model.ModelListener;
-import org.csstudio.trends.databrowser3.model.PlotSample;
-import org.csstudio.trends.databrowser3.model.PlotSamples;
+import org.csstudio.trends.databrowser3.model.*;
 import org.epics.vtype.VString;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -106,8 +102,10 @@ public class StatisticsTabController implements ModelListener{
     /** @param modelItem Model item */
     @Override
     public void itemAdded(ModelItem modelItem) {
-        ModelItemStatistics statistics = new ModelItemStatistics(modelItem);
-        tracesTable.getItems().add(statistics);
+        if(!(modelItem instanceof AlarmLimitItem)){
+            ModelItemStatistics statistics = new ModelItemStatistics(modelItem);
+            tracesTable.getItems().add(statistics);
+        }
     }
 
     /** @param modelItem Model item */

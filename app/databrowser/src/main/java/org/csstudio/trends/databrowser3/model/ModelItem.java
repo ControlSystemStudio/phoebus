@@ -47,7 +47,7 @@ abstract public class ModelItem
     private volatile String units;
 
     /** Show item's samples? */
-    private volatile boolean visible = true;
+    protected volatile boolean visible = true;
 
     /** RGB for item's color
      *  <p>
@@ -431,6 +431,7 @@ abstract public class ModelItem
         writer.writeStartElement(XMLPersistence.TAG_WAVEFORM_INDEX);
         writer.writeCharacters(Integer.toString(getWaveformIndex()));
         writer.writeEndElement();
+
     }
 
     /** Load common XML configuration elements into this item

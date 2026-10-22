@@ -18,11 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 
-import org.csstudio.trends.databrowser3.model.AxisConfig;
-import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.model.ModelItem;
-import org.csstudio.trends.databrowser3.model.ModelListener;
-import org.csstudio.trends.databrowser3.model.PVItem;
+import org.csstudio.trends.databrowser3.model.*;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.ui.Perspective;
 import org.phoebus.framework.jobs.JobManager;
@@ -105,11 +101,11 @@ public class DataBrowserInstance implements AppInstance
 
         @Override
         public void itemAdded(final ModelItem item)
-        {   setDirty(true);   }
+        {   setDirty(!(item instanceof AlarmLimitItem)); }
 
         @Override
         public void itemRemoved(final ModelItem item)
-        {   setDirty(true);   }
+        {   setDirty(!(item instanceof AlarmLimitItem));   }
 
         @Override
         public void changedItemVisibility(final ModelItem item)
@@ -117,7 +113,7 @@ public class DataBrowserInstance implements AppInstance
 
         @Override
         public void changedItemLook(final ModelItem item)
-        {   setDirty(true);   }
+        {   setDirty(!(item instanceof AlarmLimitItem));   }
 
         @Override
         public void changedItemDataConfig(final PVItem item, final boolean archive_invalid)
@@ -272,7 +268,7 @@ public class DataBrowserInstance implements AppInstance
         final File file = Objects.requireNonNull(ResourceParser.getFile(dock_item.getInput()));
         try
         (
-            final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
+            final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file))
         )
         {
             XMLPersistence.write(getModel(), out);
