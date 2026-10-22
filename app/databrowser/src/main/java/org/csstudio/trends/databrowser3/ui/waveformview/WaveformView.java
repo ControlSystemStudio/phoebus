@@ -11,151 +11,108 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
-import org.csstudio.javafx.rtplot.LineStyle;
-import org.csstudio.javafx.rtplot.PointType;
-import org.csstudio.javafx.rtplot.RTValuePlot;
-import org.csstudio.javafx.rtplot.Trace;
-import org.csstudio.javafx.rtplot.TraceType;
-import org.csstudio.javafx.rtplot.YAxis;
 import org.csstudio.javafx.rtplot.data.TimeDataSearch;
-import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
-import org.csstudio.trends.databrowser3.model.AnnotationInfo;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.PlotSamples;
-import org.csstudio.trends.databrowser3.ui.ToggleToolbarMenuItem;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.MultiCheckboxCombo;
-import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.util.time.TimestampFormats;
 
-import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.Separator;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-/** Panel for inspecting Waveform (Array) Samples of the current Model
- *  @author Kay Kasemir
- *  @author Will Rogers Original work to show current waveform sample in plot
- *  @author Takashi Nakamoto Allowed original WaveformView to handle multiple items with
- *                           the same name.
+/**
+ * Inspect waveform samples using the ChartFX waveform history chart.
+ * Multiple selected PVs share the sample-time reference but maintain
+ * independent waveform histories.
  */
 @SuppressWarnings("nls")
-public class WaveformView extends VBox
-{
-    /** Text used for the annotation that indicates waveform sample */
-    private static final String ANNOTATION_TEXT = Messages.WaveformView;
+public class WaveformView extends VBox {
+    private static final int DEFAULT_HISTORY_LENGTH = 5;
+
+    // Temporary runtime configuration. Can later be moved into Data Browser preferences.
+    // Example VM option: -Dphoebus.waveform.max_pvs=8
+    private static final int MAX_PVS =
+            Math.max(1, Integer.getInteger("phoebus.waveform.max_pvs", 4));
 
     private final Model model;
-
-    /** Selected model item in model, or <code>null</code> */
     private final List<ModelItem> model_items = new ArrayList<>();
-
-    /** Waveform for the currently selected sample */
-    private final List<WaveformValueDataProvider> waveforms = new ArrayList<>();
-
-    private final MultiCheckboxCombo<ModelItem> items = new MultiCheckboxCombo<>(Messages.WaveformViewSelect);
-
-    /** Is this code updating 'items', so ignore? */
+    private final MultiCheckboxCombo<ModelItem> items =
+            new MultiCheckboxCombo<>(Messages.WaveformViewSelect);
     private boolean updating_selected_items = false;
 
-    private RTValuePlot plot;
-
-    /** Model item that selected the sample */
+    private final Spinner<Integer> history_length =
+            new Spinner<>(0, 100, DEFAULT_HISTORY_LENGTH);
+    private final Label limit_warning = new Label();
+    private final Label waveform_warning = new Label();
+    private final Separator limit_separator = new Separator(Orientation.VERTICAL);
+    private final Separator waveform_separator = new Separator(Orientation.VERTICAL);
+    private boolean over_limit_selected = false;
+    private final WaveformHistoryChart history_plot =
+            new WaveformHistoryChart(DEFAULT_HISTORY_LENGTH);
+    private int applied_history_length = DEFAULT_HISTORY_LENGTH;
     private ModelItem selection_item = null;
-
-    /** Index of sample in model_item */
     private final Slider sample_index = new Slider();
+    private boolean positioning_sample_index = false;
+    private final TextField timestamp = new TextField();
+    private final TextField status = new TextField();
 
-    private final TextField timestamp = new TextField(),
-                            status = new TextField();
-
-    /** Annotation in plot that indicates waveform sample */
-    private final List<AnnotationInfo> waveform_annotations = new ArrayList<>();
-
-    private boolean changing_annotations = false;
-
-    private ScheduledFuture<?> pending_move = null;
-
-    private final ModelListener model_listener = new  ModelListener()
-    {
+    private final ModelListener model_listener = new ModelListener() {
         @Override
-        public void itemAdded(final ModelItem item)
-        {
+        public void itemAdded(final ModelItem item) {
             updatePVs();
         }
 
         @Override
-        public void itemRemoved(final ModelItem item)
-        {
+        public void itemRemoved(final ModelItem item) {
             model_items.remove(item);
-            // Will update the combo to reflect missing item
             updatePVs();
         }
 
         @Override
-        public void changedItemLook(final ModelItem item)
-        {
+        public void changedItemLook(final ModelItem item) {
             updatePVs();
         }
 
         @Override
-        public void changedAnnotations()
-        {
-            if (changing_annotations)
-                return;
-
-            // Reacting as the user moves the annotation
-            // would be too expensive.
-            // Delay, canceling previous request, for "post-selection"
-            // type update once the user stops moving the annotation for a little time
-            if (pending_move != null)
-                pending_move.cancel(false);
-
-            pending_move = Activator.timer.schedule(WaveformView.this::userMovedAnnotation, 500, TimeUnit.MILLISECONDS);
+        public void changedAnnotations() {
+            // Draggable annotations are not yet supported by the ChartFX view.
         }
 
         @Override
-        public void changedTimerange()
-        {
-            // Update selected sample to assert that it's one of the visible ones.
-            if (! model_items.isEmpty())
+        public void changedTimerange() {
+            if (!model_items.isEmpty())
                 showSelectedSample();
         }
     };
 
-    /** @param model Model */
-    public WaveformView(final Model model)
-    {
+    public WaveformView(final Model model) {
         this.model = model;
-
         model.addListener(model_listener);
 
-        items.selectedOptions().addListener((Observable o) ->
-        {
-            if (! updating_selected_items)
-                selectPV(items.getSelectedOptions());
+        items.selectedOptions().addListener((Observable o) -> {
+            if (!updating_selected_items)
+                selectPV(new ArrayList<>(items.getSelectedOptions()));
         });
 
         final Button refresh = new Button(Messages.SampleView_Refresh);
@@ -165,301 +122,295 @@ public class WaveformView extends VBox
         final Label label = new Label(Messages.SampleView_Item);
         final HBox top_row = new HBox(5, label, items, refresh);
         top_row.setAlignment(Pos.CENTER_LEFT);
-
-        // Combo should fill the available space.
-        // Tried HBox.setHgrow(items, Priority.ALWAYS) etc.,
-        // but always resulted in shrinking the label and button.
-        // -> Explicitly compute combo width from available space
-        //    minus padding and size of label, button
-        items.prefWidthProperty().bind(top_row.widthProperty().subtract(20).subtract(label.widthProperty()).subtract(refresh.widthProperty()));
+        items.prefWidthProperty().bind(top_row.widthProperty()
+                .subtract(20).subtract(label.widthProperty())
+                .subtract(refresh.widthProperty()));
         items.prefHeightProperty().bind(refresh.heightProperty());
 
-        createPlot();
+        history_length.setPrefWidth(70);
+        history_length.setTooltip(new Tooltip(Messages.WaveformHistoryPreviousTT));
+        history_length.valueProperty().addListener((obs, oldValue, value) -> updateHistory());
+
+        configureWarning(limit_warning, limit_separator);
+        configureWarning(waveform_warning, waveform_separator);
+
+        history_plot.addToolbarControls(
+                new Separator(Orientation.VERTICAL),
+                new Label(Messages.WaveformHistoryPrevious), history_length,
+                limit_separator, limit_warning,
+                waveform_separator, waveform_warning);
+
+        history_plot.setPadding(new Insets(0, 5, 5, 5));
+        VBox.setVgrow(history_plot, Priority.ALWAYS);
 
         sample_index.setBlockIncrement(1);
         sample_index.disableProperty().bind(Bindings.isEmpty(items.selectedOptions()));
         sample_index.setTooltip(new Tooltip(Messages.WaveformTimeSelector));
-        sample_index.valueProperty().addListener(p -> showSelectedSample());
+        sample_index.valueProperty().addListener(observable -> {
+            if (!positioning_sample_index)
+                showSelectedSample();
+        });
 
         timestamp.setEditable(false);
         status.setEditable(false);
         HBox.setHgrow(timestamp, Priority.ALWAYS);
         HBox.setHgrow(status, Priority.ALWAYS);
-        final HBox bottom_row = new HBox(5, new Label(Messages.WaveformTimestamp), timestamp, new Label(Messages.WaveformStatus), status);
+        final HBox bottom_row = new HBox(5,
+                new Label(Messages.WaveformTimestamp), timestamp,
+                new Label(Messages.WaveformStatus), status);
         bottom_row.setAlignment(Pos.CENTER_LEFT);
 
         top_row.setPadding(new Insets(5));
-        plot.setPadding(new Insets(0, 5, 5, 5));
         bottom_row.setPadding(new Insets(0, 5, 5, 5));
-        VBox.setVgrow(plot, Priority.ALWAYS);
-        getChildren().setAll(top_row, plot, sample_index, bottom_row);
+        getChildren().setAll(top_row, history_plot,
+                sample_index, bottom_row);
 
         updatePVs();
     }
 
-    private void createPlot()
-    {
-        plot = new RTValuePlot(true);
-        plot.getXAxis().setName(Messages.WaveformIndex);
-        plot.getYAxes().get(0).setAutoscale(true);
-        plot.getYAxes().get(0).useAxisName(false);
-        plot.showLegend(false);
-        createContextMenu();
-    }
-
-    private void createContextMenu()
-    {
-        final ContextMenu menu = new ContextMenu();
-        plot.setOnContextMenuRequested(event ->
-        {
-            menu.getItems().setAll(new ToggleToolbarMenuItem(plot));
-
-            final List<Trace<Double>> traces = new ArrayList<>();
-            plot.getTraces().forEach(traces::add);
-            if (! traces.isEmpty())
-                menu.getItems().add(new ToggleLinesMenuItem(plot, traces));
-
-
-            menu.getItems().addAll(new SeparatorMenuItem(),
-                                   new PrintAction(plot),
-                                   new SaveSnapshotAction(plot));
-
-            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        });
-    }
-
-    private void updatePVs()
-    {
-        // Which PVs were selected?
-        final List<ModelItem> select = new ArrayList<>(items.getSelectedOptions());
+    private void updatePVs() {
+        final List<ModelItem> selected = new ArrayList<>(items.getSelectedOptions());
 
         updating_selected_items = true;
-
-        // Show PV names of model
-        final List<ModelItem> new_items = model.getItems();
-        items.setOptions(new_items);
-
-        // Re-select those that were selected and are still valid
-        select.retainAll(new_items);
-        items.selectOptions(select);
-
-        updating_selected_items = false;
-
-        selectPV(select);
+        try {
+            final List<ModelItem> available = model.getItems();
+            items.setOptions(available);
+            selected.retainAll(available);
+            if (selected.size() > MAX_PVS)
+                selected.subList(MAX_PVS, selected.size()).clear();
+            items.selectOptions(selected);
+        } finally {
+            updating_selected_items = false;
+        }
+        selectPV(selected);
     }
 
-    private void selectPV(final List<ModelItem> selected_items)
-    {
-        // Delete all existing traces
-        for (Trace<Double> trace : plot.getTraces())
-            plot.removeTrace(trace);
-        waveforms.clear();
-        removeAnnotations();
+    private void selectPV(final List<ModelItem> requested) {
+        final List<ModelItem> selected = new ArrayList<>(requested);
+        over_limit_selected = selected.size() > MAX_PVS;
+        if (over_limit_selected) {
+            selected.subList(MAX_PVS, selected.size()).clear();
+            updating_selected_items = true;
+            try {
+                items.selectOptions(selected);
+            } finally {
+                updating_selected_items = false;
+            }
+        }
 
         model_items.clear();
-        model_items.addAll(selected_items);
-
-        // No PV?
-        if (model_items.isEmpty())
-            return;
-
-        // Create trace for each waveform
-        for (ModelItem model_item : model_items)
-        {
-            final WaveformValueDataProvider waveform = new WaveformValueDataProvider();
-            waveforms.add(waveform);
-            plot.addTrace(model_item.getResolvedDisplayName(), model_item.getUnits(), waveform, model_item.getPaintColor(), TraceType.NONE, 1, LineStyle.SOLID, PointType.CIRCLES, 5, 0);
-        }
-
-        // Enable waveform selection and update slider's range
-        showSelectedSample();
-        // Autoscale Y axes by default.
-        for (YAxis<Double> yaxis : plot.getYAxes())
-            yaxis.setAutoscale(true);
-    }
-
-    private void showSelectedSample()
-    {
-        // No items?
-        if (model_items.isEmpty())
-        {
+        model_items.addAll(selected);
+        if (model_items.isEmpty()) {
             selection_item = null;
+            clearInfo();
+            updateToolbarWarning(List.of());
+            history_plot.setWaveformSeries(List.of());
             return;
         }
-
-        // If no item selected for the idx, use the first one
-        if (selection_item == null  ||  !model_items.contains(selection_item))
+        if (selection_item == null || !model_items.contains(selection_item))
             selection_item = model_items.get(0);
 
-        // Determine time stamp of selected item's sample
-        final int idx = (int) Math.round(sample_index.getValue());
-        final Instant selected_time;
-        PlotSamples samples = selection_item.getSamples();
-        samples.getLock().lock();
-        try
-        {
-            selected_time = samples.get(idx).getPosition();
-        }
-        finally
-        {
-            samples.getLock().unlock();
+        // Start at the newest sample whenever the PV selection changes.
+        // This makes history available for PVs that started recording later.
+        final PlotSamples reference = selection_item.getSamples();
+        final int last;
+        reference.getLock().lock();
+        try {
+            last = Math.max(0, reference.size() - 1);
+        } finally {
+            reference.getLock().unlock();
         }
 
-        String timestampText = "", statusText = "";
-        int n = 0, max_size = 1;
-        for (ModelItem model_item : model_items)
-        {
-            // Get selected sample (= one waveform)
-            samples = model_item.getSamples();
-            PlotSample sample;
-            samples.getLock().lock();
-            try
-            {
-                if (model_item == selection_item)
-                {   // idx refers to exact sample of this item
-                    sample_index.setMax(samples.size());
-                    sample = samples.get(idx);
-                }
-                else
-                {   // Find closest sample based on time stamp
-                    final TimeDataSearch search = new TimeDataSearch();
-                    final int s = search.findClosestSample(samples, selected_time);
-                    sample = samples.get(s);
-                }
-            }
-            finally
-            {
-                samples.getLock().unlock();
-            }
-
-            // Setting the value can be delayed while the plot is being updated
-            final VType value = sample.getVType();
-            final WaveformValueDataProvider waveform = waveforms.get(n);
-            Activator.thread_pool.execute(() -> waveform.setValue(value));
-            if (value == null)
-                clearInfo();
-            else
-            {
-                updateAnnotation(n, sample.getPosition(), sample.getValue());
-
-                if (n == 0)
-                {
-                    final int size = value instanceof VNumberArray ? ((VNumberArray)value).getData().size() : 1;
-                    if (size > max_size)
-                        max_size = size;
-                    timestampText = TimestampFormats.MILLI_FORMAT.format(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value));
-                    statusText = MessageFormat.format(Messages.SeverityStatusFmt, org.phoebus.core.vtypes.VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
-                }
-                else
-                {
-                    timestampText += "; " + TimestampFormats.MILLI_FORMAT.format(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value));
-                    statusText += "; " + MessageFormat.format(Messages.SeverityStatusFmt, org.phoebus.core.vtypes.VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
-                }
-            }
-
-            ++n;
+        // Suppress the slider listener while updating its range and value.
+        // Show the selected sample once after both properties are consistent.
+        positioning_sample_index = true;
+        try {
+            sample_index.setMax(last);
+            sample_index.setValue(last);
+        } finally {
+            positioning_sample_index = false;
         }
-        plot.getXAxis().setValueRange(0.0, (double)max_size);
-
-        timestamp.setText(timestampText);
-        status.setText(statusText);
-        plot.requestUpdate();
+        showSelectedSample();
     }
 
-    /** Clear all the info fields. */
-    private void clearInfo()
-    {
-        timestamp.setText("");
-        status.setText("");
-        removeAnnotations();
-        selection_item = null;
-    }
-
-    private void userMovedAnnotation()
-    {
-        if (waveform_annotations.isEmpty())
+    private void showSelectedSample() {
+        if (model_items.isEmpty()) {
+            clearInfo();
             return;
+        }
+        if (selection_item == null || !model_items.contains(selection_item))
+            selection_item = model_items.get(0);
 
-        // Compare position of waveform_annotations to those in model
-        // to determine which annotation the user moved.
-        final List<AnnotationInfo> model_annotations = model.getAnnotations();
-        for (AnnotationInfo waveform_annotation : waveform_annotations)
-            for (AnnotationInfo annotation : model_annotations)
-                if (annotation.isInternal()                                          &&
-                    annotation.getItemIndex() == waveform_annotation.getItemIndex()  &&
-                    ! annotation.getTime().equals(waveform_annotation.getTime()))
-            {
-                // System.out.println("User moved " + annotation.getText() + "\nfrom " + waveform_annotation.getTime() + "\n  to " + annotation.getTime());
-
-                selection_item = model.getItems().get(annotation.getItemIndex());
-                final PlotSamples samples = selection_item.getSamples();
-                final TimeDataSearch search = new TimeDataSearch();
-                final int idx;
-                samples.getLock().lock();
-                try
-                {
-                    idx = search.findClosestSample(samples, annotation.getTime());
-                }
-                finally
-                {
-                    samples.getLock().unlock();
-                }
-                // Update waveform view for that sample on UI thread
-                Platform.runLater(() ->
-                {
-                    if (sample_index.getMax() < idx)
-                        sample_index.setMax(idx);
-                    sample_index.setValue(idx);
-                    showSelectedSample();
-                });
+        final PlotSamples reference = selection_item.getSamples();
+        final Instant selected_time;
+        reference.getLock().lock();
+        try {
+            final int count = reference.size();
+            if (count == 0) {
+                clearInfo();
+                updateToolbarWarning(List.of());
+                history_plot.setWaveformSeries(List.of());
                 return;
             }
-    }
-
-    private void updateAnnotation(final int annotation_index, final Instant time, final double value)
-    {
-        final List<AnnotationInfo> annotations = new ArrayList<>(model.getAnnotations());
-        // Initial annotation offset
-        Point2D offset = new Point2D(20, -20);
-
-        final String label = ANNOTATION_TEXT + " " + model_items.get(annotation_index).getDisplayName();
-
-        // If already in model, note its offset and remove
-        for (AnnotationInfo annotation : annotations)
-        {
-            if (annotation.getText().equals(label))
-            {   // Update offset to where user last placed it
-                offset = annotation.getOffset();
-                annotations.remove(annotation);
-                break;
+            final int last = count - 1;
+            if (sample_index.getMax() != last) {
+                // Changing the slider range may itself fire a value change.
+                positioning_sample_index = true;
+                try {
+                    sample_index.setMax(last);
+                } finally {
+                    positioning_sample_index = false;
+                }
             }
+            final int index = Math.max(0, Math.min(last,
+                    (int) Math.round(sample_index.getValue())));
+            selected_time = reference.get(index).getPosition();
+        } finally {
+            reference.getLock().unlock();
         }
 
-        final int item_index = model.getItems().indexOf(model_items.get(annotation_index));
-        final AnnotationInfo waveform_annotation = new AnnotationInfo(true, item_index, time, value, offset, label);
-        waveform_annotations.add(annotation_index, waveform_annotation);
-        annotations.add(waveform_annotation);
-
-        changing_annotations = true;
-        model.setAnnotations(annotations);
-        changing_annotations = false;
+        final StringBuilder times = new StringBuilder();
+        final StringBuilder statuses = new StringBuilder();
+        for (ModelItem item : model_items) {
+            final PlotSamples samples = item.getSamples();
+            final VType value;
+            samples.getLock().lock();
+            try {
+                if (samples.size() == 0)
+                    continue;
+                final int index = selectedSampleIndex(item, samples, selected_time);
+                value = samples.get(index).getVType();
+            } finally {
+                samples.getLock().unlock();
+            }
+            if (value == null)
+                continue;
+            if (times.length() != 0) {
+                times.append("; ");
+                statuses.append("; ");
+            }
+            times.append(TimestampFormats.MILLI_FORMAT.format(
+                    org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value)));
+            statuses.append(MessageFormat.format(Messages.SeverityStatusFmt,
+                    org.phoebus.core.vtypes.VTypeHelper.getSeverity(value).toString(),
+                    VTypeHelper.getMessage(value)));
+        }
+        timestamp.setText(times.toString());
+        status.setText(statuses.toString());
+        updateHistory(selected_time);
     }
 
-    private void removeAnnotations()
-    {
-        boolean changes = false;
-        // Remove all waveform_annotations from model
-        final List<AnnotationInfo> modelAnnotations = new ArrayList<>(model.getAnnotations());
-        for (AnnotationInfo waveform_annotation : waveform_annotations)
-            if (modelAnnotations.remove(waveform_annotation))
-                changes = true;
-        waveform_annotations.clear();
-
-        if (changes)
-        {
-            changing_annotations = true;
-            model.setAnnotations(modelAnnotations);
-            changing_annotations = false;
+    private void updateHistory() {
+        if (model_items.isEmpty()) {
+            history_plot.setWaveformSeries(List.of());
+            return;
         }
+        showSelectedSample();
+    }
+
+    private void updateHistory(final Instant selected_time) {
+        final int previous = history_length.getValue();
+        final List<WaveformHistoryChart.WaveformSeries> series = new ArrayList<>();
+        final List<String> nonWaveformPvs = new ArrayList<>();
+
+        for (ModelItem item : model_items) {
+            final List<double[]> history = new ArrayList<>();
+            boolean sawScalarSample = false;
+            final PlotSamples samples = item.getSamples();
+            samples.getLock().lock();
+            try {
+                if (samples.size() > 0) {
+                    final int closest = selectedSampleIndex(item, samples, selected_time);
+                    final int first = Math.max(0, closest - previous);
+                    for (int index = first; index <= closest; index++) {
+                        final PlotSample sample = samples.get(index);
+                        if (!(sample.getVType() instanceof VNumberArray array)) {
+                            if (sample.getVType() != null)
+                                sawScalarSample = true;
+                            continue;
+                        }
+                        history.add(copyWaveform(array));
+                    }
+                }
+            } finally {
+                samples.getLock().unlock();
+            }
+            if (history.isEmpty() && sawScalarSample)
+                nonWaveformPvs.add(item.getResolvedDisplayName());
+            series.add(new WaveformHistoryChart.WaveformSeries(
+                    item.getResolvedDisplayName(), history));
+        }
+
+        // Preserve history depth when it hasn't changed to avoid needless resets.
+        if (applied_history_length != previous) {
+            history_plot.setHistoryLength(previous);
+            applied_history_length = previous;
+        }
+        history_plot.setWaveformSeries(series);
+        updateToolbarWarning(nonWaveformPvs);
+    }
+
+    /**
+     * Find the index corresponding to the selected time. Call with the
+     * PlotSamples lock held and only when the collection is nonempty.
+     */
+    private int selectedSampleIndex(final ModelItem item,
+                                    final PlotSamples samples,
+                                    final Instant selectedTime) {
+        final int last = samples.size() - 1;
+        final int index = item == selection_item
+                ? (int) Math.round(sample_index.getValue())
+                : new TimeDataSearch().findClosestSample(samples, selectedTime);
+        return Math.max(0, Math.min(index, last));
+    }
+
+    private static double[] copyWaveform(final VNumberArray array) {
+        final double[] values = new double[array.getData().size()];
+        for (int index = 0; index < values.length; index++) {
+            values[index] = array.getData().getDouble(index);
+        }
+        return values;
+    }
+
+    private static void configureWarning(final Label warning,
+                                         final Separator separator) {
+        warning.setStyle("-fx-text-fill: #a35b00;");
+        warning.setVisible(false);
+        warning.managedProperty().bind(warning.visibleProperty());
+        warning.setTooltip(new Tooltip());
+        separator.visibleProperty().bind(warning.visibleProperty());
+        separator.managedProperty().bind(separator.visibleProperty());
+    }
+
+    private static void setWarning(final Label warning,
+                                   final String summary,
+                                   final String details) {
+        warning.setText(summary);
+        warning.getTooltip().setText(details);
+        warning.setVisible(!summary.isEmpty());
+    }
+
+    private void updateToolbarWarning(final List<String> nonWaveformPvs) {
+        if (over_limit_selected) {
+            setWarning(limit_warning,
+                    MessageFormat.format(Messages.WaveformHistoryLimitSummary, MAX_PVS),
+                    MessageFormat.format(Messages.WaveformHistoryLimitTT, MAX_PVS));
+        } else {
+            setWarning(limit_warning, "", "");
+        }
+
+        if (!nonWaveformPvs.isEmpty()) {
+            final String names = String.join(", ", nonWaveformPvs);
+            setWarning(waveform_warning,
+                    MessageFormat.format(Messages.WaveformHistoryNonWaveformSummary, names),
+                    MessageFormat.format(Messages.WaveformHistoryNonWaveformTT, names));
+        } else {
+            setWarning(waveform_warning, "", "");
+        }
+    }
+
+    private void clearInfo() {
+        timestamp.clear();
+        status.clear();
     }
 }

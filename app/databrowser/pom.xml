@@ -9,6 +9,21 @@
   <name>${project.groupId}:${project.artifactId}</name>
   <dependencies>
     <dependency>
+      <groupId>io.fair-acc</groupId>
+      <artifactId>chartfx</artifactId>
+      <version>11.3.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-base</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>javafx-controls</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <version>${junit.version}</version>
