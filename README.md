@@ -8,8 +8,8 @@ https://control-system-studio.readthedocs.io
 
 
 ## Requirements
- - [JDK25 or later, suggested is OpenJDK](https://adoptium.net/en-GB/temurin/releases?version=25).
- - [maven 3.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
+- [JDK25 or later, suggested is OpenJDK](https://adoptium.net/en-GB/temurin/releases?version=25).
+- [maven 3.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
 ## Target Platform
@@ -27,7 +27,7 @@ mvn clean verify -f dependencies/pom.xml
 Define the JAVA_HOME environment variable to point to your Java installation directory.
 Mac OS users should use something like:
 ```
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-25/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-25.0.2/Contents/Home
 ```
 Verify through:
 ```
@@ -114,8 +114,8 @@ Start Eclipse like this:
 
 Check Eclipse Preferences:
 
- * Java, Installed JREs: JDK 25-or-later should be the default
- * Java, Compiler: JDK Compliance should be "25" or higher
+* Java, Installed JREs: JDK 25-or-later should be the default
+* Java, Compiler: JDK Compliance should be "25" or higher
 
 
 ### Use plain Java configuration
@@ -155,20 +155,36 @@ Can now start product/src/main/java/org.phoebus.product/Launcher.java.
 
 ## Developing with Intellij IDEA
 
-To import the project:
+To import and set up the project:
 
-* Import Project
-* Select the Phoebus directory
-* Import project from external model: Maven
-* Accept the default options and click Next twice
- * Ensure that the JDK is version 25 or above
-* Change the project name to Phoebus and click finish
+* Select New Project.
+* Enter Phoebus as the project name.
+* Select Maven as the project type.
+* Choose the appropriate JDK 25 installation path.
+* Navigate to File → Settings → Build, Execution, Deployment → Build Tools → Maven.
+* Under Maven → Runner, set the JRE to JDK 25.
+* Open the Maven tool window from the right sidebar.
+* Click Sync All Maven Projects to synchronize the project and download the required dependencies.
+
+To build the phoebus application:
+
+* Open a terminal in IntelliJ IDEA and navigate to the Phoebus project root directory.
+* Ensure that JDK 25 or later and Maven 3.x are installed and configured correctly.
+
+```
+# Verify Java and Maven versions
+java -version
+mvn -version
+
+# Build the application
+mvn clean install -DskipTests
+```
 
 To run the Phoebus application:
 
 * Run | Edit Configurations...
 * Select + | Application
- * Module: Your JRE 25
+* Module: Your JRE 25
 * Classpath `-cp`: select `product` from drop-down
 * Main class: `org.phoebus.product.Launcher`
 * Set the name to Phoebus
