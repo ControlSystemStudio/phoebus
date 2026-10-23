@@ -27,6 +27,9 @@ public class AlarmStateMessage {
 
     private static DateTimeFormatter formatter = TimestampFormats.MILLI_FORMAT;
 
+    private String user;
+    private String host;
+
     private String severity;
     private String message;
     private String value;
@@ -43,133 +46,202 @@ public class AlarmStateMessage {
     private String config;
     private String pv;
 
-    /** @return data */
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+    
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    /**
+     * @return data
+     */
     public String getConfig() {
         return config;
     }
 
-    /** @param config New value */
+    /**
+     * @param config New value
+     */
     public void setConfig(String config) {
         this.config = config;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public String getPv() {
         return pv;
     }
 
-    /** @param pv New value */
+    /**
+     * @param pv New value
+     */
     public void setPv(String pv) {
         this.pv = pv;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public String getSeverity() {
         return severity;
     }
 
-    /** @param severity New value */
+    /**
+     * @param severity New value
+     */
     public void setSeverity(String severity) {
         this.severity = severity;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public boolean isLatch() {
         return latch;
     }
 
-    /** @param latch New value */
+    /**
+     * @param latch New value
+     */
     public void setLatch(boolean latch) {
         this.latch = latch;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public String getMessage() {
         return message;
     }
 
-    /** @param message New value */
+    /**
+     * @param message New value
+     */
     public void setMessage(String message) {
         this.message = message;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public String getValue() {
         return value;
     }
 
-    /** @param value New value */
+    /**
+     * @param value New value
+     */
     public void setValue(String value) {
         this.value = value;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public Map<String, String> getTime() {
         return time;
     }
 
-    /** @param time New value */
+    /**
+     * @param time New value
+     */
     public void setTime(Map<String, String> time) {
         this.time = time;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public String getCurrent_severity() {
         return current_severity;
     }
 
-    /** @param current_severity New value */
+    /**
+     * @param current_severity New value
+     */
     public void setCurrent_severity(String current_severity) {
         this.current_severity = current_severity;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public String getCurrent_message() {
         return current_message;
     }
 
-    /** @param current_message New value */
+    /**
+     * @param current_message New value
+     */
     public void setCurrent_message(String current_message) {
         this.current_message = current_message;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public String getMode() {
         return mode;
     }
 
-    /** @param mode New value */
+    /**
+     * @param mode New value
+     */
     public void setMode(String mode) {
         this.mode = mode;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public boolean getNotify() {
         return notify;
     }
 
-    /** @param notify New value */
+    /**
+     * @param notify New value
+     */
     public void setNotify(boolean notify) {
         this.notify = notify;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     public Instant getMessage_time() {
         return message_time;
     }
 
-    /** @param message_time New value */
+    /**
+     * @param message_time New value
+     */
     public void setMessage_time(Instant message_time) {
         this.message_time = message_time;
     }
 
-    /** @return data */
+    /**
+     * @return data
+     */
     @JsonIgnore
     public Instant getInstant() {
         return Instant.ofEpochSecond(Long.parseLong(time.get("seconds")), Long.parseLong(time.get("nano")));
     }
 
-    /** @param instant New value */
+    /**
+     * @param instant New value
+     */
     @JsonIgnore
     public void setInstant(Instant instant) {
         this.time = new HashMap<>();
@@ -177,13 +249,17 @@ public class AlarmStateMessage {
         this.time.put("nano", String.valueOf(instant.getNano()));
     }
 
-    /** @return Is this a leaf node, i.e. a PV? */
+    /**
+     * @return Is this a leaf node, i.e. a PV?
+     */
     @JsonIgnore
     public boolean isLeaf() {
         return value != null && message != null && time != null && current_severity != null && current_message != null;
     }
 
-    /** @return Map of original data */
+    /**
+     * @return Map of original data
+     */
     @JsonIgnore
     public Map<String, String> sourceMap() {
         Map<String, String> map = new HashMap<>();
@@ -228,48 +304,65 @@ public class AlarmStateMessage {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         AlarmStateMessage other = (AlarmStateMessage) obj;
         if (current_message == null) {
-            if (other.current_message != null)
+            if (other.current_message != null) {
                 return false;
-        } else if (!current_message.equals(other.current_message))
+            }
+        } else if (!current_message.equals(other.current_message)) {
             return false;
+        }
         if (current_severity == null) {
-            if (other.current_severity != null)
+            if (other.current_severity != null) {
                 return false;
-        } else if (!current_severity.equals(other.current_severity))
+            }
+        } else if (!current_severity.equals(other.current_severity)) {
             return false;
+        }
         if (message == null) {
-            if (other.message != null)
+            if (other.message != null) {
                 return false;
-        } else if (!message.equals(other.message))
+            }
+        } else if (!message.equals(other.message)) {
             return false;
+        }
         if (mode == null) {
-            if (other.mode != null)
+            if (other.mode != null) {
                 return false;
-        } else if (!mode.equals(other.mode))
+            }
+        } else if (!mode.equals(other.mode)) {
             return false;
+        }
         if (severity == null) {
-            if (other.severity != null)
+            if (other.severity != null) {
                 return false;
-        } else if (!severity.equals(other.severity))
+            }
+        } else if (!severity.equals(other.severity)) {
             return false;
+        }
         if (time == null) {
-            if (other.time != null)
+            if (other.time != null) {
                 return false;
-        } else if (!time.equals(other.time))
+            }
+        } else if (!time.equals(other.time)) {
             return false;
+        }
         if (value == null) {
-            if (other.value != null)
+            if (other.value != null) {
                 return false;
-        } else if (!value.equals(other.value))
+            }
+        } else if (!value.equals(other.value)) {
             return false;
+        }
         return true;
     }
 
