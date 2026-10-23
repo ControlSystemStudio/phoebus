@@ -16,6 +16,10 @@ public class Messages
     public static String acknowledgeFailed;
     public static String addComponentFailed;
     public static String automatedActions;
+    public static String AlarmAreaPanel;
+    public static String AlarmTable;
+    public static String AlarmTree;
+    public static String Annunciator;
     public static String commands;
     public static String configure;
     public static String delayTooltip0;
@@ -39,6 +43,7 @@ public class Messages
     public static String headerConfirmDisableWithEnableDate;
     public static String headerConfirmEnable;
     public static String indefinitely;
+    public static String MenuPath;
     public static String moveItemFailed;
     public static String promptTitle;
     public static String removeComponentFailed;

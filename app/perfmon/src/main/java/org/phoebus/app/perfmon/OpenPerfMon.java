@@ -21,13 +21,13 @@ public class OpenPerfMon implements MenuEntry
     @Override
     public String getName()
     {
-        return "Performance Monitor";
+        return Messages.PerformanceMonitor;
     }
 
     @Override
     public String getMenuPath()
     {
-        return "Debug";
+        return Messages.MenuPath;
     }
 
     @Override

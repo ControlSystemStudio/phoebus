@@ -9,7 +9,7 @@ package org.phoebus.logbook.ui.menu;
 
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.LogbookPreferences;
-import org.phoebus.logbook.ui.LogbookUiPreferences;
+import org.phoebus.logbook.ui.Messages;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.spi.MenuEntry;
 
@@ -42,7 +42,7 @@ public class SendToLogBookMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Utility";
+        return Messages.MenuPath;
     }
 
     @Override

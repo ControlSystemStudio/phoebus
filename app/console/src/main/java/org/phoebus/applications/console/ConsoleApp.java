@@ -19,7 +19,7 @@ import org.phoebus.framework.spi.AppInstance;
 public class ConsoleApp implements AppDescriptor
 {
     static final String NAME = "console";
-    static final String DISPLAY_NAME = "Console";
+    static final String DISPLAY_NAME = Messages.Console;
 
     @Override
     public String getName()

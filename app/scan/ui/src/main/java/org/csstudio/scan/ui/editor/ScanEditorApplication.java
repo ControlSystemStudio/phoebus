@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
+import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.ScanURI;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
@@ -24,7 +25,7 @@ public class ScanEditorApplication implements AppResourceDescriptor
 {
 	private static final List<String> FILE_EXTENSIONS = List.of("scn");
   	public static final String NAME = "scan_editor";
-    public static final String DISPLAY_NAME = "Scan Editor";
+    public static final String DISPLAY_NAME = Messages.ScanEditor;
 
     @Override
     public String getName()

@@ -12,6 +12,7 @@ import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
+import org.phoebus.applications.alarm.ui.Messages;
 
 import javafx.scene.image.Image;
 
@@ -43,7 +44,7 @@ public class AlarmTreeMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Alarm";
+        return Messages.MenuPath;
     }
 
     public void setResource(URI resource){

@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 public class PreferencesApp implements AppDescriptor
 {
     public static final String NAME = "preferences";
-    public static final String DISPLAY_NAME = "Preferences";
+    public static final String DISPLAY_NAME = Messages.Preferences;
 
     static final Logger logger = Logger.getLogger(PreferencesApp.class.getName());
 

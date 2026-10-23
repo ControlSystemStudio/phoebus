@@ -14,6 +14,7 @@ import java.net.URL;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.framework.spi.AppResourceDescriptor;
@@ -28,7 +29,7 @@ public class AlarmTreeApplication implements AppResourceDescriptor
     public static final String NAME = "alarm_tree";
 
     /** Visible app name */
-    public static final String DISPLAY_NAME = "Alarm Tree";
+    public static final String DISPLAY_NAME = Messages.AlarmTree;
 
     @Override
     public String getName()

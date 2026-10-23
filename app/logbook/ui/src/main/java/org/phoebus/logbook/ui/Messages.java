@@ -11,14 +11,14 @@ import org.phoebus.framework.nls.NLS;
 
 public class Messages
 {
-    public static String Add,                              
+    public static String Add,
                          Add_Tooltip,
                          Apply,
                          Attachments,
                          Available,
                          Cancel,
                          CancelTooltip,
-                         Clear,                                
+                         Clear,
                          Clear_Tooltip,
                          CreateLogbookEntry,
                          CurrentDate,
@@ -29,6 +29,7 @@ public class Messages
                          LogbookServiceHasNoLogbooks,
                          LogbooksTitle,
                          LogbooksTooltip,
+                         MenuPath,
                          Normal,
                          Num_Selected,
                          Password,
@@ -54,7 +55,7 @@ public class Messages
         NLS.initializeMessages(Messages.class);
     }
 
-    private Messages() 
+    private Messages()
     {
         // prevent instantiation
     }
