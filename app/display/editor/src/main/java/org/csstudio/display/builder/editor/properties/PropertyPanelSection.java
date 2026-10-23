@@ -6,6 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.csstudio.display.builder.editor.properties;
+import org.csstudio.display.builder.model.properties.HashPasswordProperty;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -544,6 +545,47 @@ public class PropertyPanelSection extends GridPane {
             points_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(points_field, new Tooltip(new_value.size() + " Points" + possiblyInformativeTooltip(property))));
 
             field = points_field;
+        }
+        else if (property instanceof HashPasswordProperty) {
+            final Button hashButton = new Button("Open menu");
+            hashButton.setMnemonicParsing(false);
+            hashButton.setMaxWidth(Double.MAX_VALUE);
+
+            hashButton.setOnAction(event -> {
+                final WidgetProperty<?> passwordProperty = widget.getProperty("password");
+
+                if (passwordProperty == null)
+                    return;
+
+                final Object currentValue = passwordProperty.getValue();
+                final String currentPassword = currentValue != null
+                        ? currentValue.toString()
+                        : "";
+
+                final MultiLineInputDialog dialog =
+                        new MultiLineInputDialog(hashButton, currentPassword);
+
+                DialogHelper.positionDialog(dialog, hashButton, -600, 0);
+
+                final Optional<String> result = dialog.showAndWait();
+
+                if (!result.isPresent())
+                    return;
+
+                final String password = result.get();
+
+                if (password.isEmpty())
+                    return;
+
+                final String hashedPassword = HashPasswordProperty.crypt(password);
+
+                final WidgetProperty<String> stringPasswordProperty =
+                        (WidgetProperty<String>) passwordProperty;
+
+                stringPasswordProperty.setValue(hashedPassword);
+            });
+
+            field = hashButton;
         }
         return field;
     }
