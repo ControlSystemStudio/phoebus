@@ -15,7 +15,7 @@ import org.phoebus.framework.spi.AppInstance;
 public class LoggingConfigurationApplication implements AppDescriptor
 {
     public static final String NAME = "log_config";
-    public static final String DISPLAY_NAME = "Logging Config";
+    public static final String DISPLAY_NAME = Messages.LoggingConfig;
 
     @Override
     public String getName()

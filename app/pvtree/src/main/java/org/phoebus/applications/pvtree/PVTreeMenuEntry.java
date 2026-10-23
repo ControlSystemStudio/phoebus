@@ -28,7 +28,7 @@ public class PVTreeMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Display";
+        return Messages.MenuPath;
     }
 
     @Override

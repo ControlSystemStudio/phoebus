@@ -63,6 +63,8 @@ public class Messages
     public static String InstallExamples;
     /**MagicLastRow */
     public static String MagicLastRow;
+    /**MenuPath */
+    public static String MenuPath;
     /**MoveColumnLeft */
     public static String MoveColumnLeft;
     /**MoveColumnRight */

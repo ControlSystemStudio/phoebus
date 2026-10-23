@@ -37,6 +37,6 @@ public class ChannelTableMenuEntry implements MenuEntry {
 
     @Override
     public String getMenuPath() {
-        return "Channel";
+        return Messages.MenuPath;
     }
 }

@@ -20,9 +20,9 @@ public class AlarmLogTableMenuEntry implements MenuEntry {
 
     @Override
     public String getMenuPath() {
-        return "Alarm";
+        return Messages.MenuPath;
     }
-    
+
     @Override
     public Image getIcon() {
         return AlarmLogTableApp.icon;
