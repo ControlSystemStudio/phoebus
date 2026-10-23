@@ -15,6 +15,8 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.CheckBoxWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -223,6 +225,11 @@ public class CheckBoxRepresentation extends RegionBaseRepresentation<CheckBox, C
             jfx_node.setText(label);
             jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
             jfx_node.setTextFill(JFXUtil.convert(model_widget.propForegroundColor().getValue()));
+            WidgetFont font = model_widget.propFont().getValue();
+            WidgetFontStyle style = font.getStyle();
+            boolean underline = style.toString().contains(WidgetFontStyle.UNDERLINE.toString());
+            jfx_node.setUnderline(underline);
+
 
             // Don't disable the widget, because that would also remove the
             // context menu etc.
