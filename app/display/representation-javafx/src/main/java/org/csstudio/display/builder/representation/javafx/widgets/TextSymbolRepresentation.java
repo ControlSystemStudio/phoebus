@@ -21,6 +21,8 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RotationStep;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.util.array.ListNumber;
@@ -222,6 +224,11 @@ public class TextSymbolRepresentation extends RegionBaseRepresentation<Label, Te
             : new Background(new BackgroundFill(JFXUtil.convert(model_widget.propBackgroundColor().getValue()), CornerRadii.EMPTY, Insets.EMPTY))
         );
         symbol.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+        WidgetFont font = model_widget.propFont().getValue();
+        WidgetFontStyle style = font.getStyle();
+        boolean underline = style.toString().contains(WidgetFontStyle.UNDERLINE.toString());
+        symbol.setUnderline(underline);
+
         symbol.setTextFill(JFXUtil.convert(model_widget.propForegroundColor().getValue()));
         symbol.setText("\u263A");
         symbol.setManaged(false);

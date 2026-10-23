@@ -3,13 +3,14 @@ package org.phoebus.archive.reader.appliance;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Comparator;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
@@ -72,6 +73,10 @@ public abstract class ApplianceValueIterator implements ValueIterator {
 
     private final Object lock = new Object();
 
+    protected EpicsMessage savedMessage;
+    protected boolean reuseMessage;
+
+
     /**
      * Constructs a new ApplianceValueIterator.
      *
@@ -85,6 +90,8 @@ public abstract class ApplianceValueIterator implements ValueIterator {
         this.name = name;
         this.start = start;
         this.end = end;
+        this.reuseMessage = false;
+        this.savedMessage = null;
     }
 
     /**
@@ -130,6 +137,10 @@ public abstract class ApplianceValueIterator implements ValueIterator {
     public boolean hasNext() {
         if (closed || mainIterator == null)
             return false;
+        else if (reuseMessage)
+            // Disconnect is at the end of the iterator so
+            // still need to iterate one last time
+            return true;
         return mainIterator.hasNext();
     }
 
@@ -144,7 +155,17 @@ public abstract class ApplianceValueIterator implements ValueIterator {
         synchronized (this) {
             if (closed)
                 return null;
-            message = mainIterator.next();
+            if (!reuseMessage)
+                message = mainIterator.next();
+            else {
+                message = savedMessage;
+                reuseMessage = false;
+            }
+
+            VType check = checkDisconnect(message);
+            if (check != null)
+                return check;
+            savedMessage = null;
         }
         return extractData(message);
     }
@@ -233,6 +254,29 @@ public abstract class ApplianceValueIterator implements ValueIterator {
     }
 
     /**
+     * Method to check the EpicsMessage for fieldValues containing the
+     * 'cnxlostepsecs' and 'cnxregainedepsecs' signifying a disconnect and reconnect
+     * of the PV. Method extracts the time of the disconnect and returns an
+     * ArchiveVString with the value 'Disconnect'
+     *
+     * @param message Current EpicsMessage to check
+     * @return a VType that can be inserted to indicate a disconnect
+     */
+    VType checkDisconnect(EpicsMessage message) {
+        Set<String> messageKeys = message.getFieldValues().keySet();
+        Boolean disconnectCondition = messageKeys.contains("cnxlostepsecs")
+                && messageKeys.contains("cnxregainedepsecs")
+                && !messageKeys.contains("startup");
+        if (disconnectCondition && savedMessage == null) {
+            long lostT = Long.parseLong(message.getFieldValues().get("cnxlostepsecs"));
+            reuseMessage = true;
+            savedMessage = message;
+            return VString.of("Disconnect", Alarm.disconnected(), Time.of(Instant.ofEpochSecond(lostT)));
+        }
+        return null;
+    }
+
+    /**
      * Extracts the descriptor for the value field so it can be reused on each iteration.
      *
      * @param message the epics message to extract the descriptor from
@@ -307,7 +351,7 @@ public abstract class ApplianceValueIterator implements ValueIterator {
     }
 
     /**
-     * Extract the labels from the given payloadinfo when processing Enum Values. 
+     * Extract the labels from the given payloadinfo when processing Enum Values.
      * EnumLabels list empty if payloadinfo from request without "fetchLatestMetadata" set to true
      *
      * @param info the info to extract the labels
