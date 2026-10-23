@@ -14,7 +14,6 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
-import org.csstudio.display.builder.editor.Messages;
 
 import javafx.scene.image.Image;
 
