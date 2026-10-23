@@ -59,6 +59,8 @@ import org.csstudio.display.builder.model.properties.PredefinedColorMaps;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetClassProperty;
+import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
+import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.ui.color.NamedWidgetColor;
 import org.phoebus.ui.color.WidgetColor;
@@ -148,6 +150,22 @@ public class PropertyPanelSection extends GridPane {
         return has_focus;
     }
 
+    /** Some widgets can be drawn by the stock JavaFX renderer or by an
+     *  RTTank based one that adds a scale, selected via preference.
+     *  Properties that only the RTTank renderer honours are hidden while
+     *  the stock renderer is in use, so the panel only lists what has
+     *  an effect.
+     *
+     *  @param property Property about to be listed
+     *  @return {@code true} if the property has no effect with the current renderer
+     */
+    private static boolean unusedByCurrentRenderer(final WidgetProperty<?> property) {
+        if (property.getWidget() instanceof ProgressBarWidget)
+            return !Preferences.progressbar_scale_mode
+                && ProgressBarWidget.SCALE_MODE_PROPS.contains(property.getName());
+        return false;
+    }
+
     void fill(final UndoableActionManager undo,
               final Collection<WidgetProperty<?>> properties,
               final List<Widget> other) {
@@ -161,6 +179,9 @@ public class PropertyPanelSection extends GridPane {
             // 'class' is not used for the class definition itself,
             // it's only shown for displays where classes are then applied
             if (property instanceof WidgetClassProperty && class_mode)
+                continue;
+
+            if (unusedByCurrentRenderer(property))
                 continue;
 
             // Start of new category that needs to be shown?
