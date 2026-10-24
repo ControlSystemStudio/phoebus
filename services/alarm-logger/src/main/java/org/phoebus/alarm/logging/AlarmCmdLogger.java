@@ -13,52 +13,47 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Transformer;
-import org.apache.kafka.streams.kstream.TransformerSupplier;
-import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
+import org.apache.kafka.streams.processor.api.Processor;
+import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.ProcessorSupplier;
+import org.apache.kafka.streams.processor.api.Record;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.util.indexname.IndexNameHelper;
 
 /**
  * A Runnable which consumes the alarm command messages and records them to an
- * elastic index. 
+ * elastic index.
  *
  * @author Kunal Shroff
  *
  */
 public class AlarmCmdLogger implements Runnable {
 
-    private static final PreferencesReader prefs = new PreferencesReader(AlarmLoggingService.class, "/application.properties");
-
     private static final String INDEX_FORMAT = "_alarms_cmd";
     private final String topic;
     private final Serde<AlarmCommandMessage> alarmCommandMessageSerde;
 
-    
+
     private IndexNameHelper indexNameHelper;
 
     private volatile boolean shouldReconnect = true;
     private volatile KafkaStreams currentStreams = null;
     private final long reconnectDelayMs;
-    private Thread shutdownHook = null;
 
     /**
-     * Create a alarm command message logger for the given topic. 
+     * Create a alarm command message logger for the given topic.
      * This runnable will create the kafka streams for the given alarm messages which match the format 'topicCommand'
      * @param topic the alarm topic
-     * @throws Exception - parsing the alarm command messages
      */
-    public AlarmCmdLogger(String topic) throws Exception {
+    public AlarmCmdLogger(String topic) {
         super();
         this.topic = topic;
 
@@ -88,7 +83,7 @@ public class AlarmCmdLogger implements Runnable {
         }
 
         // Register shutdown hook once before retry loop
-        shutdownHook = new Thread("streams-" + topic + "-alarm-cmd-shutdown-hook") {
+        Thread shutdownHook = new Thread("streams-" + topic + "-alarm-cmd-shutdown-hook") {
             @Override
             public void run() {
                 logger.info("Shutdown hook triggered for topic " + topic);
@@ -160,12 +155,11 @@ public class AlarmCmdLogger implements Runnable {
                     }
                 }));
 
-        KStream<String, AlarmCommandMessage> timeStampedAlarms = alarms.transform(new TransformerSupplier<>() {
-
+        alarms.process(new ProcessorSupplier<String, AlarmCommandMessage, String, AlarmCommandMessage>() {
             @Override
-            public Transformer<String, AlarmCommandMessage, KeyValue<String, AlarmCommandMessage>> get() {
-                return new Transformer<>() {
-                    private ProcessorContext context;
+            public Processor<String, AlarmCommandMessage, String, AlarmCommandMessage> get() {
+                return new Processor<>() {
+                    private ProcessorContext<String, AlarmCommandMessage> context;
 
                     @Override
                     public void init(ProcessorContext context) {
@@ -173,26 +167,15 @@ public class AlarmCmdLogger implements Runnable {
                     }
 
                     @Override
-                    public KeyValue<String, AlarmCommandMessage> transform(String key, AlarmCommandMessage value) {
-                        key = key.replace("\\", "");
-                        value.setConfig(key);
-                        value.setMessage_time(Instant.ofEpochMilli(context.timestamp()));
-                        return new KeyValue<>(key, value);
+                    public void process(Record<String, AlarmCommandMessage> record) {
+                        String key = record.key().replace("\\", "");
+                        record.value().setConfig(key);
+                        record.value().setMessage_time(Instant.ofEpochMilli(context.currentStreamTimeMs()));
+                        String topic_name = indexNameHelper.getIndexName(record.value().getMessage_time());
+                        ElasticClientHelper.getInstance().indexAlarmCmdDocument(topic_name, record.value());
                     }
-
-                    @Override
-                    public void close() {
-
-                    }
-
                 };
             }
-        });
-
-        // Commit to elastic
-        timeStampedAlarms.foreach((k, v) -> {
-            String topic_name = indexNameHelper.getIndexName(v.getMessage_time());
-            ElasticClientHelper.getInstance().indexAlarmCmdDocument(topic_name, v);
         });
 
         final KafkaStreams streams = new KafkaStreams(builder.build(), kafkaProps);
