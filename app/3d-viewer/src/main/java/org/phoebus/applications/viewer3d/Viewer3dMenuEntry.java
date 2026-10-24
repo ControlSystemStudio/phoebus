@@ -28,7 +28,7 @@ public class Viewer3dMenuEntry implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Display";
+        return Messages.MenuPath;
     }
 
     @Override

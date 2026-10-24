@@ -17,6 +17,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.applications.alarm.ui.Messages;
 
 /** Application descriptor for "Alarm Area Panel"
  *  @author Evan Smith
@@ -28,7 +29,7 @@ public class AlarmAreaApplication implements AppResourceDescriptor
     public static final String NAME = "alarm_area";
 
     /** Visible app name */
-    public static final String DISPLAY_NAME = "Alarm Area Panel";
+    public static final String DISPLAY_NAME = Messages.AlarmAreaPanel;
 
     @Override
     public String getName()

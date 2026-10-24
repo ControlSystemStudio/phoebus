@@ -15,6 +15,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.olog.ui.Messages;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -25,7 +26,7 @@ import org.phoebus.ui.javafx.ImageCache;
  */
 public class SendToLogBookApp implements AppDescriptor {
 
-    public static final String DISPLAY_NAME = "Send To Log Book";
+    public static final String DISPLAY_NAME = Messages.SendToLogBook;
     public static final String NAME = "logbook";
     public static final Image icon = ImageCache.getImage(ImageCache.class, "/icons/logentry-add-16.png");
 

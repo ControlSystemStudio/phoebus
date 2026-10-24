@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.AlarmURI;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 
 /** Annunciator application
@@ -35,7 +36,7 @@ public class AnnunciatorTableApplication implements AppResourceDescriptor
     public static final String NAME = "annunciator";
 
     /** Visible app name */
-    public static final String DISPLAY_NAME = "Annunciator";
+    public static final String DISPLAY_NAME = Messages.Annunciator;
 
     @Override
     public String getName()
