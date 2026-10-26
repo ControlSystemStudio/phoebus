@@ -32,8 +32,10 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.*;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -46,15 +48,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ContextMenuEvent;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /** Pane that contains {@link DockItem}s
@@ -643,7 +639,8 @@ public class DockPane extends TabPane
      */
     private void handleDragOver(final DragEvent event)
     {
-        if (!isFixed()  &&  DockItem.dragged_item.get() != null)
+        if (event.getDragboard().hasFiles() ||
+                !isFixed()  &&  DockItem.dragged_item.get() != null)
         {
             event.acceptTransferModes(TransferMode.MOVE);
 
@@ -782,9 +779,21 @@ public class DockPane extends TabPane
      */
     private void handleDrop(final DragEvent event)
     {
-        if (!event.getDragboard().hasContent(DockItem.DOCK_ITEM))
-            return;
+        boolean result = false;
+        if (event.getDragboard().hasContent(DockItem.DOCK_ITEM))
+            result = handleDropDockItem(event);
+//        else if (event.getDragboard().hasFiles())
+//            result = handleDropFile(event);
 
+        if (result) {  // Only complete the drop event if a handler ended up handling it
+            event.setDropCompleted(true);
+            event.consume();
+        }
+    }
+
+    /** Open a drag-and-dropped dock item. */
+    private boolean handleDropDockItem(final DragEvent event)
+    {
         // When the cursor is directly over a tab header, let DockItem's own
         // handler on name_tab manage the swap/insert.  Clean up the pane border
         // since no further DockPane handler will run for this drop.
@@ -792,12 +801,12 @@ public class DockPane extends TabPane
         {
             clearDropZoneStyle();
             active_drop_zone = DropZone.CENTER;
-            return;
+            return false;
         }
 
         final DockItem item = DockItem.dragged_item.getAndSet(null);
         if (item == null)
-            return;
+            return false;
 
         final DropZone zone = getDropZone(event.getX(), event.getY());
         clearDropZoneStyle();
@@ -813,8 +822,14 @@ public class DockPane extends TabPane
             splitAndPlaceTabAsync(item, zone);
         }
 
-        event.setDropCompleted(true);
-        event.consume();
+        return true;
+    }
+
+    /** Open a drag-and-dropped file item. */
+    private boolean handleDropFile(final DragEvent event)
+    {
+        PhoebusApplication.INSTANCE.openDroppedResources(event.getDragboard());
+        return true;
     }
 
     /** When a tab moves to a different scene, ensure that scene has the same stylesheets. */
