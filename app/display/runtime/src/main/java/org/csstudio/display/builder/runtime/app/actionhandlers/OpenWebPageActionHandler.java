@@ -12,6 +12,8 @@ import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
 import org.csstudio.display.builder.model.spi.ActionHandler;
 import org.csstudio.display.actions.OpenWebPageAction;
+import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.MacroValueProvider;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,19 +33,29 @@ public class OpenWebPageActionHandler implements ActionHandler {
         }
         try
         {
-            final String resolved_name = ActionUtil.resolve(sourceWidget, action.getURL());
-            final DisplayModel top_model = sourceWidget.getTopDisplayModel();
-            final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(top_model);
+            final String escapedExpandedURL;
+            {
+                final String url = action.getURL();
+                final MacroValueProvider macros = sourceWidget.getMacrosOrProperties();
+                final String expandedURL = MacroHandler.replace(macros, url);
+                escapedExpandedURL = expandedURL.replace(" ", "%20");
+            }
+
+            final ToolkitRepresentation<Object, Object> toolkit;
+            {
+                final DisplayModel top_model = sourceWidget.getTopDisplayModel();
+                toolkit = ToolkitRepresentation.getToolkit(top_model);
+            }
             toolkit.execute(() ->
             {
                 try
                 {
-                    toolkit.openWebBrowser(resolved_name);
+                    toolkit.openWebBrowser(escapedExpandedURL);
                 }
                 catch (Exception ex)
                 {
                     logger.log(Level.WARNING, "Cannot open " + action, ex);
-                    toolkit.showErrorDialog(sourceWidget, "Cannot open " + resolved_name);
+                    toolkit.showErrorDialog(sourceWidget, "Cannot open " + escapedExpandedURL);
                 }
             });
         }
