@@ -26,16 +26,24 @@ public class OpenWebPageActionHandler implements ActionHandler {
     @Override
     public void handleAction(Widget sourceWidget, ActionInfo pluggableActionInfo) {
         OpenWebPageAction action = (OpenWebPageAction)pluggableActionInfo;
-        if (action.getURL().isEmpty())
+        final String url = action.getURL();
+        if (url.trim().isEmpty())
         {
-            logger.log(Level.WARNING, "Action without URL: {0}", action);
+            logger.log(Level.WARNING, "Open Web Page Action: No URL: {0}", action);
+            return;
+        }
+        else if (!url.trim().equals(url)) {
+            logger.log(Level.WARNING, "Open Web Page Action: URL has leading and/or trailing whitespace: \"{0}\"", url);
+            return;
+        }
+        else if (!(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file:"))) {
+            logger.log(Level.WARNING, "Open Web Page Action: URL does not start with one of the URL schemes \"http://\", \"https://\", or \"file:\": \"{0}\"", url);
             return;
         }
         try
         {
             final String escapedExpandedURL;
             {
-                final String url = action.getURL();
                 final MacroValueProvider macros = sourceWidget.getMacrosOrProperties();
                 final String expandedURL = MacroHandler.replace(macros, url);
                 escapedExpandedURL = expandedURL.replace(" ", "%20");
@@ -62,7 +70,7 @@ public class OpenWebPageActionHandler implements ActionHandler {
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Error handling " + action, ex);
-            ScriptUtil.showErrorDialog(sourceWidget, "Cannot open " + action.getURL() + ".\n\nSee log for details.");
+            ScriptUtil.showErrorDialog(sourceWidget, "Cannot open " + url + ".\n\nSee log for details.");
         }
     }
 
