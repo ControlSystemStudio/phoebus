@@ -8,7 +8,6 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
-import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
 import org.csstudio.display.builder.model.spi.ActionHandler;
 import org.csstudio.display.actions.OpenWebPageAction;
