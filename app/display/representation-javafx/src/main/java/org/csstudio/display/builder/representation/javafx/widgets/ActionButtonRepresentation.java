@@ -73,7 +73,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     private final DirtyFlag dirty_actionls = new DirtyFlag();
 
     private volatile ButtonBase base;
-    private volatile String style;
+    private volatile String style = "";
     private volatile String button_text;
     private volatile boolean enabled = true;
     private volatile boolean writable = true;
@@ -108,6 +108,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     @Override
     public Pane createJFXNode() throws Exception {
         updateColors();
+        updateCorners();
         base = makeBaseButton();
 
         Pane pane = new Pane();
@@ -300,6 +301,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     @Override
     protected void registerListeners() {
         updateColors();
+        updateCorners();
         super.registerListeners();
         pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
                 model_widget.propVerticalAlignment().getValue());
@@ -308,6 +310,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         model_widget.propText().addUntypedPropertyListener(representationChangedListener);
         model_widget.propFont().addUntypedPropertyListener(representationChangedListener);
         model_widget.propRotationStep().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propCornerRadius().addUntypedPropertyListener(representationChangedListener);
 
         model_widget.propEnabled().addPropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
@@ -334,6 +337,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         model_widget.propText().removePropertyListener(representationChangedListener);
         model_widget.propFont().removePropertyListener(representationChangedListener);
         model_widget.propRotationStep().removePropertyListener(representationChangedListener);
+        model_widget.propCornerRadius().removePropertyListener(representationChangedListener);
         model_widget.propEnabled().removePropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
         model_widget.propBackgroundColor().removePropertyListener(buttonChangedListener);
@@ -366,6 +370,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
      */
     private void representationChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value) {
         updateColors();
+        updateCorners();
         dirty_representation.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -396,6 +401,19 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         style += " -fx-text-fill: " + fg_css + ";";
         // Modena sets .menu-button .label to -fx-text-fill: -fx-text-base-color, so patch -fx-text-base-color as well
         style += " -fx-text-base-color: " + fg_css + ";";
+    }
+
+    /**
+     * Add the corner radii to the style
+     */
+    private void updateCorners() {
+        style += " -fx-background-radius: "+ model_widget.propCornerRadius().getValue()+" ;";
+    }
+
+    @Override
+    public int[] getBorderRadii()
+    {
+        return new int[] {model_widget.propCornerRadius().getValue(),model_widget.propCornerRadius().getValue()};
     }
 
     @Override

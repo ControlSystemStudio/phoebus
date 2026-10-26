@@ -25,12 +25,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
+import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyCategory;
+import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
@@ -223,6 +226,9 @@ public class ActionButtonWidget extends PVWidget
         return new ActionButtonConfigurator(persisted_version);
     }
 
+    public static final WidgetPropertyDescriptor<Integer> propCornerRadius =
+            CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "corner_radius", Messages.WidgetProperties_CornerRadius);
+
     // Has pv_name and pv_writable, but no pv_value which would make it a WritablePVWidget
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<String> text;
@@ -237,6 +243,7 @@ public class ActionButtonWidget extends PVWidget
     private volatile WidgetProperty<Boolean> confirm_dialog;
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
+    private volatile WidgetProperty<Integer> corner_radius;
 
     /** Constructor */
     public ActionButtonWidget()
@@ -271,6 +278,7 @@ public class ActionButtonWidget extends PVWidget
         properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
+        properties.add(corner_radius = propCornerRadius.createProperty(this, 3));
     }
 
     @Override
@@ -310,13 +318,13 @@ public class ActionButtonWidget extends PVWidget
     {
         return transparent;
     }
-    
+
     /** @return 'horizontal_alignment' property */
     public WidgetProperty<HorizontalAlignment> propHorizontalAlignment()
     {
         return horizontal_alignment;
     }
-    
+
     /** @return 'vertical_alignment' property */
     public WidgetProperty<VerticalAlignment> propVerticalAlignment()
     {
@@ -357,5 +365,11 @@ public class ActionButtonWidget extends PVWidget
     public WidgetProperty<String> propPassword()
     {
         return password;
+    }
+
+    /** @return 'corner_radius' property */
+    public WidgetProperty<Integer> propCornerRadius()
+    {
+        return corner_radius;
     }
 }
