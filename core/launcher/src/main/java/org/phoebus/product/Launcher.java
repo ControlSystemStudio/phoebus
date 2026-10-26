@@ -151,8 +151,7 @@ public class Launcher {
                             PropertyPreferenceLoader.load(location);
                     } catch (Exception e) {
                         if (forceStart) {
-                            logger.severe("Failed to load settings from " + location);
-                            e.printStackTrace();
+                            logger.log(Level.SEVERE, "Failed to load settings from " + location, e);
                         } else {
                             throw e;
                         }
