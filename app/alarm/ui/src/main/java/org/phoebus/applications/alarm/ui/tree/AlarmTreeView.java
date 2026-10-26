@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -24,6 +25,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
+import javafx.scene.control.TextField;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -140,6 +142,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items.remove(changing);
         });
 
+    private final TextField searchBox;
+
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
     //
@@ -176,7 +180,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         tree_view.setCellFactory(view -> new AlarmTreeViewCell());
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        setTop(createToolbar());
+        searchBox = new TextField();
+        searchBox.setPromptText("Search by PV");
+        searchBox.setPrefWidth(300);
+
+        setTop(createToolbar(searchBox));
         setCenter(tree_view);
 
         createContextMenu();
@@ -234,7 +242,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
-    private ToolBar createToolbar()
+    private ToolBar createToolbar(TextField searchBox)
     {
         final Button collapse = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
@@ -255,12 +263,107 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
         show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
 
-        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
+        final Button searchButton = new Button("Search");
+
+        searchButton.setOnAction(event -> propagateSearchDownTree(tree_view.getRoot()));
+        searchBox.setOnAction(event -> propagateSearchDownTree(tree_view.getRoot())); // act as if button pressed when enter pressed
+
+        return new ToolBar(searchBox, searchButton, no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
     }
 
     ToolBar getToolbar()
     {
         return (ToolBar) getTop();
+    }
+
+    /**
+     * Recursively updates the tree so that it only shows the items matching the search.
+     *
+     * This is done bottom-up, by recursing down to the leaf nodes initially to determine
+     * whether they should be visible, and then returning up the tree to determine whether
+     * each component should be visible or not, and showing/hiding it accordingly.
+     */
+    private boolean propagateSearchDownTree(final TreeItem<AlarmTreeItem<?>> item)
+    {
+        for (final AlarmTreeItem<?> child : item.getValue().getChildren()) {
+            final TreeItem<AlarmTreeItem<?>> childItem = path2view.get(child.getPathName());
+
+            final boolean shouldDisplay = propagateSearchDownTree(childItem);
+
+            if (shouldDisplay) {
+                final boolean doesNotHaveChildAlready = item.getChildren().stream()
+                        .noneMatch(viewChild -> viewChild.getValue().getPathName().equals(child.getPathName()));
+                if (doesNotHaveChildAlready) {
+                    // should display and does not have child, so add child
+                    addChildToParent(item, childItem);
+                }
+            } else {
+                item.getChildren().removeIf(
+                        alarmTreeItemTreeItem -> alarmTreeItemTreeItem.getValue() == child
+                );
+            }
+        }
+
+        return shouldDisplay(item);
+    }
+
+    /**
+     * Ensures that an item is shown if it matches the search term, and not shown if it does not.
+     *
+     * This is done by determining whether the current node should be visible, and then propagating
+     * up the tree to ensure all the parent nodes are also only visible if they match the search term.
+     * This does not consider child nodes; it's intended to be called when a single node is added or
+     * updated to minimise state updates.
+     */
+    private void propagateSearchUpTree(final TreeItem<AlarmTreeItem<?>> item)
+    {
+        final AlarmTreeItem<?> modelParent = item.getValue().getParent();
+        if (modelParent == null) {
+            // root
+            return;
+        }
+
+        final TreeItem<AlarmTreeItem<?>> currentParent = item.getParent();
+        final TreeItem<AlarmTreeItem<?>> actualParent = path2view.get(modelParent.getPathName());
+
+        final boolean shouldDisplay = shouldDisplay(item);
+        if (shouldDisplay && currentParent == null) {
+            // should display but does not have a parent (so will not be displayed)
+            addChildToParent(actualParent, item);
+            logger.severe("showing");
+            propagateSearchUpTree(actualParent);
+        } else if (!shouldDisplay && currentParent != null) {
+            // should not display but has a parent (so will be displayed)
+            actualParent.getChildren().remove(item);
+            logger.severe("hiding");
+            propagateSearchUpTree(actualParent);
+        }
+    }
+
+    private boolean shouldDisplay(final TreeItem<AlarmTreeItem<?>> item) {
+        return (searchBox.getText().isEmpty() || !item.getChildren().isEmpty())
+                || item.getValue() instanceof AlarmClientLeaf && item.getValue().getName().toLowerCase().contains(searchBox.getText().toLowerCase());
+    }
+
+    /**
+     * Adds a child TreeItem to a parent TreeItem, ensuring the order is preserved
+     *
+     * @param view_parent
+     * @param view_item
+     */
+    private static void addChildToParent(TreeItem<AlarmTreeItem<?>> view_parent, TreeItem<AlarmTreeItem<?>> view_item)
+    {
+        // Keep sorted by inserting at appropriate index
+        final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
+        final int index = Collections.binarySearch(items, view_item,
+                (a, b) -> CompareNatural.compareTo(a.getValue().getName(),
+                        b.getValue().getName()));
+        if (items.isEmpty())
+            items.add(view_item); // Adding an item to an index of an empty array throws an exception
+        else if (index < 0)
+            items.add(-index - 1, view_item);
+        else
+            items.add(index, view_item);
     }
 
     private void expandAlarms(final TreeItem<AlarmTreeItem<?>> node)
@@ -331,7 +434,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             setCursor(Cursor.WAIT);
             final ObservableList<Node> items = getToolbar().getItems();
             if (! items.contains(changing))
-                items.add(1, changing);
+                items.add(3, changing);
         }
         else
             previous.cancel(false);
@@ -398,24 +501,23 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         	dumpTree(tree_view.getRoot());
             throw new IllegalStateException("Missing parent view item for " + item.getPathName());
         }
-        // Create view item ASAP so that following updates will find it..
+        // Create view item ASAP so that following model updates will find it..
         final TreeItem<AlarmTreeItem<?>> view_item = createViewItem(item);
 
         // .. but defer showing it on screen to UI thread
         final CountDownLatch done = new CountDownLatch(1);
         Platform.runLater(() ->
         {
-            indicateChange();
-            // Keep sorted by inserting at appropriate index
-            final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
-            final int index = Collections.binarySearch(items, view_item,
-                                                       (a, b) -> CompareNatural.compareTo(a.getValue().getName(),
-                                                                                          b.getValue().getName()));
-            if (index < 0)
-                items.add(-index-1, view_item);
-            else
-                items.add(index, view_item);
-            done.countDown();
+            try {
+                // Refresh view parent in case it has changed since itemAdded was called
+                final TreeItem<AlarmTreeItem<?>> current_view_parent = path2view.get(model_parent.getPathName());
+
+                indicateChange();
+                addChildToParent(current_view_parent, view_item);
+                propagateSearchUpTree(view_item);
+            } finally {
+                done.countDown();
+            }
         });
         updateStats();
 
@@ -449,15 +551,20 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final CountDownLatch done = new CountDownLatch(1);
         Platform.runLater(() ->
         {
-            indicateChange();
-            // Can only locate the parent view item on UI thread,
-            // because item might just have been created by itemAdded() event
-            // and won't be on the screen until UI thread runs.
-            final TreeItem<AlarmTreeItem<?>> view_parent = view_item.getParent();
-            if (view_parent == null)
-                throw new IllegalStateException("No parent in view for " + item.getPathName());
-            view_parent.getChildren().remove(view_item);
-            done.countDown();
+            try {
+                indicateChange();
+                // Can only locate the parent view item on UI thread,
+                // because item might just have been created by itemAdded() event
+                // and won't be on the screen until UI thread runs.
+                final TreeItem<AlarmTreeItem<?>> view_parent = view_item.getParent();
+                if (view_parent != null) {
+                    // View parent can be null if the item is hidden; this is fine as long as we remove the item from path2view
+                    view_parent.getChildren().remove(view_item);
+                    propagateSearchUpTree(view_item);
+                }
+            } finally {
+                done.countDown();
+            }
         });
         updateStats();
 
@@ -531,49 +638,51 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items_to_update.clear();
         }
 
-        // Remember selection
-        final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems = 
-                FXCollections.observableArrayList(tree_view.getSelectionModel().getSelectedItems());
+        Platform.runLater(() -> {
+            // Remember selection
+            final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems =
+                    FXCollections.observableArrayList(tree_view.getSelectionModel().getSelectedItems());
 
-        // How to update alarm tree cells when data changed?
-        // `setValue()` with a truly new value (not 'equal') should suffice,
-        // but there are two problems:
-        // Since we're currently using the alarm tree model item as a value,
-        // the value as seen by the TreeView remains the same.
-        // We could use a model item wrapper class as the cell value
-        // and replace it (while still holding the same model item!)
-        // for the TreeView to see a different wrapper value, but
-        // as shown in org.phoebus.applications.alarm.TreeItemUpdateDemo,
-        // replacing a tree cell value fails to trigger refreshes
-        // for certain hidden items.
-        // Only replacing the TreeItem gives reliable refreshes.
-        for (final TreeItem<AlarmTreeItem<?>> view_item : view_items)
-            // Top-level item has no parent, and is not visible, so we keep it
-            if (view_item.getParent() != null)
-            {
-                // Locate item in tree parent
-                final TreeItem<AlarmTreeItem<?>> parent = view_item.getParent();
-                final int index = parent.getChildren().indexOf(view_item);
+            // How to update alarm tree cells when data changed?
+            // `setValue()` with a truly new value (not 'equal') should suffice,
+            // but there are two problems:
+            // Since we're currently using the alarm tree model item as a value,
+            // the value as seen by the TreeView remains the same.
+            // We could use a model item wrapper class as the cell value
+            // and replace it (while still holding the same model item!)
+            // for the TreeView to see a different wrapper value, but
+            // as shown in org.phoebus.applications.alarm.TreeItemUpdateDemo,
+            // replacing a tree cell value fails to trigger refreshes
+            // for certain hidden items.
+            // Only replacing the TreeItem gives reliable refreshes.
+            for (final TreeItem<AlarmTreeItem<?>> view_item : view_items)
+                // Top-level item has no parent, and is not visible, so we keep it
+                if (view_item.getParent() != null)
+                {
+                    // Locate item in tree parent
+                    final TreeItem<AlarmTreeItem<?>> parent = view_item.getParent();
+                    final int index = parent.getChildren().indexOf(view_item);
 
-                // Create new TreeItem for that value
-                final AlarmTreeItem<?> value = view_item.getValue();
-                final TreeItem<AlarmTreeItem<?>> update = new TreeItem<>(value);
-                if (updatedSelectedItems.contains(view_item)) {
-                    updatedSelectedItems.remove(view_item);
-                    updatedSelectedItems.add(update);
+                    // Create new TreeItem for that value
+                    final AlarmTreeItem<?> value = view_item.getValue();
+                    final TreeItem<AlarmTreeItem<?>> update = new TreeItem<>(value);
+                    if (updatedSelectedItems.contains(view_item)) {
+                        updatedSelectedItems.remove(view_item);
+                        updatedSelectedItems.add(update);
+                    }
+                    // Move child links to new item
+                    final ArrayList<TreeItem<AlarmTreeItem<?>>> children = new ArrayList<>(view_item.getChildren());
+                    view_item.getChildren().clear();
+                    update.getChildren().addAll(children);
+                    update.setExpanded(view_item.isExpanded());
+
+                    path2view.put(value.getPathName(), update);
+                    parent.getChildren().set(index, update);
                 }
-                // Move child links to new item
-                final ArrayList<TreeItem<AlarmTreeItem<?>>> children = new ArrayList<>(view_item.getChildren());
-                view_item.getChildren().clear();
-                update.getChildren().addAll(children);
-                update.setExpanded(view_item.isExpanded());
-
-                path2view.put(value.getPathName(), update);
-                parent.getChildren().set(index, update);
-            }
-        // Restore selection
-        tree_view.getSelectionModel().clearSelection();
-        updatedSelectedItems.forEach(item -> tree_view.getSelectionModel().select(item));
+            // Restore selection
+            tree_view.getSelectionModel().clearSelection();
+            updatedSelectedItems.forEach(item -> tree_view.getSelectionModel().select(item));
+        });
     }
 
     /** Context menu, details depend on selected items */
