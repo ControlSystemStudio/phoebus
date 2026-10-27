@@ -36,6 +36,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.applications.alarm.ui.config.ItemConfigDialog;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
@@ -241,18 +242,18 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     private ToolBar createToolbar(final AlarmClient model)
     {
-        final ToggleButton editing = new ToggleButton("",
-                ImageCache.getImageView(AlarmUI.class, "/icons/edit.png")
-        );
-        isEditingMode.bind(editing.selectedProperty());
-        editing.setSelected(true);
+        final ToggleButton editing_mode = new ToggleButton("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/edit.png"));
+        editing_mode.setTooltip(new Tooltip(Messages.editingModeTooltip));
+        isEditingMode.bind(editing_mode.selectedProperty());
+        editing_mode.setSelected(true);
         if (!AlarmUI.mayConfigure(model)) {
-            editing.setDisable(true);
+            editing_mode.setDisable(true);
         }
 
         final Button collapse = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
-        collapse.setTooltip(new Tooltip("Collapse alarm tree"));
+        collapse.setTooltip(new Tooltip(Messages.collapseTooltip));
         collapse.setOnAction(event ->
         {
             for (TreeItem<AlarmTreeItem<?>> sub : tree_view.getRoot().getChildren())
@@ -261,15 +262,15 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         final Button show_alarms = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/expand_alarms.png"));
-        show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
+        show_alarms.setTooltip(new Tooltip(Messages.showAlarmsTooltip));
         show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
 
         final Button show_disabled = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/expand_disabled.png"));
-        show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
+        show_disabled.setTooltip(new Tooltip(Messages.showDisabledTooltip));
         show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
 
-        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), editing, collapse, show_alarms, show_disabled);
+        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), editing_mode, collapse, show_alarms, show_disabled);
     }
 
     ToolBar getToolbar()

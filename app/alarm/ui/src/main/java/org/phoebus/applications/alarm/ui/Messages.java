@@ -17,6 +17,7 @@ public class Messages
     public static String addComponentFailed;
     public static String automatedActions;
     public static String commands;
+    public static String collapseTooltip;
     public static String configure;
     public static String delayTooltip0;
     public static String delayTooltip1;
@@ -30,6 +31,7 @@ public class Messages
     public static String disabledCommonEnableDate;
     public static String disabledVaryingEnableDate;
     public static String displays;
+    public static String editingModeTooltip;
     public static String enableAlarmFailed;
     public static String enableAlarms;
     public static String guidance;
@@ -43,6 +45,8 @@ public class Messages
     public static String promptTitle;
     public static String removeComponentFailed;
     public static String renameItemFailed;
+    public static String showAlarmsTooltip;
+    public static String showDisabledTooltip;
     public static String totalPVs;
     public static String unacknowledgeFailed;
     public static String withEnableDate;
