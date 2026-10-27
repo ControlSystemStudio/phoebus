@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.beans.property.BooleanProperty;
+
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import org.phoebus.applications.alarm.AlarmSystem;
@@ -142,7 +142,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items.remove(changing);
         });
 
-    private SimpleBooleanProperty isEditingMode = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty isEditingMode = new SimpleBooleanProperty(false);
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
