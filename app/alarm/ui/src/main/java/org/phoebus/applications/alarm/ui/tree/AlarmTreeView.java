@@ -245,6 +245,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 ImageCache.getImageView(AlarmUI.class, "/icons/edit.png")
         );
         isEditingMode.bind(editing.selectedProperty());
+        editing.setSelected(true);
         if (!AlarmUI.mayConfigure(model)) {
             editing.setDisable(true);
         }
