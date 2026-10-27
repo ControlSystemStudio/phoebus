@@ -8,10 +8,11 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
-import org.csstudio.display.builder.runtime.ActionUtil;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
 import org.csstudio.display.builder.model.spi.ActionHandler;
 import org.csstudio.display.actions.OpenWebPageAction;
+import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.MacroValueProvider;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,33 +25,51 @@ public class OpenWebPageActionHandler implements ActionHandler {
     @Override
     public void handleAction(Widget sourceWidget, ActionInfo pluggableActionInfo) {
         OpenWebPageAction action = (OpenWebPageAction)pluggableActionInfo;
-        if (action.getURL().isEmpty())
+        final String url = action.getURL();
+        if (url.trim().isEmpty())
         {
-            logger.log(Level.WARNING, "Action without URL: {0}", action);
+            logger.log(Level.WARNING, "Open Web Page Action: No URL: {0}", action);
+            return;
+        }
+        else if (!url.trim().equals(url)) {
+            logger.log(Level.WARNING, "Open Web Page Action: URL has leading and/or trailing whitespace: \"{0}\"", url);
+            return;
+        }
+        else if (!(url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://") || url.toLowerCase().startsWith("file:"))) {
+            logger.log(Level.WARNING, "Open Web Page Action: URL does not start with one of the URL schemes \"http://\", \"https://\", or \"file:\": \"{0}\"", url);
             return;
         }
         try
         {
-            final String resolved_name = ActionUtil.resolve(sourceWidget, action.getURL());
-            final DisplayModel top_model = sourceWidget.getTopDisplayModel();
-            final ToolkitRepresentation<Object, Object> toolkit = ToolkitRepresentation.getToolkit(top_model);
+            final String escapedExpandedURL;
+            {
+                final MacroValueProvider macros = sourceWidget.getMacrosOrProperties();
+                final String expandedURL = MacroHandler.replace(macros, url);
+                escapedExpandedURL = expandedURL.replace(" ", "%20");
+            }
+
+            final ToolkitRepresentation<Object, Object> toolkit;
+            {
+                final DisplayModel top_model = sourceWidget.getTopDisplayModel();
+                toolkit = ToolkitRepresentation.getToolkit(top_model);
+            }
             toolkit.execute(() ->
             {
                 try
                 {
-                    toolkit.openWebBrowser(resolved_name);
+                    toolkit.openWebBrowser(escapedExpandedURL);
                 }
                 catch (Exception ex)
                 {
                     logger.log(Level.WARNING, "Cannot open " + action, ex);
-                    toolkit.showErrorDialog(sourceWidget, "Cannot open " + resolved_name);
+                    toolkit.showErrorDialog(sourceWidget, "Cannot open " + escapedExpandedURL);
                 }
             });
         }
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Error handling " + action, ex);
-            ScriptUtil.showErrorDialog(sourceWidget, "Cannot open " + action.getURL() + ".\n\nSee log for details.");
+            ScriptUtil.showErrorDialog(sourceWidget, "Cannot open " + url + ".\n\nSee log for details.");
         }
     }
 
