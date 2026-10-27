@@ -43,6 +43,7 @@ import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
@@ -189,7 +190,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         tree_view.setCellFactory(view -> new AlarmTreeViewCell());
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        searchBox = new TextField();
+        searchBox = new ClearingTextField();
         searchBox.setPromptText(Messages.searchByPv);
         searchBox.setPrefWidth(300);
 
