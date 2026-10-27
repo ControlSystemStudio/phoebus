@@ -35,7 +35,7 @@ public class OpenWebPageActionHandler implements ActionHandler {
             logger.log(Level.WARNING, "Open Web Page Action: URL has leading and/or trailing whitespace: \"{0}\"", url);
             return;
         }
-        else if (!(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file:"))) {
+        else if (!(url.toLowerCase().startsWith("http://") || url.toLowerCase().startsWith("https://") || url.toLowerCase().startsWith("file:"))) {
             logger.log(Level.WARNING, "Open Web Page Action: URL does not start with one of the URL schemes \"http://\", \"https://\", or \"file:\": \"{0}\"", url);
             return;
         }
