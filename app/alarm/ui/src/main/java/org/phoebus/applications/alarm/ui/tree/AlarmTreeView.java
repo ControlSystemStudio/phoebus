@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -274,8 +273,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         final Button searchButton = new Button("Search");
 
-        searchButton.setOnAction(event -> propagateSearchDownTree(tree_view.getRoot()));
-        searchBox.setOnAction(event -> propagateSearchDownTree(tree_view.getRoot())); // act as if button pressed when enter pressed
+        searchButton.setOnAction(event -> propagateVisibilityDownTree(tree_view.getRoot()));
+        searchBox.setOnAction(event -> propagateVisibilityDownTree(tree_view.getRoot())); // act as if button pressed when enter pressed
 
         return new ToolBar(searchBox, searchButton, no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
     }
@@ -285,49 +284,49 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         return (ToolBar) getTop();
     }
 
-    /**
-     * Recursively updates the tree so that it only shows the items matching the search.
+    /** Recursively updates the tree so that it only shows the items matching the search.
      *
      * This is done bottom-up, by recursing down to the leaf nodes initially to determine
      * whether they should be visible, and then returning up the tree to determine whether
      * each component should be visible or not, and showing/hiding it accordingly.
      */
-    private boolean propagateSearchDownTree(final TreeItem<AlarmTreeItem<?>> item)
+    private boolean propagateVisibilityDownTree(final TreeItem<AlarmTreeItem<?>> item)
     {
-        for (final AlarmTreeItem<?> child : item.getValue().getChildren()) {
+        for (final AlarmTreeItem<?> child : item.getValue().getChildren())
+        {
             final TreeItem<AlarmTreeItem<?>> childItem = path2view.get(child.getPathName());
 
-            final boolean shouldDisplay = propagateSearchDownTree(childItem);
+            final boolean shouldDisplay = propagateVisibilityDownTree(childItem);
 
-            if (shouldDisplay) {
+            if (shouldDisplay)
+            {
                 final boolean doesNotHaveChildAlready = item.getChildren().stream()
                         .noneMatch(viewChild -> viewChild.getValue().getPathName().equals(child.getPathName()));
-                if (doesNotHaveChildAlready) {
+                if (doesNotHaveChildAlready)
                     // should display and does not have child, so add child
                     addChildToParent(item, childItem);
-                }
-            } else {
+            }
+            else
                 item.getChildren().removeIf(
                         alarmTreeItemTreeItem -> alarmTreeItemTreeItem.getValue() == child
                 );
-            }
         }
 
         return shouldDisplay(item);
     }
 
-    /**
-     * Ensures that an item is shown if it matches the search term, and not shown if it does not.
+    /** Ensures that an item is shown if it matches the search term, and not shown if it does not.
      *
      * This is done by determining whether the current node should be visible, and then propagating
      * up the tree to ensure all the parent nodes are also only visible if they match the search term.
      * This does not consider child nodes; it's intended to be called when a single node is added or
      * updated to minimise state updates.
      */
-    private void propagateSearchUpTree(final TreeItem<AlarmTreeItem<?>> item)
+    private void propagateVisibilityUpTree(final TreeItem<AlarmTreeItem<?>> item)
     {
         final AlarmTreeItem<?> modelParent = item.getValue().getParent();
-        if (modelParent == null) {
+        if (modelParent == null)
+        {
             // root
             return;
         }
@@ -336,20 +335,22 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final TreeItem<AlarmTreeItem<?>> actualParent = path2view.get(modelParent.getPathName());
 
         final boolean shouldDisplay = shouldDisplay(item);
-        if (shouldDisplay && currentParent == null) {
+        if (shouldDisplay && currentParent == null)
+        {
             // should display but does not have a parent (so will not be displayed)
             addChildToParent(actualParent, item);
-            logger.severe("showing");
-            propagateSearchUpTree(actualParent);
-        } else if (!shouldDisplay && currentParent != null) {
+            propagateVisibilityUpTree(actualParent);
+        }
+        else if (!shouldDisplay && currentParent != null)
+        {
             // should not display but has a parent (so will be displayed)
             actualParent.getChildren().remove(item);
-            logger.severe("hiding");
-            propagateSearchUpTree(actualParent);
+            propagateVisibilityUpTree(actualParent);
         }
     }
 
-    private boolean shouldDisplay(final TreeItem<AlarmTreeItem<?>> item) {
+    private boolean shouldDisplay(final TreeItem<AlarmTreeItem<?>> item)
+    {
         return (searchBox.getText().isEmpty() || !item.getChildren().isEmpty())
                 || item.getValue() instanceof AlarmClientLeaf && item.getValue().getName().toLowerCase().contains(searchBox.getText().toLowerCase());
     }
@@ -367,9 +368,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final int index = Collections.binarySearch(items, view_item,
                 (a, b) -> CompareNatural.compareTo(a.getValue().getName(),
                         b.getValue().getName()));
-        if (items.isEmpty())
-            items.add(view_item); // Adding an item to an index of an empty array throws an exception
-        else if (index < 0)
+        if (index < 0)
             items.add(-index - 1, view_item);
         else
             items.add(index, view_item);
@@ -516,15 +515,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             }
             final TreeItem<AlarmTreeItem<?>> view_item = createViewItem(item);
 
-            // Keep sorted by inserting at appropriate index
-            final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
-            final int index = Collections.binarySearch(items, view_item,
-                    (a, b) -> CompareNatural.compareTo(a.getValue().getName(),
-                            b.getValue().getName()));
-            if (index < 0)
-                items.add(-index - 1, view_item);
-            else
-                items.add(index, view_item);
+            propagateVisibilityUpTree(view_item);
             done.countDown();
         });
 
@@ -564,11 +555,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             // because item might just have been created by itemAdded() event
             // and won't be on the screen until UI thread runs.
             final TreeItem<AlarmTreeItem<?>> view_parent = view_item.getParent();
-            if (view_parent == null)
+            if (view_parent != null)
             {
-                // View parent can be null if the item is hidden; this is fine as long as we remove the item from path2view
                 view_parent.getChildren().remove(view_item);
-                propagateSearchUpTree(view_item);
+                propagateVisibilityUpTree(view_parent);
             }
             done.countDown();
         });
