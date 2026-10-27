@@ -365,7 +365,7 @@ Filter PV items in list
 ^^^^^^^^^^^^^^^^^^^^^^^
 The list of items in the snapshot view can be filtered based on the PV name. See screenshot for highlighted UI element
 where user may specify a string pattern to match PV names. Non-matching items will be hidden from the list view and
-**also excluded from a restore operation**.
+**also excluded from a restore operation**. Filtering is case-insensitive.
 
 To filter the view without excluding PV items from a restore operation, user needs to tick the “Preserve selection…” checkbox.
 
