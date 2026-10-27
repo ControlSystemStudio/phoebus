@@ -12,11 +12,12 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -82,6 +83,14 @@ import javafx.scene.paint.Color;
  *  as generic JavaFX Node, only calling public methods
  *  defined on this class.
  *
+ *  <p>The model (AlarmClient) and the AlarmTreeView are kept in
+ *  sync by a lockstep between model and view updates. When the
+ *  model is changed, it calls item[removed|added]. The AlarmClient
+ *  then blocks until the method returns (i.e. until the UI has
+ *  been updated) and then can move on to the next update. The
+ *  exception to this is itemUpdated, which adds to a queue of
+ *  items to be updated which is then regularly processed.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -114,13 +123,13 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     private final CountDownLatch block_item_changes = new CountDownLatch(1);
 
     /** Map from alarm tree path to view's TreeItem */
-    private final ConcurrentHashMap<String, TreeItem<AlarmTreeItem<?>>> path2view = new ConcurrentHashMap<>();
+    private final Map<String, TreeItem<AlarmTreeItem<?>>> path2view = new HashMap<>();
 
     /** Items to update, ordered by time of original update request
      *
-     *  SYNC on access
+     * SYNC on access
      */
-    private final Set<TreeItem<AlarmTreeItem<?>>> items_to_update = new LinkedHashSet<>();
+    private final Set<String> item_paths_to_update = new LinkedHashSet<>();
 
     /** Throttle [5Hz] used for updates of existing items */
     private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::performUpdates);
@@ -165,7 +174,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
      * @param model Model to represent. Must <u>not</u> be running, yet
      * @param itemName item name that may be expanded or given focus
      */
-    public AlarmTreeView(final AlarmClient model, String itemName)
+    public AlarmTreeView(final AlarmClient model, final String itemName)
     {
         if (model.isRunning())
             throw new IllegalStateException();
@@ -490,36 +499,34 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     public void itemAdded(final AlarmTreeItem<?> item)
     {
         blockItemChanges();
-        // System.out.println(Thread.currentThread() + " Add " + item.getPathName());
 
-        // Parent must already exist
-        final AlarmTreeItem<BasicState> model_parent = item.getParent();
-        final TreeItem<AlarmTreeItem<?>> view_parent = path2view.get(model_parent.getPathName());
-
-        if (view_parent == null)
-        {
-        	dumpTree(tree_view.getRoot());
-            throw new IllegalStateException("Missing parent view item for " + item.getPathName());
-        }
-        // Create view item ASAP so that following model updates will find it..
-        final TreeItem<AlarmTreeItem<?>> view_item = createViewItem(item);
-
-        // .. but defer showing it on screen to UI thread
         final CountDownLatch done = new CountDownLatch(1);
+
         Platform.runLater(() ->
         {
-            try {
-                // Refresh view parent in case it has changed since itemAdded was called
-                final TreeItem<AlarmTreeItem<?>> current_view_parent = path2view.get(model_parent.getPathName());
+            indicateChange();
 
-                indicateChange();
-                addChildToParent(current_view_parent, view_item);
-                propagateSearchUpTree(view_item);
-            } finally {
-                done.countDown();
+            // Parent must already exist
+            final AlarmTreeItem<BasicState> model_parent = item.getParent();
+            final TreeItem<AlarmTreeItem<?>> view_parent = path2view.get(model_parent.getPathName());
+
+            if (view_parent == null) {
+                dumpTree(tree_view.getRoot());
+                throw new IllegalStateException("Missing parent view item for " + item.getPathName());
             }
+            final TreeItem<AlarmTreeItem<?>> view_item = createViewItem(item);
+
+            // Keep sorted by inserting at appropriate index
+            final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
+            final int index = Collections.binarySearch(items, view_item,
+                    (a, b) -> CompareNatural.compareTo(a.getValue().getName(),
+                            b.getValue().getName()));
+            if (index < 0)
+                items.add(-index - 1, view_item);
+            else
+                items.add(index, view_item);
+            done.countDown();
         });
-        updateStats();
 
         // Waiting on the UI thread throttles the model's updates
         // to a rate that the UI can handle.
@@ -540,33 +547,31 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     public void itemRemoved(final AlarmTreeItem<?> item)
     {
         blockItemChanges();
-        // System.out.println(Thread.currentThread() + " Removed " + item.getPathName());
 
-        // Remove item and all sub-items from model2ui
-        final TreeItem<AlarmTreeItem<?>> view_item = removeViewItems(item);
-        if (view_item == null)
-            throw new IllegalStateException("No view item for " + item.getPathName());
-
-        // Remove the corresponding view
         final CountDownLatch done = new CountDownLatch(1);
         Platform.runLater(() ->
         {
-            try {
-                indicateChange();
-                // Can only locate the parent view item on UI thread,
-                // because item might just have been created by itemAdded() event
-                // and won't be on the screen until UI thread runs.
-                final TreeItem<AlarmTreeItem<?>> view_parent = view_item.getParent();
-                if (view_parent != null) {
-                    // View parent can be null if the item is hidden; this is fine as long as we remove the item from path2view
-                    view_parent.getChildren().remove(view_item);
-                    propagateSearchUpTree(view_item);
-                }
-            } finally {
-                done.countDown();
+            indicateChange();
+
+            // Remove item and all sub-items from model2ui
+            final TreeItem<AlarmTreeItem<?>> view_item = removeViewItems(item);
+            if (view_item == null)
+                throw new IllegalStateException("No view item for " + item.getPathName());
+
+            // Remove the corresponding view
+            //
+            // Can only locate the parent view item on UI thread,
+            // because item might just have been created by itemAdded() event
+            // and won't be on the screen until UI thread runs.
+            final TreeItem<AlarmTreeItem<?>> view_parent = view_item.getParent();
+            if (view_parent == null)
+            {
+                // View parent can be null if the item is hidden; this is fine as long as we remove the item from path2view
+                view_parent.getChildren().remove(view_item);
+                propagateSearchUpTree(view_item);
             }
+            done.countDown();
         });
-        updateStats();
 
         // Waiting on the UI thread throttles the model's updates
         // to a rate that the UI can handle.
@@ -600,42 +605,31 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     public void itemUpdated(final AlarmTreeItem<?> item)
     {
         blockItemChanges();
-        // System.out.println(Thread.currentThread() + " Updated " + item.getPathName());
-        final TreeItem<AlarmTreeItem<?>> view_item = path2view.get(item.getPathName());
-        if (view_item == null)
-        {
-            System.out.println("Unknown view for " + item.getPathName());
-            path2view.keySet().stream().forEach(System.out::println);
-            throw new IllegalStateException("No view item for " + item.getPathName());
-        }
 
         // UI update of existing item, i.e.
         //  Platform.runLater(() -> TreeHelper.triggerTreeItemRefresh(view_item));
         // is throttled.
         // If several items update, they're all redrawn in one Platform call,
         // and rapid updates of the same item are merged into just one final update
-        synchronized (items_to_update)
+        // We push the path instead of the view item in case the view item is removed
+        // between now and the update being handled.
+        synchronized (item_paths_to_update)
         {
-            items_to_update.add(view_item);
+            item_paths_to_update.add(item.getPathName());
         }
         throttle.trigger();
-        updateStats();
     }
 
     /** Called by throttle to perform accumulated updates */
-    @SuppressWarnings("unchecked")
     private void performUpdates()
     {
-        final TreeItem<AlarmTreeItem<?>>[] view_items;
-        synchronized (items_to_update)
+
+        // Drain items to update in one go; we will process it later on the main thread
+        final String[] view_item_paths;
+        synchronized (item_paths_to_update)
         {
-            // Creating a direct copy, i.e. another new LinkedHashSet<>(items_to_update),
-            // would be expensive, since we only need a _list_ of what's to update.
-            // Could use type-safe
-            //    new ArrayList<TreeItem<AlarmTreeItem<?>>>(items_to_update)
-            // but that calls toArray() internally, so doing that directly
-            view_items = items_to_update.toArray(new TreeItem[items_to_update.size()]);
-            items_to_update.clear();
+            view_item_paths = item_paths_to_update.toArray(new String[item_paths_to_update.size()]);
+            item_paths_to_update.clear();
         }
 
         Platform.runLater(() -> {
@@ -655,10 +649,15 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             // replacing a tree cell value fails to trigger refreshes
             // for certain hidden items.
             // Only replacing the TreeItem gives reliable refreshes.
-            for (final TreeItem<AlarmTreeItem<?>> view_item : view_items)
+            for (final String view_item_path : view_item_paths) {
+                final TreeItem<AlarmTreeItem<?>> view_item = path2view.get(view_item_path);
+                if (view_item == null) {
+                    // Possible if the item has been removed since it was added to the update queue
+                    continue;
+                }
+
                 // Top-level item has no parent, and is not visible, so we keep it
-                if (view_item.getParent() != null)
-                {
+                if (view_item.getParent() != null) {
                     // Locate item in tree parent
                     final TreeItem<AlarmTreeItem<?>> parent = view_item.getParent();
                     final int index = parent.getChildren().indexOf(view_item);
@@ -679,6 +678,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     path2view.put(value.getPathName(), update);
                     parent.getChildren().set(index, update);
                 }
+            }
+
             // Restore selection
             tree_view.getSelectionModel().clearSelection();
             updatedSelectedItems.forEach(item -> tree_view.getSelectionModel().select(item));
@@ -798,25 +799,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
-//    private long next_stats = 0;
-//    private final AtomicInteger update_count = new AtomicInteger();
-//    private volatile double updates_per_sec = 0.0;
-
-    private void updateStats()
-    {
-//        final long time = System.currentTimeMillis();
-//        if (time > next_stats)
-//        {
-//            final int updates = update_count.getAndSet(0);
-//            updates_per_sec = updates_per_sec * 0.9 + updates * 0.1;
-//            next_stats = time + 1000;
-//            System.out.format("%.2f updates/sec\n", updates_per_sec);
-//        }
-//        else
-//            update_count.incrementAndGet();
-    }
-
-    private void dumpTree(TreeItem<AlarmTreeItem<?>> item)
+    private static void dumpTree(final TreeItem<AlarmTreeItem<?>> item)
     {
     	final ObservableList<TreeItem<AlarmTreeItem<?>>> children = item.getChildren();
     	System.out.printf("item: %s , has %d children.\n", item.getValue().getName(), children.size());
