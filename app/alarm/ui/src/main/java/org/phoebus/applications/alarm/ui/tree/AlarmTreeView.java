@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.scene.control.ToggleButton;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -180,7 +181,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         tree_view.setCellFactory(view -> new AlarmTreeViewCell());
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        setTop(createToolbar());
+        setTop(createToolbar(model));
         setCenter(tree_view);
 
         createContextMenu();
@@ -238,8 +239,16 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
-    private ToolBar createToolbar()
+    private ToolBar createToolbar(final AlarmClient model)
     {
+        final ToggleButton editing = new ToggleButton("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/edit.png")
+        );
+        isEditingMode.bind(editing.selectedProperty());
+        if (!AlarmUI.mayConfigure(model)) {
+            editing.setDisable(true);
+        }
+
         final Button collapse = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
         collapse.setTooltip(new Tooltip("Collapse alarm tree"));
@@ -259,7 +268,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
         show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
 
-        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
+        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), editing, collapse, show_alarms, show_disabled);
     }
 
     ToolBar getToolbar()
@@ -721,9 +730,5 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     		System.out.println(child.getValue().getName());
     		dumpTree(child);
     	}
-    }
-
-    public void toggleEditingMode() {
-        isEditingMode.set(!isEditingMode.get());
     }
 }
