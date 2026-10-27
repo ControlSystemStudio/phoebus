@@ -35,6 +35,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.applications.alarm.ui.config.ItemConfigDialog;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
@@ -189,7 +190,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         searchBox = new TextField();
-        searchBox.setPromptText("Search by PV");
+        searchBox.setPromptText(Messages.searchByPv);
         searchBox.setPrefWidth(300);
 
         setTop(createToolbar(searchBox));
@@ -271,7 +272,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
         show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
 
-        final Button searchButton = new Button("Search");
+        final Button searchButton = new Button(Messages.search);
 
         searchButton.setOnAction(event -> propagateVisibilityDownTree(tree_view.getRoot()));
         searchBox.setOnAction(event -> propagateVisibilityDownTree(tree_view.getRoot())); // act as if button pressed when enter pressed

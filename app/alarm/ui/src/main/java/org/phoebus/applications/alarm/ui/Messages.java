@@ -43,6 +43,8 @@ public class Messages
     public static String promptTitle;
     public static String removeComponentFailed;
     public static String renameItemFailed;
+    public static String search;
+    public static String searchByPv;
     public static String totalPVs;
     public static String unacknowledgeFailed;
     public static String withEnableDate;
