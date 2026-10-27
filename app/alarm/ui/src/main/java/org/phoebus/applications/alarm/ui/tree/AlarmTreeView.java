@@ -626,16 +626,17 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
                     menu_items.add(new MoveTreeItemAction(tree_view, model, item));
                 }
-                if (selection.size() >= 1)
-                {
-                    menu_items.add(new EnableComponentAction(tree_view, model, selection));
-                    menu_items.add(new DisableAction(tree_view, model, selection));
-                    menu_items.add(new RemoveComponentAction(tree_view, model, selection));
-
-                }
-
-                menu_items.add(new SeparatorMenuItem());
             }
+
+            if (selection.size() >= 1)
+            {
+                menu_items.add(new EnableComponentAction(tree_view, model, selection));
+                menu_items.add(new DisableAction(tree_view, model, selection));
+                if (AlarmUI.mayConfigure(model) && isEditingMode.get())
+                    menu_items.add(new RemoveComponentAction(tree_view, model, selection));
+            }
+
+            menu_items.add(new SeparatorMenuItem());
 
             menu_items.add(new PrintAction(tree_view));
             menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
