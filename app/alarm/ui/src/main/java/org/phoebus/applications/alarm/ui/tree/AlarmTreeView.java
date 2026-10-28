@@ -144,7 +144,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items.remove(changing);
         });
 
-    private final SimpleBooleanProperty isEditingMode = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty is_editing_mode = new SimpleBooleanProperty(false);
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
@@ -243,11 +243,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     private ToolBar createToolbar(final AlarmClient model)
     {
         final ToggleButton editing_mode = new ToggleButton("",
-                ImageCache.getImageView(AlarmUI.class, "/icons/edit.png"));
+                ImageCache.getImageView(AlarmUI.class, "/icons/alarm_edit.png"));
         editing_mode.setTooltip(new Tooltip(Messages.editingModeTooltip));
-        isEditingMode.bind(editing_mode.selectedProperty());
-        editing_mode.setSelected(true);
-        if (!AlarmUI.mayConfigure(model)) {
+        is_editing_mode.bind(editing_mode.selectedProperty());
+        if (AlarmUI.mayConfigure(model)) {
+            editing_mode.setSelected(true);
+        } else {
             editing_mode.setDisable(true);
         }
 
@@ -346,7 +347,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             setCursor(Cursor.WAIT);
             final ObservableList<Node> items = getToolbar().getItems();
             if (! items.contains(changing))
-                items.add(2, changing);
+                items.add(1, changing);
         }
         else
             previous.cancel(false);
@@ -607,7 +608,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
-            if (AlarmUI.mayConfigure(model) && isEditingMode.get())
+            if (AlarmUI.mayConfigure(model) && is_editing_mode.get())
             {
                 if (selection.size() <= 0)
                     // Add first item to empty config
@@ -634,7 +635,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             {
                 menu_items.add(new EnableComponentAction(tree_view, model, selection));
                 menu_items.add(new DisableAction(tree_view, model, selection));
-                if (AlarmUI.mayConfigure(model) && isEditingMode.get())
+                if (AlarmUI.mayConfigure(model) && is_editing_mode.get())
                     menu_items.add(new RemoveComponentAction(tree_view, model, selection));
             }
 
@@ -674,7 +675,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         tree_view.setOnMouseClicked(event ->
         {
             if (!AlarmUI.mayConfigure(model)
-                    || !isEditingMode.get()
+                    || !is_editing_mode.get()
                     || event.getClickCount() != 2
                     || tree_view.getSelectionModel().getSelectedItems().size() != 1)
                 return;
