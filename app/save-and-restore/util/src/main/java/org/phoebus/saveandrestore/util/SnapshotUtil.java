@@ -89,20 +89,31 @@ public class SnapshotUtil {
         List<SnapshotItem> cleanedSnapshotItems = cleanSnapshotItems(snapshotItems);
         List<RestoreResult> restoreResultList = new ArrayList<>();
 
-        List<RestoreCallable> callables = new ArrayList<>();
-        for (SnapshotItem si : cleanedSnapshotItems) {
-            RestoreCallable restoreCallable = new RestoreCallable(si, restoreResultList, connectionTimeout);
-            callables.add(restoreCallable);
-        }
+        if(Preferences.restorePolicy.equals(RestorePolicy.ASYNCHRONOUS)) {
+            List<RestoreCallable> callables = new ArrayList<>();
+            for (SnapshotItem si : cleanedSnapshotItems) {
+                RestoreCallable restoreCallable = new RestoreCallable(si, restoreResultList, connectionTimeout);
+                callables.add(restoreCallable);
+            }
 
-        try {
-            executorService.invokeAll(callables);
-        } catch (InterruptedException e) {
-            LOG.log(Level.WARNING, "Got exception waiting for all tasks to finish", e);
-            // Return empty list here?
-            return Collections.emptyList();
-        } finally {
-            callables.forEach(RestoreCallable::release);
+            try {
+                executorService.invokeAll(callables);
+            } catch (InterruptedException e) {
+                LOG.log(Level.WARNING, "Got exception waiting for all tasks to finish", e);
+                // Return empty list here?
+                return Collections.emptyList();
+            }
+        }
+        else if(Preferences.restorePolicy.equals(RestorePolicy.SYNCHRONOUS)) {
+            for (SnapshotItem si : cleanedSnapshotItems) {
+                Optional<RestoreResult> restoreResultOptional = writePV(si, connectionTimeout);
+                if(restoreResultOptional.isPresent()) {
+                    restoreResultList.add(restoreResultOptional.get());
+                }
+            }
+        }
+        else{
+            LOG.log(Level.WARNING, "Unsupported restore policy: " + Preferences.restorePolicy);
         }
 
         return restoreResultList;
@@ -273,7 +284,6 @@ public class SnapshotUtil {
     private class RestoreCallable implements Callable<Void> {
 
         private final List<RestoreResult> restoreResultList;
-        private PV pv;
         private final SnapshotItem snapshotItem;
         private final long connectionTimeout;
 
@@ -285,40 +295,50 @@ public class SnapshotUtil {
 
         @Override
         public Void call() {
-            CountDownLatch countDownLatch = new CountDownLatch(1);
-            try {
-                pv = PVPool.getPV(snapshotItem.getConfigPv().getPvName());
-                pv.onValueEvent().subscribe(value -> {
-                    if (!PV.isDisconnected(value)) {
-                        countDownLatch.countDown();
-                    }
-                });
-                if (!countDownLatch.await(connectionTimeout, TimeUnit.MILLISECONDS)) {
-                    LOG.log(Level.WARNING, "Connection to PV '" + snapshotItem.getConfigPv().getPvName() +
-                            "' timed out after " + connectionTimeout + "ms.");
-                    RestoreResult restoreResult = new RestoreResult();
-                    restoreResult.setSnapshotItem(snapshotItem);
-                    restoreResult.setErrorMsg("No monitor event from PV '" + snapshotItem.getConfigPv().getPvName() + "'");
-                    restoreResultList.add(restoreResult);
-                } else {
-                    pv.write(VTypeHelper.toObject(snapshotItem.getValue()));
-                }
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to write to PV '" + snapshotItem.getConfigPv().getPvName() + "'", e);
-                RestoreResult restoreResult = new RestoreResult();
-                restoreResult.setSnapshotItem(snapshotItem);
-                restoreResult.setErrorMsg("Failed to write to PV '" + snapshotItem.getConfigPv().getPvName() + "', cause: " + e.getMessage());
-                restoreResultList.add(restoreResult);
-                countDownLatch.countDown();
+            Optional<RestoreResult> restoreResultOptional = writePV(snapshotItem, connectionTimeout);
+            if(restoreResultOptional.isPresent()) {
+                restoreResultList.add(restoreResultOptional.get());
             }
             return null;
         }
+    }
 
-        public void release() {
+    private Optional<RestoreResult> writePV(SnapshotItem snapshotItem, long connectionTimeout) {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        Optional<RestoreResult> restoreResultOptional = Optional.empty();
+        PV pv = null;
+        try {
+            pv = PVPool.getPV(snapshotItem.getConfigPv().getPvName());
+            pv.onValueEvent().subscribe(value -> {
+                if (!PV.isDisconnected(value)) {
+                    countDownLatch.countDown();
+                }
+            });
+            if (!countDownLatch.await(connectionTimeout, TimeUnit.MILLISECONDS)) {
+                LOG.log(Level.WARNING, "Connection to PV '" + snapshotItem.getConfigPv().getPvName() +
+                        "' timed out after " + connectionTimeout + "ms.");
+                RestoreResult restoreResult = new RestoreResult();
+                restoreResult.setSnapshotItem(snapshotItem);
+                restoreResult.setErrorMsg("No monitor event from PV '" + snapshotItem.getConfigPv().getPvName() + "'");
+                restoreResultOptional = Optional.of(restoreResult);
+            } else {
+                pv.write(VTypeHelper.toObject(snapshotItem.getValue()));
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to write to PV '" + snapshotItem.getConfigPv().getPvName() + "'", e);
+            RestoreResult restoreResult = new  RestoreResult();
+            restoreResult.setSnapshotItem(snapshotItem);
+            restoreResult.setErrorMsg("Failed to write to PV '" + snapshotItem.getConfigPv().getPvName() + "', cause: " + e.getMessage());
+            restoreResultOptional = Optional.of(restoreResult);
+            countDownLatch.countDown();
+        }
+        finally {
             if (pv != null) {
                 PVPool.releasePV(pv);
             }
         }
+
+        return restoreResultOptional;
     }
 
     /**
