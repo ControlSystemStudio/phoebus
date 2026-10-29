@@ -277,6 +277,14 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         searchButton.setOnAction(event -> propagateVisibilityDownTree(tree_view.getRoot()));
         searchBox.setOnAction(event -> propagateVisibilityDownTree(tree_view.getRoot())); // act as if button pressed when enter pressed
+        searchBox.textProperty().addListener(_ ->
+        {
+            // act as if button pressed when text box cleared
+            if (searchBox.getText().isEmpty())
+            {
+                propagateVisibilityDownTree(tree_view.getRoot());
+            }
+        });
 
         return new ToolBar(searchBox, searchButton, no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
     }
