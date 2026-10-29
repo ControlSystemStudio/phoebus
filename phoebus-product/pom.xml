@@ -204,7 +204,7 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
-            <artifactId>app-alarm-freetts-annunciator</artifactId>
+            <artifactId>app-alarm-audio-annunciator</artifactId>
             <version>7.0.0-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
