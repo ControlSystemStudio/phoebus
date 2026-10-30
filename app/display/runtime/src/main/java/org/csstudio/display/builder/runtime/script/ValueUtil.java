@@ -91,7 +91,7 @@ public class ValueUtil
         final FormatOption option = value instanceof VByteArray
                                   ? FormatOption.STRING
                                   : FormatOption.DEFAULT;
-        return FormatOptionHandler.format(value, option, 0, true);
+        return FormatOptionHandler.format(value, option, -1, true);
     }
 
     /** Get labels for a {@link VEnum} value, or headers for a {@link VTable}.
