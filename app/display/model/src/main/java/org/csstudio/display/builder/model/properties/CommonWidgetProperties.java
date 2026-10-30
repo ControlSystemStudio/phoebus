@@ -771,6 +771,22 @@ public class CommonWidgetProperties {
     public static final WidgetPropertyDescriptor<String> propPassword =
             newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "password", Messages.WidgetProperties_Password);
 
+
+    public static final WidgetPropertyDescriptor<String> propHashPassword =
+            new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "hash_password", Messages.WidgetProperties_HashPassword)
+            {
+                @Override
+                public WidgetProperty<String> createProperty(
+                        final Widget widget,
+                        final String default_value)
+                {
+                    return new HashPasswordProperty(
+                            this,
+                            widget,
+                            default_value);
+                }
+            };
+
     /**
      * Runtime 'pv_value' property: Typically read from primary PV
      */

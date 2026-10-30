@@ -54,6 +54,7 @@ public class Messages
                          FindWidget,
                          Grid,
                          InstallExampleDisplays,
+                         HashPassword_button,
                          LoadDisplay,
                          LoadDisplay_TT,
                          MacroEditButton,

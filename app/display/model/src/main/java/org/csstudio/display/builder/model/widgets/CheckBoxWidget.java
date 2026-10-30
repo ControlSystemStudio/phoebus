@@ -15,6 +15,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHashPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 
 import java.util.Arrays;
@@ -73,6 +74,7 @@ public class CheckBoxWidget extends WritablePVWidget
     private volatile WidgetProperty<ConfirmDialog> confirm_dialog;
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
+    private volatile WidgetProperty<String> hash_password;
 
     @Override
     protected void defineProperties(final List<WidgetProperty<?>> properties)
@@ -87,6 +89,8 @@ public class CheckBoxWidget extends WritablePVWidget
         properties.add(confirm_dialog = propConfirmDialogOptions.createProperty(this, ConfirmDialog.NONE));
         properties.add(confirm_message = propConfirmMessage.createProperty(this, "Are your sure you want to do this?"));
         properties.add(password = propPassword.createProperty(this, ""));
+        properties.add(hash_password = propHashPassword.createProperty(this, ""));
+        hash_password.setInformativeTooltip(Messages.InformativeTooltipHashPassword);
     }
 
     /** Constructor */
@@ -148,4 +152,11 @@ public class CheckBoxWidget extends WritablePVWidget
     {
         return password;
     }
+
+    /** @return 'hash_password' property */
+    public WidgetProperty<String> propHashPassword()
+    {
+        return hash_password;
+    }
+
 }
