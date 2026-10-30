@@ -547,7 +547,7 @@ public class PropertyPanelSection extends GridPane {
             field = points_field;
         }
         else if (property instanceof HashPasswordProperty) {
-            final Button hashButton = new Button("Hash password");
+            final Button hashButton = new Button(Messages.HashPassword_button);
             hashButton.setMnemonicParsing(false);
             hashButton.setMaxWidth(Double.MAX_VALUE);
 
