@@ -203,6 +203,7 @@ public class Messages
                          WidgetProperties_ConfirmMessage,
                          WidgetProperties_Connected,
                          WidgetProperties_CornerHeight,
+                         WidgetProperties_CornerRadius,
                          WidgetProperties_CornerWidth,
                          WidgetProperties_CursorCrosshair,
                          WidgetProperties_CursorInfo,
