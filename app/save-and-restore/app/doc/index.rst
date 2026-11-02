@@ -344,8 +344,10 @@ To restore the values in the snapshot user should click the Restore button. Duri
 disabled. In case a write operation fails on a PV, the process is *not* aborted, and user will be
 presented with a list of failed PVs when restore operation completes.
 
-**NOTE:** During the restore operation PVs are written in parallel, i.e. in an asynchronous manner. The order of
-write operations is hence undefined.
+**NOTE:** During the restore operation PVs are by default written in parallel, i.e. in an asynchronous manner. The order of
+write operations is hence undefined. If synchronous write operations of PVs are needed (e.g. when using channel access),
+the client or server or both should set the preference ``org.phoebus.saveandrestore.util/restorePolicy`` should be set
+to ``SYNCHRONOUS``.
 
 Prior to restore user has the option to:
 
