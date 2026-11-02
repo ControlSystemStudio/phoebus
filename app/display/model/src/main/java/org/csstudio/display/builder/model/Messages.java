@@ -48,6 +48,7 @@ public class Messages
                          Confirm_BOTH,
                          Confirm_PUSH,
                          Confirm_RELEASE,
+                         DefaultTab,
                          DisplayMode,
                          EmbeddedDisplayWidget_GroupName,
                          EnableGradient,
