@@ -225,6 +225,12 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         model_root = new ScrollPane(scroll_body);
         model_root.setId(MODEL_ROOT_ID);
 
+        if (isEditMode()) {
+            final InvalidationListener resized = prop -> handleEditorViewportChanges();
+            model_root.widthProperty().addListener(resized);
+            model_root.heightProperty().addListener(resized);
+        }
+
         // Update background of parent when it changes or, for example,
         // becomes not null
         final InvalidationListener background = prop -> {
@@ -650,6 +656,37 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         throw new IllegalStateException("Not implemented");
     }
 
+    /** Handle changes in on-screen size of the editor */
+    private void handleEditorViewportChanges()
+    {
+        final int view_width = (int) model_root.getWidth();
+        final int view_height = (int) model_root.getHeight();
+
+        final int model_width, model_height;
+        final DisplayModel copy = model;
+        if (copy == null)
+            model_width = model_height = 0;
+        else
+        {
+            model_width = copy.propWidth().getValue();
+            model_height = copy.propHeight().getValue();
+        }
+
+        // If on-screen viewport is larger than model,
+        // grow the widget_pane so it fills the area.
+        // If the viewport is smaller, use the model's size
+        // to get appropriate scrollbars.
+        final int show_x = view_width >= model_width
+                ? view_width-SCROLLBAR_ADJUST
+                : model_width;
+        final int show_y = view_height >= model_height
+                ? view_height-SCROLLBAR_ADJUST
+                : model_height;
+
+        // Does not consider zooming.
+        widget_pane.setMinSize(show_x, show_y);
+    }
+
     /** Update lines that indicate model's size in edit mode */
     private void updateModelSizeIndicators()
     {
@@ -671,6 +708,10 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         vert_bound.setStartX(width);
         vert_bound.setEndY(height);
         vert_bound.setEndX(width);
+
+        // Update the widget_pane size based on the
+        // new model size
+        handleEditorViewportChanges();
     }
 
     @Override
