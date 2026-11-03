@@ -9,7 +9,7 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.Messages;
 
 
-public class AlarmTreeComponentConfigPanel extends AlarmTreeConfigPanel
+public class AlarmTreeNodeConfigPanel extends AlarmTreeConfigPanel
 {
     /** The path of the node that this panel is for. Does not account for newName */
     private final String pathName;
@@ -20,7 +20,7 @@ public class AlarmTreeComponentConfigPanel extends AlarmTreeConfigPanel
     /** Detached node storing the item's configuration including the changes the user has made */
     private final AlarmClientNode newConfig;
 
-    public AlarmTreeComponentConfigPanel(final AlarmClientNode component)
+    public AlarmTreeNodeConfigPanel(final AlarmClientNode component)
     {
         super();
 
@@ -32,15 +32,15 @@ public class AlarmTreeComponentConfigPanel extends AlarmTreeConfigPanel
         getColumnConstraints().add(new ColumnConstraints(32, USE_COMPUTED_SIZE, Integer.MAX_VALUE, Priority.ALWAYS, HPos.LEFT, true));
         getColumnConstraints().get(0).setPercentWidth(40);
 
-        addCategory(Messages.componentProperties);
-        addDisabledTextRow(Messages.pathLabel, Messages.pathLabelComponentTooltip, component.getPathName());
+        addCategory(Messages.nodeProperties);
+        addDisabledTextRow(Messages.pathLabel, Messages.pathLabelNodeTooltip, component.getPathName());
         addDisabledTextRow(Messages.nameLabel, Messages.nameLabelTooltip, initialConfig.getName());
 
         addSubcategory(Messages.info);
         addTitleDetailListBox(
                 Messages.guidanceLabel,
-                Messages.guidanceLabelComponentTooltip,
-                Messages.guidanceHeaderComponent,
+                Messages.guidanceLabelNodeTooltip,
+                Messages.guidanceHeaderNode,
                 Messages.guidanceNone,
                 Messages.guidanceSingular,
                 Messages.guidancePlural,
@@ -50,8 +50,8 @@ public class AlarmTreeComponentConfigPanel extends AlarmTreeConfigPanel
         );
         addTitleDetailListBox(
                 Messages.displaysLabel,
-                Messages.displaysLabelComponentTooltip,
-                Messages.displaysHeaderComponent,
+                Messages.displaysLabelNodeTooltip,
+                Messages.displaysHeaderNode,
                 Messages.displaysNone,
                 Messages.displaysSingular,
                 Messages.displaysPlural,
@@ -61,8 +61,8 @@ public class AlarmTreeComponentConfigPanel extends AlarmTreeConfigPanel
         );
         addTitleDetailListBox(
                 Messages.commandsLabel,
-                Messages.commandsLabelComponentTooltip,
-                Messages.commandsHeaderComponent,
+                Messages.commandsLabelNodeTooltip,
+                Messages.commandsHeaderNode,
                 Messages.commandsNone,
                 Messages.commandsSingular,
                 Messages.commandsPlural,
@@ -74,8 +74,8 @@ public class AlarmTreeComponentConfigPanel extends AlarmTreeConfigPanel
         addSubcategory(Messages.behavior);
         addTitleDetailDelayListBox(
                 Messages.actionsLabel,
-                Messages.actionsLabelComponentTooltip,
-                Messages.actionsHeaderComponent,
+                Messages.actionsLabelNodeTooltip,
+                Messages.actionsHeaderNode,
                 Messages.actionsNone,
                 Messages.actionsSingular,
                 Messages.actionsPlural,
