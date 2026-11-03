@@ -1,0 +1,33 @@
+.separator:horizontal .line
+{
+    -fx-background-color: null;
+    -fx-padding: 0.0em 0.0em 0.0em 0.0em; /* 1 0 0 0 */
+    -fx-border-color: derive(-fx-background,-2%);
+}
+
+.subheading
+{
+    -fx-font-weight: bold;
+    -fx-font-size: 10px;
+    -fx-background-color: moccasin;
+    -fx-padding: 2 5 2 5;
+    -fx-background-radius: 0;
+}
+
+.heading
+{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-color: darkslateblue ;
+    -fx-padding: 2 5 2 5;
+    -fx-background-radius: 0;
+}
+
+.text-field.modified,
+.button.modified,
+.check-box.modified > .box,
+.spinner.modified > .text-field,
+.date-picker.modified > .text-field,
+.date-picker.modified > .arrow-button {
+    -fx-background-color: #abc9e1;
+}

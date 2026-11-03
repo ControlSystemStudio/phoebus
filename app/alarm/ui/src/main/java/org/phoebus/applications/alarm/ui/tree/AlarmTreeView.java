@@ -24,6 +24,12 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextField;
+import javafx.stage.Modality;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -33,12 +39,17 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.applications.alarm.ui.config.ItemConfigDialog;
+import org.phoebus.applications.alarm.ui.Messages;
+import org.phoebus.applications.alarm.ui.config.AlarmTreeAlarmConfigPanel;
+import org.phoebus.applications.alarm.ui.config.AlarmTreeComponentConfigPanel;
+import org.phoebus.applications.alarm.ui.config.AlarmTreeConfigPanel;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
@@ -87,6 +98,18 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 {
     private final Label no_server = AlarmUI.createNoServerLabel();
     private final TreeView<AlarmTreeItem<?>> tree_view = new TreeView<>();
+    private final ScrollPane config_view = new ScrollPane();
+    private AlarmTreeConfigPanel config_panel = null;
+
+    /** Unfortunate hack-on-top-of-a-hack - performUpdates has to rebuild tree cells which
+     * clears the selection, so performUpdates saves the selection beforehand and then
+     * manually re-selects every item. This causes the selection listener to fire many
+     * times when the end result is actually the same. So when restoring the selection, we
+     * set this flag to true to indicate that fired selection listeners should be ignored
+     *
+     * This is also used to prevent a recursive loop when the selection is being updated
+     * from within a selection listener */
+    private boolean updating_selected_items = false;
 
     /** Model with current alarm tree, sends updates */
     private final AlarmClient model;
@@ -124,7 +147,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     private final UpdateThrottle throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::performUpdates);
 
     /** Cursor change doesn't work on Mac, so add indicator to toolbar */
-    private final Label changing = new Label("Loading...");
+    private final Label changing = new Label(Messages.loading);
 
     /** Is change indicator shown, and future been submitted to clear it? */
     private final AtomicReference<ScheduledFuture<?>> ongoing_change = new AtomicReference<>();
@@ -139,6 +162,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             final ObservableList<Node> items = getToolbar().getItems();
             items.remove(changing);
         });
+
+    private Alert discard_changes_alert;
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
@@ -176,11 +201,21 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         tree_view.setCellFactory(view -> new AlarmTreeViewCell());
         tree_view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+        config_view.getStylesheets().add(AlarmUI.class.getResource("alarm_node_config_editor.css").toExternalForm());
+        config_view.setFitToWidth(true);
+
         setTop(createToolbar());
-        setCenter(tree_view);
+
+        SplitPane split_pane = new SplitPane();
+        split_pane.getItems().add(tree_view);
+        // TODO change to isEditing listener once that is in
+        if (AlarmUI.mayConfigure(model)) {
+            split_pane.getItems().add(config_view);
+        }
+        setCenter(split_pane);
 
         createContextMenu();
-        addClickSupport();
+        addSelectSupport();
         addDragSupport();
 
         if (AlarmSystem.alarm_tree_startup_ms <= 0)
@@ -449,6 +484,22 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final CountDownLatch done = new CountDownLatch(1);
         Platform.runLater(() ->
         {
+            // Close panel if this item is being edited
+            if (config_panel != null && config_panel.getPathName().equals(item.getPathName())) {
+                if (config_panel.isConfigChanged()) {
+                    // Only show alert if the user has made changes
+                    final Alert alert = new Alert(Alert.AlertType.ERROR, "", ButtonType.OK);
+                    DialogHelper.positionDialog(alert, tree_view, 0, 0);
+                    alert.setHeaderText(Messages.itemDeletedOnServer);
+                    alert.initModality(Modality.WINDOW_MODAL);
+                    alert.show();
+                }
+
+                config_panel = null;
+                config_view.setContent(null);
+                tree_view.getSelectionModel().clearSelection();
+            }
+
             indicateChange();
             // Can only locate the parent view item on UI thread,
             // because item might just have been created by itemAdded() event
@@ -532,7 +583,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         }
 
         // Remember selection
-        final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems = 
+        final ObservableList<TreeItem<AlarmTreeItem<?>>> updatedSelectedItems =
                 FXCollections.observableArrayList(tree_view.getSelectionModel().getSelectedItems());
 
         // How to update alarm tree cells when data changed?
@@ -547,10 +598,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         // replacing a tree cell value fails to trigger refreshes
         // for certain hidden items.
         // Only replacing the TreeItem gives reliable refreshes.
-        for (final TreeItem<AlarmTreeItem<?>> view_item : view_items)
+        updating_selected_items = true; // run here because modifying the tree cells can modify the selection...
+        for (final TreeItem<AlarmTreeItem<?>> view_item : view_items) {
             // Top-level item has no parent, and is not visible, so we keep it
-            if (view_item.getParent() != null)
-            {
+            if (view_item.getParent() != null) {
                 // Locate item in tree parent
                 final TreeItem<AlarmTreeItem<?>> parent = view_item.getParent();
                 final int index = parent.getChildren().indexOf(view_item);
@@ -571,9 +622,42 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 path2view.put(value.getPathName(), update);
                 parent.getChildren().set(index, update);
             }
+        }
+
         // Restore selection
         tree_view.getSelectionModel().clearSelection();
         updatedSelectedItems.forEach(item -> tree_view.getSelectionModel().select(item));
+        updating_selected_items = false;
+
+        // Handle config panel UI changes if config_panel refers to an item whose config has just been updated
+        if (config_panel != null && Arrays.asList(view_items).contains(config_panel.getPathName()))
+        {
+            final TreeItem<AlarmTreeItem<?>> config_panel_view_item = path2view.get(config_panel.getPathName());
+            if (!AlarmTreeItem.configsEqual(config_panel_view_item.getValue(), config_panel.getInitialConfig()))
+            {
+                if (!config_panel.isConfigChanged())
+                    // Config has not been edited on our end; just update the UI
+                    refreshConfigPanel();
+                else if (AlarmTreeItem.configsEqual(config_panel_view_item.getValue(), config_panel.getNewConfig()))
+                    // Config has been edited but is the same as the updated config; just update the UI
+                    refreshConfigPanel();
+                else if (discard_changes_alert == null)
+                {
+                    // Config has been edited and there is now a conflict; prompt the user
+                    final Alert alert = new Alert(Alert.AlertType.WARNING, "", ButtonType.NO, ButtonType.YES);
+                    DialogHelper.positionDialog(alert, config_panel, -100, -50);
+                    alert.setHeaderText(Messages.configChangedOnServer);
+                    alert.initModality(Modality.WINDOW_MODAL);
+                    alert.resultProperty().addListener((_, _, button) -> {
+                        if (button == ButtonType.YES)
+                            refreshConfigPanel();
+                        discard_changes_alert = null;
+                    });
+                    alert.show();
+                    discard_changes_alert = alert;
+                }
+            }
+        }
     }
 
     /** Context menu, details depend on selected items */
@@ -601,8 +685,6 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 else if (selection.size() == 1)
                 {
                     final AlarmTreeItem<?> item = selection.get(0);
-                    menu_items.add(new ConfigureComponentAction(tree_view, model, item));
-                    menu_items.add(new SeparatorMenuItem());
 
                     if (item instanceof AlarmClientNode)
                         menu_items.add(new AddComponentAction(tree_view, model, item));
@@ -618,7 +700,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 {
                     menu_items.add(new EnableComponentAction(tree_view, model, selection));
                     menu_items.add(new DisableAction(tree_view, model, selection));
-                    menu_items.add(new RemoveComponentAction(tree_view, model, selection));
+                    menu_items.add(new RemoveComponentAction(tree_view, model, selection, this));
 
                 }
             }
@@ -652,22 +734,76 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
-    /** Double-click on item opens configuration dialog */
-    private void addClickSupport()
+    private void addSelectSupport()
     {
-        tree_view.setOnMouseClicked(event ->
+        tree_view.getSelectionModel().selectedItemProperty().addListener((_, oldSelection, _) ->
         {
-            if (!AlarmUI.mayConfigure(model)       ||
-                event.getClickCount() != 2    ||
-                tree_view.getSelectionModel().getSelectedItems().size() != 1)
+            if (updating_selected_items) // see comment on updating_selected_items
                 return;
 
-            final AlarmTreeItem<?> item = tree_view.getSelectionModel().getSelectedItems().get(0).getValue();
-            final ItemConfigDialog dialog = new ItemConfigDialog(model, item);
-            DialogHelper.positionDialog(dialog, tree_view, -150, -300);
-            // Show dialog, not waiting for it to close with OK or Cancel
-            dialog.show();
+            if (config_panel != null && config_panel.isConfigChanged())
+            {
+                if (discard_changes_alert == null) {
+                    final Alert alert = new Alert(Alert.AlertType.WARNING, "", ButtonType.NO, ButtonType.YES);
+                    DialogHelper.positionDialog(alert, config_panel, -100, -50);
+                    alert.setHeaderText(Messages.discardChangesPrompt);
+                    alert.initModality(Modality.WINDOW_MODAL);
+                    alert.resultProperty().addListener((_, _, button) ->
+                    {
+                        discard_changes_alert = null;
+                        if (button == ButtonType.YES)
+                            refreshConfigPanel();
+                        else {
+                            // Selection has changed, since the user clicked 'no' we need to preserve the previous selection
+                            updating_selected_items = true;
+                            tree_view.getSelectionModel().clearSelection();
+                            tree_view.getSelectionModel().select(oldSelection);
+                            updating_selected_items = false;
+                        }
+                    });
+                    alert.show();
+                    discard_changes_alert = alert;
+                }
+            }
+            else
+            {
+                refreshConfigPanel();
+            }
         });
+    }
+
+    /** Creates and displays a config panel for the selected item */
+    private void refreshConfigPanel()
+    {
+        final ObservableList<TreeItem<AlarmTreeItem<?>>> items = tree_view.getSelectionModel().getSelectedItems();
+        if (items.size() != 1) {
+            config_panel = null;
+            config_view.setContent(null);
+        } else {
+            final AlarmTreeItem<?> selected = items.getFirst().getValue();
+
+            if (selected instanceof final AlarmClientNode node) {
+                config_panel = new AlarmTreeComponentConfigPanel(node);
+            } else if (selected instanceof final AlarmClientLeaf leaf) {
+                config_panel = new AlarmTreeAlarmConfigPanel(leaf);
+            }
+
+            if (config_panel != null) {
+                config_panel.discardButton.setOnAction(_ -> refreshConfigPanel());
+                config_panel.saveButton.setOnAction(_ -> {
+                    JobManager.schedule(Messages.updateAlarmItemConfig, monitor ->
+                    {
+                        try {
+                            model.sendItemConfigurationUpdate(config_panel.getPathName(), config_panel.getNewConfig());
+                        } catch (final Exception ex) {
+                            ExceptionDetailsErrorDialog.openError("Error", "Cannot update item", ex);
+                        }
+                    });
+                });
+            }
+
+            config_view.setContent(config_panel);
+        }
     }
 
     /** For leaf nodes, drag PV name */
@@ -687,6 +823,13 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             db.setContent(content);
             event.consume();
         });
+    }
+
+    public void closePanel() {
+        if (config_panel != null) {
+            config_view.setContent(null);
+            config_panel = null;
+        }
     }
 
 //    private long next_stats = 0;
