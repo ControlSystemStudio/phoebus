@@ -11,6 +11,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.phoebus.ui.examples.ExampleInstaller;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
+import org.csstudio.display.builder.editor.Messages;
 
 import javafx.scene.image.Image;
 
@@ -23,13 +24,13 @@ public class InstallExamplesMenuEntry implements MenuEntry
     @Override
     public String getName()
     {
-        return "Install Example Displays";
+        return Messages.InstallExampleDisplays;
     }
 
     @Override
     public String getMenuPath()
     {
-        return "Display.Examples";
+        return Messages.MenuPathExample;
     }
 
     @Override

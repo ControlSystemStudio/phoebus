@@ -18,6 +18,8 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ChoiceButtonWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
@@ -181,12 +183,12 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
             {
                 active = false;
             }
-        } 
-        else if (!enabled && newval == null) 
+        }
+        else if (!enabled && newval == null)
         {
             // If the choice button is not enabled (no write allowed)
             // we still have to ensure the 'oldval' stays selected
-            // as otherwise clicking on the same value will set an 
+            // as otherwise clicking on the same value will set an
             // unselected look on the ChoiceButton.
         	toggle.selectToggle(oldval);
         }
@@ -346,6 +348,10 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
                 final ButtonBase b = (ButtonBase) node;
                 b.setTextFill(fg);
                 b.setFont(font);
+                WidgetFont fontStyle = model_widget.propFont().getValue();
+                WidgetFontStyle style = fontStyle.getStyle();
+                boolean underline = style.toString().contains(WidgetFontStyle.UNDERLINE.toString());
+                b.setUnderline(underline);
                 b.setAlignment(pos);
                 b.setTextAlignment(TextAlignment.values()[model_widget.propHorizontalAlignment().getValue().ordinal()]);
                 if (((Toggle)b).isSelected())

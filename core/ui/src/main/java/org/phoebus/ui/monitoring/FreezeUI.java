@@ -8,6 +8,7 @@
 package org.phoebus.ui.monitoring;
 
 import org.phoebus.ui.spi.MenuEntry;
+import org.phoebus.ui.Messages;
 
 /** Menu entry to freeze UI for testing {@link ResponsivenessMonitor}
  *  @author Kay Kasemir
@@ -24,7 +25,7 @@ public class FreezeUI implements MenuEntry
     @Override
     public String getMenuPath()
     {
-        return "Debug";
+        return Messages.MenuPath;
     }
 
     @Override

@@ -18,6 +18,48 @@ For site-specific examples, see
 
  * https://github.com/shroffk/nsls2-phoebus (actually creates several products for 'beamline' vs. 'accelerator')
  * https://github.com/kasemir/phoebus-sns
+
+## Running and debugging in VS Code
+
+Open the repository root in VS Code with the Java language support and Debugger
+for Java extensions installed. Maven must be on the terminal's `PATH`, and the
+Java extensions must use a JDK compatible with the root `pom.xml`.
+
+Select a configuration from `../.vscode/launch.json` in **Run and Debug**, then
+press **F5** to debug or **Ctrl+F5** to run without debugging:
+
+* **Phoebus: Incremental Build and Debug** runs the **Build Phoebus product**
+  task: `mvn -DskipTests install`, reusing existing build output where possible.
+* **Phoebus: Debug Last Build (No Build)** launches the existing packaged output
+  immediately. A successful build must already exist, and subsequent source
+  changes are not included until you build again.
+* **Phoebus: Clean Build and Debug** runs the **Clean build Phoebus product**
+  task: `mvn -DskipTests clean install`, rebuilding from scratch.
+
+Both build tasks are defined in `../.vscode/tasks.json` and run at the repository
+root. **Build Phoebus product** is also the default build task.
+
+The launch runs `org.phoebus.product.Launcher`, the product JAR's manifest entry
+point, with `phoebus-product/target` as its working directory. The classpath
+`phoebus-product/target/*` includes the product JAR; its manifest supplies the
+dependencies in `target/lib`, just as with `java -jar product-*-SNAPSHOT.jar`.
+This uses the packaged Maven output rather than the IDE's module classpath.
+
+The workspace setting `java.debug.settings.forceBuildBeforeLaunch` is disabled
+in `../.vscode/settings.json` to avoid a second, IDE-managed Java build after the
+Maven task. Maven is still required to succeed before launching; do not choose
+to debug anyway if the pre-launch Maven task fails.
+
+The workspace also enables `debug.hideSlowPreLaunchWarning` because the full
+Maven build normally takes longer than VS Code's ten-second notification delay.
+This hides the "Waiting for preLaunchTask" notification without bypassing the
+build or suppressing task failures.
+
+Set breakpoints in the Java sources before pressing F5. After source changes,
+restart with a build-and-debug configuration to rebuild the packaged JARs.
+Use a clean build after deleting or renaming sources if incremental output
+contains stale classes. Add application arguments,
+such as `"-nosplash"`, to the launch configuration's `args` array.
  
  ## Building native installers with `jpackage`
  

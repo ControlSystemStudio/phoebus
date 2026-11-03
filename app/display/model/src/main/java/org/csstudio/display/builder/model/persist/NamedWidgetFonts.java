@@ -148,6 +148,12 @@ public class NamedWidgetFonts extends ConfigFileParser
             return WidgetFontStyle.ITALIC;
         case "bold italic":
             return WidgetFontStyle.BOLD_ITALIC;
+        case "underline":
+            return WidgetFontStyle.UNDERLINE;
+        case "underline_bold":
+            return WidgetFontStyle.UNDERLINE_BOLD;
+        case "underline_italic":
+            return WidgetFontStyle.UNDERLINE_ITALIC;
         default:
             return WidgetFontStyle.REGULAR;
         }

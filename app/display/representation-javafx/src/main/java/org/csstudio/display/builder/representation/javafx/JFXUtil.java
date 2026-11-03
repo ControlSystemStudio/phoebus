@@ -171,8 +171,10 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
             switch (f.getStyle())
             {
             case BOLD:
+            case UNDERLINE_BOLD:
                 return Font.font(f.getFamily(), FontWeight.BOLD,   FontPosture.REGULAR, calibrated);
             case ITALIC:
+            case UNDERLINE_ITALIC:
                 return Font.font(f.getFamily(), FontWeight.NORMAL, FontPosture.ITALIC,  calibrated);
             case BOLD_ITALIC:
                 return Font.font(f.getFamily(), FontWeight.BOLD,   FontPosture.ITALIC,  calibrated);

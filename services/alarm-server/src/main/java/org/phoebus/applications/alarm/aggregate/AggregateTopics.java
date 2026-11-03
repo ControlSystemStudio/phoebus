@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.server.CreateTopics;
@@ -27,7 +28,7 @@ import org.phoebus.applications.alarm.server.CreateTopics;
 @SuppressWarnings("nls")
 public class AggregateTopics
 {
-    private Logger logger = Logger.getLogger(this.getClass().getPackageName());
+    private final Logger logger = Logger.getLogger(this.getClass().getPackageName());
     private String kafka_servers = "localhost:9092";
     private String config = "Accelerator";
     private String kafka_properties = "";
@@ -43,12 +44,12 @@ public class AggregateTopics
         longTerm = config + AlarmSystem.LONG_TERM_TOPIC_SUFFIX;
         if (createTopic)
         {
-            logger.info("Discovering and creating topics in " + topics.toString());
+            logger.info("Discovering and creating topics in " + topics);
             CreateTopics.discoverAndCreateTopics(kafka_servers, false, List.of(longTerm), kafka_properties);
         }
 
         logger.info("server:\"" + kafka_servers + "\", config: \"" + config + "\"");
-        logger.info("topics: " + topics.toString());
+        logger.info("topics: " + topics);
 
         aggregateStream = createStream();
         logger.info("Starting stream aggregation.");
@@ -56,7 +57,7 @@ public class AggregateTopics
 
         try
         (
-            BufferedReader bufReader = new BufferedReader(new InputStreamReader(System.in));
+            BufferedReader bufReader = new BufferedReader(new InputStreamReader(System.in))
         )
         {
             System.out.println("Type \"exit\" to stop.");
@@ -159,10 +160,7 @@ public class AggregateTopics
 
     private List<String> createTopicList()
     {
-        List<String> list = List.of(config,
-                                    config + AlarmSystem.COMMAND_TOPIC_SUFFIX,
-                                    config + AlarmSystem.TALK_TOPIC_SUFFIX);
-        return list;
+        return List.of(config, config + AlarmSystem.COMMAND_TOPIC_SUFFIX, config + AlarmSystem.TALK_TOPIC_SUFFIX);
     }
 
     private KafkaStreams createStream()
@@ -173,16 +171,17 @@ public class AggregateTopics
                 kafka_properties);
 
         // Log any uncaught exceptions.
-        stream.setUncaughtExceptionHandler((Thread thread, Throwable throwable) -> {
+        stream.setUncaughtExceptionHandler(throwable -> {
             logger.log(Level.WARNING, "Kafka Streams Error.", throwable);
-          });
+            return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_APPLICATION;
+        });
 
         // Catch control-c and shutdown stream beforehand.
         Runtime.getRuntime().addShutdownHook(new Thread(stream::close));
         return stream;
     }
 
-    public static void main(String[] args)
+    static void main(String[] args)
     {
         new AggregateTopics(args);
     }

@@ -34,6 +34,6 @@ public class LoggingConfigurationMenuEntry implements MenuEntry {
 
     @Override
     public String getMenuPath() {
-        return "Utility";
+        return Messages.MenuPath;
     }
 }

@@ -11,7 +11,7 @@ public class AdvancedConverterApp implements AppDescriptor
 {
 	public static final Logger logger = Logger.getLogger(AdvancedConverterApp.class.getPackageName());
 	public static final String NAME = "advancedConverter";
-	public static final String DisplayName = "OPI Converter";
+	public static final String DisplayName = Messages.OPIConverter;
 
 
 	@Override
@@ -25,4 +25,3 @@ public class AdvancedConverterApp implements AppDescriptor
 		return null;
 	}
 }
-

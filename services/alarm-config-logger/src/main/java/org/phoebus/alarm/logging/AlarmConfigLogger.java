@@ -32,9 +32,9 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.processor.Processor;
-import org.apache.kafka.streams.processor.ProcessorContext;
-import org.apache.kafka.streams.processor.ProcessorSupplier;
+import org.apache.kafka.streams.processor.api.Processor;
+import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.Record;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
@@ -65,7 +65,7 @@ public class AlarmConfigLogger implements Runnable {
 
     private final String topic;
     private final String remoteLocation;
-    private Properties props;
+    private final Properties props;
 
     private final File root;
     private final String group_id;
@@ -155,7 +155,7 @@ public class AlarmConfigLogger implements Runnable {
 
         writeAlarmModel();
         try (Consumer<String, String> consumer = new KafkaConsumer<>(props,
-            Serdes.String().deserializer(), Serdes.String().deserializer());) {
+            Serdes.String().deserializer(), Serdes.String().deserializer())) {
 
             // Rewind whenever assigned to partition
             final ConsumerRebalanceListener crl = new ConsumerRebalanceListener() {
@@ -193,13 +193,7 @@ public class AlarmConfigLogger implements Runnable {
             StreamsBuilder builder = new StreamsBuilder();
 
             KStream<String, String> alarms = builder.stream(topic, Consumed.with(Serdes.String(), Serdes.String()));
-            alarms.process(new ProcessorSupplier<>() {
-                @Override
-                public Processor<String, String> get() {
-                    return new ProcessAlarmConfigMessage();
-                }
-            });
-
+            alarms.process(() -> new ProcessAlarmConfigMessage());
             Topology topology = builder.build();
             logger.config(topology.describe().toString());
             streams = new KafkaStreams(topology, props);
@@ -306,15 +300,15 @@ public class AlarmConfigLogger implements Runnable {
         }
     }
 
-    private class ProcessAlarmConfigMessage implements Processor<String, String> {
+    private class ProcessAlarmConfigMessage implements Processor<String, String, String, String> {
 
         @Override
-        public void init(ProcessorContext context) {
+        public void init(ProcessorContext<String, String> context) {
         }
 
         @Override
-        public synchronized void process(String key, String value) {
-            processAlarmConfigMessages(key, value, true);
+        public synchronized void process(Record<String, String> record) {
+            processAlarmConfigMessages(record.key(), record.value(), true);
         }
 
         @Override
@@ -331,7 +325,7 @@ public class AlarmConfigLogger implements Runnable {
         }
         File node_info = new File(node, "config.xml");
         try (OutputStream fo = Files.newOutputStream(node_info.toPath());
-                XmlModelWriter modelWriter = new XmlModelWriter(fo);) {
+                XmlModelWriter modelWriter = new XmlModelWriter(fo)) {
             modelWriter.write(model.getRoot());
         } catch (Exception e) {
             logger.log(Level.WARNING, "Alarm config logging failed to dump the alarm configuration to config.xml", e);

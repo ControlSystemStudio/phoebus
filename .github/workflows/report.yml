@@ -23,13 +23,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download test report artifacts
-      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
       with:
         pattern: '*test-reports'
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ github.token }}
     - name: Publish test report
-      uses: mikepenz/action-junit-report@a9170d5795813c01ab4901ffb045b52bab4ab09d
+      uses: mikepenz/action-junit-report@6ef3fdcfcd5f0b5d14df3e659ef19b8c6820f93d
       with:
         report_paths: '**/TEST-*.xml'
         commit: ${{ github.event.workflow_run.head_sha }}

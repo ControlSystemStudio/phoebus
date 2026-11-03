@@ -32,7 +32,7 @@ public class EmailApp implements AppResourceDescriptor {
     /** Logger for email related messages */
     public static final Logger logger = Logger.getLogger(EmailApp.class.getPackageName());
     public static final String NAME = "email";
-    public static final String DISPLAY_NAME = "Send Email";
+    public static final String DISPLAY_NAME = Messages.SendEmail;
 
     private Session session;
 
@@ -78,12 +78,12 @@ public class EmailApp implements AppResourceDescriptor {
     public AppInstance create()
     {
         try {
-            
+
             final FXMLLoader loader = new FXMLLoader();
             loader.setLocation(EmailApp.class.getResource("ui/EmailDialog.fxml"));
             Parent root = loader.load();
             final EmailDialogController controller = loader.getController();
-            
+
             Scene scene = new Scene(root, 600, 800);
 
             Stage stage = new Stage();

@@ -14,6 +14,9 @@ import org.phoebus.framework.nls.NLS;
  */
 public class Messages
 {
+    public static String MenuPath;
+    public static String ScanEditor;
+    public static String ScanMonitor;
     public static String scan_active_prompt;
     public static String scan_abort;
     public static String scan_abort_all;

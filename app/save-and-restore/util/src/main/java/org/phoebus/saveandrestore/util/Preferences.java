@@ -39,6 +39,12 @@ public class Preferences {
     @Preference
     public static int writeTimeout;
 
+    /**
+     * Restore policy: see
+     */
+    @Preference
+    public static RestorePolicy restorePolicy;
+
     static {
         AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_util_preferences.properties");
     }

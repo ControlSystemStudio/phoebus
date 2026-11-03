@@ -42,7 +42,7 @@ public class PVTableApplication implements AppResourceDescriptor
     /** Application ID */
     public static final String NAME = "pv_table";
     /** Application name */
-    public static final String DISPLAY_NAME = "PV Table";
+    public static final String DISPLAY_NAME = Messages.PVTable;
 
     @Override
     public String getName()

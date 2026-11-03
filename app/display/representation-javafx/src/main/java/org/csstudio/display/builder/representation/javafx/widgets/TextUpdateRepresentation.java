@@ -16,6 +16,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -256,6 +258,11 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
                 Color color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
                 label.setTextFill(color);
                 label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+                WidgetFont font = model_widget.propFont().getValue();
+                WidgetFontStyle style = font.getStyle();
+                boolean underline = style.toString().contains(WidgetFontStyle.UNDERLINE.toString());
+                label.setUnderline(underline);
+
                 label.setAlignment(pos);
                 label.setWrapText(model_widget.propWrapWords().getValue());
             }

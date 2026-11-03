@@ -22,13 +22,13 @@ public class InstallExamplesMenuEntry implements MenuEntry
     @Override
     public String getName()
     {
-        return "Install Example 3D Viewer Files";
+        return Messages.InstallExample3DViewerFiles;
     }
 
     @Override
     public String getMenuPath()
     {
-        return "Display.Examples";
+        return Messages.MenuPathExample;
     }
 
     @Override

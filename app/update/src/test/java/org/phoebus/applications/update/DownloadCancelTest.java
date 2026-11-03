@@ -29,9 +29,8 @@ import org.phoebus.framework.jobs.BasicJobMonitor;
  *
  *  <p>The download watcher used to force-cancel via the now-removed
  *  {@code Thread.stop()}. It now closes the source stream on 'cancel',
- *  which must unblock the in-progress {@code Files.copy} on both the
- *  JDK 21 target (where {@code Thread.stop()} throws at runtime) and
- *  newer JDKs (where it no longer exists at all).
+ *  which must unblock the in-progress {@code Files.copy} without
+ *  relying on the JDK-dependent behavior of {@code Thread.stop()}.
  *
  *  @author Gianluca Martino
  */
