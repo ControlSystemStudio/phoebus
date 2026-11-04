@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propGap;
 import static org.csstudio.display.builder.model.properties.InsetsWidgetProperty.runtimePropInsets;
 
 import java.util.Arrays;
@@ -23,10 +24,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.WidgetPropertyCategory;
-import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelWriter;
-import org.csstudio.display.builder.model.properties.IntegerWidgetProperty;
 import org.phoebus.ui.color.NamedWidgetColors;
 import org.phoebus.ui.color.WidgetColorService;
 import org.phoebus.ui.color.WidgetColor;
@@ -55,17 +53,6 @@ public class ArrayWidget extends PVWidget
             return new ArrayWidget();
         }
     };
-
-    /** 'gap' property: Gap between instances */
-    public static final WidgetPropertyDescriptor<Integer> propGap =
-        new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "gap", Messages.WidgetProperties_Gap)
-        {
-            @Override
-            public WidgetProperty<Integer> createProperty(final Widget widget, final Integer value)
-            {
-                return new IntegerWidgetProperty(this, widget, value, 0, 500);
-            }
-        };
 
     /** {@link ChildrenProperty} wrapper that adjusts writing to XML*/
     public static class ArrayWidgetChildrenProperty extends ChildrenProperty
@@ -156,6 +143,7 @@ public class ArrayWidget extends PVWidget
     {
         return insets;
     }
+    
     /** @return 'gap' property */
     public WidgetProperty<Integer> propGap()
     {

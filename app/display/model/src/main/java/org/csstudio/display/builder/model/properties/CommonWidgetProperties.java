@@ -648,6 +648,17 @@ public class CommonWidgetProperties {
     public static final WidgetPropertyDescriptor<Boolean> propLabelsFromPV =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "labels_from_pv", Messages.WidgetProperties_LabelsFromPV);
 
+    /** 'gap' property: Gap between repeated elements or instances */
+    public static final WidgetPropertyDescriptor<Integer> propGap =
+            new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "gap", Messages.WidgetProperties_Gap)
+            {
+                @Override
+                public WidgetProperty<Integer> createProperty(final Widget widget, final Integer value)
+                {
+                    return new IntegerWidgetProperty(this, widget, value, 0, 500);
+                }
+            };
+    
     /**
      * 'items_from_pv' property: If PV is enum PV, get items from PV?
      */
