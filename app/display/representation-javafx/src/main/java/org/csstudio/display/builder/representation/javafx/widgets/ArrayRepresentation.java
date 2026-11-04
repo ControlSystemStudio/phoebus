@@ -90,6 +90,7 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
         model_widget.propWidth().addPropertyListener(sizeChangedListener);
         model_widget.propForegroundColor().addPropertyListener(colorChangedListener);
         model_widget.displayBackgroundColor().addPropertyListener(colorChangedListener);
+        model_widget.propGap().addPropertyListener(sizeChangedListener);
 
         childrenChanged(null, null, model_widget.runtimeChildren().getValue());
         adjustNumberByLength();
@@ -104,6 +105,7 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
         model_widget.propWidth().removePropertyListener(sizeChangedListener);
         model_widget.propForegroundColor().removePropertyListener(colorChangedListener);
         model_widget.displayBackgroundColor().removePropertyListener(colorChangedListener);
+        model_widget.propGap().removePropertyListener(sizeChangedListener);
         super.unregisterListeners();
     }
 
@@ -323,6 +325,7 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
                                : (height = model_widget.propHeight().getValue()) - inset * 2;
         final int w = vertical ? (width = model_widget.propWidth().getValue()) - inset * 2
                                : master.propWidth().getValue();
+        final int gap = model_widget.propGap().getValue();
         int len = 0;
         for (Widget child : children)
         {
@@ -330,9 +333,10 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
             child.propWidth().setValue(w);
             child.propX().setValue(vertical ? 0 : len);
             child.propY().setValue(vertical ? len : 0);
-            len += vertical ? h : w;
+            len += (vertical ? h : w) + gap;
         }
-        len += inset * 2;
+        // No gap after the last element
+        len += (inset * 2) - gap;
         if (vertical && len != height)
             model_widget.propHeight().setValue(height = len);
         else if (!vertical && len != width)
@@ -351,8 +355,9 @@ public class ArrayRepresentation extends JFXBaseRepresentation<Pane, ArrayWidget
         final boolean vertical = testVerticalStacking(children.get(0));
         final int l = vertical ? children.get(0).propHeight().getValue()
                                : children.get(0).propWidth().getValue();
-        numChildren = vertical ? (height - inset * 2) / l
-                               : (width - inset * 2) / l;
+        final int gap = model_widget.propGap().getValue();
+        numChildren = vertical ? (height - inset * 2 + gap) / (l + gap)
+                               : (width - inset * 2 + gap) / (l + gap);
         dirty_number.mark();
         toolkit.scheduleUpdate(this);
     }
