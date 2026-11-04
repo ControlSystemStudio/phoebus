@@ -143,7 +143,7 @@ public class ArrayWidget extends PVWidget
     {
         return insets;
     }
-    
+
     /** @return 'gap' property */
     public WidgetProperty<Integer> propGap()
     {

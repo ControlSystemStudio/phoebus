@@ -658,7 +658,7 @@ public class CommonWidgetProperties {
                     return new IntegerWidgetProperty(this, widget, value, 0, 500);
                 }
             };
-    
+
     /**
      * 'items_from_pv' property: If PV is enum PV, get items from PV?
      */
