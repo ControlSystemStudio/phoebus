@@ -31,6 +31,7 @@ public class Messages
     public static String AlarmTree;
     public static String Annunciator;
     public static String behavior;
+    public static String checkPvExistenceJob;
     public static String commandsHeaderAlarm;
     public static String commandsHeaderNode;
     public static String commandsLabel;
@@ -40,6 +41,8 @@ public class Messages
     public static String commandsPlural;
     public static String commandsSingular;
     public static String compiles;
+    public static String connected;
+    public static String connecting;
     public static String nodeProperties;
     public static String configChangedOnServer;
     public static String countLabel;
@@ -75,6 +78,7 @@ public class Messages
     public static String enablingFilterLabelTooltip;
     public static String enableAlarmFailed;
     public static String enableAlarms;
+    public static String failedToConnect;
     public static String guidanceHeaderAlarm;
     public static String guidanceHeaderNode;
     public static String guidanceLabel;

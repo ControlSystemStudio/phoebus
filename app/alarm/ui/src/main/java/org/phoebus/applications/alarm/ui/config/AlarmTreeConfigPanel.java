@@ -19,6 +19,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
+import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
@@ -131,13 +133,13 @@ public abstract class AlarmTreeConfigPanel extends GridPane
             final List<VariableNode> distinctVariables = Arrays.stream(formula.getVariables()).distinct().toList();
             for (final VariableNode node : distinctVariables) {
                 final Label pvName = new Label(node.getName());
-                final Label pvStatus = new Label("Connecting");
+                final Label pvStatus = new Label(Messages.connecting);
                 final Region region = new Region();
                 HBox.setHgrow(region, Priority.ALWAYS);
                 pvStatus.setStyle("-fx-text-fill: #0000ff");
                 pvBox.getChildren().add(new HBox(pvName, region, pvStatus));
 
-                JobManager.schedule("Check existence of PV " + node.getName(), _ -> {
+                JobManager.schedule(MessageFormat.format(Messages.checkPvExistenceJob, node.getName()), _ -> {
                     final CountDownLatch latch = new CountDownLatch(1);
                     PV pv = null;
                     try {
@@ -147,16 +149,16 @@ public abstract class AlarmTreeConfigPanel extends GridPane
                                 .subscribe(_ -> latch.countDown());
                         final boolean connected;
                         try {
-                            connected = latch.await(5, TimeUnit.SECONDS);
+                            connected = latch.await(AlarmSystem.connection_timeout, TimeUnit.SECONDS);
                         } finally {
                             flow.dispose();
                         }
                         Platform.runLater(() -> {
                             if (connected) {
-                                pvStatus.setText("Connected");
+                                pvStatus.setText(Messages.connected);
                                 pvStatus.setStyle("-fx-text-fill: #00ff00");
                             } else {
-                                pvStatus.setText("Failed to connect");
+                                pvStatus.setText(Messages.failedToConnect);
                                 pvStatus.setStyle("-fx-text-fill: #ff0000");
                             }
                         });
