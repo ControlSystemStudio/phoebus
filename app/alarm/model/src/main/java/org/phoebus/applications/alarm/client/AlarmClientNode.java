@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.client;
 
+import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItemWithState;
@@ -26,5 +27,18 @@ public class AlarmClientNode extends AlarmTreeItemWithState<BasicState>
     {
         super(parent_path, name, new CopyOnWriteArrayList<>());
         state = new BasicState(SeverityLevel.OK);
+    }
+
+     /**  @return {@link AlarmClientNode} with same configuration, but no parent or children */
+    public AlarmClientNode createDetachedCopy()
+    {
+        final AlarmClientNode node = new AlarmClientNode(null, getName());
+
+        node.setGuidance(new ArrayList<>(getGuidance()));
+        node.setDisplays(new ArrayList<>(getDisplays()));
+        node.setCommands(new ArrayList<>(getCommands()));
+        node.setActions(new ArrayList<>(getActions()));
+
+        return node;
     }
 }
