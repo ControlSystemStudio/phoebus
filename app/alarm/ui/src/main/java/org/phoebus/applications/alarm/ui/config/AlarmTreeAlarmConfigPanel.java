@@ -85,7 +85,7 @@ public class AlarmTreeAlarmConfigPanel extends AlarmTreeConfigPanel
             }
         });
 
-        addTextRow(Messages.enablingFilterLabel, Messages.enablingFilterLabelTooltip, initialConfig.getFilter(), newConfig::setFilter);
+        addEnablingFilterRow(Messages.enablingFilterLabel, Messages.enablingFilterLabelTooltip, initialConfig.getFilter(), newConfig::setFilter);
 
         addSubcategory(Messages.behavior);
         addCheckboxRow(Messages.latchingLabel, Messages.latchingLabelTooltip, initialConfig.isLatching(), newConfig::setLatching);

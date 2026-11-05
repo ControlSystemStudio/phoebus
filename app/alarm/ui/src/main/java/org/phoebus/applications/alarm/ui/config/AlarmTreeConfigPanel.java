@@ -1,5 +1,7 @@
 package org.phoebus.applications.alarm.ui.config;
 
+import io.reactivex.rxjava3.disposables.Disposable;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -13,18 +15,28 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import org.csstudio.apputil.formula.Formula;
+import org.csstudio.apputil.formula.VariableNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.applications.alarm.ui.tree.TitleDetailDelayDialog;
 import org.phoebus.applications.alarm.ui.tree.TitleDetailDialog;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
 
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -87,6 +99,92 @@ public abstract class AlarmTreeConfigPanel extends GridPane
         });
 
         addRow(label, tooltip, textField);
+    }
+
+    protected void addEnablingFilterRow(final String label, final String tooltip, final String initialValue, final Consumer<String> onChanged) {
+        final TextField textField = new TextField(initialValue);
+        final Label errorLabel = new Label();
+        final VBox pvBox = new VBox();
+
+        final Runnable updateErrorLabel = () -> {
+            final boolean empty = textField.getText().isEmpty();
+            errorLabel.setVisible(!empty);
+            errorLabel.setManaged(!empty);
+            if (empty) {
+                pvBox.getChildren().clear();
+                return;
+            }
+
+            final Formula formula;
+            try {
+                formula = new Formula(textField.getText(), true);
+                errorLabel.setText(Messages.compiles);
+                errorLabel.setStyle("-fx-text-fill: #00ff00");
+            } catch (final Exception e) {
+                errorLabel.setText(e.getLocalizedMessage());
+                errorLabel.setStyle("-fx-text-fill: #ff0000");
+                pvBox.getChildren().clear();
+                return;
+            }
+
+            pvBox.getChildren().clear();
+            final List<VariableNode> distinctVariables = Arrays.stream(formula.getVariables()).distinct().toList();
+            for (final VariableNode node : distinctVariables) {
+                final Label pvName = new Label(node.getName());
+                final Label pvStatus = new Label("Connecting");
+                final Region region = new Region();
+                HBox.setHgrow(region, Priority.ALWAYS);
+                pvStatus.setStyle("-fx-text-fill: #0000ff");
+                pvBox.getChildren().add(new HBox(pvName, region, pvStatus));
+
+                JobManager.schedule("Check existence of PV " + node.getName(), _ -> {
+                    final CountDownLatch latch = new CountDownLatch(1);
+                    PV pv = null;
+                    try {
+                        pv = PVPool.getPV(node.getName());
+                        final Disposable flow = pv.onValueEvent()
+                                .filter(v -> !PV.isDisconnected(v))
+                                .subscribe(_ -> latch.countDown());
+                        final boolean connected;
+                        try {
+                            connected = latch.await(5, TimeUnit.SECONDS);
+                        } finally {
+                            flow.dispose();
+                        }
+                        Platform.runLater(() -> {
+                            if (connected) {
+                                pvStatus.setText("Connected");
+                                pvStatus.setStyle("-fx-text-fill: #00ff00");
+                            } else {
+                                pvStatus.setText("Failed to connect");
+                                pvStatus.setStyle("-fx-text-fill: #ff0000");
+                            }
+                        });
+                    } catch (final Exception e) {
+                        Platform.runLater(() -> {
+                            pvStatus.setText(e.getLocalizedMessage());
+                            pvStatus.setStyle("-fx-text-fill: #ff0000");
+                        });
+                    } finally {
+                        if (pv != null) {
+                            PVPool.releasePV(pv);
+                        }
+                    }
+                });
+            }
+        };
+
+        textField.setMaxWidth(Double.MAX_VALUE);
+        textField.textProperty().addListener(_ ->
+        {
+            onChanged.accept(textField.getText());
+            userMadeChange();
+            updateModifiedStyle(textField, Objects.equals(textField.getText(), initialValue));
+            updateErrorLabel.run();
+        });
+        updateErrorLabel.run();
+
+        addRow(label, tooltip, new VBox(textField, errorLabel, pvBox));
     }
 
     protected CheckBox addCheckboxRow(final String label, final String tooltip, final boolean initialValue, final Consumer<Boolean> onChanged) {

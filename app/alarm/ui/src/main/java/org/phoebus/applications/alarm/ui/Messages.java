@@ -39,6 +39,7 @@ public class Messages
     public static String commandsNone;
     public static String commandsPlural;
     public static String commandsSingular;
+    public static String compiles;
     public static String nodeProperties;
     public static String configChangedOnServer;
     public static String countLabel;
