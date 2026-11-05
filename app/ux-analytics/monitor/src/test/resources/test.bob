@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-07-01 09:42:47 by daykin-->
+<display version="2.0.0">
+  <name>Display</name>
+  <actions>
+    <action type="open_display">
+      <file>SomeOtherDisplay.bob</file>
+      <target>tab</target>
+      <description>New Tab</description>
+    </action>
+  </actions>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>My Display</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Some Value:</text>
+    <y>50</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>sim://sine</pv_name>
+    <x>100</x>
+    <y>50</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>COMMENT</class>
+    <text>Some comment.</text>
+    <x>220</x>
+    <y>50</y>
+    <width>140</width>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="open_display">
+        <file>SomeOtherDisplay.bob</file>
+        <target>tab</target>
+        <description>New Tab</description>
+      </action>
+    </actions>
+    <x>100</x>
+    <y>220</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="bool_button" version="2.0.0">
+    <name>Boolean Button</name>
+    <x>80</x>
+    <y>150</y>
+    <width>60</width>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="open_display">
+        <file>SomeOtherDisplay.bob</file>
+        <target>window</target>
+        <description>New Window</description>
+      </action>
+    </actions>
+    <x>100</x>
+    <y>250</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display</name>
+    <file>someEmbeddedThingy.bob</file>
+    <x>290</x>
+    <y>150</y>
+    <width>800</width>
+    <height>600</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>loc://foo</pv_name>
+    <x>30</x>
+    <y>90</y>
+    <width>160</width>
+    <height>30</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_2</name>
+    <actions>
+      <action type="open_display">
+        <file>thirdThing.bob</file>
+        <target>tab</target>
+        <description>Third Thing</description>
+      </action>
+    </actions>
+    <x>100</x>
+    <y>280</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_3</name>
+    <actions>
+      <action type="open_display">
+        <file>thirdThing.bob</file>
+        <target>replace</target>
+        <description>Replace</description>
+      </action>
+    </actions>
+    <x>100</x>
+    <y>310</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_4</name>
+    <actions>
+      <action type="open_display">
+        <file>asdfasdfasdfasdfasfd.bob</file>
+        <target>tab</target>
+        <description>Nonexistent</description>
+      </action>
+    </actions>
+    <x>100</x>
+    <y>340</y>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

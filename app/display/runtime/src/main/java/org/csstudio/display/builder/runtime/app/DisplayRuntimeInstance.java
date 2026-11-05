@@ -191,6 +191,7 @@ public class DisplayRuntimeInstance implements AppInstance
         layout.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeys);
 
         dock_item.addClosedNotification(this::onClosed);
+        representation_init.run();
     }
 
     @Override
@@ -575,6 +576,11 @@ public class DisplayRuntimeInstance implements AppInstance
         representation.shutdown();
 
         navigation.dispose();
+    }
+
+    DisplayModel getActiveModel()
+    {
+        return active_model;
     }
 
     public void addListener(ToolkitListener listener){
