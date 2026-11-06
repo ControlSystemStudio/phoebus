@@ -74,16 +74,7 @@ public class AlarmTreeAlarmConfigPanel extends AlarmTreeConfigPanel
         );
 
         addSubcategory(Messages.enabled);
-        final CheckBox enabledCheckBox = addCheckboxRow(Messages.enabledLabel, Messages.enabledLabelTooltip, initialConfig.isEnabled(), newConfig::setEnabled);
-        final DateTimePicker enableDateTimePicker = addDateTimeRow(Messages.enableDatetimeLabel, Messages.enableDatetimeLabelTooltip, initialConfig.getEnabledDate(), newConfig::setEnabledDate);
-
-        enableDateTimePicker.setDisable(enabledCheckBox.isSelected());
-        enabledCheckBox.selectedProperty().addListener(_ -> {
-            enableDateTimePicker.setDisable(enabledCheckBox.isSelected());
-            if (enabledCheckBox.isSelected()) {
-                enableDateTimePicker.setDateTimeValue(null);
-            }
-        });
+        addEnabledRow(Messages.enabledLabel, Messages.enabledLabelTooltip, initialConfig.getEnabled(), newConfig::setEnabled);
 
         addTextRow(Messages.enablingFilterLabel, Messages.enablingFilterLabelTooltip, initialConfig.getFilter(), newConfig::setFilter);
 

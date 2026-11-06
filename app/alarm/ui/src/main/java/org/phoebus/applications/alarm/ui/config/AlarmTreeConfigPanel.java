@@ -13,7 +13,9 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.ui.Messages;
@@ -104,23 +106,42 @@ public abstract class AlarmTreeConfigPanel extends GridPane
         return checkBox;
     }
 
-    protected DateTimePicker addDateTimeRow(final String label, final String tooltip, final LocalDateTime initialValue, final Consumer<LocalDateTime> onChanged) {
+    protected void addEnabledRow(final String label, final String tooltip, final EnabledState initialValue, final Consumer<EnabledState> onChanged) {
+        final CheckBox checkBox = new CheckBox();
+        final Region region = new Region();
         final DateTimePicker dateTimePicker = new DateTimePicker();
 
-        dateTimePicker.setDateTimeValue(initialValue);
+        checkBox.selectedProperty().addListener(_ ->
+        {
+            onChanged.accept(new EnabledState(checkBox.isSelected()));
+            userMadeChange();
+            updateModifiedStyle(checkBox, checkBox.isSelected() == initialValue.enabled);
+
+            dateTimePicker.setVisible(!checkBox.isSelected());
+            dateTimePicker.setManaged(!checkBox.isSelected());
+        });
+        checkBox.setSelected(initialValue.enabled);
+
+        region.setMinWidth(6.0);
+
+        dateTimePicker.setDateTimeValue(initialValue.enabled_date);
         dateTimePicker.dateTimeProperty().addListener(_ ->
         {
             final LocalDateTime value = dateTimePicker.getDateTimeValue();
             if (value != null && value.isBefore(LocalDateTime.now())) {
                 dateTimePicker.setDateTimeValue(null);
+                onChanged.accept(new EnabledState(false));
+            } else {
+                onChanged.accept(new EnabledState(dateTimePicker.getDateTimeValue()));
             }
-            onChanged.accept(dateTimePicker.getDateTimeValue());
             userMadeChange();
-            updateModifiedStyle(dateTimePicker, Objects.equals(dateTimePicker.getDateTimeValue(), initialValue));
+            updateModifiedStyle(dateTimePicker, Objects.equals(dateTimePicker.getDateTimeValue(), initialValue.enabled_date));
         });
 
-        addRow(label, tooltip, dateTimePicker);
-        return dateTimePicker;
+        final HBox box = new HBox(checkBox, region, dateTimePicker);
+        box.setAlignment(Pos.CENTER_LEFT);
+
+        addRow(label, tooltip, box);
     }
 
     protected void addIntSpinnerRow(final String label, final String tooltip, final int initialValue, final Consumer<Integer> onChanged) {
