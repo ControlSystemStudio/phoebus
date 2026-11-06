@@ -73,12 +73,8 @@ public class AlarmTreeAlarmConfigPanel extends AlarmTreeConfigPanel
                 newConfig::setCommands
         );
 
-        addSubcategory(Messages.enabled);
-        addEnabledRow(Messages.enabledLabel, Messages.enabledLabelTooltip, initialConfig.getEnabled(), newConfig::setEnabled);
-
-        addTextRow(Messages.enablingFilterLabel, Messages.enablingFilterLabelTooltip, initialConfig.getFilter(), newConfig::setFilter);
-
         addSubcategory(Messages.behavior);
+        addTextRow(Messages.enablingFilterLabel, Messages.enablingFilterLabelTooltip, initialConfig.getFilter(), newConfig::setFilter);
         addCheckboxRow(Messages.latchingLabel, Messages.latchingLabelTooltip, initialConfig.isLatching(), newConfig::setLatching);
         addCheckboxRow(Messages.annunciatingLabel, Messages.annunciatingLabelTooltip, initialConfig.isAnnunciating(), newConfig::setAnnunciating);
         addIntSpinnerRow(Messages.delayLabel, Messages.delayLabelTooltip, initialConfig.getDelay(), newConfig::setDelay);
