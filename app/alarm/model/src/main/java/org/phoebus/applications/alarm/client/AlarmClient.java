@@ -307,6 +307,11 @@ public class AlarmClient {
                         for (final AlarmClientListener listener : listeners)
                             listener.itemRemoved(node);
                     }
+                } else if (JsonModelReader.isConfigDeletion(json)) {
+                    // Ignore config deletion messages; these can cause spurious updates to configs and hence
+                    // spurious calls to itemUpdated
+                    logger.log(Level.FINE, () -> "Ignoring tombstone config message: " + record.key() + " " + node_config);
+                    return;
                 } else {   // Configuration update
                     if (JsonModelReader.isStateUpdate(json))
                         logger.log(Level.WARNING, "Got config update with state content: " + record.key() + " " + node_config);
