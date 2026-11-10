@@ -8,6 +8,7 @@ import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.EnabledState;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -84,7 +85,7 @@ public class AlarmTreeHelperTest {
         assertEquals(3, treeNodeInfo.leaves().size());
         assertEquals(0, treeNodeInfo.disabled());
         assertEquals(0, treeNodeInfo.disabledWithEnableDate());
-        assertEquals(treeNodeInfo.commonDisableState(), Optional.of(new EnabledState(true)));
+        assertEquals(treeNodeInfo.commonDisableState(), Optional.empty());
     }
 
     @Test
@@ -103,7 +104,7 @@ public class AlarmTreeHelperTest {
         assertEquals(3, treeNodeInfo.leaves().size());
         assertEquals(1, treeNodeInfo.disabled());
         assertEquals(0, treeNodeInfo.disabledWithEnableDate());
-        assertTrue(treeNodeInfo.commonDisableState().isEmpty());
+        assertTrue(treeNodeInfo.commonDisableState().equals(Optional.of(new EnabledState(false))));
     }
 
     @Test
@@ -125,7 +126,6 @@ public class AlarmTreeHelperTest {
         assertEquals(3, treeNodeInfo.leaves().size());
         assertEquals(0, treeNodeInfo.disabled());
         assertEquals(2, treeNodeInfo.disabledWithEnableDate());
-        assertTrue(treeNodeInfo.commonDisableState().isEmpty());
     }
 
     @Test
@@ -148,6 +148,6 @@ public class AlarmTreeHelperTest {
         assertEquals(0, treeNodeInfo.disabled());
         assertEquals(3, treeNodeInfo.disabledWithEnableDate());
         assertTrue(treeNodeInfo.commonDisableState().isPresent());
-        assertEquals(new EnabledState(localDateTime1), treeNodeInfo.commonDisableState().get());
+        assertEquals(new EnabledState(localDateTime1.truncatedTo(ChronoUnit.MINUTES)), treeNodeInfo.commonDisableState().get());
     }
 }
