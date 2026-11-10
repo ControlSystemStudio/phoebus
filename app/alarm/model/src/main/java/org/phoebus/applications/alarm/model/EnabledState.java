@@ -20,7 +20,7 @@ public class EnabledState
     /** Time to (re-)enable */
     public final LocalDateTime enabled_date;
 
-    /** Plain enablement */
+    /** Plain enablement - always false if enabled_date is not null */
     public final boolean enabled;
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;

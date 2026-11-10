@@ -5,9 +5,11 @@ import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.EnabledState;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,7 +84,7 @@ public class AlarmTreeHelperTest {
         assertEquals(3, treeNodeInfo.leaves().size());
         assertEquals(0, treeNodeInfo.disabled());
         assertEquals(0, treeNodeInfo.disabledWithEnableDate());
-        assertTrue(treeNodeInfo.commonEnableDate().isEmpty());
+        assertEquals(treeNodeInfo.commonDisableState(), Optional.of(new EnabledState(true)));
     }
 
     @Test
@@ -101,8 +103,7 @@ public class AlarmTreeHelperTest {
         assertEquals(3, treeNodeInfo.leaves().size());
         assertEquals(1, treeNodeInfo.disabled());
         assertEquals(0, treeNodeInfo.disabledWithEnableDate());
-        assertTrue(treeNodeInfo.commonEnableDate().isEmpty());
-
+        assertTrue(treeNodeInfo.commonDisableState().isEmpty());
     }
 
     @Test
@@ -124,7 +125,7 @@ public class AlarmTreeHelperTest {
         assertEquals(3, treeNodeInfo.leaves().size());
         assertEquals(0, treeNodeInfo.disabled());
         assertEquals(2, treeNodeInfo.disabledWithEnableDate());
-        assertTrue(treeNodeInfo.commonEnableDate().isEmpty());
+        assertTrue(treeNodeInfo.commonDisableState().isEmpty());
     }
 
     @Test
@@ -138,15 +139,15 @@ public class AlarmTreeHelperTest {
         leaf1.setEnabledDate(localDateTime1);
         leaf1.addToParent(parent1);
         AlarmClientLeaf leaf2 = new AlarmClientLeaf("test/path/2", "testName2");
-        leaf2.setEnabled(false);
+        leaf2.setEnabledDate(localDateTime1);
         leaf2.addToParent(parent1);
 
         TreeNodeInfo treeNodeInfo = AlarmTreeHelper.getTreeNodeInfo(parent1);
 
         assertEquals(3, treeNodeInfo.leaves().size());
-        assertEquals(1, treeNodeInfo.disabled());
-        assertEquals(2, treeNodeInfo.disabledWithEnableDate());
-        assertTrue(treeNodeInfo.commonEnableDate().isPresent());
-        assertEquals(localDateTime1, treeNodeInfo.commonEnableDate().get());
+        assertEquals(0, treeNodeInfo.disabled());
+        assertEquals(3, treeNodeInfo.disabledWithEnableDate());
+        assertTrue(treeNodeInfo.commonDisableState().isPresent());
+        assertEquals(new EnabledState(localDateTime1), treeNodeInfo.commonDisableState().get());
     }
 }
