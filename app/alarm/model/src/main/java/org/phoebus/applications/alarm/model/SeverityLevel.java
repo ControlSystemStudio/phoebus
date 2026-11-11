@@ -97,7 +97,7 @@ public enum SeverityLevel
     /** Initialize severity level
      *  @param active <code>true</code> for active alarm severity,
      *                <code>false</code> for acknowledged or OK state
-     *  @param active <code>true</code> for acknowledged state,
+     *  @param acknowledged <code>true</code> for acknowledged state,
      *                <code>false</code> for active alarm severity
      *  @param alarm_update_priority Priority used inside the server to
      *                               update alarm severity of a PV.
