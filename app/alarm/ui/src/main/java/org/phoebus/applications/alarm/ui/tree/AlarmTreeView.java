@@ -218,10 +218,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         searchBox.setPromptText(Messages.searchByPv);
         searchBox.setPrefWidth(300);
 
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_disabled.png"), AlarmFilter.DISABLED, Messages.filterDisabledAlarmsTooltip);
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ok.png"), AlarmFilter.OK, Messages.filterOkAlarmsTooltip);
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_active.png"), AlarmFilter.ACTIVE, Messages.filterActiveAlarmsTooltip);
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ack.png"), AlarmFilter.ACKNOWLEDGED, Messages.filterAcknowledgedAlarmsTooltip);
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_disabled.png"), AlarmFilter.DISABLED, Messages.filterDisabledAlarmsTooltip, "left-pill");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ok.png"), AlarmFilter.OK, Messages.filterOkAlarmsTooltip, "center-pill");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_active.png"), AlarmFilter.ACTIVE, Messages.filterActiveAlarmsTooltip, "center-pill");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ack.png"), AlarmFilter.ACKNOWLEDGED, Messages.filterAcknowledgedAlarmsTooltip, "right-pill");
 
         setTop(createToolbar());
         setCenter(tree_view);
@@ -283,7 +283,6 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     private ToolBar createToolbar()
     {
-
         final Button collapse = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
         collapse.setTooltip(new Tooltip(Messages.collapseAlarmTree));
@@ -307,18 +306,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             }
         });
 
-        final ToggleButton first = filterButtons.removeFirst();
-        first.getStyleClass().add("left-pill");
-        final ToggleButton last = filterButtons.removeLast();
-        last.getStyleClass().add("right-pill");
-        for (final ToggleButton toggleButton : filterButtons) {
-            toggleButton.getStyleClass().add("center-pill");
-        }
-
         final HBox filterBox = new HBox();
-        filterBox.getChildren().add(first);
         filterBox.getChildren().addAll(filterButtons);
-        filterBox.getChildren().add(last);
 
         return new ToolBar(searchBox, searchButton, filterBox, no_server, changing, ToolbarHelper.createSpring(), collapse, expand);
     }
@@ -498,7 +487,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final ObservableList<Node> items = getToolbar().getItems();
         items.remove(no_server);
         if (! alive)
-            // Place left of spring, collapse, expand_alarms,
+            // Place left of spring, collapse button, expand button,
             // i.e. right of potential AlarmConfigSelector
             items.add(items.size()-3, no_server);
     }
@@ -837,11 +826,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
-    private void addFilterButton(final Node graphic, final AlarmFilter filter, final String tooltip)
+    private void addFilterButton(final Node graphic, final AlarmFilter filter, final String tooltip, final String pillClass)
     {
         final ToggleButton toggleButton = new ToggleButton();
         toggleButton.setGraphic(graphic);
         toggleButton.setTooltip(new Tooltip(tooltip));
+        toggleButton.setStyle(pillClass);
         toggleButton.selectedProperty().addListener(_ -> {
             if (toggleButton.isSelected()) {
                 activeFilters.add(filter);
