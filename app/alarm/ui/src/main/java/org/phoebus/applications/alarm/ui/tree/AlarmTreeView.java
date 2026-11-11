@@ -339,6 +339,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         for (final AlarmTreeItem<?> child : item.getValue().getChildren())
         {
             final TreeItem<AlarmTreeItem<?>> childItem = path2view.get(child.getPathName());
+            if (childItem == null) {
+                continue;
+            }
 
             final boolean shouldDisplay = propagateVisibilityDownTree(childItem);
 
@@ -377,6 +380,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         final TreeItem<AlarmTreeItem<?>> currentParent = item.getParent();
         final TreeItem<AlarmTreeItem<?>> actualParent = path2view.get(modelParent.getPathName());
+        if (actualParent == null) {
+            return;
+        }
 
         final boolean shouldDisplay = shouldDisplay(item);
         if (shouldDisplay && currentParent == null)
@@ -438,10 +444,14 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             component.setExpanded(expand);
         }
 
-        if (!component.isLeaf()) {
-            for (final AlarmTreeItem<?> child : component.getValue().getChildren()) {
+        final List<AlarmTreeItem<?>> children = component.getValue().getChildren();
+        if (!children.isEmpty()) {
+            for (final AlarmTreeItem<?> child : children) {
                 // We use path2view.get because component might have hidden children, which we still want to expand/collapse
-                expandOrCollapse(path2view.get(child.getPathName()), expand);
+                final TreeItem<AlarmTreeItem<?>> view_item = path2view.get(child.getPathName());
+                if (view_item != null) {
+                    expandOrCollapse(view_item, expand);
+                }
             }
         }
     }
