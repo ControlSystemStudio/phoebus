@@ -218,10 +218,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         searchBox.setPromptText(Messages.searchByPv);
         searchBox.setPrefWidth(300);
 
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_disabled.png"), AlarmFilter.DISABLED, "Filter disabled alarms");
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ok.png"), AlarmFilter.OK, "Filter OK alarms");
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_active.png"), AlarmFilter.ACTIVE, "Filter active alarms");
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ack.png"), AlarmFilter.ACKNOWLEDGED, "Filter acknowledged alarms");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_disabled.png"), AlarmFilter.DISABLED, Messages.filterDisabledAlarmsTooltip);
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ok.png"), AlarmFilter.OK, Messages.filterOkAlarmsTooltip);
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_active.png"), AlarmFilter.ACTIVE, Messages.filterActiveAlarmsTooltip);
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ack.png"), AlarmFilter.ACKNOWLEDGED, Messages.filterAcknowledgedAlarmsTooltip);
 
         setTop(createToolbar());
         setCenter(tree_view);
@@ -286,12 +286,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         final Button collapse = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
-        collapse.setTooltip(new Tooltip("Collapse alarm tree"));
+        collapse.setTooltip(new Tooltip(Messages.collapseAlarmTree));
         collapse.setOnAction(event -> expandOrCollapse(tree_view.getRoot(), false));
 
         final Button expand = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/expand.png"));
-        expand.setTooltip(new Tooltip("Expand alarm tree"));
+        expand.setTooltip(new Tooltip(Messages.expandAlarmTree));
         expand.setOnAction(event -> expandOrCollapse(tree_view.getRoot(), true));
 
         final Button searchButton = new Button(Messages.search);
