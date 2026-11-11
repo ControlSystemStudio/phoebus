@@ -12,6 +12,7 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -26,12 +27,9 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
-import javafx.geometry.Pos;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.HBox;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -39,6 +37,7 @@ import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.Messages;
@@ -48,7 +47,6 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
@@ -104,6 +102,21 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmTreeView extends BorderPane implements AlarmClientListener
 {
+    private enum AlarmFilter
+    {
+        DISABLED(leaf -> !leaf.isEnabled()),
+        OK(leaf -> leaf.isEnabled() && leaf.getState().severity == SeverityLevel.OK),
+        ACTIVE(leaf -> leaf.getState().severity.isActive()),
+        ACKNOWLEDGED(leaf -> leaf.getState().severity.isAcknowledged());
+
+        final Predicate<AlarmClientLeaf> predicate;
+
+        AlarmFilter(final Predicate<AlarmClientLeaf> predicate)
+        {
+            this.predicate = predicate;
+        }
+    }
+
     private final Label no_server = AlarmUI.createNoServerLabel();
     private final TreeView<AlarmTreeItem<?>> tree_view = new TreeView<>();
 
@@ -161,13 +174,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     private final TextField searchBox;
 
-    private final PopOver filterPopOver;
-    private final Label filterStatus;
-    private final StackPane filterStatusStack;
-    private final Button filterButton;
-    private final List<CheckBox> filterCheckboxes = new ArrayList<>();
+    private final List<ToggleButton> filterButtons = new ArrayList<>();
 
-    private Predicate<AlarmClientLeaf> filterPredicate;
+    private final Set<AlarmFilter> activeFilters = EnumSet.noneOf(AlarmFilter.class);
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
@@ -209,50 +218,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         searchBox.setPromptText(Messages.searchByPv);
         searchBox.setPrefWidth(300);
 
-        filterStatus = new Label("All");
-        filterStatus.setStyle("-fx-text-fill: #999999");
-
-        filterStatusStack = new StackPane(filterStatus);
-        filterStatusStack.setAlignment(Pos.CENTER_LEFT);
-
-        filterButton = new Button();
-        filterButton.setText("Filter:");
-        filterButton.setGraphic(filterStatusStack);
-        filterButton.setContentDisplay(ContentDisplay.RIGHT);
-
-        VBox filterBox = new VBox();
-        filterBox.setSpacing(5.0);
-
-        addFilterRow(
-                filterBox,
-                "Active",
-                "active only",
-                "inactive only",
-                leaf -> leaf.getState().getSeverity().isActive()
-        );
-        addFilterRow(
-                filterBox, "Acknowledged",
-                "acknowledged only",
-                "unacknowledged only",
-                leaf -> leaf.getState().getSeverity().isAcknowledged()
-        );
-        addFilterRow(
-                filterBox, "Disabled",
-                "disabled only",
-                "enabled only",
-                leaf -> !leaf.isEnabled()
-        );
-
-        filterPopOver = new PopOver(filterBox);
-        filterPopOver.setAutoHide(true);
-
-        filterButton.setOnAction(_ -> {
-            if (filterPopOver.isShowing()) {
-                filterPopOver.hide();
-            } else {
-                filterPopOver.show(filterButton);
-            }
-        });
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_disabled.png"), AlarmFilter.DISABLED);
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ok.png"), AlarmFilter.OK);
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_active.png"), AlarmFilter.ACTIVE);
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ack.png"), AlarmFilter.ACKNOWLEDGED);
 
         setTop(createToolbar());
         setCenter(tree_view);
@@ -338,7 +307,20 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             }
         });
 
-        return new ToolBar(searchBox, searchButton, filterButton, no_server, changing, ToolbarHelper.createSpring(), collapse, expand);
+        final ToggleButton first = filterButtons.removeFirst();
+        first.getStyleClass().add("left-pill");
+        final ToggleButton last = filterButtons.removeLast();
+        last.getStyleClass().add("right-pill");
+        for (final ToggleButton toggleButton : filterButtons) {
+            toggleButton.getStyleClass().add("center-pill");
+        }
+
+        final HBox filterBox = new HBox();
+        filterBox.getChildren().add(first);
+        filterBox.getChildren().addAll(filterButtons);
+        filterBox.getChildren().add(last);
+
+        return new ToolBar(searchBox, searchButton, filterBox, no_server, changing, ToolbarHelper.createSpring(), collapse, expand);
     }
 
     ToolBar getToolbar()
@@ -413,11 +395,22 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     private boolean shouldDisplay(final TreeItem<AlarmTreeItem<?>> item)
     {
+        final boolean hasVisibleChildren = !item.getChildren().isEmpty();
+
         final boolean matchesSearch = searchBox.getText().isEmpty() || item.getValue() instanceof final AlarmClientLeaf leaf
                 && leaf.getName().toLowerCase().contains(searchBox.getText().toLowerCase());
-        final boolean matchesFilter = filterPredicate == null || item.getValue() instanceof final AlarmClientLeaf leaf
-                && filterPredicate.test(leaf);
-        return !item.getChildren().isEmpty() || (matchesSearch && matchesFilter);
+
+        boolean matchesAnyFilter = activeFilters.isEmpty(); // no filters selected = show everything
+        for (final AlarmFilter filter : activeFilters) {
+            final boolean matchesFilter = item.getValue() instanceof final AlarmClientLeaf leaf && filter.predicate.test(leaf);
+            matchesAnyFilter = matchesAnyFilter || matchesFilter;
+        }
+
+        // Always show components with no children... unfortunate tradeoff; otherwise they would never be shown because
+        // they don't have any leaf to match the filters
+        final boolean isEmptyComponent = item.getValue() instanceof final AlarmClientNode node && node.getChildren().isEmpty();
+
+        return hasVisibleChildren || isEmptyComponent || (matchesSearch && matchesAnyFilter);
     }
 
     /**
@@ -446,7 +439,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         }
 
         if (!component.isLeaf()) {
-            for (AlarmTreeItem<?> child : component.getValue().getChildren()) {
+            for (final AlarmTreeItem<?> child : component.getValue().getChildren()) {
                 // We use path2view.get because component might have hidden children, which we still want to expand/collapse
                 expandOrCollapse(path2view.get(child.getPathName()), expand);
             }
@@ -834,46 +827,19 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
-    private void addFilterRow(
-            final VBox box,
-            final String name,
-            final String selected,
-            final String unselected,
-            final Predicate<AlarmClientLeaf> selectedPredicate
-    )
+    private void addFilterButton(final Node graphic, final AlarmFilter filter)
     {
-        // this is a hack to force the hint to be as wide as the widest possible guidance
-        {
-            Label invisibleSelectedHint = new Label(selected);
-            invisibleSelectedHint.setVisible(false);
-            Label invisibleUnselectedHint = new Label(unselected);
-            invisibleUnselectedHint.setVisible(false);
-            filterStatusStack.getChildren().add(invisibleSelectedHint);
-            filterStatusStack.getChildren().add(invisibleUnselectedHint);
-        }
-
-        CheckBox checkBox = new CheckBox(name);
-        checkBox.setAllowIndeterminate(true);
-        checkBox.setIndeterminate(true);
-        checkBox.setOnAction(_ -> {
-            if (checkBox.isIndeterminate()) {
-                filterPredicate = null;
-                filterStatus.setText("all");
+        final ToggleButton toggleButton = new ToggleButton();
+        toggleButton.setGraphic(graphic);
+        toggleButton.selectedProperty().addListener(_ -> {
+            if (toggleButton.isSelected()) {
+                activeFilters.add(filter);
             } else {
-                for (CheckBox other : filterCheckboxes) {
-                    if (other != checkBox) {
-                        other.setIndeterminate(true);
-                    }
-                }
-                filterPredicate = checkBox.isSelected() ? selectedPredicate : selectedPredicate.negate();
-                filterStatus.setText(checkBox.isSelected() ? selected : unselected);
+                activeFilters.remove(filter);
             }
             propagateVisibilityDownTree(tree_view.getRoot());
         });
-
-        filterCheckboxes.add(checkBox);
-
-        box.getChildren().add(checkBox);
+        filterButtons.add(toggleButton);
     }
 
     private static void dumpTree(final TreeItem<AlarmTreeItem<?>> item)
