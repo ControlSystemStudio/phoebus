@@ -266,9 +266,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             if (tree_view.getRoot() != null && itemName != null) {
                 for (final TreeItem<AlarmTreeItem<?>> treeItem : tree_view.getRoot().getChildren()) {
                     if (treeItem.getValue().getName().equals(itemName)) {
-                        for (final TreeItem<AlarmTreeItem<?>> item : treeItem.getChildren()) {
-                            item.setExpanded(true);
-                        }
+                        treeItem.setExpanded(true);
                         break;
                     }
                 }
