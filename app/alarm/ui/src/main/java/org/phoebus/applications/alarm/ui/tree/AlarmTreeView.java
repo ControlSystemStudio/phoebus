@@ -218,10 +218,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         searchBox.setPromptText(Messages.searchByPv);
         searchBox.setPrefWidth(300);
 
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_disabled.png"), AlarmFilter.DISABLED);
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ok.png"), AlarmFilter.OK);
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_active.png"), AlarmFilter.ACTIVE);
-        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ack.png"), AlarmFilter.ACKNOWLEDGED);
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_disabled.png"), AlarmFilter.DISABLED, "Filter disabled alarms");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ok.png"), AlarmFilter.OK, "Filter OK alarms");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_active.png"), AlarmFilter.ACTIVE, "Filter active alarms");
+        addFilterButton(ImageCache.getImageView(AlarmUI.class, "/icons/filter_ack.png"), AlarmFilter.ACKNOWLEDGED, "Filter acknowledged alarms");
 
         setTop(createToolbar());
         setCenter(tree_view);
@@ -827,10 +827,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         });
     }
 
-    private void addFilterButton(final Node graphic, final AlarmFilter filter)
+    private void addFilterButton(final Node graphic, final AlarmFilter filter, final String tooltip)
     {
         final ToggleButton toggleButton = new ToggleButton();
         toggleButton.setGraphic(graphic);
+        toggleButton.setTooltip(new Tooltip(tooltip));
         toggleButton.selectedProperty().addListener(_ -> {
             if (toggleButton.isSelected()) {
                 activeFilters.add(filter);
