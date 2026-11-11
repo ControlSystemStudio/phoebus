@@ -81,6 +81,7 @@ public class TankWidgetUnitTest
         assertThat(tank.propFormat().getValue(), equalTo(ScaleFormat.DEFAULT));
         assertThat(tank.propPrecision().getValue(), equalTo(2));
         assertThat(tank.propLogScale().getValue(), equalTo(false));
+        assertThat(tank.propInvertedScale().getValue(), equalTo(false));
         assertThat(tank.propHorizontal().getValue(), equalTo(false));
         assertThat(tank.propBorderWidth().getValue(), equalTo(0));
     }
@@ -140,6 +141,7 @@ public class TankWidgetUnitTest
         original.propPerpendicularTickLabels().setValue(true);
         original.propFormat().setValue(ScaleFormat.DECIMAL);
         original.propPrecision().setValue(3);
+        original.propInvertedScale().setValue(true);
 
         // Serialize — disable skip_defaults so ALL properties appear
         final DisplayModel model = new DisplayModel();
@@ -165,6 +167,7 @@ public class TankWidgetUnitTest
         assertThat(xml, containsString("<opposite_scale_visible>"));
         assertThat(xml, containsString("<tank_border_width>"));
         assertThat(xml, containsString("<level_lolo>"));
+        assertThat(xml, containsString("<inverted_scale>"));
 
         // Deserialize
         final ModelReader reader = new ModelReader(new ByteArrayInputStream(xml.getBytes()));
@@ -186,6 +189,7 @@ public class TankWidgetUnitTest
         assertThat(tank.propPerpendicularTickLabels().getValue(), equalTo(true));
         assertThat(tank.propFormat().getValue(), equalTo(ScaleFormat.DECIMAL));
         assertThat(tank.propPrecision().getValue(), equalTo(3));
+        assertThat(tank.propInvertedScale().getValue(), equalTo(true));
     }
 
     /** Verify that XML produced by this version can be read by a stock
@@ -213,5 +217,6 @@ public class TankWidgetUnitTest
         assertThat(xml, not(containsString("<level_lolo>")));
         assertThat(xml, not(containsString("<opposite_scale_visible>")));
         assertThat(xml, not(containsString("<tank_border_width>")));
+        assertThat(xml, not(containsString("<inverted_scale>")));
     }
 }
