@@ -551,6 +551,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             final TreeItem<AlarmTreeItem<?>> view_item = createViewItem(item);
 
             propagateVisibilityUpTree(view_item);
+            // Special case: 1 - empty component added, 2 - alarm added to that component. If the filter
+            // does not match the leaf, the component should now be hidden... but propagateVisibilityUpTree
+            // short circuits, so the parent's visibility is never updated
+            propagateVisibilityUpTree(view_parent);
+
             done.countDown();
         });
 
@@ -833,7 +838,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final ToggleButton toggleButton = new ToggleButton();
         toggleButton.setGraphic(graphic);
         toggleButton.setTooltip(new Tooltip(tooltip));
-        toggleButton.setStyle(pillClass);
+        toggleButton.getStyleClass().add(pillClass);
         toggleButton.selectedProperty().addListener(_ -> {
             if (toggleButton.isSelected()) {
                 activeFilters.add(filter);
