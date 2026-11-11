@@ -25,14 +25,13 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -221,31 +220,30 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         filterButton.setGraphic(filterStatusStack);
         filterButton.setContentDisplay(ContentDisplay.RIGHT);
 
-        GridPane filterPane = new GridPane();
-        filterPane.setVgap(5.0);
-        filterPane.setHgap(20.0);
+        VBox filterBox = new VBox();
+        filterBox.setSpacing(5.0);
 
         addFilterRow(
-                filterPane,
+                filterBox,
                 "Active",
                 "active only",
                 "inactive only",
                 leaf -> leaf.getState().getSeverity().isActive()
         );
         addFilterRow(
-                filterPane, "Acknowledged",
+                filterBox, "Acknowledged",
                 "acknowledged only",
                 "unacknowledged only",
                 leaf -> leaf.getState().getSeverity().isAcknowledged()
         );
         addFilterRow(
-                filterPane, "Disabled",
+                filterBox, "Disabled",
                 "disabled only",
                 "enabled only",
                 leaf -> !leaf.isEnabled()
         );
 
-        filterPopOver = new PopOver(filterPane);
+        filterPopOver = new PopOver(filterBox);
         filterPopOver.setAutoHide(true);
 
         filterButton.setOnAction(_ -> {
@@ -299,7 +297,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             if (tree_view.getRoot() != null && itemName != null) {
                 for (TreeItem treeItem : tree_view.getRoot().getChildren()) {
                     if (((AlarmTreeItem<?>) treeItem.getValue()).getName().equals(itemName)) {
-                        expandAlarms(treeItem);
+                        expandOrCollapse(treeItem, true);
                         break;
                     }
                 }
@@ -316,24 +314,16 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     private ToolBar createToolbar()
     {
+
         final Button collapse = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
         collapse.setTooltip(new Tooltip("Collapse alarm tree"));
-        collapse.setOnAction(event ->
-        {
-            for (TreeItem<AlarmTreeItem<?>> sub : tree_view.getRoot().getChildren())
-                sub.setExpanded(false);
-        });
+        collapse.setOnAction(event -> expandOrCollapse(tree_view.getRoot(), false));
 
-        final Button show_alarms = new Button("",
-                ImageCache.getImageView(AlarmUI.class, "/icons/expand_alarms.png"));
-        show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
-        show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
-
-        final Button show_disabled = new Button("",
-                ImageCache.getImageView(AlarmUI.class, "/icons/expand_disabled.png"));
-        show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
-        show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
+        final Button expand = new Button("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/expand.png"));
+        expand.setTooltip(new Tooltip("Expand alarm tree"));
+        expand.setOnAction(event -> expandOrCollapse(tree_view.getRoot(), true));
 
         final Button searchButton = new Button(Messages.search);
 
@@ -348,7 +338,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             }
         });
 
-        return new ToolBar(searchBox, searchButton, filterButton, no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
+        return new ToolBar(searchBox, searchButton, filterButton, no_server, changing, ToolbarHelper.createSpring(), collapse, expand);
     }
 
     ToolBar getToolbar()
@@ -449,42 +439,16 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items.add(index, view_item);
     }
 
-    private void expandAlarms(final TreeItem<AlarmTreeItem<?>> node)
+    private void expandOrCollapse(final TreeItem<AlarmTreeItem<?>> node, final boolean expand)
     {
-        if (node.isLeaf())
-            return;
-
-        // Always expand the root, which itself is not visible,
-        // but this will show all the top-level elements.
-        // In addition, expand those items which are in active alarm.
-        final boolean expand = node.getValue().getState().severity.isActive() ||
-                               node == tree_view.getRoot();
-        node.setExpanded(expand);
-        for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
-            expandAlarms(sub);
-    }
-
-    /** @param node Subtree node where to expand disabled PVs
-     *  @return Does subtree contain disabled PVs?
-     */
-    private boolean expandDisabledPVs(final TreeItem<AlarmTreeItem<?>> node)
-    {
-        if (node != null  &&  (node.getValue() instanceof AlarmClientLeaf))
+        // Simpler than doing it recursively from the root, but also ensures that any hidden
+        // tree items are expanded/collapsed
+        for (TreeItem<AlarmTreeItem<?>> item : path2view.values())
         {
-            AlarmClientLeaf pv = (AlarmClientLeaf) node.getValue();
-            if (! pv.isEnabled())
-                return true;
+            if (item != tree_view.getRoot()) {
+                item.setExpanded(expand);
+            }
         }
-
-        // Always expand the root, which itself is not visible,
-        // but this will show all the top-level elements.
-        // In addition, expand those items which contain disabled PV.
-        boolean expand = node == tree_view.getRoot();
-        for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
-            if (expandDisabledPVs(sub))
-                expand = true;
-        node.setExpanded(expand);
-        return expand;
     }
 
     private TreeItem<AlarmTreeItem<?>> createViewItem(final AlarmTreeItem<?> model_item)
@@ -743,11 +707,15 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     path2view.put(value.getPathName(), update);
                     parent.getChildren().set(index, update);
                 }
+
+                propagateVisibilityUpTree(path2view.get(view_item.getValue().getPathName()));
             }
 
             // Restore selection
             tree_view.getSelectionModel().clearSelection();
-            updatedSelectedItems.forEach(item -> tree_view.getSelectionModel().select(item));
+            updatedSelectedItems.stream()
+                    .filter(item -> item.getParent() != null)
+                    .forEach(item -> tree_view.getSelectionModel().select(item));
         });
     }
 
@@ -865,28 +833,14 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     }
 
     private void addFilterRow(
-            final GridPane filterPane,
+            final VBox box,
             final String name,
             final String selected,
             final String unselected,
             final Predicate<AlarmClientLeaf> selectedPredicate
     )
     {
-        Label hint = new Label("all");
-        hint.setStyle("-fx-text-fill: #999999");
-        filterPane.add(hint, 1, filterPane.getRowCount());
-
-        // this is a hack to force the popover to be as wide as the widest possible guidance
-        {
-            Label invisibleSelectedHint = new Label(selected);
-            invisibleSelectedHint.setVisible(false);
-            Label invisibleUnselectedHint = new Label(unselected);
-            invisibleUnselectedHint.setVisible(false);
-            filterPane.add(invisibleSelectedHint, 1, filterPane.getRowCount() - 1);
-            filterPane.add(invisibleUnselectedHint, 1, filterPane.getRowCount() - 1);
-        }
-
-        // same hack for the button itself
+        // this is a hack to force the hint to be as wide as the widest possible guidance
         {
             Label invisibleSelectedHint = new Label(selected);
             invisibleSelectedHint.setVisible(false);
@@ -915,19 +869,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             propagateVisibilityDownTree(tree_view.getRoot());
         });
 
-        InvalidationListener listener = _ -> {
-            if (checkBox.isIndeterminate()) {
-                hint.setText("all");
-            } else {
-                hint.setText(checkBox.isSelected() ? selected : unselected);
-            }
-        };
-        checkBox.indeterminateProperty().addListener(listener);
-        checkBox.selectedProperty().addListener(listener);
-
         filterCheckboxes.add(checkBox);
 
-        filterPane.add(checkBox, 0, filterPane.getRowCount() - 1);
+        box.getChildren().add(checkBox);
     }
 
     private static void dumpTree(final TreeItem<AlarmTreeItem<?>> item)
