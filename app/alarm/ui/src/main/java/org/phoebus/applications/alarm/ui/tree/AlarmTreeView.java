@@ -439,14 +439,16 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items.add(index, view_item);
     }
 
-    private void expandOrCollapse(final TreeItem<AlarmTreeItem<?>> node, final boolean expand)
+    private void expandOrCollapse(final TreeItem<AlarmTreeItem<?>> component, final boolean expand)
     {
-        // Simpler than doing it recursively from the root, but also ensures that any hidden
-        // tree items are expanded/collapsed
-        for (TreeItem<AlarmTreeItem<?>> item : path2view.values())
-        {
-            if (item != tree_view.getRoot()) {
-                item.setExpanded(expand);
+        if (component != tree_view.getRoot()) {
+            component.setExpanded(expand);
+        }
+
+        if (!component.isLeaf()) {
+            for (AlarmTreeItem<?> child : component.getValue().getChildren()) {
+                // We use path2view.get because component might have hidden children, which we still want to expand/collapse
+                expandOrCollapse(path2view.get(child.getPathName()), expand);
             }
         }
     }
@@ -481,7 +483,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             setCursor(Cursor.WAIT);
             final ObservableList<Node> items = getToolbar().getItems();
             if (! items.contains(changing))
-                items.add(3, changing);
+                items.add(5, changing);
         }
         else
             previous.cancel(false);
