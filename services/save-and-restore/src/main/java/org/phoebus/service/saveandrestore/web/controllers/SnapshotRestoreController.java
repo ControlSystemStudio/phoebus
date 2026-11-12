@@ -10,6 +10,8 @@ import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.saveandrestore.util.SnapshotUtil;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +26,7 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("unused")
 @RestController
+@ConditionalOnBooleanProperty(name = "serverRestoreAllowed")
 public class SnapshotRestoreController extends BaseController {
 
     @Autowired
@@ -70,4 +73,3 @@ public class SnapshotRestoreController extends BaseController {
         return snapshotUtil.restore(snapshotItems, connectionTimeout);
     }
 }
-

@@ -839,6 +839,10 @@ The response is a snapshot object representing the persisted data, see :ref:`Get
 Server Restore Endpoints
 ------------------------
 
+**NOTE:** the restore endpoints are disabled by default. To enable these, the service must be launched with
+runtime property ``serverRestoreAllowed=true``. This can specified on the Java command line (``-DserverRestoreAllowed=true``)
+or set as an environment variable.
+
 Restore from snapshot items
 """""""""""""""""""""""""""
 
