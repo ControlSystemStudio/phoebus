@@ -17,10 +17,12 @@ import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.scene.control.TableColumnBase;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -186,8 +188,16 @@ public class AlarmTableUI extends BorderPane
 
             if (empty  ||  item == null)
                 setGraphic(null);
-            else
-                setGraphic(new ImageView(AlarmUI.getIcon(item)));
+            else {
+                Image image = AlarmUI.getIcon(item);
+                ImageView icon = new ImageView(image);
+
+                double scale = AlarmSystem.alarm_table_font_size / Font.getDefault().getSize();
+                icon.setPreserveRatio(true);
+                icon.setFitWidth(image.getWidth() * scale);
+
+                setGraphic(icon);
+            }
         }
     }
 
@@ -414,6 +424,8 @@ public class AlarmTableUI extends BorderPane
         final SortedList<AlarmInfoRow> sorted = new SortedList<>(rows);
         final TableView<AlarmInfoRow> table = new TableView<>(sorted);
 
+        table.setStyle("-fx-font-size: " + AlarmSystem.alarm_table_font_size + "px");
+
         // Ensure that the sorted rows are always updated as the column sorting
         // of the TableView is changed by the user clicking on table headers.
         sorted.comparatorProperty().bind(table.comparatorProperty());
@@ -421,7 +433,8 @@ public class AlarmTableUI extends BorderPane
         // Prepare columns.
         final List<TableColumn<AlarmInfoRow, ?>> cols = new ArrayList<>();
         TableColumn<AlarmInfoRow, SeverityLevel> sevcol = new TableColumn<>(/* Icon */);
-        sevcol.setPrefWidth(25);
+        double iconScale = AlarmSystem.alarm_table_font_size / Font.getDefault().getSize();
+        sevcol.setPrefWidth(25 * iconScale);
         sevcol.setReorderable(false);
         sevcol.setCellValueFactory(cell -> cell.getValue().severity);
         sevcol.setCellFactory(c -> new SeverityIconCell());

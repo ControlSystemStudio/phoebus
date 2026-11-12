@@ -30,9 +30,7 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
-import org.csstudio.display.builder.model.properties.ActionInfos;
-import org.csstudio.display.builder.model.properties.RotationStep;
-import org.csstudio.display.builder.model.properties.StringWidgetProperty;
+import org.csstudio.display.builder.model.properties.*;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
@@ -167,7 +165,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             button.setOnAction(event -> confirm(() -> handleActions(actions.getActions())));
             result = button;
             if (actions.getActions().size() == 1) {
-                // If the ActionButton only has a single action and that is to 
+                // If the ActionButton only has a single action and that is to
                 // write to a PV then is_writePV should be true.
                 // This means that if the PV is non-writable then the
                 // ActionButton will be disabled.
@@ -392,12 +390,12 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             style = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1); -fx-mark-color: transparent; -fx-background-color: transparent;";
         else
             style = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
-        
+
         final String fg_css = JFXUtil.webHex(model_widget.propForegroundColor().getValue());
         // Most labels use -fx-text-fill
         style += " -fx-text-fill: " + fg_css + ";";
         // Modena sets .menu-button .label to -fx-text-fill: -fx-text-base-color, so patch -fx-text-base-color as well
-        style += " -fx-text-base-color: " + fg_css + ";";        
+        style += " -fx-text-base-color: " + fg_css + ";";
     }
 
     @Override
@@ -412,6 +410,10 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             base.setText(button_text);
             base.setStyle(style);
             base.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            WidgetFont font = model_widget.propFont().getValue();
+            WidgetFontStyle fontStyle = font.getStyle();
+            boolean underline = fontStyle.toString().contains(WidgetFontStyle.UNDERLINE.toString());
+            base.setUnderline(underline);
 
             // If widget is not wide enough to show the label, hide menu button 'arrow'.
             if (base instanceof MenuButton) {

@@ -20,6 +20,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
@@ -359,7 +361,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         value_label = state_labels[on_state];
 
         computeBackground();
-        
+
         pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
                 model_widget.propVerticalAlignment().getValue());
 
@@ -394,6 +396,10 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
                       hei = model_widget.propHeight().getValue();
             button.setPrefSize(wid, hei);
             button.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            WidgetFont font = model_widget.propFont().getValue();
+            WidgetFontStyle style = font.getStyle();
+            boolean underline = style.toString().contains(WidgetFontStyle.UNDERLINE.toString());
+            button.setUnderline(underline);
             button.setTextFill(foreground);
             button.setStyle(background);
 
@@ -417,7 +423,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         {
             enabled = model_widget.propEnabled().getValue()  &&
                                     model_widget.runtimePropPVWritable().getValue();
-            setDisabledLook(enabled, jfx_node.getChildren());        
+            setDisabledLook(enabled, jfx_node.getChildren());
         }
         if (update_value)
         {

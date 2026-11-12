@@ -8,8 +8,8 @@ https://control-system-studio.readthedocs.io
 
 
 ## Requirements
- - [JDK21 or later, suggested is OpenJDK](https://adoptium.net/en-GB/temurin/releases?version=21).
- - [maven 3.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
+- [JDK25 or later, suggested is OpenJDK](https://adoptium.net/en-GB/temurin/releases?version=25).
+- [maven 3.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
 ## Target Platform
@@ -24,10 +24,10 @@ mvn clean verify -f dependencies/pom.xml
 
 ## Building with maven
 
-Define the JAVA_HOME environment variable to point to your Java installation directory. 
+Define the JAVA_HOME environment variable to point to your Java installation directory.
 Mac OS users should use something like:
 ```
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.0.11+10/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-25.0.2/Contents/Home
 ```
 Verify through:
 ```
@@ -52,13 +52,48 @@ Set the environment variable `LANG` to `en_US.UTF-8`
 to execute tests in a specific locale,
 or build with `mvn -DskipTests ...` to skip tests.
 
-### Running the phoebus application  
+### Running the phoebus application
 
 To run the product jar
 ```
 cd phoebus-product/target
 java -jar product-*-SNAPSHOT.jar
 ```
+
+### Pre-commit
+This project uses pre-commit to run automated checks defined in .pre-commit-config.yaml before changes are committed.
+
+#### Installation
+If you have _pip_ installed:
+```
+pip install pre-commit
+```
+
+- On Debian:
+```
+apt install pre-commit
+```
+- On macOs:
+```
+brew install pre-commit
+```
+- On Windows:
+```
+## If you have pipx installed - To be confirmed
+py -m pipx ensurepath
+pipx install pre-commit
+```
+#### Set up the Git hook
+```
+pre-commit install
+```
+Once set up, the pre-commit automatically runs before each commit.
+
+#### Run the check manually
+```
+pre-commit run
+```
+
 
 ## Building with ant
 
@@ -73,14 +108,14 @@ Download "Eclipse for Java Developers" from https://www.eclipse.org/downloads/pa
 
 Start Eclipse like this:
 
-    export JAVA_HOME=/path/to/your/jdk-21-or-later
+    export JAVA_HOME=/path/to/your/jdk-25-or-later
     export PATH="$JAVA_HOME/bin:$PATH"
     eclipse/eclipse -consoleLog
 
 Check Eclipse Preferences:
 
- * Java, Installed JREs: JDK 21-or-later should be the default
- * Java, Compiler: JDK Compliance should be "21" or higher
+* Java, Installed JREs: JDK 25-or-later should be the default
+* Java, Compiler: JDK Compliance should be "25" or higher
 
 
 ### Use plain Java configuration
@@ -112,7 +147,7 @@ In Help/Eclipse Marketplace, search for Maven Integration for Eclipse Luna or ne
 Use File/Import/Maven/Existing Maven Projects to import the phoebus source code.
 
 There can be a compiler error because the "JRE System Library" in the Package Explorer shows "[J2SE-1.4]".
-Right click on the affected projects (greeting-app, probe), Build Path, Configure Build Path, Libraries, Edit the JRE System Library to use the Workspace default (jdk-21).
+Right click on the affected projects (greeting-app, probe), Build Path, Configure Build Path, Libraries, Edit the JRE System Library to use the Workspace default (jdk-25).
 Restart Eclipse IDE.
 
 Can now start product/src/main/java/org.phoebus.product/Launcher.java.
@@ -120,20 +155,36 @@ Can now start product/src/main/java/org.phoebus.product/Launcher.java.
 
 ## Developing with Intellij IDEA
 
-To import the project:
+To import and set up the project:
 
-* Import Project
-* Select the Phoebus directory
-* Import project from external model: Maven
-* Accept the default options and click Next twice
- * Ensure that the JDK is version 21 or above
-* Change the project name to Phoebus and click finish
+* Select New Project.
+* Enter Phoebus as the project name.
+* Select Maven as the project type.
+* Choose the appropriate JDK 25 installation path.
+* Navigate to File → Settings → Build, Execution, Deployment → Build Tools → Maven.
+* Under Maven → Runner, set the JRE to JDK 25.
+* Open the Maven tool window from the right sidebar.
+* Click Sync All Maven Projects to synchronize the project and download the required dependencies.
+
+To build the phoebus application:
+
+* Open a terminal in IntelliJ IDEA and navigate to the Phoebus project root directory.
+* Ensure that JDK 25 or later and Maven 3.x are installed and configured correctly.
+
+```
+# Verify Java and Maven versions
+java -version
+mvn -version
+
+# Build the application
+mvn clean install -DskipTests
+```
 
 To run the Phoebus application:
 
 * Run | Edit Configurations...
 * Select + | Application
- * Module: Your JRE 21
+* Module: Your JRE 25
 * Classpath `-cp`: select `product` from drop-down
 * Main class: `org.phoebus.product.Launcher`
 * Set the name to Phoebus
@@ -169,6 +220,131 @@ To run the Phoebus application:
    *Set as Main Project*. In this way the Phoebus application can be started just
    pressing the *F6* key, the *Run Main Project* toolbar button, or the
    *Run* ➜ *Run Main Project* menu item.
+
+
+## Developing with VS Code
+
+Install [Visual Studio Code](https://code.visualstudio.com/) and the
+[Extension Pack for Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack).
+Make sure a JDK 25 or later is installed and selected in VS Code (use
+**Java: Configure Java Runtime** from the Command Palette).
+
+Open the Phoebus root directory in VS Code. If the target platform has not yet
+been downloaded, run:
+
+```
+mvn clean verify -f dependencies/pom.xml
+```
+
+The `.vscode` directory is intentionally not versioned, so create the following
+files locally to get build tasks and launch configurations.
+
+`.vscode/tasks.json`:
+
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Phoebus product",
+            "type": "process",
+            "command": "mvn",
+            "args": [
+                "-DskipTests",
+                "install"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean build Phoebus product",
+            "type": "process",
+            "command": "mvn",
+            "args": [
+                "-DskipTests",
+                "clean",
+                "install"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}
+```
+
+`.vscode/launch.json`:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Phoebus: Incremental Build and Debug",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Phoebus product",
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Phoebus: Debug Last Build (No Build)",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Phoebus: Clean Build and Debug",
+            "request": "launch",
+            "mainClass": "org.phoebus.product.Launcher",
+            "classPaths": [
+                "${workspaceFolder}/phoebus-product/target/*"
+            ],
+            "cwd": "${workspaceFolder}/phoebus-product/target",
+            "console": "integratedTerminal",
+            "preLaunchTask": "Clean build Phoebus product",
+            "args": []
+        }
+    ]
+}
+```
+
+`.vscode/settings.json`:
+
+```json
+{
+    "debug.hideSlowPreLaunchWarning": true,
+    "java.debug.settings.forceBuildBeforeLaunch": false,
+    "java.debug.settings.onBuildFailureProceed": false
+}
+```
+
+With those files in place, select **Phoebus: Incremental Build and Debug** in
+the Run and Debug view and press the green play button. This builds the product
+with Maven, skipping unit tests, and launches `org.phoebus.product.Launcher`.
+Select **Phoebus: Clean Build and Debug** to clean before building, or
+**Phoebus: Debug Last Build (No Build)** to launch the most recent build
+without running a Maven build first.
 
 
 ## Complete Distribution, including manual and self-update
@@ -253,20 +429,20 @@ Create a sonatype account and update the maven settings.xml file with your sonat
   </servers>
 ```
 
-**Prepare the release**  
-`mvn release:prepare`  
+**Prepare the release**
+`mvn release:prepare`
 In this step will ensure there are no uncommitted changes, ensure the versions number are correct, tag the scm, etc.
 A full list of checks is documented [here](https://maven.apache.org/maven-release/maven-release-plugin/usage/prepare-release.html).
 
-**Perform the release**  
-`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`  
+**Perform the release**
+`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`
 Checkout the release tag, build, sign and push the build binaries to sonatype. The `docs` profile is needed in order
 to create required javadocs jars.
 
-**Publish**  
+**Publish**
 Open the staging repository in [sonatype](https://s01.oss.sonatype.org/#stagingRepositories) and hit the *publish* button
 
 **Note:**
-In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the 
-dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should 
+In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the
+dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should
 updated to match the next development snapshotData version.

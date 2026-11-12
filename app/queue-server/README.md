@@ -30,7 +30,7 @@ A JavaFX-based client for the [Bluesky QueueServer](https://blueskyproject.io/bl
 
 ### Prerequisites
 
-- **Java 21** or later
+- **Java 25** or later
 - **Maven** (for building from source)
 - **Bluesky Queue Server** running and accessible
 

@@ -9,7 +9,7 @@ import org.phoebus.framework.spi.AppInstance;
 public class EsLogApp implements AppDescriptor
 {
     static final String NAME = "eslog";
-    static final String DISPLAY_NAME = "Message Log";
+    static final String DISPLAY_NAME = Messages.MessageLog;
 
     @Override
     public String getName()
