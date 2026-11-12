@@ -26,9 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -279,13 +282,22 @@ public class AuthorizationHelper {
 
     /**
      * Checks if user is allowed to move or copy objects. This is the case if authorization
-     * is disabled or if user has admin role.
+     * is disabled, if the target {@link Node} was created by the user performing the copy/move operation,
+     * or if user has admin role.
      *
+     * @param targetNodeId The id of the target {@link Node}
      * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
      *                                           queried for authorization.
      * @return <code>false</code> if user may not create the object, otherwise <code>true</code>.
      */
-    public boolean mayMoveOrCopy(MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
-        return permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin);
+    public boolean mayMoveOrCopy(String targetNodeId, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
+        if(permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin)){
+            return true;
+        }
+
+        Node targetNode = nodeDAO.getNode(targetNodeId);
+
+        return targetNode.getUserName()
+                .equals(((UserDetails) methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername());
     }
 }

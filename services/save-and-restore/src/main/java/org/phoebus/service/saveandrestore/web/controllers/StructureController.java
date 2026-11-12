@@ -64,7 +64,7 @@ public class StructureController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/move", produces = JSON)
-    @PreAuthorize("@authorizationHelper.mayMoveOrCopy(#root)")
+    @PreAuthorize("@authorizationHelper.mayMoveOrCopy(#to, #root)")
     public Node moveNodes(@RequestParam(value = "to") String to,
                           @RequestBody List<String> nodes,
                           Principal principal) {
@@ -72,7 +72,7 @@ public class StructureController extends BaseController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Target node and list of source nodes must all be non-empty.");
         }
         // Get parent node before move
-        Node sourceParentNode = nodeDAO.getParentNode(nodes.get(0));
+        Node sourceParentNode = nodeDAO.getParentNode(nodes.getFirst());
         Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
         Node targetNode = nodeDAO.moveNodes(nodes, to, principal.getName());
         // Update clients
@@ -84,7 +84,7 @@ public class StructureController extends BaseController {
     }
 
     /**
-     * Copies a list of source nodes to a target (parent) node. Since the source nodes may contain sub-trees at
+     * Copies a list of source nodes to a target (parent) node. Since the source nodes may contain subtrees at
      * any depth, the copy operation needs to do a deep copy, which may take some time to complete.
      *
      * @param to        The unique id of the target parent node, which must be a folder. If empty or if
@@ -96,7 +96,7 @@ public class StructureController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/copy", produces = JSON)
-    @PreAuthorize("@authorizationHelper.mayMoveOrCopy(#root)")
+    @PreAuthorize("@authorizationHelper.mayMoveOrCopy(#to, #root)")
     public Node copyNodes(@RequestParam(value = "to") String to,
                           @RequestBody List<String> nodes,
                           Principal principal) {

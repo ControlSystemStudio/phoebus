@@ -74,9 +74,6 @@ public class StructureControllerTest {
     private String adminAuthorization;
 
     @Autowired
-    private String readOnlyAuthorization;
-
-    @Autowired
     private WebSocketService webSocketService;
 
     @AfterEach
@@ -85,7 +82,7 @@ public class StructureControllerTest {
     }
 
     @Test
-    public void testMoveNode1() throws Exception {
+    public void testMoveNodeAdmin() throws Exception {
         when(nodeDAO.moveNodes(List.of("a"), "b", demoAdmin))
                 .thenReturn(Node.builder().uniqueId("2").uniqueId("a").userName(demoAdmin).build());
 
@@ -106,42 +103,40 @@ public class StructureControllerTest {
     }
 
     @Test
-    public void testMoveNode2() throws Exception {
+    public void testMoveNodeUser() throws Exception {
 
-        when(nodeDAO.moveNodes(List.of("a"), "b", demoUser))
+        when(nodeDAO.moveNodes(List.of("a"), "target", demoUser))
                 .thenReturn(Node.builder().uniqueId("2").uniqueId("a").userName(demoUser).build());
+        when(nodeDAO.getNode("target"))
+                .thenReturn(Node.builder().uniqueId("target").userName("user").build());
 
         MockHttpServletRequestBuilder request = post("/move")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(List.of("a")))
-                .param("to", "b")
+                .param("to", "target")
                 .param("username", "username");
 
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isOk());
 
-        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
+        verify(webSocketService, times(2)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
 
     @Test
-    public void testMoveNode3() throws Exception {
+    public void testMoveNodeOtherUser() throws Exception {
+
+        when(nodeDAO.getNode("target"))
+                .thenReturn(Node.builder().uniqueId("target").userName("otheruser").build());
 
         MockHttpServletRequestBuilder request = post("/move")
-                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(List.of("a")))
-                .param("to", "b")
+                .param("to", "target")
                 .param("username", "username");
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        request = post("/move")
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(List.of("a")))
-                .param("to", "b")
-                .param("username", "username");
-
-        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
     }
@@ -175,15 +170,36 @@ public class StructureControllerTest {
     }
 
     @Test
-    public void testCopyNodes1() throws Exception {
+    public void testCopyNodesAdmin() throws Exception {
         MockHttpServletRequestBuilder request = post("/copy")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(List.of("a")))
                 .param("to", "target");
         mockMvc.perform(request).andExpect(status().isOk());
+    }
 
-        request = post("/copy")
+    @Test
+    public void testCopyNodesUser() throws Exception{
+
+        when(nodeDAO.getNode("target"))
+                .thenReturn(Node.builder().uniqueId("target").userName("user").build());
+        MockHttpServletRequestBuilder request = post("/copy")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(List.of("a")))
+                .param("to", "target");
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        verify(webSocketService, times(0)).sendMessageToClients(Mockito.any(WebSocketMessage.class));
+    }
+
+    @Test
+    public void testCopyNodesOtherUser() throws Exception{
+
+        when(nodeDAO.getNode("target"))
+                .thenReturn(Node.builder().uniqueId("target").userName("otheruser").build());
+        MockHttpServletRequestBuilder request = post("/copy")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(List.of("a")))
@@ -194,7 +210,7 @@ public class StructureControllerTest {
     }
 
     @Test
-    public void testCopyNodes2() throws Exception {
+    public void testCopyNodesNotLoggedIn() throws Exception {
 
         MockHttpServletRequestBuilder request = post("/copy")
                 .contentType(JSON)
