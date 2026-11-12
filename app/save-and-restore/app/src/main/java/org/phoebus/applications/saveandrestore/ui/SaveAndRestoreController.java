@@ -82,7 +82,6 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -268,9 +267,11 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
 
         lastModifiedColumn.setCellFactory(d -> new NodeLastUpdatedTreeTableCell(this));
         lastModifiedColumn.setCellValueFactory(n -> new ReadOnlyObjectWrapper<>(n.getValue().getValue()));
+        lastModifiedColumn.setComparator(Comparator.comparing(Node::getLastModified));
 
         userColumn.setCellFactory(d -> new NodeUserTreeTableCell(this));
         userColumn.setCellValueFactory(n -> new ReadOnlyObjectWrapper<>(n.getValue().getValue()));
+        userColumn.setComparator(Comparator.comparing(Node::getUserName));
 
         treeTableViewPane.disableProperty().bind(disabledUi);
         progressIndicator.visibleProperty().bind(disabledUi);
