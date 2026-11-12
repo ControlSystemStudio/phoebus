@@ -8,10 +8,10 @@
 package org.phoebus.applications.alarm.ui.tree;
 
 import javafx.scene.Node;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.ui.javafx.ImageCache;
@@ -24,26 +24,18 @@ import java.util.List;
  * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class EnableComponentAction extends MenuItem {
+class EnableAction extends MenuItem {
     /**
      * @param node  Node to position dialog
      * @param model {@link AlarmClient}
      * @param items Items to enable
      */
-    public EnableComponentAction(final Node node, final AlarmClient model, final List<AlarmTreeItem<?>> items) {
-
-        if (doEnable()) {
-            setText(Messages.enableAlarms);
-            setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/enabled.png"));
-        } else {
-            setText(Messages.disableAlarms);
-        }
-
-        setOnAction(event -> ComponentActionHelper.updateEnablement(node, model, items, doEnable()));
-    }
-
-    // Implementation can actually disable or enable. Which one is it going to be?
-    protected boolean doEnable() {
-        return true;
+    public EnableAction(final Node node, final AlarmClient model, final List<AlarmTreeItem<?>> items) {
+        setText(Messages.enableAlarms);
+        setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/enabled.png"));
+        setOnAction(event -> {
+            final TreeNodeInfo treeNodeInfo = AlarmTreeHelper.getTreeNodeInfo(items);
+            ComponentActionHelper.updateEnabledState(node, model, new EnabledState(true), treeNodeInfo.leaves());
+        });
     }
 }

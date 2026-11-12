@@ -616,7 +616,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 }
                 if (selection.size() >= 1)
                 {
-                    menu_items.add(new EnableComponentAction(tree_view, model, selection));
+                    menu_items.add(new EnableAction(tree_view, model, selection));
                     menu_items.add(new DisableAction(tree_view, model, selection));
                     menu_items.add(new RemoveComponentAction(tree_view, model, selection));
 

@@ -9,92 +9,92 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
-import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Set;
+
 
 /**
- * Code externalized from {@link EnableComponentAction}.
+ * Code externalized from {@link EnableAction}.
  */
-public class ComponentActionHelper {
+public final class ComponentActionHelper {
+
+    private ComponentActionHelper() {}
 
     /**
-     * Updates a component or PV node to enable or disable alarms
+     * Updates a hierarchy of PVs to a new {@link EnabledState}.
      *
-     * @param node   The visual component relative to which a confirmation dialog is positioned.
-     * @param model  {@link AlarmClient} dispatching producer messages.
-     * @param items  {@link List} of items subject for update, e.g. selected by user.
-     * @param enable If <code>true</code>, enable alarms on selected nodes, otherwise disable.
+     * @param newEnabledState The {@link EnabledState} to set on all leaf nodes specified in <code>items</code>   .
      */
-    public static void updateEnablement(final Node node, final AlarmClient model, final List<AlarmTreeItem<?>> items, boolean enable) {
-        final List<AlarmClientLeaf> pvs = new ArrayList<>();
-        for (AlarmTreeItem<?> item : items) {
-            findAffectedPVs(item, pvs, enable);
+    public static void updateEnabledState(
+            final Node node,
+            final AlarmClient model,
+            final EnabledState newEnabledState,
+            final Set<AlarmClientLeaf> totalLeafItems
+    ) {
+        if (totalLeafItems.stream().allMatch(leaf -> leaf.getEnabled().equals(newEnabledState))) {
+            final Alert dialog = new Alert(Alert.AlertType.INFORMATION);
+            DialogHelper.positionDialog(dialog, node, 0, 0);
+            dialog.setHeaderText(newEnabledState.enabled ? Messages.headerAlreadyEnabled : Messages.headerAlreadyDisabled);
+            dialog.show();
+            return;
         }
 
-        // If this affects exactly one PV, just do it.
-        // Otherwise ask for confirmation
-        if (pvs.size() != 1) {
+        // check the enable datetime is in the future right before updating - we could guard against more in the
+        // disable dialog, but the user could still for example select the next minute and then let two minutes pass
+        // So if we didn't check here we'd need to constantly be checking in the dialog box, not really worth it
+        if (newEnabledState.enabled_date != null && newEnabledState.enabled_date.isBefore(LocalDateTime.now())) {
+            final Alert dialog = new Alert(Alert.AlertType.ERROR);
+            DialogHelper.positionDialog(dialog, node, 0, 0);
+            dialog.setHeaderText(MessageFormat.format(Messages.selectedDateInThePast, TimestampFormats.SECONDS_FORMAT.format(newEnabledState.enabled_date)));
+            dialog.show();
+            return;
+        }
+
+        // If more than one alarm affected, show a dialog box
+        if (totalLeafItems.size() > 1) {
             final Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
-            dialog.setTitle(enable ? Messages.enableAlarms : Messages.disableAlarms);
-            if (pvs.isEmpty()) {
-                dialog.setHeaderText(
-                        enable
-                                ? Messages.headerAlreadyEnabled
-                                : Messages.headerAlreadyDisabled);
-            } else {
+            DialogHelper.positionDialog(dialog, node, 0, 0);
+            dialog.setTitle(newEnabledState.enabled ? Messages.enableAlarms : Messages.disableAlarms);
+            if (newEnabledState.enabled_date != null) {
                 dialog.setHeaderText(MessageFormat.format(
-                        enable
-                                ? Messages.headerConfirmEnable
-                                : Messages.headerConfirmDisable,
-                        pvs.size()));
+                        Messages.headerConfirmDisableWithEnableDate,
+                        totalLeafItems.size(),
+                        TimestampFormats.DATETIME_FORMAT.format(newEnabledState.enabled_date)
+                ));
+            } else if (!newEnabledState.enabled) {
+                dialog.setHeaderText(MessageFormat.format(Messages.headerConfirmDisable, totalLeafItems.size()));
+            } else {
+                dialog.setHeaderText(MessageFormat.format(Messages.headerConfirmEnable, totalLeafItems.size()));
             }
-            DialogHelper.positionDialog(dialog, node, -100, -50);
+
             if (dialog.showAndWait().get() != ButtonType.OK) {
                 return;
             }
         }
 
-        JobManager.schedule(enable ? Messages.enableAlarms : Messages.disableAlarms, monitor ->
+        JobManager.schedule(newEnabledState.enabled ? Messages.enableAlarms : Messages.disableAlarms, monitor ->
         {
-            for (AlarmClientLeaf pv : pvs) {
+            for (final AlarmClientLeaf pv : totalLeafItems) {
                 final AlarmClientLeaf copy = pv.createDetachedCopy();
-                if (copy.setEnabled(enable))
+                if (copy.setEnabled(newEnabledState)) {
                     try {
                         model.sendItemConfigurationUpdate(pv.getPathName(), copy);
-                    } catch (Exception e) {
+                    } catch (final Exception ex) {
                         ExceptionDetailsErrorDialog.openError(Messages.error,
-                                copy.isEnabled() ? Messages.enableAlarmFailed : Messages.disableAlarmFailed,
-                                e);
-                        throw e;
+                                newEnabledState.enabled ? Messages.enableAlarmFailed : Messages.disableAlarmFailed,
+                                ex);
+                        throw ex;
                     }
+                }
             }
         });
-    }
-
-
-    /**
-     * @param item Node where to start recursing for PVs that would be affected
-     * @param pvs  Array to update with PVs that would be affected
-     */
-    public static void findAffectedPVs(final AlarmTreeItem<?> item, final List<AlarmClientLeaf> pvs, boolean enable) {
-        if (item instanceof AlarmClientLeaf) {
-            final AlarmClientLeaf pv = (AlarmClientLeaf) item;
-            // If pv has different enablement, and wasn't already added
-            // because selection contains its parent as well as the PV itself...
-            if ((pv.isEnabled() != enable || pv.getEnabledDate() != null) && !pvs.contains(pv)) {
-                pvs.add(pv);
-            }
-        } else {
-            for (AlarmTreeItem<?> sub : item.getChildren()) {
-                findAffectedPVs(sub, pvs, enable);
-            }
-        }
     }
 }
