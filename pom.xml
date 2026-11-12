@@ -67,7 +67,7 @@
     <project.build.outputTimestamp>2026-10-06T19:17:33Z</project.build.outputTimestamp>
     <epics.version>7.0.11</epics.version>
     <epics.util.version>1.0.8</epics.util.version>
-    <vtype.version>1.0.8</vtype.version>
+    <vtype.version>1.0.9-SNAPSHOT</vtype.version>
     <openjfx.version>25.0.4</openjfx.version>
     <!-- netscape.javascript jar for the JDK 26+ profiles; versioned separately
          from openjfx as it's only published for 25+. -->

@@ -13,6 +13,7 @@ import java.text.ParsePosition;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.epics.pva.data.PVAArray;
@@ -33,6 +34,7 @@ import org.epics.pva.data.PVAShortArray;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStringArray;
 import org.epics.pva.data.PVAStructure;
+import org.epics.pvdata.pv.PVStructure;
 import org.epics.util.array.ArrayByte;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
@@ -243,6 +245,20 @@ public class Decoders
         }
     }
 
+    private static Optional<String> decodeDescription(final PVAStructure struct) {
+        if (struct.get("display") instanceof PVAStructure display) {
+            if (display.get("description") instanceof PVAString pvaString) {
+                return Optional.ofNullable(pvaString.get());
+            }
+            else {
+                return Optional.empty();
+            }
+        }
+        else {
+            return Optional.empty();
+        }
+    }
+
     private static Display decodeDisplay(final PVAStructure struct)
     {
         String units;
@@ -341,7 +357,7 @@ public class Decoders
      */
     public static VType decodeBool(PVAStructure struct, PVABool field)
     {
-        return VBoolean.of(field.get(), decodeAlarm(struct), decodeTime(struct));
+        return VBoolean.of(field.get(), decodeAlarm(struct), decodeTime(struct), decodeDescription(struct));
     }
 
     /** @param struct Structure
@@ -350,7 +366,7 @@ public class Decoders
      */
     public static VType decodeString(PVAStructure struct, PVAString field)
     {
-        return VString.of(field.get(), decodeAlarm(struct), decodeTime(struct));
+        return VString.of(field.get(), decodeAlarm(struct), decodeTime(struct), decodeDescription(struct));
     }
 
     /** @param struct Structure for enum
@@ -366,7 +382,7 @@ public class Decoders
         final int value = ((PVAInt)section.get("index")).get();
         final PVAStringArray choices = section.get("choices");
 
-        return VEnum.of(value, EnumDisplay.of(choices.get()), alarm, time);
+        return VEnum.of(value, EnumDisplay.of(choices.get()), alarm, time, decodeDescription(struct));
     }
 
     /** @param struct Structure
