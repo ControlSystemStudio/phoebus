@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.FutureTask;
@@ -340,7 +339,9 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Load display file, represent it, start runtime
      *
      *  <p>Loads run one at a time, in the background.
-     *  The previous display is disposed once its own load has started its runtime.
+     *  The shown display remains until the new one has been loaded,
+     *  then it is disposed and the new one represented in one step on the UI thread.
+     *  So the previous display is only disposed once its own load has started its runtime.
      *  A load that is replaced by a newer one, or by closing the display,
      *  before its display is shown is skipped.
      *  This happens for example when 'back' is pressed twice in a row.
@@ -361,6 +362,8 @@ public class DisplayRuntimeInstance implements AppInstance
 
         // Note the path & macros, then
         display_info = Optional.of(info);
+        if (active_model == null)
+            showMessage("Loading " + info);
         // load model off UI thread
         JobManager.schedule("Load Display", monitor ->
         {
@@ -402,18 +405,18 @@ public class DisplayRuntimeInstance implements AppInstance
     {
         try
         {
-            if (! disposeAndShowLoading(load))
-                return null;
-
             final DisplayModel model = loadModel(monitor, load.info());
-            if (! Boolean.TRUE.equals(representation.submit(() -> representModelIfLatest(load, model)).get()))
-            {
+            if (! Boolean.TRUE.equals(representation.submit(() -> replaceModelIfLatest(load, model)).get()))
+            {   // A newer load, or closing the display, replaced this one
                 model.dispose();
                 return null;
             }
 
             resizeStageToModel(model);
 
+            // Start the runtime unless the display was replaced meanwhile.
+            // Then the newer load disposes this model once it has the load lock,
+            // or closing the display already did.
             if (! isLatest(load))
                 return null;
             RuntimeUtil.startRuntime(model);
@@ -432,27 +435,6 @@ public class DisplayRuntimeInstance implements AppInstance
                 logger.log(Level.WARNING, ex, () -> "Cannot load model from " + load.info().getPath() + ", which was replaced meanwhile");
         }
         return null;
-    }
-
-    /** Dispose the shown display, then show that a new one is loading
-     *  @param load Display load
-     *  @return <code>true</code> if the load is still the latest one
-     *  @throws InterruptedException if interrupted while waiting for the UI thread
-     *  @throws ExecutionException on error
-     */
-    private boolean disposeAndShowLoading(final DisplayLoad load) throws InterruptedException, ExecutionException
-    {
-        // Showing this info before disposeModel()
-        // would result in old representation not being able
-        // to traverse its expected widget tree
-        return representation.submit(() ->
-        {
-            if (! isLatest(load))
-                return false;
-            disposeModel();
-            showMessage("Loading " + load.info());
-            return true;
-        }).get();
     }
 
     /** Size a standalone window to the model
@@ -587,15 +569,17 @@ public class DisplayRuntimeInstance implements AppInstance
         return null;
     }
 
-    /** Represent model unless a newer load or closing the display replaced it
+    /** Dispose the shown model and represent the new one,
+     *  unless a newer load or closing the display replaced it
      *  @param load Display load that loaded the model
      *  @param model Model to represent
      *  @return <code>true</code> if the model was represented
      */
-    private boolean representModelIfLatest(final DisplayLoad load, final DisplayModel model) throws Exception
+    private boolean replaceModelIfLatest(final DisplayLoad load, final DisplayModel model) throws Exception
     {
         if (! isLatest(load))
             return false;
+        disposeModel();
         representModel(model);
         return true;
     }
