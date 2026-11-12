@@ -230,7 +230,7 @@ public class JsonModelReader
             }
         }
         else {
-            node.setEnabled(true);
+            changed |= node.setEnabled(true);
         }
 
 

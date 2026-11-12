@@ -15,7 +15,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.ui.Messages;
-import org.phoebus.applications.alarm.ui.config.ItemConfigDialog;
 import org.phoebus.applications.alarm.ui.config.TitleDetailTableController;
 import org.phoebus.applications.alarm.ui.config.TitleDetailToolbarController;
 import org.phoebus.framework.nls.NLS;
@@ -46,7 +45,7 @@ public class TitleDetailTableDemo extends ApplicationWrapper {
                         return new TitleDetailToolbarController();
                     }
                 } catch (Exception e) {
-                    Logger.getLogger(ItemConfigDialog.class.getName()).log(Level.SEVERE, "Failed to construct controller for " + clazz.getName(), e);
+                    Logger.getLogger(TitleDetailTableDemo.class.getName()).log(Level.SEVERE, "Failed to construct controller for " + clazz.getName(), e);
                 }
                 return null;
             });

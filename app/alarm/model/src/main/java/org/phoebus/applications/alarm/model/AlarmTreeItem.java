@@ -11,9 +11,12 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.util.text.CompareNatural;
 
 /** Base class for all nodes in the alarm tree
@@ -231,5 +234,33 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
     public String toString()
     {
         return getName();
+    }
+
+    // TODO is there a nicer way to do this?
+    /** Compares the configurations (but not the state) of two alarm tree items */
+    public static boolean configsEqual(final AlarmTreeItem<?> item1, final AlarmTreeItem<?> item2) {
+        if (item1 instanceof final AlarmClientLeaf leaf1 && item2 instanceof final AlarmClientLeaf leaf2) {
+            return Objects.equals(leaf1.getName(), leaf2.getName())
+                    && Objects.equals(leaf1.getDescription(), leaf2.getDescription())
+                    && Objects.equals(leaf1.getEnabled(), leaf2.getEnabled())
+                    && Objects.equals(leaf1.getEnabledDate(), leaf2.getEnabledDate())
+                    && Objects.equals(leaf1.getFilter(), leaf2.getFilter())
+                    && leaf1.isLatching() == leaf2.isLatching()
+                    && leaf1.isAnnunciating() == leaf2.isAnnunciating()
+                    && leaf1.getCount() == leaf2.getCount()
+                    && leaf1.getDelay() == leaf2.getDelay()
+                    && Objects.equals(leaf1.getGuidance(), leaf2.getGuidance())
+                    && Objects.equals(leaf1.getDisplays(), leaf2.getDisplays())
+                    && Objects.equals(leaf1.getCommands(), leaf2.getCommands())
+                    && Objects.equals(leaf1.getActions(), leaf2.getActions());
+        }
+        if (item1 instanceof final AlarmClientNode node1 && item2 instanceof final AlarmClientNode node2) {
+            return Objects.equals(node1.getName(), node2.getName())
+                    && Objects.equals(node1.getGuidance(), node2.getGuidance())
+                    && Objects.equals(node1.getDisplays(), node2.getDisplays())
+                    && Objects.equals(node1.getCommands(), node2.getCommands())
+                    && Objects.equals(node1.getActions(), node2.getActions());
+        }
+        return false;
     }
 }
