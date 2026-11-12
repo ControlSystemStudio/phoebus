@@ -1,0 +1,53 @@
+4 0 1
+beginScreenProperties
+major 4
+minor 0
+release 1
+x 0
+y 0
+w 200
+h 100
+font "helvetica-bold-r-12.0"
+ctlFont "helvetica-medium-r-8.0"
+btnFont "helvetica-medium-r-8.0"
+fgColor index 10
+bgColor index 6
+textColor index 10
+ctlFgColor1 index 25
+ctlFgColor2 index 30
+ctlBgColor1 index 5
+ctlBgColor2 index 10
+topShadowColor index 5
+botShadowColor index 10
+endScreenProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 10
+y 10
+w 90
+h 30
+fgColor index 10
+bgColor index 6
+topShadowColor index 5
+botShadowColor index 10
+font "helvetica-bold-r-12.0"
+buttonLabel "Related"
+numPvs 4
+numDsps 2
+displayFileName {
+  0 "other.edl"
+  1 "replacement.edl"
+}
+menuLabel {
+  0 "Other"
+  1 "Replacement"
+}
+closeDisplay {
+  1 1
+}
+endObjectProperties

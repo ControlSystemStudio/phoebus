@@ -11,6 +11,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.spi.ActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
+import org.csstudio.display.converter.edm.ConverterPreferences;
 import org.csstudio.display.converter.edm.EdmConverter;
 import org.csstudio.opibuilder.converter.model.EdmBoolean;
 import org.csstudio.opibuilder.converter.model.EdmString;
@@ -45,7 +46,7 @@ public class Convert_relatedDisplayClass extends ConverterBase<ActionButtonWidge
             convertColor(t.getBgColor(), widget.propBackgroundColor());
         convertColor(t.getFgColor(), widget.propForegroundColor());
         convertFont(t.getFont(), widget.propFont());
-        
+
         if (widget.propTransparent().getValue())
         {   // EDM used the fore & back colors for the button, not the menu,
             // which was always black-on-gray.
@@ -80,7 +81,7 @@ public class Convert_relatedDisplayClass extends ConverterBase<ActionButtonWidge
                 }
 
             final EdmBoolean closeDisplay = t.getCloseDisplay().getEdmAttributesMap().get(is);
-            final OpenDisplayAction.Target target = closeDisplay != null && closeDisplay.is() ? OpenDisplayAction.Target.REPLACE : OpenDisplayAction.Target.TAB.TAB;
+            final OpenDisplayAction.Target target = closeDisplay != null && closeDisplay.is() ? OpenDisplayAction.Target.REPLACE : ConverterPreferences.related_display_target;
             OpenDisplayAction openDisplayAction =
                     new OpenDisplayAction(description,
                             path,
