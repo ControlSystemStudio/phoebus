@@ -14,6 +14,14 @@ import org.phoebus.framework.nls.NLS;
  */
 public class Messages
 {
+    public static String WaveformHistoryStaggerTT;
+    public static String WaveformHistoryCursorTT;
+    public static String WaveformHistorySample;
+    public static String WaveformHistoryLimitSummary;
+    public static String WaveformHistoryLimitTT;
+    public static String WaveformHistoryNonWaveformSummary;
+    public static String WaveformHistoryNonWaveformTT;
+
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---
@@ -324,6 +332,8 @@ public class Messages
                          ValueAxes,
                          ValueAxisName,
                          ValueColumn,
+                         WaveformHistoryPrevious,
+                         WaveformHistoryPreviousTT,
                          WaveformIndex,
                          WaveformIndexCol,
                          WaveformIndexColTT,
