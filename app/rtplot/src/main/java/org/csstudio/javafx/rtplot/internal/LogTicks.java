@@ -136,11 +136,6 @@ public class LogTicks extends LinearTicks
             major_ticks.add(   new MajorTick<>(high, format(high)));
         }
 
-        // Apply user-specified label format override if set.
-        final NumberFormat override = getLabelFormatOverride();
-        if (override != null)
-            relabelTicks(major_ticks, override);
-
         this.major_ticks = major_ticks;
         this.minor_ticks = minor_ticks;
     }
