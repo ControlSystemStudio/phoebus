@@ -12,13 +12,15 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import javafx.stage.Window;
@@ -82,6 +84,12 @@ public class DisplayRuntimeInstance implements AppInstance
     private final DockItemRepresentation representation;
     private FutureTask<Void> representation_init = new FutureTask<>(() -> {return null;});
     private Node toolbar;
+
+    /** Number of the latest call to {@link #loadDisplayFile(DisplayInfo)}, or of closing the display */
+    private final AtomicLong latestLoad = new AtomicLong();
+
+    /** Lock that lets display loads run one at a time */
+    private final Object loadLock = new Object();
 
     /** Property on the 'model_parent' of the JFX scene that holds this DisplayRuntimeInstance */
     static final String MODEL_PARENT_DISPLAY_RUNTIME = "_runtime_view_part";
@@ -330,106 +338,206 @@ public class DisplayRuntimeInstance implements AppInstance
     }
 
     /** Load display file, represent it, start runtime
+     *
+     *  <p>Loads run one at a time, in the background.
+     *  The previous display is disposed once its own load has started its runtime.
+     *  A load that is replaced by a newer one, or by closing the display,
+     *  before its display is shown is skipped.
+     *  This happens for example when 'back' is pressed twice in a row.
+     *  Otherwise the runtime of the skipped display would keep running without being shown.
+     *
      *  @param info Display file to load and represent
      */
     public void loadDisplayFile(final DisplayInfo info)
     {
-        DisplayInfo old_info = display_info.orElse(null);
-        // If already executing another display, shut it down
-        disposeModel();
-
-        ArrayList<DisplayInfo> dst_src = new ArrayList<>();
+        final DisplayLoad load = new DisplayLoad(latestLoad.incrementAndGet(), info,
+                                                 display_info.orElse(null),
+                                                 List.of(Thread.currentThread().getStackTrace()));
 
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start
         // another instance
         dock_item.setInput(info.toURI());
 
-        StackTraceElement[] applicationThreadStackTrace = Thread.currentThread().getStackTrace();
-
-        // Now that old model is no longer represented,
-        // show info.
-        // Showing this info before disposeModel()
-        // would result in old representation not being able
-        // to traverse its expected widget tree
-        showMessage("Loading " + info);
-
         // Note the path & macros, then
         display_info = Optional.of(info);
         // load model off UI thread
         JobManager.schedule("Load Display", monitor ->
         {
-            try
+            final DisplayModel model;
+            synchronized (loadLock)
             {
-                final DisplayModel model = loadModel(monitor, info);
-
-                final Future<Void> represented = representation.submit(() -> representModel(model));
-                represented.get();
-
-                if (Boolean.TRUE.equals(auto_size_stage))
-                {
-                    Window window = dock_item.getDockPane().getScene().getWindow();
-                    double xMargin = (int) (window.getWidth()
-                            - window.getScene().getWidth() + 2);
-                    double yMargin = (int) (window.getHeight()
-                            - window.getScene().getHeight() + 2);
-                    window.setWidth(model.propWidth().getValue() + xMargin);
-                    window.setHeight(model.propHeight().getValue() + yMargin);
-                }
-
-                // Start runtime for the model
-                RuntimeUtil.startRuntime(model);
-
-                logger.log(Level.FINE, "Waiting for representation of model " + info.getPath());
-
-                try
-                {
-                    representation.awaitRepresentation(30, TimeUnit.SECONDS);
-                    representation_init.run();
-                    dst_src.add(info);
-                    dst_src.add(old_info);
-                    representation.fireMethodCall(dst_src, applicationThreadStackTrace);
-                    logger.log(Level.FINE, "Done with representing model of " + info.getPath());
-                }
-                catch (TimeoutException | InterruptedException ex)
-                {
-                    logger.log(Level.SEVERE, "Cannot wait for representation of " + info.getPath(), ex);
-                }
-
-                // Check if there were widget errors
-                if (model.isClean() == false)
-                    showRepresentationError();
+                model = isLatest(load) ? loadAndStart(load, monitor) : null;
             }
-            catch (Exception ex)
-            {
-                logger.log(Level.SEVERE, "Cannot load model from " + info.getPath(), ex);
-
-                final String exception_message;
-
-                if (ex.getCause() != null)
-                    exception_message = ":\n" + ex.getCause().getLocalizedMessage();
-                else
-                    exception_message = "";
-
-                ExceptionDetailsErrorDialog.openError("Cannot load model",
-                        "Cannot load model from\n" + info.getPath() + exception_message, ex);
-
-                display_info = Optional.empty();
-
-                boolean shouldClose = dock_item.okToClose().get();
-
-                if (shouldClose) {
-                    dock_item.prepareToClose();
-                    Platform.runLater(() ->
-                    {
-                        final Parent parent = representation.getModelParent();
-                        JFXRepresentation.getChildren(parent).clear();
-
-                        close();
-                    });
-                }
-            }
+            if (model != null)
+                awaitRepresentation(load, model);
         });
+    }
+
+    /** One call to {@link #loadDisplayFile(DisplayInfo)}
+     *  @param number Number of the load, see {@link #latestLoad}
+     *  @param info Display file to load and represent
+     *  @param previous Display that was shown before, may be <code>null</code>
+     *  @param callerStack Stack trace of the caller, passed on to the representation's method call listeners
+     */
+    private record DisplayLoad(long number, DisplayInfo info, DisplayInfo previous, List<StackTraceElement> callerStack)
+    {
+    }
+
+    /** @param load A display load
+     *  @return <code>true</code> if no newer load has been started, and the display is not closed
+     */
+    private boolean isLatest(final DisplayLoad load)
+    {
+        return load.number() == latestLoad.get();
+    }
+
+    /** Load display file, represent it, start runtime
+     *  @param load Display load
+     *  @param monitor Monitor of the load job
+     *  @return Model that was started, <code>null</code> if the load was replaced or failed
+     *  @throws Exception on error while closing a display that cannot be loaded
+     */
+    private DisplayModel loadAndStart(final DisplayLoad load, final JobMonitor monitor) throws Exception
+    {
+        try
+        {
+            if (! disposeAndShowLoading(load))
+                return null;
+
+            final DisplayModel model = loadModel(monitor, load.info());
+            if (! Boolean.TRUE.equals(representation.submit(() -> representModelIfLatest(load, model)).get()))
+            {
+                model.dispose();
+                return null;
+            }
+
+            resizeStageToModel(model);
+
+            if (! isLatest(load))
+                return null;
+            RuntimeUtil.startRuntime(model);
+            return model;
+        }
+        catch (InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+            logger.log(Level.WARNING, ex, () -> "Interrupted while loading " + load.info().getPath());
+        }
+        catch (Exception ex)
+        {
+            if (isLatest(load))
+                handleLoadError(load.info(), ex);
+            else
+                logger.log(Level.WARNING, ex, () -> "Cannot load model from " + load.info().getPath() + ", which was replaced meanwhile");
+        }
+        return null;
+    }
+
+    /** Dispose the shown display, then show that a new one is loading
+     *  @param load Display load
+     *  @return <code>true</code> if the load is still the latest one
+     *  @throws InterruptedException if interrupted while waiting for the UI thread
+     *  @throws ExecutionException on error
+     */
+    private boolean disposeAndShowLoading(final DisplayLoad load) throws InterruptedException, ExecutionException
+    {
+        // Showing this info before disposeModel()
+        // would result in old representation not being able
+        // to traverse its expected widget tree
+        return representation.submit(() ->
+        {
+            if (! isLatest(load))
+                return false;
+            disposeModel();
+            showMessage("Loading " + load.info());
+            return true;
+        }).get();
+    }
+
+    /** Size a standalone window to the model
+     *  @param model Model that is represented in the window
+     */
+    private void resizeStageToModel(final DisplayModel model)
+    {
+        if (Boolean.TRUE.equals(auto_size_stage))
+        {
+            Window window = dock_item.getDockPane().getScene().getWindow();
+            double xMargin = (int) (window.getWidth()
+                    - window.getScene().getWidth() + 2);
+            double yMargin = (int) (window.getHeight()
+                    - window.getScene().getHeight() + 2);
+            window.setWidth(model.propWidth().getValue() + xMargin);
+            window.setHeight(model.propHeight().getValue() + yMargin);
+        }
+    }
+
+    /** Wait for the representation, inform method call listeners, report widget errors
+     *  @param load Display load
+     *  @param model Model of that load, which has been started
+     */
+    private void awaitRepresentation(final DisplayLoad load, final DisplayModel model)
+    {
+        final String path = load.info().getPath();
+        logger.log(Level.FINE, () -> "Waiting for representation of model " + path);
+        try
+        {
+            representation.awaitRepresentation(30, TimeUnit.SECONDS);
+            representation_init.run();
+            final List<DisplayInfo> dstSrc = new ArrayList<>();
+            dstSrc.add(load.info());
+            dstSrc.add(load.previous());
+            representation.fireMethodCall(dstSrc, load.callerStack().toArray(StackTraceElement[]::new));
+            logger.log(Level.FINE, () -> "Done with representing model of " + path);
+        }
+        catch (TimeoutException ex)
+        {
+            logger.log(Level.SEVERE, ex, () -> "Cannot wait for representation of " + path);
+        }
+        catch (InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+            logger.log(Level.SEVERE, ex, () -> "Cannot wait for representation of " + path);
+        }
+
+        // Check if there were widget errors
+        if (! model.isClean())
+            showRepresentationError();
+    }
+
+    /** Report a display that cannot be loaded, offer to close it
+     *  @param info Display that cannot be loaded
+     *  @param ex Error
+     *  @throws Exception on error while closing the display
+     */
+    private void handleLoadError(final DisplayInfo info, final Exception ex) throws Exception
+    {
+        logger.log(Level.SEVERE, ex, () -> "Cannot load model from " + info.getPath());
+
+        final String exceptionMessage;
+
+        if (ex.getCause() != null)
+            exceptionMessage = ":\n" + ex.getCause().getLocalizedMessage();
+        else
+            exceptionMessage = "";
+
+        ExceptionDetailsErrorDialog.openError("Cannot load model",
+                "Cannot load model from\n" + info.getPath() + exceptionMessage, ex);
+
+        display_info = Optional.empty();
+
+        boolean shouldClose = dock_item.okToClose().get();
+
+        if (shouldClose) {
+            dock_item.prepareToClose();
+            Platform.runLater(() ->
+            {
+                final Parent parent = representation.getModelParent();
+                JFXRepresentation.getChildren(parent).clear();
+
+                close();
+            });
+        }
     }
 
     /** Re-load the current input */
@@ -477,6 +585,19 @@ public class DisplayRuntimeInstance implements AppInstance
         JFXRepresentation.getChildren(parent).clear();
         representation.representModel(parent, model);
         return null;
+    }
+
+    /** Represent model unless a newer load or closing the display replaced it
+     *  @param load Display load that loaded the model
+     *  @param model Model to represent
+     *  @return <code>true</code> if the model was represented
+     */
+    private boolean representModelIfLatest(final DisplayLoad load, final DisplayModel model) throws Exception
+    {
+        if (! isLatest(load))
+            return false;
+        representModel(model);
+        return true;
     }
 
     /** Take note of the currently displayed model
@@ -569,6 +690,8 @@ public class DisplayRuntimeInstance implements AppInstance
     /** DockItem closed */
     public void onClosed()
     {
+        // Skip loads that are still waiting or in progress
+        latestLoad.incrementAndGet();
         // Stop runtime, dispose widgets for the model
         disposeModel();
         // Stop representation, so no more widgets can be created in this dock item
