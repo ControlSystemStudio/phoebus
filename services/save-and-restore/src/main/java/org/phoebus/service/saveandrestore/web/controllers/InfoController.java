@@ -40,6 +40,9 @@ public class InfoController extends BaseController {
     @Qualifier("restClient")
     Rest5Client restClient;
 
+    @Value("${serverRestoreAllowed:false}")
+    private boolean serverRestoreAllowed;
+
     private static final ObjectMapper objectMapper = JsonMapper.builder()
             .enable(SerializationFeature.INDENT_OUTPUT)
             .build();
@@ -72,6 +75,8 @@ public class InfoController extends BaseController {
         saveRestoreServiceInfo.put("elastic", elasticInfo);
 
         saveRestoreServiceInfo.put("rootNodeID", ROOT_FOLDER_UNIQUE_ID);
+
+        saveRestoreServiceInfo.put("serverRestoreAllowed", serverRestoreAllowed);
 
          try {
             return objectMapper.writeValueAsString(saveRestoreServiceInfo);
