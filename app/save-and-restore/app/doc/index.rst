@@ -528,7 +528,7 @@ the selected PV *around the point in time defined by the PV timestamp*.
 Authentication and Authorization
 --------------------------------
 
-Authorization uses a role-based approach like so:
+Authorization is optional (configured on the service) and uses a role-based approach like so:
 
 * Unauthenticated users may read data, i.e. browse the tree and view configurations, snapshots, search and view filters.
 * Role "user":
@@ -541,7 +541,8 @@ Authorization uses a role-based approach like so:
         * Object is a composite snapshot node
         * Object is configuration or folder node with no child nodes
         * Object is a filter
-* Role "superuser": +perform restore operation
+    * Perform restore operations
+    * Copy or move objects if the target node is "owned" by current user
 * Role "admin": no restrictions
 
 Roles are defined and managed on the service. Role (group) membership is managed in Active Directory or LDAP.

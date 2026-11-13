@@ -1060,6 +1060,8 @@ Authorization uses a role-based approach like so:
         * Object is configuration or folder node with no child nodes
         * Object is a filter
         * Object is a tag
+    * Perform restore operations
+    * Copy or move objects if the target node is "owned" by current user
 * Save-and-restore role "sar-admin": no restrictions
 
 Authentication endpoint
