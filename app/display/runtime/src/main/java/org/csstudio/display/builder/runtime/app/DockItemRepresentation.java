@@ -101,7 +101,7 @@ public class DockItemRepresentation extends JFXRepresentation
         // model will be opened in it.
         return representModelInNewDockItem(model);
     }
-    
+
     @Override
     public ToolkitRepresentation<Parent, Node> openStandaloneWindow(final DisplayModel model,
                                                                     final Consumer<DisplayModel> close_handler)
@@ -114,8 +114,13 @@ public class DockItemRepresentation extends JFXRepresentation
                                                          final String name,
                                                          final Consumer<DisplayModel> close_handler) throws Exception
     {
-        // By default, open in the pane used by this display
+        // By default, open in the pane used by this display.
+        // A standalone window shows no tabs, so a new tab would hide this display:
+        // open it in the main window, as for applications started from a standalone window.
         DockPane pane = app_instance.getDockItem().getDockPane();
+        final boolean from_standalone = isStandalone(pane);
+        if (from_standalone)
+            pane = DockPane.getMainDockPane();
         if (name.length() > 0)
         {
             // Should the new panel open in a specific, named pane?
@@ -129,9 +134,26 @@ public class DockItemRepresentation extends JFXRepresentation
                 logger.log(Level.WARNING, "Cannot locate pane to create new '" + name + "'");
         }
 
+        if (isStandalone(pane))
+            // No usable main window either, for example because its pane is locked.
+            // A new window keeps this display visible.
+            return openNewWindow(model, close_handler);
+
         // System.out.println("Open panel in " + app_instance.dock_item.getDockPane());
         DockPane.setActiveDockPane(pane);
-        return representModelInNewDockItem(model);
+        final ToolkitRepresentation<Parent, Node> representation = representModelInNewDockItem(model);
+        if (from_standalone  &&  representation instanceof DockItemRepresentation shown)
+            // The main window may be behind the standalone window
+            shown.app_instance.raise();
+        return representation;
+    }
+
+    /** @param pane {@link DockPane}, may be <code>null</code>
+     *  @return Is it the pane of a standalone window, which shows no tabs?
+     */
+    private static boolean isStandalone(final DockPane pane)
+    {
+        return pane != null  &&  pane.isStandaloneWindow();
     }
 
     private ToolkitRepresentation<Parent, Node> representModelInNewDockItem(final DisplayModel model)
