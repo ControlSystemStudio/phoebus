@@ -57,7 +57,10 @@ public class AudioAnnunciator implements Annunciator {
      * @param url URL of the audio file
      * @return MediaPlayer
      */
-    private MediaPlayer createMediaPlayer(String url) {
+    private MediaPlayer createMediaPlayer(final String rawUrl) {
+        // MediaPlayer does not accept URLs with spaces; see https://github.com/ControlSystemStudio/phoebus/issues/3992
+        final String url = rawUrl.replace(" ", "%20");
+
         try {
             MediaPlayer player = new MediaPlayer(new Media(url));
             if (player.getError() == null) {
