@@ -59,34 +59,37 @@ package org.phoebus.applications.alarm.model;
 public enum SeverityLevel
 {
     /** OK/NO_ALARM/normal/good */
-    OK(false, 0),
+    OK(false, false, 0),
 
     /** Acknowledged minor issue */
-    MINOR_ACK(false, 2),
+    MINOR_ACK(false, true, 2),
 
     /** Acknowledged major issue */
-    MAJOR_ACK(false, 4),
+    MAJOR_ACK(false, true, 4),
 
     /** Acknowledged invalid condition */
-    INVALID_ACK(false, 6),
+    INVALID_ACK(false, true, 6),
 
     /** Acknowledged undefined condition */
-    UNDEFINED_ACK(false, 8),
+    UNDEFINED_ACK(false, true, 8),
 
     /** Minor issue */
-    MINOR(true, 1),
+    MINOR(true, false, 1),
 
     /** Major issue */
-    MAJOR(true, 3),
+    MAJOR(true, false, 3),
 
     /** Invalid condition, potentially very bad */
-    INVALID(true, 5),
+    INVALID(true, false, 5),
 
     /** Unknown states, potentially very bad */
-    UNDEFINED(true, 7);
+    UNDEFINED(true, false, 7);
 
     /** Active alarm (not OK, not acknowledged?) */
     private final boolean active;
+
+    /** Acknowledged alarm */
+    private final boolean acknowledged;
 
     /** Priority used for alarm state updates in the alarm server */
     private final int alarm_update_priority;
@@ -94,13 +97,15 @@ public enum SeverityLevel
     /** Initialize severity level
      *  @param active <code>true</code> for active alarm severity,
      *                <code>false</code> for acknowledged or OK state
+     *  @param acknowledged <code>true</code> for acknowledged state,
+     *                <code>false</code> for active alarm severity
      *  @param alarm_update_priority Priority used inside the server to
      *                               update alarm severity of a PV.
      */
-    private SeverityLevel(final boolean active,
-                  final int alarm_update_priority)
+    private SeverityLevel(final boolean active, final boolean acknowledged, final int alarm_update_priority)
     {
         this.active = active;
+        this.acknowledged = acknowledged;
         this.alarm_update_priority = alarm_update_priority;
     }
 
@@ -110,6 +115,14 @@ public enum SeverityLevel
     public boolean isActive()
     {
         return active;
+    }
+
+    /** @return <code>true</code> if severity indicates an acknowledged state,
+     *          <code>false</code> for active or OK state
+     */
+    public boolean isAcknowledged()
+    {
+        return acknowledged;
     }
 
     /** @return Priority used inside the server to update alarm severity

@@ -75,8 +75,11 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
      */
     private final AtomicReference<List<String>> item_changes = new AtomicReference<>();
 
-    /** Set of items that have updated, with iteration order based on when they updated */
-    private final Set<String> items_to_update = new LinkedHashSet<>();
+    /** Set of items that have updated, with iteration order based on when they updated
+     *
+     * SYNC on access
+     */
+    private final Set<String> item_paths_to_update = new LinkedHashSet<>();
 
     /** Throttle [5Hz] used for updates of existing items */
     private final UpdateThrottle update_throttle = new UpdateThrottle(200, TimeUnit.MILLISECONDS, this::updateItems);
@@ -165,9 +168,9 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
         if (null == item_name)
             return;
 
-        synchronized (items_to_update)
+        synchronized (item_paths_to_update)
         {
-            items_to_update.add(item_name);
+            item_paths_to_update.add(item_name);
         }
         update_throttle.trigger();
     }
@@ -178,10 +181,10 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
         final List<String> changed_items = item_changes.getAndSet(null);
 
         final String[] update_array;
-        synchronized (items_to_update)
+        synchronized (item_paths_to_update)
         {
-            update_array = items_to_update.toArray(new String[items_to_update.size()]);
-            items_to_update.clear();
+            update_array = item_paths_to_update.toArray(new String[item_paths_to_update.size()]);
+            item_paths_to_update.clear();
         }
         Platform.runLater(() ->
         {

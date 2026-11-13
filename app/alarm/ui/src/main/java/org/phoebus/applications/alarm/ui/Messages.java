@@ -20,6 +20,7 @@ public class Messages
     public static String AlarmTable;
     public static String AlarmTree;
     public static String Annunciator;
+    public static String collapseAlarmTree;
     public static String commands;
     public static String configure;
     public static String delayTooltip0;
@@ -36,6 +37,11 @@ public class Messages
     public static String displays;
     public static String enableAlarmFailed;
     public static String enableAlarms;
+    public static String expandAlarmTree;
+    public static String filterAcknowledgedAlarmsTooltip;
+    public static String filterActiveAlarmsTooltip;
+    public static String filterDisabledAlarmsTooltip;
+    public static String filterOkAlarmsTooltip;
     public static String guidance;
     public static String headerAlreadyDisabled;
     public static String headerAlreadyEnabled;
@@ -48,6 +54,8 @@ public class Messages
     public static String promptTitle;
     public static String removeComponentFailed;
     public static String renameItemFailed;
+    public static String search;
+    public static String searchByPv;
     public static String totalPVs;
     public static String unacknowledgeFailed;
     public static String withEnableDate;
