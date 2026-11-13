@@ -17,6 +17,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.service.saveandrestore.persistence.config.IndexConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,20 +45,11 @@ import java.util.stream.Collectors;
  * @author Kunal Shroff
  * @author Georg Weiss
  */
-public class SearchUtil {
+public class SearchUtil extends IndexConfig {
 
     final private static String MILLI_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
     final private static DateTimeFormatter MILLI_FORMAT = DateTimeFormatter.ofPattern(MILLI_PATTERN).withZone(ZoneId.systemDefault());
 
-    @SuppressWarnings("unused")
-    @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
-    private String ES_TREE_INDEX;
-    @SuppressWarnings("unused")
-    @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
-    private String ES_CONFIGURATION_INDEX;
-    @SuppressWarnings("unused")
-    @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
-    private String ES_COMPOSITE_SNAPSHOT_INDEX;
     @SuppressWarnings("unused")
     @Value("${elasticsearch.result.size.search.default:100}")
     private int defaultSearchSize;
@@ -402,7 +394,7 @@ public class SearchUtil {
         // Add remaining terms...
         List<String> remaining = Arrays.asList(searchQueryTerms.split("[\\|,;\\s+]"));
         //...but remove empty strings, which are "leftovers" when quoted terms are removed
-        terms.addAll(remaining.stream().filter(t -> t.length() > 0).collect(Collectors.toList()));
+        terms.addAll(remaining.stream().filter(t -> t.length() > 0).toList());
         return terms;
     }
 
@@ -437,7 +429,7 @@ public class SearchUtil {
         }
 
         // Only consider first node id value if multiple are specified
-        String nodeId = value.get(0);
+        String nodeId = value.getFirst();
         int _from = from;
         int _size = size;
         MatchPhraseQuery matchPhraseQuery = MatchPhraseQuery.of(m ->

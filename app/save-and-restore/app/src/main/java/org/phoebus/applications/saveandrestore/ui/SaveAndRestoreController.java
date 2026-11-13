@@ -352,7 +352,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         saveAndRestoreService.setConnectCallback(this::handleWebSocketConnected);
         saveAndRestoreService.setDisconnectCallback(this::handleWebSocketDisconnected);
         saveAndRestoreService.connectWebSocket();
-
     }
 
     /**

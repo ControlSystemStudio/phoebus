@@ -43,6 +43,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -662,6 +663,12 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
     @Override
     public List<SnapshotItem> takeSnapshot(String configurationNodeId) {
         return getCall("/take-snapshot/" + configurationNodeId, new TypeReference<>() {
+        });
+    }
+
+    @Override
+    public Map<String, String> getServerInfo(){
+        return getCall("/", new TypeReference<>() {
         });
     }
 

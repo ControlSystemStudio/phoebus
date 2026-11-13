@@ -48,29 +48,9 @@ import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNI
 @Configuration
 @ComponentScan(basePackages = {"org.phoebus.service.saveandrestore"})
 @PropertySource("classpath:application.properties")
-public class ElasticConfig {
+public class ElasticConfig extends IndexConfig{
 
     private static final Logger logger = Logger.getLogger(ElasticConfig.class.getName());
-
-    @SuppressWarnings("unused")
-    @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
-    private String ES_TREE_INDEX;
-
-    @SuppressWarnings("unused")
-    @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
-    private String ES_CONFIGURATION_INDEX;
-
-    @SuppressWarnings("unused")
-    @Value("${elasticsearch.snapshot_node.index:saveandrestore_snapshot}")
-    private String ES_SNAPSHOT_INDEX;
-
-    @SuppressWarnings("unused")
-    @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
-    private String ES_COMPOSITE_SNAPSHOT_INDEX;
-
-    @SuppressWarnings("unused")
-    @Value("${elasticsearch.filter.index:saveandrestore_filter}")
-    private String ES_FILTER_INDEX;
 
     @SuppressWarnings("unused")
     @Value("${elasticsearch.network.host:localhost}")

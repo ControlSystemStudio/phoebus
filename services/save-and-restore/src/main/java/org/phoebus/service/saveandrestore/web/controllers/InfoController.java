@@ -2,7 +2,10 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import co.elastic.clients.transport.rest5_client.low_level.Request;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
-import tools.jackson.core.JacksonException;
+import jakarta.annotation.PostConstruct;
+import org.phoebus.applications.saveandrestore.model.ServiceInfo;
+import org.phoebus.util.elasticsearch.ElasticInfo;
+import org.phoebus.util.elasticsearch.IndexStats;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
@@ -11,16 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNIQUE_ID;
 
 /**
  * Controller implementing endpoints to retrieve service info
@@ -29,9 +30,6 @@ import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNI
 public class InfoController extends BaseController {
 
     private final Logger logger = Logger.getLogger(InfoController.class.getName());
-
-    @Value("${app.name:4.7.0}")
-    private String name;
 
     @Value("${app.version:4.7.0}")
     private String version;
@@ -43,46 +41,66 @@ public class InfoController extends BaseController {
     @Value("${serverRestoreAllowed:false}")
     private boolean serverRestoreAllowed;
 
+
+    @SuppressWarnings("unused")
+    @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
+    private String ES_CONFIGURATION_INDEX;
+
+    @SuppressWarnings("unused")
+    @Value("${elasticsearch.snapshot_node.index:saveandrestore_snapshot}")
+    private String ES_SNAPSHOT_INDEX;
+
+    @SuppressWarnings("unused")
+    @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
+    private String ES_COMPOSITE_SNAPSHOT_INDEX;
+
+    @SuppressWarnings("unused")
+    @Value("${elasticsearch.filter.index:saveandrestore_filter}")
+    private String ES_FILTER_INDEX;
+
+    private String[] indices;
+
     private static final ObjectMapper objectMapper = JsonMapper.builder()
             .enable(SerializationFeature.INDENT_OUTPUT)
             .build();
 
+    @PostConstruct
+    public void init(){
+        indices = new String[]{ES_TREE_INDEX,
+                ES_CONFIGURATION_INDEX,
+                ES_SNAPSHOT_INDEX,
+                ES_COMPOSITE_SNAPSHOT_INDEX,
+                ES_FILTER_INDEX};
+    }
+
     /**
      *
-     * @return Information about the Save and Restore service
+     * @return Information about the Save and Restore service and Elasticsearch index metrics
      */
     @GetMapping
-    public String info() {
+    public ServiceInfo info() {
 
-        Map<String, Object> saveRestoreServiceInfo = new LinkedHashMap<>();
-        saveRestoreServiceInfo.put("name", name);
-        saveRestoreServiceInfo.put("version", version);
+        List<IndexStats> indexMetrics = new ArrayList<>(indices.length);
 
-        Map<String, String> elasticInfo = new LinkedHashMap<>();
         try {
-            Request request = new Request("GET", "/");
+            Request request;
+            for(String indexName : indices){
+                request = new Request("GET", "/" + indexName + "/_stats");
+                JsonNode docsNode = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent())
+                        .path("indices").path(indexName).path("primaries").path("docs");
+                int documentCount = docsNode.path("count").asInt();
+                int deletedDocumentCount = docsNode.path("deleted").asInt();
+                long indexSize = docsNode.path("total_size_in_bytes").asLong();
+                indexMetrics.add(new IndexStats(indexName, documentCount, deletedDocumentCount, indexSize));
+            }
+            request = new Request("GET", "/");
             JsonNode response = objectMapper.readTree(restClient.performRequest(request).getEntity().getContent());
-            elasticInfo.put("status", "Connected");
-            elasticInfo.put("clusterName", response.path("cluster_name").asText(""));
-            elasticInfo.put("clusterUuid", response.path("cluster_uuid").asText(""));
-            elasticInfo.put("version", response.path("version").path("number").asText(""));
-            //elasticInfo.put("elasticHost", host);
-            //elasticInfo.put("elasticPort", String.valueOf(port));
+            String elasticVersion = response.path("version").path("number").asString();
+            ElasticInfo elasticInfo = new ElasticInfo(elasticVersion, indexMetrics);
+            return new ServiceInfo(version, serverRestoreAllowed, elasticInfo);
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to create Save and Restore service info resource.", e);
-            elasticInfo.put("status", "Failed to connect to elastic " + e.getLocalizedMessage());
-        }
-        saveRestoreServiceInfo.put("elastic", elasticInfo);
-
-        saveRestoreServiceInfo.put("rootNodeID", ROOT_FOLDER_UNIQUE_ID);
-
-        saveRestoreServiceInfo.put("serverRestoreAllowed", serverRestoreAllowed);
-
-         try {
-            return objectMapper.writeValueAsString(saveRestoreServiceInfo);
-        } catch (JacksonException e) {
-            logger.log(Level.WARNING, "Failed to create Save and Restore service info resource.", e);
-            return "Failed to gather Save and Restore service info";
+            logger.log(Level.WARNING, "Failed to create query for Elasticsearch statistics.", e);
+            return new ServiceInfo(version, serverRestoreAllowed, new ElasticInfo());
         }
     }
 }

@@ -36,6 +36,7 @@ import org.phoebus.security.authorization.AuthenticationStatus;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Implementations of this interface shall handle the communication to the save-and-restore service.
@@ -275,4 +276,6 @@ public interface SaveAndRestoreClient {
      * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
      */
     List<SnapshotItem> takeSnapshot(String configurationNodeId);
+
+    Map<String, String> getServerInfo();
 }

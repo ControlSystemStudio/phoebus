@@ -19,6 +19,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
+import org.phoebus.service.saveandrestore.persistence.config.IndexConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ import java.util.logging.Logger;
  */
 @RestController
 @SuppressWarnings("unused")
-public abstract class BaseController {
+public abstract class BaseController extends IndexConfig {
 
     protected static final String JSON = "application/json";
 

@@ -15,10 +15,10 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
+import org.phoebus.service.saveandrestore.persistence.config.IndexConfig;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
@@ -39,13 +39,9 @@ import java.util.logging.Logger;
  * Repository for {@link ESTreeNode} objects.
  */
 @Repository
-public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, String> {
+public class ElasticsearchTreeRepository extends IndexConfig implements CrudRepository<ESTreeNode, String> {
 
     private static final Logger logger = Logger.getLogger(ElasticsearchTreeRepository.class.getName());
-
-    @SuppressWarnings("unused")
-    @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
-    private String ES_TREE_INDEX;
 
     /**
      * Used to determine if the {@link ESTreeNode} is saved or updated in connection to a migration
@@ -286,7 +282,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
                     logger.log(Level.SEVERE, "Node " + uniqueId + " is child node of multiple nodes. Should not happen!");
                     throw new RuntimeException("Node " + uniqueId + " contained in multiple parent nodes. Should not happen!");
                 }
-                return result.get(0);
+                return result.getFirst();
             } else {
                 throw new NodeNotFoundException("Unable to locate parent node for unique id " + uniqueId);
             }
@@ -345,7 +341,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             List<ESTreeNode> hits = parseSearchHits(searchResponse, ESTreeNode.class);
             SearchResult searchResult = new SearchResult();
             searchResult.setHitCount((int) getTotalHits(searchResponse));
-            searchResult.setNodes(hits.stream().map(e -> e.getNode()).filter(Objects::nonNull).toList());
+            searchResult.setNodes(hits.stream().map(ESTreeNode::getNode).filter(Objects::nonNull).toList());
             return searchResult;
         } catch (IOException e) {
             throw new RuntimeException(e);

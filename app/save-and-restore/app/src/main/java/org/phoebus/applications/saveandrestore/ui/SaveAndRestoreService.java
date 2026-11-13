@@ -58,6 +58,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -517,4 +518,7 @@ public class SaveAndRestoreService implements WebSocketMessageHandler {
         }
     }
 
+    public Map<String, String> getServerInfo(){
+        return saveAndRestoreClient.getServerInfo();
+    }
 }
