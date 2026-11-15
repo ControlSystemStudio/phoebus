@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display slow</name>
+  <width>300</width>
+  <height>100</height>
+  <widget type="textupdate" version="2.0.0">
+    <name>Value</name>
+    <pv_name>blocking://load_slow</pv_name>
+  </widget>
+</display>
