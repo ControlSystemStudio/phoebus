@@ -333,7 +333,6 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             }
 
             final boolean shouldDisplay = propagateVisibilityDownTree(childItem);
-
             if (shouldDisplay)
             {
                 final boolean doesNotHaveChildAlready = item.getChildren().stream()
@@ -343,9 +342,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     addChildToParent(item, childItem);
             }
             else
-                item.getChildren().removeIf(
-                        alarmTreeItemTreeItem -> alarmTreeItemTreeItem.getValue() == child
-                );
+                item.getChildren().remove(childItem);
         }
 
         return shouldDisplay(item);
@@ -391,9 +388,23 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     private boolean shouldDisplay(final TreeItem<AlarmTreeItem<?>> item)
     {
         final boolean hasVisibleChildren = !item.getChildren().isEmpty();
+        if (hasVisibleChildren) {
+            return true;
+        }
 
+        // Always show components with no children... unfortunate tradeoff; otherwise they would never be shown because
+        // they don't have any leaf to match the filters
+        final boolean isEmptyComponent = item.getValue() instanceof final AlarmClientNode node && node.getChildren().isEmpty();
+        if (isEmptyComponent) {
+            return true;
+        }
+
+        // At this point, the item must match both the search and the filter to be displayed
         final boolean matchesSearch = searchBox.getText().isEmpty() || item.getValue() instanceof final AlarmClientLeaf leaf
                 && leaf.getName().toLowerCase().contains(searchBox.getText().toLowerCase());
+        if (!matchesSearch) {
+            return false;
+        }
 
         boolean matchesAnyFilter = activeFilters.isEmpty(); // no filters selected = show everything
         for (final AlarmFilter filter : activeFilters) {
@@ -401,11 +412,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             matchesAnyFilter = matchesAnyFilter || matchesFilter;
         }
 
-        // Always show components with no children... unfortunate tradeoff; otherwise they would never be shown because
-        // they don't have any leaf to match the filters
-        final boolean isEmptyComponent = item.getValue() instanceof final AlarmClientNode node && node.getChildren().isEmpty();
-
-        return hasVisibleChildren || isEmptyComponent || (matchesSearch && matchesAnyFilter);
+        return matchesAnyFilter;
     }
 
     /**
