@@ -24,7 +24,6 @@ import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.DeviceListener;
 
 import org.phoebus.core.vtypes.VTypeHelper;
-import org.phoebus.util.text.Strings;
 
 /** Condition that waits for a Device to reach a certain string value.
  *
@@ -122,7 +121,7 @@ public class TextValueCondition implements DeviceCondition, DeviceListener
     }
 
     private boolean containsValue(String value) {
-        return Strings.parseStringList(desired_value).stream().anyMatch(
+        return Arrays.stream(desired_value.split(",")).map(String::trim).anyMatch(
                 v -> v.equals(value) || v.equals(value.strip())  // strip input value just to be sure
         );
     }

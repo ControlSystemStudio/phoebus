@@ -141,20 +141,26 @@ public class NumericValueCondition implements DeviceCondition, DeviceListener
     {
         final double value = VTypeHelper.toDouble(device.read());
         // Note that these need to fail "safe" if any of the values are NaN
+        // Tolerance defines a deadband around the desired value:
+        // EQUALS/UNEQUAL treat anything within tolerance as (not) equal.
+        // AT_LEAST/AT_MOST are relaxed by tolerance, allowing a value that
+        // is within tolerance on the "wrong" side to still count as reached.
+        // ABOVE/BELOW are strict comparisons, so the value must clear the
+        // tolerance band around desired_value before the condition is met.
         switch (comparison)
         {
         case EQUALS:
             return Math.abs(desired_value - value) <= tolerance;
         case UNEQUAL:
-            return value != desired_value;
+            return Math.abs(desired_value - value) > tolerance;
         case AT_LEAST:
-            return value >= desired_value;
+            return value >= desired_value - tolerance;
         case ABOVE:
-            return value > desired_value;
+            return value > desired_value + tolerance;
         case AT_MOST:
-            return value <= desired_value;
+            return value <= desired_value + tolerance;
         case BELOW:
-            return value < desired_value;
+            return value < desired_value - tolerance;
         case INCREASE_BY:
             return value >= initial_value + desired_value;
         case DECREASE_BY:

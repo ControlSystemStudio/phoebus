@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.csstudio.scan.server.log.derby;
 
+import static org.csstudio.scan.server.ScanServerInstance.logger;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,7 +44,7 @@ abstract public class RDBDataLogger implements AutoCloseable
     final protected Connection connection;
 
     /** Device ID cache */
-    final private Map<String, Integer> devices = new HashMap<>();
+    final private Map<String, Integer> devices = new HashMap<String, Integer>();
 
     /** Re-used statement */
     private PreparedStatement insert_sample_statement = null;
@@ -80,11 +82,31 @@ abstract public class RDBDataLogger implements AutoCloseable
         }
     }
 
+	/** JDBC URL to use (embedded default) */
+	private static String jdbcUrl = "jdbc:derby:scan;create=true";
+
+	/** Set JDBC URL for network Derby */
+ 	public static void setJdbcUrl(final String url)
+	{
+		jdbcUrl = url;
+	}
+
+	/** Get JDBC URL for network/embedded Derby */
+ 	public static String getJdbcUrl()
+	{
+		return jdbcUrl;
+	}
+
     /** Connect to RDB
      *  @return Connection
      *  @throws Exception on error
      */
-    abstract protected Connection connect() throws Exception;
+    //abstract protected Connection connect() throws Exception;
+    protected Connection connect() throws Exception
+	{
+		logger.info("connect() calling java.sql.DriverManager.getConnection("+jdbcUrl+")");
+		return java.sql.DriverManager.getConnection(jdbcUrl);
+	}
 
     /** Create a new scan in the database
      *  @param scan_name Name of the scan
@@ -110,11 +132,17 @@ abstract public class RDBDataLogger implements AutoCloseable
             statement.setString(1, scan_name);
             statement.setTimestamp(2, Timestamp.from(now));
             statement.executeUpdate();
-            try (ResultSet result = statement.getGeneratedKeys()) {
-                if (!result.next())
+            final ResultSet result = statement.getGeneratedKeys();
+            try
+            {
+                if (! result.next())
                     throw new Exception("Missing new scan ID");
                 final long id = result.getLong(1);
                 return new Scan(id, scan_name, now);
+            }
+            finally
+            {
+                result.close();
             }
         }
     }
@@ -152,7 +180,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     public List<Scan> getScans() throws Exception
     {
-        final List<Scan> scans = new ArrayList<>();
+        final List<Scan> scans = new ArrayList<Scan>();
         try
         (
             final PreparedStatement statement = connection.prepareStatement(
@@ -197,12 +225,18 @@ abstract public class RDBDataLogger implements AutoCloseable
         {
             statement.setString(1, device_name);
             statement.executeUpdate();
-            try (ResultSet result = statement.getGeneratedKeys()) {
-                if (!result.next())
+            final ResultSet result = statement.getGeneratedKeys();
+            try
+            {
+                if (! result.next())
                     throw new Exception("Missing new device ID");
                 id = result.getInt(1);
                 devices.put(device_name, id);
                 return id;
+            }
+            finally
+            {
+                result.close();
             }
         }
     }
@@ -221,10 +255,16 @@ abstract public class RDBDataLogger implements AutoCloseable
         )
         {
             statement.setString(1, device_name);
-            try (ResultSet result = statement.executeQuery()) {
-                if (!result.next())
+            final ResultSet result = statement.executeQuery();
+            try
+            {
+                if (! result.next())
                     return -1;
                 return result.getInt(1);
+            }
+            finally
+            {
+                result.close();
             }
         }
     }
@@ -295,7 +335,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     public ScanData getScanData(final long scan_id) throws Exception
     {
-        final Map<String, List<ScanSample>> device_logs = new HashMap<>();
+        final Map<String, List<ScanSample>> device_logs = new HashMap<String, List<ScanSample>>();
 
         // Could fetch all samples for scan ID, but
         // organizing the retrieval by device in case
@@ -318,7 +358,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     private List<ScanSample> getScanSamples(final long scan_id, final String device_name) throws Exception
     {
-        final List<ScanSample> samples = new ArrayList<>();
+        final List<ScanSample> samples = new ArrayList<ScanSample>();
         try
         (
             final PreparedStatement statement = connection.prepareStatement(
@@ -347,7 +387,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     private String[] getScanDevices(final long scan_id) throws SQLException
     {
-        final List<String> scanDevices = new ArrayList<>();
+        final List<String> devices = new ArrayList<String>();
         try
         (
             final PreparedStatement statement = connection.prepareStatement(
@@ -357,10 +397,10 @@ abstract public class RDBDataLogger implements AutoCloseable
             statement.setLong(1, scan_id);
             final ResultSet result = statement.executeQuery();
             while (result.next())
-                scanDevices.add(result.getString(1));
+                devices.add(result.getString(1));
             result.close();
         }
-        return scanDevices.toArray(new String[scanDevices.size()]);
+        return devices.toArray(new String[devices.size()]);
     }
 
     /** Delete logged data for a scan

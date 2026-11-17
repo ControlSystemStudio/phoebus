@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2026 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,9 @@ import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
 import org.csstudio.scan.server.log.DataLog;
+import org.csstudio.scan.util.PVReference;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.util.time.TimeDuration;
 
@@ -67,8 +70,13 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
     public LoopCommandImpl(final LoopCommand command, final JythonSupport jython) throws Exception
     {
         super(command, jython);
-        reverse = (command.getStart() <= command.getEnd()  &&  command.getStepSize() < 0) ||
-                (command.getStart() >= command.getEnd()  &&  command.getStepSize() > 0);
+        final double s  = toDoubleOrNaN(command.getStart());
+        final double e  = toDoubleOrNaN(command.getEnd());
+        final double st = toDoubleOrNaN(command.getStepSize());
+        // When start/end/step are PVReferences we can't compute reverse direction
+        // at construction time; default to non-reversing (resolved at execute time).
+        reverse = !Double.isNaN(s) && !Double.isNaN(e) && !Double.isNaN(st) &&
+                  ((s <= e && st < 0) || (s >= e && st > 0));
         implementation = ScanCommandImplTool.implement(command.getBody(), jython);
     }
 
@@ -98,10 +106,17 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
     public String[] getDeviceNames(final MacroContext macros) throws Exception
     {
         final String device_name = command.getDeviceName();
-        final Set<String> device_names = new HashSet<>();
+        final Set<String> device_names = new HashSet<String>();
         device_names.add(macros.resolveMacros(device_name));
         if (command.getWait()  &&  command.getReadback().length() > 0)
             device_names.add(macros.resolveMacros(command.getReadback()));
+        // If start/end/step are PV references, those PVs must also be opened
+        if (command.getStart() instanceof PVReference)
+            device_names.add(macros.resolveMacros(((PVReference) command.getStart()).getPVName()));
+        if (command.getEnd() instanceof PVReference)
+            device_names.add(macros.resolveMacros(((PVReference) command.getEnd()).getPVName()));
+        if (command.getStepSize() instanceof PVReference)
+            device_names.add(macros.resolveMacros(((PVReference) command.getStepSize()).getPVName()));
         for (ScanCommandImpl<?> command : implementation)
         {
             final String[] names = command.getDeviceNames(macros);
@@ -111,47 +126,58 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         return device_names.toArray(new String[device_names.size()]);
     }
 
-    /** @return Lower loop limit */
-    double getLoopStart()
+    /** Resolve an Object value (Double or PVReference) to a double.
+     *  If the value is a {@link PVReference}, reads the current value of that PV.
+     *  @param value {@link Double} or {@link PVReference}
+     *  @param context Scan context used when reading a PV
+     *  @return numeric value
+     *  @throws Exception on PV read error
+     */
+    private double resolveDouble(final Object value, final ScanContext context) throws Exception
     {
-        return Math.min(command.getStart(), command.getEnd());
+        if (value instanceof PVReference)
+        {
+            final Device ref_device = context.getDevice(
+                    context.getMacros().resolveMacros(((PVReference) value).getPVName()));
+            return VTypeHelper.toDouble(
+                    ref_device.read(org.csstudio.scan.server.ScanServerInstance.getScanConfig().getReadTimeout()));
+        }
+        return ((Number) value).doubleValue();
     }
 
-    /** @return Upper loop limit */
-    double getLoopEnd()
+    /** Return numeric value of start/end/step, or NaN if it's a PVReference (unknown until runtime) */
+    private static double toDoubleOrNaN(final Object v)
     {
-        return Math.max(command.getStart(), command.getEnd());
+        if (v instanceof Number)
+            return ((Number) v).doubleValue();
+        return Double.NaN; // PVReference — resolved at execute() time
     }
 
-    /** @return Loop step, might toggle direction */
-    double getLoopStep()
+    private double getLoopStart()
     {
-        final double step  = direction * command.getStepSize();
+        return Math.min(toDoubleOrNaN(command.getStart()), toDoubleOrNaN(command.getEnd()));
+    }
+    private double getLoopEnd()
+    {
+        return Math.max(toDoubleOrNaN(command.getStart()), toDoubleOrNaN(command.getEnd()));
+    }
+    private double getLoopStep()
+    {
+        final double step = direction * toDoubleOrNaN(command.getStepSize());
         // Revert direction for next iteration of the complete loop?
         if (reverse)
             direction = -direction;
         return step;
     }
 
-    /** @return Number of loop steps */
-    int getNumSteps()
+    public int getNumSteps()
     {
-        return (int)Math.ceil(Math.abs(((command.getEnd() - command.getStart()) / command.getStepSize()))) + 1;
-    }
-
-    /** @param start Start value, might be upper or lower limit
-     *  @param step Loop step value, positive or negative
-     *  @param i Loop index
-     *  @return Loop value
-     */
-    double computeStep(double start, double step, int i)
-    {
-        // Compute loop value, but limit to upper or lower
-        // end depending on step direction
-        if (step >= 0)
-            return Math.min(start + i * step, getLoopEnd());
-        else
-            return Math.max(start + i * step, getLoopStart());
+        final double s = toDoubleOrNaN(command.getStart());
+        final double e = toDoubleOrNaN(command.getEnd());
+        final double st = toDoubleOrNaN(command.getStepSize());
+        if (Double.isNaN(s) || Double.isNaN(e) || Double.isNaN(st))
+            return 1; // PV references — unknown until runtime, estimate 1 step
+        return (int) Math.ceil(Math.abs((e - s) / st)) + 1;
     }
 
     /** {@inheritDoc} */
@@ -165,7 +191,7 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         double start = step < 0 ? getLoopEnd() : getLoopStart();
         int num_steps = getNumSteps();
         for (int i = 0; i < num_steps; i++)
-            simulateStep(context, device, computeStep(start, step, i));
+            simulateStep(context, device, start + i * step);
     }
 
     /** Simulate one step in the loop iteration
@@ -213,6 +239,11 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         else
             readback = context.getDevice(context.getMacros().resolveMacros(command.getReadback()));
 
+        // Resolve start/end/step — read PV values if they are PVReferences
+        final double resolvedStart = resolveDouble(command.getStart(), context);
+        final double resolvedEnd   = resolveDouble(command.getEnd(), context);
+        final double resolvedStep  = resolveDouble(command.getStepSize(), context);
+
         //  Wait for the device to reach the value?
         final NumericValueCondition condition;
         if (command.getWait())
@@ -220,20 +251,34 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
             // When using completion, readback needs to match "right away"
             final double check_timeout = command.getCompletion() ? 1.0 : command.getTimeout();
             condition = new NumericValueCondition(readback, Comparison.EQUALS,
-                        command.getStart(),
+                        resolvedStart,
                         command.getTolerance(),
                         TimeDuration.ofSeconds(check_timeout));
         }
         else
             condition = null;
 
-        double step  = getLoopStep();
-        // step is < 0 means we are stepping down
-        double start = step < 0 ? getLoopEnd() : getLoopStart();
-        int num_steps = getNumSteps();
+        final double loopMin = Math.min(resolvedStart, resolvedEnd);
+        final double loopMax = Math.max(resolvedStart, resolvedEnd);
+        final int num_steps = (int) Math.ceil(Math.abs((resolvedEnd - resolvedStart) / resolvedStep)) + 1;
+        final double step = direction * resolvedStep;
+        final double start = step < 0 ? loopMax : loopMin;
 
-        for (int i = 0; i < num_steps; i++)
-            executeStep(context, device, condition, readback, computeStep(start, step, i));
+        for (int i = 0; i < num_steps; i++) {
+            executeStep(context, device, condition, readback, start + i * step);
+            // check if inside the loop, the device was set to a value that ends the loop
+            final VType value = device.read();
+            if (step < 0)
+            {
+                if (VTypeHelper.toDouble(value) < loopMin) // there isn't a tolerance
+                    break;
+            }
+            else
+            {
+                if (VTypeHelper.toDouble(value) > loopMax) // there isn't a tolerance
+                    break;
+            }
+        }
     }
 
     /** Execute one step of the loop

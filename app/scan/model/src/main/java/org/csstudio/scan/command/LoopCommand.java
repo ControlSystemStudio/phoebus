@@ -18,6 +18,8 @@ package org.csstudio.scan.command;
 import java.util.List;
 import java.util.Objects;
 
+import org.csstudio.scan.util.PVReference;
+import org.csstudio.scan.util.StringOrDouble;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -50,9 +52,12 @@ import org.w3c.dom.Element;
 public class LoopCommand extends ScanCommandWithBody
 {
     private volatile String device_name;
-    private volatile double start;
-    private volatile double end;
-    private volatile double stepsize;
+    /** Start value: {@link Double} literal or {@link PVReference} (PV name read at runtime) */
+    private volatile Object start;
+    /** End value: {@link Double} literal or {@link PVReference} (PV name read at runtime) */
+    private volatile Object end;
+    /** Step size: {@link Double} literal or {@link PVReference} (PV name read at runtime) */
+    private volatile Object stepsize;
     private volatile String readback = "";
     private volatile boolean completion = false;
     private volatile boolean wait = true;
@@ -114,9 +119,9 @@ public class LoopCommand extends ScanCommandWithBody
     {
         super(body);
         this.device_name = Objects.requireNonNull(device_name);
-        setStepSize(stepsize);
-        this.start = start;
-        this.end = end;
+        setStepSize(Double.valueOf(stepsize));
+        this.start = Double.valueOf(start);
+        this.end = Double.valueOf(end);
     }
 
     /** {@inheritDoc} */
@@ -124,9 +129,9 @@ public class LoopCommand extends ScanCommandWithBody
     protected void configureProperties(final List<ScanCommandProperty> properties)
     {
         properties.add(ScanCommandProperty.DEVICE_NAME);
-        properties.add(new ScanCommandProperty("start", "Initial Value", Double.class));
-        properties.add(new ScanCommandProperty("end", "Final Value", Double.class));
-        properties.add(new ScanCommandProperty("step_size", "Step Size", Double.class));
+        properties.add(new ScanCommandProperty("start", "Initial Value", Object.class));
+        properties.add(new ScanCommandProperty("end", "Final Value", Object.class));
+        properties.add(new ScanCommandProperty("step_size", "Step Size", Object.class));
         properties.add(ScanCommandProperty.COMPLETION);
         properties.add(ScanCommandProperty.WAIT);
         properties.add(ScanCommandProperty.READBACK);
@@ -149,45 +154,50 @@ public class LoopCommand extends ScanCommandWithBody
         this.device_name = device_name;
     }
 
-    /** @return Loop start value */
-    public double getStart()
+    /** @return Loop start value: {@link Double} or {@link PVReference} */
+    public Object getStart()
     {
         return start;
     }
 
-    /** @param start Initial loop value */
-    public void setStart(final Double start)
+    /** @param start Initial loop value ({@link Double} or {@link PVReference}) */
+    public void setStart(final Object start)
     {
         this.start = start;
     }
 
-    /** @return Loop end value */
-    public double getEnd()
+    /** @return Loop end value: {@link Double} or {@link PVReference} */
+    public Object getEnd()
     {
         return end;
     }
 
-    /** @param end Final loop value */
-    public void setEnd(final Double end)
+    /** @param end Final loop value ({@link Double} or {@link PVReference}) */
+    public void setEnd(final Object end)
     {
         this.end = end;
     }
 
-    /** @return Loop step size */
-    public double getStepSize()
+    /** @return Loop step size: {@link Double} or {@link PVReference} */
+    public Object getStepSize()
     {
         return stepsize;
     }
 
-    /** @param stepsize Increment of the loop variable */
-    public void setStepSize(final Double stepsize)
+    /** @param stepsize Increment of the loop variable ({@link Double} or {@link PVReference}) */
+    public void setStepSize(final Object stepsize)
     {
-        if (stepsize != 0.0)
-            this.stepsize = stepsize;
+        if (stepsize instanceof Double)
+        {
+            final double s = (Double) stepsize;
+            this.stepsize = (s != 0.0) ? s : 1.0;
+            // Use fraction of stepsize for tolerance
+            tolerance = Math.abs((Double) this.stepsize / 10.0);
+        }
         else
-            this.stepsize = 1.0;
-        // Use fraction of stepsize for tolerance
-        tolerance = Math.abs(this.stepsize / 10.0);
+        {   // PVReference: defer tolerance calculation to runtime
+            this.stepsize = stepsize;
+        }
     }
 
     /** @return Wait for write completion? */
@@ -264,15 +274,15 @@ public class LoopCommand extends ScanCommandWithBody
         command_element.appendChild(element);
 
         element = dom.createElement("start");
-        element.appendChild(dom.createTextNode(Double.toString(start)));
+        element.appendChild(dom.createTextNode(StringOrDouble.quote(start)));
         command_element.appendChild(element);
 
         element = dom.createElement("end");
-        element.appendChild(dom.createTextNode(Double.toString(end)));
+        element.appendChild(dom.createTextNode(StringOrDouble.quote(end)));
         command_element.appendChild(element);
 
         element = dom.createElement("step");
-        element.appendChild(dom.createTextNode(Double.toString(stepsize)));
+        element.appendChild(dom.createTextNode(StringOrDouble.quote(stepsize)));
         command_element.appendChild(element);
 
         if (completion)
@@ -316,9 +326,9 @@ public class LoopCommand extends ScanCommandWithBody
         super.readXML(element);
 
         setDeviceName(XMLUtil.getChildString(element, ScanCommandProperty.TAG_DEVICE).orElse(""));
-        setStart(XMLUtil.getChildDouble(element, "start").orElse(0.0));
-        setEnd(XMLUtil.getChildDouble(element, "end").orElse(10.0));
-        setStepSize(XMLUtil.getChildDouble(element, "step").orElse(1.0));
+        setStart(StringOrDouble.parse(XMLUtil.getChildString(element, "start").orElse("0")));
+        setEnd(StringOrDouble.parse(XMLUtil.getChildString(element, "end").orElse("10")));
+        setStepSize(StringOrDouble.parse(XMLUtil.getChildString(element, "step").orElse("1")));
         setCompletion(XMLUtil.getChildBoolean(element, ScanCommandProperty.TAG_COMPLETION).orElse(false));
         setWait(XMLUtil.getChildBoolean(element, ScanCommandProperty.TAG_WAIT).orElse(true));
         setReadback(XMLUtil.getChildString(element, ScanCommandProperty.TAG_READBACK).orElse(""));

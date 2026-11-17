@@ -305,7 +305,8 @@ public class NDArray
         if (data instanceof List)
         {
             final List<?> list = (List<?>)data;
-            for (Object o : list) index = fillFlatArray(flat, index, o);
+            for (int i=0; i<list.size(); ++i)
+                index = fillFlatArray(flat, index, list.get(i));
             return index;
         }
         else if (data.getClass().isArray())
@@ -322,7 +323,7 @@ public class NDArray
         }
         else if (data instanceof Boolean)
         {
-            flat.setByte(index, Boolean.TRUE.equals(data) ? (byte)1 : 0);
+            flat.setByte(index, ((Boolean)data).booleanValue() ? (byte)1 : 0);
             return index + 1;
         }
         else

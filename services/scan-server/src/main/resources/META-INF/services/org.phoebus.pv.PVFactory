@@ -1,0 +1,4 @@
+org.phoebus.pv.acsys.ACsys_PVFactory
+org.phoebus.pv.pva.PVA_PVFactory
+org.phoebus.pv.ca.JCA_PVFactory
+org.phoebus.pv.loc.LocalPVFactory

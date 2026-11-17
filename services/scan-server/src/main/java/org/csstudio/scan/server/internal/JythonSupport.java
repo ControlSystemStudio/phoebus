@@ -88,6 +88,14 @@ public class JythonSupport implements AutoCloseable
                         throw new Exception("Error in scan script path " + pref_path);
                     path = url.toExternalForm();
                     // Patch file:/path/to/the_file.jar!/path/within
+                    // or jar:file:/path/to/the_file.jar!/path/within
+                    // (the "jar:" scheme prefix is present when running from a jar,
+                    //  e.g. `java -jar fnal-scan-server-*.jar`, which is the normal
+                    //  deployment. Without stripping it, the resulting path is
+                    //  malformed and Jython silently fails to find built-in example
+                    //  scripts such as increment.py, "No module named 'increment'".)
+                    if (path.startsWith("jar:"))
+                        path = path.substring(4);
                     if (path.startsWith("file:"))
                         path = path.substring(5);
                     path = path.replace(".jar!", ".jar");

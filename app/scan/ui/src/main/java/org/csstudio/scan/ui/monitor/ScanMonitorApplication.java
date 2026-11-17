@@ -9,7 +9,6 @@ package org.csstudio.scan.ui.monitor;
 
 import java.net.URL;
 
-import org.csstudio.scan.ui.Messages;
 import org.phoebus.framework.spi.AppDescriptor;
 
 /** Application descriptor for "Scan Monitor"
@@ -19,7 +18,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 public class ScanMonitorApplication implements AppDescriptor
 {
     public static final String NAME = "scan_monitor";
-    public static final String DISPLAY_NAME = Messages.ScanMonitor;
+    public static final String DISPLAY_NAME = "Scan Monitor";
 
     @Override
     public String getName()
