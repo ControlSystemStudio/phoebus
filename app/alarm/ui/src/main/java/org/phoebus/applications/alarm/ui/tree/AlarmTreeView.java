@@ -286,12 +286,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         final Button collapse = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/collapse.png"));
         collapse.setTooltip(new Tooltip(Messages.collapseAlarmTree));
-        collapse.setOnAction(event -> expandOrCollapse(tree_view.getRoot(), false));
+        collapse.setOnAction(event -> expandOrCollapseSelection(false));
 
         final Button expand = new Button("",
                 ImageCache.getImageView(AlarmUI.class, "/icons/expand.png"));
         expand.setTooltip(new Tooltip(Messages.expandAlarmTree));
-        expand.setOnAction(event -> expandOrCollapse(tree_view.getRoot(), true));
+        expand.setOnAction(event -> expandOrCollapseSelection(true));
 
         final Button searchButton = new Button(Messages.search);
 
@@ -434,6 +434,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items.add(index, view_item);
     }
 
+    /** Collapses or expands (depending on the value of expand) the
+     *  given component, plus all of its children recursively.
+     */
     private void expandOrCollapse(final TreeItem<AlarmTreeItem<?>> component, final boolean expand)
     {
         if (component != tree_view.getRoot()) {
@@ -448,6 +451,22 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 if (view_item != null) {
                     expandOrCollapse(view_item, expand);
                 }
+            }
+        }
+    }
+
+    /** Reads the selection and collapses or expands (depending on the
+     *  value of expand) the selected components. If leaf nodes are
+     *  selected, their parents are collapsed.
+     */
+    private void expandOrCollapseSelection(final boolean expand) {
+        // We clone the selection because we might be about to modify it
+        final List<TreeItem<AlarmTreeItem<?>>> selected = tree_view.getSelectionModel().getSelectedItems().stream().toList();
+        if (selected.isEmpty()) {
+            expandOrCollapse(tree_view.getRoot(), expand);
+        } else {
+            for (final TreeItem<AlarmTreeItem<?>> item : selected) {
+                expandOrCollapse(item.getValue() instanceof AlarmClientLeaf ? item.getParent() : item, expand);
             }
         }
     }
