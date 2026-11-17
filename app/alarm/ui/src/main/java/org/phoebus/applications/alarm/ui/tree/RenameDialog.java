@@ -26,9 +26,9 @@ public class RenameDialog extends Dialog<String> {
     public RenameDialog(final AlarmTreeItem<?> parent, final String oldName) {
         super();
 
-        setTitle(Messages.renameTitle);
+        setTitle(Messages.renameDialogTitle);
 
-        final Label renameLabel = new Label(Messages.renameLabel);
+        final Label renameLabel = new Label(Messages.renameDialogLabel);
 
         final TextField input = new TextField();
         input.setText(oldName);

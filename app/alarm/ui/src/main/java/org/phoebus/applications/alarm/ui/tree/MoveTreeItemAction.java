@@ -75,12 +75,7 @@ public class MoveTreeItemAction extends MenuItem
             JobManager.schedule(getText(), monitor ->
             {
 				try {
-					// Move the item.
-					model.sendItemConfigurationUpdate(new_path, item);
-					// Move the item's children.
-					AlarmTreeHelper.rebuildTree(model, item, new_path);
-					// Delete the old item. This deletes the old item's children as well.
-					model.removeComponent(item);
+					AlarmTreeHelper.moveItem(model, item, new_path, true);
 				} catch (Exception e) {
 					ExceptionDetailsErrorDialog.openError(Messages.error,
 							Messages.moveItemFailed,

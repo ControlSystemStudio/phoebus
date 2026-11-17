@@ -15,6 +15,7 @@ import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -36,68 +37,31 @@ class RenameTreeItemAction extends MenuItem
                           final AlarmClient model,
                           final AlarmTreeItem<?> item)
     {
-        super("Rename Item", ImageCache.getImageView(AlarmSystem.class, "/icons/rename.png"));
+        super(Messages.renameItem, ImageCache.getImageView(AlarmSystem.class, "/icons/rename.png"));
 
-        if (item instanceof AlarmClientNode)
-        {
-        	setOnAction(event ->
-        	{
-        		//Prompt for new name
-	        	final String new_name = AlarmTreeHelper.prompt(getText(), "Enter new name for Node", item.getName(), node);
-	        	if (null == new_name)
-	        		return;
-	        	// Tree view keeps the selection indices, which will point to wrong content
-	            // after those items have been removed
-	            if (node instanceof TreeView<?>)
-	                ((TreeView<?>) node).getSelectionModel().clearSelection();
+		setOnAction(event ->
+		{
+			// Prompt for new name
+			final RenameDialog dialog = new RenameDialog(item.getParent(), item.getName());
+			dialog.setHeaderText(Messages.enterNameForDuplicate);
+			DialogHelper.positionDialog(dialog, node, -100, -50);
+			final String new_name = dialog.showAndWait().orElse(null);
+			if (new_name == null)
+				return;
 
-	            // Delete old, rebuild child links, and add new name in background thread.
-	            JobManager.schedule(getText(), monitor ->
-	            {
-	                final AlarmTreeItem<BasicState> parent = item.getParent();
-	                // Remove the item and all its children.
-	                // Add the new item, and then rebuild all its children.
-					try {
-						final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
-						model.sendItemConfigurationUpdate(new_path, item);
-						AlarmTreeHelper.rebuildTree(model, item, new_path);
-						model.removeComponent(item);
-					} catch (Exception e) {
-						ExceptionDetailsErrorDialog.openError(Messages.error,
-								Messages.renameItemFailed,
-								e);
-					}
-				});
-        	});
-        }
-        else
-        {
-	        setOnAction(event ->
-	        {
-	        	//Prompt for new name
-	        	final String new_name = AlarmTreeHelper.prompt(getText(), "Enter new name for PV", item.getName(), node);
-	        	if (null == new_name)
-	        		return;
-	        	// Tree view keeps the selection indices, which will point to wrong content
-	            // after those items have been removed
-	            if (node instanceof TreeView<?>)
-	                ((TreeView<?>) node).getSelectionModel().clearSelection();
-
-	            // Delete old, add new name in background thread
-	            JobManager.schedule(getText(), monitor ->
-	            {
-	                final AlarmTreeItem<BasicState> parent = item.getParent();
-					try {
-						final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
-						model.sendItemConfigurationUpdate(new_path, item);
-						model.removeComponent(item);
-					} catch (Exception e) {
-						ExceptionDetailsErrorDialog.openError(Messages.error,
-								Messages.renameItemFailed,
-								e);
-					}
-				});
-	        });
-        }
+			// Delete old, rebuild child links, and add new name in background thread.
+			JobManager.schedule(getText(), monitor ->
+			{
+				final AlarmTreeItem<BasicState> parent = item.getParent();
+				try {
+					final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
+					AlarmTreeHelper.moveItem(model, item, new_path, true);
+				} catch (final Exception ex) {
+					ExceptionDetailsErrorDialog.openError(Messages.error,
+							Messages.renameItemFailed,
+							ex);
+				}
+			});
+		});
     }
 }

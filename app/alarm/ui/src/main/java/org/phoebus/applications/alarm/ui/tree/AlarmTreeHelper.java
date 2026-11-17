@@ -15,13 +15,11 @@ import java.util.stream.Stream;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.ui.Messages;
-import org.phoebus.ui.dialog.DialogHelper;
 
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.TreeView;
 import org.phoebus.util.time.TimestampFormats;
 
 /** @author Evan Smith
@@ -56,27 +54,26 @@ public class AlarmTreeHelper
 		}
 	}
 
-	/** Prompt the screen with a dialog box.
-	 *  @param title Title string of the dialog box.
-	 *  @param header Header string of the dialog box.
-	 *  @param default_text Default text contents of dialog box.
-	 *  @param node Node where the dialog box will be located.
-	 *  @return String The entered string or null if the entry was empty.
+	/** Moves the provided item and all its children to a new path.
+	 *
+	 *  @param model AlarmClient used to communicate to the AlarmServer
+	 *  @param item AlarmTreeItem to move
+	 *  @param path Path that the parents' children will now be located at.
+	 *  @param removeOldItem Whether the old item should be removed once it is moved
 	 */
-    public static String prompt(String title, String header,  final String default_text, final TreeView<AlarmTreeItem<?>> node)
-    {
-    	// Prompt for new name
-        final TextInputDialog prompt = new TextInputDialog(default_text);
-        DialogHelper.positionDialog(prompt, node, -200, -100);
-        prompt.setTitle(title);
-        prompt.setHeaderText(header);
-        prompt.getDialogPane().setPrefWidth(500);
-        prompt.setResizable(true);
-        final String input = prompt.showAndWait().orElse("");
-        if (input.isEmpty())
-            return null;
-        return input;
-    }
+	public static void moveItem(AlarmClient model, AlarmTreeItem<?> item, String newPath, boolean removeOldItem) throws Exception
+	{
+		// Add the new item
+		model.sendItemConfigurationUpdate(newPath, item);
+		// ...and rebuild all its children
+		if (item instanceof AlarmClientNode) {
+			rebuildTree(model, item, newPath);
+		}
+		// Remove the item and all its children
+		if (removeOldItem) {
+			model.removeComponent(item);
+		}
+	}
 
 	/** Validate the passed path string by checking if the path name is valid.
 	 *
