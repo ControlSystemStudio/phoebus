@@ -621,11 +621,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     menu_items.add(new CopyItemAction(tree_view, clipboard, isClipboardCut, item));
                     menu_items.add(new CutItemAction(tree_view, clipboard, isClipboardCut, item));
 
-                    final PasteItemAction pasteItem = new PasteItemAction(
+                    menu_items.add(new PasteItemAction(
                             tree_view, model, item instanceof AlarmClientNode ? item : item.getParent(), clipboard, isClipboardCut.get()
-                    );
-                    pasteItem.setDisable(clipboard.get() == null);
-                    menu_items.add(pasteItem);
+                    ));
 
                     if (item instanceof AlarmClientNode)
                         menu_items.add(new AddComponentAction(tree_view, model, item));

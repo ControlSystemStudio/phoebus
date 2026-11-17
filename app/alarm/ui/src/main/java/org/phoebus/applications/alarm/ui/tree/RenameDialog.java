@@ -12,9 +12,17 @@ import javafx.scene.paint.Color;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.Messages;
 
+import java.util.function.Consumer;
+
 
 public class RenameDialog extends Dialog<String> {
 
+    /**
+     *
+     * @param parent The parent of the item being renamed - use to check for name clashes
+     * @param oldName The old name of the item being renamed
+     * @param allowOldName Whether the new name can be the same as the old name
+     */
     public RenameDialog(final AlarmTreeItem<?> parent, final String oldName) {
         super();
 
@@ -34,27 +42,34 @@ public class RenameDialog extends Dialog<String> {
         errorLabel.setTextFill(Color.RED);
         errorLabel.setMaxWidth(Double.MAX_VALUE);
 
-        // Show error and disable OK if the label matches any child
+        final Consumer<String> updateError = newError -> {
+            errorLabel.setText(newError);
+            getDialogPane().lookupButton(ButtonType.OK).setDisable(newError != null);
+        };
+
         input.textProperty().addListener(_ -> {
-            if (input.getText().isEmpty()) {
-                errorLabel.setText(Messages.nameCannotBeEmpty);
-                errorLabel.setVisible(true);
-                getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
+            // Disable OK if name has not changed
+            if (input.getText().equals(oldName)) {
+                updateError.accept("");  // disable OK but don't show an error
                 return;
             }
 
+            // Show error and disable OK if text is empty
+            if (input.getText().isEmpty()) {
+                updateError.accept(Messages.nameCannotBeEmpty);
+                return;
+            }
+
+            // Show error and disable OK if the label matches any child
             final boolean childExists = parent.getChildren().stream().anyMatch(child -> input.getText().equals(child.getName()));
-            errorLabel.setText(Messages.itemAlreadyExists);
-            errorLabel.setVisible(childExists);
-            getDialogPane().lookupButton(ButtonType.OK).setDisable(childExists);
+            updateError.accept(childExists ? Messages.itemAlreadyExists : null);
         });
 
         getDialogPane().setContent(new VBox(inputBox, errorLabel));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        // Default to error hidden (as it can be confusing otherwise) and OK disabled
-        errorLabel.setVisible(false);
-        getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
+        // Default to error hidden and OK disabled
+        updateError.accept("");
 
         setResultConverter(buttonType -> buttonType == ButtonType.OK ? input.getText() : null);
     }

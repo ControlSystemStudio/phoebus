@@ -5,6 +5,7 @@ import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.ui.Messages;
@@ -35,6 +36,8 @@ public class PasteItemAction extends MenuItem
     {
         super("Paste Item", ImageCache.getImageView(AlarmSystem.class, "/icons/paste.png"));
 
+        setDisable(clipboard.get() == null);
+
         setOnAction(event -> {
             final AlarmTreeItem<?> item = clipboard.get();
 
@@ -59,9 +62,11 @@ public class PasteItemAction extends MenuItem
                     // Move the item.
                     model.sendItemConfigurationUpdate(newPath, item);
                     // Move the item's children.
-                    AlarmTreeHelper.rebuildTree(model, item, newPath);
+                    if (item instanceof AlarmClientNode) {
+                        AlarmTreeHelper.rebuildTree(model, item, newPath);
+                    }
+                    // Delete the old item. This deletes the old item's children as well.
                     if (isCut) {
-                        // Delete the old item. This deletes the old item's children as well.
                         model.removeComponent(item);
                     }
                 } catch (final Exception ex) {

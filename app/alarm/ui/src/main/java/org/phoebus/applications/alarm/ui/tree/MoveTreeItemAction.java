@@ -70,10 +70,6 @@ public class MoveTreeItemAction extends MenuItem
 				return;
 			}
 
-    		// Tree view keeps the selection indices, which will point to wrong content
-            // after those items have been removed.
-            node.getSelectionModel().clearSelection();
-
 			final String new_path = path;
 			// On a background thread, send the item configuration updates for the item to be moved and all its children.
             JobManager.schedule(getText(), monitor ->
