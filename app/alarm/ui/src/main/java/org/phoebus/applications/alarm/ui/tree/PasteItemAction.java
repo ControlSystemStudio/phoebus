@@ -2,6 +2,8 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuItem;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
@@ -40,11 +42,12 @@ public class PasteItemAction extends MenuItem
         setDisable(clipboard.get() == null);
 
         setOnAction(event -> {
-            final AlarmTreeItem<?> item = clipboard.get();
+            AlarmTreeItem<?> item = clipboard.get();
+            final String itemName = item.getName();
 
             // Get new name, prompting user if any child of the new parent already has the same name
             String newName = item.getName();
-            if (parent.getChildren().stream().anyMatch(child -> child.getName().equals(item.getName()))) {
+            if (parent.getChildren().stream().anyMatch(child -> child.getName().equals(itemName))) {
                 // Item already exists in the parent node we're copying to; prompt for rename
                 final RenameDialog dialog = new RenameDialog(parent, item.getName());
                 dialog.setHeaderText(MessageFormat.format(Messages.itemAlreadyExists, parent.getName(), item.getName()));
@@ -57,11 +60,31 @@ public class PasteItemAction extends MenuItem
                 }
             }
 
-            final String finalNewName = newName; // lambda variables must be final
+            // Prompt user whether they want to paste the children too
+            if (item instanceof final AlarmClientNode alarmNode && !alarmNode.getChildren().isEmpty()) {
+                final Dialog<ButtonType> dialog = new Dialog<>();
+                DialogHelper.positionDialog(dialog, node, -100, -50);
+                dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.NO, ButtonType.YES);
+                dialog.setTitle("Copy children?");
+                dialog.setHeaderText("Copy the children of this node too?");
+
+                final ButtonType result = dialog.showAndWait().orElse(null);
+                if (result == null || result == ButtonType.CANCEL) {
+                    return;
+                }
+                if (result == ButtonType.NO) {
+                    item = alarmNode.createDetachedCopy();
+                }
+            }
+
+            // Finally paste the item (on a separate thread of course)
+            // lambda variables must be final
+            final AlarmTreeItem<?> finalItem = item;
+            final String finalNewName = newName;
             JobManager.schedule("Paste alarm tree item", _ -> {
                 try {
                     final String newPath = AlarmTreePath.makePath(parent.getPathName(), finalNewName);
-                    AlarmTreeHelper.moveItem(model, item, newPath, isCut);
+                    AlarmTreeHelper.moveItem(model, finalItem, newPath, isCut);
                 } catch (final Exception ex) {
                     ExceptionDetailsErrorDialog.openError(Messages.error, Messages.pasteItemFailed, ex);
                 }
