@@ -40,27 +40,15 @@ class DuplicatePVAction extends MenuItem
         setOnAction(event ->
         {
             // Prompt for new PV name
-            final TextInputDialog dialog = new TextInputDialog();
-            dialog.setTitle(getText());
-            dialog.setHeaderText("Enter name for duplicate of\n" + original.getPathName());
+            final RenameDialog dialog = new RenameDialog(original.getParent(), original.getName());
+            dialog.setHeaderText("Enter name for duplicate");
             DialogHelper.positionDialog(dialog, node, -100, -50);
             final String new_name = dialog.showAndWait().orElse(null);
-            if (new_name == null  ||  new_name.isEmpty())
+            if (new_name == null)
                 return;
 
             // Create near copy of original PV, but with new name
-            final AlarmClientLeaf template = new AlarmClientLeaf(null, new_name);
-            template.setDescription(original.getDescription());
-            template.setEnabled(original.isEnabled());
-            template.setLatching(original.isLatching());
-            template.setAnnunciating(original.isAnnunciating());
-            template.setDelay(original.getDelay());
-            template.setCount(original.getCount());
-            template.setFilter(original.getFilter());
-            template.setGuidance(original.getGuidance());
-            template.setDisplays(original.getDisplays());
-            template.setCommands(original.getCommands());
-            template.setActions(original.getActions());
+            final AlarmClientLeaf template = original.createDetachedCopy(new_name);
 
             // Request adding new PV
             JobManager.schedule(getText(), monitor -> {

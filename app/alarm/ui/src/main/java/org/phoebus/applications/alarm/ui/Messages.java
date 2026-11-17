@@ -43,9 +43,14 @@ public class Messages
     public static String headerConfirmDisableWithEnableDate;
     public static String headerConfirmEnable;
     public static String indefinitely;
+    public static String itemAlreadyExists;
     public static String MenuPath;
     public static String moveItemFailed;
+    public static String nameCannotBeEmpty;
+    public static String pasteItemFailed;
     public static String promptTitle;
+    public static String renameLabel;
+    public static String renameTitle;
     public static String removeComponentFailed;
     public static String renameItemFailed;
     public static String totalPVs;

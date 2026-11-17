@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
@@ -139,6 +141,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             final ObservableList<Node> items = getToolbar().getItems();
             items.remove(changing);
         });
+
+    private final SimpleObjectProperty<AlarmTreeItem<?>> clipboard = new SimpleObjectProperty<>(null);
+    private final SimpleBooleanProperty isClipboardCut = new SimpleBooleanProperty(false);
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
@@ -440,6 +445,11 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         blockItemChanges();
         // System.out.println(Thread.currentThread() + " Removed " + item.getPathName());
 
+        // Clear clipboard if we are removing clipboard's item
+        if (clipboard.get() != null && clipboard.get().equals(item)) {
+            clipboard.set(null);
+        }
+
         // Remove item and all sub-items from model2ui
         final TreeItem<AlarmTreeItem<?>> view_item = removeViewItems(item);
         if (view_item == null)
@@ -604,6 +614,15 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                     menu_items.add(new ConfigureComponentAction(tree_view, model, item));
                     menu_items.add(new SeparatorMenuItem());
 
+                    menu_items.add(new CopyItemAction(tree_view, clipboard, isClipboardCut, item));
+                    menu_items.add(new CutItemAction(tree_view, clipboard, isClipboardCut, item));
+
+                    final PasteItemAction pasteItem = new PasteItemAction(
+                            tree_view, model, item instanceof AlarmClientNode ? item : item.getParent(), clipboard, isClipboardCut.get()
+                    );
+                    pasteItem.setDisable(clipboard.get() == null);
+                    menu_items.add(pasteItem);
+
                     if (item instanceof AlarmClientNode)
                         menu_items.add(new AddComponentAction(tree_view, model, item));
 
@@ -614,6 +633,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
                     menu_items.add(new MoveTreeItemAction(tree_view, model, item));
                 }
+
                 if (selection.size() >= 1)
                 {
                     menu_items.add(new EnableComponentAction(tree_view, model, selection));
