@@ -839,6 +839,8 @@ The response is a snapshot object representing the persisted data, see :ref:`Get
 Server Restore Endpoints
 ------------------------
 
+**NOTE:** the restore endpoints require an authenticated user to have role ``sar-server-restore``.
+
 Restore from snapshot items
 """""""""""""""""""""""""""
 
@@ -1042,10 +1044,10 @@ service can be configured to delegate authentication to Active Directory or remo
 purposes hard coded credentials are found in the ``WebSecurityConfig`` class. See the file ``application.properties``
 for information on how to select authentication method.
 
-Two roles are defined, "sar-user" and "sar-admin". The actual name of these roles can be customizable in ``application.properties``,
+Three roles are defined, "sar-user", "sar-admin" and "sar-server-restore". The actual name of these roles can be customizable in ``application.properties``,
 and must match role/group names in LDAP or Active Directory.
 
-Authorization uses a role-based approach like so:
+The role-based authorization works like so:
 
 * Unauthenticated users may read data, i.e. access GET endpoints.
 * Save-and-restore role "sar-user":
@@ -1060,7 +1062,8 @@ Authorization uses a role-based approach like so:
         * Object is configuration or folder node with no child nodes
         * Object is a filter
         * Object is a tag
-* Save-and-restore role "sar-admin": no restrictions
+* Save-and-restore role "sar-admin": no restrictions, except for server-side restore
+* Role "sar-server-restore" is used only to control access to endpoints related to restore operations.
 
 Authentication endpoint
 -----------------------
@@ -1077,11 +1080,30 @@ Body:
 
     {"username":"johndoe", "password":"undisclosed"}
 
+Handles client authentication. Upon successful authentication it returns an object like so:
+
+.. code-block:: JSON
+
+  {
+    "userName": "johndoe",
+    "roles" : ["role1", "role2"]
+  }
+
+
+**.../server-restore-authorized**
+
+    Method: POST
+
+Returns ``true`` if an authenticated client may request the service to perform a restore operation, otherwise
+``false``. Note though that calling this endpoint from an unauthenticated client will return a HTTP 401 response.
+
+
 
 Enabled authentication, disabled authorization
 ----------------------------------------------
 
-The application property ``authorization.permitall`` (default ``true``) can be used to bypass all authorization. In
+The application property ``authorization.permitall`` (default ``true``) can be used to bypass all authorization, except
+for endpoints related to snapshot restore on the service. In
 this case authentication is still required for protected endpoints, but user need not be associated with
 a save-and-restore role/group.
 
