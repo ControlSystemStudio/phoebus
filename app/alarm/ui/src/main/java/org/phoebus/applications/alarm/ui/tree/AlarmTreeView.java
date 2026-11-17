@@ -456,7 +456,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             indicateChange();
 
             // Clear clipboard if we are removing clipboard's item
-            if (clipboard.get() != null && clipboard.get().equals(item)) {
+            if (clipboard.get() != null && clipboard.get().getPathName().equals(item.getPathName())) {
                 clipboard.set(null);
             }
 

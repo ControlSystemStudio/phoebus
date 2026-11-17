@@ -39,7 +39,6 @@ public class RenameDialog extends Dialog<String> {
             if (input.getText().isEmpty()) {
                 errorLabel.setText(Messages.nameCannotBeEmpty);
                 errorLabel.setVisible(true);
-                errorLabel.setManaged(false);
                 getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
                 return;
             }
@@ -47,7 +46,6 @@ public class RenameDialog extends Dialog<String> {
             final boolean childExists = parent.getChildren().stream().anyMatch(child -> input.getText().equals(child.getName()));
             errorLabel.setText(Messages.itemAlreadyExists);
             errorLabel.setVisible(childExists);
-            errorLabel.setManaged(childExists);
             getDialogPane().lookupButton(ButtonType.OK).setDisable(childExists);
         });
 
