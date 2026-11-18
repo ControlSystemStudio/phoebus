@@ -2,6 +2,7 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuItem;
@@ -45,6 +46,30 @@ public class PasteItemAction extends MenuItem
             AlarmTreeItem<?> item = clipboard.get();
             final String itemName = item.getName();
 
+            // Cross-config cut/paste is forbidden. (Why? User cuts from config A -> switches to
+            // config B -> pastes to config B -> config A is no longer loaded so how can we remove
+            // the old item?)
+            final String itemConfig = AlarmTreePath.splitPath(item.getPathName())[0];
+            final String modelConfig = AlarmTreePath.splitPath(model.getRoot().getPathName())[0];
+            if (isCut && !itemConfig.equals(modelConfig)) {
+                final Alert alert = new Alert(Alert.AlertType.ERROR);
+                DialogHelper.positionDialog(alert, node, -100, -50);
+                alert.setTitle(Messages.pasteItemFailed);
+                alert.setHeaderText(Messages.cutPasteAcrossConfigs);
+                alert.show();
+                return;
+            }
+
+            // Cutting+pasting a node into one of its children is forbidden for obvious reasons
+            if (parent.getPathName().startsWith(item.getPathName())) {
+                final Alert alert = new Alert(Alert.AlertType.ERROR);
+                DialogHelper.positionDialog(alert, node, -100, -50);
+                alert.setTitle(Messages.pasteItemFailed);
+                alert.setHeaderText(Messages.cutPasteIntoChild);
+                alert.show();
+                return;
+            }
+
             // Get new name, prompting user if any child of the new parent already has the same name
             String newName = item.getName();
             if (parent.getChildren().stream().anyMatch(child -> child.getName().equals(itemName))) {
@@ -65,8 +90,8 @@ public class PasteItemAction extends MenuItem
                 final Dialog<ButtonType> dialog = new Dialog<>();
                 DialogHelper.positionDialog(dialog, node, -100, -50);
                 dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.NO, ButtonType.YES);
-                dialog.setTitle("Copy children?");
-                dialog.setHeaderText("Copy the children of this node too?");
+                dialog.setTitle(Messages.copyChildrenDialogTitle);
+                dialog.setHeaderText(Messages.copyChildrenDialogHeader);
 
                 final ButtonType result = dialog.showAndWait().orElse(null);
                 if (result == null || result == ButtonType.CANCEL) {

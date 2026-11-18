@@ -151,8 +151,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items.remove(changing);
         });
 
-    private final SimpleObjectProperty<AlarmTreeItem<?>> clipboard = new SimpleObjectProperty<>(null);
-    private final SimpleBooleanProperty isClipboardCut = new SimpleBooleanProperty(false);
+    private static final SimpleObjectProperty<AlarmTreeItem<?>> clipboard = new SimpleObjectProperty<>(null);
+    private static final SimpleBooleanProperty isClipboardCut = new SimpleBooleanProperty(false);
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.

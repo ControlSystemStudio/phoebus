@@ -22,6 +22,10 @@ public class Messages
     public static String Annunciator;
     public static String commands;
     public static String configure;
+    public static String cutPasteAcrossConfigs;
+    public static String copyChildrenDialogTitle;
+    public static String copyChildrenDialogHeader;
+    public static String cutPasteIntoChild;
     public static String delayTooltip0;
     public static String delayTooltip1;
     public static String delayTooltip2;
