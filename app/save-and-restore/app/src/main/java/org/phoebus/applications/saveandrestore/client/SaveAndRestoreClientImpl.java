@@ -665,6 +665,30 @@ public class SaveAndRestoreClientImpl implements SaveAndRestoreClient {
         });
     }
 
+    @Override
+    public boolean serverRestoreAuthorized(){
+        String basicAuthenticationHeader = getBasicAuthenticationHeader();
+        if(basicAuthenticationHeader == null){ // User not signed in
+            return false;
+        }
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Preferences.jmasarServiceUrl + "/server-restore-authorized"))
+                    .header("Authorization", basicAuthenticationHeader)
+                    .POST(HttpRequest.BodyPublishers.noBody())
+                    .build();
+            HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                return false;
+            }
+            String s = response.body();
+            return OBJECT_MAPPER.readValue(s, new TypeReference<>() {
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private <T> T getCall(String relativeUrl, Class<T> clazz) {
         HttpResponse<String> response = getCall(relativeUrl);
         try {

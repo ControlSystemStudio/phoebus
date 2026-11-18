@@ -517,4 +517,12 @@ public class SaveAndRestoreService implements WebSocketMessageHandler {
         }
     }
 
+    /**
+     * @return <code>false</code> if user is not yet authenticated or is not
+     * authorized to call restore operations on the server.
+     */
+    public boolean serverRestoreAuthorized(){
+        return saveAndRestoreClient.serverRestoreAuthorized();
+    }
+
 }

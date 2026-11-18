@@ -275,4 +275,10 @@ public interface SaveAndRestoreClient {
      * @return A {@link List} of {@link SnapshotItem}s carrying snapshot values read by the service.
      */
     List<SnapshotItem> takeSnapshot(String configurationNodeId);
+
+    /**
+     * @return <code>false</code> if user is not yet authenticated or is not
+     * authorized to call restore operations on the server.
+     */
+    boolean serverRestoreAuthorized();
 }
