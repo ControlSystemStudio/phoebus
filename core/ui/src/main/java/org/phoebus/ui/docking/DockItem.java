@@ -416,6 +416,7 @@ public class DockItem extends Tab
 
         DialogHelper.positionDialog(dlg, name_tab, 0, 0);
         dlg.setResizable(true);
+        dlg.setHeight(180);
         dlg.showAndWait();
     }
 
@@ -701,7 +702,7 @@ public class DockItem extends Tab
                 // of other parts and overall application
                 logger.log(Level.SEVERE, this + " failed to shut down cleanly, forcing to close", ex);
             }
-        
+
         prepared_do_close = true;
         return true;
     }

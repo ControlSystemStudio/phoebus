@@ -67,6 +67,7 @@ public class WidgetInfoAction extends WeakRefWidgetAction
             final Node node = JFXBaseRepresentation.getJFXNode(widget);
             final Bounds pos = node.localToScreen(node.getBoundsInLocal());
             DialogHelper.positionDialog(dialog, node, (int)-pos.getWidth()/2, (int)-pos.getHeight()/2);
+            dialog.setHeight(630);
             dialog.show();
         });
     }
