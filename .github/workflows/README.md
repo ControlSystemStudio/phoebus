@@ -11,7 +11,7 @@ compose the building blocks.
 |----------|---------|------|
 | [`pr.yml`](pr.yml) (*PR*) | `pull_request`, manual `workflow_dispatch` | lint, build; then unit, UI and integration tests (after build succeeds) |
 | [`branch.yml`](branch.yml) (*Branch*) | push to any branch except `master` | lint, build |
-| [`merge.yml`](merge.yml) (*Merge to master*) | push to `master` | lint; build on Linux, Windows and macOS (product archives uploaded as artifacts); unit, UI and integration tests; Docker images for the services |
+| [`merge.yml`](merge.yml) (*Merge to master*) | push to `master` | lint; build on Linux (x86_64 and aarch64), Windows and macOS (product archives uploaded as artifacts); unit, UI and integration tests; Docker images for the services |
 | [`release.yml`](release.yml) (*Release*) | push of any tag | Docker images for the services |
 | [`report.yml`](report.yml) (*Test report*) | `workflow_run` after *PR* or *Merge to master* completes | publishes JUnit results as check runs |
 
