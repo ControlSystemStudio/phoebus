@@ -11,7 +11,7 @@ compose the building blocks.
 |----------|---------|------|
 | [`pr.yml`](pr.yml) (*PR*) | `pull_request`, manual `workflow_dispatch` | lint, build; then unit, UI and integration tests (after build succeeds) |
 | [`branch.yml`](branch.yml) (*Branch*) | push to any branch except `master` | lint, build |
-| [`merge.yml`](merge.yml) (*Merge to master*) | push to `master` | lint; build on Linux (x86_64 and aarch64), Windows and macOS (product archives uploaded as artifacts); unit, UI and integration tests; Docker images for the services |
+| [`merge.yml`](merge.yml) (*Merge to master*) | push to `master` | lint; build on Linux (x86_64 and aarch64), Windows and macOS (product archives uploaded as artifacts; a failing aarch64 build does not fail the workflow); unit, UI and integration tests; Docker images for the services |
 | [`release.yml`](release.yml) (*Release*) | push of any tag | Docker images for the services |
 | [`report.yml`](report.yml) (*Test report*) | `workflow_run` after *PR* or *Merge to master* completes | publishes JUnit results as check runs |
 
@@ -23,7 +23,7 @@ still-running workflow for the same PR/branch.
 | Workflow | Purpose | Inputs |
 |----------|---------|--------|
 | [`_lint.yml`](_lint.yml) | Runs [pre-commit](../../.pre-commit-config.yaml) on the files changed between two refs | `from-ref`, `to-ref` |
-| [`_build.yml`](_build.yml) | `mvn install -DskipTests` | `os` (default `ubuntu-latest`), `upload-artifacts` (upload `phoebus-product/target/*.{tar.gz,zip}`) |
+| [`_build.yml`](_build.yml) | `mvn install -DskipTests` | `os` (default `ubuntu-latest`), `upload-artifacts` (upload `phoebus-product/target/*.{tar.gz,zip}`), `allow-failure` (set `continue-on-error` on the job) |
 | [`_test.yml`](_test.yml) | Generic "run a test command, upload reports" job | `name`, `run`, `report-path` |
 | [`_unit-test.yml`](_unit-test.yml) | `_test.yml` with `mvn verify` (surefire) | – |
 | [`_ui-test.yml`](_ui-test.yml) | `_test.yml` with `xvfb-run -a mvn verify -P ui-tests` (TestFX, headless) | – |
