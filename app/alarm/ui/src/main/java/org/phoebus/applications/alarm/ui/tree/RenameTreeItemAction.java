@@ -9,7 +9,6 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
-import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
@@ -42,8 +41,8 @@ class RenameTreeItemAction extends MenuItem
 		setOnAction(event ->
 		{
 			// Prompt for new name
-			final RenameDialog dialog = new RenameDialog(item.getParent(), item.getName());
-			dialog.setHeaderText(Messages.enterNameForDuplicate);
+			final RenameDialog dialog = new RenameDialog(model, item.getParent(), item);
+			dialog.setHeaderText(Messages.enterNewName);
 			DialogHelper.positionDialog(dialog, node, -100, -50);
 			final String new_name = dialog.showAndWait().orElse(null);
 			if (new_name == null)

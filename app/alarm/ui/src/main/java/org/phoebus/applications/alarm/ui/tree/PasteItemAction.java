@@ -61,7 +61,7 @@ public class PasteItemAction extends MenuItem
             }
 
             // Cutting+pasting a node into one of its children is forbidden for obvious reasons
-            if (parent.getPathName().startsWith(item.getPathName())) {
+            if (parent.getPathName().startsWith(item.getPathName() + "/")) {
                 final Alert alert = new Alert(Alert.AlertType.ERROR);
                 DialogHelper.positionDialog(alert, node, -100, -50);
                 alert.setTitle(Messages.pasteItemFailed);
@@ -70,20 +70,15 @@ public class PasteItemAction extends MenuItem
                 return;
             }
 
-            // Get new name, prompting user if any child of the new parent already has the same name
-            String newName = item.getName();
-            if (parent.getChildren().stream().anyMatch(child -> child.getName().equals(itemName))) {
-                // Item already exists in the parent node we're copying to; prompt for rename
-                final RenameDialog dialog = new RenameDialog(parent, item.getName());
-                dialog.setHeaderText(MessageFormat.format(Messages.itemAlreadyExists, parent.getName(), item.getName()));
-                DialogHelper.positionDialog(dialog, node, -100, -50);
-                final Optional<String> name = dialog.showAndWait();
-                if (name.isPresent()) {
-                    newName = name.get();
-                } else {
-                    return;
-                }
+            // Get new name
+            final RenameDialog renameDialog = new RenameDialog(model, parent, item);
+            renameDialog.setHeaderText(MessageFormat.format(Messages.enterNewName, parent.getName(), item.getName()));
+            DialogHelper.positionDialog(renameDialog, node, -100, -50);
+            final Optional<String> name = renameDialog.showAndWait();
+            if (!name.isPresent()) {
+                return;
             }
+            final String newName = name.get();
 
             // Prompt user whether they want to paste the children too
             if (item instanceof final AlarmClientNode alarmNode && !alarmNode.getChildren().isEmpty()) {
@@ -105,10 +100,9 @@ public class PasteItemAction extends MenuItem
             // Finally paste the item (on a separate thread of course)
             // lambda variables must be final
             final AlarmTreeItem<?> finalItem = item;
-            final String finalNewName = newName;
             JobManager.schedule("Paste alarm tree item", _ -> {
                 try {
-                    final String newPath = AlarmTreePath.makePath(parent.getPathName(), finalNewName);
+                    final String newPath = AlarmTreePath.makePath(parent.getPathName(), newName);
                     AlarmTreeHelper.moveItem(model, finalItem, newPath, isCut);
                 } catch (final Exception ex) {
                     ExceptionDetailsErrorDialog.openError(Messages.error, Messages.pasteItemFailed, ex);

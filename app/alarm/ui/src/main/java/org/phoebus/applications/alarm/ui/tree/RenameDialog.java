@@ -9,21 +9,20 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientLeaf;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.Messages;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 
 public class RenameDialog extends Dialog<String> {
 
-    /**
-     *
-     * @param parent The parent of the item being renamed - use to check for name clashes
-     * @param oldName The old name of the item being renamed
-     * @param allowOldName Whether the new name can be the same as the old name
-     */
-    public RenameDialog(final AlarmTreeItem<?> parent, final String oldName) {
+    public RenameDialog(final AlarmClient model, final AlarmTreeItem<?> parent, final AlarmTreeItem<?> item) {
         super();
 
         setTitle(Messages.renameDialogTitle);
@@ -31,14 +30,13 @@ public class RenameDialog extends Dialog<String> {
         final Label renameLabel = new Label(Messages.renameDialogLabel);
 
         final TextField input = new TextField();
-        input.setText(oldName);
         input.setPrefWidth(600.0);
         HBox.setHgrow(input, Priority.ALWAYS);
 
         final HBox inputBox = new HBox(renameLabel, input);
         inputBox.setAlignment(Pos.CENTER_LEFT);
 
-        final Label errorLabel = new Label(Messages.itemAlreadyExists);
+        final Label errorLabel = new Label(Messages.nodeAlreadyExists);
         errorLabel.setTextFill(Color.RED);
         errorLabel.setMaxWidth(Double.MAX_VALUE);
 
@@ -47,30 +45,45 @@ public class RenameDialog extends Dialog<String> {
             getDialogPane().lookupButton(ButtonType.OK).setDisable(newError != null);
         };
 
+        final Set<String> allPvs = getAllPvs(model.getRoot()); // Done once at start so we don't have to keep calling it in listener
         input.textProperty().addListener(_ -> {
-            // Disable OK if name has not changed
-            if (input.getText().equals(oldName)) {
-                updateError.accept("");  // disable OK but don't show an error
-                return;
-            }
-
             // Show error and disable OK if text is empty
             if (input.getText().isEmpty()) {
                 updateError.accept(Messages.nameCannotBeEmpty);
                 return;
             }
 
-            // Show error and disable OK if the label matches any child
-            final boolean childExists = parent.getChildren().stream().anyMatch(child -> input.getText().equals(child.getName()));
-            updateError.accept(childExists ? Messages.itemAlreadyExists : null);
+            if (item instanceof AlarmClientNode) {
+                // Show error and disable OK if the new name matches any child
+                final boolean childExists = parent.getChildren().stream().anyMatch(child -> input.getText().equals(child.getName()));
+                updateError.accept(childExists ? Messages.nodeAlreadyExists : null);
+            } else {
+                // SHow error and disable OK if the PV already exists in the config
+                final boolean pvExists = allPvs.contains(input.getText());
+                updateError.accept(pvExists ? Messages.pvAlreadyExists : null);
+            }
         });
+
 
         getDialogPane().setContent(new VBox(inputBox, errorLabel));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        // Default to error hidden and OK disabled
-        updateError.accept("");
-
         setResultConverter(buttonType -> buttonType == ButtonType.OK ? input.getText() : null);
+
+        input.setText(item.getName());
+        errorLabel.setText(""); // It can be confusing if an error is shown immediately when the UI loads
+    }
+
+    /** Recursively finds all the PVs in a config and adds them to `pvs`  */
+    private static Set<String> getAllPvs(final AlarmTreeItem<?> item) {
+        final Set<String> pvs = new HashSet<>();
+        if (item instanceof AlarmClientLeaf) {
+            pvs.add(item.getName());
+        } else {
+            for (final AlarmTreeItem<?> child : item.getChildren()) {
+                pvs.addAll(getAllPvs(child));
+            }
+        }
+        return pvs;
     }
 }

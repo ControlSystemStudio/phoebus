@@ -40,7 +40,7 @@ class DuplicatePVAction extends MenuItem
         setOnAction(event ->
         {
             // Prompt for new PV name
-            final RenameDialog dialog = new RenameDialog(original.getParent(), original.getName());
+            final RenameDialog dialog = new RenameDialog(model, original.getParent(), original);
             dialog.setHeaderText("Enter name for duplicate");
             DialogHelper.positionDialog(dialog, node, -100, -50);
             final String new_name = dialog.showAndWait().orElse(null);
