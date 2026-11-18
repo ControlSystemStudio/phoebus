@@ -32,7 +32,7 @@ uidNumber: 23006
 gidNumber: 23006
 homeDirectory: /dev/null
 
-dn: uid=johndoe,ou=Group,dc=sar,dc=local
+dn: uid=johndoe,ou=People,dc=sar,dc=local
 uid: johndoe
 objectClass: account
 objectClass: posixAccount
@@ -42,6 +42,18 @@ cn: johndoe
 userPassword: $2a$12$.gd4p4gwfNd3S0I1giLWfuEdtBvHCg/B9gi7OmAsyNAF62eWg4xDS
 uidNumber: 23007
 gidNumber: 23007
+homeDirectory: /dev/null
+
+dn: uid=serverRestoreUser,ou=People,dc=sar,dc=local
+uid: serverRestoreUser
+objectClass: account
+objectClass: posixAccount
+description: User with server restore authorization
+cn: serverRestoreUser
+# bcrypt encoded string "1234"
+userPassword: $2a$12$.gd4p4gwfNd3S0I1giLWfuEdtBvHCg/B9gi7OmAsyNAF62eWg4xDS
+uidNumber: 23008
+gidNumber: 23008
 homeDirectory: /dev/null
 
 dn: cn=sar-user,ou=Group,dc=sar,dc=local
@@ -59,3 +71,11 @@ description: save-n-restore admin
 gidNumber: 27003
 uidNumber: 27003
 memberUid: admin
+
+dn: cn=sar-server-restore,ou=Group,dc=sar,dc=local
+cn: sar-server-restore
+objectClass: posixGroup
+description: restore role
+gidNumber: 27004
+uidNumber: 27004
+memberUid: serverRestoreUser
