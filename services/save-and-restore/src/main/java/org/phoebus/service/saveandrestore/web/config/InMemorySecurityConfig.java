@@ -48,11 +48,20 @@ public class InMemorySecurityConfig {
     @Value("${demo.readOnly.password:1234}")
     private String demoReadOnlyPassword;
 
+    @Value("${demo.server.restore.user:serverRestoreUser}")
+    private String demoServerRestoreUser;
+
+    @Value("${demo.server.restore.password:serverRestoreUserPass}")
+    private String demoServerRestoreUserPass;
+
     @Autowired
     private String roleUser;
 
     @Autowired
     private String roleAdmin;
+
+    @Autowired
+    private String roleServerRestore;
 
     @Bean(WebSecurityConfig.IN_MEMORY)
     public AuthenticationProvider authenticationProvider() {
@@ -78,7 +87,12 @@ public class InMemorySecurityConfig {
                 .username(demoReadOnly)
                 .password(passwordEncoder.encode(demoReadOnlyPassword))
                 .build();
-        return new InMemoryUserDetailsManager(user, adminUser, readOnlyUser);
+        UserDetails serverRestoreUser = User.builder()
+                .username(demoServerRestoreUser)
+                .password(passwordEncoder.encode(demoServerRestoreUserPass))
+                .roles(roleServerRestore.toUpperCase())
+                .build();
+        return new InMemoryUserDetailsManager(user, adminUser, readOnlyUser, serverRestoreUser);
     }
 
     public static class InMemoryCondition implements Condition {
