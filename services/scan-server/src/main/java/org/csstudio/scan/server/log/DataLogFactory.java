@@ -36,7 +36,7 @@ public class DataLogFactory
 	    }
 	    if (impl == null)
 	        impl = new DerbyDataLogFactory();
-	    logger.log(Level.CONFIG, "Data Log: " + impl);
+	    logger.log(Level.CONFIG, "Data Log: " + impl+", with location: "+location);
 	    impl.startup(location);
 	}
 

@@ -44,8 +44,6 @@ public class Palette extends TitledPane
             {
                 logger.log(Level.WARNING, "Cannot create command", ex);
             }
-        // Sort by command name
-        Collections.sort(commands, (a, b) -> a.getCommandName().compareTo(b.getCommandName()));
     }
 
     private final ListView<ScanCommand> command_list = new ListView<>();

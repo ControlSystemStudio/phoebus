@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.csstudio.scan.device.DeviceInfo;
@@ -257,7 +258,7 @@ public class ScanConfig
                .ifPresent(sec -> read_timeout = TimeDuration.ofSeconds(sec));
 
         for (Element path : XMLUtil.getChildElements(xml, XML_PATH))
-            script_paths.add(XMLUtil.getString(path));
+            script_paths.add(expandEnvVars(XMLUtil.getString(path)));
 
         XMLUtil.getChildString(xml, XML_SIMULATION_HOOK)
                .ifPresent(hook -> simulation_hook = hook);
@@ -300,4 +301,22 @@ public class ScanConfig
         }
     }
 
+    /** Replace {@code ${ENV_VAR}} references with the corresponding
+     *  environment variable value.
+     *  Unresolved variables are left as-is.
+     *  @param text Text that may contain {@code ${ENV_VAR}} references
+     *  @return Text with environment variables expanded
+     */
+    private static String expandEnvVars(final String text)
+    {
+        final Matcher m = Pattern.compile("\\$\\{(\\w+)\\}").matcher(text);
+        final StringBuilder sb = new StringBuilder();
+        while (m.find())
+        {
+            final String val = System.getenv(m.group(1));
+            m.appendReplacement(sb, Matcher.quoteReplacement(val != null ? val : m.group(0)));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
 }

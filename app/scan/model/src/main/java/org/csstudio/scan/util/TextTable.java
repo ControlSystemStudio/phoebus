@@ -21,16 +21,16 @@ import java.util.List;
 public class TextTable
 {
     /** Headers for each column */
-    final private List<String> headers = new ArrayList<>();
+    final private List<String> headers = new ArrayList<String>();
 
     /** Widths info for each column */
-    final private List<Integer> widths = new ArrayList<>();
+    final private List<Integer> widths = new ArrayList<Integer>();
 
     /** Rows of the table */
-    final private List<List<String>> rows = new ArrayList<>();
+    final private List<List<String>> rows = new ArrayList<List<String>>();
 
     /** Headers for each column */
-    private List<String> current_row = new ArrayList<>();
+    private List<String> current_row = new ArrayList<String>();
 
     /** Where to write */
     final private PrintWriter writer;
@@ -98,7 +98,7 @@ public class TextTable
         if (current_row.size() >= widths.size())
         {
             rows.add(current_row);
-            current_row = new ArrayList<>();
+            current_row = new ArrayList<String>();
         }
     }
 

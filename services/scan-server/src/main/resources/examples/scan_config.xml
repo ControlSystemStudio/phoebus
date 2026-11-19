@@ -57,6 +57,7 @@
   <!-- There can be more than one... 
   <path>/some/other/local/directory</path>
    -->
+  <path>${HOME}/phoebus-scan-scripts</path>
   
   <!-- Jython class that implements the
        org.csstudio.scan.server.SimulationHook

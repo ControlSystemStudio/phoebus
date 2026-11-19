@@ -20,6 +20,7 @@ import static java.util.Map.entry;
 import java.net.URL;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.LinkedHashMap;
 
 import org.csstudio.scan.ScanSystem;
 import org.csstudio.scan.spi.ScanCommandRegistry;
@@ -41,6 +42,7 @@ public class BaseCommandRegistry implements ScanCommandRegistry
             entry("include", ScanSystem.class.getResource("/icons/includecommand.gif")),
             entry("log", ScanSystem.class.getResource("/icons/logcommand.gif")),
             entry("loop", ScanSystem.class.getResource("/icons/loopcommand.gif")),
+            entry("while", ScanSystem.class.getResource("/icons/loopcommand.gif")),
             entry("parallel", ScanSystem.class.getResource("/icons/parallelcommand.gif")),
             entry("script", ScanSystem.class.getResource("/icons/scriptcommand.gif")),
             entry("sequence", ScanSystem.class.getResource("/icons/sequencecommand.gif")),
@@ -52,19 +54,20 @@ public class BaseCommandRegistry implements ScanCommandRegistry
     @Override
     public Map<String, Supplier<ScanCommand>> getCommands()
     {
-        return Map.ofEntries(
-            entry("comment", CommentCommand::new),
-            entry("config_log", ConfigLogCommand::new),
-            entry("delay", DelayCommand::new),
-            entry("if", IfCommand::new),
-            entry("include", IncludeCommand::new),
-            entry("log", LogCommand::new),
-            entry("loop", LoopCommand::new),
-            entry("parallel", ParallelCommand::new),
-            entry("script", ScriptCommand::new),
-            entry("sequence", SequenceCommand::new),
-            entry("set", SetCommand::new),
-            entry("wait", WaitCommand::new)
-        );
+		final Map<String, Supplier<ScanCommand>> commands = new LinkedHashMap<>();
+		commands.put("comment", CommentCommand::new);
+		commands.put("config_log", ConfigLogCommand::new);
+		commands.put("log", LogCommand::new);
+		commands.put("delay", DelayCommand::new);
+		commands.put("if", IfCommand::new);
+		commands.put("wait", WaitCommand::new);
+		commands.put("set", SetCommand::new);
+		commands.put("loop", LoopCommand::new);
+		commands.put("while", WhileCommand::new);
+		commands.put("parallel", ParallelCommand::new);
+		commands.put("sequence", SequenceCommand::new);
+		commands.put("script", ScriptCommand::new);
+		commands.put("include", IncludeCommand::new);
+        return commands;
     }
 }
