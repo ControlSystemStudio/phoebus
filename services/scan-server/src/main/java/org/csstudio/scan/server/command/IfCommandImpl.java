@@ -123,12 +123,12 @@ public class IfCommandImpl extends ScanCommandImpl<IfCommand>
         else if (desired instanceof PVReference)
         {
             // Read the referenced PV's current value at runtime and compare numerically
-            final Device ref_device = context.getDevice(
+            final Device refDevice = context.getDevice(
                     context.getMacros().resolveMacros(((PVReference) desired).getPVName()));
-            final double ref_value = VTypeHelper.toDouble(
-                    ref_device.read(ScanServerInstance.getScanConfig().getReadTimeout()));
+            final double refValue = VTypeHelper.toDouble(
+                refDevice.read(ScanServerInstance.getScanConfig().getReadTimeout()));
             final NumericValueCondition condition = new NumericValueCondition(device, command.getComparison(),
-                                                  ref_value, command.getTolerance(), Duration.ZERO);
+                              refValue, command.getTolerance(), Duration.ZERO);
             condition.fetchInitialValue();
             is_condition_met = condition.isConditionMet();
         }

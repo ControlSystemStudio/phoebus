@@ -53,11 +53,6 @@ public class ScanCommandFactory
         }
     }
 
-    // /** @return All known command IDs */
-    // public static Set<String> getCommandIDs()
-    // {
-    //     return factories.keySet();
-    // }
     public static List<String> getCommandIDs()
     {
         return new ArrayList<>(factories.keySet());

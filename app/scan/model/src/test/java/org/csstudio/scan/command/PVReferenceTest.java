@@ -37,7 +37,7 @@ public class PVReferenceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testParseDouble()
+    void testParseDouble()
     {
         Object v = StringOrDouble.parse("5.3");
         assertInstanceOf(Double.class, v, "Plain number should parse to Double");
@@ -45,7 +45,7 @@ public class PVReferenceTest
     }
 
     @Test
-    public void testParseNegativeDouble()
+    void testParseNegativeDouble()
     {
         Object v = StringOrDouble.parse("-12.0");
         assertInstanceOf(Double.class, v);
@@ -53,7 +53,7 @@ public class PVReferenceTest
     }
 
     @Test
-    public void testParseQuotedString()
+    void testParseQuotedString()
     {
         Object v = StringOrDouble.parse("\"hello world\"");
         assertInstanceOf(String.class, v, "Quoted text should parse to String literal");
@@ -61,7 +61,7 @@ public class PVReferenceTest
     }
 
     @Test
-    public void testParseUnquotedNonNumeric_becomesPVReference()
+    void testParseUnquotedNonNumeric_becomesPVReference()
     {
         Object v = StringOrDouble.parse("some:ref:pv");
         assertInstanceOf(PVReference.class, v,
@@ -70,7 +70,7 @@ public class PVReferenceTest
     }
 
     @Test
-    public void testParseEmpty()
+    void testParseEmpty()
     {
         Object v = StringOrDouble.parse("");
         assertInstanceOf(Double.class, v);
@@ -78,26 +78,26 @@ public class PVReferenceTest
     }
 
     @Test
-    public void testQuoteDouble()
+    void testQuoteDouble()
     {
         assertEquals("5.3", StringOrDouble.quote(5.3));
     }
 
     @Test
-    public void testQuoteString()
+    void testQuoteString()
     {
         assertEquals("\"hello\"", StringOrDouble.quote("hello"));
     }
 
     @Test
-    public void testQuotePVReference()
+    void testQuotePVReference()
     {
         // PVReference must serialise without quotes so it round-trips back as PVReference
         assertEquals("some:ref:pv", StringOrDouble.quote(new PVReference("some:ref:pv")));
     }
 
     @Test
-    public void testRoundTrip_PVReference()
+    void testRoundTrip_PVReference()
     {
         final String pv = "my:threshold:pv";
         final String quoted = StringOrDouble.quote(new PVReference(pv));
@@ -111,7 +111,7 @@ public class PVReferenceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testIfCommand_numericValue_roundTrip() throws Exception
+    void testIfCommand_numericValue_roundTrip() throws Exception
     {
         final IfCommand cmd = new IfCommand("my:device", Comparison.ABOVE, 42.0,
                                             Collections.emptyList());
@@ -126,7 +126,7 @@ public class PVReferenceTest
     }
 
     @Test
-    public void testIfCommand_stringLiteral_roundTrip() throws Exception
+    void testIfCommand_stringLiteral_roundTrip() throws Exception
     {
         final IfCommand cmd = new IfCommand("my:device", Comparison.EQUALS, "OPEN",
                                             Collections.emptyList());
@@ -141,7 +141,7 @@ public class PVReferenceTest
     }
 
     @Test
-    public void testIfCommand_pvReference_roundTrip() throws Exception
+    void testIfCommand_pvReference_roundTrip() throws Exception
     {
         // desired_value is a PVReference — compare 'my:device' against live value of 'ref:threshold'
         final IfCommand cmd = new IfCommand("my:device", Comparison.ABOVE,
@@ -166,7 +166,7 @@ public class PVReferenceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testWaitCommand_pvReference_roundTrip() throws Exception
+    void testWaitCommand_pvReference_roundTrip() throws Exception
     {
         final WaitCommand cmd = new WaitCommand("my:device", Comparison.ABOVE,
                                                 new PVReference("ref:threshold"), 0.1, 10.0);
@@ -189,7 +189,7 @@ public class PVReferenceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testWhileCommand_pvReference_roundTrip() throws Exception
+    void testWhileCommand_pvReference_roundTrip() throws Exception
     {
         final WhileCommand cmd = new WhileCommand("loop:device", Comparison.ABOVE,
                                                   new PVReference("loop:limit"),
@@ -211,7 +211,7 @@ public class PVReferenceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testLoopCommand_allLiteral_roundTrip() throws Exception
+    void testLoopCommand_allLiteral_roundTrip() throws Exception
     {
         final LoopCommand cmd = new LoopCommand("motor:position", 0.0, 10.0, 2.0);
         final String xml = XMLCommandWriter.toXMLString(List.of(cmd));
@@ -228,7 +228,7 @@ public class PVReferenceTest
     }
 
     @Test
-    public void testLoopCommand_startAsPVReference_roundTrip() throws Exception
+    void testLoopCommand_startAsPVReference_roundTrip() throws Exception
     {
         final LoopCommand cmd = new LoopCommand("motor:position", 0.0, 10.0, 1.0);
         cmd.setStart(new PVReference("scan:start:pv"));
@@ -248,7 +248,7 @@ public class PVReferenceTest
     }
 
     @Test
-    public void testLoopCommand_allAsPVReference_roundTrip() throws Exception
+    void testLoopCommand_allAsPVReference_roundTrip() throws Exception
     {
         final LoopCommand cmd = new LoopCommand("motor:position", 0.0, 10.0, 1.0);
         cmd.setStart(new PVReference("scan:start:pv"));
@@ -278,7 +278,7 @@ public class PVReferenceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testLegacyUnquotedTextIsNowPVReference()
+    void testLegacyUnquotedTextIsNowPVReference()
     {
         // Before this change: StringOrDouble.parse("some_text") → String
         // After  this change: StringOrDouble.parse("some_text") → PVReference

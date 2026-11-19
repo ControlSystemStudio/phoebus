@@ -38,10 +38,8 @@ import org.csstudio.scan.server.condition.TextValueCondition;
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
-import org.csstudio.scan.server.log.DataLog;
 import org.csstudio.scan.util.PVReference;
 import org.epics.vtype.VDouble;
-import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.util.time.TimeDuration;
 
@@ -52,7 +50,7 @@ import org.phoebus.util.time.TimeDuration;
 @SuppressWarnings("nls")
 public class WhileCommandImpl extends ScanCommandImpl<WhileCommand>
 {
-    final private List<ScanCommandImpl<?>> implementation;
+    private final List<ScanCommandImpl<?>> implementation;
 
     /** Thread that executes the loop variable write
      *
@@ -63,7 +61,7 @@ public class WhileCommandImpl extends ScanCommandImpl<WhileCommand>
     private Thread thread = null;
 
     /** Flag to indicate 'next' was invoked on current loop step */
-    private volatile boolean do_skip;
+    private volatile boolean doSkip;
 
     /** Initialize
      *  @param command Command description
@@ -102,7 +100,7 @@ public class WhileCommandImpl extends ScanCommandImpl<WhileCommand>
         final String device_name = command.getDeviceName();
         final Set<String> device_names = new HashSet<String>();
         device_names.add(macros.resolveMacros(device_name));
-        if (command.getWait()  &&  command.getReadback().length() > 0)
+        if (command.getWait()  &&  !command.getReadback().isEmpty())
             device_names.add(macros.resolveMacros(command.getReadback()));
         // If desired_value is a PV reference, that PV also needs to be opened
         final Object desired = command.getDesiredValue();
@@ -111,10 +109,9 @@ public class WhileCommandImpl extends ScanCommandImpl<WhileCommand>
         for (ScanCommandImpl<?> command : implementation)
         {
             final String[] names = command.getDeviceNames(macros);
-            logger.info("getDeviceNames: names="+ Arrays.toString(names));
-            for (String name : names) {
-                device_names.add(name);
-            }
+            if (logger.isLoggable(Level.INFO))
+                logger.log(Level.INFO, () -> "getDeviceNames: names=" + Arrays.toString(names));
+            java.util.Collections.addAll(device_names, names);
         }
         return device_names.toArray(new String[device_names.size()]);
     }
@@ -170,86 +167,88 @@ public class WhileCommandImpl extends ScanCommandImpl<WhileCommand>
         else
             readback = context.getDevice(context.getMacros().resolveMacros(command.getReadback()));
 
-        //  Wait for the device to reach the value?
-        final NumericValueCondition condition;
-        if (command.getWait())
-        {
-            // When using completion, readback needs to match "right away"
-            final double check_timeout = command.getCompletion() ? 1.0 : command.getTimeout();
-            final Object desired = command.getDesiredValue();
-            final double number;
-            if (desired instanceof PVReference)
-            {
-                final Device ref_device = context.getDevice(
-                        context.getMacros().resolveMacros(((PVReference) desired).getPVName()));
-                number = VTypeHelper.toDouble(ref_device.read(ScanServerInstance.getScanConfig().getReadTimeout()));
-            }
-            else
-                number = ((Number)desired).doubleValue();
-            condition = new NumericValueCondition(readback, Comparison.EQUALS,
-                        number,
-                        command.getTolerance(),
-                        TimeDuration.ofSeconds(check_timeout));
-        }
-        else
-            condition = null;
+        final NumericValueCondition condition = createWaitCondition(context, readback);
 
         logger.info("execute before while(true)...");
-        while (true) {
-
-            final Object desired = command.getDesiredValue();
-            final boolean is_condition_met;
-            if (desired instanceof Number)
-            {
-                final double number = ((Number)desired).doubleValue();
-                final NumericValueCondition condit1 = new NumericValueCondition(device, command.getComparison(),
-                                                  number, command.getTolerance(), Duration.ZERO);
-                condit1.fetchInitialValue();
-                is_condition_met = condit1.isConditionMet();
-            }
-            else if (desired instanceof PVReference)
-            {
-                // Read the referenced PV's current value at runtime and compare numerically
-                final Device ref_device = context.getDevice(
-                        context.getMacros().resolveMacros(((PVReference) desired).getPVName()));
-                final double ref_value = VTypeHelper.toDouble(
-                        ref_device.read(ScanServerInstance.getScanConfig().getReadTimeout()));
-                final NumericValueCondition condit1 = new NumericValueCondition(device, command.getComparison(),
-                                                  ref_value, command.getTolerance(), Duration.ZERO);
-                condit1.fetchInitialValue();
-                is_condition_met = condit1.isConditionMet();
-            }
-            else
-            {
-                final TextValueCondition condit1 = new TextValueCondition(device, command.getComparison(), desired.toString(), Duration.ZERO);
-                condit1.fetchInitialValue();
-                is_condition_met = condit1.isConditionMet();
-            }
+        while (true)
+        {
+            final boolean is_condition_met = isConditionMet(context, device);
             if (!is_condition_met) break;
-            executeStep(context, device, condition, readback, 0.0);
-		}
+            executeStep(context, device, condition, 0.0);
+        }
+    }
+
+    private NumericValueCondition createWaitCondition(final ScanContext context, final Device readback) throws Exception
+    {
+        if (!command.getWait())
+            return null;
+
+        final double check_timeout = command.getCompletion() ? 1.0 : command.getTimeout();
+        final double number = resolveDesiredNumericValue(context, command.getDesiredValue());
+        return new NumericValueCondition(readback, Comparison.EQUALS,
+                number,
+                command.getTolerance(),
+                TimeDuration.ofSeconds(check_timeout));
+    }
+
+    private boolean isConditionMet(final ScanContext context, final Device device) throws Exception
+    {
+        final Object desired = command.getDesiredValue();
+        if (desired instanceof Number number)
+            return evaluateNumericCondition(device, number.doubleValue());
+        if (desired instanceof PVReference pvReference)
+            return evaluateNumericCondition(device, resolvePVReferenceValue(context, pvReference));
+        return evaluateTextCondition(device, desired.toString());
+    }
+
+    private boolean evaluateNumericCondition(final Device device, final double desiredValue) throws Exception
+    {
+        final NumericValueCondition condition = new NumericValueCondition(device, command.getComparison(),
+                desiredValue, command.getTolerance(), Duration.ZERO);
+        condition.fetchInitialValue();
+        return condition.isConditionMet();
+    }
+
+    private boolean evaluateTextCondition(final Device device, final String desiredValue) throws Exception
+    {
+        final TextValueCondition condition = new TextValueCondition(device, command.getComparison(), desiredValue, Duration.ZERO);
+        condition.fetchInitialValue();
+        return condition.isConditionMet();
+    }
+
+    private double resolveDesiredNumericValue(final ScanContext context, final Object desired) throws Exception
+    {
+        if (desired instanceof PVReference pvReference)
+            return resolvePVReferenceValue(context, pvReference);
+        return ((Number) desired).doubleValue();
+    }
+
+    private double resolvePVReferenceValue(final ScanContext context, final PVReference pvReference) throws Exception
+    {
+        final Device refDevice = context.getDevice(
+                context.getMacros().resolveMacros(pvReference.getPVName()));
+        return VTypeHelper.toDouble(refDevice.read(ScanServerInstance.getScanConfig().getReadTimeout()));
     }
 
     /** Execute one step of the loop
      *  @param context
      *  @param device
      *  @param condition
-     *  @param readback
      *  @param value
      *  @throws Exception
      */
     private void executeStep(final ScanContext context, final Device device,
-            final NumericValueCondition condition, final Device readback, double value)
+            final NumericValueCondition condition, final double value)
             throws Exception
     {
         logger.log(Level.INFO, "While setting {0} = {1}{2}", new Object[] { device.getAlias(), value, (condition!=null ? " (waiting)" : "") });
 
         // Set device to value for current step of loop
-        do_skip = false;
+        doSkip = false;
 
         // Execute loop body or show some estimate of progress
         // (not including nested commands)
-        if (do_skip)
+        if (doSkip)
             context.workPerformed(implementation.size());
         else
             context.execute(implementation);
@@ -263,7 +262,7 @@ public class WhileCommandImpl extends ScanCommandImpl<WhileCommand>
     @Override
     public void next()
     {
-        do_skip = true;
+        doSkip = true;
         synchronized (this)
         {
             if (thread != null)

@@ -321,9 +321,9 @@ public class NDArray
             flat.setDouble(index, ((Number)data).doubleValue());
             return index + 1;
         }
-        else if (data instanceof Boolean)
+        else if (data instanceof Boolean bool)
         {
-            flat.setByte(index, ((Boolean)data).booleanValue() ? (byte)1 : 0);
+            flat.setByte(index, bool.booleanValue() ? (byte)1 : 0);
             return index + 1;
         }
         else

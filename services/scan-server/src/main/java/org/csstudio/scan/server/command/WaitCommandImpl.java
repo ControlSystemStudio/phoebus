@@ -65,8 +65,8 @@ public class WaitCommandImpl extends ScanCommandImpl<WaitCommand>
         names.add(macros.resolveMacros(command.getDeviceName()));
         // If desired_value is a PV reference, that PV also needs to be opened
         final Object desired = command.getDesiredValue();
-        if (desired instanceof PVReference)
-            names.add(macros.resolveMacros(((PVReference) desired).getPVName()));
+        if (desired instanceof PVReference pvReference)
+            names.add(macros.resolveMacros(pvReference.getPVName()));
         return names.toArray(new String[names.size()]);
     }
 
@@ -133,15 +133,15 @@ public class WaitCommandImpl extends ScanCommandImpl<WaitCommand>
             condition = new NumericValueCondition(device, command.getComparison(),
                     number, command.getTolerance(), timeout);
         }
-        else if (desired instanceof PVReference)
+        else if (desired instanceof PVReference pvReference)
         {
             // Read the referenced PV's current value at runtime and compare numerically
-            final Device ref_device = context.getDevice(
-                    context.getMacros().resolveMacros(((PVReference) desired).getPVName()));
-            final double ref_value = VTypeHelper.toDouble(
-                    ref_device.read(ScanServerInstance.getScanConfig().getReadTimeout()));
+            final Device refDevice = context.getDevice(
+                context.getMacros().resolveMacros(pvReference.getPVName()));
+            final double refValue = VTypeHelper.toDouble(
+                refDevice.read(ScanServerInstance.getScanConfig().getReadTimeout()));
             condition = new NumericValueCondition(device, command.getComparison(),
-                    ref_value, command.getTolerance(), timeout);
+                refValue, command.getTolerance(), timeout);
         }
         else
             condition = new TextValueCondition(device, command.getComparison(), desired.toString(), timeout);

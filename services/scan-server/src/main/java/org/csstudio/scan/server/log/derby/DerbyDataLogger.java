@@ -65,7 +65,7 @@ class DerbyDataLogger extends RDBDataLogger
 		{
 			// Use network Derby via RDBDataLogger
 			RDBDataLogger.setJdbcUrl(rdb_url);
-			logger.info("Using network Derby: " + rdb_url);
+            logger.log(Level.INFO, "Using network Derby: {0}", rdb_url);
 			// SHOULD get "location" from rdb_url
 			Class.forName("org.apache.derby.jdbc.ClientDriver").getDeclaredConstructor().newInstance();
 		}
@@ -109,12 +109,10 @@ class DerbyDataLogger extends RDBDataLogger
      *  @throws Exception on error
      */
     @Override
-    protected Connection connect() throws Exception
+    protected Connection connect() throws SQLException
     {
         // Connect
-		logger.info("calling DriverManager.getConnection(\""+RDBDataLogger.getJdbcUrl()+"\")");
-		//logger.info("could use "+RDBDataLogger.getJdbcUrl());
-        //return DriverManager.getConnection("jdbc:derby:scan;create=true");
+		logger.log(Level.INFO, "calling DriverManager.getConnection(\"{0}\")", RDBDataLogger.getJdbcUrl());
         return DriverManager.getConnection(RDBDataLogger.getJdbcUrl());
     }
 

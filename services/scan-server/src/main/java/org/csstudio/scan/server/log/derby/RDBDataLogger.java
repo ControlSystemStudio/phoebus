@@ -101,10 +101,10 @@ abstract public class RDBDataLogger implements AutoCloseable
      *  @return Connection
      *  @throws Exception on error
      */
-    //abstract protected Connection connect() throws Exception;
-    protected Connection connect() throws Exception
+
+        protected Connection connect() throws SQLException
 	{
-		logger.info("connect() calling java.sql.DriverManager.getConnection("+jdbcUrl+")");
+		logger.log(Level.INFO, "connect() calling java.sql.DriverManager.getConnection({0})", jdbcUrl);
 		return java.sql.DriverManager.getConnection(jdbcUrl);
 	}
 
@@ -335,7 +335,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      */
     public ScanData getScanData(final long scan_id) throws Exception
     {
-        final Map<String, List<ScanSample>> device_logs = new HashMap<String, List<ScanSample>>();
+        final Map<String, List<ScanSample>> deviceLogs = new HashMap<String, List<ScanSample>>();
 
         // Could fetch all samples for scan ID, but
         // organizing the retrieval by device in case
@@ -344,10 +344,10 @@ abstract public class RDBDataLogger implements AutoCloseable
         for (String device : devices)
         {
             final List<ScanSample> samples = getScanSamples(scan_id, device);
-            device_logs.put(device, samples);
+            deviceLogs.put(device, samples);
         }
 
-        return new ScanData(device_logs);
+        return new ScanData(deviceLogs);
     }
 
     /** Get samples

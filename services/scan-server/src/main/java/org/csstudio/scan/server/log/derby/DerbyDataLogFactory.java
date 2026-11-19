@@ -7,8 +7,6 @@
  ******************************************************************************/
 package org.csstudio.scan.server.log.derby;
 
-import static org.csstudio.scan.server.ScanServerInstance.logger;
-
 import java.util.List;
 
 import org.csstudio.scan.info.Scan;
@@ -25,21 +23,7 @@ public class DerbyDataLogFactory implements DataLogFactorySPI
     public void startup(final String location) throws Exception
     {
         DerbyDataLogger.startup(location);
-		// Check if user specified JDBC URL
-		// final String rdb_url = System.getProperty("org.csstudio.scan.log.rdb_url");
-		// if (rdb_url != null && rdb_url.startsWith("jdbc:derby://"))
-		// {
-		// 	// Use network Derby via RDBDataLogger
-		// 	RDBDataLogger.setJdbcUrl(rdb_url);
-		// 	logger.info("Using network Derby: " + rdb_url);
-		// }
-		// else
-		// {
-		// 	// Fallback: embedded Derby
-		// 	DerbyDataLogger.startup(location);
-		// 	logger.info("Derby Data Log directory: " + location);
-		// }
-	}
+    }
 
 	@Override
 	public Scan createDataLog(final String scan_name) throws Exception

@@ -51,6 +51,8 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class LoopCommand extends ScanCommandWithBody
 {
+    private static final String START_TAG = "start";
+
     private volatile String device_name;
     /** Start value: {@link Double} literal or {@link PVReference} (PV name read at runtime) */
     private volatile Object start;
@@ -129,7 +131,7 @@ public class LoopCommand extends ScanCommandWithBody
     protected void configureProperties(final List<ScanCommandProperty> properties)
     {
         properties.add(ScanCommandProperty.DEVICE_NAME);
-        properties.add(new ScanCommandProperty("start", "Initial Value", Object.class));
+        properties.add(new ScanCommandProperty(START_TAG, "Initial Value", Object.class));
         properties.add(new ScanCommandProperty("end", "Final Value", Object.class));
         properties.add(new ScanCommandProperty("step_size", "Step Size", Object.class));
         properties.add(ScanCommandProperty.COMPLETION);
@@ -190,7 +192,7 @@ public class LoopCommand extends ScanCommandWithBody
         if (stepsize instanceof Double)
         {
             final double s = (Double) stepsize;
-            this.stepsize = (s != 0.0) ? s : 1.0;
+            this.stepsize = (s == 0.0) ? 1.0 : s;
             // Use fraction of stepsize for tolerance
             tolerance = Math.abs((Double) this.stepsize / 10.0);
         }
@@ -273,7 +275,7 @@ public class LoopCommand extends ScanCommandWithBody
         element.appendChild(dom.createTextNode(device_name));
         command_element.appendChild(element);
 
-        element = dom.createElement("start");
+        element = dom.createElement(START_TAG);
         element.appendChild(dom.createTextNode(StringOrDouble.quote(start)));
         command_element.appendChild(element);
 
@@ -326,7 +328,7 @@ public class LoopCommand extends ScanCommandWithBody
         super.readXML(element);
 
         setDeviceName(XMLUtil.getChildString(element, ScanCommandProperty.TAG_DEVICE).orElse(""));
-        setStart(StringOrDouble.parse(XMLUtil.getChildString(element, "start").orElse("0")));
+        setStart(StringOrDouble.parse(XMLUtil.getChildString(element, START_TAG).orElse("0")));
         setEnd(StringOrDouble.parse(XMLUtil.getChildString(element, "end").orElse("10")));
         setStepSize(StringOrDouble.parse(XMLUtil.getChildString(element, "step").orElse("1")));
         setCompletion(XMLUtil.getChildBoolean(element, ScanCommandProperty.TAG_COMPLETION).orElse(false));

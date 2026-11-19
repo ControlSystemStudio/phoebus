@@ -50,9 +50,9 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class WhileCommand extends ScanCommandWithBody
 {
-    private volatile String device_name;
+    private volatile String deviceName;
     private volatile Comparison comparison;
-    private volatile Object desired_value;
+    private volatile Object desiredValue;
     private volatile String readback = "";
     private volatile boolean completion = false;
     private volatile boolean wait = true;
@@ -74,45 +74,45 @@ public class WhileCommand extends ScanCommandWithBody
      *  in a way incompatible with the var-length argument
      *  constructor.
      *
-     *  @param device_name Name of device to check
+     *  @param deviceName Name of device to check
      *  @param comparison Comparison to use
-     *  @param desired_value Desired value of the device
+     *  @param desiredValue Desired value of the device
      *  @param command Single-command body
      */
-    public WhileCommand(final String device_name,
-            final Comparison comparison, final Object desired_value,
+    public WhileCommand(final String deviceName,
+            final Comparison comparison, final Object desiredValue,
             final ScanCommand command)
     {
-        this(device_name, comparison, desired_value, new ScanCommand[] { command });
+        this(deviceName, comparison, desiredValue, new ScanCommand[] { command });
     }
 
     /** Initialize
-     *  @param device_name Name of device to check
+     *  @param deviceName Name of device to check
      *  @param comparison Comparison to use
-     *  @param desired_value Desired value of the device
+     *  @param desiredValue Desired value of the device
      *  @param body Optional loop body commands
      */
-    public WhileCommand(final String device_name,
-            final Comparison comparison, final Object desired_value,
+    public WhileCommand(final String deviceName,
+            final Comparison comparison, final Object desiredValue,
             final ScanCommand... body)
     {
-        this(device_name, comparison, desired_value, toList(body));
+        this(deviceName, comparison, desiredValue, toList(body));
     }
 
     /** Initialize
-     *  @param device_name Device to update with the loop variable
+     *  @param deviceName Device to update with the loop variable
      *  @param start Initial loop value
      *  @param end Final loop value
      *  @param stepsize Increment of the loop variable
      *  @param body While body commands
      */
-    public WhileCommand(final String device_name,
-            final Comparison comparison, final Object desired_value,
+    public WhileCommand(final String deviceName,
+            final Comparison comparison, final Object desiredValue,
             final List<ScanCommand> body)
     {
         super(body);
-        this.device_name = Objects.requireNonNull(device_name);
-        this.desired_value = desired_value;
+        this.deviceName = Objects.requireNonNull(deviceName);
+        this.desiredValue = desiredValue;
         this.comparison = comparison;
     }
 
@@ -130,27 +130,25 @@ public class WhileCommand extends ScanCommandWithBody
     /** @return Device name (may be "" but not <code>null</code>) */
     public String getDeviceName()
     {
-        return device_name;
+        return deviceName;
     }
 
-    /** @param device_name Name of device */
-    public void setDeviceName(final String device_name)
+    /** @param deviceName Name of device */
+    public void setDeviceName(final String deviceName)
     {
-        if (device_name == null)
-            throw new NullPointerException();
-        this.device_name = device_name;
+        this.deviceName = Objects.requireNonNull(deviceName);
     }
 
     /** @return Desired value */
     public Object getDesiredValue()
     {
-        return desired_value;
+        return desiredValue;
     }
 
-    /** @param desired_value Desired value */
-    public void setDesiredValue(final Object desired_value)
+    /** @param desiredValue Desired value */
+    public void setDesiredValue(final Object desiredValue)
     {
-        this.desired_value = desired_value;
+        this.desiredValue = desiredValue;
     }
 
     /** @return Desired comparison */
@@ -202,9 +200,7 @@ public class WhileCommand extends ScanCommandWithBody
     /** @param readback Name of readback device */
     public void setReadback(final String readback)
     {
-        if (readback == null)
-            throw new NullPointerException();
-        this.readback = readback;
+        this.readback = Objects.requireNonNull(readback);
     }
 
     /** @return Tolerance */
@@ -236,12 +232,12 @@ public class WhileCommand extends ScanCommandWithBody
     public void addXMLElements(final Document dom, final Element command_element)
     {
         Element element = dom.createElement("device");
-        element.appendChild(dom.createTextNode(device_name));
+        element.appendChild(dom.createTextNode(deviceName));
         command_element.appendChild(element);
 
         element = dom.createElement("value");
         // Quoted: literal String; unquoted: Double or PVReference (PV name)
-        element.appendChild(dom.createTextNode(StringOrDouble.quote(desired_value)));
+        element.appendChild(dom.createTextNode(StringOrDouble.quote(desiredValue)));
         command_element.appendChild(element);
 
         element = dom.createElement("comparison");
@@ -301,7 +297,7 @@ public class WhileCommand extends ScanCommandWithBody
         {
             setComparison(Comparison.valueOf(XMLUtil.getChildString(element, "comparison").orElse(Comparison.EQUALS.toString())));
         }
-        catch (Throwable ex)
+        catch (Exception _)
         {
             setComparison(Comparison.EQUALS);
         }
@@ -331,7 +327,7 @@ public class WhileCommand extends ScanCommandWithBody
             else
                 buf.append(" (wait for '");
             if (readback.isEmpty())
-                buf.append(device_name);
+                buf.append(deviceName);
             else
                 buf.append(readback);
             if (tolerance > 0)
@@ -347,9 +343,9 @@ public class WhileCommand extends ScanCommandWithBody
     public String toString()
     {
         final StringBuilder buf = new StringBuilder();
-        buf.append("While '").append(device_name).append("' ")
+        buf.append("While '").append(deviceName).append("' ")
             .append(comparison).append(" ");
-        buf.append(StringOrDouble.quote(desired_value));
+        buf.append(StringOrDouble.quote(desiredValue));
         if (comparison != Comparison.IN  &&  comparison != Comparison.NOT_IN  &&  tolerance > 0.0)
             buf.append(" (+-").append(tolerance).append(")");
         return buf.toString();

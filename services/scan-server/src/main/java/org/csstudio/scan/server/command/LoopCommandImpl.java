@@ -36,7 +36,6 @@ import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
 import org.csstudio.scan.server.log.DataLog;
 import org.csstudio.scan.util.PVReference;
-import org.epics.vtype.VDouble;
 import org.epics.vtype.VType;
 import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.util.time.TimeDuration;
@@ -111,12 +110,12 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
         if (command.getWait()  &&  command.getReadback().length() > 0)
             device_names.add(macros.resolveMacros(command.getReadback()));
         // If start/end/step are PV references, those PVs must also be opened
-        if (command.getStart() instanceof PVReference)
-            device_names.add(macros.resolveMacros(((PVReference) command.getStart()).getPVName()));
-        if (command.getEnd() instanceof PVReference)
-            device_names.add(macros.resolveMacros(((PVReference) command.getEnd()).getPVName()));
-        if (command.getStepSize() instanceof PVReference)
-            device_names.add(macros.resolveMacros(((PVReference) command.getStepSize()).getPVName()));
+        if (command.getStart() instanceof PVReference pvReference)
+            device_names.add(macros.resolveMacros(pvReference.getPVName()));
+        if (command.getEnd() instanceof PVReference pvReference)
+            device_names.add(macros.resolveMacros(pvReference.getPVName()));
+        if (command.getStepSize() instanceof PVReference pvReference)
+            device_names.add(macros.resolveMacros(pvReference.getPVName()));
         for (ScanCommandImpl<?> command : implementation)
         {
             final String[] names = command.getDeviceNames(macros);
@@ -135,12 +134,12 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
      */
     private double resolveDouble(final Object value, final ScanContext context) throws Exception
     {
-        if (value instanceof PVReference)
+        if (value instanceof PVReference pvReference)
         {
-            final Device ref_device = context.getDevice(
-                    context.getMacros().resolveMacros(((PVReference) value).getPVName()));
+            final Device refDevice = context.getDevice(
+                context.getMacros().resolveMacros(pvReference.getPVName()));
             return VTypeHelper.toDouble(
-                    ref_device.read(org.csstudio.scan.server.ScanServerInstance.getScanConfig().getReadTimeout()));
+                refDevice.read(org.csstudio.scan.server.ScanServerInstance.getScanConfig().getReadTimeout()));
         }
         return ((Number) value).doubleValue();
     }
@@ -231,53 +230,77 @@ public class LoopCommandImpl extends ScanCommandImpl<LoopCommand>
     public void execute(final ScanContext context) throws Exception
     {
         final Device device = context.getDevice(context.getMacros().resolveMacros(command.getDeviceName()));
+        final Device readback = resolveReadbackDevice(context, device);
+        final LoopExecutionState loop = resolveLoopExecutionState(context);
+        final NumericValueCondition condition = createWaitCondition(readback, loop.resolvedStart);
 
-        // Separate read-back device, or use 'set' device?
-        final Device readback;
-        if (command.getReadback().isEmpty())
-            readback = device;
-        else
-            readback = context.getDevice(context.getMacros().resolveMacros(command.getReadback()));
-
-        // Resolve start/end/step — read PV values if they are PVReferences
-        final double resolvedStart = resolveDouble(command.getStart(), context);
-        final double resolvedEnd   = resolveDouble(command.getEnd(), context);
-        final double resolvedStep  = resolveDouble(command.getStepSize(), context);
-
-        //  Wait for the device to reach the value?
-        final NumericValueCondition condition;
-        if (command.getWait())
+        for (int i = 0; i < loop.numSteps; i++)
         {
-            // When using completion, readback needs to match "right away"
-            final double check_timeout = command.getCompletion() ? 1.0 : command.getTimeout();
-            condition = new NumericValueCondition(readback, Comparison.EQUALS,
-                        resolvedStart,
-                        command.getTolerance(),
-                        TimeDuration.ofSeconds(check_timeout));
+            final double targetValue = loop.start + i * loop.step;
+            executeStep(context, device, condition, readback, targetValue);
+            // check if inside the loop, the device was set to a value that ends the loop
+            final VType value = device.read();
+            if (shouldStopLoop(value, loop.step, loop.loopMin, loop.loopMax))
+                break;
         }
-        else
-            condition = null;
+    }
+
+    private Device resolveReadbackDevice(final ScanContext context, final Device device) throws Exception
+    {
+        if (command.getReadback().isEmpty())
+            return device;
+        return context.getDevice(context.getMacros().resolveMacros(command.getReadback()));
+    }
+
+    private NumericValueCondition createWaitCondition(final Device readback, final double resolvedStart)
+    {
+        if (!command.getWait())
+            return null;
+        final double check_timeout = command.getCompletion() ? 1.0 : command.getTimeout();
+        return new NumericValueCondition(readback, Comparison.EQUALS,
+                resolvedStart,
+                command.getTolerance(),
+                TimeDuration.ofSeconds(check_timeout));
+    }
+
+    private LoopExecutionState resolveLoopExecutionState(final ScanContext context) throws Exception
+    {
+        final double resolvedStart = resolveDouble(command.getStart(), context);
+        final double resolvedEnd = resolveDouble(command.getEnd(), context);
+        final double resolvedStep = resolveDouble(command.getStepSize(), context);
 
         final double loopMin = Math.min(resolvedStart, resolvedEnd);
         final double loopMax = Math.max(resolvedStart, resolvedEnd);
-        final int num_steps = (int) Math.ceil(Math.abs((resolvedEnd - resolvedStart) / resolvedStep)) + 1;
+        final int numSteps = (int) Math.ceil(Math.abs((resolvedEnd - resolvedStart) / resolvedStep)) + 1;
         final double step = direction * resolvedStep;
         final double start = step < 0 ? loopMax : loopMin;
+        return new LoopExecutionState(resolvedStart, loopMin, loopMax, numSteps, step, start);
+    }
 
-        for (int i = 0; i < num_steps; i++) {
-            executeStep(context, device, condition, readback, start + i * step);
-            // check if inside the loop, the device was set to a value that ends the loop
-            final VType value = device.read();
-            if (step < 0)
-            {
-                if (VTypeHelper.toDouble(value) < loopMin) // there isn't a tolerance
-                    break;
-            }
-            else
-            {
-                if (VTypeHelper.toDouble(value) > loopMax) // there isn't a tolerance
-                    break;
-            }
+    private boolean shouldStopLoop(final VType value, final double step, final double loopMin, final double loopMax)
+    {
+        final double currentValue = VTypeHelper.toDouble(value);
+        return step < 0 ? currentValue < loopMin : currentValue > loopMax;
+    }
+
+    private static class LoopExecutionState
+    {
+        private final double resolvedStart;
+        private final double loopMin;
+        private final double loopMax;
+        private final int numSteps;
+        private final double step;
+        private final double start;
+
+        private LoopExecutionState(final double resolvedStart, final double loopMin, final double loopMax,
+                final int numSteps, final double step, final double start)
+        {
+            this.resolvedStart = resolvedStart;
+            this.loopMin = loopMin;
+            this.loopMax = loopMax;
+            this.numSteps = numSteps;
+            this.step = step;
+            this.start = start;
         }
     }
 
