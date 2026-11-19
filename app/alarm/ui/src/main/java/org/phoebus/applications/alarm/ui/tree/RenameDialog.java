@@ -18,6 +18,7 @@ import org.phoebus.applications.alarm.ui.Messages;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 public class RenameDialog extends Dialog<String> {
@@ -45,7 +46,10 @@ public class RenameDialog extends Dialog<String> {
             getDialogPane().lookupButton(ButtonType.OK).setDisable(newError != null);
         };
 
-        final Set<String> allPvs = getAllPvs(model.getRoot()); // Done once at start so we don't have to keep calling it in listener
+        final Set<String> allPvs = AlarmTreeHelper.getLeafItems(model.getRoot())
+                .stream()
+                .map(AlarmTreeItem::getName)
+                .collect(Collectors.toSet()); // Done once at start so we don't have to keep calling it in listener
         input.textProperty().addListener(_ -> {
             // Show error and disable OK if text is empty
             if (input.getText().isEmpty()) {
@@ -72,18 +76,5 @@ public class RenameDialog extends Dialog<String> {
 
         input.setText(item.getName());
         errorLabel.setText(""); // It can be confusing if an error is shown immediately when the UI loads
-    }
-
-    /** Recursively finds all the PVs in a config and adds them to `pvs`  */
-    private static Set<String> getAllPvs(final AlarmTreeItem<?> item) {
-        final Set<String> pvs = new HashSet<>();
-        if (item instanceof AlarmClientLeaf) {
-            pvs.add(item.getName());
-        } else {
-            for (final AlarmTreeItem<?> child : item.getChildren()) {
-                pvs.addAll(getAllPvs(child));
-            }
-        }
-        return pvs;
     }
 }

@@ -52,6 +52,7 @@ public class Messages
     public static String moveItemFailed;
     public static String nameCannotBeEmpty;
     public static String nodeAlreadyExists;
+    public static String nodePvsAlreadyExist;
     public static String pasteItem;
     public static String pasteItemFailed;
     public static String promptTitle;

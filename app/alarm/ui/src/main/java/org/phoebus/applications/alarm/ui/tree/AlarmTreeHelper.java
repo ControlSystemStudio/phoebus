@@ -54,27 +54,6 @@ public class AlarmTreeHelper
 		}
 	}
 
-	/** Moves the provided item and all its children to a new path.
-	 *
-	 *  @param model AlarmClient used to communicate to the AlarmServer
-	 *  @param item AlarmTreeItem to move
-	 *  @param path Path that the parents' children will now be located at.
-	 *  @param removeOldItem Whether the old item should be removed once it is moved
-	 */
-	public static void moveItem(AlarmClient model, AlarmTreeItem<?> item, String newPath, boolean removeOldItem) throws Exception
-	{
-		// Add the new item
-		model.sendItemConfigurationUpdate(newPath, item);
-		// ...and rebuild all its children
-		if (item instanceof AlarmClientNode) {
-			rebuildTree(model, item, newPath);
-		}
-		// Remove the item and all its children
-		if (removeOldItem) {
-			model.removeComponent(item);
-		}
-	}
-
 	/** Validate the passed path string by checking if the path name is valid.
 	 *
 	 *  <p> A path name is considered valid if the path to the item's new location exists in the tree,

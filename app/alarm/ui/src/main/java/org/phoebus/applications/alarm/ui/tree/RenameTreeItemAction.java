@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
@@ -54,7 +55,14 @@ class RenameTreeItemAction extends MenuItem
 				final AlarmTreeItem<BasicState> parent = item.getParent();
 				try {
 					final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
-					AlarmTreeHelper.moveItem(model, item, new_path, true);
+					// Add the new item
+					model.sendItemConfigurationUpdate(new_path, item);
+					// ...and rebuild all its children
+					if (item instanceof AlarmClientNode) {
+						AlarmTreeHelper.rebuildTree(model, item, new_path);
+					}
+					// Remove the item and all its children
+					model.removeComponent(item);
 				} catch (final Exception ex) {
 					ExceptionDetailsErrorDialog.openError(Messages.error,
 							Messages.renameItemFailed,

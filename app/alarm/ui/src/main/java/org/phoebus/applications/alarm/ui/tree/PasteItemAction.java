@@ -3,9 +3,11 @@ package org.phoebus.applications.alarm.ui.tree;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TreeItem;
+import javafx.scene.layout.VBox;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -19,6 +21,8 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import java.text.MessageFormat;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @SuppressWarnings("nls")
@@ -34,16 +38,18 @@ public class PasteItemAction extends MenuItem
     public PasteItemAction(
             final Node node,
             final AlarmClient model,
-            final AlarmTreeItem<?> parent,
+            final TreeItem<AlarmTreeItem<?>> viewParent,
             final SimpleObjectProperty<AlarmTreeItem<?>> clipboard,
             final boolean isCut)
     {
         super(Messages.pasteItem, ImageCache.getImageView(AlarmSystem.class, "/icons/paste.png"));
 
-        setDisable(clipboard.get() == null);
+        final AlarmTreeItem<?> parent = viewParent.getValue();
+
+        setDisable(clipboard.get() == null || isCut && parent.getPathName().equals(clipboard.get().getParent().getPathName()));
 
         setOnAction(event -> {
-            AlarmTreeItem<?> item = clipboard.get();
+            final AlarmTreeItem<?> item = clipboard.get();
             final String itemName = item.getName();
 
             // Cross-config cut/paste is forbidden. (Why? User cuts from config A -> switches to
@@ -61,7 +67,7 @@ public class PasteItemAction extends MenuItem
             }
 
             // Cutting+pasting a node into one of its children is forbidden for obvious reasons
-            if (parent.getPathName().startsWith(item.getPathName() + "/")) {
+            if (isCut && (parent.getPathName().equals(item.getPathName()) || parent.getPathName().startsWith(item.getPathName() + "/"))) {
                 final Alert alert = new Alert(Alert.AlertType.ERROR);
                 DialogHelper.positionDialog(alert, node, -100, -50);
                 alert.setTitle(Messages.pasteItemFailed);
@@ -70,40 +76,78 @@ public class PasteItemAction extends MenuItem
                 return;
             }
 
-            // Get new name
-            final RenameDialog renameDialog = new RenameDialog(model, parent, item);
-            renameDialog.setHeaderText(MessageFormat.format(Messages.enterNewName, parent.getName(), item.getName()));
-            DialogHelper.positionDialog(renameDialog, node, -100, -50);
-            final Optional<String> name = renameDialog.showAndWait();
-            if (!name.isPresent()) {
-                return;
+            // Figure out if this item needs renaming
+            final boolean needsRename;
+            final Set<String> allPvsInNewConfig = AlarmTreeHelper.getLeafItems(model.getRoot())
+                    .stream()
+                    .map(AlarmTreeItem::getName)
+                    .collect(Collectors.toSet());
+            if (item instanceof AlarmClientNode) {
+                // Needs to be renamed if new name matches any child
+                needsRename = parent.getChildren().stream().anyMatch(child -> item.getName().equals(child.getName()));
+            } else {
+                // Needs to be renamed if we are not cutting and the PV already exists in the config
+                needsRename = !isCut && allPvsInNewConfig.contains(item.getName());
             }
-            final String newName = name.get();
 
-            // Prompt user whether they want to paste the children too
-            if (item instanceof final AlarmClientNode alarmNode && !alarmNode.getChildren().isEmpty()) {
-                final Dialog<ButtonType> dialog = new Dialog<>();
-                DialogHelper.positionDialog(dialog, node, -100, -50);
-                dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.NO, ButtonType.YES);
-                dialog.setTitle(Messages.copyChildrenDialogTitle);
-                dialog.setHeaderText(Messages.copyChildrenDialogHeader);
-
-                final ButtonType result = dialog.showAndWait().orElse(null);
-                if (result == null || result == ButtonType.CANCEL) {
+            // Get final name
+            final String finalName;
+            if (needsRename) {
+                final RenameDialog renameDialog = new RenameDialog(model, parent, item);
+                renameDialog.setHeaderText(MessageFormat.format(Messages.enterNewName, parent.getName(), item.getName()));
+                DialogHelper.positionDialog(renameDialog, node, -100, -50);
+                final Optional<String> name = renameDialog.showAndWait();
+                if (!name.isPresent()) {
                     return;
                 }
-                if (result == ButtonType.NO) {
-                    item = alarmNode.createDetachedCopy();
+                finalName = name.get();
+            } else {
+                finalName = item.getName();
+            }
+
+            // Special case: if a node is pasted across configs, some of the PVs in that node
+            // may already exist. But the user still may have intended to copy across all the
+            // PVs and so we should not just fail silently. Best-effort copying is unlikely
+            // to be helpful here, and likely to cause unintended behaviour, so we do not offer
+            // that option and just display an error instead.
+            if (!itemConfig.equals(modelConfig) && item instanceof AlarmClientNode) {
+                final Set<String> duplicatePvs = AlarmTreeHelper.getLeafItems(item)
+                        .stream()
+                        .map(AlarmTreeItem::getName)
+                        .collect(Collectors.toSet());
+                duplicatePvs.retainAll(allPvsInNewConfig);
+                if (!duplicatePvs.isEmpty()) {
+                    final Alert alert = new Alert(Alert.AlertType.ERROR);
+                    DialogHelper.positionDialog(alert, node, -100, -50);
+                    alert.setTitle(Messages.pasteItemFailed);
+                    alert.setHeaderText(Messages.nodePvsAlreadyExist);
+                    final VBox pvPane = new VBox();
+                    for (final String pv : duplicatePvs) {
+                        pvPane.getChildren().add(new Label(pv));
+                    }
+                    final ScrollPane scrollPane = new ScrollPane(pvPane);
+                    scrollPane.setPrefHeight(400.0);
+                    alert.getDialogPane().setContent(scrollPane);
+                    alert.show();
+                    return;
                 }
             }
 
+            // Expand the node which we're adding to in anticipation of new children being added
+            viewParent.setExpanded(true);
+
             // Finally paste the item (on a separate thread of course)
-            // lambda variables must be final
-            final AlarmTreeItem<?> finalItem = item;
+            final AlarmTreeItem<?> finalItem = item; // lambda variables must be final
             JobManager.schedule("Paste alarm tree item", _ -> {
                 try {
-                    final String newPath = AlarmTreePath.makePath(parent.getPathName(), newName);
-                    AlarmTreeHelper.moveItem(model, finalItem, newPath, isCut);
+                    final String newPath = AlarmTreePath.makePath(parent.getPathName(), finalName);
+                    model.sendItemConfigurationUpdate(newPath, item);
+                    if ((isCut || !itemConfig.equals(modelConfig)) && item instanceof AlarmClientNode) {
+                        AlarmTreeHelper.rebuildTree(model, item, newPath);
+                    }
+                    if (isCut) {
+                        model.removeComponent(item);
+                    }
                 } catch (final Exception ex) {
                     ExceptionDetailsErrorDialog.openError(Messages.error, Messages.pasteItemFailed, ex);
                 }

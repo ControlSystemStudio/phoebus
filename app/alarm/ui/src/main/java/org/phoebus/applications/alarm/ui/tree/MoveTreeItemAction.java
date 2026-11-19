@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.ui.Messages;
@@ -75,7 +76,14 @@ public class MoveTreeItemAction extends MenuItem
             JobManager.schedule(getText(), monitor ->
             {
 				try {
-					AlarmTreeHelper.moveItem(model, item, new_path, true);
+					// Add the new item
+					model.sendItemConfigurationUpdate(new_path, item);
+					// ...and rebuild all its children
+					if (item instanceof AlarmClientNode) {
+						AlarmTreeHelper.rebuildTree(model, item, new_path);
+					}
+					// Remove the item and all its children
+					model.removeComponent(item);
 				} catch (Exception e) {
 					ExceptionDetailsErrorDialog.openError(Messages.error,
 							Messages.moveItemFailed,
