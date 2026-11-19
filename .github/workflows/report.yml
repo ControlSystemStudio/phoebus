@@ -29,7 +29,7 @@ jobs:
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ github.token }}
     - name: Publish test report
-      uses: mikepenz/action-junit-report@6ef3fdcfcd5f0b5d14df3e659ef19b8c6820f93d
+      uses: mikepenz/action-junit-report@a16be3a69023e9bd7e748ede768b3282ea7b30ce
       with:
         report_paths: '**/TEST-*.xml'
         commit: ${{ github.event.workflow_run.head_sha }}
