@@ -46,10 +46,7 @@ public class RenameDialog extends Dialog<String> {
             getDialogPane().lookupButton(ButtonType.OK).setDisable(newError != null);
         };
 
-        final Set<String> allPvs = AlarmTreeHelper.getLeafItems(model.getRoot())
-                .stream()
-                .map(AlarmTreeItem::getName)
-                .collect(Collectors.toSet()); // Done once at start so we don't have to keep calling it in listener
+        final Set<String> allPvs = AlarmTreeHelper.getLeafNames(model.getRoot());
         input.textProperty().addListener(_ -> {
             // Show error and disable OK if text is empty
             if (input.getText().isEmpty()) {

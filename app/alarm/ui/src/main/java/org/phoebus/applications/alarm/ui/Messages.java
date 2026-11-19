@@ -23,8 +23,6 @@ public class Messages
     public static String commands;
     public static String configure;
     public static String cutPasteAcrossConfigs;
-    public static String copyChildrenDialogTitle;
-    public static String copyChildrenDialogHeader;
     public static String cutPasteIntoChild;
     public static String delayTooltip0;
     public static String delayTooltip1;
@@ -40,6 +38,7 @@ public class Messages
     public static String displays;
     public static String enableAlarmFailed;
     public static String enableAlarms;
+    public static String enterNameForDuplicate;
     public static String enterNewName;
     public static String guidance;
     public static String headerAlreadyDisabled;

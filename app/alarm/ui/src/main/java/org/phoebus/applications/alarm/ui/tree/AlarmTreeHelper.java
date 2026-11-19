@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
-import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.ui.Messages;
@@ -127,6 +126,18 @@ public class AlarmTreeHelper
 		else {
 			return alarmTreeItem.getChildren().stream().flatMap(child -> streamLeafItems(child));
 		}
+	}
+
+	/**
+	 * Collects the names of {@link AlarmClientLeaf}s items.
+	 * @param root The start node from where to get {@link AlarmClientLeaf}s. If this is an {@link AlarmClientLeaf}, it
+	 *             will be returned as the sole item in the {@link Set}
+	 * @return A {@link Set} of the names of all {@link AlarmClientLeaf}s.
+	 */
+	public static Set<String> getLeafNames(final AlarmTreeItem<?> root) {
+		return streamLeafItems(root)
+				.map(AlarmTreeItem::getName)
+				.collect(Collectors.toSet());
 	}
 
 	/**

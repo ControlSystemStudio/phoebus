@@ -52,12 +52,14 @@ public class PasteItemAction extends MenuItem
             final AlarmTreeItem<?> item = clipboard.get();
             final String itemName = item.getName();
 
+            final String itemConfig = AlarmTreePath.splitPath(item.getPathName())[0];
+            final String modelConfig = AlarmTreePath.splitPath(model.getRoot().getPathName())[0];
+            final boolean isCrossConfig = !itemConfig.equals(modelConfig);
+
             // Cross-config cut/paste is forbidden. (Why? User cuts from config A -> switches to
             // config B -> pastes to config B -> config A is no longer loaded so how can we remove
             // the old item?)
-            final String itemConfig = AlarmTreePath.splitPath(item.getPathName())[0];
-            final String modelConfig = AlarmTreePath.splitPath(model.getRoot().getPathName())[0];
-            if (isCut && !itemConfig.equals(modelConfig)) {
+            if (isCut && isCrossConfig) {
                 final Alert alert = new Alert(Alert.AlertType.ERROR);
                 DialogHelper.positionDialog(alert, node, -100, -50);
                 alert.setTitle(Messages.pasteItemFailed);
@@ -67,7 +69,9 @@ public class PasteItemAction extends MenuItem
             }
 
             // Cutting+pasting a node into one of its children is forbidden for obvious reasons
-            if (isCut && (parent.getPathName().equals(item.getPathName()) || parent.getPathName().startsWith(item.getPathName() + "/"))) {
+            final boolean isPasteIntoSelf = parent.getPathName().equals(item.getPathName());
+            final boolean isPasteIntoChild = parent.getPathName().startsWith(item.getPathName() + "/");
+            if (isCut && (isPasteIntoSelf || isPasteIntoChild)) {
                 final Alert alert = new Alert(Alert.AlertType.ERROR);
                 DialogHelper.positionDialog(alert, node, -100, -50);
                 alert.setTitle(Messages.pasteItemFailed);
@@ -78,15 +82,12 @@ public class PasteItemAction extends MenuItem
 
             // Figure out if this item needs renaming
             final boolean needsRename;
-            final Set<String> allPvsInNewConfig = AlarmTreeHelper.getLeafItems(model.getRoot())
-                    .stream()
-                    .map(AlarmTreeItem::getName)
-                    .collect(Collectors.toSet());
+            final Set<String> allPvsInNewConfig = AlarmTreeHelper.getLeafNames(model.getRoot());
             if (item instanceof AlarmClientNode) {
                 // Needs to be renamed if new name matches any child
                 needsRename = parent.getChildren().stream().anyMatch(child -> item.getName().equals(child.getName()));
             } else {
-                // Needs to be renamed if we are not cutting and the PV already exists in the config
+                // Needs to be renamed if pasting would result in a duplicate PV
                 needsRename = !isCut && allPvsInNewConfig.contains(item.getName());
             }
 
@@ -110,23 +111,23 @@ public class PasteItemAction extends MenuItem
             // PVs and so we should not just fail silently. Best-effort copying is unlikely
             // to be helpful here, and likely to cause unintended behaviour, so we do not offer
             // that option and just display an error instead.
-            if (!itemConfig.equals(modelConfig) && item instanceof AlarmClientNode) {
-                final Set<String> duplicatePvs = AlarmTreeHelper.getLeafItems(item)
-                        .stream()
-                        .map(AlarmTreeItem::getName)
-                        .collect(Collectors.toSet());
+            if (isCrossConfig && item instanceof AlarmClientNode) {
+                final Set<String> duplicatePvs = AlarmTreeHelper.getLeafNames(item);
                 duplicatePvs.retainAll(allPvsInNewConfig);
+
                 if (!duplicatePvs.isEmpty()) {
                     final Alert alert = new Alert(Alert.AlertType.ERROR);
                     DialogHelper.positionDialog(alert, node, -100, -50);
                     alert.setTitle(Messages.pasteItemFailed);
                     alert.setHeaderText(Messages.nodePvsAlreadyExist);
+
                     final VBox pvPane = new VBox();
                     for (final String pv : duplicatePvs) {
                         pvPane.getChildren().add(new Label(pv));
                     }
                     final ScrollPane scrollPane = new ScrollPane(pvPane);
                     scrollPane.setPrefHeight(400.0);
+
                     alert.getDialogPane().setContent(scrollPane);
                     alert.show();
                     return;
@@ -142,11 +143,13 @@ public class PasteItemAction extends MenuItem
                 try {
                     final String newPath = AlarmTreePath.makePath(parent.getPathName(), finalName);
                     model.sendItemConfigurationUpdate(newPath, item);
-                    if ((isCut || !itemConfig.equals(modelConfig)) && item instanceof AlarmClientNode) {
-                        AlarmTreeHelper.rebuildTree(model, item, newPath);
-                    }
                     if (isCut) {
+                        // If we're cutting, there's never any risk of duplicate PVs so we can copy all the children too
+                        AlarmTreeHelper.rebuildTree(model, item, newPath);
                         model.removeComponent(item);
+                    } else if (isCrossConfig && item instanceof AlarmClientNode) {
+                        // Cross-config pasting should copy all the children
+                        AlarmTreeHelper.rebuildTree(model, item, newPath);
                     }
                 } catch (final Exception ex) {
                     ExceptionDetailsErrorDialog.openError(Messages.error, Messages.pasteItemFailed, ex);

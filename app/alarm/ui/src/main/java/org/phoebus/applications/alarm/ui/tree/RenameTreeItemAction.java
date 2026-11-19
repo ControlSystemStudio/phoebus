@@ -49,6 +49,10 @@ class RenameTreeItemAction extends MenuItem
 			if (new_name == null)
 				return;
 
+			// Tree view keeps the selection indices, which will point to wrong content
+			// after those items have been removed
+			node.getSelectionModel().clearSelection();
+
 			// Delete old, rebuild child links, and add new name in background thread.
 			JobManager.schedule(getText(), monitor ->
 			{
